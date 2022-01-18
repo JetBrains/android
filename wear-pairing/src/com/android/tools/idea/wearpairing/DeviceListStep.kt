@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.adtui.util.HelpTooltipForList
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -79,7 +80,7 @@ import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
 
-class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val wizardAction: WizardAction) :
+class DeviceListStep(model: WearDevicePairingModel, private val project: Project?, private val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
   private val phoneListPanel = createDeviceListPanel(
@@ -276,7 +277,9 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
         }
       }
 
-      addRightClickAction()
+      if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+        addRightClickAction()
+      }
     }
   }
 
@@ -419,8 +422,10 @@ private fun PairingDevice.isDisabled(): Boolean {
 }
 
 private fun PairingDevice.getTooltip(): String? {
-  WearPairingManager.getPairedDevices(deviceID)?.apply {
-    return "Paired with ${getPeerDevice(deviceID).displayName}"
+  if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+    WearPairingManager.getPairedDevices(deviceID)?.apply {
+      return "Paired with ${getPeerDevice(deviceID).displayName}"
+    }
   }
 
   return when {

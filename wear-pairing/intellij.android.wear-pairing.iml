@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>
