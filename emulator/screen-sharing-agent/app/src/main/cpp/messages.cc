@@ -28,6 +28,9 @@ unique_ptr<Message> Message::deserialize(Base128InputStream& stream) {
     case MouseEventMessage::TYPE:
       return unique_ptr<Message>(MouseEventMessage::deserialize(stream));
 
+    case MotionEventMessage::TYPE:
+      return unique_ptr<Message>(MotionEventMessage::deserialize(stream));
+
     case KeyEventMessage::TYPE:
       return unique_ptr<Message>(KeyEventMessage::deserialize(stream));
 
@@ -51,6 +54,24 @@ MouseEventMessage* MouseEventMessage::deserialize(Base128InputStream& stream) {
   uint32_t buttons = stream.ReadUInt32();
   int32_t display_id = stream.ReadInt32();
   return new MouseEventMessage(x, y, buttons, display_id);
+}
+
+MotionEventMessage* MotionEventMessage::deserialize(Base128InputStream& stream) {
+  uint32_t n = stream.ReadUInt32();
+  vector<Pointer> pointers(n);
+  for (auto i = 0; i < n; i++) {
+    Pointer& pointer = pointers.at(i);
+    pointer.x = stream.ReadInt32();
+    pointer.y = stream.ReadInt32();
+    pointer.pointer_id = stream.ReadInt32();
+  }
+  if (n > MAX_POINTERS) {
+    Log::W("Motion event with %d pointers, pointers after first %d are ignored)", n, MAX_POINTERS);
+    pointers.resize(MAX_POINTERS);
+  }
+  int32_t action = stream.ReadInt32();
+  int32_t display_id = stream.ReadInt32();
+  return new MotionEventMessage(move(pointers), action, display_id);
 }
 
 KeyEventMessage* KeyEventMessage::deserialize(Base128InputStream& stream) {

@@ -44,12 +44,19 @@ private:
     int32_t pointer_id;
     int64_t press_time_millis;
     Point last_location;
+
+    PressedPointer(int32_t pointer_id, int64_t press_time_millis, int32_t x, int32_t y)
+        : pointer_id(pointer_id),
+          press_time_millis(press_time_millis),
+          last_location({x, y}) {
+    }
   };
 
   void Initialize();
   void Run();
   void ProcessMessage(const Message& message);
   void ProcessMouseEvent(const MouseEventMessage& message);
+  void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
   void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
@@ -63,6 +70,7 @@ private:
   PointerHelper* pointer_helper_;
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
+  int64_t motion_event_start_time_;
   std::vector<PressedPointer> pressed_pointers_;
   KeyCharacterMap* key_character_map_;
 

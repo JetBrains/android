@@ -27,8 +27,6 @@
 
 namespace screensharing {
 
-constexpr int MAX_TOUCHES = 2;
-
 // Common base class of all control messages.
 class Message {
 public:
@@ -90,7 +88,59 @@ private:
   DISALLOW_COPY_AND_ASSIGN(MouseEventMessage);
 };
 
-// TYPE = 1 is reserved for a multi-touch control message.
+// Represents an Android MotionEvent.
+class MotionEventMessage : Message {
+public:
+  struct Pointer {
+    Pointer(int32_t x, int32_t y, int32_t pointer_id)
+        : x(x),
+          y(y),
+          pointer_id(pointer_id) {
+    }
+    Pointer() = default;
+
+    // The horizontal coordinate of a touch corresponding to the display in its original orientation.
+    int32_t x;
+    // The vertical coordinate of a touch corresponding to the display in its original orientation.
+    int32_t y;
+    // The ID of the touch that stays the same when the touch point moves.
+    int32_t pointer_id;
+  };
+
+  // Pointers are expected to be ordered according to their ids.
+  // The action translates directly to android.view.MotionEvent.action.
+  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t display_id)
+      : Message(TYPE),
+        pointers_(pointers),
+        action_(action),
+        display_id_(display_id) {
+  }
+  virtual ~MotionEventMessage() {};
+
+  // The touches, one for each finger. The pointers are ordered according to their ids.
+  const std::vector<Pointer>& get_pointers() const { return pointers_; }
+
+  // The action. See android.view.MotionEvent.action.
+  int32_t get_action() const { return action_; }
+
+  // The display device where the mouse event occurred. Zero indicates the main display.
+  int32_t get_display_id() const { return display_id_; }
+
+  static constexpr int TYPE = 1;
+
+  static constexpr int MAX_POINTERS = 2;
+
+private:
+  friend class Message;
+
+  static MotionEventMessage* deserialize(Base128InputStream& stream);
+
+  const std::vector<Pointer> pointers_;
+  const int32_t action_;
+  const int32_t display_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(MotionEventMessage);
+};
 
 // Represents a key being pressed or released on a keyboard.
 class KeyEventMessage : Message {

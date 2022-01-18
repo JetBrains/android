@@ -47,6 +47,7 @@ Controller::Controller(int socket_fd)
       thread_(),
       input_manager_(),
       pointer_helper_(),
+      motion_event_start_time_(0),
       key_character_map_() {
   assert(socket_fd > 0);
 }
@@ -79,10 +80,10 @@ void Controller::Shutdown() {
 void Controller::Initialize() {
   input_manager_ = new InputManager(jni_);
   pointer_helper_ = new PointerHelper(jni_);
-  pointer_properties_ = pointer_helper_->NewPointerPropertiesArray(MAX_TOUCHES);
-  pointer_coordinates_ = pointer_helper_->NewPointerCoordsArray(MAX_TOUCHES);
+  pointer_properties_ = pointer_helper_->NewPointerPropertiesArray(MotionEventMessage::MAX_POINTERS);
+  pointer_coordinates_ = pointer_helper_->NewPointerCoordsArray(MotionEventMessage::MAX_POINTERS);
 
-  for (int i = 0; i < MAX_TOUCHES; ++i) {
+  for (int i = 0; i < MotionEventMessage::MAX_POINTERS; ++i) {
     JObject properties = pointer_helper_->NewPointerProperties();
     pointer_properties_.SetElement(i, properties);
     JObject coords = pointer_helper_->NewPointerCoords();
@@ -114,6 +115,10 @@ void Controller::ProcessMessage(const Message& message) {
   switch (message.get_type()) {
     case MouseEventMessage::TYPE:
       ProcessMouseEvent((const MouseEventMessage&) message);
+      break;
+
+    case MotionEventMessage::TYPE:
+      ProcessMotionEvent((const MotionEventMessage&) message);
       break;
 
     case KeyEventMessage::TYPE:
@@ -151,11 +156,11 @@ void Controller::ProcessMouseEvent(const MouseEventMessage& message) {
     if (pressure == 0) {
       return;
     }
-    event.down_time_millis = 0;
+    event.down_time_millis = now;
     event.action = AMOTION_EVENT_ACTION_DOWN;
-    pressed_pointers_.push_back(PressedPointer { pointer_id, now, Point(message.get_x(), message.get_y()) });
+    pressed_pointers_.emplace_back(pointer_id, now, message.get_x(), message.get_y());
   } else {
-    event.down_time_millis = now - pressed_pointer->press_time_millis;
+    event.down_time_millis = pressed_pointer->press_time_millis;
     if (pressure != 0) {
       event.action = AMOTION_EVENT_ACTION_MOVE;
     } else {
@@ -174,6 +179,59 @@ void Controller::ProcessMouseEvent(const MouseEventMessage& message) {
   event.pointer_coordinates = pointer_coordinates_;
   JObject motion_event = event.ToJava();
   input_manager_->InjectInputEvent(motion_event, InputEventInjectionSync::NONE);
+}
+
+void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
+  int64_t now = UptimeMillis();
+  MotionEvent event(jni_);
+  event.display_id = message.get_display_id();
+  int32_t action = message.get_action();
+  event.action = action;
+  event.event_time_millis = now;
+  if (action == AMOTION_EVENT_ACTION_DOWN) {
+    motion_event_start_time_ = now;
+  }
+  if (motion_event_start_time_ == 0) {
+    Log::W("Motion event started with action %d instead of expected %d", action, AMOTION_EVENT_ACTION_DOWN);
+    motion_event_start_time_ = now;
+  }
+  event.down_time_millis = motion_event_start_time_;
+  if (action == AMOTION_EVENT_ACTION_UP) {
+    motion_event_start_time_ = 0;
+  }
+
+  for (auto& pointer : message.get_pointers()) {
+    JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
+    pointer_helper_->SetPointerId(properties, pointer.pointer_id);
+    JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
+    pointer_helper_->SetPointerCoords(coordinates, pointer.x, pointer.y);
+    float pressure =
+        (action == AMOTION_EVENT_ACTION_POINTER_UP && event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
+    pointer_helper_->SetPointerPressure(coordinates, pressure);
+    event.pointer_count++;
+  }
+
+  event.pointer_properties = pointer_properties_;
+  event.pointer_coordinates = pointer_coordinates_;
+  // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
+  // They have to be converted to a sequence of pointer-specific events.
+  if (action == AMOTION_EVENT_ACTION_DOWN) {
+    for (int i = 1; i < message.get_pointers().size(); i++) {
+      event.pointer_count = i;
+      input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+      event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (event.pointer_count << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+    }
+  }
+  else if (action == AMOTION_EVENT_ACTION_UP) {
+    for (int i = event.pointer_count; --i > 1;) {
+      event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+      pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
+      input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+      event.pointer_count = i;
+    }
+    event.action = AMOTION_EVENT_ACTION_UP;
+  }
+  input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
 }
 
 void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
