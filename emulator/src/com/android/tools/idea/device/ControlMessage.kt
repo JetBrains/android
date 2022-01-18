@@ -35,54 +35,84 @@ sealed class ControlMessage(val type: Int) {
   companion object : Deserializer() {
     override fun deserialize(stream: Base128InputStream): ControlMessage {
       return when (val type = stream.readInt()) {
-        MouseEventMessage.type -> MouseEventMessage.deserialize(stream)
-        KeyEventMessage.type -> KeyEventMessage.deserialize(stream)
-        TextInputMessage.type -> TextInputMessage.deserialize(stream)
-        SetDeviceOrientationMessage.type -> SetDeviceOrientationMessage.deserialize(stream)
-        SetMaxVideoResolutionMessage.type -> SetMaxVideoResolutionMessage.deserialize(stream)
+        MotionEventMessage.TYPE -> MotionEventMessage.deserialize(stream)
+        KeyEventMessage.TYPE -> KeyEventMessage.deserialize(stream)
+        TextInputMessage.TYPE -> TextInputMessage.deserialize(stream)
+        SetDeviceOrientationMessage.TYPE -> SetDeviceOrientationMessage.deserialize(stream)
+        SetMaxVideoResolutionMessage.TYPE -> SetMaxVideoResolutionMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
   }
 }
 
-/** Represents a mouse button being pressed or released or a mouse being moved. */
-internal data class MouseEventMessage(
-  val x: Int,
-  val y: Int,
-  val buttonMask: Int,
+/** Represents an Android [MotionEvent](https://developer.android.com/reference/android/view/MotionEvent). */
+internal data class MotionEventMessage(
+  val pointers: List<Pointer>,
+  val action: Int,
   val displayId: Int
-) : ControlMessage(type) {
+) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
-    stream.writeInt(x)
-    stream.writeInt(y)
-    stream.writeInt(buttonMask)
+    stream.writeInt(pointers.size)
+    for (pointer in pointers) {
+      pointer.serialize(stream)
+    }
+    stream.writeInt(action)
     stream.writeInt(displayId)
   }
 
   companion object : Deserializer() {
-    const val type = 0
+    const val TYPE = 1
+
+    // Constants from android.view.MotionEvent.
+    const val ACTION_DOWN = 0
+    const val ACTION_UP = 1
+    const val ACTION_MOVE = 2
+    const val ACTION_CANCEL = 3
+    const val ACTION_OUTSIDE = 4
+    const val ACTION_POINTER_DOWN = 5
+    const val ACTION_POINTER_UP = 6
+    const val ACTION_MASK = 0xff
+    const val ACTION_POINTER_INDEX_MASK = 0xff00
+    const val ACTION_POINTER_INDEX_SHIFT = 8
 
     override fun deserialize(stream: Base128InputStream): ControlMessage {
+      val n = stream.readInt()
+      val pointers = ArrayList<Pointer>(n)
+      for (i in 0 until n) {
+        pointers.add(deserializePointer(stream))
+      }
+      val action = stream.readInt()
+      val displayId = stream.readInt()
+      return MotionEventMessage(pointers, action, displayId)
+    }
+
+    fun deserializePointer(stream: Base128InputStream): Pointer {
       val x = stream.readInt()
       val y = stream.readInt()
-      val buttonMask = stream.readInt()
-      val displayId = stream.readInt()
-      return MouseEventMessage(x, y, buttonMask, displayId)
+      val pointerId = stream.readInt()
+      return Pointer(x, y, pointerId)
+    }
+  }
+
+  data class Pointer(val x: Int, val y: Int, val pointerId: Int) {
+
+    fun serialize(stream: Base128OutputStream) {
+      stream.writeInt(x)
+      stream.writeInt(y)
+      stream.writeInt(pointerId)
     }
   }
 }
-
-// type = 1 is reserved for a multi-touch control message.
 
 /** Represents a key being pressed or released on a keyboard. */
 internal data class KeyEventMessage(
   val action: AndroidKeyEventActionType,
   val keyCode: Int, // One of the values defined in AndroidKeyCodes.kt
   val metaState: Int
-) : ControlMessage(type) {
+) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -92,7 +122,7 @@ internal data class KeyEventMessage(
   }
 
   companion object : Deserializer() {
-    const val type = 2
+    const val TYPE = 2
 
     override fun deserialize(stream: Base128InputStream): KeyEventMessage {
       val actionValue = stream.readInt()
@@ -107,7 +137,7 @@ internal data class KeyEventMessage(
 /** Represents one or more characters typed on a keyboard. */
 internal data class TextInputMessage(
   val text: String
-) : ControlMessage(type) {
+) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -115,7 +145,7 @@ internal data class TextInputMessage(
   }
 
   companion object : Deserializer() {
-    const val type = 3
+    const val TYPE = 3
 
     override fun deserialize(stream: Base128InputStream): TextInputMessage {
       val text = stream.readString() ?: throw StreamFormatException("Malformed TextInputMessage")
@@ -125,7 +155,7 @@ internal data class TextInputMessage(
 }
 
 /** Represents one or more characters typed on a keyboard. */
-internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessage(type) {
+internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -133,7 +163,7 @@ internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessag
   }
 
   companion object : Deserializer() {
-    const val type = 4
+    const val TYPE = 4
 
     override fun deserialize(stream: Base128InputStream): SetDeviceOrientationMessage {
       val orientation = stream.readInt()
@@ -143,7 +173,7 @@ internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessag
 }
 
 /** Sets maximum display streaming resolution. */
-internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(type) {
+internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -152,7 +182,7 @@ internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : C
   }
 
   companion object : Deserializer() {
-    const val type = 5
+    const val TYPE = 5
 
     override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
       val width = stream.readInt()

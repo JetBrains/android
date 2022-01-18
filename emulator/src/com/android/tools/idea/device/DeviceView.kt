@@ -33,9 +33,11 @@ import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -99,16 +101,24 @@ class DeviceView(
   var frameNumber = 0
     private set
 
-  /**
-   * The size of the device including frame in device pixels.
-   */
-  val displaySizeWithFrame: Dimension
-    get() = computeActualSize()
-
   private val connected = true
 
-  /** Last received state of the first mouse button. */
-  private var mouseButton1Pressed = false
+  private var multiTouchMode = false
+    set(value) {
+      if (value != field) {
+        field = value
+        repaint()
+        val point = lastTouchCoordinates
+        if (point != null) {
+          val action = if (value) MotionEventMessage.ACTION_POINTER_DOWN else MotionEventMessage.ACTION_POINTER_UP
+          sendMotionEvent(point.x, point.y, action)
+        }
+      }
+    }
+
+  /** Last coordinates of the mouse pointer while the first button was pressed.
+   *  Set to null when the first mouse button is released. */
+  private var lastTouchCoordinates: Point? = null
 
   init {
     Disposer.register(disposableParent, this)
@@ -225,6 +235,90 @@ class DeviceView(
         }
       }
     }
+
+    if (multiTouchMode) {
+      val displayRect = displayRectangle
+      if (displayRect != null) {
+        drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
+      }
+    }
+  }
+
+
+  private fun sendMotionEvent(x: Int, y: Int, action: Int) {
+    val displayRectangle = displayRectangle ?: return
+    // Mouse pointer coordinates compensated for the device display rotation.
+    val normalizedX: Int
+    val normalizedY: Int
+    val imageWidth: Int
+    val imageHeight: Int
+    when (displayRotationQuadrants) {
+      0 -> {
+        normalizedX = x.scaled(screenScale) - displayRectangle.x
+        normalizedY = y.scaled(screenScale) - displayRectangle.y
+        imageWidth = displayRectangle.width
+        imageHeight = displayRectangle.height
+      }
+      1 -> {
+        normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+        normalizedY = x.scaled(screenScale) - displayRectangle.x
+        imageWidth = displayRectangle.height
+        imageHeight = displayRectangle.width
+      }
+      2 -> {
+        normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+        normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+        imageWidth = displayRectangle.width
+        imageHeight = displayRectangle.height
+      }
+      3 -> {
+        normalizedX = y.scaled(screenScale) - displayRectangle.y
+        normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+        imageWidth = displayRectangle.height
+        imageHeight = displayRectangle.width
+      }
+      else -> {
+        assert(false) { "Invalid display orientation: $displayRotationQuadrants" }
+        return
+      }
+    }
+    // Device display coordinates.
+    val displayX = normalizedX.scaledUnbiased(imageWidth, deviceDisplaySize.width)
+    val displayY = normalizedY.scaledUnbiased(imageHeight, deviceDisplaySize.height)
+
+    if (displayX in 0 until deviceDisplaySize.width && displayY in 0 until deviceDisplaySize.height) {
+      // Within the bounds of the device display.
+      sendMotionEventDisplayCoordinates(displayX, displayY, action)
+    }
+    else if (action == MotionEventMessage.ACTION_MOVE) {
+      // Crossed the device display boundary while dragging.
+      val adjustedX = displayX.coerceIn(0, deviceDisplaySize.width - 1)
+      val adjustedY = displayY.coerceIn(0, deviceDisplaySize.height - 1)
+      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, action)
+      sendMotionEventDisplayCoordinates(adjustedX, adjustedY, MotionEventMessage.ACTION_OUTSIDE)
+    }
+  }
+
+  private fun sendMotionEventDisplayCoordinates(displayX: Int, displayY: Int, action: Int) {
+    val deviceController = deviceController ?: return
+    val message = when {
+      action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
+          MotionEventMessage(originalAndMirroredPointer(displayX, displayY),
+                             action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
+      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(displayX, displayY), action, displayId)
+      else -> MotionEventMessage(originalPointer(displayX, displayY), action, displayId)
+    }
+
+    deviceController.sendControlMessage(message)
+  }
+
+  private fun originalPointer(displayX: Int, displayY: Int): List<MotionEventMessage.Pointer> {
+    return listOf(MotionEventMessage.Pointer(displayX, displayY, 0))
+  }
+
+  private fun originalAndMirroredPointer(displayX: Int, displayY: Int): List<MotionEventMessage.Pointer> {
+    return listOf(MotionEventMessage.Pointer(displayX, displayY, 0),
+                  MotionEventMessage.Pointer(deviceDisplaySize.width - displayX, deviceDisplaySize.height - displayY, 1))
   }
 
   private inner class MyKeyListener  : KeyAdapter() {
@@ -240,6 +334,7 @@ class DeviceView(
 
     override fun keyPressed(event: KeyEvent) {
       if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
+        multiTouchMode = true
         return
       }
 
@@ -259,6 +354,12 @@ class DeviceView(
         return
       }
       deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, 0))
+    }
+
+    override fun keyReleased(event: KeyEvent) {
+      if (event.keyCode == VK_CONTROL) {
+        multiTouchMode = false
+      }
     }
 
     private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
@@ -283,88 +384,51 @@ class DeviceView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
-    private var dragging = false
-
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (event.button == BUTTON1) {
-        mouseButton1Pressed = true
-        sendMouseEvent(event.x, event.y, 1)
+        lastTouchCoordinates = Point(event.x, event.y)
+        updateMultiTouchMode(event)
+        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_DOWN)
       }
     }
 
     override fun mouseReleased(event: MouseEvent) {
       if (event.button == BUTTON1) {
-        mouseButton1Pressed = false
-        sendMouseEvent(event.x, event.y, 0)
+        lastTouchCoordinates = null
+        updateMultiTouchMode(event)
+        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_UP)
       }
     }
 
     override fun mouseEntered(event: MouseEvent) {
+      updateMultiTouchMode(event)
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if (dragging) {
-        sendMouseEvent(event.x, event.y, 0) // Terminate the ongoing dragging.
+      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0) {
+        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_UP) // Terminate the ongoing dragging.
       }
+      multiTouchMode = false
     }
 
     override fun mouseDragged(event: MouseEvent) {
-      sendMouseEvent(event.x, event.y, 1, drag = true)
-    }
-
-    private fun sendMouseEvent(x: Int, y: Int, buttons: Int, drag: Boolean = false) {
-      val displayRectangle = displayRectangle ?: return
-      // Mouse pointer coordinates compensated for the device display rotation.
-      val normalizedX: Int
-      val normalizedY: Int
-      val imageWidth: Int
-      val imageHeight: Int
-      when (displayRotationQuadrants) {
-        0 -> {
-          normalizedX = x.scaled(screenScale) - displayRectangle.x
-          normalizedY = y.scaled(screenScale) - displayRectangle.y
-          imageWidth = displayRectangle.width
-          imageHeight = displayRectangle.height
-        }
-        1 -> {
-          normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
-          normalizedY = x.scaled(screenScale) - displayRectangle.x
-          imageWidth = displayRectangle.height
-          imageHeight = displayRectangle.width
-        }
-        2 -> {
-          normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
-          normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
-          imageWidth = displayRectangle.width
-          imageHeight = displayRectangle.height
-        }
-        3 -> {
-          normalizedX = y.scaled(screenScale) - displayRectangle.y
-          normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
-          imageWidth = displayRectangle.height
-          imageHeight = displayRectangle.width
-        }
-        else -> return
-      }
-      // Device display coordinates.
-      val displayX = normalizedX.scaledUnbiased(imageWidth, deviceDisplaySize.width)
-      val displayY = normalizedY.scaledUnbiased(imageHeight, deviceDisplaySize.height)
-
-      if (displayX in 0 until deviceDisplaySize.width && displayY in 0 until deviceDisplaySize.height) {
-        // Within the bounds of the device display.
-        sendMouseOrTouchEvent(displayX, displayY, buttons)
-      }
-      else if (drag) {
-        // Crossed the device display boundary while dragging.
-        sendMouseOrTouchEvent(displayX.coerceIn(0, deviceDisplaySize.width - 1), displayY.coerceIn(0, deviceDisplaySize.height - 1), 0)
+      updateMultiTouchMode(event)
+      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0) {
+        sendMotionEvent(event.x, event.y, MotionEventMessage.ACTION_MOVE)
       }
     }
 
-    private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, buttons: Int) {
-      val deviceController = deviceController ?: return
-      val message = MouseEventMessage(displayX, displayY, buttons, displayId)
-      deviceController.sendControlMessage(message)
+    override fun mouseMoved(event: MouseEvent) {
+      updateMultiTouchMode(event)
+    }
+
+    private fun updateMultiTouchMode(event: MouseEvent) {
+      val oldMultiTouchMode = multiTouchMode
+      multiTouchMode = (event.modifiersEx and CTRL_DOWN_MASK) != 0
+      if (multiTouchMode && oldMultiTouchMode) {
+        repaint() // If multitouch mode changed above, the repaint method was already called.
+      }
     }
   }
 }
