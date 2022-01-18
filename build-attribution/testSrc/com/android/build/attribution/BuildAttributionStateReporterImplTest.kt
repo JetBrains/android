@@ -68,11 +68,6 @@ class BuildAttributionStateReporterImplTest {
       })
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
-  }
-
   @RunsInEdt
   @Test
   fun testInitHasData() {
@@ -248,52 +243,6 @@ class BuildAttributionStateReporterImplTest {
     Truth.assertThat(stateReporter.currentState()).isEqualTo(State.NO_DATA)
     Truth.assertThat(receivedStateUpdates).isEqualTo(listOf(State.NO_DATA))
   }
-
-  @RunsInEdt
-  @Test
-  fun testFeatureFlagOff() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(false)
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
-
-    val stateReporter = createStateReporter()
-
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.FEATURE_TURNED_OFF)
-    Truth.assertThat(receivedStateUpdates).isEmpty()
-  }
-
-  @RunsInEdt
-  @Test
-  fun testFeatureFlagCheckPrecedesOverAgpVersionCheck() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(false)
-    moduleAgpVersion = GradleVersion.parse("3.5.3")
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
-
-    val stateReporter = createStateReporter()
-
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.FEATURE_TURNED_OFF)
-    Truth.assertThat(receivedStateUpdates).isEmpty()
-  }
-
-  @RunsInEdt
-  @Test
-  fun testBuildRunWhenFeatureFlagOff() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(false)
-    `when`(uiManagerMock.hasDataToShow()).thenReturn(false)
-
-    val stateReporter = createStateReporter()
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.FEATURE_TURNED_OFF)
-
-    sendBuildStarted()
-
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.FEATURE_TURNED_OFF)
-
-    sendBuildFailed()
-
-    Truth.assertThat(stateReporter.currentState()).isEqualTo(State.FEATURE_TURNED_OFF)
-    Truth.assertThat(receivedStateUpdates).isEmpty()
-
-  }
-
 
   private fun createStateReporter() = BuildAttributionStateReporterImpl(projectRule.project, uiManagerMock).apply {
     Disposer.register(projectRule.fixture.testRootDisposable, this)

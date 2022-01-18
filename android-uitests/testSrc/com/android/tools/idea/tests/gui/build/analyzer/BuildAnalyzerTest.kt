@@ -37,16 +37,6 @@ class BuildAnalyzerTest {
   @JvmField
   val guiTest = GuiTestRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
-  }
-
   /**
    * Test user path through Build Analyzer feature.
    * Use project with two fake tasks added to the build to have warnings in the report.

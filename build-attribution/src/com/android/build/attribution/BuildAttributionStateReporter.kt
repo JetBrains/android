@@ -102,7 +102,6 @@ class BuildAttributionStateReporterImpl(
   override fun dispose() = Unit
 
   private fun calculateInitState(): State = when {
-    !StudioFlags.BUILD_ATTRIBUTION_ENABLED.get() -> FEATURE_TURNED_OFF
     !isAgpVersionHigherOrEqualToMinimal(project) -> AGP_VERSION_LOW
     uiManager.hasDataToShow() -> REPORT_DATA_READY
     else -> NO_DATA

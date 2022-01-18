@@ -35,16 +35,6 @@ class AppliedPluginsTest {
   @get:Rule
   val myProjectRule = AndroidGradleProjectRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
-  }
-
   private fun setUpProject() {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
 

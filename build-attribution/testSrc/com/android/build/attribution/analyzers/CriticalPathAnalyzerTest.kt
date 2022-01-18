@@ -43,7 +43,6 @@ class CriticalPathAnalyzerTest {
 
   @Before
   fun setUp() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(true)
     studioProvidedInfo = StudioProvidedInfo(
       agpVersion = null,
       configurationCachingGradlePropertyState = null,
@@ -52,11 +51,6 @@ class CriticalPathAnalyzerTest {
       useAndroidXPropertyState = false,
       buildRequestHolder = mock()
     )
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
   }
 
   @Test
