@@ -15,56 +15,65 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.annotations.Nullable;
-import com.intellij.testFramework.LightPlatform4TestCase;
-import com.intellij.testFramework.TestActionEvent;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class DeviceManagerWelcomeScreenActionTest extends LightPlatform4TestCase {
+public final class DeviceManagerWelcomeScreenActionTest {
   private @Nullable DeviceManagerWelcomeScreenAction myAction;
+  private final @NotNull AnActionEvent myEvent;
+
+  public DeviceManagerWelcomeScreenActionTest() {
+    Presentation presentation = new Presentation();
+
+    myEvent = Mockito.mock(AnActionEvent.class);
+    Mockito.when(myEvent.getPresentation()).thenReturn(presentation);
+  }
 
   @Test
   public void deviceManagerEnabled() {
     myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> false, () -> true);
 
-    TestActionEvent event = new TestActionEvent();
-    myAction.update(event);
+    myAction.update(myEvent);
 
-    assertTrue(event.getPresentation().isVisible());
-    assertTrue(event.getPresentation().isEnabled());
+    assertTrue(myEvent.getPresentation().isVisible());
+    assertTrue(myEvent.getPresentation().isEnabled());
   }
 
   @Test
   public void deviceManagerDisabled() {
     myAction = new DeviceManagerWelcomeScreenAction(() -> false, () -> false, () -> true);
 
-    TestActionEvent event = new TestActionEvent();
-    myAction.update(event);
+    myAction.update(myEvent);
 
-    assertFalse(event.getPresentation().isVisible());
-    assertTrue(event.getPresentation().isEnabled());
+    assertFalse(myEvent.getPresentation().isVisible());
+    assertTrue(myEvent.getPresentation().isEnabled());
   }
 
   @Test
   public void isChromeOsAndNotHWAccelerated() {
     myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> true, () -> true);
 
-    TestActionEvent event = new TestActionEvent();
-    myAction.update(event);
+    myAction.update(myEvent);
 
-    assertFalse(event.getPresentation().isVisible());
+    assertFalse(myEvent.getPresentation().isVisible());
   }
 
   @Test
   public void androidSdkNotAvailable() {
     myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> false, () -> false);
 
-    TestActionEvent event = new TestActionEvent();
-    myAction.update(event);
+    myAction.update(myEvent);
 
-    assertFalse(event.getPresentation().isEnabled());
+    assertFalse(myEvent.getPresentation().isEnabled());
   }
 }
