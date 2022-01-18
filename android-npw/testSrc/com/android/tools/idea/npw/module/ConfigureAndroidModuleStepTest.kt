@@ -17,10 +17,8 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
-import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
@@ -38,7 +36,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ConfigureAndroidModuleStepTest {
@@ -189,21 +186,24 @@ class ConfigureAndroidModuleStepTest {
     Disposer.register(disposable, configureAndroidModuleStep)
     myInvokeStrategy.updateAllSteps()
 
-    val androidTarget_P = createMockAndroidVersion(VersionCodes.P)
-    newModuleModel.androidSdkInfo.value = androidTarget_P
+    val androidPPreview = VersionItem.fromAndroidVersion(AndroidVersion(VersionCodes.P - 1, "P"))
+    newModuleModel.androidSdkInfo.value = androidPPreview
     myInvokeStrategy.updateAllSteps()
     assertThat(configureAndroidModuleStep.canGoForward().get()).isTrue()
 
-    val androidTarget_Q = createMockAndroidVersion(VersionCodes.Q)
-    newModuleModel.androidSdkInfo.value = androidTarget_Q
+    val androidPFinal = VersionItem.fromAndroidVersion(AndroidVersion(VersionCodes.P))
+    newModuleModel.androidSdkInfo.value = androidPFinal
+    myInvokeStrategy.updateAllSteps()
+    assertThat(configureAndroidModuleStep.canGoForward().get()).isTrue()
+
+    val androidQPreview = VersionItem.fromAndroidVersion(AndroidVersion(VersionCodes.Q - 1, "Q"))
+    newModuleModel.androidSdkInfo.value = androidQPreview
     myInvokeStrategy.updateAllSteps()
     assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
-  }
 
-  companion object {
-    private fun createMockAndroidVersion(apiLevel: Int): VersionItem =
-      mock(AndroidVersionsInfo::class.java).VersionItem(object : MockPlatformTarget(apiLevel, 0) {
-        override fun getVersion(): AndroidVersion = AndroidVersion(apiLevel - 1, "TEST_PLATFORM")
-      })
+    val androidQFinal = VersionItem.fromAndroidVersion(AndroidVersion(VersionCodes.Q))
+    newModuleModel.androidSdkInfo.value = androidQFinal
+    myInvokeStrategy.updateAllSteps()
+    assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
   }
 }

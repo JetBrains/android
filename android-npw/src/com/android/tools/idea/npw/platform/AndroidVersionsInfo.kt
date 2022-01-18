@@ -47,10 +47,9 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
-import com.android.tools.idea.templates.TemplateUtils.knownVersions
-import com.google.common.annotations.VisibleForTesting
 import java.io.File
 import java.util.function.Consumer
+import kotlin.math.max
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -59,11 +58,6 @@ import java.util.function.Consumer
  */
 class AndroidVersionsInfo {
   private lateinit var knownTargetVersions: List<VersionItem>
-  private lateinit var installedVersions: Set<AndroidVersion>
-  private var highestInstalledApiTarget: IAndroidTarget? = null
-  @VisibleForTesting
-  val highestInstalledVersion: AndroidVersion?
-    get() = highestInstalledApiTarget?.version
 
   /**
    * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
@@ -71,21 +65,18 @@ class AndroidVersionsInfo {
    */
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
-    val installedCompilationTargets = loadInstalledCompilationTargets()
-    val additionalInstalledTargets = installedCompilationTargets.filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
+    val installedPlatformAndAddonTargets = loadInstalledCompilationTargets()
+    val (installedStableTargets, installedPreviewAndAddonTargets) =
+      installedPlatformAndAddonTargets.partition { it.isPlatform && !it.version.isPreview }
     knownTargetVersions = sequence {
-      knownVersions.forEachIndexed { i, version ->
-        yield(VersionItem(version, i + 1))
+      // Stable versions.
+      val maxStableVersion = max(HIGHEST_KNOWN_STABLE_API, installedStableTargets.maxOfOrNull { it.version.apiLevel } ?: 0)
+      for (i in 1..maxStableVersion) {
+        yield(VersionItem.fromStableVersion(i))
       }
-      additionalInstalledTargets.forEach { yield(VersionItem(it)) }
+      // Installed previews and add-ons
+      installedPreviewAndAddonTargets.forEach { yield(VersionItem.fromAndroidTarget(it)) }
     }.toList()
-
-    // Load the installed android versions from the installed SDK.
-    installedVersions = additionalInstalledTargets.map { it.version }.toSet()
-
-    highestInstalledApiTarget = installedCompilationTargets
-      .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION && !it.version.isPreview }
-      .maxByOrNull { it.version.featureLevel }
   }
 
   /**
@@ -104,10 +95,8 @@ class AndroidVersionsInfo {
     val requestedPaths = sequence {
       // Install build tools, if not already installed
       yield(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
-      if (highestInstalledApiTarget == null || installItems.any {
-          it.androidVersion.apiLevel > highestInstalledApiTarget!!.version.apiLevel && !installedVersions.contains(it.androidVersion)
-        }) {
-        // Let us install the HIGHEST_KNOWN_STABLE_API.
+      // Install the default platform, if that's the one that will be used.
+      if (installItems.any { it.buildApiLevelStr == HIGHEST_KNOWN_STABLE_API.toString() }) {
         yield(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
       }
     }.toSet()
@@ -135,7 +124,7 @@ class AndroidVersionsInfo {
           existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
         }
         if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-          versionItemList.add(index++, VersionItem(getAndroidVersion(info)))
+          versionItemList.add(index++, VersionItem.fromAndroidVersion(getAndroidVersion(info)))
           prevInsertedApiLevel = apiLevel
         }
       }
@@ -151,7 +140,7 @@ class AndroidVersionsInfo {
           existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
         }
         if (apiLevel != existingApiLevel && apiLevel != prevInsertedApiLevel) {
-          versionItemList.add(index++, VersionItem(AndroidVersion(apiLevel)))
+          versionItemList.add(index++, VersionItem.fromAndroidVersion(AndroidVersion(apiLevel)))
           prevInsertedApiLevel = apiLevel
         }
       }
@@ -192,63 +181,62 @@ class AndroidVersionsInfo {
       StudioDownloader(), StudioSettingsController.getInstance())
   }
 
-  inner class VersionItem {
-    val androidVersion: AndroidVersion
-    val label: String
-    val minApiLevel: Int
-    val minApiLevelStr: String // Can be a number or a Code Name (eg "L", "N", etc)
-    var androidTarget: IAndroidTarget? = null
-      private set
-
-    @VisibleForTesting
-    constructor(androidVersion: AndroidVersion, target: IAndroidTarget? = null) {
-      this.androidVersion = androidVersion
-      label = getLabel(androidVersion, target)
-      androidTarget = target
-      minApiLevel = androidVersion.featureLevel
-      minApiLevelStr = androidVersion.apiString
-    }
-
-    internal constructor(label: String, minApiLevel: Int) {
-      androidVersion = AndroidVersion(minApiLevel)
-      this.label = label
-      this.minApiLevel = minApiLevel
-      minApiLevelStr = minApiLevel.toString()
-    }
-
-    @VisibleForTesting
-    constructor(target: IAndroidTarget) : this(target.version, target)
-
-    val buildApiLevel: Int
-      get() = when {
-        androidTarget != null && (androidTarget!!.version.isPreview || !androidTarget!!.isPlatform) -> minApiLevel
-        (highestInstalledVersion?.featureLevel ?: 0) > HIGHEST_KNOWN_STABLE_API -> highestInstalledVersion!!.featureLevel
-        else -> HIGHEST_KNOWN_STABLE_API
-      }
-
-    val buildApiLevelStr: String
-      get() = when {
-        androidTarget == null -> buildApiLevel.toString()
-        androidTarget!!.isPlatform -> androidTarget!!.version.toBuildApiString()
-        else -> AndroidTargetHash.getTargetHashString(androidTarget!!)
-      }
+  class VersionItem private constructor(
+    val label: String,
+    /** The equivalent integer API level that will be compiled against. */
+    val buildApiLevel: Int,
+    /** The compile SDK version to use in generated build.gradle files */
+    val buildApiLevelStr: String,
+    val minApiLevel: Int,
+    val minApiLevelStr: String, // Can be a number or a Code Name (eg "L", "N", etc)
+    val targetApiLevelStr: String,
+    // Only present for already installed preview and addons
+    val androidTarget: IAndroidTarget?,
+  ) {
 
     val targetApiLevel: Int
       get() = buildApiLevel
-
-    val targetApiLevelStr: String
-      get() = when {
-        buildApiLevel >= HIGHEST_KNOWN_API || androidTarget?.version?.isPreview == true ->
-          androidTarget?.version?.apiString ?: buildApiLevel.toString()
-        highestInstalledVersion?.featureLevel == buildApiLevel -> highestInstalledVersion!!.apiString
-        else -> buildApiLevel.toString()
-      }
 
     override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
 
     override fun hashCode(): Int = label.hashCode()
 
     override fun toString(): String = label
+
+    companion object {
+      fun fromAndroidVersion(version: AndroidVersion): VersionItem {
+        // For preview versions or if the requested target is newer than HIGHEST_KNOWN_STABLE_API,
+        // use build and target as the given version
+        val futureVersion = version.isPreview || version.apiLevel > HIGHEST_KNOWN_STABLE_API
+
+        return VersionItem(
+          label = getLabel(version, null),
+          androidTarget = null,
+          minApiLevel = version.featureLevel,
+          minApiLevelStr = version.apiString,
+          buildApiLevel = if (futureVersion) version.featureLevel else HIGHEST_KNOWN_STABLE_API,
+          buildApiLevelStr = if (futureVersion) version.toBuildApiString() else HIGHEST_KNOWN_STABLE_API.toString(),
+          targetApiLevelStr = if(futureVersion) version.apiString else HIGHEST_KNOWN_STABLE_API.toString(),
+        )
+      }
+
+      fun fromStableVersion(minSdkVersion: Int): VersionItem = fromAndroidVersion(AndroidVersion(minSdkVersion))
+
+      fun fromAndroidTarget(target: IAndroidTarget): VersionItem {
+        if (target.isPlatform && !target.version.isPreview) {
+          return fromAndroidVersion(target.version)
+        }
+        return VersionItem(
+          label = getLabel(target.version, target),
+          androidTarget = target,
+          minApiLevel = target.version.featureLevel,
+          minApiLevelStr = target.version.apiString,
+          buildApiLevel = target.version.featureLevel,
+          buildApiLevelStr = AndroidTargetHash.getTargetHashString(target),
+          targetApiLevelStr = target.version.apiString,
+        )
+      }
+    }
   }
 }
 

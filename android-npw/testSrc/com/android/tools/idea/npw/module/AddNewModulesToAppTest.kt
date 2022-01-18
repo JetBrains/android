@@ -16,9 +16,7 @@
 package com.android.tools.idea.npw.module
 
 
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.sdklib.internal.androidTarget.MockPlatformTarget
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.dynamicapp.DynamicFeatureModel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -38,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito
 
 
 @RunWith(Parameterized::class)
@@ -114,13 +111,6 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
   }
 }
 
-private fun createAndroidVersionItem(): AndroidVersionsInfo.VersionItem {
-  val apiLevel = HIGHEST_KNOWN_STABLE_API
-  return Mockito.mock(AndroidVersionsInfo::class.java).VersionItem(object : MockPlatformTarget(apiLevel, 0) {
-    override fun getVersion(): AndroidVersion = AndroidVersion(apiLevel)
-  })
-}
-
 private fun createDefaultDynamicFeatureModel(project: Project, moduleName: String, baseModule: Module, useGradleKts: Boolean,
                                              projectSyncInvoker: ProjectSyncInvoker) {
   val model = DynamicFeatureModel(
@@ -132,7 +122,7 @@ private fun createDefaultDynamicFeatureModel(project: Project, moduleName: Strin
 }
 
 private fun generateModuleFiles(project: Project, model: ModuleModel, moduleName: String, useGradleKts: Boolean) {
-  model.androidSdkInfo.value = createAndroidVersionItem()
+  model.androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_API)
   model.moduleName.set(moduleName)
   model.template.set(createDefaultTemplateAt(project.basePath!!, moduleName))
   model.packageName.set("com.example")

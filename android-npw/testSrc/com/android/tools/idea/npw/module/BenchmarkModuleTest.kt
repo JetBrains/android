@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleModel
@@ -31,7 +29,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
 class BenchmarkModuleTest(private val useGradleKts: Boolean) {
@@ -54,7 +51,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       moduleParent = ":",
       projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
     ).apply {
-      androidSdkInfo.value = createAndroidVersionItem()
+      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
       packageName.set("template.test.pkg")
       benchmarkModuleType.set(MICROBENCHMARK)
       useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
@@ -78,7 +75,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       moduleParent = ":",
       projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
     ).apply {
-      androidSdkInfo.value = createAndroidVersionItem()
+      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
       benchmarkModuleType.set(MACROBENCHMARK)
       targetModule.value = project.findAppModule()
       useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
@@ -90,12 +87,5 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }
-  }
-
-  private fun createAndroidVersionItem(): AndroidVersionsInfo.VersionItem {
-    val apiLevel = HIGHEST_KNOWN_STABLE_API
-    return Mockito.mock(AndroidVersionsInfo::class.java).VersionItem(object : MockPlatformTarget(apiLevel, 0) {
-      override fun getVersion(): AndroidVersion = AndroidVersion(apiLevel)
-    })
   }
 }

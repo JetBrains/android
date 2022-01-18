@@ -18,10 +18,7 @@ package com.android.tools.idea.templates
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
-import com.android.sdklib.SdkVersionInfo
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
 import com.google.common.io.Files
@@ -42,28 +39,12 @@ import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
-import kotlin.math.max
 
 /**
  * Utility methods pertaining to templates for projects, modules, and activities.
  */
 object TemplateUtils {
   private val LOG = Logger.getInstance("#org.jetbrains.android.templates.DomUtilities")
-
-  /**
-   * Returns a list of known API names
-
-   * @return a list of string API names, starting from 1 and up through the maximum known versions (with no gaps) */
-  val knownVersions: List<String>
-    @JvmStatic get() {
-      val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
-      val targets = sdkData?.targets.orEmpty().filter { it.isPlatform && !it.version.isPreview }
-
-      val targetLevels = targets.map { it.version.apiLevel }
-      val maxApi = max(HIGHEST_KNOWN_STABLE_API, targetLevels.maxOrNull() ?: 0)
-
-      return (1..maxApi).map { SdkVersionInfo.getAndroidName(it) }
-    }
 
   /**
    * Opens the specified files in the editor
