@@ -17,22 +17,15 @@
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.configuration.configureFacetByCompilerArguments
-import org.jetbrains.kotlin.idea.configuration.sourceSetName
-import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
 fun setUpModules(project: Project) {
   project.fixRunConfigurations()
-  GradleTestArtifactSearchScopes.initializeScopes(project)
   ModuleManager.getInstance(project).modules.forEach { module ->
     recordLastAgpVersion(module)
     setupAndroidRunConfiguration(module)

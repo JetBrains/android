@@ -365,7 +365,7 @@ class GradleModuleSystem(
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 
-  override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
+  override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes = GradleTestArtifactSearchScopes(module)
 
   private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
     return GradleAndroidModel.get(module)?.androidProject?.agpFlags?.let(read)

@@ -18,58 +18,24 @@ package com.android.tools.idea.testartifacts.scopes;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getAndroidTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getUnitTestModule;
-import static com.intellij.util.containers.ContainerUtil.map;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Gradle implementation of {@link TestArtifactSearchScopes}, differentiates {@code test/} and {@code androidTest/} sources based on
  * information from the model.
  */
 public final class GradleTestArtifactSearchScopes implements TestArtifactSearchScopes {
-  private static final Key<GradleTestArtifactSearchScopes> SEARCH_SCOPES_KEY = Key.create("TEST_ARTIFACT_SEARCH_SCOPES");
-
   @NotNull private final Module myModule;
-  @NotNull private final GradleAndroidModel myAndroidModel;
 
-  private static final Object ourLock = new Object();
-
-  @Nullable
-  public static GradleTestArtifactSearchScopes getInstance(@NotNull Module module) {
-    return module.getUserData(SEARCH_SCOPES_KEY);
-  }
-
-  /**
-   * Initialize the test scopes in the given project.
-   */
-  public static void initializeScopes(@NotNull Project project) {
-    List<Pair<Module, GradleAndroidModel>> models =
-      map(ModuleManager.getInstance(project).getModules(), it -> Pair.create(it, GradleAndroidModel.get(it)));
-
-    synchronized (ourLock) {
-      for (Pair<Module, GradleAndroidModel> modelPair : models) {
-        @NotNull Module module = modelPair.first;
-        @Nullable GradleAndroidModel model = modelPair.second;
-        module.putUserData(SEARCH_SCOPES_KEY, model == null ? null : new GradleTestArtifactSearchScopes(module, model));
-      }
-    }
-  }
-
-  private GradleTestArtifactSearchScopes(@NotNull Module module, @NotNull GradleAndroidModel androidModel) {
+  public GradleTestArtifactSearchScopes(@NotNull Module module) {
     myModule = module;
-    myAndroidModel = androidModel;
   }
 
   @Override
@@ -86,7 +52,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   public GlobalSearchScope getAndroidTestSourceScope() {
     Module androidTestModule;
-    if (myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+    if (getModuleSystem(myModule).getType() == Type.TYPE_TEST) {
       androidTestModule = getMainModule(myModule);
     }
     else {
@@ -100,11 +66,5 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   public GlobalSearchScope getUnitTestSourceScope() {
     Module unitTestModule = getUnitTestModule(myModule);
     return unitTestModule != null ? unitTestModule.getModuleContentScope() : GlobalSearchScope.EMPTY_SCOPE;
-  }
-
-
-  @Override
-  public String toString() {
-    return myModule.getName();
   }
 }

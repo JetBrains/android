@@ -94,7 +94,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
-    GradleTestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
@@ -129,7 +129,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     latch.await();
 
     // Now both test should not exclude gson
-    scopes = GradleTestArtifactSearchScopes.getInstance(module1holderModule);
+    scopes = TestArtifactSearchScopes.getInstance(module1holderModule);
     assertNotNull(scopes);
     gson = libraryTable.getLibraryByName(GSON);
   }
@@ -156,10 +156,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private GradleTestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
+  private TestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
     Module module1 = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), moduleName));
-    GradleTestArtifactSearchScopes testArtifactSearchScopes = GradleTestArtifactSearchScopes.getInstance(module1);
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
   }

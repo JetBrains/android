@@ -2,7 +2,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,7 +34,7 @@ public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
     // Filter out non-unit tests artifacts, because this task provider is only for unit tests artifacts.
     //also, filter out directories test sources as these are handled in a special way by the AllInDirectoryGradleConfigurationProducer,
     // and for which, we do need to inject some TestData that the Gradle producers handle properly when generating test tasks.
-    if (Objects.requireNonNull(GradleTestArtifactSearchScopes.getInstance(module)).isUnitTestSource(source) && !source.isDirectory()) {
+    if (Objects.requireNonNull(TestArtifactSearchScopes.getInstance(module)).isUnitTestSource(source) && !source.isDirectory()) {
       return getTasksFromAndroidModule(module, androidModel);
     }
     return Collections.emptyList();
