@@ -34,7 +34,7 @@ public final class VirtualDeviceTableTest {
   @Test
   public void emptyTable() {
     VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.emptyList());
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model);
 
     assertFalse(table.getSelectedDevice().isPresent());
   }
@@ -48,7 +48,7 @@ public final class VirtualDeviceTableTest {
                                  null);
 
     VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.singletonList(VirtualDevices.build(device)));
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model);
 
     assertFalse(table.getSelectedDevice().isPresent());
   }

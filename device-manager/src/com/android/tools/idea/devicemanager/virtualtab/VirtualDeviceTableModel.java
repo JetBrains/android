@@ -16,16 +16,11 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.stream.IntStream;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -33,7 +28,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
   static final boolean SPLIT_ACTIONS_ENABLED = false;
-  static final boolean VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED = false;
 
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
@@ -46,7 +40,6 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   private static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull VirtualDevice> myDevices;
-  private final @NotNull Map<@NotNull VirtualDevice, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
 
   static final class Actions {
     @SuppressWarnings("InstantiationOfUtilityClass")
@@ -87,24 +80,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   @VisibleForTesting
   VirtualDeviceTableModel(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
-    myDeviceToSizeOnDiskMap = new HashMap<>();
-  }
-
-  @NotNull List<@NotNull VirtualDevice> getDevices() {
-    return myDevices;
   }
 
   void setDevices(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
     fireTableDataChanged();
-  }
-
-  int modelRowIndexOf(@NotNull AvdInfo avdInfo) {
-    OptionalInt index = IntStream.range(0, myDevices.size())
-      .filter(i -> myDevices.get(i).getAvdInfo().equals(avdInfo))
-      .findFirst();
-
-    return index.orElse(-1);
   }
 
   @Override
@@ -179,12 +159,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return Object.class;
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
-          return Long.class;
-        }
-        else {
-          return Object.class;
-        }
+        return Long.class;
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.class;
       default:
@@ -222,12 +197,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case API_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex).getApi();
         case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-          if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
-            return myDevices.get(modelRowIndex).getSizeOnDisk();
-          }
-          else {
-            return getSizeOnDisk(myDevices.get(modelRowIndex));
-          }
+          return myDevices.get(modelRowIndex).getSizeOnDisk();
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
           return LaunchInEmulatorValue.INSTANCE;
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
@@ -247,21 +217,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
-          return myDevices.get(modelRowIndex).getSizeOnDisk();
-        }
-        else {
-          return getSizeOnDisk(myDevices.get(modelRowIndex));
-        }
+        return myDevices.get(modelRowIndex).getSizeOnDisk();
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.INSTANCE;
       default:
         throw new AssertionError(modelColumnIndex);
     }
-  }
-
-  // TODO Put size in VirtualDevice
-  private @NotNull Object getSizeOnDisk(@NotNull VirtualDevice device) {
-    return myDeviceToSizeOnDiskMap.computeIfAbsent(device, d -> new SizeOnDisk(d.getAvdInfo(), this));
   }
 }

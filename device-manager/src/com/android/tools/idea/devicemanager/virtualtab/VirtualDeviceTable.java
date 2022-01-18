@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
@@ -47,8 +46,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.swing.ActionMap;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JComponent;
@@ -64,7 +61,6 @@ import org.jetbrains.annotations.Nullable;
 public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
-  private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
 
   private static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
     private final @NotNull VirtualDeviceTableModel myModel;
@@ -93,18 +89,15 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel, new VirtualDeviceTableModel(), () -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
+    this(panel, new VirtualDeviceTableModel());
   }
 
   @VisibleForTesting
-  VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
-                     @NotNull VirtualDeviceTableModel model,
-                     @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds) {
+  VirtualDeviceTable(@NotNull VirtualDevicePanel panel, @NotNull VirtualDeviceTableModel model) {
     super(model, VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
     myPanel = panel;
     myAsyncSupplier = new VirtualDeviceAsyncSupplier();
-    myGetAvds = getAvds;
 
     model.addTableModelListener(event -> sizeWidthsToFit());
 
@@ -244,23 +237,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   public void refreshAvds() {
-    if (VirtualDeviceTableModel.VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
-      FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), new SetDevices(getModel()));
-    }
-    else {
-      List<VirtualDevice> devices = myGetAvds.get().stream()
-        .map(VirtualDevices::build)
-        .collect(Collectors.toList());
-
-      getModel().setDevices(devices);
-
-      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-        .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
-        .setVirtualDeviceCount(devices.size())
-        .build();
-
-      DeviceManagerUsageTracker.log(event);
-    }
+    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), new SetDevices(getModel()));
   }
 
   @Override
