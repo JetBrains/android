@@ -13,7 +13,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/grpc-netty-shaded.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/idea.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/idea_rt.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.609.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.613.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-test-discovery.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/jdkAnnotations.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/jna.jar!/" />

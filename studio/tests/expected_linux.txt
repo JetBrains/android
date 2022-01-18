@@ -476,7 +476,7 @@ android-studio/lib/asm-commons-7.1.jar
 android-studio/lib/asm-tree-7.1.jar
 android-studio/lib/asm-util-7.1.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-213.5449.25.2113.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-213.5605.12.2113.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/classpath.txt
@@ -488,7 +488,7 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage-agent-1.0.609.jar
+android-studio/lib/intellij-coverage-agent-1.0.613.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/java-utils-1.0.6.jar
 android-studio/lib/jdkAnnotations.jar

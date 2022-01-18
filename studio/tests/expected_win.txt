@@ -503,7 +503,7 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage-agent-1.0.609.jar
+android-studio/lib/intellij-coverage-agent-1.0.613.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jna.jar
