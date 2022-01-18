@@ -19,6 +19,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileNavigator
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -42,21 +43,23 @@ class LayoutFileIssuedFileNode(val fileData: IssuedFileData, parent: DesignerCom
 
   override fun getLeafState() = LeafState.DEFAULT
 
-  override fun getName() = fileData.file.presentableName
+  override fun getName() = getVirtualFile().presentableName
 
-  override fun getVirtualFile() = fileData.file
+  @Suppress("UnstableApiUsage")
+  override fun getVirtualFile() = BackedVirtualFile.getOriginFileIfBacked(fileData.file)
 
   override fun getNavigatable() = project?.let { OpenFileDescriptor(it, fileData.file) }
 
   override fun update(project: Project, presentation: PresentationData) {
+    val virtualFile = getVirtualFile()
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(
-      CompoundIconProvider.findIcon(PsiUtilCore.findFileSystemItem(project, fileData.file), 0) ?: when (fileData.file.isDirectory) {
+      CompoundIconProvider.findIcon(PsiUtilCore.findFileSystemItem(project, virtualFile), 0) ?: when (virtualFile.isDirectory) {
         true -> AllIcons.Nodes.Folder
         else -> AllIcons.FileTypes.Any_type
       })
     if (parentDescriptor !is LayoutFileIssuedFileNode) {
-      val url = fileData.file.parent?.presentableUrl ?: return
+      val url = virtualFile.parent?.presentableUrl ?: return
       presentation.addText("  ${FileUtil.getLocationRelativeToUserHome(url)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     }
     val root = findAncestor<DesignerCommonIssueRoot>()
@@ -103,7 +106,8 @@ class LayoutFileIssueNode(val fileData: IssuedFileData, val issue: Issue, parent
 
   override fun getName() = text
 
-  override fun getVirtualFile() = fileData.file
+  @Suppress("UnstableApiUsage")
+  override fun getVirtualFile() = BackedVirtualFile.getOriginFileIfBacked(fileData.file)
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> = emptySet()
 
