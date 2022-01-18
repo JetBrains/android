@@ -1181,7 +1181,7 @@ class AndroidLintTest : AndroidTestCase() {
     val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
     // All Java8 features should be flagged as errors
     val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
-    assertThat(errors).hasSize(7)
+    assertThat(errors).hasSize(6)
 
     val errorDescriptions = errors.map { it.description }
     assertThat(
@@ -1190,7 +1190,6 @@ class AndroidLintTest : AndroidTestCase() {
                                          "Method reference requires API level 24 (current min is 16): `isEven::test`",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
-                                         "Cast to `Collector` requires API level 24 (current min is 16)",
                                          "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`")
   }
 
