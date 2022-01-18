@@ -707,9 +707,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
               }
             }
 
-            value.currentArguments.forEach { dumpArg("currentArguments", it) }
-            value.defaultArguments.forEach { dumpArg("defaultArguments", it) }
-            value.dependencyClasspath.forEach { prop("dependencyClasspath") { it.toPrintablePath() } }
+            // TODO(b/215353008): Fix compilation against Kotlin 213.
+            // value.currentArguments.forEach { dumpArg("currentArguments", it) }
+            // value.defaultArguments.forEach { dumpArg("defaultArguments", it) }
+            // value.dependencyClasspath.forEach { prop("dependencyClasspath") { it.toPrintablePath() } }
           }
         }
       }
