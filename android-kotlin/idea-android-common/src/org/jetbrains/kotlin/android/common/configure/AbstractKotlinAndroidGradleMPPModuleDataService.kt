@@ -124,7 +124,7 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
                     .filter { it.isTestModule }
                     .flatMap { it.externalSystemRunTasks }
 
-                KotlinSourceSetDataService.configureFacet(moduleData, mainSourceSetInfo, runTasks, nodeToImport, module, modelsProvider)
+                KotlinSourceSetDataService.configureFacet(moduleData, mainSourceSetInfo, nodeToImport, module, modelsProvider, runTasks)
             }
 
             val kotlinFacet = KotlinFacet.get(module)
