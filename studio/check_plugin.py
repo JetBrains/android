@@ -20,10 +20,11 @@ def load_include(include, external_xmls, cwd, index):
       print("only xpointers of the form xpointer(xpath) are supported")
       sys.exit(1)
     xpath = m.group(1)
+  is_optional = any(child.tag == "{http://www.w3.org/2001/XInclude}fallback" for child in include)
 
   rel = href[1:] if href.startswith("/") else cwd + "/" + href
 
-  if rel in external_xmls:
+  if rel in external_xmls or is_optional:
     return [], None
   new_cwd = rel[0:rel.rindex("/")]
 
