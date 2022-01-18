@@ -96,7 +96,7 @@ public class InstrumentationTest {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");
 
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations\u2026");
     EditConfigurationsDialogFixture.find(guiTest.robot())
       .clickAddNewConfigurationButton()
       .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)

@@ -63,7 +63,7 @@ public class BuildInstantAppTest {
     guiTest.robot().waitForIdle();
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
+    ideFrame.invokeMenuPath("Run", "Edit Configurations\u2026");
     EditConfigurationsDialogFixture.find(ideFrame.robot())
       .selectDeployAsInstantApp(true)
       .clickOk();

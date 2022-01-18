@@ -131,7 +131,7 @@ class CreateAndRunInstantAppTest {
 
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...")
+    ideFrame.invokeMenuPath("Run", "Edit Configurations\u2026")
     EditConfigurationsDialogFixture.find(ideFrame.robot())
       .selectDeployAsInstantApp(true)
       .clickOk()
