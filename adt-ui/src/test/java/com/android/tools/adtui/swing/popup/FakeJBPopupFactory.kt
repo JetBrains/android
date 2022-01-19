@@ -75,6 +75,22 @@ class FakeJBPopupFactory : JBPopupFactory() {
   override fun <T> createPopupChooserBuilder(list: MutableList<out T>): IPopupChooserBuilder<T> =
     FakePopupChooserBuilder(this, list)
 
+  override fun createActionGroupPopup(
+    title: String?,
+    actionGroup: ActionGroup,
+    dataContext: DataContext,
+    aid: ActionSelectionAid?,
+    showDisabledActions: Boolean,
+    disposeCallback: Runnable?,
+    maxRowCount: Int,
+    preselectActionCondition: Condition<in AnAction>?,
+    actionPlace: String?)
+    : ListPopup {
+    val popup = FakeListPopup(actionGroup.getChildren(null).asList())
+    popups.add(popup)
+    return popup
+  }
+
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
   override fun createConfirmation(title: String?, onYes: Runnable?, defaultOptionIndex: Int): ListPopup {
@@ -128,18 +144,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
                                       disposeCallback: Runnable?,
                                       maxRowCount: Int,
                                       preselectActionCondition: Condition<in AnAction>?): ListPopup {
-    TODO("Not yet implemented")
-  }
-
-  override fun createActionGroupPopup(title: String?,
-                                      actionGroup: ActionGroup,
-                                      dataContext: DataContext,
-                                      aid: ActionSelectionAid?,
-                                      showDisabledActions: Boolean,
-                                      disposeCallback: Runnable?,
-                                      maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?,
-                                      actionPlace: String?): ListPopup {
     TODO("Not yet implemented")
   }
 

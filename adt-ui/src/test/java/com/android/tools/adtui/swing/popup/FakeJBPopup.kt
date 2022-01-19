@@ -33,10 +33,12 @@ import javax.swing.JComponent
 /**
  * A fake [JBPopup] for tests.
  */
-class FakeJBPopup<T>(val items: List<T>,
-                     val isMovable: Boolean?,
-                     val isRequestFocus: Boolean?,
-                     private val callback: Consumer<in T>?) : JBPopup {
+open class FakeJBPopup<T>(
+  val items: List<T>,
+  val isMovable: Boolean? = false,
+  val isRequestFocus: Boolean? = false,
+  private val callback: Consumer<in T>? = null,
+) : JBPopup {
 
   enum class ShowStyle {
     SHOW_UNDERNEATH_OF,
