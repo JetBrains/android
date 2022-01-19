@@ -77,6 +77,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["file_path"] as? String)?.let { filePath = it }
         (data["file_type"] as? String)?.let { fileType = it }
         (data["plugin_type"] as? String)?.let { pluginType = it }
+        (data["plugin_version"] as? String)?.let { pluginVersion = it }
       }.build()
     }.withProjectId(data))
   }
