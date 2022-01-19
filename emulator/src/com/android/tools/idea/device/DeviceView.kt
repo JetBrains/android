@@ -23,6 +23,7 @@ import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -142,30 +143,40 @@ class DeviceView(
   }
 
   private suspend fun initializeAgent() {
-    val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
-    deviceClient.startAgentAndConnect()
-    val decoder = deviceClient.createVideoDecoder(realSize.rotatedByQuadrants(-displayRotationQuadrants))
-    EventQueue.invokeLater {
-      this.deviceClient = deviceClient
-      this.decoder = decoder
-      if (width > 0 && height > 0) {
-        deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
-      }
-    }
-    decoder.addFrameListener(object : VideoDecoder.FrameListener {
-      override fun onNewFrameAvailable() {
-        EventQueue.invokeLater {
-          if (frameNumber == 0) {
-            hideLongRunningOperationIndicatorInstantly()
-          }
-          frameNumber++
-          if (width != 0 && height != 0) {
-            repaint()
-          }
+    try {
+      val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
+      deviceClient.startAgentAndConnect()
+      val decoder = deviceClient.createVideoDecoder(realSize.rotatedByQuadrants(-displayRotationQuadrants))
+      EventQueue.invokeLater {
+        this.deviceClient = deviceClient
+        this.decoder = decoder
+        if (width > 0 && height > 0) {
+          deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
         }
       }
-    })
-    deviceClient.startVideoDecoding(decoder)
+      decoder.addFrameListener(object : VideoDecoder.FrameListener {
+        override fun onNewFrameAvailable() {
+          EventQueue.invokeLater {
+            if (frameNumber == 0) {
+              hideLongRunningOperationIndicatorInstantly()
+            }
+            frameNumber++
+            if (width != 0 && height != 0) {
+              repaint()
+            }
+          }
+        }
+      })
+      deviceClient.startVideoDecoding(decoder)
+    }
+    catch (e: Throwable) {
+      thisLogger().error("Failed to initialize the screen sharing agent", e)
+      EventQueue.invokeLater {
+        hideLongRunningOperationIndicatorInstantly()
+        disconnectedStateLabel.text = "Failed to initialize the device agent. See the error log."
+        add(disconnectedStateLabel)
+      }
+    }
   }
 
   override fun dispose() {
