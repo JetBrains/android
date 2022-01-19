@@ -25,9 +25,6 @@ using namespace std;
 unique_ptr<Message> Message::deserialize(Base128InputStream& stream) {
   int32_t type = stream.ReadInt32();
   switch (type) {
-    case MouseEventMessage::TYPE:
-      return unique_ptr<Message>(MouseEventMessage::deserialize(stream));
-
     case MotionEventMessage::TYPE:
       return unique_ptr<Message>(MotionEventMessage::deserialize(stream));
 
@@ -46,14 +43,6 @@ unique_ptr<Message> Message::deserialize(Base128InputStream& stream) {
     default:
       Log::Fatal("Unexpected message type %d", type);
   }
-}
-
-MouseEventMessage* MouseEventMessage::deserialize(Base128InputStream& stream) {
-  int32_t x = stream.ReadInt32();
-  int32_t y = stream.ReadInt32();
-  uint32_t buttons = stream.ReadUInt32();
-  int32_t display_id = stream.ReadInt32();
-  return new MouseEventMessage(x, y, buttons, display_id);
 }
 
 MotionEventMessage* MotionEventMessage::deserialize(Base128InputStream& stream) {

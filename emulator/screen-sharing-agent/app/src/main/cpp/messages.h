@@ -46,48 +46,6 @@ protected:
   int32_t type_;
 };
 
-// Represents a mouse button being pressed or released or a mouse being moved.
-class MouseEventMessage : Message {
-public:
-  MouseEventMessage(int32_t x, int32_t y, uint32_t buttons, int32_t display_id)
-    : Message(TYPE),
-      x_(x),
-      y_(y),
-      button_state_(buttons),
-      display_id_(display_id) {
-  }
-  virtual ~MouseEventMessage() {};
-
-  // The horizontal coordinate corresponding to the display in its original orientation.
-  int32_t get_x() const { return x_; }
-
-  // The vertical coordinate corresponding to the display in its original orientation.
-  int32_t get_y() const { return y_; }
-
-  // Indicates which buttons were pressed.
-  // 0: No buttons were pressed
-  // 1: Primary button (left)
-  // 2: Secondary button (right)
-  uint32_t get_button_state() const { return button_state_; }
-
-  // The display device where the mouse event occurred. Zero indicates the main display.
-  int32_t get_display_id() const { return display_id_; }
-
-  static constexpr int TYPE = 0;
-
-private:
-  friend class Message;
-
-  static MouseEventMessage* deserialize(Base128InputStream& stream);
-
-  int32_t x_;
-  int32_t y_;
-  uint32_t button_state_;
-  int32_t display_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(MouseEventMessage);
-};
-
 // Represents an Android MotionEvent.
 class MotionEventMessage : Message {
 public:

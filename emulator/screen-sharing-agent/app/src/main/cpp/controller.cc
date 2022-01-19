@@ -113,10 +113,6 @@ void Controller::Run() {
 
 void Controller::ProcessMessage(const Message& message) {
   switch (message.get_type()) {
-    case MouseEventMessage::TYPE:
-      ProcessMouseEvent((const MouseEventMessage&) message);
-      break;
-
     case MotionEventMessage::TYPE:
       ProcessMotionEvent((const MotionEventMessage&) message);
       break;
@@ -141,44 +137,6 @@ void Controller::ProcessMessage(const Message& message) {
       Log::E("Unexpected message type %d", message.get_type());
       break;
   }
-}
-
-void Controller::ProcessMouseEvent(const MouseEventMessage& message) {
-  int64_t now = UptimeMillis();
-  MotionEvent event(jni_);
-  int pointer_id = 0;
-  event.device_id = message.get_display_id();
-  event.button_state = message.get_button_state();
-  int32_t pressure = event.button_state & 0x1;
-  event.action = pressure == 0 ? AMOTION_EVENT_ACTION_UP : AMOTION_EVENT_ACTION_DOWN;
-  auto pressed_pointer = FindPressedPointer(pointer_id);
-  if (pressed_pointer == pressed_pointers_.end()) {
-    if (pressure == 0) {
-      return;
-    }
-    event.down_time_millis = now;
-    event.action = AMOTION_EVENT_ACTION_DOWN;
-    pressed_pointers_.emplace_back(pointer_id, now, message.get_x(), message.get_y());
-  } else {
-    event.down_time_millis = pressed_pointer->press_time_millis;
-    if (pressure != 0) {
-      event.action = AMOTION_EVENT_ACTION_MOVE;
-    } else {
-      event.action = AMOTION_EVENT_ACTION_UP;
-      pressed_pointers_.erase(pressed_pointer);
-    }
-  }
-  event.event_time_millis = now;
-  event.pointer_count = 1;
-  JObject properties = pointer_properties_.GetElement(jni_, 0);
-  pointer_helper_->SetPointerId(properties, pointer_id);
-  JObject coordinates = pointer_coordinates_.GetElement(jni_, 0);
-  pointer_helper_->SetPointerCoords(coordinates, message.get_x(), message.get_y());
-  pointer_helper_->SetPointerPressure(coordinates, pressure);
-  event.pointer_properties = pointer_properties_;
-  event.pointer_coordinates = pointer_coordinates_;
-  JObject motion_event = event.ToJava();
-  input_manager_->InjectInputEvent(motion_event, InputEventInjectionSync::NONE);
 }
 
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
@@ -293,11 +251,6 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
   }
   Size max_size(message.get_width(), message.get_height());
   Agent::OnMaxVideoResolutionChanged(max_size);
-}
-
-vector<Controller::PressedPointer>::iterator Controller::FindPressedPointer(int pointer_id) {
-  return find_if(pressed_pointers_.begin(), pressed_pointers_.end(),
-                 [pointer_id](PressedPointer& p) { return p.pointer_id == pointer_id; });
 }
 
 }  // namespace screensharing
