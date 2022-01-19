@@ -287,7 +287,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           .withEnvironmentVariables(myRequest.getEnv())
           .passParentEnvs(myRequest.isPassParentEnvs());
         LongRunningOperation operation = isRunBuildAction ? connection.action(buildAction) : connection.newBuild();
-        operation.addProgressListener(new GradleToolingApiMemoryUsageFixingProgressListener(), OperationType.TASK);
         prepare(operation, id, executionSettings, new ExternalSystemTaskNotificationListenerAdapter() {
           @Override
           public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
