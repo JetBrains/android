@@ -22,24 +22,24 @@
 #include <vector>
 #include <android/input.h>
 
-#include "common.h"
 #include "base128_input_stream.h"
+#include "common.h"
 
 namespace screensharing {
 
 // Common base class of all control messages.
-class Message {
+class ControlMessage {
 public:
-  virtual ~Message() {}
+  virtual ~ControlMessage() {}
 
   int32_t get_type() const {
     return type_;
   }
 
-  static std::unique_ptr<Message> deserialize(Base128InputStream& stream);
+  static std::unique_ptr<ControlMessage> deserialize(Base128InputStream& stream);
 
 protected:
-  Message(int32_t type)
+  ControlMessage(int32_t type)
       : type_(type) {
   }
 
@@ -47,7 +47,7 @@ protected:
 };
 
 // Represents an Android MotionEvent.
-class MotionEventMessage : Message {
+class MotionEventMessage : ControlMessage {
 public:
   struct Pointer {
     Pointer(int32_t x, int32_t y, int32_t pointer_id)
@@ -68,7 +68,7 @@ public:
   // Pointers are expected to be ordered according to their ids.
   // The action translates directly to android.view.MotionEvent.action.
   MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t display_id)
-      : Message(TYPE),
+      : ControlMessage(TYPE),
         pointers_(pointers),
         action_(action),
         display_id_(display_id) {
@@ -89,7 +89,7 @@ public:
   static constexpr int MAX_POINTERS = 2;
 
 private:
-  friend class Message;
+  friend class ControlMessage;
 
   static MotionEventMessage* deserialize(Base128InputStream& stream);
 
@@ -101,10 +101,10 @@ private:
 };
 
 // Represents a key being pressed or released on a keyboard.
-class KeyEventMessage : Message {
+class KeyEventMessage : ControlMessage {
 public:
   KeyEventMessage(int32_t action, int32_t keycode, uint32_t meta_state)
-      : Message(TYPE),
+      : ControlMessage(TYPE),
         action_(action),
         keycode_(keycode),
         meta_state_(meta_state) {
@@ -124,7 +124,7 @@ public:
   static constexpr int ACTION_DOWN_AND_UP = 8;
 
 private:
-  friend class Message;
+  friend class ControlMessage;
 
   static KeyEventMessage* deserialize(Base128InputStream& stream);
 
@@ -136,10 +136,10 @@ private:
 };
 
 // Represents one or more characters typed on a keyboard.
-class TextInputMessage : Message {
+class TextInputMessage : ControlMessage {
 public:
   TextInputMessage(const std::u16string& text)
-      : Message(TYPE),
+      : ControlMessage(TYPE),
         text_(text) {
   }
   virtual ~TextInputMessage() {};
@@ -149,7 +149,7 @@ public:
   static constexpr int TYPE = 3;
 
 private:
-  friend class Message;
+  friend class ControlMessage;
 
   static TextInputMessage* deserialize(Base128InputStream& stream);
 
@@ -159,10 +159,10 @@ private:
 };
 
 // Represents one or more characters typed on a keyboard.
-class SetDeviceOrientationMessage : Message {
+class SetDeviceOrientationMessage : ControlMessage {
 public:
   SetDeviceOrientationMessage(uint32_t orientation)
-      : Message(TYPE),
+      : ControlMessage(TYPE),
         orientation_(orientation) {
   }
   virtual ~SetDeviceOrientationMessage() {};
@@ -172,7 +172,7 @@ public:
   static constexpr int TYPE = 4;
 
 private:
-  friend class Message;
+  friend class ControlMessage;
 
   static SetDeviceOrientationMessage* deserialize(Base128InputStream& stream);
 
@@ -182,10 +182,10 @@ private:
 };
 
 // Sets maximum display streaming resolution.
-class SetMaxVideoResolutionMessage : Message {
+class SetMaxVideoResolutionMessage : ControlMessage {
 public:
   SetMaxVideoResolutionMessage(uint32_t width, uint32_t height)
-      : Message(TYPE),
+      : ControlMessage(TYPE),
         width_(width),
         height_(height) {
   }
@@ -197,7 +197,7 @@ public:
   static constexpr int TYPE = 5;
 
 private:
-  friend class Message;
+  friend class ControlMessage;
 
   static SetMaxVideoResolutionMessage* deserialize(Base128InputStream& stream);
 

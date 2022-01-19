@@ -21,10 +21,10 @@
 #include <accessors/input_manager.h>
 #include <accessors/key_character_map.h>
 
-#include "common.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
-#include "messages.h"
+#include "common.h"
+#include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
 
@@ -42,7 +42,7 @@ public:
 private:
   void Initialize();
   void Run();
-  void ProcessMessage(const Message& message);
+  void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);

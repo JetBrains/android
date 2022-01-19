@@ -26,13 +26,13 @@ add_library(
         accessors/window_manager.cc
         agent.cc
         base128_input_stream.cc
+        control_messages.cc
         controller.cc
         display_streamer.cc
         io_exception.cc
         jvm.cc
         log.cc
         main.cc
-        messages.cc
         video_packet_header.cc
 )
 

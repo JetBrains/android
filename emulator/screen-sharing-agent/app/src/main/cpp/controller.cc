@@ -100,7 +100,7 @@ void Controller::Run() {
   Log::D("Controller::Run");
   try {
     for (;;) {
-      unique_ptr<Message> message = Message::deserialize(input_stream_);
+      unique_ptr<ControlMessage> message = ControlMessage::deserialize(input_stream_);
       ProcessMessage(*message);
     }
   } catch (EndOfFile& e) {
@@ -111,7 +111,7 @@ void Controller::Run() {
   }
 }
 
-void Controller::ProcessMessage(const Message& message) {
+void Controller::ProcessMessage(const ControlMessage& message) {
   switch (message.get_type()) {
     case MotionEventMessage::TYPE:
       ProcessMotionEvent((const MotionEventMessage&) message);

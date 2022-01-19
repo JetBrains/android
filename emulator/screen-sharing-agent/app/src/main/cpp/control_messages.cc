@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "messages.h"
+#include "control_messages.h"
 
 #include "log.h"
 
@@ -22,23 +22,23 @@ namespace screensharing {
 
 using namespace std;
 
-unique_ptr<Message> Message::deserialize(Base128InputStream& stream) {
+unique_ptr<ControlMessage> ControlMessage::deserialize(Base128InputStream& stream) {
   int32_t type = stream.ReadInt32();
   switch (type) {
     case MotionEventMessage::TYPE:
-      return unique_ptr<Message>(MotionEventMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(MotionEventMessage::deserialize(stream));
 
     case KeyEventMessage::TYPE:
-      return unique_ptr<Message>(KeyEventMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(KeyEventMessage::deserialize(stream));
 
     case TextInputMessage::TYPE:
-      return unique_ptr<Message>(TextInputMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(TextInputMessage::deserialize(stream));
 
     case SetDeviceOrientationMessage::TYPE:
-      return unique_ptr<Message>(SetDeviceOrientationMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(SetDeviceOrientationMessage::deserialize(stream));
 
     case SetMaxVideoResolutionMessage::TYPE:
-      return unique_ptr<Message>(SetMaxVideoResolutionMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(SetMaxVideoResolutionMessage::deserialize(stream));
 
     default:
       Log::Fatal("Unexpected message type %d", type);
