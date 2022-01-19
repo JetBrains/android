@@ -28,7 +28,7 @@ import kotlin.test.assertNotNull
 
 class VisualizationTestToolWindowManager(private val project: Project, private val disposableParent: Disposable)
   : ToolWindowHeadlessManagerImpl(project) {
-  private val toolWindows = mutableMapOf<String, ToolWindow>()
+  private val idToToolWindow = mutableMapOf<String, ToolWindow>()
 
   init {
     // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
@@ -42,7 +42,7 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
 
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
     val toolWindow = VisualizationTestToolWindow(project)
-    toolWindows[task.id] = toolWindow
+    idToToolWindow[task.id] = toolWindow
     task.contentFactory?.createToolWindowContent(project, toolWindow)
     fireStateChange()
     Disposer.register(disposableParent, toolWindow.disposable)
@@ -50,7 +50,7 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
   }
 
   override fun getToolWindow(id: String?): ToolWindow? {
-    return toolWindows[id]
+    return idToToolWindow[id]
   }
 
   private fun fireStateChange() {

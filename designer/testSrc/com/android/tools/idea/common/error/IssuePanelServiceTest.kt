@@ -189,16 +189,16 @@ class IssuePanelServiceTest {
 
 class TestToolWindowManager(private val project: Project)
   : ToolWindowHeadlessManagerImpl(project) {
-  private val toolWindows = mutableMapOf<String, ToolWindow>()
+  private val idToToolWindow = mutableMapOf<String, ToolWindow>()
 
   override fun doRegisterToolWindow(id: String): ToolWindow {
     val window = TestToolWindow(project)
-    toolWindows[id] = window
+    idToToolWindow[id] = window
     return window
   }
 
   override fun getToolWindow(id: String?): ToolWindow? {
-    return toolWindows[id]
+    return idToToolWindow[id]
   }
 }
 

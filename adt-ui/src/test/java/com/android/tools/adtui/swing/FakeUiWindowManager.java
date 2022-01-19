@@ -143,16 +143,6 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   }
 
   @Override
-  public @NotNull DesktopLayout getLayout() {
-    return myLayout;
-  }
-
-  @Override
-  public final void setLayout(@NotNull DesktopLayout layout) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public final void dispatchComponentEvent(ComponentEvent e) {
     throw new UnsupportedOperationException();
   }
