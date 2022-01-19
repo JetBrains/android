@@ -86,7 +86,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
 public class GuiTestRule implements TestRule {
-  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(60);
+  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(420);
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
