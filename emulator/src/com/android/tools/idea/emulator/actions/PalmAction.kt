@@ -18,4 +18,4 @@ package com.android.tools.idea.emulator.actions
 /**
  * Simulates the Palm gesture on an Android Wear virtual device.
  */
-class PalmAction : EmulatorKeypressAction("Sleep", configFilter = { config -> config.isWearOs && config.api >= 28 })
+class PalmAction : EmulatorKeypressAction("Standby", configFilter = { config -> config.isWearOs && config.api >= 28 })

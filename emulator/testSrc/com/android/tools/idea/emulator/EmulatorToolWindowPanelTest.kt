@@ -249,7 +249,7 @@ class EmulatorToolWindowPanelTest {
     ui.mouseClickOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Sleep"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Standby"""")
 
     // Check TiltAction.
     button = ui.getComponent { it.action.templateText == "Tilt" }
