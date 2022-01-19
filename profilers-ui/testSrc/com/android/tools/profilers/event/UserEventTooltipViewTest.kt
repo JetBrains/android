@@ -31,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
+@org.junit.Ignore("b/216195279")
 class UserEventTooltipViewTest {
 
   private var mySimpleEventTooltipView: FakeUserEventTooltipView? = null

@@ -24,6 +24,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
+@org.junit.Ignore("b/216195279")
 class StageViewTest {
   @get:Rule
   val grpcChannel = FakeGrpcChannel("StageViewTest")

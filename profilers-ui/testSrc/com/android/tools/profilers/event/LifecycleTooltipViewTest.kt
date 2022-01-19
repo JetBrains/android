@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+@org.junit.Ignore("b/216195279")
 class LifecycleTooltipViewTest {
 
   private lateinit var myActivityTooltipView: FakeLifecycleTooltipView
