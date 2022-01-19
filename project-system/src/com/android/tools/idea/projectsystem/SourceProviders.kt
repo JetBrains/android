@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.util.computeUserDataIfAbsent
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
-import com.intellij.ProjectTopics
-import com.intellij.facet.Facet
-import com.intellij.facet.FacetManager
-import com.intellij.facet.FacetManagerAdapter
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootEvent
-import com.intellij.openapi.roots.ModuleRootListener
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -252,64 +248,23 @@ interface SourceProviders {
   }
 }
 
-val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: (getUserData(KEY) ?: createSourceProviderFor(this))
+val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: getSourceProviderFor(this).value
 
-private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
-
+private val KEY: Key<CachedValue<SourceProviders>> = Key.create(::KEY.qualifiedName)
 private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName)
 
-private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
-  return facet.module.project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
-         ?: createSourceProvidersForLegacyModule(facet)
-}
-
-private fun onChanged(facet: AndroidFacet) {
-  facet.putUserData(KEY, createSourceProviderFor(facet))
-}
-
-private class SourceProviderManagerComponent(val project: Project) : ProjectComponent {
-  private val connection = project.messageBus.connect()
-
-  init {
-    var subscribedToRootsChangedEvents = false
-
-    @Synchronized
-    fun ensureSubscribed() {
-      if (!subscribedToRootsChangedEvents) {
-        connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
-          override fun rootsChanged(event: ModuleRootEvent) {
-            for (facet in ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-              onChanged(facet)
-            }
-          }
-        })
-        subscribedToRootsChangedEvents = true
-      }
+private fun getSourceProviderFor(facet: AndroidFacet): CachedValue<SourceProviders> {
+  return facet.computeUserDataIfAbsent(KEY) {
+    val project = facet.module.project
+    CachedValuesManager.getManager(project).createCachedValue {
+      val value = project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
+        ?: createSourceProvidersForLegacyModule(facet)
+      CachedValueProvider.Result.create(
+        value,
+        ProjectRootManager.getInstance(project),
+        ProjectSyncModificationTracker.getInstance(project)
+      )
     }
-
-    // Temporarily subscribe the component to notifications when the ProjectSystemService is available only.  Many tests are still
-    // configured to run without ProjectSystemService.
-    if (project.getService(ProjectSystemService::class.java) != null) {
-      connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
-        override fun facetConfigurationChanged(facet: Facet<*>) {
-          if (facet is AndroidFacet) {
-            ensureSubscribed()
-            onChanged(facet)
-          }
-        }
-
-        override fun facetAdded(facet: Facet<*>) {
-          if (facet is AndroidFacet) {
-            ensureSubscribed()
-            onChanged(facet)
-          }
-        }
-      })
-    }
-  }
-
-  override fun projectClosed() {
-    connection.disconnect()
   }
 }
 

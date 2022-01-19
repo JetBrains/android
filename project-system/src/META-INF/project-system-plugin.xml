@@ -26,9 +26,4 @@
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
     <postStartupActivity implementation="org.jetbrains.android.AndroidStartupManager" order="last"/>
   </extensions>
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.projectsystem.SourceProviderManagerComponent</implementation-class>
-    </component>
-  </project-components>
 </idea-plugin>
