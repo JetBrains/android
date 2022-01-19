@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
-import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import java.util.List;
@@ -24,8 +23,8 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import org.jetbrains.annotations.NotNull;
 
-abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
-  PopUpMenuButtonTableCellEditor() {
+public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
+  protected PopUpMenuButtonTableCellEditor() {
     super(AllIcons.Actions.More, PopUpMenuValue.INSTANCE);
 
     myButton.addActionListener(event -> {
@@ -36,5 +35,6 @@ abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor 
     });
   }
 
-  abstract @NotNull List<@NotNull JComponent> newItems();
+  @VisibleForTesting
+  public abstract @NotNull List<@NotNull JComponent> newItems();
 }

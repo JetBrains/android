@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
@@ -115,6 +116,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                                                                                    EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
       setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
+      setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor());
 
       setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
 
@@ -122,6 +124,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                          new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
 
       setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
+      setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
     }
     else {
       setDefaultEditor(Actions.class, new ActionsTableCell(this));

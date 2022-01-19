@@ -19,6 +19,7 @@ import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.android.tools.idea.wearpairing.PairingDevice;
@@ -54,7 +55,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   }
 
   @Override
-  @NotNull List<@NotNull JComponent> newItems() {
+  public @NotNull List<@NotNull JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
     Optional<JComponent> optionalItem = newUnpairDeviceItem();
 
