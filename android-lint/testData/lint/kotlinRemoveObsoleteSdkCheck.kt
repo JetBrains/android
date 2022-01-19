@@ -16,7 +16,7 @@ class KotlinRemoveObsoleteSdkCheckTest {
         }
     }
 
-    @RequiresApi(14)
+    <warning descr="Unnecessary; SDK_INT is always >= 14">@RequiresApi(14)</warning>
     fun requiresApi14() {
     }
 }

@@ -13,7 +13,7 @@ public class JavaRemoveObsoleteSdkCheckTest {
         }
     }
 
-    @RequiresApi(14)
+    <warning descr="Unnecessary; SDK_INT is always >= 14">@RequiresApi(14)</warning>
     public void requiresApi14() {
     }
 }
