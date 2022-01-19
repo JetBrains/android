@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostS
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
-import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.Companion.findConflicts
@@ -49,6 +48,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -189,11 +189,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
 
     ProjectStructure.getInstance(project).analyzeProjectStructure()
-    ProgressManager.getInstance().run(object : Backgroundable(project, "Setting up modules...") {
-      override fun run(indicator: ProgressIndicator) {
-        setUpModules(project)
-      }
-    })
   }
 
   override fun postProcess(toImport: Collection<DataNode<GradleAndroidModel>>,

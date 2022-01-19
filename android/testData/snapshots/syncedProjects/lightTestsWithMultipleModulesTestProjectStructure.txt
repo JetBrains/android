@@ -285,11 +285,3 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-    RUN_CONFIGURATION             : app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : app
-        Module                        : app
-    RUN_CONFIGURATION             : lib
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : lib
-        Module                        : lib

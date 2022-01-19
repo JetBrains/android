@@ -287,11 +287,3 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             JavaSource                    : file://<TEMP>/gen
             JavaSource                    : file://<TEMP>/src
         ORDER_ENTRY                   : <Module source>
-    RUN_CONFIGURATION             : app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : app
-        Module                        : app
-    RUN_CONFIGURATION             : lib
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : lib
-        Module                        : lib

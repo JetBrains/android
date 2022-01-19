@@ -78,7 +78,3 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-    RUN_CONFIGURATION             : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
-        Module                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase

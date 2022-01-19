@@ -139,7 +139,3 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-    RUN_CONFIGURATION             : LightSyncBasedTestsWithCMakeLikeStructureTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : LightSyncBasedTestsWithCMakeLikeStructureTest
-        Module                        : LightSyncBasedTestsWithCMakeLikeStructureTest
