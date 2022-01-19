@@ -23,15 +23,13 @@ import java.time.ZoneId
 /**
  * Formats [LogCatMessage]'s into a [TextAccumulator]
  */
-internal class MessageFormatter(private val formattingOptions: FormattingOptions,
-                                private val logcatColors: LogcatColors,
-                                private val zoneId: ZoneId) {
+internal class MessageFormatter(private val logcatColors: LogcatColors, private val zoneId: ZoneId) {
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for app?
   private var previousTag: String? = null
   private var previousPid: Int? = null
 
-  fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+  fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 5)
     for (message in messages) {

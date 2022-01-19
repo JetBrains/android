@@ -24,8 +24,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
-import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
@@ -33,6 +34,7 @@ import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.LogcatSettings
@@ -108,7 +110,7 @@ class LogcatMainPanelTest {
     assertThat(toolbar.actions[0]).isInstanceOf(ClearLogcatAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(ScrollToTheEndToolbarAction::class.java)
     assertThat(toolbar.actions[2]).isInstanceOf(ToggleUseSoftWrapsToolbarAction::class.java)
-    assertThat(toolbar.actions[3]).isInstanceOf(HeaderFormatOptionsAction::class.java)
+    assertThat(toolbar.actions[3]).isInstanceOf(LogcatFormatAction::class.java)
     assertThat(toolbar.actions[4]).isInstanceOf(Separator::class.java)
   }
 
@@ -356,17 +358,17 @@ class LogcatMainPanelTest {
   @Test
   fun getState() {
     val logcatMainPanel = logcatMainPanel()
-    logcatMainPanel.formattingOptions.tagFormat = TagFormat(15)
+    logcatMainPanel.formattingOptions = FormattingOptions(tagFormat = TagFormat(15))
 
-    val logcatPanelConfig = gson.fromJson(logcatMainPanel.getState(), LogcatPanelConfig::class.java)
-    assertThat(logcatPanelConfig.formattingOptions.tagFormat.maxLength).isEqualTo(15)
+    val logcatPanelConfig = LogcatPanelConfig.fromJson(logcatMainPanel.getState())
+    assertThat(logcatPanelConfig!!.formattingConfig.toFormattingOptions().tagFormat.maxLength).isEqualTo(15)
   }
 
   @RunsInEdt
   @Test
   fun appliesState() {
     val logcatMainPanel = logcatMainPanel(
-      state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17)), "filter"))
+      state = LogcatPanelConfig("device", FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))), "filter"))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow initializing it.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
@@ -458,6 +460,23 @@ class LogcatMainPanelTest {
       assertThat(document.text.length).isAtMost(1024 + logCatMessage.length())
       // backlog trims by message length
       assertThat(logcatMainPanel.messageBacklog.get().messages.sumOf { it.message.length }).isLessThan(1024)
+    }
+  }
+
+  @Test
+  fun setFormattingOptions_reloadsMessages() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    logcatMainPanel.processMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.formattingOptions = COMPACT.formattingOptions
+    }
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text.trim()).isEqualTo("04:00:01.000  W  message1")
     }
   }
 

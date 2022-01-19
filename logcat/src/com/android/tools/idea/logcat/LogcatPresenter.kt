@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.LogcatSettings
 import com.intellij.openapi.Disposable
@@ -26,6 +27,8 @@ import com.intellij.openapi.Disposable
  * Encapsulates the presentation of Logcat messages.
  */
 internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposable {
+  var formattingOptions: FormattingOptions
+
   /**
    * Reloads messages from the backlog into the view
    */

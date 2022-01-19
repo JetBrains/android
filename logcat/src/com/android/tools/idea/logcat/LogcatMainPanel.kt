@@ -24,8 +24,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
-import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
@@ -34,6 +36,7 @@ import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
@@ -109,9 +112,13 @@ internal class LogcatMainPanel(
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val deviceContext = DeviceContext()
 
-  @VisibleForTesting
-  internal val formattingOptions = state?.formattingOptions ?: FormattingOptions()
-  private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
+  override var formattingOptions: FormattingOptions = state?.formattingConfig?.toFormattingOptions() ?: STANDARD.formattingOptions
+    set(value) {
+      field = value
+      reloadMessages()
+    }
+
+  private val messageFormatter = MessageFormatter(logcatColors, zoneId)
 
   @VisibleForTesting
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))
@@ -129,7 +136,7 @@ internal class LogcatMainPanel(
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(
     this,
-    messageFormatter::formatMessages,
+    ::formatMessages,
     LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()))
   private var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
@@ -142,7 +149,7 @@ internal class LogcatMainPanel(
       override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
     })
 
-    toolbar.setTargetComponent(this)
+    toolbar.targetComponent = this
 
     // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
     //  might be challenging both technically and from a UX perspective. Since, when restoring the state, the device/client might not be
@@ -216,11 +223,14 @@ internal class LogcatMainPanel(
     messageProcessor.appendMessages(messages)
   }
 
-  override fun getState(): String = LogcatPanelConfig.toJson(
-    LogcatPanelConfig(
-      deviceContext.selectedDevice?.serialNumber,
-      formattingOptions,
-      headerPanel.getFilterText()))
+  override fun getState(): String {
+    val formattingOptionsStyle = formattingOptions.getStyle()
+    return LogcatPanelConfig.toJson(
+      LogcatPanelConfig(
+        deviceContext.selectedDevice?.serialNumber,
+        if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
+        headerPanel.getFilterText()))
+  }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
     if (!isActive) {
@@ -287,7 +297,7 @@ internal class LogcatMainPanel(
       add(object : ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE) {
         override fun getEditor(e: AnActionEvent) = this@LogcatMainPanel.editor
       })
-      add(HeaderFormatOptionsAction(project, this@LogcatMainPanel, formattingOptions))
+      add(LogcatFormatAction(project, this@LogcatMainPanel))
     }
   }
 
@@ -317,6 +327,10 @@ internal class LogcatMainPanel(
   private fun scrollToEnd() {
     EditorUtil.scrollToTheEnd(editor, true)
     ignoreCaretAtBottom = false
+  }
+
+  private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
 }
 

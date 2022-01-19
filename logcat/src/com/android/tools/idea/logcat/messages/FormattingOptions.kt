@@ -15,8 +15,29 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
+import com.intellij.openapi.util.NlsActions.ActionText
+
+// TODO(aalbert): This will come from a PersistentStateComponent eventually
+private val standardFormattingOptions = FormattingOptions(
+  TimestampFormat(DATETIME, enabled = true),
+  ProcessThreadFormat(BOTH, enabled = true),
+  TagFormat(maxLength = 23, hideDuplicates = false, enabled = true),
+  AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
+)
+
+// TODO(aalbert): This will come from a PersistentStateComponent eventually
+private val compactFormattingOptions = FormattingOptions(
+  TimestampFormat(TIME, enabled = true),
+  ProcessThreadFormat(BOTH, enabled = false),
+  TagFormat(maxLength = 23, hideDuplicates = false, enabled = false),
+  AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
+)
 
 /**
  * Formatting options of a Logcat panel.
@@ -27,5 +48,18 @@ internal data class FormattingOptions(
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
 ) {
-  fun getHeaderWidth() =  appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+  enum class Style(val formattingOptions: FormattingOptions, val displayName: @ActionText String) {
+    STANDARD(standardFormattingOptions, LogcatBundle.message("logcat.format.action.standard")),
+    COMPACT(compactFormattingOptions, LogcatBundle.message("logcat.format.action.compact")),
+  }
+
+  fun getHeaderWidth() = appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+
+  fun getStyle(): Style? {
+    return when  {
+      this === standardFormattingOptions -> STANDARD
+      this === compactFormattingOptions -> COMPACT
+      else -> null
+    }
+  }
 }

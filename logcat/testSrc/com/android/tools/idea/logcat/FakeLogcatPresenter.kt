@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.LogcatSettings
 
@@ -40,6 +41,8 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   var attachedToDevice = false
   val messageBatches = mutableListOf<List<LogCatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
+  @Suppress("UNUSED_PARAMETER")
+  override var formattingOptions: FormattingOptions = FormattingOptions()
 
   override fun reloadMessages() {
     reloadedMessages++

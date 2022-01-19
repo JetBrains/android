@@ -43,13 +43,14 @@ class MessageFormatterTest {
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
-  private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, ZONE_ID)
+  private val messageFormatter = MessageFormatter(logcatColors, ZONE_ID)
 
   @Test
   fun formatMessages_defaultFormat() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -78,6 +79,7 @@ class MessageFormatterTest {
     formattingOptions.timestampFormat = TimestampFormat(TIME, enabled = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -98,6 +100,7 @@ class MessageFormatterTest {
     formattingOptions.timestampFormat = TimestampFormat(DATETIME, enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -118,6 +121,7 @@ class MessageFormatterTest {
     formattingOptions.processThreadFormat = ProcessThreadFormat(PID, enabled = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -138,6 +142,7 @@ class MessageFormatterTest {
     formattingOptions.processThreadFormat = ProcessThreadFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -158,6 +163,7 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(maxLength = 15)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -177,6 +183,7 @@ class MessageFormatterTest {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", TIMESTAMP), "message"),
@@ -197,6 +204,7 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(hideDuplicates = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -219,6 +227,7 @@ class MessageFormatterTest {
     formattingOptions.tagFormat = TagFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -239,6 +248,7 @@ class MessageFormatterTest {
     formattingOptions.appNameFormat = AppNameFormat(maxLength = 20)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -258,6 +268,7 @@ class MessageFormatterTest {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "Tag", TIMESTAMP), "message"),
@@ -278,6 +289,7 @@ class MessageFormatterTest {
     formattingOptions.appNameFormat = AppNameFormat(hideDuplicates = true)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -300,6 +312,7 @@ class MessageFormatterTest {
     formattingOptions.appNameFormat = AppNameFormat(enabled = false)
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
@@ -322,7 +335,7 @@ class MessageFormatterTest {
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
     val textAttributes = textAccumulator.textAttributesKeyRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
@@ -346,7 +359,7 @@ class MessageFormatterTest {
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
     val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
@@ -374,7 +387,7 @@ class MessageFormatterTest {
     }
     val textAccumulator = TextAccumulator()
 
-    messageFormatter.formatMessages(textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
 
     // Filter the ranges corresponding to a tag and build a map tag -> color.
     val tagColors = textAccumulator.textAttributesRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
@@ -390,6 +403,7 @@ class MessageFormatterTest {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", TIMESTAMP), "message1"),
@@ -406,6 +420,7 @@ class MessageFormatterTest {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
+      formattingOptions,
       textAccumulator,
       listOf(
         LogCatMessage(SYSTEM_HEADER, "message"),

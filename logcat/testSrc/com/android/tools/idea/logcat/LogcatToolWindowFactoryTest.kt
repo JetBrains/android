@@ -18,11 +18,11 @@ package com.android.tools.idea.logcat
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.google.common.truth.Truth.assertThat
-import com.google.gson.Gson
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
@@ -89,13 +89,16 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun createChildComponent_parsesState() {
-    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)), "filter")
+    val logcatPanelConfig = LogcatPanelConfig(
+      "device",
+      FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
+      "filter")
 
     val logcatMainPanel = LogcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = Gson().toJson(logcatPanelConfig))
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = LogcatPanelConfig.toJson(logcatPanelConfig))
 
     // It's enough to assert on just one field in the config. We test more thoroughly in LogcatMainPanelTest
-    assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingOptions)
+    assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingConfig.toFormattingOptions())
     Disposer.dispose(logcatMainPanel)
   }
 

@@ -113,7 +113,7 @@ internal class HeaderFormatOptionsDialog(private val project: Project, formattin
   }
 
   private val sampleFormattingOptions = FormattingOptions()
-  private val sampleMessageFormatter = MessageFormatter(sampleFormattingOptions, LogcatColors(), sampleZoneId)
+  private val sampleMessageFormatter = MessageFormatter(LogcatColors(), sampleZoneId)
 
   val dialogWrapper = dialog(
     project = project,
@@ -276,7 +276,7 @@ internal class HeaderFormatOptionsDialog(private val project: Project, formattin
   private fun refreshSampleText() {
     applyTo(sampleFormattingOptions)
     val textAccumulator = TextAccumulator()
-    sampleMessageFormatter.formatMessages(textAccumulator, sampleMessages)
+    sampleMessageFormatter.formatMessages(sampleFormattingOptions, textAccumulator, sampleMessages)
     sampleEditor.document.setReadOnly(false)
     sampleEditor.document.setText("")
     DocumentAppender(project, sampleEditor.document, MAX_SAMPLE_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)

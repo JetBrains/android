@@ -38,7 +38,7 @@ import javax.swing.SwingUtilities
  *
  * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return immediately.
  */
-internal fun MessageProcessor.onIdle(run: () -> Any) {
+internal fun MessageProcessor.onIdle(run: () -> Unit) {
   assert(!SwingUtilities.isEventDispatchThread())
   waitForCondition(5, TimeUnit.SECONDS, this::isChannelEmpty)
 

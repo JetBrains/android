@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,12 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.messages.TimestampFormat
-import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.google.common.truth.Truth.assertThat
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
@@ -43,10 +41,10 @@ import org.junit.Test
 import javax.swing.JCheckBox
 
 /**
- * Tests for [HeaderFormatOptionsAction]
+ * Tests for [LogcatFormatCustomViewAction]
  */
 @RunsInEdt
-class HeaderFormatOptionsActionTest {
+class LogcatFormatCustomViewActionTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
@@ -61,19 +59,19 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun presentation() {
-    val action = headerFormatOptionsAction()
+    val action = logcatFormatCustomViewAction()
 
-    assertThat(action.templatePresentation.text).isEqualTo("Header Format")
-    assertThat(action.templatePresentation.description).isEqualTo("Configure header formatting options")
-    assertThat(action.templatePresentation.icon).isSameAs(AllIcons.General.LayoutEditorPreview)
+    assertThat(action.templatePresentation.text).isEqualTo("Custom View")
+    assertThat(action.templatePresentation.description).isNull()
+    assertThat(action.templatePresentation.icon).isNull()
   }
 
   @Test
   fun actionPerformed_dialogInitialized() {
-    val formattingOptions = FormattingOptions(processThreadFormat = ProcessThreadFormat(PID))
+    fakeLogcatPresenter.formattingOptions = FormattingOptions(processThreadFormat = ProcessThreadFormat(ProcessThreadFormat.Style.PID))
     var isShowProcessId = false
     var isShowThreadId = true
-    val action = headerFormatOptionsAction(formattingOptions = formattingOptions)
+    val action = logcatFormatCustomViewAction(fakeLogcatPresenter)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       val showProcessId = dialogWrapper.getCheckBox("Show process id")
@@ -89,38 +87,54 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun actionPerformed_ok() {
-    val formattingOptions =
-      FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
-    val action = headerFormatOptionsAction(fakeLogcatPresenter, formattingOptions)
+    fakeLogcatPresenter.formattingOptions = FormattingOptions(
+      TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
+      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH),
+      TagFormat(),
+      AppNameFormat())
+    val action = logcatFormatCustomViewAction(fakeLogcatPresenter)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       dialogWrapper.getCheckBox("Show timestamp").isSelected = false
       dialogWrapper.clickDefaultButton()
     }
 
-    assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = false))
-    assertThat(fakeLogcatPresenter.reloadedMessages).isEqualTo(1)
+    assertThat(fakeLogcatPresenter.formattingOptions.timestampFormat)
+      .isEqualTo(TimestampFormat(TimestampFormat.Style.TIME, enabled = false))
   }
 
   @Test
   fun actionPerformed_cancel() {
-    val formattingOptions =
-      FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
-    val action = headerFormatOptionsAction(fakeLogcatPresenter, formattingOptions)
+    fakeLogcatPresenter.formattingOptions = FormattingOptions(
+      TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
+      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH),
+      TagFormat(),
+      AppNameFormat())
+    val action = logcatFormatCustomViewAction(fakeLogcatPresenter)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       dialogWrapper.getCheckBox("Show timestamp").isSelected = false
       dialogWrapper.doCancelAction()
     }
 
-    assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = true))
-    assertThat(fakeLogcatPresenter.reloadedMessages).isEqualTo(0)
+    assertThat(fakeLogcatPresenter.formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TimestampFormat.Style.TIME, enabled = true))
   }
 
-  private fun headerFormatOptionsAction(
+  @Test
+  fun isSelected() {
+    fakeLogcatPresenter.formattingOptions = STANDARD.formattingOptions
+    assertThat(logcatFormatCustomViewAction(fakeLogcatPresenter).isSelected()).isFalse()
+
+    fakeLogcatPresenter.formattingOptions = COMPACT.formattingOptions
+    assertThat(logcatFormatCustomViewAction(fakeLogcatPresenter).isSelected()).isFalse()
+
+    fakeLogcatPresenter.formattingOptions = FormattingOptions()
+    assertThat(logcatFormatCustomViewAction(fakeLogcatPresenter).isSelected()).isTrue()
+  }
+
+  private fun logcatFormatCustomViewAction(
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
-    formattingOptions: FormattingOptions = FormattingOptions(),
-  ) = HeaderFormatOptionsAction(projectRule.project, logcatPresenter, formattingOptions)
+  ) = LogcatFormatCustomViewAction(projectRule.project, logcatPresenter)
 }
 
 private fun DialogWrapper.getCheckBox(text: String) =
