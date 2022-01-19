@@ -739,7 +739,7 @@
     <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.upgrade.ComponentGroupingRuleProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ContentManager"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.AndroidStudioStatisticsJobScheduler"/>
+    <applicationInitializedListener implementation="com.intellij.internal.statistic.updater.StatisticsStateCollectorsScheduler"/>
     <statistics.projectUsagesCollector implementation="com.intellij.internal.statistic.collectors.fus.fileTypes.FileTypeUsagesCollector"/>
   </extensions>
 
