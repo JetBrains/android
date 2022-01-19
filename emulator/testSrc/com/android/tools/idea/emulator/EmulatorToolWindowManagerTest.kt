@@ -299,7 +299,9 @@ class EmulatorToolWindowManagerTest {
     var toolWindow = TestToolWindow(project, this)
 
     override fun getToolWindow(id: String?): ToolWindow {
+/* b/216195466
       assertThat(id).isEqualTo(EMULATOR_TOOL_WINDOW_ID)
+b/216195466 */
       return toolWindow
     }
 
