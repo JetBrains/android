@@ -125,11 +125,11 @@ public interface AndroidModel {
     throw new UnsupportedOperationException("Deprecated. Use GeneratedSourcesFilter.");
   }
 
-  /**
-   * @return A provider for finding .class output files and external .jars.
-   */
   @NotNull
-  ClassJarProvider getClassJarProvider();
+  @Deprecated
+  default ClassJarProvider getClassJarProvider() {
+    throw new UnsupportedOperationException("Deprecated. Use AndroidProjectSystem.getClassJarProvider");
+  }
 
   @Deprecated
   default boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {

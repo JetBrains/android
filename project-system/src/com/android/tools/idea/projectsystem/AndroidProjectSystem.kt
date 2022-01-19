@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -32,6 +34,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -109,6 +112,22 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   fun getSourceProvidersFactory(): SourceProvidersFactory
 
+  /**
+   * @return A provider for finding .class output files and external .jars.
+   */
+  @JvmDefault
+  fun getClassJarProvider(): ClassJarProvider {
+    // TODO: Remove when all project system impementations are updated.
+    return object: ClassJarProvider {
+      override fun getModuleExternalLibraries(module: Module): List<File> {
+        return AndroidModel.get(module)?.classJarProvider?.getModuleExternalLibraries(module).orEmpty()
+      }
+
+      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
+        return AndroidModel.get(module)?.classJarProvider?.isClassFileOutOfDate(module, fqcn, classFile) ?: false
+      }
+    }
+  }
   /**
    * Returns a list of [AndroidFacet]s by given package name.
    */

@@ -18,8 +18,6 @@ package com.android.tools.idea.model
 import com.android.sdklib.AndroidVersion
 import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -29,7 +27,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val targetSdkVersion: AndroidVersion? = null,
   private val runtimeMinSdkVersion: AndroidVersion? = null,
   private val allApplicationIds: Set<String> = setOf(applicationId),
-  private val classJarProvider: ClassJarProvider? = null,
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
   private val namespacing: Namespacing = Namespacing.DISABLED,
@@ -53,7 +50,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getMinSdkVersion(): AndroidVersion = minSdkVersion ?: AndroidVersion(1)
   override fun getRuntimeMinSdkVersion(): AndroidVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
-  override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel
   override fun getLintRuleJarsOverride(): MutableIterable<File>? = lintRuleJars

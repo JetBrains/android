@@ -18,7 +18,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
@@ -130,7 +130,7 @@ internal fun isResourceClassName(fqcn: String): Boolean =
   fqcn.substringAfterLast(".").let { it == "R" || it.startsWith("R$") }
 
 fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = this?.let {
-  AndroidModel.get(it)?.classJarProvider?.isClassFileOutOfDate(it, fqcn, classFile) ?: false
+  it.project.getProjectSystem().getClassJarProvider().isClassFileOutOfDate(it, fqcn, classFile)
 } ?: false
 
 

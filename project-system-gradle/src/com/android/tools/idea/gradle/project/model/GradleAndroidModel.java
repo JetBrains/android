@@ -562,12 +562,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return null;
   }
 
-  @Override
-  @NotNull
-  public ClassJarProvider getClassJarProvider() {
-    return new AndroidGradleClassJarProvider();
-  }
-
   @NotNull
   @Override
   public Namespacing getNamespacing() {

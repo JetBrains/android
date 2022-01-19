@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -50,11 +51,13 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -137,6 +140,18 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override val submodules: Collection<Module>
     get() = getSubmodules(project, null)
+
+  override fun getClassJarProvider(): ClassJarProvider {
+    return object: ClassJarProvider {
+      override fun getModuleExternalLibraries(module: Module): List<File> {
+        return AndroidRootUtil.getExternalLibraries(module).map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
+      }
+
+      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
+        return false
+      }
+    }
+  }
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
     override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
