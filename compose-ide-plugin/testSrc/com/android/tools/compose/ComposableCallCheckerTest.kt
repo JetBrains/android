@@ -15,18 +15,32 @@
  */
 package com.android.tools.compose
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import org.jetbrains.android.compose.stubComposableAnnotation
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.util.text.StringUtil
+import junit.framework.Assert.assertEquals
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [ComposeSampleResolutionService]
  */
-class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
+class ComposableCallCheckerTest {
+  @get:Rule
+  val androidProject = AndroidProjectRule.inMemory()
 
+  @get:Rule
+  val flagRule = SetFlagRule(StudioFlags.COMPOSE_EDITOR_SUPPORT, true)
+
+  @Test
   fun testCfromNC() = doTest(
     """
     import androidx.compose.runtime.*
@@ -37,6 +51,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testNCfromC() = doTest(
     """
     import androidx.compose.runtime.*
@@ -46,6 +61,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCfromC() = doTest(
     """
         import androidx.compose.runtime.*
@@ -55,6 +71,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinCLambdaArg() = doTest(
     """
     import androidx.compose.runtime.*
@@ -68,6 +85,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinInlinedNCLambdaArg() = doTest(
     """
     import androidx.compose.runtime.*
@@ -81,6 +99,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinLambdaArgOfNC() = doTest(
     """
     import androidx.compose.runtime.*
@@ -94,6 +113,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinLambdaArgOfC() = doTest(
     """
     import androidx.compose.runtime.*
@@ -107,6 +127,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinCPropGetter() = doTest(
     """
         import androidx.compose.runtime.*
@@ -115,6 +136,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinNCPropGetter() = doTest(
     """
     import androidx.compose.runtime.*
@@ -123,6 +145,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCinTopLevelInitializer() = doTest(
     """
     import androidx.compose.runtime.*
@@ -132,6 +155,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testCTypeAlias() = doTest(
     """
     import androidx.compose.runtime.*
@@ -146,6 +170,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testPreventedCaptureOnInlineLambda() = doTest(
     """
     import androidx.compose.runtime.*
@@ -163,6 +188,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testComposableReporting001() {
     doTest(
       """
@@ -184,6 +210,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting002() {
     doTest(
       """
@@ -198,6 +225,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting006() {
     doTest(
       """
@@ -217,6 +245,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting007() {
     doTest(
       """
@@ -229,6 +258,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting008() {
     doTest(
       """
@@ -246,6 +276,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting009() {
     doTest(
       """
@@ -265,6 +296,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting017() {
     doTest(
       """
@@ -285,6 +317,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting018() {
     doTest(
       """
@@ -301,6 +334,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting022() {
     doTest(
       """
@@ -320,6 +354,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting023() {
     doTest(
       """
@@ -340,6 +375,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting024() {
     doTest(
       """
@@ -362,6 +398,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting024x() {
     doTest(
       """
@@ -377,6 +414,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting025() {
     doTest(
       """
@@ -393,6 +431,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting026() {
     doTest(
       """
@@ -414,6 +453,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting027() {
     doTest(
       """
@@ -437,6 +477,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting028() {
     doTest(
       """
@@ -450,6 +491,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting030() {
     doTest(
       """
@@ -464,6 +506,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting032() {
     doTest(
       """
@@ -483,6 +526,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting033() {
     doTest(
       """
@@ -502,6 +546,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting034() {
     doTest(
       """
@@ -518,6 +563,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting035() {
     doTest(
       """
@@ -526,12 +572,13 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
           @Composable
           fun Foo(x: String) {
               @Composable operator fun String.invoke() {}
-              <error descr="[MISSING_DEPENDENCY_SUPERCLASS] Cannot access 'java.io.Serializable' which is a supertype of 'kotlin.String'. Check your module classpath for missing or conflicting dependencies">x</error>()
+              x()
           }
           """
     )
   }
 
+  @Test
   fun testComposableReporting039() {
     doTest(
       """
@@ -553,6 +600,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting041() {
     doTest(
       """
@@ -574,6 +622,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting043() {
     doTest(
       """
@@ -589,6 +638,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting044() {
     doTest(
       """
@@ -607,6 +657,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting045() {
     doTest(
       """
@@ -621,6 +672,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting048() {
     // Type inference for nullable @Composable lambdas, with a nullable default value
     doTest(
@@ -645,6 +697,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting049() {
     doTest(
       """
@@ -656,6 +709,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting050() {
     doTest(
       """
@@ -671,6 +725,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting051() {
     doTest(
       """
@@ -696,6 +751,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting052() {
     doTest(
       """
@@ -711,6 +767,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting053() {
     doTest(
       """
@@ -726,6 +783,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting054() {
     doTest(
       """
@@ -763,6 +821,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting055() {
     doTest(
       """
@@ -794,6 +853,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableReporting057() {
     doTest(
       """
@@ -812,6 +872,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testTryCatchReporting001() {
     doTest(
       """
@@ -822,13 +883,14 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
           @Composable fun bar() {
               <error descr="[ILLEGAL_TRY_CATCH_AROUND_COMPOSABLE] Try catch is not supported around composable function invocations.">try</error> {
                   foo()
-              } catch(e: <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: Exception">Exception</error>) {
+              } catch(e: Exception) {
               }
           }
           """
     )
   }
 
+  @Test
   fun testTryCatchReporting002() {
     doTest(
       """
@@ -839,13 +901,14 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
           @Composable fun bar() {
               try {
                   foo()
-              } catch(e: <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: Exception">Exception</error>) {
+              } catch(e: Exception) {
               }
           }
           """
     )
   }
 
+  @Test
   fun testTryCatchReporting003() {
     doTest(
       """
@@ -855,7 +918,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
 
           @Composable fun bar() {
               try {
-              } catch(e: <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: Exception">Exception</error>) {
+              } catch(e: Exception) {
                   foo()
               } finally {
                   foo()
@@ -865,6 +928,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testTryCatchReporting005() {
     doTest(
       """
@@ -890,6 +954,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
   }
 
 
+  @Test
   fun testDisallowComposableCallPropagation() = doTest(
     """
         import androidx.compose.runtime.*
@@ -906,6 +971,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
+  @Test
   fun testReadOnlyComposablePropagation() = doTest(
     """
         import androidx.compose.runtime.*
@@ -986,7 +1052,56 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
     """
   )
 
-  private fun doTest(expectedText: String): Unit = myFixture.run {
+  @Test
+  fun testComposableCallHighlighting() = doTest(
+    """
+    import androidx.compose.runtime.*
+    fun notC() { }
+    @Composable fun C() { }
+    @Composable fun C1(<warning descr="[UNUSED_PARAMETER] Parameter 'a' is never used">a</warning>: Int) { }
+    @Composable fun C2(<warning descr="[UNUSED_PARAMETER] Parameter 'a' is never used">a</warning>: Int, lambdaC: @Composable () -> Unit) { 
+      lambdaC()
+    }
+    @Composable <warning descr="[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of functional types">inline</warning> fun InlineC() {}
+    inline fun InlineNC(lambda: () -> Unit) { lambda() }
+
+    @Composable fun C3() {
+        InlineNC {
+            C()
+            C1(1)
+        }
+        C1(2)
+    }
+
+    @Composable fun C4() {
+        C1(3)
+        notC()
+        C2(3) {
+          notC()
+          InlineC()
+        }
+    }
+    """
+  ) { highlights ->
+    assertEquals(
+      """
+        lambdaC@8
+        C@15
+        C1@16
+        C1@18
+        C1@22
+        C2@24
+        InlineC@26
+      """.trimIndent(),
+      highlights
+        .filter { (highlight, _) ->
+          highlight.severity == HighlightSeverity.INFORMATION && highlight.forcedTextAttributesKey == ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+        }
+        .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" })
+  }
+
+  private fun doTest(expectedText: String,
+                     verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null): Unit = androidProject.fixture.run {
     stubComposeRuntime()
     stubKotlinStdlib()
 
@@ -1001,16 +1116,13 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
 
     configureFromExistingVirtualFile(file.virtualFile)
     checkHighlighting()
+    verifyHighlights?.let {
+      it(doHighlighting().map { it to StringUtil.offsetToLineNumber(file.text, it.actualStartOffset) })
+    }
   }
 
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
+  @Before
+  fun setUp() {
+    (androidProject.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
   }
-
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
-  }
-
 }
