@@ -152,7 +152,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -345,7 +345,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -491,7 +491,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -704,7 +704,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (JVM_1_8)
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2
             JavaSource (test)             : file://<PROJECT>/module2/src/androidAndroidTest/kotlin
             JavaResource (test)           : file://<PROJECT>/module2/src/androidAndroidTest/resources [-]
@@ -914,7 +914,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
             Platform                      : JVM (JVM_1_8)/JS/Native (general)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
@@ -980,7 +980,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
             Platform                      : JVM (JVM_1_8)/JS/Native (general)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK

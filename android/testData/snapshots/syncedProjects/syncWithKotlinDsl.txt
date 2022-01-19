@@ -127,7 +127,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -278,7 +278,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -397,7 +397,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
@@ -601,7 +601,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -687,7 +687,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -773,7 +773,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.5
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]

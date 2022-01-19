@@ -163,7 +163,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -374,7 +374,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -526,7 +526,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
@@ -752,7 +752,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -934,7 +934,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -1058,7 +1058,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/test
             JavaSource (test)             : file://<PROJECT>/awesomeandroidlibrary/src/test/java
@@ -1258,7 +1258,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/src/main
@@ -1345,7 +1345,7 @@ PROJECT                       : testSyncKotlinProject
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
-            Version                       : 4
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/contentLib/src/test
