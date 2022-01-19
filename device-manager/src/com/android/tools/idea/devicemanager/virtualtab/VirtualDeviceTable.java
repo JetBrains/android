@@ -25,17 +25,20 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
@@ -111,10 +114,14 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                                                                                    this,
                                                                                    EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
+      setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
+
       setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
 
       setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
                          new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
+
+      setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
     }
     else {
       setDefaultEditor(Actions.class, new ActionsTableCell(this));
@@ -243,8 +250,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public void refreshAvdsAndSelect(@Nullable AvdInfo device) {
     refreshAvds();
-
-    //changeSelection(); TODO
   }
 
   @Override

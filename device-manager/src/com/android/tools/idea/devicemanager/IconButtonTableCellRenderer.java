@@ -29,7 +29,7 @@ public class IconButtonTableCellRenderer implements TableCellRenderer {
     this(icon, null);
   }
 
-  protected IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
+  public IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
     myButton.setToolTipText(tooltipText);
   }

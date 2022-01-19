@@ -61,8 +61,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     }
   }
 
-  private static final class EditValue {
-    private static final EditValue INSTANCE = new EditValue();
+  static final class EditValue {
+    static final EditValue INSTANCE = new EditValue();
 
     private EditValue() {
     }

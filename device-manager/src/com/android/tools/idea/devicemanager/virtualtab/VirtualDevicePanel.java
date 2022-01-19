@@ -16,10 +16,10 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.adtui.stdui.CommonButton;
-import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
-import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DevicePanel;
+import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
+import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
@@ -95,6 +95,10 @@ public final class VirtualDevicePanel extends DevicePanel {
   @VisibleForTesting
   @NotNull JButton getCreateButton() {
     return myCreateButton;
+  }
+
+  @NotNull VirtualDeviceTable getTable() {
+    return (VirtualDeviceTable)myTable;
   }
 
   private void layOut() {
