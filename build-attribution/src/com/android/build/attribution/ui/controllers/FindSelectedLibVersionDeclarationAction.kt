@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.google.common.base.Stopwatch
+import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -36,8 +37,10 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import com.intellij.usages.UsageViewManager
 import com.intellij.usages.UsageViewPresentation
+import com.intellij.util.PlatformIcons
 import com.intellij.util.Processor
 import java.util.function.Supplier
+import javax.swing.Icon
 
 class FindSelectedLibVersionDeclarationAction(
   private val selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>,
@@ -59,8 +62,9 @@ class FindSelectedLibVersionDeclarationAction(
     val usageViewPresentation = UsageViewPresentation()
     usageViewPresentation.tabName = "Dependency Version Declaration"
     usageViewPresentation.tabText = "Dependency Version Declaration"
+    usageViewPresentation.targetsNodeText = "Dependency"
     val fullNameWithoutVersion = selectedDependency.fullName.substringBeforeLast(":")
-    usageViewPresentation.codeUsagesString = "Version declarations of $fullNameWithoutVersion"
+    usageViewPresentation.codeUsagesString = "Version declarations"
     val pluralizedProject = StringUtil.pluralize("project", selectedDependency.projects.size)
     usageViewPresentation.scopeText = selectedDependency.projects.joinToString(prefix = "$pluralizedProject ", limit = 5)
     usageViewPresentation.searchString = fullNameWithoutVersion
@@ -83,8 +87,21 @@ class FindSelectedLibVersionDeclarationAction(
       override fun usageViewCreated(usageView: UsageView) = Unit
       override fun findingUsagesFinished(usageView: UsageView?) = analytics.findLibraryVersionDeclarationActionUsed(watch.elapsed())
     }
+    val target = object : UsageTarget {
+      override fun navigate(requestFocus: Boolean) = Unit
+      override fun canNavigate(): Boolean = false
+      override fun canNavigateToSource(): Boolean = false
+      override fun getName(): String = fullNameWithoutVersion
+      override fun getPresentation(): ItemPresentation = object : ItemPresentation {
+        override fun getPresentableText(): String = fullNameWithoutVersion
+        override fun getIcon(unused: Boolean): Icon = PlatformIcons.LIBRARY_ICON
+      }
+
+      override fun isValid(): Boolean = true
+      override fun findUsages() = Unit
+    }
     UsageViewManager.getInstance(project)
-      .searchAndShowUsages(arrayOf<UsageTarget>(), factory, processPresentation, usageViewPresentation, listener)
+      .searchAndShowUsages(arrayOf(target), factory, processPresentation, usageViewPresentation, listener)
   }
 
 }

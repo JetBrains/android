@@ -155,7 +155,6 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
 /**
  * This test verifies what happens when action is triggered and how it passes request to UsageViewManager.
  */
-@org.junit.Ignore("b/214640805")
 @RunsInEdt
 class FindActionIntegrationTest {
   private val projectRule = AndroidProjectRule.onDisk()
