@@ -34,7 +34,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   public VisualizationFixture(@NotNull Project project, @NotNull Robot robot) {
     super(VisualizationToolWindowFactory.TOOL_WINDOW_ID, project, robot);
     myDesignSurfaceFixture = new NlDesignSurfaceFixture(
-      robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE), 20));
+      robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE_NAME), 20));
   }
 
   public VisualizationFixture waitForRenderToFinish() {

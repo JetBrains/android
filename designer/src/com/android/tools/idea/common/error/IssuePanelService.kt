@@ -244,11 +244,10 @@ class IssuePanelService(private val project: Project) {
       val surfaceName = when (surface.name) {
         null -> {
           when (surface.models.firstOrNull()?.file?.typeOf()) {
-            is LayoutFileType -> "Layout Editor"
+            is LayoutFileType -> "Layout"
             is PreferenceScreenFileType -> "Preference"
             is MenuFileType -> "Menu"
-            null -> "Unknown"
-            else -> "Compose"
+            else -> "Designer"
           }
         }
         else -> surface.name

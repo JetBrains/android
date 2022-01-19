@@ -286,6 +286,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
       override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
       }
     })
+    it.name = "Compose"
   }
 
   override val isPannable: Boolean

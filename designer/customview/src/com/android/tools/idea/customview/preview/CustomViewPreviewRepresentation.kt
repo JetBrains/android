@@ -108,7 +108,7 @@ class CustomViewPreviewRepresentation(
   psiFile: PsiFile,
   persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)},
   buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState) :
-  PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, DataProvider {
+  PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
 
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
@@ -192,6 +192,7 @@ class CustomViewPreviewRepresentation(
     }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
     .build().apply {
       setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
+      name = "Custom View"
     }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
@@ -217,11 +218,13 @@ class CustomViewPreviewRepresentation(
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
-    val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)
-
-    init(issuePanelSplitter, surface, listOf(), false)
-  }
+  private val workbench: WorkBench<DesignSurface> =
+    object : WorkBench<DesignSurface>(project, "Main Preview", null, this), DataProvider {
+      override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
+    }.apply {
+      val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)
+      init(issuePanelSplitter, surface, listOf(), false)
+    }
 
   @Volatile
   private var lastBuildStartedNanos = 0L
@@ -415,9 +418,5 @@ class CustomViewPreviewRepresentation(
 
   override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
-  }
-
-  override fun getData(dataId: String): Any? {
-    return if (DESIGN_SURFACE.`is`(dataId)) surface else null
   }
 }

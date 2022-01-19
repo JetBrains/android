@@ -47,7 +47,7 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
-                        { NavDesignSurface(myProject, it, this) }, NavComponentRegistrar,
+                        { NavDesignSurface(myProject, it, this).apply { name = "Navigation" } }, NavComponentRegistrar,
                         {
                           listOf(
                             NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
