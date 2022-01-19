@@ -138,8 +138,9 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case DEVICE_MODEL_COLUMN_INDEX:
           return Device.class;
         case API_MODEL_COLUMN_INDEX:
-        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
           return Object.class;
+        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+          return Long.class;
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
           return LaunchInEmulatorValue.class;
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
