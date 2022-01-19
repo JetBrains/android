@@ -478,10 +478,20 @@ class PreviewLiveEditManager private constructor(
 
       indicator.text = "Looking for compiler daemon"
       val runtimeVersion = moduleRuntimeVersionLocator(module).toString()
-      val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
+      val daemon = try {
+        daemonRegistry.getOrCreateDaemon(runtimeVersion)
+      }
+      catch (t: Throwable) {
+        return@withContext Pair(CompilationResult.DaemonStartFailure(t), outputAbsolutePath)
+      }
 
       indicator.text = "Compiling"
-      val result = daemon.compileRequest(args)
+      val result = try {
+        daemon.compileRequest(args)
+      }
+      catch (t: Throwable) {
+        return@withContext Pair(CompilationResult.RequestException(t), outputAbsolutePath)
+      }
       log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result, id=$requestId)")
       Pair(result, outputAbsolutePath).also {
         synchronized(requestTracker) {

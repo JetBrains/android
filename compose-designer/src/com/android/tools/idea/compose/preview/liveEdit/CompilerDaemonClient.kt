@@ -27,6 +27,11 @@ sealed class CompilationResult {
   object Success: CompilationResult()
 
   /**
+   * The daemon failed to start.
+   */
+  data class DaemonStartFailure(val e: Throwable? = null): CompilationResult()
+
+  /**
    * The daemon returned an error. [code] contains the error code returned by the daemon.
    */
   data class DaemonError(val code: Int): CompilationResult()

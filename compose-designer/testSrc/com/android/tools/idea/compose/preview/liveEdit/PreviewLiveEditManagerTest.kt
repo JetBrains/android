@@ -281,4 +281,36 @@ internal class PreviewLiveEditManagerTest {
     """.trimIndent(), requestParameters)
     }
   }
+
+  @Test
+  fun `handle daemon start exception`() = runBlocking {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty() {}
+    """.trimIndent())
+    val manager = PreviewLiveEditManager.getTestInstance(project, {
+      throw IllegalStateException("Unable to start compiler")
+    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    val result = manager.compileRequest(file, projectRule.module).first
+    assertTrue(result.toString(), result is CompilationResult.DaemonStartFailure)
+  }
+
+  @Test
+  fun `handle compile request exception`() = runBlocking {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty() {}
+    """.trimIndent())
+    val manager = PreviewLiveEditManager.getTestInstance(project, {
+      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        override suspend fun compileRequest(args: List<String>): CompilationResult {
+          throw IllegalStateException("Unable to process request")
+        }
+      }
+    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    val result = manager.compileRequest(file, projectRule.module).first
+    assertTrue(result.toString(), result is CompilationResult.RequestException)
+  }
 }
