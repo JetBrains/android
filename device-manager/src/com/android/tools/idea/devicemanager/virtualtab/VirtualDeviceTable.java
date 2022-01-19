@@ -116,7 +116,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                                                                                    EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
       setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
-      setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor());
+      setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
 
       setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
 
