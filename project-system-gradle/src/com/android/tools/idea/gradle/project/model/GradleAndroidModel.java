@@ -568,11 +568,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return new AndroidGradleClassJarProvider();
   }
 
-  @Override
-  public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    return ClassFileUtil.isClassSourceFileNewerThanClassClassFile(module, fqcn, classFile);
-  }
-
   @NotNull
   @Override
   public Namespacing getNamespacing() {

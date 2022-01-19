@@ -130,7 +130,7 @@ internal fun isResourceClassName(fqcn: String): Boolean =
   fqcn.substringAfterLast(".").let { it == "R" || it.startsWith("R$") }
 
 fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = this?.let {
-  AndroidModel.get(it)?.isClassFileOutOfDate(it, fqcn, classFile) ?: false
+  AndroidModel.get(it)?.classJarProvider?.isClassFileOutOfDate(it, fqcn, classFile) ?: false
 } ?: false
 
 

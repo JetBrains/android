@@ -57,5 +57,4 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getNamespacing(): Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel
   override fun getLintRuleJarsOverride(): MutableIterable<File>? = lintRuleJars
-  override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean = TODO("not implemented")
 }
