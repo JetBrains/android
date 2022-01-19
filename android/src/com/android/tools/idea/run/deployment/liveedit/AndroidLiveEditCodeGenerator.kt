@@ -30,11 +30,13 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -43,11 +45,13 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.KotlinToJvmSignatureMapper
+import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
 import java.lang.Math.ceil
 import java.util.ServiceLoader
@@ -56,11 +60,6 @@ const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
 
 class AndroidLiveEditCodeGenerator {
-
-  private val SIGNATURE_MAPPER = ServiceLoader.load(
-    KotlinToJvmSignatureMapper::class.java,
-    KotlinToJvmSignatureMapper::class.java.classLoader
-  ).iterator().next()
 
   data class GeneratedCode(val className: String,
                            val methodName: String,
@@ -117,13 +116,13 @@ class AndroidLiveEditCodeGenerator {
     //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
     //    the complexity of the input .kt file.
     ProgressManager.checkCanceled()
-    val classes = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
+    val generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
                                  AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))}, "codegen")
 
     // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
     //    decide which classes we want to send to the device along with what extra meta-information the
     //    agent need.
-    return methods.map { getGeneratedCode(it, bindingContext, classes)}
+    return methods.map { getGeneratedCode(it, generationState)}
   }
 
   /**
@@ -173,7 +172,7 @@ class AndroidLiveEditCodeGenerator {
    * the extension point to generate code for @composable functions.
    */
   private fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                             input: List<KtFile>, langVersion: LanguageVersionSettings): List<OutputFile> {
+                             input: List<KtFile>, langVersion: LanguageVersionSettings): GenerationState {
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
 
@@ -205,16 +204,16 @@ class AndroidLiveEditCodeGenerator {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
 
-    return generationState.factory.asList();
+    return generationState
   }
 
   /**
    * Pick out what classes we need from the generated list of .class files.
    */
-  private fun getGeneratedCode(targetFunction: KtNamedFunction,
-                               bindingContext: BindingContext,
-                               compilerOutput: List<OutputFile>): GeneratedCode {
-    val methodSignature = functionSignature(bindingContext, targetFunction)
+  private fun getGeneratedCode(targetFunction: KtNamedFunction, generationState: GenerationState): GeneratedCode {
+    val compilerOutput = generationState.factory.asList()
+    var bindingContext = generationState.bindingContext
+    val methodSignature = remapFunctionSignatureIfNeeded(targetFunction, bindingContext, generationState.typeMapper)
 
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
@@ -317,26 +316,51 @@ class AndroidLiveEditCodeGenerator {
     throw LiveEditUpdateException.compilationError(e.message?:"No error message")
   }
 
-  fun functionSignature(context: BindingContext, function : KtNamedFunction) : String {
-    val desc = context[BindingContext.FUNCTION, function]
-    val signature = SIGNATURE_MAPPER.mapToJvmMethodSignature(desc!!)
-
-    if (!desc.annotations.hasAnnotation(FqName("androidx.compose.runtime.Composable"))) {
-      // This is a pure Kotlin function and not a Composable. The method signature will not
-      // be changed by the compose compiler at all.
-      return signature.toString()
+  fun remapFunctionSignatureIfNeeded(function : KtFunction, context: BindingContext, mapper: KotlinTypeMapper) : String {
+    val desc = context[BindingContext.FUNCTION, function]!!
+    var target = "${desc.name}("
+    for (param in desc.valueParameters) {
+      target += remapComposableFunctionType(param.type, mapper)
     }
 
+    var additionalParams = ""
+    if (desc.hasComposableAnnotation()) {
+      val totalSyntheticParamCount = calcStateParamCount(desc.valueParameters.size, desc.valueParameters.count { it.hasDefaultValue() })
+      // Add the Composer parameter as well as number of additional ints computed above.
+      additionalParams = "Landroidx/compose/runtime/Composer;"
+      for (x in 1 .. totalSyntheticParamCount) {
+        additionalParams += "I"
+      }
+    }
+    target += "$additionalParams)"
+    // We are done with parameters, last thing to do is append return type.
+    target += remapComposableFunctionType(desc.returnType, mapper)
+    return target
+  }
+
+  fun remapComposableFunctionType(type: KotlinType?, mapper: KotlinTypeMapper ) : String {
+    val funInternalNamePrefix = "Lkotlin/jvm/functions/Function"
+    if (type == null) {
+      return "Lkotlin/Unit;"
+    }
+    val originalType = mapper.mapType(type).toString()
+    val numParamStart = originalType.indexOf(funInternalNamePrefix)
+    if (!type.hasComposableAnnotation() || numParamStart < 0) {
+      return originalType
+    }
+    var numParam = originalType.substring(numParamStart + funInternalNamePrefix.length, originalType.length - 1).toInt()
+    numParam += calcStateParamCount(numParam) + 1 // Add the one extra param for Composer.
+    return "$funInternalNamePrefix$numParam;"
+  }
+
+  fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int {
     // The number of synthetic int param added to a function is the total of:
     // 1. max (1, ceil(numParameters / 10))
     // 2. 0 default int parameters if none of the N parameters have default expressions
     // 3. ceil(N / 31) N parameters have default expressions if there are any defaults
     //
     // The formula follows the one found in ComposableFunctionBodyTransformer.kt
-
     var totalSyntheticParamCount = 0
-    var realValueParamsCount = desc.valueParameters.size
-
     if (realValueParamsCount == 0) {
       totalSyntheticParamCount += 1;
     } else {
@@ -344,18 +368,11 @@ class AndroidLiveEditCodeGenerator {
       totalSyntheticParamCount += ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
     }
 
-    var numDefaults = desc.valueParameters.count { it.hasDefaultValue() }
-
-    if (desc.valueParameters.size != 0 && numDefaults != 0) {
+    if (realValueParamsCount != 0 && numDefaults != 0) {
       totalSyntheticParamCount += ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
     }
-
-    var target = signature.toString()
-
-    // Add the Composer parameter as well as number of additional ints computed above.
-    var additionalParams = "Landroidx/compose/runtime/Composer;"
-    for (x in 1 .. totalSyntheticParamCount) additionalParams += "I"
-    target = target.replace(")", additionalParams + ")")
-    return target
+    return totalSyntheticParamCount;
   }
+
+  fun Annotated.hasComposableAnnotation() = this.annotations.hasAnnotation(FqName("androidx.compose.runtime.Composable"))
 }

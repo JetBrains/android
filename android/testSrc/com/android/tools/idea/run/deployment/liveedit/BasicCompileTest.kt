@@ -35,8 +35,12 @@ import kotlin.test.fail
 @RunWith(JUnit4::class)
 class BasicCompileTest {
   private lateinit var myProject: Project
+  private lateinit var ktComposable: PsiFile
   private lateinit var ktFileA: PsiFile
   private lateinit var ktFileCallA: PsiFile
+  private lateinit var ktFileComposeSimple: PsiFile
+  private lateinit var ktFileComposeNested: PsiFile
+
 
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
@@ -46,13 +50,43 @@ class BasicCompileTest {
     myProject = projectRule.project
     ktFileA = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return \"I am foo\"}")
     ktFileCallA = projectRule.fixture.configureByText("CallA.kt", "fun callA() : String { return foo() }")
+
+    ktComposable = projectRule.fixture.configureByText("Composable.kt", "package androidx.compose.runtime \n" +
+                                                                        "@Target(AnnotationTarget.FUNCTION, AnnotationTarget.TYPE)\n" +
+                                                                        "annotation class Composable\n")
+
+    ktFileComposeSimple = projectRule.fixture.configureByText("ComposeSimple.kt",
+                                                             "@androidx.compose.runtime.Composable fun composableFun() : String { " +
+                                                             "return \"hi\" " +
+                                                             "}")
+
+    ktFileComposeNested = projectRule.fixture.configureByText("ComposeNested.kt",
+                                                              "@androidx.compose.runtime.Composable fun composableNested () : " +
+                                                              "@androidx.compose.runtime.Composable (Int)->Unit { " +
+                                                              "return { } " +
+                                                              "}")
   }
 
   @Test
   fun simpleChange() {
     var output = compile(ktFileA, findFunction(ktFileA, "foo"))
-    var returnedValue = invokeStatic("foo", loadClass("AKt", output))
+    var returnedValue = invokeStatic("foo", loadClass("AKt", output.classData))
     Assert.assertEquals("I am foo", returnedValue)
+  }
+
+  @Test
+  fun simpleComposeChange() {
+    var output = compile(ktFileComposeSimple, findFunction(ktFileComposeSimple, "composableFun"))
+    // We can't really invoke any composable without the runtime libraries. At least we can check
+    // to make sure the output isn't empty.
+    Assert.assertTrue(output.classData.isNotEmpty())
+  }
+
+  @Test
+  fun simpleComposeNested() {
+    var output = compile(ktFileComposeNested, findFunction(ktFileComposeNested, "composableNested"))
+    Assert.assertEquals("composableNested", output.methodName)
+    Assert.assertEquals("(Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function3;", output.methodDesc)
   }
 
   @Test
@@ -61,10 +95,10 @@ class BasicCompileTest {
     compileFail(ktFileCallA, findFunction(ktFileCallA, "callA"))
   }
 
-  private fun compile(file: PsiFile, function: KtNamedFunction) : ByteArray {
+  private fun compile(file: PsiFile, function: KtNamedFunction) : AndroidLiveEditCodeGenerator.GeneratedCode {
     val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file, function)), output)
-    return output[0].classData
+    return output[0]
   }
 
   private fun compileFail(file: PsiFile, function: KtNamedFunction) {
