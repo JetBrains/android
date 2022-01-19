@@ -327,7 +327,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting, loading should show
-    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
+    inspectorRule.startLaunch(2)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
@@ -335,7 +335,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Release the response from the agent and wait for connection. The loading should stop.
     latch.countDown()
-    inspectorRule.asyncLaunchLatch.await(1, TimeUnit.SECONDS)
+    inspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading && contentPanel.showEmptyText }
   }
@@ -357,7 +357,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting, loading should show
-    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(3)
+    inspectorRule.startLaunch(6)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
@@ -375,7 +375,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Release the response from the agent such that all waiting threads can complete (cleanup).
     latch.countDown()
-    inspectorRule.asyncLaunchLatch.await(3, TimeUnit.MINUTES)
+    inspectorRule.awaitLaunch()
   }
 
   @Test
@@ -721,7 +721,6 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   @Test
   fun testLiveControlDisabledWithProcessFromModernDevice() {
     inspectorRule.launchSynchronously = false
-    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
@@ -865,7 +864,7 @@ class DeviceViewPanelWithNoClientsTest {
 
   @Test
   fun testLoadingPane() {
-    inspectorRule.asyncLaunchLatch = ReportingCountDownLatch(1)
+    inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
     val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
@@ -881,7 +880,7 @@ class DeviceViewPanelWithNoClientsTest {
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
     postCreateLatch.countDown()
-    inspectorRule.asyncLaunchLatch.await(1, TimeUnit.SECONDS)
+    inspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { contentPanel.showEmptyText }

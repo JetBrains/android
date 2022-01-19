@@ -47,7 +47,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.Mockito.`when`
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -154,9 +153,9 @@ class AppInspectionInspectorMetricsTest {
     val getUsages = { usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
 
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.startLaunch(2)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
+    inspectorRule.awaitLaunch()
     waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
@@ -183,16 +182,15 @@ class AppInspectionInspectorMetricsTest {
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
     // disconnecting causes two separate events
-    inspectorRule.asyncLaunchLatch = CountDownLatch(2)
+    inspectorRule.startLaunch(4)
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
+    inspectorRule.awaitLaunch()
     waitForCondition(10, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
 
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.startLaunch(2)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.asyncLaunchLatch.await()
-    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.awaitLaunch()
     waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser

@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -146,16 +147,29 @@ class LayoutInspectorRule(
     private set
   private val launcherDisposable = Disposer.newDisposable()
 
+  private var runningThreadCount = 0
+
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
       runnable.run()
     }
     else {
       Thread {
+        runningThreadCount++
         runnable.run()
+        runningThreadCount--
         asyncLaunchLatch.countDown()
       }.start()
     }
+  }
+
+  fun awaitLaunch() {
+    assertThat(asyncLaunchLatch.await(10, TimeUnit.SECONDS)).isTrue()
+    assertThat(runningThreadCount).isEqualTo(0)
+  }
+
+  fun startLaunch(expectedTasks: Int) {
+    asyncLaunchLatch = ReportingCountDownLatch(expectedTasks)
   }
 
   /**
@@ -167,7 +181,7 @@ class LayoutInspectorRule(
   /**
    * Use this latch to control the execution of background launchers
    */
-  lateinit var asyncLaunchLatch: CountDownLatch
+  private lateinit var asyncLaunchLatch: CountDownLatch
 
   /**
    * Convenience accessor, as this property is used a lot
