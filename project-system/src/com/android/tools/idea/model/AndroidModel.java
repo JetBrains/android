@@ -121,13 +121,10 @@ public interface AndroidModel {
 
   default @NotNull EnumSet<Abi> getSupportedAbis() { return EnumSet.allOf(Abi.class); }
 
-  /**
-   * Indicates whether the given file or directory is generated.
-   *
-   * @param file the file or directory.
-   * @return {@code true} if the given file or directory is generated; {@code false} otherwise.
-   */
-  boolean isGenerated(@NotNull VirtualFile file);
+  @Deprecated
+  default boolean isGenerated(@NotNull VirtualFile file) {
+    throw new UnsupportedOperationException("Deprecated. Use GeneratedSourcesFilter.");
+  }
 
   /**
    * @return A provider for finding .class output files and external .jars.

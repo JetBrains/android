@@ -20,14 +20,13 @@ import static com.android.SdkConstants.ATTR_LOCALE;
 import static com.android.SdkConstants.TAG_ISSUES;
 import static com.android.SdkConstants.TOOLS_URI;
 
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -215,13 +214,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         // If this a generated file like this:
         //   ${project}/${module}/build/generated/res/generated/{test?}/${flavors}/${build-type}/values/generated.xml
         // ? If so, skip it.
-        AndroidFacet facet = AndroidFacet.getInstance(file);
-        VirtualFile virtualFile = file.getVirtualFile();
-        if (facet != null && AndroidModel.isRequired(facet) && virtualFile != null) {
-          AndroidModel androidModel = AndroidModel.get(facet);
-          if (androidModel != null && androidModel.isGenerated(virtualFile)) {
-            return false;
-          }
+        if (GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file.getVirtualFile(), element.getProject())) {
+          return false;
         }
       }
       else if (isLintConfig(file)) {
