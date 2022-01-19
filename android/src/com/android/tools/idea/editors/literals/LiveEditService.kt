@@ -17,6 +17,7 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
@@ -33,8 +34,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-
-private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS_UPDATE_RATE
 
 /**
  * Allows any component to listen to all method body edits of a project.
@@ -57,8 +56,8 @@ class LiveEditService private constructor(private var project: Project, var list
 
   private val onEditListeners = ListenerCollection.createWithExecutor<(List<MethodReference>) -> Unit>(listenerExecutor)
 
-  private val updateMergingQueue = MergingUpdateQueue("Live Update change queue",
-                                                      DOCUMENT_CHANGE_COALESCE_TIME_MS.get(),
+  val updateMergingQueue = MergingUpdateQueue("Live Update change queue",
+                                                      LiveEditConfig.getInstance().refreshRateMs,
                                                       true,
                                                       null,
                                                       this,

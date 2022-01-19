@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +96,12 @@ public class AndroidLiveEditDeployMonitor {
       long timestamp = System.nanoTime();
       AndroidLiveEditDeployMonitor.pushEditsToDevice(project, packageName, (List<LiveEditService.MethodReference>) changes, timestamp);
       return Unit.INSTANCE;
+    }
+  }
+
+  public static Set<Project> getActiveProjects() {
+    synchronized (ACTIVE_PROJECTS) {
+      return ACTIVE_PROJECTS.keySet();
     }
   }
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.liveedit
 
+import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
@@ -27,6 +29,7 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
   class State: BaseState() {
     var useEmbeddedCompiler by property(true)
     var useDebugMode by property(false)
+    var refreshRateMs by property(MIN_REFRESH_RATE_MS)
   }
 
   var useEmbeddedCompiler
@@ -41,7 +44,20 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
       state.useDebugMode= value
     }
 
+  var refreshRateMs
+    get() = state.refreshRateMs
+    set(value) {
+      var newValue = value.coerceIn(REFRESH_RATE_RANGE)
+      state.refreshRateMs = newValue
+      for(project in AndroidLiveEditDeployMonitor.getActiveProjects()) {
+        val liveEditService = LiveEditService.getInstance(project)
+        liveEditService?.updateMergingQueue.setMergingTimeSpan(newValue)
+      }
+    }
+
   companion object {
+    const val MIN_REFRESH_RATE_MS = 50
+    val REFRESH_RATE_RANGE = MIN_REFRESH_RATE_MS .. 9999
     @JvmStatic fun getInstance(): LiveEditConfig = ApplicationManager.getApplication().getService(LiveEditConfig::class.java)
   }
 }
