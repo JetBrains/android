@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -32,9 +33,19 @@ final class PopupActionGroup extends DefaultActionGroup {
   @NotNull
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
+  private final @NotNull ActionManager myManager;
+
   PopupActionGroup(@NotNull Collection<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+    this(devices, comboBoxAction, ActionManager.getInstance());
+  }
+
+  @VisibleForTesting
+  PopupActionGroup(@NotNull Collection<@NotNull Device> devices,
+                   @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
+                   @NotNull ActionManager manager) {
     myDevices = devices;
     myComboBoxAction = comboBoxAction;
+    myManager = manager;
 
     Collection<AnAction> actions =
       comboBoxAction.areSnapshotsEnabled() ? newSelectDeviceActionsOrSnapshotActionGroups() : newSelectDeviceActions();
@@ -45,13 +56,11 @@ final class PopupActionGroup extends DefaultActionGroup {
       addSeparator();
     }
 
-    ActionManager manager = ActionManager.getInstance();
-
     add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    // Action Id is from com.android.tools.idea.wearpairing.actions.WearDevicePairingAction.
+    // Action ID is from com.android.tools.idea.wearpairing.actions.WearDevicePairingAction.
     add(manager.getAction("Android.WearDevicePairing"));
-    // Action Id is from com.android.tools.idea.devicemanager.legacy.actions.Android.RunAndroidAvdManager.
+    // Action ID is from com.android.tools.idea.devicemanager.legacy.actions.Android.RunAndroidAvdManager.
     add(manager.getAction("Android.RunAndroidAvdManager"));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -80,10 +89,9 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     boolean runningDevicesPresent = !runningDevices.isEmpty();
     Collection<AnAction> actions = new ArrayList<>(3 + size);
-    ActionManager manager = ActionManager.getInstance();
 
     if (runningDevicesPresent) {
-      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
+      actions.add(myManager.getAction(Heading.RUNNING_DEVICES_ID));
     }
 
     runningDevices.stream()
@@ -97,7 +105,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     }
 
     if (availableDevicesPresent) {
-      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
+      actions.add(myManager.getAction(Heading.AVAILABLE_DEVICES_ID));
     }
 
     availableDevices.stream()
@@ -122,10 +130,9 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     boolean runningDevicesPresent = !runningDevices.isEmpty();
     Collection<AnAction> actions = new ArrayList<>(1 + runningDevices.size() + 2 + availableDevices.size());
-    ActionManager manager = ActionManager.getInstance();
 
     if (runningDevicesPresent) {
-      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
+      actions.add(myManager.getAction(Heading.RUNNING_DEVICES_ID));
     }
 
     runningDevices.stream()
@@ -139,7 +146,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     }
 
     if (availableDevicesPresent) {
-      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
+      actions.add(myManager.getAction(Heading.AVAILABLE_DEVICES_ID));
     }
 
     availableDevices.stream()

@@ -330,7 +330,6 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
-        "//tools/adt/idea/device-manager:intellij.android.device-manager[module, test]",
     ],
 )
 
