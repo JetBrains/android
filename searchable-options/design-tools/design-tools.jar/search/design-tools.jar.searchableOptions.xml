@@ -57,6 +57,9 @@
     <option name="help" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="layout" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="panel" path="ActionManager" hit="Constraint Layout Help Panel" />
+    <option name="copy" path="ActionManager" hit="Copy Problem Description" />
+    <option name="description" path="ActionManager" hit="Copy Problem Description" />
+    <option name="problem" path="ActionManager" hit="Copy Problem Description" />
     <option name="constraint" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
     <option name="create" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
     <option name="editor" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />

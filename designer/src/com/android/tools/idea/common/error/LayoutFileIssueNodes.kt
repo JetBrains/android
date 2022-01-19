@@ -98,8 +98,6 @@ class LayoutFileIssueNode(val fileData: IssuedFileData, val issue: Issue, parent
 
   private var text: String = ""
 
-  private var description: String = ""
-
   private var offset: Int = -1
 
   override fun getLeafState() = LeafState.DEFAULT
@@ -114,6 +112,11 @@ class LayoutFileIssueNode(val fileData: IssuedFileData, val issue: Issue, parent
   override fun getNavigatable() = project?.let {
     // Note: This only happens when double-clicking LayoutFileIssueNode doesn't expand the tree.
     OpenFileDescriptor(it, fileData.file, offset)
+  }
+
+  override fun getDescription(): String {
+    // Use summary instead because [issue.description] is a html text and very long.
+    return issue.summary
   }
 
   override fun update(project: Project, presentation: PresentationData) {
@@ -133,7 +136,7 @@ class LayoutFileIssueNode(val fileData: IssuedFileData, val issue: Issue, parent
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-    presentation.tooltip = description
+    presentation.tooltip = getDescription()
   }
 
   override fun hashCode() = Objects.hash(project, fileData, issue)

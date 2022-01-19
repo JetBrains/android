@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.OnePixelSplitter
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.tree.AsyncTreeModel
@@ -40,6 +41,10 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
+/**
+ * The id of pop action group which is shown when right-clicking a tree node.
+ */
+private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
 
 /**
@@ -84,6 +89,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     treeModel = DesignerCommonIssueModel(this)
     treeModel.root = DesignerCommonIssueRoot(project)
     tree = Tree(AsyncTreeModel(treeModel, this))
+    PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")
+
     tree.isRootVisible = false
 
     EditSourceOnDoubleClickHandler.install(tree)

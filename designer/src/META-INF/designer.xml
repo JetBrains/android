@@ -183,6 +183,15 @@
               use-shortcut-of="ShowIntentionActions"
               class="com.android.tools.idea.common.error.ShowQuickFixesAction"/>
     </group>
+    <group id="Android.Designer.IssuePanel.TreePopup">
+      <reference ref="Android.Designer.IssuePanel.QuickFixes"/>
+      <action id="Android.Designer.IssuePanel.CopyIssueDescription"
+              text="Copy Problem Description"
+              icon="AllIcons.Actions.Copy"
+              use-shortcut-of="$Copy"
+              class="com.android.tools.idea.common.error.CopyIssueDescriptionAction"/>
+      <reference ref="EditSource"/>
+    </group>
 
     <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>

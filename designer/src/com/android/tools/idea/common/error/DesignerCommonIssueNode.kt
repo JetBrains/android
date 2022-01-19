@@ -44,6 +44,11 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 
   override fun getElement() = this
 
+  /**
+   * To provide the description of issue when copying the description by [CopyIssueDescriptionAction].
+   */
+  open fun getDescription(): String? = null
+
   final override fun update(presentation: PresentationData) {
     if (myProject == null || myProject.isDisposed) {
       return
