@@ -21,10 +21,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/junit.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/junit4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-reflect.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-1.5.10-release-949.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-common-1.5.10-release-949.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-jdk7-1.5.10-release-949.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-jdk8-1.5.10-release-949.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-jdk8.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-test.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlinx.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/openapi.jar!/" />
