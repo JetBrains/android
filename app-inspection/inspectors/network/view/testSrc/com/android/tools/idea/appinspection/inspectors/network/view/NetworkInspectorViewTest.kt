@@ -64,6 +64,7 @@ private fun createSpeedEvent(time: Long, sent: Long, received: Long): NetworkIns
 
 private val VIEW_RANGE = Range(0.0, TimeUnit.SECONDS.toMicros(60).toDouble())
 
+@org.junit.Ignore("b/216195625")
 @RunsInEdt
 class NetworkInspectorViewTest {
 
