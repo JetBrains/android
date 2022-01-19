@@ -61,7 +61,6 @@ public interface AndroidModel {
    */
   static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
     facet.putUserData(KEY, androidModel);
-    facet.getModule().getProject().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
   /**
