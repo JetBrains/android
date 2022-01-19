@@ -49,11 +49,13 @@ import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil.getTextByBinaryPresentation
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -279,6 +281,17 @@ private class UserData<T>(
 
 fun getPackageName(module: Module): String? {
   val facet = AndroidFacet.getInstance(module) ?: return null
+
+  // Here, we want to make sure we don't try to acquire a read lock if there's a pending write action. This is to avoid
+  // the deadlock that a lengthy background read action is never interrupted by a coming write action request, and
+  // such pending write action results in blocking the other thread to acquire the read lock, which blocks back the
+  // thread holding the read lock.
+  //
+  // So here's a tactical fix that we check 1) if the read access is allowed and 2) if there's a pending write action.
+  // If the read access is allowed, we just proceed the work. If there's a pending write action but no read access
+  // allowed yet, we yield to write request and cancel the current process.
+  val application = ApplicationManager.getApplication()
+  if (!application.isReadAccessAllowed && (application as ApplicationEx).isWriteActionPending) throw ProcessCanceledException()
 
   return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
          ?: getPackageNameByParsingPrimaryManifest(facet)
