@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.ui.JBMenuItem;
 import java.awt.Component;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
@@ -37,9 +37,17 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     myPanel = panel;
   }
 
+  @NotNull VirtualDevicePanel getPanel() {
+    return myPanel;
+  }
+
+  @NotNull VirtualDevice getDevice() {
+    return myDevice;
+  }
+
   @Override
   public @NotNull List<@NotNull JComponent> newItems() {
-    return Collections.singletonList(newDuplicateItem());
+    return Arrays.asList(newDuplicateItem(), new WipeDataItem(this));
   }
 
   private @NotNull JComponent newDuplicateItem() {
