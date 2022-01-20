@@ -22,6 +22,11 @@ import com.intellij.openapi.util.NlsActions.ActionText
 
 /**
  * An action that can display a checkmark to indicate it is selected.
+ *
+ * This class is based on [com.intellij.openapi.actionSystem.ToggleAction]. ToggleAction isn't quite suited for this. It is very well suited
+ * for an action that you click to set, and click again to unset. But these work differently. You click to set but clicking again does not
+ * unset. It's possible to use it but results in awkward code.
+ * It's especially awkward with [LogcatFormatCustomViewAction] because that action needs to also open a dialog when clicked.
  */
 abstract class SelectableAction(text: @ActionText String) : AnAction(text), Toggleable {
 
