@@ -51,7 +51,8 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
   static <T> T tryOrLog(@NotNull Supplier<T> supplier) {
     try {
       return supplier.get();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       if (e instanceof ControlFlowException) {
         // Control-Flow exceptions should not be logged and reported.
         return null;
@@ -66,7 +67,8 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
    * Obtains an instance of {@link GradleBuildModel} for the given projects root build.gradle file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
    * In most cases if you want to use this method you should use {@link ProjectBuildModel} instead since it prevents files from being
-   * parsed more than once and ensures changes in applied files are mirrored by any model obtained from the it.
+   * parsed more than once and ensures changes in applied files are mirrored by any model obtained from it.
+   *
    * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
    */
   @Deprecated
@@ -78,6 +80,7 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
   /**
    * Obtains an instance of {@link GradleBuildModel} for the given modules build.gradle file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
+   *
    * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
    */
   @Deprecated
@@ -89,6 +92,7 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
   /**
    * Obtains an instance of {@link GradleBuildModel} by parsing the given file.
    * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
+   *
    * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
    */
   @Deprecated

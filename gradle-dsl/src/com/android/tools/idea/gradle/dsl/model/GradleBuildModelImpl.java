@@ -232,7 +232,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     if (applyDslElement != null) {
       PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
     }
-
   }
 
   @Nullable
@@ -322,20 +321,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     return getAllInvolvedFiles().stream().distinct().map(e -> getFileModel(e)).collect(Collectors.toSet());
   }
 
-  @NotNull
-  private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
-    if (file instanceof GradleBuildFile) {
-      return new GradleBuildModelImpl((GradleBuildFile)file);
-    }
-    else if (file instanceof GradleSettingsFile) {
-      return new GradleSettingsModelImpl((GradleSettingsFile)file);
-    }
-    else if (file instanceof GradlePropertiesFile) {
-      return new GradlePropertiesModel((GradlePropertiesFile)file);
-    }
-    throw new IllegalStateException("Unknown GradleDslFile type found!");
-  }
-
   @Override
   @NotNull
   public File getModuleRootDirectory() {
@@ -412,5 +397,19 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @TestOnly
   public void removeRepositoriesBlocks() {
     myGradleDslFile.removeProperty(REPOSITORIES.name);
+  }
+
+  @NotNull
+  private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
+    if (file instanceof GradleBuildFile) {
+      return new GradleBuildModelImpl((GradleBuildFile)file);
+    }
+    else if (file instanceof GradleSettingsFile) {
+      return new GradleSettingsModelImpl((GradleSettingsFile)file);
+    }
+    else if (file instanceof GradlePropertiesFile) {
+      return new GradlePropertiesModel((GradlePropertiesFile)file);
+    }
+    throw new IllegalStateException("Unknown GradleDslFile type found!");
   }
 }
