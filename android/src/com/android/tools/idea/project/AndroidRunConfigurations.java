@@ -56,8 +56,7 @@ public class AndroidRunConfigurations {
         return;
       }
     }
-
-    addRunConfiguration(facet, TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
+    ApplicationManager.getApplication().invokeAndWait(() -> addRunConfiguration(facet, TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX));
   }
 
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
