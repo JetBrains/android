@@ -33,8 +33,8 @@ import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
-import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
@@ -56,7 +56,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   }
 
   @WorkerThread
-  fun execute(stats: RunStats): RunContentDescriptor? {
+  fun execute(stats: RunStats): RunContentDescriptor {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
     stats.setDebuggable(LaunchUtils.canDebugApp(facet))
     stats.setExecutor(environment.executor.id)
@@ -74,7 +74,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   }
 
   @VisibleForTesting
-  abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor?
+  abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor
 
   private fun getDevices(stats: RunStats): List<IDevice> {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
@@ -143,13 +143,15 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     devices: List<IDevice>,
     processHandler: AndroidProcessHandlerForDevices,
     console: ConsoleView
-  ): RunContentDescriptor? {
+  ): RunContentDescriptor {
     return if (environment.executor.isDebug) {
       processHandler.startNotify()
       startDebugger(devices.single(), processHandler, console)
     }
     else {
-      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
+      invokeAndWaitIfNeeded {
+        ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment)
+      }
     }
   }
 }

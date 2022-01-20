@@ -38,7 +38,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   override val configuration = environment.runProfile as AndroidTileConfiguration
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
+  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for a single device")
