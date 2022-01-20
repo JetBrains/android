@@ -19,13 +19,12 @@ import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
 import com.android.adblib.ShellCommandOutputElement
+import com.android.adblib.SocketSpec
 import com.android.adblib.shellV2AsLines
 import com.android.adblib.syncSend
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -51,8 +50,6 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
 
 private const val MIN_PORT = 15050
 private const val MAX_PORT = 15099
@@ -88,7 +85,8 @@ internal class DeviceClient(
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     pushAgent(deviceSelector, adb)
     pushTime = System.currentTimeMillis()
-    createServerSocketChannel().use { serverSocketChannel ->
+    val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
+    createServerSocketChannel(deviceSelector, adb, deviceSocket).use { serverSocketChannel ->
       thisLogger().debug("Using port ${(serverSocketChannel.localAddress as InetSocketAddress).port}")
       startAgent(deviceSelector, adb)
       videoChannel = serverSocketChannel.accept()
@@ -96,7 +94,7 @@ internal class DeviceClient(
       controlChannel = serverSocketChannel.accept()
       controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
     }
-    removeHostPortForwarding()
+    adb.reverseKillForward(deviceSelector, deviceSocket)
     deviceController = DeviceController(this, controlChannel)
   }
 
@@ -140,10 +138,12 @@ internal class DeviceClient(
     }
   }
 
-  private fun createServerSocketChannel(): SuspendingServerSocketChannel {
+  private suspend fun createServerSocketChannel(
+      deviceSelector: DeviceSelector, adb: AdbDeviceServices, deviceSocket: SocketSpec): SuspendingServerSocketChannel {
     for (port in MIN_PORT..MAX_PORT) {
-      forwardHostPort(port)
+      adb.reverseForward(deviceSelector, deviceSocket, SocketSpec.Tcp(port))
       try {
+        @Suppress("BlockingMethodInNonBlockingContext")
         return SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress(port)))
       }
       catch (e: BindException) {
@@ -151,7 +151,7 @@ internal class DeviceClient(
       }
       catch (e: Exception) {
         thisLogger().warn("Unable to listen on port $port", e)
-        removeHostPortForwarding()
+        adb.reverseKillForward(deviceSelector, deviceSocket)
       }
     }
 
@@ -218,38 +218,4 @@ internal class DeviceClient(
       }
     }
   }
-
-  private fun forwardHostPort(port: Int) {
-    // TODO: Use AdbLib when it starts supporting port forwarding.
-    runAdbCommand("-s", deviceSerialNumber, "reverse", "localabstract:screen-sharing-agent", "tcp:$port")
-  }
-
-  private fun removeHostPortForwarding() {
-    // TODO: Use AdbLib when it starts supporting port forwarding.
-    runAdbCommand("-s", deviceSerialNumber, "reverse", "--remove", "localabstract:screen-sharing-agent")
-  }
 }
-
-@Throws(ExecutionException::class, InterruptedException::class, ExecutionException::class)
-private fun runAdbCommand(vararg parameters: String, async: Boolean = false) {
-  val command = GeneralCommandLine(adbPath.toString())
-  command.addParameters(*parameters)
-  val processBuilder =
-      command.toProcessBuilder().redirectOutput(ProcessBuilder.Redirect.INHERIT).redirectError(ProcessBuilder.Redirect.INHERIT)
-  val process = processBuilder.start()
-  if (async) {
-    return
-  }
-  process.waitFor(15, TimeUnit.SECONDS)
-  val exitCode = process.exitValue()
-  if (exitCode != 0) {
-    throw ProcessTerminatedException(exitCode)
-  }
-}
-
-private val adbPath: Path by lazy {
-  val sdkPath = IdeSdks.getInstance().androidSdkPath?.toPath()
-  return@lazy sdkPath?.resolve("platform-tools/adb") ?: Paths.get("adb")
-}
-
-private class ProcessTerminatedException(val exitCode: Int) : ExecutionException("Exit code : $exitCode")
