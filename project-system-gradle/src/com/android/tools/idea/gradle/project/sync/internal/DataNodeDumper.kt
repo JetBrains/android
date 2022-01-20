@@ -152,7 +152,6 @@ fun GradleAndroidModel.format(): String = "\n" + """
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     artifactForTestFixtures = ${artifactForTestFixtures?.format()}
     testExecutionStrategy = $testExecutionStrategy
-    classJarProvider = $classJarProvider
     namespacing = $namespacing
     desugaring = $desugaring
     resValues = $resValues

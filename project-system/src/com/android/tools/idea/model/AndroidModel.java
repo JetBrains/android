@@ -19,10 +19,8 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.lint.detector.api.Desugaring;
-import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -119,22 +117,6 @@ public interface AndroidModel {
   AndroidVersion getTargetSdkVersion();
 
   default @NotNull EnumSet<Abi> getSupportedAbis() { return EnumSet.allOf(Abi.class); }
-
-  @Deprecated
-  default boolean isGenerated(@NotNull VirtualFile file) {
-    throw new UnsupportedOperationException("Deprecated. Use GeneratedSourcesFilter.");
-  }
-
-  @NotNull
-  @Deprecated
-  default ClassJarProvider getClassJarProvider() {
-    throw new UnsupportedOperationException("Deprecated. Use AndroidProjectSystem.getClassJarProvider");
-  }
-
-  @Deprecated
-  default boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    throw new UnsupportedOperationException("Deprecated. Use ClassJarProvider.isClassFileOutOfDate");
-  }
 
   @NotNull
   Namespacing getNamespacing();

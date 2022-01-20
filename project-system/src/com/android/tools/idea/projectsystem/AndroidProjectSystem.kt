@@ -115,19 +115,7 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   /**
    * @return A provider for finding .class output files and external .jars.
    */
-  @JvmDefault
-  fun getClassJarProvider(): ClassJarProvider {
-    // TODO: Remove when all project system impementations are updated.
-    return object: ClassJarProvider {
-      override fun getModuleExternalLibraries(module: Module): List<File> {
-        return AndroidModel.get(module)?.classJarProvider?.getModuleExternalLibraries(module).orEmpty()
-      }
-
-      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
-        return AndroidModel.get(module)?.classJarProvider?.isClassFileOutOfDate(module, fqcn, classFile) ?: false
-      }
-    }
-  }
+  fun getClassJarProvider(): ClassJarProvider
   /**
    * Returns a list of [AndroidFacet]s by given package name.
    */

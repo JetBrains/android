@@ -998,7 +998,6 @@ fun setupTestProjectFromAndroidModel(
     // build is requested.
     private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
     override fun getBuildManager(): ProjectSystemBuildManager = buildManager
-    override fun getClassJarProvider(): ClassJarProvider = gradleProjectSystem.getClassJarProvider() // KT-34612
   })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
