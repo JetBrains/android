@@ -125,6 +125,9 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"3.1.0", "3.2.0", Arrays.asList("3.2.0", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "7.0.0"), FORCE, "3.2.0"},
       // If we do not know of any published versions earlier than our latestKnown, upgrade to latestKnown
       {"3.1.0", "3.2.0", Arrays.asList("3.3.0", "3.4.0"), FORCE, "3.2.0"},
+      // If we know of multiple published versions in the stable series, upgrade to the latest if it is compatible.
+      {"3.1.0", "7.0.0", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.2"},
+      {"3.1.0", "3.2.1", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.1"},
     });
   }
 

@@ -311,7 +311,10 @@ fun computeGradlePluginUpgradeState(
         .filter { !it.isPreview }
         .filter { it >= minimum }
         .filter { it <= latestKnown }
-        .minOrNull()
+        .groupBy { GradleVersion(it.major, it.minor) }
+        .minByOrNull { it.key }
+        ?.value
+        ?.maxOrNull()
       return GradlePluginUpgradeState(FORCE, earliestStable ?: latestKnown)
     }
     ForcePluginUpgradeReason.PREVIEW -> {
