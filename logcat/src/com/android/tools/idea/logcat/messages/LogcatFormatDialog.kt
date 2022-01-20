@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.intellij.openapi.Disposable
@@ -43,6 +44,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GridLayout
+import java.awt.event.ItemEvent
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -52,6 +54,7 @@ import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+import javax.swing.event.ChangeEvent
 import kotlin.reflect.KMutableProperty0
 
 private const val MIN_TAG_LENGTH = 10
@@ -86,16 +89,16 @@ private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
  * A dialog for changing the formatting options.
  */
 internal class LogcatFormatDialog(private val project: Project, formattingOptions: FormattingOptions) : Disposable {
-  private var isShowTimestamp: Boolean = formattingOptions.timestampFormat.enabled
-  private var timestampStyle: TimestampFormat.Style = formattingOptions.timestampFormat.style
-  private var isShowPid: Boolean = formattingOptions.processThreadFormat.enabled
-  private var isShowTid: Boolean = formattingOptions.processThreadFormat.run { style == ProcessThreadFormat.Style.BOTH }
-  private var isShowTags: Boolean = formattingOptions.tagFormat.enabled
-  private var tagsWidth: Int = formattingOptions.tagFormat.maxLength
-  private var isShowRepeatingTags: Boolean = !formattingOptions.tagFormat.hideDuplicates
-  private var isShowPackageNames: Boolean = formattingOptions.appNameFormat.enabled
-  private var packageNamesWidth: Int = formattingOptions.appNameFormat.maxLength
-  private var isShowRepeatingPackageNames: Boolean = !formattingOptions.appNameFormat.hideDuplicates
+  private lateinit var showTimestampCheckbox: JBCheckBox
+  private lateinit var timestampStyleComboBox: ComboBox<TimestampFormat.Style>
+  private lateinit var showPidCheckbox: JBCheckBox
+  private lateinit var includeTidCheckbox: JBCheckBox
+  private lateinit var showTagsCheckbox: JBCheckBox
+  private lateinit var tagWidthSpinner: JBIntSpinner
+  private lateinit var showRepeatedTagsCheckbox: JBCheckBox
+  private lateinit var showPackagesCheckbox: JBCheckBox
+  private lateinit var packageWidthSpinner: JBIntSpinner
+  private lateinit var showRepeatedPackagesCheckbox: JBCheckBox
 
   @VisibleForTesting
   var sampleEditor = createLogcatEditor(project).apply {
@@ -111,7 +114,7 @@ internal class LogcatFormatDialog(private val project: Project, formattingOption
     title = message("logcat.header.options.title"),
     resizable = true,
     modality = DialogWrapper.IdeModalityType.PROJECT,
-    panel = createPanel(),
+    panel = createPanel(formattingOptions),
   )
 
   init {
@@ -129,15 +132,17 @@ internal class LogcatFormatDialog(private val project: Project, formattingOption
    */
   fun applyTo(formattingOptions: FormattingOptions) {
     formattingOptions.apply {
-      timestampFormat = TimestampFormat(timestampStyle, isShowTimestamp)
-      processThreadFormat = ProcessThreadFormat(if (isShowTid) ProcessThreadFormat.Style.BOTH else ProcessThreadFormat.Style.PID, isShowPid)
-      tagFormat = TagFormat(tagsWidth, !isShowRepeatingTags, isShowTags)
-      appNameFormat = AppNameFormat(packageNamesWidth, !isShowRepeatingPackageNames, isShowPackageNames)
+      timestampFormat = TimestampFormat(timestampStyleComboBox.item, showTimestampCheckbox.isSelected)
+      processThreadFormat = ProcessThreadFormat(
+        if (includeTidCheckbox.isSelected) ProcessThreadFormat.Style.BOTH else ProcessThreadFormat.Style.PID,
+        showPidCheckbox.isSelected)
+      tagFormat = TagFormat(tagWidthSpinner.number, !showRepeatedTagsCheckbox.isSelected, showTagsCheckbox.isSelected)
+      appNameFormat = AppNameFormat(packageWidthSpinner.number, !showRepeatedPackagesCheckbox.isSelected, showPackagesCheckbox.isSelected)
     }
   }
 
-  private fun createPanel(): DialogPanel {
-    return panel {
+  private fun createPanel(formattingOptions: FormattingOptions): DialogPanel {
+    val panel = panel {
       row {
         component(JPanel())
           .constraints(growX, pushX)
@@ -145,82 +150,95 @@ internal class LogcatFormatDialog(private val project: Project, formattingOption
             layout = GridLayout(0, 2).apply {
               hgap = GRID_COLUMN_GAP
             }
-            add(panel { timestampGroup() })
-            add(panel { processIdsGroup() })
-            add(panel { tagsGroup() })
-            add(panel { packageNamesGroup() })
+            add(panel { timestampGroup(formattingOptions.timestampFormat) })
+            add(panel { processIdsGroup(formattingOptions.processThreadFormat) })
+            add(panel { tagsGroup(formattingOptions.tagFormat) })
+            add(panel { packageNamesGroup(formattingOptions.appNameFormat) })
           }
         footerGroup()
       }
     }
+    val refresh: () -> Unit = ::refreshSampleText
+    val itemEventListener: (e: ItemEvent) -> Unit = { refresh() }
+    val changeEventListener: (e: ChangeEvent) -> Unit = { refresh() }
+
+    TreeWalker(panel).descendantStream().forEach {
+      when (it) {
+        is JBCheckBox -> it.addChangeListener(changeEventListener)
+        is JBIntSpinner -> it.addChangeListener(changeEventListener)
+        is ComboBox<*> -> it.addItemListener(itemEventListener)
+      }
+    }
+
+    return panel
   }
 
-  private fun LayoutBuilder.timestampGroup() {
+  private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
     titledRow(message("logcat.header.options.timestamp.title")) {
       subRowIndent = 0
       row {
-        val showTimestamp = liveCheckBox(message("logcat.header.options.timestamp.show"), ::isShowTimestamp)
+        val showTimestamp = checkBox(message("logcat.header.options.timestamp.show"), format.enabled, ::showTimestampCheckbox)
           .constraints(growX, pushX)
         row {
           cell {
             label(message("logcat.header.options.timestamp.format"))
             val model = DefaultComboBoxModel(TimestampFormat.Style.values())
             val renderer = SimpleListCellRenderer.create<TimestampFormat.Style?>("") { it?.displayName }
-            liveComboBox(model, ::timestampStyle, renderer)
+            comboBox(model, renderer, format.style, ::timestampStyleComboBox)
           }
         }.enableIf(showTimestamp.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.processIdsGroup() {
+  private fun LayoutBuilder.processIdsGroup(format: ProcessThreadFormat) {
     titledRow(message("logcat.header.options.process.ids.title")) {
       subRowIndent = 0
       row {
-        val showPid = liveCheckBox(message("logcat.header.options.process.ids.show.pid"), ::isShowPid)
+        val showPid = checkBox(message("logcat.header.options.process.ids.show.pid"), format.enabled, ::showPidCheckbox)
         row {
-          liveCheckBox(message("logcat.header.options.process.ids.show.tid"), ::isShowTid)
+          val includeTid = format.style == ProcessThreadFormat.Style.BOTH
+          checkBox(message("logcat.header.options.process.ids.show.tid"), includeTid, ::includeTidCheckbox)
             .enableIf(showPid.selected)
         }
       }
     }
   }
 
-  private fun LayoutBuilder.tagsGroup() {
+  private fun LayoutBuilder.tagsGroup(format: TagFormat) {
     titledRow(message("logcat.header.options.tags.title")) {
       subRowIndent = 0
       row {
-        val showTags = liveCheckBox(message("logcat.header.options.tags.show"), ::isShowTags)
+        val showTags = checkBox(message("logcat.header.options.tags.show"), format.enabled, ::showTagsCheckbox)
           .constraints(growX, pushX)
         row {
           cell {
             label(message("logcat.header.options.tags.width"))
-            liveSpinner(::tagsWidth, MIN_TAG_LENGTH, MAX_TAG_LENGTH)
+            spinner(format.maxLength, MIN_TAG_LENGTH, MAX_TAG_LENGTH, ::tagWidthSpinner)
           }
         }.enableIf(showTags.selected)
         row {
-          liveCheckBox(message("logcat.header.options.tags.show.repeated"), ::isShowRepeatingTags)
+          checkBox(message("logcat.header.options.tags.show.repeated"), !format.hideDuplicates, ::showRepeatedTagsCheckbox)
         }.enableIf(showTags.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.packageNamesGroup() {
+  private fun LayoutBuilder.packageNamesGroup(format: AppNameFormat) {
     titledRow(message("logcat.header.options.packages.title")) {
       subRowIndent = 0
       row {
-        val showPackageNames = liveCheckBox(message("logcat.header.options.packages.show"), ::isShowPackageNames)
+        val showPackageNames = checkBox(message("logcat.header.options.packages.show"), format.enabled, ::showPackagesCheckbox)
         row {
           cell {
             label(message("logcat.header.options.packages.width"))
-            liveSpinner(::packageNamesWidth, MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH)
+            spinner(format.maxLength, MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH, ::packageWidthSpinner)
           }
         }.enableIf(showPackageNames.selected)
         row {
-          liveCheckBox(message("logcat.header.options.packages.show.repeated"), ::isShowRepeatingPackageNames)
+          checkBox(message("logcat.header.options.packages.show.repeated"), !format.hideDuplicates, ::showRepeatedPackagesCheckbox)
         }.enableIf(showPackageNames.selected)
       }
-
     }
   }
 
@@ -233,34 +251,34 @@ internal class LogcatFormatDialog(private val project: Project, formattingOption
   }
 
   @Suppress("UnstableApiUsage")
-  private fun Cell.liveCheckBox(@NlsContexts.Checkbox text: String, prop: KMutableProperty0<Boolean>): CellBuilder<JBCheckBox> {
-    return checkBox(text, prop).applyToComponent {
-      addChangeListener {
-        prop.set(isSelected)
-        refreshSampleText()
-      }
+  private fun Cell.checkBox(
+    @NlsContexts.Checkbox text:
+    String, value: Boolean,
+    componentSetter: KMutableProperty0<JBCheckBox>): CellBuilder<JBCheckBox> {
+    return checkBox(text, value).apply {
+      componentSetter.set(component)
     }
   }
 
-  private fun Cell.liveSpinner(prop: KMutableProperty0<Int>, minValue: Int, maxValue: Int): CellBuilder<JBIntSpinner> {
-    return spinner(prop, minValue, maxValue).applyToComponent {
-      addChangeListener {
-        prop.set(number)
-        refreshSampleText()
-      }
+  private fun Cell.spinner(
+    value: Int,
+    minValue: Int,
+    maxValue: Int,
+    componentSetter: KMutableProperty0<JBIntSpinner>,
+  ): CellBuilder<JBIntSpinner> {
+    return spinner({ value }, {}, minValue, maxValue).apply {
+      componentSetter.set(component)
     }
   }
 
-  private inline fun <reified T : Any> Cell.liveComboBox(
+  private inline fun <reified T : Any> Cell.comboBox(
     model: ComboBoxModel<T>,
-    prop: KMutableProperty0<T>,
     renderer: ListCellRenderer<T?>,
+    value: T,
+    componentSetter: KMutableProperty0<ComboBox<T>>,
   ): CellBuilder<ComboBox<T>> {
-    return comboBox(model, prop, renderer).applyToComponent {
-      addItemListener {
-        prop.set(item)
-        refreshSampleText()
-      }
+    return comboBox(model, { value }, {}, renderer).apply {
+      componentSetter.set(this.component)
     }
   }
 
