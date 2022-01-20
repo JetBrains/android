@@ -76,7 +76,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
 import com.intellij.psi.PsiElementFinder;
-import com.intellij.testFramework.OpenProjectTaskBuilder;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
@@ -201,12 +200,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       saveText(file, text);
       return null;
     });
-  }
-
-  @Override
-  @NotNull
-  public OpenProjectTaskBuilder getOpenProjectOptions() {
-    return super.getOpenProjectOptions().runPostStartUpActivities(false);
   }
 
   @Before
