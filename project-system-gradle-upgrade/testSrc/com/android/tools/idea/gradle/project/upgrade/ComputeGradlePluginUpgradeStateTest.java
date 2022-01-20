@@ -81,6 +81,26 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0-beta02", "7.1.0-alpha01", Collections.emptyList(), FORCE, "7.1.0-alpha01"},
       {"7.0.0-beta02", "7.1.0", Collections.emptyList(), FORCE, "7.1.0"},
 
+      // The forced upgrade should be to a stable version in the same series, if a compatible one is available
+      {"7.0.0-alpha01", "7.0.0-alpha03", Collections.singletonList("7.0.0-alpha02"), FORCE, "7.0.0-alpha03"},
+      {"7.0.0-alpha01", "7.0.0-alpha03", Collections.singletonList("7.0.0"), FORCE, "7.0.0-alpha03"},
+      {"7.0.0-alpha02", "7.0.0-beta01", Collections.singletonList("7.0.0-alpha03"), FORCE, "7.0.0-beta01"},
+      {"7.0.0-alpha02", "7.0.0-rc01", Collections.singletonList("7.0.0-alpha03"), FORCE, "7.0.0-rc01"},
+      {"7.0.0-alpha02", "7.0.0", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.0"},
+      {"7.0.0-alpha02", "7.0.1", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
+      {"7.0.0-alpha02", "7.1.0-alpha01", Collections.singletonList("7.0.0"), FORCE, "7.0.0"},
+      {"7.0.0-alpha02", "7.1.0-alpha01", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
+      {"7.0.0-alpha02", "7.1.0", Arrays.asList("7.0.0", "7.0.1", "7.1.0", "7.1.1"), FORCE, "7.0.1"},
+      {"7.0.0-beta01", "7.0.0-beta03", Collections.singletonList("7.0.0-beta02"), FORCE, "7.0.0-beta03"},
+      {"7.0.0-beta01", "7.0.0-beta03", Collections.singletonList("7.0.0"), FORCE, "7.0.0-beta03"},
+      {"7.0.0-beta02", "7.0.0-rc01", Collections.singletonList("7.0.0-beta03"), FORCE, "7.0.0-rc01"},
+      {"7.0.0-beta02", "7.0.0-rc01", Collections.singletonList("7.0.0"), FORCE, "7.0.0-rc01"},
+      {"7.0.0-beta02", "7.0.0", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.0"},
+      {"7.0.0-beta02", "7.0.1", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
+      {"7.0.0-beta02", "7.1.0-alpha01", Collections.singletonList("7.0.0"), FORCE, "7.0.0"},
+      {"7.0.0-beta02", "7.1.0-alpha01", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
+      {"7.0.0-beta02", "7.1.0", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
+
       // If the latest known version is earlier than or equal to the current version, there should be no upgrade
       {"7.0.0-alpha01", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha01"},
       {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha02"},

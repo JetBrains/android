@@ -310,10 +310,19 @@ fun computeGradlePluginUpgradeState(
       val earliestStable = published.filter { !it.isPreview }.filter { it >= minimum }.minOrNull() ?: latestKnown
       return GradlePluginUpgradeState(FORCE, earliestStable)
     }
-    // TODO(xof): in the cae of a -dev latestKnown and a preview from an earlier series, we should perhaps return the latest stable
-    //  version from that series.  (During a -beta phase, there might not be any such version, though.)
-    ForcePluginUpgradeReason.PREVIEW -> return GradlePluginUpgradeState(FORCE, latestKnown)
-    ForcePluginUpgradeReason.NO_FORCE -> Unit
+    ForcePluginUpgradeReason.PREVIEW -> {
+      val seriesAcceptableStable = published
+        .filter { !it.isPreview }
+        .filter { GradleVersion(it.major, it.minor) == GradleVersion(current.major, current.minor) }
+        .filter { it <= latestKnown }
+        .maxOrNull()
+      // For the forced upgrade of a preview, we prefer the latest stable release in the same series as the preview, if one exists.  If
+      // there is no such release, we have no option but to force an upgrade to the latest known version.  (This will happen, for example,
+      // running a Canary Studio in series X+1 on a project using a Beta AGP from series X, until the Final AGP and Studio for series
+      // X are released.)
+      return GradlePluginUpgradeState(FORCE, seriesAcceptableStable ?: latestKnown)
+    }
+    NO_FORCE -> Unit
   }
 
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
