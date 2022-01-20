@@ -84,7 +84,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
   // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
-      toolbarComponent?.isVisible = !value
+      toolbarComponent?.isVisible = !isShowFloatingToolbar && !value
       if (value) {
         setPureTextEditorVisibility()
       }
