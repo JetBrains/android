@@ -20,24 +20,9 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
-import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.intellij.openapi.util.NlsActions.ActionText
 
-// TODO(aalbert): This will come from a PersistentStateComponent eventually
-private val standardFormattingOptions = FormattingOptions(
-  TimestampFormat(DATETIME, enabled = true),
-  ProcessThreadFormat(BOTH, enabled = true),
-  TagFormat(maxLength = 23, hideDuplicates = false, enabled = true),
-  AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
-)
-
-// TODO(aalbert): This will come from a PersistentStateComponent eventually
-private val compactFormattingOptions = FormattingOptions(
-  TimestampFormat(TIME, enabled = true),
-  ProcessThreadFormat(BOTH, enabled = false),
-  TagFormat(maxLength = 23, hideDuplicates = false, enabled = false),
-  AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
-)
+private val logcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
 
 /**
  * Formatting options of a Logcat panel.
@@ -48,17 +33,28 @@ internal data class FormattingOptions(
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
 ) {
-  enum class Style(val formattingOptions: FormattingOptions, val displayName: @ActionText String) {
-    STANDARD(standardFormattingOptions, LogcatBundle.message("logcat.format.action.standard")),
-    COMPACT(compactFormattingOptions, LogcatBundle.message("logcat.format.action.compact")),
+  enum class Style(val displayName: @ActionText String) {
+    STANDARD(LogcatBundle.message("logcat.format.action.standard")) {
+      override val formattingOptions: FormattingOptions
+        get() = logcatFormattingOptions.standardFormattingOptions
+    },
+    COMPACT(LogcatBundle.message("logcat.format.action.compact")) {
+      override val formattingOptions: FormattingOptions
+        get() = logcatFormattingOptions.compactFormattingOptions
+    },
+    ;
+
+    // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions because AndroidLogcatFormattingOptions has
+    // a field of type Style that needs to be initialized with a value.
+    abstract val formattingOptions: FormattingOptions
   }
 
   fun getHeaderWidth() = appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
 
   fun getStyle(): Style? {
-    return when  {
-      this === standardFormattingOptions -> STANDARD
-      this === compactFormattingOptions -> COMPACT
+    return when {
+      this === logcatFormattingOptions.standardFormattingOptions -> STANDARD
+      this === logcatFormattingOptions.compactFormattingOptions -> COMPACT
       else -> null
     }
   }

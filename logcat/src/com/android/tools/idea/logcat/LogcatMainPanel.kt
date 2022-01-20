@@ -34,9 +34,9 @@ import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
+import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
@@ -112,7 +112,7 @@ internal class LogcatMainPanel(
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val deviceContext = DeviceContext()
 
-  override var formattingOptions: FormattingOptions = state?.formattingConfig?.toFormattingOptions() ?: STANDARD.formattingOptions
+  override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {
       field = value
       reloadMessages()
@@ -335,3 +335,6 @@ internal class LogcatMainPanel(
 }
 
 private fun LogCatMessage.getPackageNameOrPid() = if (header.appName == "?") "pid-${header.pid}" else header.appName
+
+private fun LogcatPanelConfig?.getFormattingOptions(): FormattingOptions =
+  this?.formattingConfig?.toFormattingOptions() ?: AndroidLogcatFormattingOptions.getDefaultOptions()
