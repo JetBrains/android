@@ -135,6 +135,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
@@ -161,6 +162,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
@@ -187,6 +189,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
@@ -213,6 +216,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
@@ -239,6 +243,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
@@ -264,6 +269,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
