@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestVirtualDevices {
@@ -23,12 +25,18 @@ public final class TestVirtualDevices {
   }
 
   public static @NotNull VirtualDevice pixel5Api31(@NotNull AvdInfo avd) {
+    return pixel5Api31(avd, AvdManagerConnection::getDefaultAvdManagerConnection);
+  }
+
+  static @NotNull VirtualDevice pixel5Api31(@NotNull AvdInfo avd,
+                                            @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
     return new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Pixel_5_API_31"))
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
       .setApi("31")
+      .setGetDefaultAvdManagerConnection(getDefaultAvdManagerConnection)
       .setAvdInfo(avd)
       .build();
   }
