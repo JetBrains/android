@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -71,7 +72,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   }
 
   public ChooseGradleHomeDialog(@NotNull @NlsContexts.DialogTitle String title, @Nullable String minimumGradleVersion) {
-    super(null);
+    super((Project)null);
     myMinimumGradleVersion = minimumGradleVersion;
     myInstallationManager = ApplicationManager.getApplication().getService(GradleInstallationManager.class);
     init();
