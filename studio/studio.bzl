@@ -854,7 +854,7 @@ def intellij_platform(
             visibility = ["//visibility:public"],
         )
 
-    native.java_import(
+    jvm_import(
         name = name + "-updater",
         jars = [src + "/updater-full.jar"],
         visibility = ["//visibility:public"],
