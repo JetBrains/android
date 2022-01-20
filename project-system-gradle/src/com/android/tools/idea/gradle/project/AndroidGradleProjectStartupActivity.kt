@@ -33,9 +33,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
-import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
-import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.versionsShouldForcePluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -269,7 +268,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     fun GradleAndroidModel.validate() =
       shouldDisableForceUpgrades() ||
       GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
-        computeGradlePluginUpgradeState(agpVersion, latestKnown, setOf()).importance != FORCE
+        !versionsShouldForcePluginUpgrade(agpVersion, latestKnown)
       }
 
     /** Returns `null` if validation fails. */

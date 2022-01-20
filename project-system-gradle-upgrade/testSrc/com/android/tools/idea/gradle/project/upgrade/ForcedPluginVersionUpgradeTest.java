@@ -68,8 +68,30 @@ public class ForcedPluginVersionUpgradeTest {
       {"3.4.0-rc02", "3.5.0-alpha01", false},
       {"3.3.1", "3.5.0-alpha01", false},
 
-      // Force upgrades from -dev to any stable version.
-      {"3.4.0-dev", "3.4.0", true}
+      // Force upgrades from -dev to any later stable version.
+      {"3.4.0-dev", "3.4.0", true},
+      {"3.4.0-dev", "3.3.0", false},
+
+      // Do not force upgrades to -dev of prereleases.
+      {"3.4.0-alpha01", "3.4.0-dev", false},
+      {"3.4.0-beta02", "3.4.0-dev", false},
+      {"3.4.0-rc03", "3.4.0-dev", false},
+
+      // Do not force upgrades to -dev of previous-cycle previews.
+      {"3.4.0-alpha01", "3.5.0-dev", false},
+      {"3.4.0-beta02", "3.5.0-dev", false},
+      {"3.4.0-rc03", "3.5.0-dev", false},
+
+      // Force upgrades from -dev of previous-cycle to previews of current cycle.
+      {"3.4.0-dev", "3.5.0-dev", true},
+      {"3.4.0-dev", "3.5.0-alpha01", true},
+      {"3.4.0-dev", "3.5.0-beta02", true},
+      {"3.4.0-dev", "3.5.0-rc03", true},
+
+      // Do not force upgrades from -dev to previews of the same cycle.
+      {"3.4.0-dev", "3.4.0-alpha01", false},
+      {"3.4.0-dev", "3.4.0-beta02", false},
+      {"3.4.0-dev", "3.4.0-rc03", false},
     });
   }
 

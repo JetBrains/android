@@ -35,6 +35,8 @@ fun computeForcePluginUpgradeReason(current: GradleVersion, latestKnown: GradleV
     current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> MINIMUM
     // If the current is a preview and the latest known is not a -dev version, yes.
     (current.previewType == "alpha" || current.previewType == "beta") && !latestKnown.isSnapshot -> PREVIEW
+    // If the current is a snapshot (and therefore of an earlier series than latestKnown), yes.
+    current.isSnapshot -> PREVIEW
     // Otherwise, no.
     else -> NO_FORCE
   }

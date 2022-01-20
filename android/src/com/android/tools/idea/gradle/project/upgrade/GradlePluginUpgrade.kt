@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
+import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.NO_FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -230,7 +231,7 @@ fun versionsShouldForcePluginUpgrade(
   current: GradleVersion,
   latestKnown: GradleVersion
 ) : Boolean {
-  return computeGradlePluginUpgradeState(current, latestKnown, setOf()).importance == FORCE
+  return computeForcePluginUpgradeReason(current, latestKnown) != NO_FORCE
 }
 
 /**
@@ -334,8 +335,8 @@ fun computeGradlePluginUpgradeState(
     throw IllegalStateException("Unreachable: handled by computeForcePluginUpgradeReason")
   }
   else {
-    // Current is a snapshot, probably -dev, and is less than latestKnown.  Force an upgrade to latestKnown.
-    return GradlePluginUpgradeState(FORCE, latestKnown)
+    // Current is a snapshot.
+    throw IllegalStateException("Unreachable: handled by computeForcePluginUpgradeReason")
   }
 }
 
