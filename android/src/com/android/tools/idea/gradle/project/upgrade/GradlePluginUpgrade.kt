@@ -307,8 +307,12 @@ fun computeGradlePluginUpgradeState(
   when (computeForcePluginUpgradeReason(current, latestKnown)) {
     ForcePluginUpgradeReason.MINIMUM -> {
       val minimum = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
-      val earliestStable = published.filter { !it.isPreview }.filter { it >= minimum }.minOrNull() ?: latestKnown
-      return GradlePluginUpgradeState(FORCE, earliestStable)
+      val earliestStable = published
+        .filter { !it.isPreview }
+        .filter { it >= minimum }
+        .filter { it <= latestKnown }
+        .minOrNull()
+      return GradlePluginUpgradeState(FORCE, earliestStable ?: latestKnown)
     }
     ForcePluginUpgradeReason.PREVIEW -> {
       val seriesAcceptableStable = published

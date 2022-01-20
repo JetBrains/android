@@ -123,6 +123,8 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"3.1.0", "7.0.0", Collections.emptyList(), FORCE, "7.0.0"},
       // If we know of published versions earlier than our latestKnownVersion, prefer to upgrade to those.
       {"3.1.0", "3.2.0", Arrays.asList("3.2.0", "3.3.0", "3.4.0", "3.5.0", "3.6.0", "7.0.0"), FORCE, "3.2.0"},
+      // If we do not know of any published versions earlier than our latestKnown, upgrade to latestKnown
+      {"3.1.0", "3.2.0", Arrays.asList("3.3.0", "3.4.0"), FORCE, "3.2.0"},
     });
   }
 
