@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.actions
+package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.LogcatBundle.message
-import com.android.tools.idea.logcat.messages.AppNameFormat
-import com.android.tools.idea.logcat.messages.DocumentAppender
-import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.LogcatColors
-import com.android.tools.idea.logcat.messages.MessageFormatter
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat
-import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.messages.TextAccumulator
-import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
@@ -94,7 +85,7 @@ private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
 /**
  * A dialog for changing the formatting options.
  */
-internal class HeaderFormatOptionsDialog(private val project: Project, formattingOptions: FormattingOptions) : Disposable {
+internal class LogcatFormatDialog(private val project: Project, formattingOptions: FormattingOptions) : Disposable {
   private var isShowTimestamp: Boolean = formattingOptions.timestampFormat.enabled
   private var timestampStyle: TimestampFormat.Style = formattingOptions.timestampFormat.style
   private var isShowPid: Boolean = formattingOptions.processThreadFormat.enabled

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.actions
+package com.android.tools.idea.logcat.messages
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
-import com.android.tools.idea.logcat.messages.AppNameFormat
-import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
-import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.google.common.truth.Truth.assertThat
@@ -42,10 +37,10 @@ import javax.swing.JLabel
 import kotlin.test.fail
 
 /**
- * Tests for [HeaderFormatOptionsDialog]
+ * Tests for [LogcatFormatDialog]
  */
 @RunsInEdt
-class HeaderFormatOptionsDialogTest {
+class LogcatFormatDialogTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
@@ -57,7 +52,7 @@ class HeaderFormatOptionsDialogTest {
     TagFormat(maxLength = 20, hideDuplicates = true, enabled = true),
     AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
 
-  private val dialog by lazy { HeaderFormatOptionsDialog(projectRule.project, formattingOptions) }
+  private val dialog by lazy { LogcatFormatDialog(projectRule.project, formattingOptions) }
   private val showTimestampCheckBox by lazy { dialog.getCheckBox("Show timestamp") }
   private val timestampFormatComboBox by lazy { dialog.findComponentWithLabel<JComboBox<TimestampFormat.Style>>("Format:") }
   private val showProcessIdsCheckBox by lazy { dialog.getCheckBox("Show process id") }
@@ -389,7 +384,7 @@ class HeaderFormatOptionsDialogTest {
   }
 }
 
-private inline fun <reified T> HeaderFormatOptionsDialog.findComponentWithLabel(text: String): T {
+private inline fun <reified T> LogcatFormatDialog.findComponentWithLabel(text: String): T {
   val components = TreeWalker(dialogWrapper.rootPane).descendants().toList()
   val labelIndex = components.indexOfFirst { it is JLabel && it.text == text }
   if (labelIndex < 0) {
@@ -401,25 +396,25 @@ private inline fun <reified T> HeaderFormatOptionsDialog.findComponentWithLabel(
          ?: fail("Component with label '$text' is a ${component::class.simpleName} but was expecting a ${T::class.simpleName}")
 }
 
-private fun HeaderFormatOptionsDialog.getCheckBox(text: String) =
+private fun LogcatFormatDialog.getCheckBox(text: String) =
   TreeWalker(dialogWrapper.rootPane).descendants().filterIsInstance<JCheckBox>()
     .firstOrNull { it.text == text } ?: fail("Checkbox with label '$text' not found")
 
-private fun HeaderFormatOptionsDialog.getLabel(text: String) =
+private fun LogcatFormatDialog.getLabel(text: String) =
   TreeWalker(dialogWrapper.rootPane).descendants().filterIsInstance<JLabel>()
     .firstOrNull { it.text == text } ?: fail("Label '$text' not found")
 
-private fun HeaderFormatOptionsDialog.applyToOptions(body: () -> Unit): FormattingOptions {
+private fun LogcatFormatDialog.applyToOptions(body: () -> Unit): FormattingOptions {
   body()
   val formattingOptions = FormattingOptions()
   applyTo(formattingOptions)
   return formattingOptions
 }
 
-private fun HeaderFormatOptionsDialog.applyToTimestamp(body: () -> Unit) = applyToOptions(body).timestampFormat
+private fun LogcatFormatDialog.applyToTimestamp(body: () -> Unit) = applyToOptions(body).timestampFormat
 
-private fun HeaderFormatOptionsDialog.applyToIds(body: () -> Unit) = applyToOptions(body).processThreadFormat
+private fun LogcatFormatDialog.applyToIds(body: () -> Unit) = applyToOptions(body).processThreadFormat
 
-private fun HeaderFormatOptionsDialog.applyToTag(body: () -> Unit) = applyToOptions(body).tagFormat
+private fun LogcatFormatDialog.applyToTag(body: () -> Unit) = applyToOptions(body).tagFormat
 
-private fun HeaderFormatOptionsDialog.applyToAppName(body: () -> Unit) = applyToOptions(body).appNameFormat
+private fun LogcatFormatDialog.applyToAppName(body: () -> Unit) = applyToOptions(body).appNameFormat
