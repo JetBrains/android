@@ -54,6 +54,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
   @Mock lateinit var mockIndicator: ProgressIndicator
   val retentionConfiguration = RetentionConfiguration()
+  val extraInstrumentationParams = ""
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
@@ -66,7 +67,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockPrinter,
       mockDevice,
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration
+      retentionConfiguration,
+      extraInstrumentationParams
     )
 
     val result = launchTask.run(
@@ -84,7 +86,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -100,7 +103,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
@@ -117,7 +121,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -133,7 +138,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test.TestClass",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
@@ -150,7 +156,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq("com.example.test.TestClass"),
       eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -167,7 +174,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       "com.example.test.TestClass",
       "testMethod",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
@@ -184,7 +192,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq("com.example.test.TestClass"),
       eq("testMethod"),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -200,7 +209,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockPrinter,
       mockDevice,
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration
+      retentionConfiguration,
+      extraInstrumentationParams
     )
 
     val result = launchTask.run(
@@ -218,7 +228,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 
@@ -233,7 +244,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test",
       mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
+      retentionConfiguration,
+      extraInstrumentationParams)
 
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
@@ -250,7 +262,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(mockDevice),
-      eq(retentionConfiguration)
+      eq(retentionConfiguration),
+      eq(extraInstrumentationParams)
     )
   }
 

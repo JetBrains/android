@@ -124,12 +124,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    */
   @NotNull public String EXTRA_OPTIONS = "";
 
-  /**
-   * If this is set to true, extra options defined in gradle build file will be merged into {@link #EXTRA_OPTIONS} and passed to
-   * instrumentation.
-   */
-  public boolean INCLUDE_GRADLE_EXTRA_OPTIONS = true;
-
   /*
    * Configurations for Emulator Snapshot for Test Failures (a.k.a Android Test Retention, Icebox).
    *
@@ -465,13 +459,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
     Collection<AndroidTestExtraParam> extraParams;
 
-    if (INCLUDE_GRADLE_EXTRA_OPTIONS) {
-      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
-                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
-    }
-    else {
-      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
-    }
+    extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
 
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())

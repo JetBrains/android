@@ -48,14 +48,12 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
    */
   private JPanel myContentPanel;
   private JPanel myUserExtraParamsTablePanel;
-  private JCheckBox myIncludeGradleExtraParamsCheckBox;
   private JPanel myGradleExtraParamsTablePanel;
 
   private final AndroidTestExtraParamsTable myUserParamsTable;
   private final AndroidTestExtraParamsTable myGradleParamsTable;
 
   private final ListenerManager myListenerManager = new ListenerManager();
-  private final SelectedProperty myIsIncludeGradleParams;
 
   /**
    * Constructs and initializes the dialog.
@@ -63,12 +61,10 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
    * @param project                    the project that owns this dialog
    * @param androidFacet               the android facet to be used to retrieve Gradle defined extra params, or null for non-gradle project
    * @param instrumentationExtraParams a user defined extra params. Must be formatted like: "-e key1 value1 -e key2 value2 ..."
-   * @param includeGradleExtraParams   an initial selection of "include gradle extra param" option
    */
   public AndroidTestExtraParamsDialog(@NotNull Project project,
                                       @Nullable AndroidFacet androidFacet,
-                                      @NonNull String instrumentationExtraParams,
-                                      boolean includeGradleExtraParams) {
+                                      @NonNull String instrumentationExtraParams) {
     super(project);
 
     init();
@@ -93,18 +89,7 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
         .filter(p -> p.getORIGINAL_VALUE_SOURCE() == AndroidTestExtraParamSource.GRADLE)
         .collect(Collectors.toList()));
     myGradleExtraParamsTablePanel.add(myGradleParamsTable.getComponent());
-
-    // Initialize "include gradle extra params" checkbox.
-    myIsIncludeGradleParams = new SelectedProperty(myIncludeGradleExtraParamsCheckBox);
-    myIsIncludeGradleParams.set(includeGradleExtraParams);
-    myListenerManager.listenAndFire(myIsIncludeGradleParams, value -> {
-      if (value) {
-        myGradleParamsTable.setEnabled();
-      }
-      else {
-        myGradleParamsTable.setDisabled();
-      }
-    });
+    myGradleParamsTable.setEnabled();
   }
 
   @Override
@@ -120,19 +105,9 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
   }
 
   /**
-   * Returns the current selection of the "include gradle extra params" option.
-   */
-  public boolean getIncludeGradleExtraParams() {
-    return myIsIncludeGradleParams.get();
-  }
-
-  /**
    * Returns formatted string of current instrumentation extra params. e.g. "-e key1 value1 -e key2 value2".
    */
   public String getInstrumentationExtraParams() {
-    if (!getIncludeGradleExtraParams()) {
-      return getUserModifiedInstrumentationExtraParams();
-    }
     return AndroidTestExtraParamKt.merge(SequencesKt.asSequence(myGradleParamsTable.getTableView().getItems().iterator()),
                                          SequencesKt.asSequence(myUserParamsTable.getTableView().getItems().iterator()))
       .stream()

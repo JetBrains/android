@@ -176,7 +176,6 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
     prop("PackageName") { runConfiguration.PACKAGE_NAME }
     prop("InstrumentationRunnerClass") { runConfiguration.INSTRUMENTATION_RUNNER_CLASS }
     prop("ExtraOptions") { runConfiguration.EXTRA_OPTIONS }
-    prop("IncludeGradleExtraOptions") { runConfiguration.INCLUDE_GRADLE_EXTRA_OPTIONS.takeUnless { it == true }?.toString() }
     prop("TargetSelectionMode") { runConfiguration.deployTargetContext.TARGET_SELECTION_MODE }
     prop("DebuggerType") { runConfiguration.androidDebuggerContext.DEBUGGER_TYPE }
   }

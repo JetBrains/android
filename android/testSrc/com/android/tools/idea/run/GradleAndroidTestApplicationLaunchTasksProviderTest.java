@@ -30,6 +30,8 @@ import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTasksProvider;
 import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -79,8 +81,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testLaunchTaskProvidedForDebugAllInModuleTest() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("debugAllInModuleTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("debugAllInModuleTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
     config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
@@ -97,7 +99,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -123,8 +125,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("allInPackageTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("allInPackageTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -140,7 +142,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -163,8 +165,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testLaunchTaskProvidedForClassTest() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("classTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("classTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -180,7 +182,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -201,8 +203,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testLaunchTaskProvidedForMethodTest() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("methodTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -218,7 +220,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -239,8 +241,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testNoLaunchTaskProvidedForInvalidTestType() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("methodTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -256,7 +258,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -274,8 +276,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testNoLaunchTaskProvidedForIndeterminatePackageName() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("methodTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -293,7 +295,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,
@@ -311,8 +313,8 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
   public void testNoLaunchTaskProvidedWhenApkProvisionExceptionThrown() throws Exception {
     RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createConfiguration("methodTest", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+      createConfiguration("methodTest", AndroidTestRunConfigurationType.getInstance().getFactory());
+    AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)configSettings.getConfiguration();
     config.setModule(myAndroidFacet.getModule());
     configSettings.checkSettings();
 
@@ -330,7 +332,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       .build();
 
     GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      (AndroidTestRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
       appIdProvider,

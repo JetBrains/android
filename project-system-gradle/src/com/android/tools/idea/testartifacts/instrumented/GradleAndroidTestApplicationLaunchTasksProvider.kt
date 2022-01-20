@@ -58,6 +58,9 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
+  private val myExtraInstrumentationOptions: String = if (myRunConfig is AndroidTestRunConfiguration) {
+    myRunConfig.getExtraInstrumentationOptions(facet)
+  } else ""
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
     GradleConnectedAndroidTestInvoker(
       getNumberOfSelectedDevices(),
@@ -98,7 +101,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           consolePrinter,
           device,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
@@ -111,7 +115,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           device,
           myPackageName,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
       TEST_CLASS -> {
         classTest(
@@ -124,7 +129,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           device,
           myClassName,
           myGradleConnectedAndroidTestInvoker,
-          retentionConfiguration)
+          retentionConfiguration,
+          myExtraInstrumentationOptions)
       }
      TEST_METHOD -> {
        methodTest(
@@ -138,7 +144,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
          myClassName,
          myMethodName,
          myGradleConnectedAndroidTestInvoker,
-         retentionConfiguration)
+         retentionConfiguration,
+         myExtraInstrumentationOptions)
      } else -> {
       launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $myTestingType", true)
       null

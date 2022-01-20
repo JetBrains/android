@@ -101,7 +101,8 @@ class GradleConnectedAndroidTestInvoker(
                testClassName: String,
                testMethodName: String,
                device: IDevice,
-               retentionConfiguration: RetentionConfiguration) {
+               retentionConfiguration: RetentionConfiguration,
+               extraInstrumentationOptions: String) {
     scheduledDeviceList.add(device)
     if (scheduledDeviceList.size == selectedDevices) {
       runGradleTask(project,
@@ -113,7 +114,8 @@ class GradleConnectedAndroidTestInvoker(
                     testPackageName,
                     testClassName,
                     testMethodName,
-                    retentionConfiguration)
+                    retentionConfiguration,
+                    extraInstrumentationOptions)
     }
   }
 
@@ -130,7 +132,8 @@ class GradleConnectedAndroidTestInvoker(
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
-    retentionConfiguration: RetentionConfiguration
+    retentionConfiguration: RetentionConfiguration,
+    extraInstrumentationOptions: String
   ) {
     consolePrinter.stdout("Running tests\n")
 
@@ -220,7 +223,8 @@ class GradleConnectedAndroidTestInvoker(
               testClassName,
               testMethodName,
               it.iDevice,
-              retentionConfiguration
+              retentionConfiguration,
+              extraInstrumentationOptions
             )
           }
         } else {
@@ -249,7 +253,7 @@ class GradleConnectedAndroidTestInvoker(
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration)
+      project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration, extraInstrumentationOptions)
 
     backgroundTaskExecutor {
       try {
@@ -281,7 +285,8 @@ class GradleConnectedAndroidTestInvoker(
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
-    retentionConfiguration: RetentionConfiguration
+    retentionConfiguration: RetentionConfiguration,
+    extraInstrumentationOptions: String
   ): GradleExecutionSettings {
     return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
@@ -323,6 +328,17 @@ class GradleConnectedAndroidTestInvoker(
 
       if (uninstallIncompatibleApks) {
         withArgument("-P$UNINSTALL_INCOMPATIBLE_APKS_PROPERTY=true")
+      }
+
+      // Extra instrumentation params are stored as a String with the format "-e name1 value1 -e name2 value2 ...". To use these arguments
+      // in a Gradle test, each argument needs to be in the format "-Pandroid.testInstrumentationRunnerArguments.name=value".
+      val extraInstrumentationOptionsList = extraInstrumentationOptions.split("-e")
+      for (param in extraInstrumentationOptionsList) {
+        if (param == "") {
+          continue
+        }
+        val nameValuePair = param.trim().split(" ")
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.${nameValuePair[0]}=${nameValuePair[1]}")
       }
 
       // Don't switch focus to build tool window even after build failure because

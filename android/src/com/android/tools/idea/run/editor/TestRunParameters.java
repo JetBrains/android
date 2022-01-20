@@ -119,7 +119,6 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private final TextProperty myMaxSnapshots;
   private final SelectedProperty myCompressSnapshots;
 
-  private boolean myIncludeGradleExtraParams = true;
   private String myUserModifiedInstrumentationExtraParams = "";
 
   private void createUIComponents() {
@@ -226,10 +225,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
         }
         AndroidTestExtraParamsDialog dialog = new AndroidTestExtraParamsDialog(getProject(),
                                                                                AndroidFacet.getInstance(module),
-                                                                               myInstrumentationArgs.get(),
-                                                                               myIncludeGradleExtraParams);
+                                                                               myInstrumentationArgs.get());
         if (dialog.showAndGet()) {
-          myIncludeGradleExtraParams = dialog.getIncludeGradleExtraParams();
           myUserModifiedInstrumentationExtraParams = dialog.getUserModifiedInstrumentationExtraParams();
           myInstrumentationArgs.set(dialog.getInstrumentationExtraParams());
           myContentWrapper.fireStateChanged();
@@ -283,7 +280,6 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.METHOD_NAME = myTestMethod.get();
     configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
     configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
-    configuration.INCLUDE_GRADLE_EXTRA_OPTIONS = myIncludeGradleExtraParams;
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       configuration.RETENTION_ENABLED = myEnableEmulatorSnapshotItemsComboBox.getItem();
       try {
@@ -312,7 +308,6 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       : configuration.INSTRUMENTATION_RUNNER_CLASS);
     myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
     myUserModifiedInstrumentationExtraParams = configuration.EXTRA_OPTIONS;
-    myIncludeGradleExtraParams = configuration.INCLUDE_GRADLE_EXTRA_OPTIONS;
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       myEnableRetention.setValue(configuration.RETENTION_ENABLED);
       myMaxSnapshots.set(Integer.toString(configuration.RETENTION_MAX_SNAPSHOTS));
