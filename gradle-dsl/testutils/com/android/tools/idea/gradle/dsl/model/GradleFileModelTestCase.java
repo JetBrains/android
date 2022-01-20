@@ -75,7 +75,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
-import com.intellij.psi.PsiElementFinder;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
@@ -92,7 +91,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.kotlin.idea.core.script.KotlinScriptDependenciesClassFinder;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -204,13 +202,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @Before
   public void before() throws Exception {
-    // b/213362187: initialize KotlinScriptDependenciesClassFinder eagerly, to avoid already-disposed exceptions.
-    // We disable all startup activities (see getOpenProjectOptions() above), but editing .kts will still trigger the initialization of
-    // ScriptDefinitionsManager, which in turn initializes KotlinScriptDependenciesClassFinder, a subclass of NonClasspathClassFinder
-    // that attempts to register a VFS listener in its constructor. We want to avoid the race condition between that and project closing.
-    // Note: this is the only use of the compile-time dependency on the Kotlin plugin, which should be a runtime dependency otherwise.
-    PsiElementFinder.EP.findExtensionOrFail(KotlinScriptDependenciesClassFinder.class, myProject);
-
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
     Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();
