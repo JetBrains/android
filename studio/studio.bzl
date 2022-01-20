@@ -1,7 +1,6 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
-load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 def _zipper(ctx, desc, map, out, deps = []):
@@ -721,24 +720,12 @@ def _intellij_platform_impl(ctx):
     base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
     base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
 
-    infos = []
-    for jar in ctx.files.jars:
-        ijar = java_common.run_ijar(
-            actions = ctx.actions,
-            jar = jar,
-            java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
-        )
-        infos.append(JavaInfo(
-            output_jar = jar,
-            compile_jar = ijar,
-        ))
-
     runfiles = ctx.runfiles(files = ctx.files.data)
     files = depset([base_linux, base_mac, base_win])
     return struct(
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
-            java_common.merge(infos),
+            java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
         ],
         data = struct(
             files = depset([]),
@@ -763,12 +750,11 @@ def _intellij_platform_impl(ctx):
 
 _intellij_platform = rule(
     attrs = {
-        "jars": attr.label_list(allow_files = True),
+        "exports": attr.label_list(providers = [JavaInfo]),
         "data": attr.label_list(allow_files = True),
         "studio_data": attr.label(),
         "compress": attr.bool(),
         "mac_bundle_name": attr.string(),
-        "_java_toolchain": attr.label(default = Label("@bazel_tools//tools/jdk:current_java_toolchain")),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
@@ -783,13 +769,18 @@ def intellij_platform(
         src,
         spec,
         **kwargs):
-    _intellij_platform(
-        name = name,
+    jvm_import(
+        name = name + "_jars",
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
+    )
+
+    _intellij_platform(
+        name = name,
+        exports = [":" + name + "_jars"],
         compress = is_release(),
         mac_bundle_name = spec.mac_bundle_name,
         studio_data = name + ".data",
