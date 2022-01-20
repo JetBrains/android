@@ -66,6 +66,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
@@ -89,13 +90,13 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
-import com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -497,12 +498,21 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                      ideModels.getSelectedVariantName());
   }
 
+  /**
+   * Get test tasks for a given android model.
+   * @return the test task for the module. This does not include the full task path, but only the task name.
+   * The full task path will be configured later at the execution level in the Gradle producers.
+   */
+  static private String getTasksFromAndroidModuleData(@NotNull GradleAndroidModel androidModuleModel) {
+    final String variant = androidModuleModel.getSelectedVariant().getName();
+    return StringHelper.appendCapitalized("test", variant, "unitTest");
+  }
+
   @SuppressLint("NewApi")
   private void createAndSetupTestDataNode(@NotNull DataNode<ModuleData> moduleDataNode,
                                           @NotNull GradleAndroidModel GradleAndroidModel) {
-    // TODO(b/205094187): We can also do setUp androidTest tasks from here and they will then be shown as an option when right clicking run tests.
     // Get the unit test task for the current module.
-    String testTaskName = AndroidGradleTestTasksProvider.getTasksFromAndroidModuleData(GradleAndroidModel);
+    String testTaskName = getTasksFromAndroidModuleData(GradleAndroidModel);
     Set<String> sourceFolders = new HashSet<>();
     for (IdeSourceProvider sourceProvider : GradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
       for (File sourceFolder : getAllSourceFolders(sourceProvider)) {

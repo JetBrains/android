@@ -20,8 +20,10 @@ import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromFile
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
+import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElement
 import com.android.tools.idea.testartifacts.getPsiElement
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.TEST_RESOURCES
@@ -32,6 +34,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDirectory
@@ -58,6 +61,13 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     verifyCannotCreateClassGradleRunConfigurationFromAndroidTestScope()
     verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory()
     verifyCanCreateGradleConfigurationFromTestDirectory()
+  }
+
+  @Throws(Exception::class)
+  fun testCanCreateDifferentConfigurationsWhenDuplicateNames() {
+    loadProject(SIMPLE_APPLICATION_WITH_DUPLICATES)
+    verifyCanCreateGradleConfigurationFromSameNameTestClass()
+    verifyCanCreateGradleConfigurationFromSameNameTestDirectory()
   }
 
   @Throws(Exception::class)
@@ -155,7 +165,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     configurationTasks: List<String>
   ) {
     val configuration = configurationFromContext.configuration as? GradleRunConfiguration
-    // Make sure that the tasks we set are expected when provided by AndroidGradleTestTasksProvider.
+    // Make sure that the tasks we set are as expected.
     val module2 = ModuleManager.getInstance(project).modules
       .first { module ->  module.name == "kotlinMultiPlatform.module2" }
     assertThat(module2).isNotNull()
@@ -192,7 +202,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     // Make sure that the configuration is created by the testClass gradle provider.
     assertThat(configurationFromContext!!.configurationProducer).isInstanceOf(TestClassGradleConfigurationProducer::class.java)
 
-    // Make sure that the runConfiguration test tasks we set are expected when provided by AndroidGradleTestTasksProvider.
+    // Make sure that the runConfiguration test tasks we set are as expected.
     checkConfigurationTasksAreAsExpected(
       configurationFromContext,
       // See above comment about the changes to task names.
@@ -221,6 +231,47 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val gradleRunConfiguration = createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java")
     val testTaskNames = gradleRunConfiguration?.settings?.taskNames
     assertThat(testTaskNames).containsExactly(":app:testDebugUnitTest")
+  }
+
+  private fun verifyCanCreateGradleConfigurationFromSameNameTestClass() {
+    var psiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication/UnitTest.java", false)
+    val appGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
+    assertThat(appGradleTestClassConfiguration).isNotNull()
+
+    psiElement = getPsiElement(project, "libs/src/test/java/google/simpleapplication/UnitTest.java", false)
+    var libGradleTestClassConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, psiElement)
+    // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
+    // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
+    // between the two contexts.
+    assertThat(libGradleTestClassConfiguration).isNull()
+
+    libGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
+    assertThat(libGradleTestClassConfiguration).isNotNull()
+    assertThat(libGradleTestClassConfiguration).isNotSameAs(appGradleTestClassConfiguration)
+  }
+
+  private fun verifyCanCreateGradleConfigurationFromSameNameTestDirectory() {
+    val appModulePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
+    val appGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, appModulePsiElement)
+    assertThat(appGradleTestPackageConfiguration).isNotNull()
+
+    val libModulePsiLocation = getPsiElement(project, "libs/src/test/java/google/simpleapplication", true)
+    val libExistingTestPackageConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, libModulePsiLocation)
+    // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
+    // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
+    // between the two contexts.
+    assertThat(libExistingTestPackageConfiguration).isNull()
+
+    val libGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, libModulePsiLocation)
+    assertThat(libGradleTestPackageConfiguration).isNotNull()
+    assertThat(libGradleTestPackageConfiguration).isNotSameAs(appGradleTestPackageConfiguration)
+  }
+
+  private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {
+    val context = TestConfigurationTesting.createContext(project, psiElement)
+    // Search for any existing run configuration that was created from this context.
+    val existing = context.findExisting() ?: return null
+    return existing.configuration  as? GradleRunConfiguration
   }
 
   private fun verifyCanCreateGradleConfigurationFromTestDirectoryKotlin() {
