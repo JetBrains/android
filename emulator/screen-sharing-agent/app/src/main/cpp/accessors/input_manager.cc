@@ -33,7 +33,9 @@ InputManager::InputManager(Jni jni)
 InputManager::~InputManager() = default;
 
 void InputManager::InjectInputEvent(const JObject& input_event, InputEventInjectionSync mode) {
-  Log::D("input_event : %s", input_event.ToString().c_str());
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("input_event : %s", input_event.ToString().c_str());
+  }
   if (!input_manager_.CallBooleanMethod(jni_, inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
     Log::E("Unable to inject an input event %s", input_event.ToString().c_str());
   }
