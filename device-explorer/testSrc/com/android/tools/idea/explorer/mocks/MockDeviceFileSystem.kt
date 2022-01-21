@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer.mocks
 
 import com.android.ddmlib.FileListingService
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.explorer.cancelAndThrow
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceState
@@ -85,6 +86,10 @@ class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override va
         progress.report(currentOffset, entry.size)
 
         while (currentOffset < entry.size) {
+          if (progress.isCancelled) {
+            cancelAndThrow()
+          }
+
           // Write bytes
           val chunkSize = min(downloadChunkSize, entry.size - currentOffset).toInt()
           writeBytes(outputStream, chunkSize)
@@ -137,6 +142,10 @@ class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override va
       progress.report(currentOffset, fileLength)
 
       while (currentOffset < fileLength) {
+        if (progress.isCancelled) {
+          cancelAndThrow()
+        }
+
         val chunkSize = min(uploadChunkSize, fileLength - currentOffset)
         createdEntry.size += chunkSize
         currentOffset += chunkSize
