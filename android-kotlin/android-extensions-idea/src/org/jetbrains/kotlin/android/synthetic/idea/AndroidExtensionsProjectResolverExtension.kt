@@ -64,12 +64,14 @@ class AndroidExtensionsProjectResolverExtension : AbstractProjectResolverExtensi
     override fun getToolingExtensionsClasses() = setOf(AndroidExtensionsModelBuilderService::class.java)
 
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
-        val androidExtensionsModel = resolverCtx.getExtraProject(gradleModule, AndroidExtensionsGradleModel::class.java) ?: return
-        ideModule.createChild(ANDROID_EXTENSION_PROPERTIES, AndroidExtensionProperties().apply {
-            hasAndroidExtensionsPlugin = androidExtensionsModel.hasAndroidExtensionsPlugin
-            isExperimental = androidExtensionsModel.isExperimental
-            defaultCacheImplementation = androidExtensionsModel.defaultCacheImplementation
-        })
+        val androidExtensionsModel = resolverCtx.getExtraProject(gradleModule, AndroidExtensionsGradleModel::class.java)
+        if (androidExtensionsModel != null) {
+            ideModule.createChild(ANDROID_EXTENSION_PROPERTIES, AndroidExtensionProperties().apply {
+                hasAndroidExtensionsPlugin = androidExtensionsModel.hasAndroidExtensionsPlugin
+                isExperimental = androidExtensionsModel.isExperimental
+                defaultCacheImplementation = androidExtensionsModel.defaultCacheImplementation
+            })
+        }
         super.populateModuleExtraModels(gradleModule, ideModule)
     }
 }
