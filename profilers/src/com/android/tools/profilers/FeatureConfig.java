@@ -29,6 +29,9 @@ public interface FeatureConfig {
   boolean isPerformanceMonitoringEnabled();
   boolean isProfileableEnabled();
   boolean isProfileableInQrEnabled();
+
+  boolean isProfileableBuildsEnabled();
+
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
   boolean isUseTraceProcessor();

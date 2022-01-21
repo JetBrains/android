@@ -165,6 +165,11 @@ public final class StudioFlags {
     PROFILER, "profileable.qr", "Support profileable processes on Q & R",
     "Show profileable processes on Q and R",
     PROFILEABLE.get() && true);
+
+  public static final Flag<Boolean> PROFILEABLE_BUILDS = Flag.create(
+    PROFILER, "profileable.builds", "Support building profileable apps",
+    "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
+    false);
   //endregion
 
   //region ML

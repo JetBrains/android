@@ -149,6 +149,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileableInQrEnabled = true;
 
   /**
+   * Whether we support profileable builds.
+   */
+  private boolean myProfileablsBuildsEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -274,6 +279,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isProfileableInQrEnabled() {
         return myProfileableInQrEnabled;
+      }
+
+      @Override
+      public boolean isProfileableBuildsEnabled() {
+        return myProfileablsBuildsEnabled;
       }
 
       @Override
@@ -485,5 +495,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableProfileableInQr(boolean enabled) {
     myProfileableInQrEnabled = enabled;
+  }
+
+  public void enableProfileableBuilds(boolean enabled) {
+    myProfileablsBuildsEnabled = enabled;
   }
 }
