@@ -31,6 +31,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
@@ -39,6 +40,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
@@ -123,6 +125,12 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
 
   fun getApplicationInstaller(): ApplicationInstaller {
     return ApplicationInstallerImpl(project)
+  }
+
+  internal fun createConsole(): ConsoleView {
+    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
+    Disposer.register(project, console)
+    return console
   }
 
   @VisibleForTesting

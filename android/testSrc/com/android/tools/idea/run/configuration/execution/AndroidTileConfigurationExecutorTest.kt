@@ -55,6 +55,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = getMockDevice()
 
+    val console: ConsoleView = Mockito.mock(ConsoleView::class.java)
+
     Mockito.doAnswer { invocation: InvocationOnMock ->
       // get the 4th arg (the receiver to feed it the lines).
       val receiver = invocation.getArgument<MultiLineReceiver>(1)
@@ -73,6 +75,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
 
+    // Mock console.
+    Mockito.doReturn(console).`when`(executor).createConsole()
+
     executor.doOnDevices(listOf(device))
 
     // Verify commands sent to device.
@@ -90,6 +95,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
     // Showing Tile.
     assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1")
+
+    // Verify that a warning was raised.
+    Mockito.verify(console, Mockito.times(1)).printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
   }
 
   fun testException() {

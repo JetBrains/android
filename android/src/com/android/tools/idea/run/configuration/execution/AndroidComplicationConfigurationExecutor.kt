@@ -45,8 +45,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
-    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-    Disposer.register(project, console)
+    val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN

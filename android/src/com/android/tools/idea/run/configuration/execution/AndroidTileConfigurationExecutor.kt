@@ -23,14 +23,12 @@ import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_CO
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 
@@ -43,8 +41,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for a single device")
     }
-    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-    Disposer.register(project, console)
+    val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
@@ -56,24 +53,31 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      val receiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      verifyResponse(receiver)
-      val tileIndex = receiver.index
-      val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
+      val addTileReceiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
+      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, addTileReceiver)
+      verifyResponse(addTileReceiver, console)
+      val showTileCommand = SHOW_TILE_COMMAND + addTileReceiver.index!!
       console.printShellCommand(showTileCommand)
-      device.executeShellCommand(showTileCommand, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
+      val showTileReceiver = ShowTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
+      device.executeShellCommand(showTileCommand, showTileReceiver, 5, TimeUnit.SECONDS)
+      verifyResponse(showTileReceiver, console)
     }
     ProgressManager.checkCanceled()
     return createRunContentDescriptor(devices, processHandler, console)
   }
 
-  private fun verifyResponse(receiver: AddTileCommandResultReceiver) {
+  private fun verifyResponse(receiver: AddTileCommandResultReceiver, console: ConsoleView) {
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       throw ExecutionException("Error while setting the tile, message: ${receiver.getOutput()}")
     }
     if (receiver.index == null) {
       throw ExecutionException("Tile index was not found.")
+    }
+  }
+
+  private fun verifyResponse(receiver: ShowTileCommandResultReceiver, console: ConsoleView) {
+    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
   }
 
@@ -91,7 +95,10 @@ private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, cons
   }
 }
 
-class TileProcessHandler(private val tileName:String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
+private class ShowTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : CommandResultReceiver(
+  isCancelledCheck, consoleView)
+
+class TileProcessHandler(private val tileName: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
     val receiver = AndroidLaunchReceiver({ false }, console)
 
