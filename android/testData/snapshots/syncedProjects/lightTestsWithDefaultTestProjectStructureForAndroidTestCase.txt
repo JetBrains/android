@@ -43,6 +43,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<TEMP>
         CONENT_ENTRY                  : file://<TEMP>/res

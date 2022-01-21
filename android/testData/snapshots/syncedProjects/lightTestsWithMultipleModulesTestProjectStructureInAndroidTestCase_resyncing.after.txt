@@ -11,6 +11,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -43,6 +44,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<TEMP>/app
         CONENT_ENTRY                  : file://<TEMP>/app/src/androidTest [-]
@@ -147,6 +149,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -179,6 +182,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<TEMP>/lib
         CONENT_ENTRY                  : file://<TEMP>/lib/src/androidTest [-]
@@ -283,6 +287,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<TEMP>
             JavaSource                    : file://<TEMP>/gen

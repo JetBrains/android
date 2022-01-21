@@ -12,10 +12,11 @@ PROJECT                       : application
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/application [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/application.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/application.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -39,10 +40,11 @@ PROJECT                       : application
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -79,6 +81,7 @@ PROJECT                       : application
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -106,7 +109,7 @@ PROJECT                       : application
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : application.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -259,7 +262,7 @@ PROJECT                       : application
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/application.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -357,7 +360,7 @@ PROJECT                       : application
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : application.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/application.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]

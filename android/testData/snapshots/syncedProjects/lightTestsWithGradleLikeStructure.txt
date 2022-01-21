@@ -12,6 +12,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -44,6 +45,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTest [-]

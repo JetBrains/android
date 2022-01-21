@@ -12,10 +12,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/.gradle
@@ -39,10 +40,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -79,6 +81,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/.gradle [-]
@@ -106,7 +109,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib1.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -248,7 +251,7 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -354,7 +357,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib1.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -482,10 +485,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -522,6 +526,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/.gradle [-]
@@ -549,7 +554,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib1.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -685,7 +690,7 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
@@ -787,7 +792,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib1.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -904,10 +909,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/.gradle
@@ -931,10 +937,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -971,6 +978,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/.gradle [-]
@@ -998,7 +1006,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1138,7 +1146,7 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1242,7 +1250,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1368,10 +1376,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1408,6 +1417,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/.gradle [-]
@@ -1435,7 +1445,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -1559,7 +1569,7 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out [-]
@@ -1654,7 +1664,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : TestCompositeLib3.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1759,13 +1769,15 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/com.test.compositeNest3.compositeNest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
@@ -1784,7 +1796,7 @@ PROJECT                       : testWithCompositeBuild
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
@@ -1807,7 +1819,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : compositeNest.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.test.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
@@ -1827,13 +1839,15 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/composite2 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
@@ -1852,7 +1866,7 @@ PROJECT                       : testWithCompositeBuild
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib2/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib2/src/main/java
@@ -1875,7 +1889,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : composite2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.test.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib2/src/test/java [-]
@@ -1895,13 +1909,15 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/composite4 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
@@ -1920,7 +1936,7 @@ PROJECT                       : testWithCompositeBuild
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib4/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib4/src/main/java
@@ -1943,7 +1959,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : composite4.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.test.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib4/src/test/java [-]
@@ -1963,13 +1979,15 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/compositeNest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
@@ -1988,7 +2006,7 @@ PROJECT                       : testWithCompositeBuild
             compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
@@ -2011,7 +2029,7 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : compositeNest.main
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.test.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/java [-]
@@ -2031,10 +2049,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCompositeBuild [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testWithCompositeBuild.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/testWithCompositeBuild.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -2058,10 +2077,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2098,6 +2118,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -2125,11 +2146,12 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testWithCompositeBuild.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -2311,11 +2333,12 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCompositeBuild.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -2461,11 +2484,12 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testWithCompositeBuild.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -2633,10 +2657,11 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2673,6 +2698,7 @@ PROJECT                       : testWithCompositeBuild
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
@@ -2700,11 +2726,12 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testWithCompositeBuild.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -2858,11 +2885,12 @@ PROJECT                       : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCompositeBuild.lib.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -2982,11 +3010,12 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testWithCompositeBuild.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5

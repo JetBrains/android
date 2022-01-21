@@ -133,7 +133,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
@@ -1454,11 +1453,7 @@ private fun <T> openPreparedProject(
     }
   }
 
-  var result: Result<T> = Result.failure(IllegalStateException())
-  doNotEnableExternalStorageByDefaultInTests {
-    result = Result.success(body())
-  }
-  return result.getOrThrow()
+  return body()
 }
 
 private fun GradleIntegrationTest.nameToPath(name: String) =

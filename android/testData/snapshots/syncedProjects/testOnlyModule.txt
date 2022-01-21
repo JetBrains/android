@@ -12,10 +12,11 @@ PROJECT                       : testTestOnlyModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestOnlyModule [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testTestOnlyModule.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/testTestOnlyModule.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -39,10 +40,11 @@ PROJECT                       : testTestOnlyModule
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -79,6 +81,7 @@ PROJECT                       : testTestOnlyModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -106,7 +109,7 @@ PROJECT                       : testTestOnlyModule
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testTestOnlyModule.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -167,7 +170,7 @@ PROJECT                       : testTestOnlyModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestOnlyModule.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -229,7 +232,7 @@ PROJECT                       : testTestOnlyModule
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testTestOnlyModule.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testTestOnlyModule.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -277,10 +280,11 @@ PROJECT                       : testTestOnlyModule
             compilerSourceOutputPath      : file://<PROJECT>/test/build/intermediates/javac/debug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/test/testTestOnlyModule.test.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/test/testTestOnlyModule.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -315,6 +319,7 @@ PROJECT                       : testTestOnlyModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :test
         CONENT_ENTRY                  : file://<PROJECT>/test
             EXCLUDE_FOLDER                : file://<PROJECT>/test/.gradle [-]
@@ -338,7 +343,7 @@ PROJECT                       : testTestOnlyModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestOnlyModule.test.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/test/testTestOnlyModule.test.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/test/testTestOnlyModule.test.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/test/build/generated/aidl_source_output_dir/debug/out [-]
@@ -440,10 +445,11 @@ PROJECT                       : testTestOnlyModule
             compilerSourceOutputPath      : file://<PROJECT>/test2/build/intermediates/javac/debug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/test2/testTestOnlyModule.test2.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/test2/testTestOnlyModule.test2.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -478,6 +484,7 @@ PROJECT                       : testTestOnlyModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :test2
         CONENT_ENTRY                  : file://<PROJECT>/test2
             EXCLUDE_FOLDER                : file://<PROJECT>/test2/.gradle [-]
@@ -501,7 +508,7 @@ PROJECT                       : testTestOnlyModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestOnlyModule.test2.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/test2/testTestOnlyModule.test2.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/test2/testTestOnlyModule.test2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/test2/build/generated/aidl_source_output_dir/debug/out [-]

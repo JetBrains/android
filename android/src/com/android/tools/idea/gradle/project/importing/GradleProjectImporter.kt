@@ -51,10 +51,10 @@ import com.intellij.util.ExceptionUtil
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.service.project.open.setupGradleProjectSettings
+import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.GradleEnvironment
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -207,8 +207,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     @VisibleForTesting
     @JvmStatic
     fun configureNewProject(newProject: Project) {
-      // TODO(b/184826517): Enable `storeProjectFilesExternally` when the platform issue is fixed.
-      val gradleSettings = GradleSettings.getInstance(newProject).also { it.storeProjectFilesExternally = false }
+      val gradleSettings = GradleSettings.getInstance(newProject).also { it.setupGradleSettings() }
       val externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(newProject.basePath!!)
       if (!gradleSettings.linkedProjectsSettings.isEmpty()) {
         check(ApplicationManager.getApplication().isUnitTestMode) { "configureNewProject should be used with new projects only" }
@@ -217,7 +216,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       }
       val projectSettings = GradleProjectSettings()
-      gradleSettings.setupGradleSettings()
       @Suppress("UnstableApiUsage")
       projectSettings.setupGradleProjectSettings(newProject, File(externalProjectPath).toPath())
       // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
@@ -238,15 +236,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       }
     }
   }
-}
-
-// TODO(b/184826517): Remove when fixed. This is a temporary copy of
-//  org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil.setupGradleSettings
-//  which does not sets `storeProjectFilesExternally = true`.
-private fun GradleSettings.setupGradleSettings() {
-  gradleVmOptions = GradleEnvironment.Headless.GRADLE_VM_OPTIONS ?: gradleVmOptions
-  isOfflineWork = GradleEnvironment.Headless.GRADLE_OFFLINE?.toBoolean() ?: isOfflineWork
-  serviceDirectoryPath = GradleEnvironment.Headless.GRADLE_SERVICE_DIRECTORY ?: serviceDirectoryPath
 }
 
 private val AFTER_CREATE = Key.create<(Project) -> Unit>("GradleProjectImporter.after_create_for_tests")

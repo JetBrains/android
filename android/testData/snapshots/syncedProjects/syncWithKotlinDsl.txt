@@ -12,10 +12,11 @@ PROJECT                       : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
+            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -39,10 +40,11 @@ PROJECT                       : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -79,6 +81,7 @@ PROJECT                       : testSyncWithKotlinDsl
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -106,11 +109,12 @@ PROJECT                       : testSyncWithKotlinDsl
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testSyncWithKotlinDsl.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -257,11 +261,12 @@ PROJECT                       : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -376,11 +381,12 @@ PROJECT                       : testSyncWithKotlinDsl
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testSyncWithKotlinDsl.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -513,10 +519,11 @@ PROJECT                       : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -553,6 +560,7 @@ PROJECT                       : testSyncWithKotlinDsl
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
+            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
@@ -580,11 +588,12 @@ PROJECT                       : testSyncWithKotlinDsl
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testSyncWithKotlinDsl.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.androidTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -666,11 +675,12 @@ PROJECT                       : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl.lib.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.main.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
@@ -752,11 +762,12 @@ PROJECT                       : testSyncWithKotlinDsl
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : testSyncWithKotlinDsl.lib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.unitTest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
