@@ -4,44 +4,48 @@
 //   (The short error descriptions can be found in the report.html file.)
 // Note that the regex must match the *entire* error description.
 
-// Referenced by experimental code only (presumably unreachable).
-Package 'io.ktor' is not found
-Package 'kotlinx.coroutines.io' is not found
-Package 'kotlinx.io' is not found
-
-// Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
-Package 'android.os' is not found
-
-// The incremental compiler is referenced, but not reachable in the IDE.
-.*org.jetbrains.kotlin.incremental.*
+// Unfortunately, the Kotlin plugin tends to have several unresolved self-references caused by the bundling
+// of experimental/inactive code. Luckily, we are primarily concerned only with incompatibilities between
+// the Kotlin plugin and IntelliJ platform. So for now we ignore any unresolved references to the
+// org.jetbrains.kotlin package (and trust the Kotlin plugin build).
+Access to unresolved class org\.jetbrains\.kotlin\..*
+Package 'org\.jetbrains\.kotlin\..*' is not found
 
 // We do not bundle the Maven plugin (and Kotlin's dependency on Maven is optional).
-Package 'org.jetbrains.idea.maven.plugins' is not found
-Package 'org.jetbrains.idea.maven.project' is not found
-Package 'org.jetbrains.idea.maven.wizards' is not found
+Package 'org\.jetbrains\.idea\.maven\..*' is not found
+Access to unresolved class org\.jetbrains\.idea\.maven\..*
 
-Package 'org.jetbrains.kotlin.fir.lightTree' is not found
+// This will be fixed upstream soon by https://github.com/JetBrains/intellij-community/commit/e01be04df5.
+Package 'android\.view' is not found
 
-// Known issue, but currently unreachable at runtime.
-Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented
+// Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
+Package 'android\.os' is not found
 
 // Referenced by org.jetbrains.kotlin.idea.vcs.BunchFileCheckInHandlerFactory (unused in Studio)
-Illegal invocation of private method kotlin.io.path.PathsKt__PathUtilsKt.getPathString.*
+Illegal invocation of private method kotlin\.io\.path\.PathsKt__PathUtilsKt\.getPathString.*
 
-// IDEA 213.3714.440
-Abstract method org.jetbrains.uast.generate.UastElementFactory.*
-Access to unresolved class com.intellij.ide.LabelAndComponent
-Access to unresolved class com.intellij.ide.NewProjectWizard
-Access to unresolved class com.intellij.ide.NewProjectWizard.DefaultImpls
-Access to unresolved class com.intellij.ide.wizard.BuildSystemType
-Access to unresolved class com.intellij.ide.wizard.BuildSystemWithSettings
-Access to unresolved class com.intellij.util.DeprecatedMethodException
-Access to unresolved field com.intellij.openapi.ui.TextComponentAccessor.*
-Invocation of unresolved method com.intellij.ide.util.projectWizard.WizardContext.getWizard.*
-
-// IDEA 213.4293.20
-Invocation of unresolved method org.jetbrains.plugins.gradle.execution.test.runner.TestTasksChooser.chooseTestTasks.*
-Invocation of unresolved method org.jetbrains.plugins.gradle.util.GradleExecutionSettingsUtil.createTestFilterFrom.*
-
-// IDEA 213.4631.20
-Reference to a missing property label.project.wizard.new.project.*
+// TODO(b/215709150): misc issues with Kotlin 213. Most of these are false
+// positives caused by the fact that Kotlin 213 is missing several dependencies in its plugin.xml file.
+Access to unresolved class com\.intellij\.execution\.junit\..*
+Access to unresolved class com\.intellij\.coverage\..*
+Access to unresolved class com\.intellij\.grazie\..*
+Access to unresolved class icons\.GradleIcons
+Abstract method org\.jetbrains\.kotlin\.load\.kotlin\.KotlinJvmBinaryClass\.getContainingLibrary.* not implemented
+Access to unresolved class com\.intellij\.lang\.properties\.ResourceBundleReference
+Package 'android\.view' is not found
+Package 'com\.intellij\.codeInspection\.i18n' is not found
+Package 'com\.intellij\.completion\.ml' is not found
+Package 'com\.intellij\.debugger\.streams' is not found
+Package 'com\.intellij\.grazie\.text' is not found
+Package 'com\.intellij\.java\.i18n' is not found
+Package 'com\.intellij\.lang\.properties\.psi' is not found
+Package 'com\.intellij\.lang\.properties\.references' is not found
+Package 'com\.jcabi' is not found
+Package 'com\.theoryinpractice' is not found
+Package 'git4idea' is not found
+Package 'org\.gradle' is not found
+Package 'org\.intellij\.plugins\.intelliLang' is not found
+Package 'org\.jetbrains\.java\.decompiler' is not found
+Package 'org\.jetbrains\.plugins' is not found
+Package 'org\.jline' is not found
+Package 'org\.sonatype\.aether' is not found
