@@ -56,6 +56,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   }
 
   @WorkerThread
+  @Throws(ExecutionException::class)
   fun execute(stats: RunStats): RunContentDescriptor {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
     stats.setDebuggable(LaunchUtils.canDebugApp(facet))
@@ -74,6 +75,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   }
 
   @VisibleForTesting
+  @Throws(ExecutionException::class)
   abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor
 
   private fun getDevices(stats: RunStats): List<IDevice> {
