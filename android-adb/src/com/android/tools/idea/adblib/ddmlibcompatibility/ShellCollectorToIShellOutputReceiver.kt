@@ -26,7 +26,7 @@ import java.nio.ByteBuffer
 class ShellCollectorToIShellOutputReceiver(private val receiver: IShellOutputReceiver) : ShellCollector<Unit> {
   val buf = ByteArrayFromByteBuffer()
 
-  override suspend fun start(collector: FlowCollector<Unit>, transportId: Long?) {
+  override suspend fun start(collector: FlowCollector<Unit>) {
     // Nothing to do
   }
 
