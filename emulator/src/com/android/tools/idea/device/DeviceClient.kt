@@ -42,6 +42,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.util.firstNotNullResult
 import java.awt.Dimension
+import java.io.EOFException
 import java.io.IOException
 import java.net.BindException
 import java.net.InetSocketAddress
@@ -208,13 +209,18 @@ internal class DeviceClient(
     // be killed by adb.
     CoroutineScope(Dispatchers.Unconfined).launch {
       val log = Logger.getInstance("ScreenSharingAgent")
-      adb.shellV2AsLines(deviceSelector, command).collect {
-        when (it) {
-          is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
-          is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
-          is ShellCommandOutputElement.ExitCode ->
+      try {
+        adb.shellV2AsLines(deviceSelector, command).collect {
+          when (it) {
+            is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
+            is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
+            is ShellCommandOutputElement.ExitCode ->
               if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
+          }
         }
+      }
+      catch (_: EOFException) {
+        // Device disconnected. This is not an error.
       }
     }
   }
