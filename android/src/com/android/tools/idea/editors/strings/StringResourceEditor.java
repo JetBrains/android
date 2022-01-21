@@ -22,6 +22,7 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -35,13 +36,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
 
+  @NotNull private final StringsVirtualFile myStringsVirtualFile;
   public static final Icon ICON = StudioIcons.LayoutEditor.Toolbar.LANGUAGE;
   public static final String NAME = "String Resource Editor";
 
   private StringResourceViewPanel myPanel;
 
   StringResourceEditor(@NotNull StringsVirtualFile file) {
-    AndroidFacet facet = file.getFacet();
+    myStringsVirtualFile = file;
+    AndroidFacet facet = myStringsVirtualFile.getFacet();
     // Post startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(() -> myPanel = new StringResourceViewPanel(facet, this));
   }
@@ -72,6 +75,12 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  @Nullable
+  public StringsVirtualFile getFile() {
+    return myStringsVirtualFile;
   }
 
   @NotNull
