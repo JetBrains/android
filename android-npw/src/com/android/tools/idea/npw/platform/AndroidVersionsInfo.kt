@@ -48,6 +48,7 @@ import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
 import java.io.File
+import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
 
@@ -243,7 +244,7 @@ class AndroidVersionsInfo {
 private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
 private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
 
-val sdkManagerLocalPath: File? get() = IdeSdks.getInstance().androidSdkPath
+val sdkManagerLocalPath: Path? get() = IdeSdks.getInstance().androidSdkPath?.toPath()
 
 private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
   val featureLevel = version.featureLevel

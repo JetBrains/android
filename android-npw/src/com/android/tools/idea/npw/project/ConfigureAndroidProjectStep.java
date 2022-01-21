@@ -146,7 +146,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath().toPath()), myInstallLicenseRequests);
+      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
 
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
