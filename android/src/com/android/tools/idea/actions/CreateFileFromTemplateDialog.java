@@ -340,14 +340,14 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     final Ref<PsiClass> ref = Ref.create(null);
     myCreator = new ElementCreator(myProject, JavaBundle.message("title.cannot.create.class")) {
       @Override
-      protected PsiElement[] create(String newName) throws Exception {
+      protected PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
         PsiClass element = creator.createFile(getName(), myCreationOptions, myKindCombo.getSelectedName());
         ref.set(element);
         return element == null ? PsiElement.EMPTY_ARRAY : new PsiElement[]{element};
       }
 
       @Override
-      protected String getActionName(String newName) {
+      protected @NotNull String getActionName(@NotNull String newName) {
         return creator.getActionName(newName, myKindCombo.getSelectedName());
       }
 

@@ -89,7 +89,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     myCreator = new ElementCreator(module.getProject(), CommonBundle.getErrorTitle()) {
 
       @Override
-      protected PsiElement[] create(String newName) throws Exception {
+      protected PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
         final PsiElement element = NewAndroidComponentDialog.this.create(newName, directory, module.getProject());
         if (element != null) {
           return new PsiElement[]{element};
@@ -98,7 +98,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       }
 
       @Override
-      protected String getActionName(String newName) {
+      protected @NotNull String getActionName(@NotNull String newName) {
         return AndroidBundle.message("android.new.component.action.command.name");
       }
     };

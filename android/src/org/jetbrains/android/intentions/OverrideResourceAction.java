@@ -477,7 +477,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public PsiElement[] create(String newName) throws Exception {
+    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
       PsiDirectory subdirectory = myDirectory.findSubdirectory(newName);
       if (subdirectory == null) {
         subdirectory = myDirectory.createSubdirectory(newName);
@@ -486,7 +486,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public String getActionName(String newName) {
+    public @NotNull String getActionName(@NotNull String newName) {
       return "Select Resource Directory";
     }
 
