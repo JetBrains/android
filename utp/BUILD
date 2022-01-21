@@ -30,8 +30,10 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libstudio.android-test-plugin-result-listener-gradle-proto",
     jars = ["//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto.jar"],
     visibility = ["//visibility:public"],

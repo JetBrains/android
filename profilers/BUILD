@@ -74,8 +74,10 @@ kotlin_test(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "traceprocessor-proto",
     jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
     visibility = ["//visibility:public"],

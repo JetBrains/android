@@ -40,8 +40,10 @@ iml_module(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libjava_sites",
     jars = ["//tools/base/deploy/sites:libjava_sites.jar"],
     visibility = ["//visibility:public"],

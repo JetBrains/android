@@ -104,8 +104,10 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "ui-animation-tooling-internal",
     jars = ["lib/ui-animation-tooling-internal.jar"],
     visibility = ["//visibility:public"],

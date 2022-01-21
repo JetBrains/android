@@ -68,8 +68,10 @@ iml_module(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "compiler-hosted-1.1.0-SNAPSHOT",
     jars = ["lib/compiler-hosted-1.1.0-SNAPSHOT.jar"],
     visibility = ["//visibility:public"],

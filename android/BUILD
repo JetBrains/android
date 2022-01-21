@@ -542,22 +542,24 @@ java_binary(
     ],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libandroid-core-proto",
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libandroid-core-proto-test",
     jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "libstudio.android-test-plugin-host-retention-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
     visibility = ["//visibility:public"],

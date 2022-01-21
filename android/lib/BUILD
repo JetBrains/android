@@ -28,22 +28,24 @@ studio_data(
     visibility = ["//visibility:public"],
 )
 
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "android-sdk-tools-jps",
     jars = ["jarutils.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "spantable",
     jars = ["spantable.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
-java_import(
+jvm_import(
     name = "instantapps-api",
     jars = ["instantapps-api-1.8.jar"],
     visibility = ["//visibility:public"],
