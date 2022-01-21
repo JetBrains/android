@@ -33,7 +33,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
-        "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
