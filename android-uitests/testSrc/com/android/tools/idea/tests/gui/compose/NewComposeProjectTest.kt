@@ -60,7 +60,7 @@ class NewComposeProjectTest {
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
-      assertThat(this).contains("implementation \"androidx.compose.material:material:")
+      assertThat(this).contains("implementation 'androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling-preview:")
       assertThat(this).contains("debugImplementation \"androidx.compose.ui:ui-tooling:")
     }
