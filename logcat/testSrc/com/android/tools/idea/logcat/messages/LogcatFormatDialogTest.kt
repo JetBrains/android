@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
+import com.android.tools.idea.logcat.util.findComponentWithLabel
+import com.android.tools.idea.logcat.util.getCheckBox
+import com.android.tools.idea.logcat.util.getLabel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -31,10 +33,7 @@ import com.intellij.ui.JBIntSpinner
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JCheckBox
 import javax.swing.JComboBox
-import javax.swing.JLabel
-import kotlin.test.fail
 
 /**
  * Tests for [LogcatFormatDialog]
@@ -53,18 +52,18 @@ class LogcatFormatDialogTest {
     AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
 
   private val dialog by lazy { LogcatFormatDialog(projectRule.project, formattingOptions) }
-  private val showTimestampCheckBox by lazy { dialog.getCheckBox("Show timestamp") }
-  private val timestampFormatComboBox by lazy { dialog.findComponentWithLabel<JComboBox<TimestampFormat.Style>>("Format:") }
-  private val showProcessIdsCheckBox by lazy { dialog.getCheckBox("Show process id") }
-  private val showThreadIdCheckBox by lazy { dialog.getCheckBox("Include thread id") }
-  private val showTagCheckBox by lazy { dialog.getCheckBox("Show tags") }
-  private val showRepeatedTagsCheckBox by lazy { dialog.getCheckBox("Show repeated tags") }
-  private val tagWidthLabel by lazy { dialog.getLabel("Tag column width:") }
-  private val tagWidthSpinner by lazy { dialog.findComponentWithLabel<JBIntSpinner>("Tag column width:") }
-  private val showAppNameCheckBox by lazy { dialog.getCheckBox("Show package names") }
-  private val showRepeatedAppNamesCheckBox by lazy { dialog.getCheckBox("Show repeated package names") }
-  private val appNameWidthLabel by lazy { dialog.getLabel("Package column width:") }
-  private val appNameWidthSpinner by lazy { dialog.findComponentWithLabel<JBIntSpinner>("Package column width:") }
+  private val showTimestampCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show timestamp") }
+  private val timestampFormatComboBox by lazy { dialog.dialogWrapper.findComponentWithLabel<JComboBox<TimestampFormat.Style>>("Format:") }
+  private val showProcessIdsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show process id") }
+  private val showThreadIdCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Include thread id") }
+  private val showTagCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show tags") }
+  private val showRepeatedTagsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show repeated tags") }
+  private val tagWidthLabel by lazy { dialog.dialogWrapper.getLabel("Tag column width:") }
+  private val tagWidthSpinner by lazy { dialog.dialogWrapper.findComponentWithLabel<JBIntSpinner>("Tag column width:") }
+  private val showAppNameCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show package names") }
+  private val showRepeatedAppNamesCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show repeated package names") }
+  private val appNameWidthLabel by lazy { dialog.dialogWrapper.getLabel("Package column width:") }
+  private val appNameWidthSpinner by lazy { dialog.dialogWrapper.findComponentWithLabel<JBIntSpinner>("Package column width:") }
 
   @Before
   fun setUp() {
@@ -353,6 +352,7 @@ class LogcatFormatDialogTest {
       showTagCheckBox.isSelected = true
       showAppNameCheckBox.isSelected = true
 
+
       assertThat(dialog.sampleEditor.document.text.trimEnd()).isEqualTo("""
         11:00:14.234 27217 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
         11:00:14.234 27217 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
@@ -384,30 +384,10 @@ class LogcatFormatDialogTest {
   }
 }
 
-private inline fun <reified T> LogcatFormatDialog.findComponentWithLabel(text: String): T {
-  val components = TreeWalker(dialogWrapper.rootPane).descendants().toList()
-  val labelIndex = components.indexOfFirst { it is JLabel && it.text == text }
-  if (labelIndex < 0) {
-    fail("${T::class.simpleName} with label '$text' not found")
-  }
-  val component = components[labelIndex + 1]
-
-  return component as? T
-         ?: fail("Component with label '$text' is a ${component::class.simpleName} but was expecting a ${T::class.simpleName}")
-}
-
-private fun LogcatFormatDialog.getCheckBox(text: String) =
-  TreeWalker(dialogWrapper.rootPane).descendants().filterIsInstance<JCheckBox>()
-    .firstOrNull { it.text == text } ?: fail("Checkbox with label '$text' not found")
-
-private fun LogcatFormatDialog.getLabel(text: String) =
-  TreeWalker(dialogWrapper.rootPane).descendants().filterIsInstance<JLabel>()
-    .firstOrNull { it.text == text } ?: fail("Label '$text' not found")
-
 private fun LogcatFormatDialog.applyToOptions(body: () -> Unit): FormattingOptions {
   body()
   val formattingOptions = FormattingOptions()
-  applyTo(formattingOptions)
+  applyToFormattingOptions(formattingOptions)
   return formattingOptions
 }
 

@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -77,6 +78,8 @@ class LogcatFormatActionTest {
         LogcatFormatPresetAction.Standard::class,
         LogcatFormatPresetAction.Compact::class,
         LogcatFormatCustomViewAction::class,
+        Separator::class,
+        LogcatFormatModifyViewsAction::class,
       ).inOrder()
     assertThat(popup.showStyle).isEqualTo(SHOW_UNDERNEATH_OF)
     assertThat(popup.showArgs).containsExactly(component)

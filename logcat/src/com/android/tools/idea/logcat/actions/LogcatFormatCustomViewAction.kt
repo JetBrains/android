@@ -34,7 +34,7 @@ internal class LogcatFormatCustomViewAction(
     val dialog = LogcatFormatDialog(project, logcatPresenter.formattingOptions)
     if (dialog.dialogWrapper.showAndGet()) {
       val formattingOptions = FormattingOptions()
-      dialog.applyTo(formattingOptions)
+      dialog.applyToFormattingOptions(formattingOptions)
       logcatPresenter.formattingOptions = formattingOptions
     }
   }

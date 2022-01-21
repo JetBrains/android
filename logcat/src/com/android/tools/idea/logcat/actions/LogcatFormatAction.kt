@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -35,6 +36,8 @@ internal class LogcatFormatAction(private val project: Project, private val logc
       LogcatFormatPresetAction.Standard(logcatPresenter),
       LogcatFormatPresetAction.Compact(logcatPresenter),
       LogcatFormatCustomViewAction(project, logcatPresenter),
+      Separator.create(),
+      LogcatFormatModifyViewsAction(project, logcatPresenter),
     )
     JBPopupFactory.getInstance()
       .createActionGroupPopup(null, actionGroup, e.dataContext, null, true)
