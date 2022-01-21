@@ -56,6 +56,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
+import com.jetbrains.rd.util.first
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
@@ -334,12 +335,45 @@ fun computeGradlePluginUpgradeState(
 
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   if (!current.isPreview || current.previewType == "rc") {
-    // If our latestKnown is stable, recommend it.
-    if (!latestKnown.isPreview || latestKnown.previewType == "rc") return GradlePluginUpgradeState(RECOMMEND, latestKnown)
-    // Otherwise, look for a newer published stable.
-    val laterStable = published.filter { !it.isPreview }.filter { it > current }.maxOrNull()
-                      ?: return GradlePluginUpgradeState(NO_UPGRADE, current)
-    return GradlePluginUpgradeState(RECOMMEND, laterStable)
+    val acceptableStables = published
+      .asSequence()
+      .filter { !it.isPreview }
+      .filter { it > current }
+      .filter { it <= latestKnown }
+      // We use the fact that groupBy preserves order both of keys and of entries in the list value.
+      .sorted()
+      .groupBy { GradleVersion(it.major, it.minor) }
+      .asSequence()
+      .groupBy { it.key.major }
+
+    if (acceptableStables.isEmpty()) {
+      // The first two cases here are unlikely, but theoretically possible, if somehow our published information is out of date
+      return when {
+        // If our latestKnown is stable, recommend it.
+        !latestKnown.isPreview -> GradlePluginUpgradeState(RECOMMEND, latestKnown)
+        latestKnown.previewType == "rc" -> GradlePluginUpgradeState(RECOMMEND, latestKnown)
+        // Don't recommend upgrades from stable to preview.
+        else -> GradlePluginUpgradeState(NO_UPGRADE, current)
+      }
+    }
+
+    if (!acceptableStables.containsKey(current.major)) {
+      // We can't upgrade to a new version of our current series, but there are upgrade targets (acceptableStables is not empty).  We
+      // must be at the end of a major series, so recommend the latest compatible in the next major series.
+      return GradlePluginUpgradeState(RECOMMEND, acceptableStables.first().value.last().value.last())
+    }
+
+    val currentSeriesCandidates = acceptableStables[current.major]!!
+    val nextSeriesCandidates = acceptableStables.keys.firstOrNull { it > current.major }?.let { acceptableStables[it]!! }
+
+    if (currentSeriesCandidates.maxOf { it.key } == GradleVersion(current.major, current.minor)) {
+      // We have a version of the most recent series of our current major, though not the most up-to-date version of that.  If there's a
+      // later stable series, recommend upgrading to that, otherwise recommend upgrading our point release.
+      return GradlePluginUpgradeState(RECOMMEND, (nextSeriesCandidates ?: currentSeriesCandidates).last().value.last())
+    }
+
+    // Otherwise, we must have newer minor releases from our current major series.  Recommend upgrading to the latest minor release.
+    return GradlePluginUpgradeState(RECOMMEND, currentSeriesCandidates.last().value.last())
   }
   else if (current.previewType == "alpha" || current.previewType == "beta") {
     if (latestKnown.isSnapshot) {
