@@ -67,7 +67,7 @@ public class InferNullityTest {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Nullity", Wait.seconds(120));
     guiTest.waitForBackgroundTasks();
 
-    ideFrame.invokeMenuPath("Analyze", "Infer Nullity...");
+    ideFrame.invokeMenuPath("Analyze", "Infer Nullity\u2026");
 
     DialogFixture specifyScopeDialog = findDialog(withTitle("Specify Infer Nullity Scope"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());

@@ -35,7 +35,7 @@ public class LiveTemplatesTestUtil {
                                                               @NotNull EditorFixture editorFixture) {
     editorFixture.moveBetween("", "setContentView(R.layout.activity_my);");
 
-    ideFrame.invokeMenuPath("Code", "Insert Live Template...");
+    ideFrame.invokeMenuPath("Code", "Insert Live Template\u2026");
 
     Ref<JBList> out = new Ref<>();
     Wait.seconds(10).expecting("Live Templates list to show.").until(() -> {

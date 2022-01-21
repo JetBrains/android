@@ -75,7 +75,7 @@ public class PrivateResourceTest {
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
-    ideFrame.invokeMenuPath("File", "Project Structure...");
+    ideFrame.invokeMenuPath("File", "Project Structure\u2026");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =
@@ -112,6 +112,6 @@ public class PrivateResourceTest {
 
     Collection<String> lintWarnings = editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.WARNING, 1)
       .getHighlights(HighlightSeverity.WARNING);
-    assertThat(lintWarnings).contains("The resource `@string/abc_action_bar_home_description` is marked as private in com.android.support:design");
+    assertThat(lintWarnings).contains("The resource `@string/abc_action_bar_home_description` is marked as private in com.android.support:design:28.0.0");
   }
 }
