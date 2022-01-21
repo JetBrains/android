@@ -151,7 +151,7 @@ public final class SdkSync {
       }
     }
 
-    if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath)) {
+    if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath) && !Boolean.getBoolean("startup.performance.framework")) {
       String msg = String.format("The project and %3$s point to different Android SDKs.\n\n" +
                                  "%3$s's default SDK is in:\n" +
                                  "%1$s\n\n" +
