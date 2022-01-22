@@ -16,14 +16,13 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.MethodReference
 import com.android.tools.idea.editors.liveedit.LiveEditConfig
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.application.ApplicationManager
+import com.google.common.collect.HashMultimap
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import org.objectweb.asm.ClassReader
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
@@ -49,6 +48,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.KotlinToJvmSignatureMapper
+import org.objectweb.asm.ClassReader
 import java.lang.Math.ceil
 import java.util.ServiceLoader
 
@@ -62,60 +62,68 @@ class AndroidLiveEditCodeGenerator {
     KotlinToJvmSignatureMapper::class.java.classLoader
   ).iterator().next()
 
-  fun interface CodeGenCallback {
-    operator fun invoke(className: String, methodName: String, methodDesc: String, classData: ByteArray, supportClasses: Map<String, ByteArray>)
-  }
+  data class GeneratedCode(val className: String,
+                           val methodName: String,
+                           val methodDesc: String,
+                           val classData: ByteArray,
+                           val supportClasses: Map<String, ByteArray>)
 
   /**
-   * Compile a given set of MethodReferences to Java .class files and invoke a callback upon completion.
+   * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
+   * The compilation is wrapped in a cancelable read action, and will be interrupted by a PSI write action.
+   *
+   * Returns true if the compilation is successful, and false if the compilation was interrupted and did not complete.
+   * If compilation fails due to issues with invalid syntax or other compiler-specific errors, throws a
+   * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback, errorCallBack: (String) -> Unit) {
-    val tracker = PerformanceTracker()
+  fun compile(project: Project, changes: List<MethodReference>, output: MutableList<GeneratedCode>) : Boolean {
+    output.clear()
 
-    // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
-    // that multiple change events of the same file can be queue up. We keep track of what we have deploy
-    // so we don't compile the same file twice.
-    val compiled = HashSet<PsiFile>()
-    for (method in methods) {
-      val root = method.file
-
-      if (root !is KtFile || compiled.contains(root)) {
-        continue
-      }
-      val inputs = listOf(root)
-
-      // A compile is always going to be a ReadAction because it reads an KtFile completely.
-      ApplicationManager.getApplication().runReadAction {
-        try {
-          // Three steps process:
-
-          // 1) Compute binding context based on any previous cached analysis results.
-          //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-          var resolution = tracker.record({fetchResolution(project, inputs)}, "resolution_fetch")
-          var bindingContext = tracker.record({analyze(inputs, resolution)}, "analysis")
-
-          // 2) Invoke the backend with the inputs and the binding context computed from step 1.
-          //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
-          //    complexity of the input .kt file.
-          var classes = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
-                                       AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))}, "codegen")
-
-          // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
-          //    decide which classes we want to send to the device along with what extra meta-information the
-          //    agent need.
-          if (!tracker.record({deployLiveEditToDevice(method.function, bindingContext, classes, callback)}, "deploy")) return@runReadAction
-        } catch (e : LiveEditUpdateException) {
-          // TODO: We need to make deployLiveEditToDevice() atomic when there are multiple functions getting
-          //       update even thought that's probably a very unlikely scenario.
-          reportLiveEditError(e)
-          errorCallBack(errorMessage(e))
-        } finally {
-          compiled.add(root)
-        }
-        reportDeployPerformance(tracker)
+    // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
+    // scenario is multiple pending changes in the same file, so this is somewhat important.
+    val changedFiles = HashMultimap.create<KtFile, KtNamedFunction>()
+    for ((file, function) in changes) {
+      if (file is KtFile) {
+        changedFiles.put(file, function)
       }
     }
+
+    // Wrap compilation in a read action that can be interrupted by any other read or write action,
+    // which prevents the UI from freezing during compilation if the user continues typing.
+    val progressManager = ProgressManager.getInstance()
+    return progressManager.runInReadActionWithWriteActionPriority(
+      {
+        for ((file, methods) in changedFiles.asMap()) {
+          output.addAll(compileKtFile(project, file, methods))
+        }
+      }, progressManager.progressIndicator)
+  }
+
+  private fun compileKtFile(project: Project, file: KtFile, methods: Collection<KtNamedFunction>) : List<GeneratedCode> {
+    val tracker = PerformanceTracker()
+    val inputs = listOf(file)
+
+    // This is a three-step process:
+    // 1) Compute binding context based on any previous cached analysis results.
+    //    On small edits of previous analyzed project, this operation should be below 30ms or so.
+    ProgressManager.checkCanceled()
+    val resolution = tracker.record({fetchResolution(project, inputs)}, "resolution_fetch")
+
+    ProgressManager.checkCanceled()
+    val bindingContext = tracker.record({analyze(inputs, resolution)}, "analysis")
+
+    // 2) Invoke the backend with the inputs and the binding context computed from step 1.
+    //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
+    //    the complexity of the input .kt file.
+    ProgressManager.checkCanceled()
+    val classes = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
+                                 AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))}, "codegen")
+
+    // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
+    //    decide which classes we want to send to the device along with what extra meta-information the
+    //    agent need.
+    return methods.map { getGeneratedCode(it, bindingContext, classes)}
   }
 
   /**
@@ -164,8 +172,8 @@ class AndroidLiveEditCodeGenerator {
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                     input: List<KtFile>, langVersion: LanguageVersionSettings): List<OutputFile> {
+  private fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
+                             input: List<KtFile>, langVersion: LanguageVersionSettings): List<OutputFile> {
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
 
@@ -194,20 +202,18 @@ class AndroidLiveEditCodeGenerator {
     try {
       KotlinCodegenFacade.compileCorrectFiles(generationState)
     } catch (e : Throwable) {
-      handleCompilerErrors(e)
-      return emptyList() // handleCompilerErrors() always throw anyways.
+      handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
 
     return generationState.factory.asList();
   }
 
   /**
-   * Pick out what classes we need from the generated list of .class files and invoke the callback.
+   * Pick out what classes we need from the generated list of .class files.
    */
-  fun deployLiveEditToDevice(targetFunction: KtNamedFunction,
-                             bindingContext: BindingContext,
-                             compilerOutput: List<OutputFile>,
-                             callback: CodeGenCallback): Boolean {
+  private fun getGeneratedCode(targetFunction: KtNamedFunction,
+                               bindingContext: BindingContext,
+                               compilerOutput: List<OutputFile>): GeneratedCode {
     val methodSignature = functionSignature(bindingContext, targetFunction)
 
     var elem: PsiElement = targetFunction
@@ -274,17 +280,29 @@ class AndroidLiveEditCodeGenerator {
     val idx = methodSignature.indexOf('(')
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
-    callback(internalClassName, methodName, methodDesc, primaryClass, supportClasses)
-    return true
+    return GeneratedCode(internalClassName, methodName, methodDesc, primaryClass, supportClasses)
   }
 
   fun handleCompilerErrors(e : Throwable) {
+    // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
+    // internal IDE code for handling read/write actions to function as expected.
+    if (e is ProcessCanceledException) {
+      throw e
+    }
+
     // Given that the IDE already provide enough information about compilation errors, there is no
     // real need to surface any compilation exception. We will just print the true cause for the
     // exception for our own debugging purpose only.
     var cause = e;
     while (cause.cause != null) {
       cause = cause.cause!!
+
+      // The Kotlin compiler probably shouldn't be swallowing these, but since we can't change that,
+      // detect and re-throw them here as the proper exception type.
+      if (cause is ProcessCanceledException) {
+        throw cause
+      }
+
       var message = cause.message!!
       if (message.contains("Unhandled intrinsic in ExpressionCodegen")) {
         var nameStart = message.indexOf("name:") + "name:".length

@@ -49,14 +49,10 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
     set(value) {
       var newValue = value.coerceIn(REFRESH_RATE_RANGE)
       state.refreshRateMs = newValue
-      for(project in AndroidLiveEditDeployMonitor.getActiveProjects()) {
-        val liveEditService = LiveEditService.getInstance(project)
-        liveEditService?.updateMergingQueue.setMergingTimeSpan(newValue)
-      }
     }
 
   companion object {
-    const val MIN_REFRESH_RATE_MS = 50
+    const val MIN_REFRESH_RATE_MS = 1
     val REFRESH_RATE_RANGE = MIN_REFRESH_RATE_MS .. 9999
     @JvmStatic fun getInstance(): LiveEditConfig = ApplicationManager.getApplication().getService(LiveEditConfig::class.java)
   }

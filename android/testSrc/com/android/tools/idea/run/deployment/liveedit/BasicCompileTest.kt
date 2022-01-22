@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.MethodReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -61,24 +62,19 @@ class BasicCompileTest {
   }
 
   private fun compile(file: PsiFile, function: KtNamedFunction) : ByteArray {
-    val done = CountDownLatch(1)
-    var output = ByteArray(0)
-    AndroidLiveEditCodeGenerator().compile(myProject, listOf(
-      LiveEditService.MethodReference(file, function)), {
-      _: String, _: String, _: String, bytes: ByteArray, _: Map<String, ByteArray> ->
-      output = bytes
-      done.countDown()
-    }, {})
-    done.await()
-    return output
+    val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
+    AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file, function)), output)
+    return output[0].classData
   }
 
   private fun compileFail(file: PsiFile, function: KtNamedFunction) {
-    AndroidLiveEditCodeGenerator().compile(myProject, listOf(
-      LiveEditService.MethodReference(file, function)), {
-      _: String, _: String, _: String, _: ByteArray, _: Map<String, ByteArray> ->
-      fail("Compilation should fail without this callback being invoked.")
-    }, {})
+    val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
+    try {
+      AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file, function)), output)
+      fail("Compilation should fail")
+    } catch (e: LiveEditUpdateException) {
+      // Do nothing; test passes.
+    }
   }
   /**
    * Look for the first named function with a given name.

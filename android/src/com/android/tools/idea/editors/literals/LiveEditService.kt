@@ -16,9 +16,6 @@
 
 package com.android.tools.idea.editors.literals
 
-import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -28,50 +25,35 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Executor
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+
+data class MethodReference(val file: PsiFile, val function: KtNamedFunction)
 
 /**
  * Allows any component to listen to all method body edits of a project.
  */
 @Service
-class LiveEditService private constructor(private var project: Project, var listenerExecutor: Executor) : Disposable {
-
-  /**
-   * @param className Name of the class. For example: java.lang.String
-   * @param methodSignature JVM style signature. For example foo(IILjava/lang/String;)V
-   */
-  data class MethodReference(val file: PsiFile, val function: KtNamedFunction)
-
-  val aggregatedEvents = mutableSetOf<MethodReference>()
+class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
 
   constructor(project: Project) : this(project,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
 
+  fun interface EditListener {
+    operator fun invoke(method: MethodReference)
+  }
 
-  private val onEditListeners = ListenerCollection.createWithExecutor<(List<MethodReference>) -> Unit>(listenerExecutor)
+  private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
 
-  val updateMergingQueue = MergingUpdateQueue("Live Update change queue",
-                                                      LiveEditConfig.getInstance().refreshRateMs,
-                                                      true,
-                                                      null,
-                                                      this,
-                                                      null,
-                                                      false).setRestartTimerOnAdd(true)
-
-  fun addOnEditListener(listener: (List<MethodReference>) -> Unit) {
-    onEditListeners.add(listener = listener)
+  fun addOnEditListener(listener: EditListener) {
+    onEditListeners.add(listener)
   }
 
   init {
     // TODO: Deactivate this when not needed.
-    PsiManager.getInstance(project).addPsiTreeChangeListener(
-      MyPsiListener(::onMethodBodyUpdated, updateMergingQueue) { System.nanoTime() }, this)
+    val listener = MyPsiListener(::onMethodBodyUpdated)
+    PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
   }
 
   companion object {
@@ -80,91 +62,29 @@ class LiveEditService private constructor(private var project: Project, var list
   }
 
   @com.android.annotations.Trace
-  private fun onMethodBodyUpdated(methods: List<MethodReference>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
+  private fun onMethodBodyUpdated(method: MethodReference) {
     onEditListeners.forEach {
-      it(methods)
+      it(method)
     }
   }
 
-  /**
-   * Listens to changes of method bodies.
-   */
-  private class MyPsiListener(
-    private val onMethodBodyUpdated: (List<MethodReference>, Long) -> Unit,
-    private val updateMergingQueue : MergingUpdateQueue,
-    private val timeNanosProvider: () -> Long) : PsiTreeChangeListener  {
-    private val aggregatedEventsLock = ReentrantLock()
-
-    @GuardedBy("aggregatedEventsLock")
-    val aggregatedEvents = mutableSetOf<MethodReference>()
-
-    @GuardedBy("aggregatedEventsLock")
-    var lastUpdatedNanos = 0L
-
-    // TODO: Merge changes within the same method.
-    private fun onDocumentChanged(events: Set<MethodReference>) {
-      val documents = events
-        .map { it }
-        .distinct()
-      onMethodBodyUpdated(documents, aggregatedEventsLock.withLock { lastUpdatedNanos })
-    }
-
+  private class MyPsiListener(private val editListener: EditListener) : PsiTreeChangeListener {
     @com.android.annotations.Trace
-    private fun handleChangeEvent(event : PsiTreeChangeEvent) {
+    private fun handleChangeEvent(event: PsiTreeChangeEvent) {
       var parent = event.parent;
 
-
-      // The code might not be valid at this point so we should not be making any
-      // assumption based on the Koltin language structure.
+      // The code might not be valid at this point, so we should not be making any
+      // assumption based on the Kotlin language structure.
       while (parent != null) {
         when (parent) {
           is KtNamedFunction -> {
-
             val ref = MethodReference(event.file!!, parent)
-            aggregatedEventsLock.withLock {
-              aggregatedEvents.add(ref)
-              lastUpdatedNanos = timeNanosProvider()
-            }
-
-            updateMergingQueue.queue(object: Update(ref) {
-              override fun run() {
-                onDocumentChanged(aggregatedEventsLock.withLock {
-                  val aggregatedEventsCopy = aggregatedEvents.toSet()
-                  aggregatedEvents.clear()
-                  aggregatedEventsCopy
-                })
-              }})
+            editListener(ref)
             break;
           }
         }
         parent = parent.parent;
       }
-    }
-
-
-
-    override fun beforeChildAddition(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
-    }
-
-    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
-    }
-
-    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
-    }
-
-    override fun beforeChildMovement(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
-    }
-
-    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
-    }
-
-    override fun beforePropertyChange(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
     }
 
     override fun childAdded(event: PsiTreeChangeEvent) {
@@ -190,6 +110,14 @@ class LiveEditService private constructor(private var project: Project, var list
     override fun propertyChanged(event: PsiTreeChangeEvent) {
       handleChangeEvent(event);
     }
+
+    // We don't need to generate two events for every PSI change.
+    override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
+    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
+    override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
+    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
+    override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
   }
 
   override fun dispose() {
