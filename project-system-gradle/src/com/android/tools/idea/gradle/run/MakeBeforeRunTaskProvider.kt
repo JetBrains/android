@@ -26,6 +26,7 @@ import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
 import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -399,6 +400,10 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties")
         writer.close()
         arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
+      }
+      // Append PROFILING_MODE if set by profilers.
+      if (StudioFlags.PROFILEABLE_BUILDS.get() && state.PROFILING_MODE != ProfilerState.ProfilingMode.NOT_SET) {
+        arguments.add(AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, state.PROFILING_MODE.value))
       }
       return arguments
     }

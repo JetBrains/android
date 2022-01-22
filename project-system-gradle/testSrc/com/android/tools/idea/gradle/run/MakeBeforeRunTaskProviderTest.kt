@@ -20,11 +20,13 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
@@ -256,6 +258,22 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
     assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
+  }
+
+  fun testProfilingMode() {
+    StudioFlags.PROFILEABLE_BUILDS.override(true)
+    try {
+      setUpTestProject()
+      val profilerState = mock(ProfilerState::class.java).apply {
+        PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
+      }
+      `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
+      `when`(myRunConfiguration.profilerState).thenReturn(profilerState)
+      val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      assertThat(arguments).contains("-Pandroid.experimental.profilingMode=profileable")
+    } finally {
+      StudioFlags.PROFILEABLE_BUILDS.clearOverride()
+    }
   }
 
   companion object {
