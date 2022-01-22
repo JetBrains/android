@@ -41,6 +41,7 @@ import com.android.tools.lint.detector.api.ResourceEvaluator
 import com.android.tools.lint.detector.api.ResourceEvaluator.ANY_RES_ANNOTATION
 import com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX
 import com.android.tools.lint.detector.api.UastLintUtils.Companion.findLastAssignment
+import com.android.tools.lint.detector.api.acceptSourceFile
 import com.android.tools.lint.detector.api.findSelector
 import com.android.tools.lint.helpers.DefaultJavaEvaluator
 import com.google.common.collect.Lists
@@ -287,7 +288,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     do {
       val visitor = InferenceVisitor()
       prevNumAnnotationsAdded = numAnnotationsAdded
-      file.accept(visitor)
+      file.acceptSourceFile(visitor)
       pass++
     }
     while (prevNumAnnotationsAdded < numAnnotationsAdded && pass < MAX_PASSES)

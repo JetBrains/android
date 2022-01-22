@@ -16,8 +16,6 @@
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
-import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
-import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
 import static com.android.tools.lint.detector.api.TextFormat.HTML_WITH_UNICODE;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
@@ -39,9 +37,7 @@ import com.android.tools.lint.detector.api.LintFix.LintFixGroup;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.LintFix.ShowUrl;
-import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Option;
-import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
@@ -79,7 +75,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -88,8 +83,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -103,8 +96,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -678,73 +669,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
    */
   public static LintIdeQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
     if (lintFix instanceof ReplaceString) {
-      ReplaceString data = (ReplaceString)lintFix;
-      @RegExp String regexp;
-      @RegExp String pattern = data.getOldPattern();
-      String oldString = data.getOldString();
-      if (pattern != null) {
-        regexp = pattern;
-      }
-      else if (oldString != null) {
-        if (INSERT_BEGINNING.equals(oldString) || INSERT_END.equals(oldString)) {
-          //noinspection LanguageMismatch
-          regexp = oldString;
-        }
-        else {
-          regexp = "(" + Pattern.quote(oldString) + ")";
-        }
-      }
-      else {
-        regexp = null;
-      }
-      String displayName = data.getDisplayName();
-      String familyName = data.getFamilyName();
-      String replacement = data.getReplacement();
-      boolean shortenNames = data.getShortenNames();
-      boolean reformat = data.getReformat();
-      String selectPattern = data.getSelectPattern();
-      Location range = data.getRange();
-      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(displayName, familyName, regexp, replacement);
-      if (shortenNames) {
-        fix.setShortenNames(true);
-      }
-      if (reformat) {
-        fix.setFormat(true);
-      }
-      if (selectPattern != null) {
-        fix.setSelectPattern(selectPattern);
-      }
-      if (range != null && file != null) {
-        PsiFile rangeFile = file;
-        VirtualFile virtualFile = VfsUtil.findFileByIoFile(range.getFile(), false);
-        if (virtualFile != null) {
-          PsiFile psiFile = file.getManager().findFile(virtualFile);
-          if (psiFile != null) {
-            rangeFile = psiFile;
-          }
-        } else {
-          // Creating a new file
-          // Can't use the normal replace action, which works on top of PSI and virtual
-          // files (which we don't have here). Creation is simple so we use a custom
-          // quickfix instead.
-          File path = range.getFile();
-          LintIdeQuickFix createFix = new CreateFileQuickFix(path, replacement, null,
-                                                             null, false, data.getDisplayName(), familyName);
-          return new LintIdeQuickFix[]{createFix};
-        }
-        Position start = range.getStart();
-        Position end = range.getEnd();
-        if (start != null && end != null) {
-          SmartPointerManager manager = SmartPointerManager.getInstance(rangeFile.getProject());
-          int startOffset = start.getOffset();
-          int endOffset = end.getOffset();
-          if (endOffset > startOffset) {
-            TextRange textRange = TextRange.create(startOffset, endOffset);
-            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(rangeFile, textRange);
-            fix.setRange(smartRange);
-          }
-        }
-      }
+      LintIdeQuickFix fix = ReplaceStringQuickFix.create(file, (ReplaceString)lintFix);
       return new LintIdeQuickFix[]{fix};
     }
     else if (lintFix instanceof SetAttribute) {
