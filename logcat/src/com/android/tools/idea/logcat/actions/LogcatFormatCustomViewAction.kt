@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatFormatDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 
 /**
@@ -28,7 +29,7 @@ import com.intellij.openapi.project.Project
 internal class LogcatFormatCustomViewAction(
   private val project: Project,
   private val logcatPresenter: LogcatPresenter,
-) : SelectableAction(LogcatBundle.message("logcat.format.action.custom")) {
+) : SelectableAction(LogcatBundle.message("logcat.format.action.custom")), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LogcatFormatDialog(project, logcatPresenter.formattingOptions)

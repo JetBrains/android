@@ -53,6 +53,7 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -112,6 +113,9 @@ class LogcatMainPanelTest {
     assertThat(toolbar.actions[2]).isInstanceOf(ToggleUseSoftWrapsToolbarAction::class.java)
     assertThat(toolbar.actions[3]).isInstanceOf(LogcatFormatAction::class.java)
     assertThat(toolbar.actions[4]).isInstanceOf(Separator::class.java)
+    toolbar.actions.forEach {
+      assertThat(it).isInstanceOf(DumbAware::class.java)
+    }
   }
 
   @Test
