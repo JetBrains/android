@@ -20,25 +20,29 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
 import java.awt.event.ItemEvent
 import javax.swing.DefaultComboBoxModel
+import javax.swing.JComponent
 
 /**
- * A [LogcatFormatDialog] that controls the Standard & Compact formatting presets.
+ * A variant of [LogcatFormatDialogBase] that controls the Standard & Compact formatting presets.
  */
 internal class LogcatFormatPresetsDialog(
-  project: Project,
+  private val project: Project,
   private val initialFormatting: FormattingOptions.Style,
   var defaultFormatting: FormattingOptions.Style,
-) : LogcatFormatDialog(project, initialFormatting.formattingOptions) {
+) : LogcatFormatDialogBase(project) {
 
   val standardFormattingOptions = STANDARD.formattingOptions.copy()
   val compactFormattingOptions = COMPACT.formattingOptions.copy()
   private lateinit var styleComboBoxComponent: ComboBox<FormattingOptions.Style>
   private var doNotApplyToFormattingOptions: Boolean = false
+
+  override fun createDialogWrapper(): DialogWrapper = MyDialogWrapper(project, createPanel(initialFormatting.formattingOptions))
 
   override fun createComponents(layoutBuilder: LayoutBuilder, formattingOptions: FormattingOptions) {
     globalSettingsGroup(layoutBuilder)
@@ -103,5 +107,23 @@ internal class LogcatFormatPresetsDialog(
     }
     // Apply the current state of the UI to the current style. This is only done when the user interacts with the control.
     applyToFormattingOptions(if (styleComboBoxComponent.item == STANDARD) standardFormattingOptions else compactFormattingOptions)
+  }
+
+  /**
+   * We need to extend DialogWrapper ourselves rather than use `components.dialog()` because we need to add an `Apply` button and there
+   * seems no easy way to do this with the `components.dialog()` version.
+   *
+   * It does provide a way to set the actions but in a way that completely replaces the default `OK` and `Cancel` buttons. There seems to be
+   * no way to reuse them.
+   */
+  private class MyDialogWrapper(project: Project, private val panel: JComponent)
+    : DialogWrapper(project, null, true, IdeModalityType.PROJECT) {
+    override fun createCenterPanel(): JComponent = panel
+
+    init {
+      title = LogcatBundle.message("logcat.header.options.title")
+      isResizable = true
+      init()
+    }
   }
 }
