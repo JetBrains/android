@@ -144,7 +144,7 @@ else false
  *  of the build.
  */
 @Slow
-fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile): Boolean {
+fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile?): Boolean {
   val result = ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult()
 
   if (result.status != ProjectSystemBuildManager.BuildStatus.UNKNOWN) {

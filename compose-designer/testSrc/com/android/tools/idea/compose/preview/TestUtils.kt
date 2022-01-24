@@ -52,6 +52,7 @@ internal enum class SimpleComposeAppPaths(val path: String) {
   APP_PARAMETRIZED_PREVIEWS("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt"),
   APP_PREVIEWS_ANDROID_TEST("app/src/androidTest/java/google/simpleapplication/AndroidPreviews.kt"),
   APP_PREVIEWS_UNIT_TEST("app/src/test/java/google/simpleapplication/UnitPreviews.kt"),
+  APP_SIMPLE_APPLICATION_DIR("app/src/test/java/google/simpleapplication"),
   LIB_PREVIEWS("lib/src/main/java/google/simpleapplicationlib/Previews.kt"),
   LIB_PREVIEWS_ANDROID_TEST("lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"),
   LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt")

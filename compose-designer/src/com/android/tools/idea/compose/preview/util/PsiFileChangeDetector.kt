@@ -85,22 +85,22 @@ interface PsiFileChangeDetector {
    * @param file the file to check for changes.
    * @param updateOnCheck if true, this call will also mark the file as up to date after the calls.
    */
-  fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean = false): Boolean
+  fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean = false): Boolean
 
   /**
    * Marks the [file] as up to date. If no changes are done to the file, [hasFileChanged] will return false until the file changes.
    */
-  fun markFileAsUpToDate(file: PsiFile)
+  fun markFileAsUpToDate(file: PsiFile?)
 
   /**
    * Clears the up to date mark from this file.
    */
-  fun clearMarks(file: PsiFile)
+  fun clearMarks(file: PsiFile?)
 
   /**
    * Same as [markFileAsUpToDate] but it will force recalculating the changes even when the file has not changed at all.
    */
-  fun forceMarkFileAsUpToDate(file: PsiFile) {
+  fun forceMarkFileAsUpToDate(file: PsiFile?) {
     clearMarks(file)
     markFileAsUpToDate(file)
   }
@@ -119,20 +119,20 @@ interface PsiFileChangeDetector {
 private class NaivePsiFileChangeDetector(id: String) : PsiFileChangeDetector {
   private val marker = Key.create<Long>("${NaivePsiFileChangeDetector::class.java.name}#$id")
 
-  override fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean): Boolean {
+  override fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean): Boolean = file?.let {
     val hasChanged = file.getCopyableUserData(marker) != file.modificationStamp
     if (updateOnCheck) {
       markFileAsUpToDate(file)
     }
     return hasChanged
+  } ?: false
+
+  override fun markFileAsUpToDate(file: PsiFile?) {
+    file?.putCopyableUserData(marker, file.modificationStamp)
   }
 
-  override fun markFileAsUpToDate(file: PsiFile) {
-    file.putCopyableUserData(marker, file.modificationStamp)
-  }
-
-  override fun clearMarks(file: PsiFile) {
-    file.putCopyableUserData(marker, null)
+  override fun clearMarks(file: PsiFile?) {
+    file?.putCopyableUserData(marker, null)
   }
 }
 
@@ -194,7 +194,7 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
     return newHash != currentHash
   }
 
-  override fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean): Boolean {
+  override fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean): Boolean = file?.let {
     // If the file is too large, or we are in power save mode, do a simple check.
     val isFileTooLarge = isFileTooLarge(file)
     if (isFileTooLarge || PowerSaveMode.isEnabled()) {
@@ -203,31 +203,35 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
     }
 
     return calculateAndCheckFileHash(file, updateOnCheck)
+  } ?: false
+
+  override fun markFileAsUpToDate(file: PsiFile?) {
+    file?.let {
+      // First use the naive change detector to avoid running an expensive change calculation where there have been no changes at all
+      if (!naiveDetector.hasFileChanged(file, false)) return
+
+      val isFileTooLarge = isFileTooLarge(file)
+      if (!isFileTooLarge && !PowerSaveMode.isEnabled()) {
+        calculateAndCheckFileHash(file, true)
+      }
+      else {
+        if (isFileTooLarge) log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
+      }
+      naiveDetector.markFileAsUpToDate(file)
+    }
   }
 
-  override fun markFileAsUpToDate(file: PsiFile) {
-    // First use the naive change detector to avoid running an expensive change calculation where there have been no changes at all
-    if (!naiveDetector.hasFileChanged(file, false)) return
-
-    val isFileTooLarge = isFileTooLarge(file)
-    if (!isFileTooLarge && !PowerSaveMode.isEnabled()) {
-      calculateAndCheckFileHash(file, true)
+  override fun clearMarks(file: PsiFile?) {
+    file?.let {
+      file.putCopyableUserData(upToDateMarker, null)
+      file.putCopyableUserData(lastCalculatedHashValueMarker, null)
+      naiveDetector.clearMarks(file)
     }
-    else {
-      if (isFileTooLarge) log.debug("$file is too large to be evaluated via HashPsiFileChangeDetector")
-    }
-    naiveDetector.markFileAsUpToDate(file)
-  }
-
-  override fun clearMarks(file: PsiFile) {
-    file.putCopyableUserData(upToDateMarker, null)
-    file.putCopyableUserData(lastCalculatedHashValueMarker, null)
-    naiveDetector.clearMarks(file)
   }
 }
 
-object NopPsiFileChangeDetector: PsiFileChangeDetector {
-  override fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean): Boolean = false
-  override fun markFileAsUpToDate(file: PsiFile) {}
-  override fun clearMarks(file: PsiFile) {}
+object NopPsiFileChangeDetector : PsiFileChangeDetector {
+  override fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean): Boolean = false
+  override fun markFileAsUpToDate(file: PsiFile?) {}
+  override fun clearMarks(file: PsiFile?) {}
 }

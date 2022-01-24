@@ -35,9 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -76,6 +74,17 @@ class ProjectBuildStatusManagerTest {
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
 
+    // Status of files created after a build should be NeedsBuild until a new build happens
+    val newFile = projectRule.fixture.addFileToProject("${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile", "")
+    val newStatusManager = ProjectBuildStatusManager.create(
+      projectRule.fixture.testRootDisposable,
+      newFile,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    assertEquals(ProjectStatus.NeedsBuild, newStatusManager.status)
+    assertTrue(projectRule.build().isBuildSuccessful)
+    assertEquals(ProjectStatus.Ready, newStatusManager.status)
+
+    // Status should change to OutOfDate when introducing a change, only for the manager of the modified file
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
     WriteCommandAction.runWriteCommandAction(project) {
       documentManager.getDocument(projectRule.fixture.file)!!.insertString(0, "// A change")
@@ -83,8 +92,12 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
     assertEquals(ProjectStatus.OutOfDate, statusManager.status)
+    assertEquals(ProjectStatus.Ready, newStatusManager.status)
+
+    // Status should change to NeedsBuild for all managers after a build clean
     projectRule.clean()
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
+    assertEquals(ProjectStatus.NeedsBuild, newStatusManager.status)
   }
 
   @RunsInEdt
@@ -121,7 +134,7 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    assertEquals(ProjectStatus.OutOfDate, statusManager.status)
+    assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     assertTrue(projectRule.build().isBuildSuccessful)
     assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
   }
