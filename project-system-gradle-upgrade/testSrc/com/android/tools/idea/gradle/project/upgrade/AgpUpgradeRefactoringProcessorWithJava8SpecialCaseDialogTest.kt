@@ -29,6 +29,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Test
 import java.lang.reflect.Field
@@ -50,7 +51,7 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
   }
 
   private fun AgpUpgradeRefactoringProcessor.getJava8DefaultRefactoringProcessor() =
-    componentRefactoringProcessors.firstIsInstance<Java8DefaultRefactoringProcessor>()
+    componentRefactoringProcessors.firstNotNullResult { it as? Java8DefaultRefactoringProcessor }!!
 
   private fun AgpUpgradeRefactoringProcessor.setJava8DefaultIsAlwaysNoOpForProject(value: Boolean) {
     this.getJava8DefaultRefactoringProcessor().isAlwaysNoOpForProject = value

@@ -22,19 +22,26 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.jetbrains.android.util.firstNotNullResult
+
+private val LOG = Logger.getInstance("Upgrade Assistant")
 
 @Slow
 fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
   val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
   val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
   val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
-  val compileRuntimeProcessor = processor.componentRefactoringProcessors.firstIsInstance<CompileRuntimeConfigurationRefactoringProcessor>()
+  val compileRuntimeProcessor = processor.componentRefactoringProcessors
+    .firstNotNullResult { it as? CompileRuntimeConfigurationRefactoringProcessor }
+  if (compileRuntimeProcessor == null) {
+    LOG.error("no CompileRuntimeConfiguration processor found in AGP Upgrade Processor")
+  }
   processor.setCommandName("Replace Deprecated Configurations")
-  val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor, null, "Upgrading deprecated configurations")
+  val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor!!, null, "Upgrading deprecated configurations")
   processor.targets.add(wrappedElement)
   processor.ensureParsedModels()
   val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
