@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("Since15")
+
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.testing.caret
@@ -25,12 +27,15 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.registerServiceInstance
+import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
+import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -38,6 +43,7 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JLabel
 
 class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
@@ -55,6 +61,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
   private fun clickOnIcon(icon: LineMarkerInfo.LineMarkerGutterIconRenderer<*>) {
     try {
+      @Suppress("UNCHECKED_CAST")
       (icon.lineMarkerInfo.navigationHandler!! as GutterIconNavigationHandler<PsiElement>)
         .navigate(
           MouseEvent(JLabel(), 0, 0, 0, 0, 0, 0, false),
@@ -628,12 +635,12 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       assertThat(result).containsExactly("AssistedFactory methods: create")
 
       clickOnIcon(icon)
-      assertThat(trackerService.calledMethods).hasSize(3)
+      assertThat(trackerService.calledMethods).hasSize(4)
       assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ")
       assertThat(trackerService.calledMethods[0].removePrefix(
         "trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ").toInt()).isNotNull()
-      assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter ASSISTED_INJECTED_CONSTRUCTOR")
-      assertThat(trackerService.calledMethods[2]).isEqualTo(
+      assertThat(trackerService.calledMethods[2]).isEqualTo("trackClickOnGutter ASSISTED_INJECTED_CONSTRUCTOR")
+      assertThat(trackerService.calledMethods[3]).isEqualTo(
         "trackNavigation CONTEXT_GUTTER ASSISTED_INJECTED_CONSTRUCTOR ASSISTED_FACTORY_METHOD")
     }
 
@@ -651,14 +658,126 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       assertThat(result).containsExactly("AssistedInject constructors: Foo")
 
       clickOnIcon(icon)
-      assertThat(trackerService.calledMethods).hasSize(6)
-      assertThat(trackerService.calledMethods[3]).startsWith("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
-      assertThat(trackerService.calledMethods[3].removePrefix(
+      assertThat(trackerService.calledMethods).hasSize(7)
+      assertThat(trackerService.calledMethods[4]).startsWith("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+      assertThat(trackerService.calledMethods[4].removePrefix(
         "trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ").toInt()).isNotNull()
-      assertThat(trackerService.calledMethods[4]).isEqualTo("trackClickOnGutter ASSISTED_FACTORY_METHOD")
-      assertThat(trackerService.calledMethods[5]).isEqualTo(
+      assertThat(trackerService.calledMethods[5]).isEqualTo("trackClickOnGutter ASSISTED_FACTORY_METHOD")
+      assertThat(trackerService.calledMethods[6]).isEqualTo(
         "trackNavigation CONTEXT_GUTTER ASSISTED_FACTORY_METHOD ASSISTED_INJECTED_CONSTRUCTOR")
     }
+  }
+
+  fun testAssistedInjectProducersAndConsumers() {
+    val repository = myFixture.addFileToProject(
+      "test/Repository.kt",
+      //language=kotlin
+      """
+      package test
+      import javax.inject.Inject
+
+      class Repository @Inject constructor()
+    """.trimIndent()
+    ).containingFile.virtualFile
+    val assistedFactory = myFixture.addFileToProject(
+      "test/AssistedFactory.kt",
+      //language=kotlin
+      """
+      package test
+
+      import dagger.assisted.AssistedFactory
+
+      // Gutter icon with 'down' arrow as this is consumed somewhere else,
+      // possible consumers are:
+      // * @Provides method parameter
+      // * @Inject constructor parameter
+      // * @Inject field
+      @AssistedFactory
+      interface FooFactory {
+          // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
+          fun create(id: String): Foo
+      }
+
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    val assistedInject = myFixture.addFileToProject(
+      "test/AssistedInject.kt",
+      //language=kotlin
+      """
+      package test
+
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
+      // with 'down arrow', indicating this is consumed somewhere else. Link goes
+      // to FooFactory#create()
+      class Foo @AssistedInject constructor(
+          // Gutter icon with the 'up' arrow, link to 'Repository' provider.
+          val repository: Repository,
+          // This is the assisted value, it does not need a gutter icon since the
+          // @AssistedInject constructor links to the assisted factory.
+          @Assisted val id: String
+      )
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    val consumingClass = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import javax.inject.Inject;
+
+      class MyClass {
+        @Inject FooFactory myFooFactory;
+      }
+
+    """.trimIndent()).containingFile.virtualFile
+
+    checkGutterIcon(repository, "constru|ctor()", "Repository() provides for Foo", listOf("Consumers: repository"),
+                    DEPENDENCY_CONSUMER
+    )
+
+    checkGutterIcon(
+      consumingClass, "@Inject FooFactory myFoo|Factory;", "myFooFactory consumes FooFactory",
+      listOf("Providers: FooFactory"),
+      DEPENDENCY_PROVIDER
+    )
+
+    checkGutterIcon(
+      assistedFactory, "interface FooF|actory", "FooFactory provides for MyClass", listOf("Consumers: myFooFactory"),
+      DEPENDENCY_CONSUMER
+    )
+
+    checkGutterIcon(
+      assistedInject, "val repo|sitory: Repository,", "repository consumes Repository()", listOf("Providers: Repository"),
+      DEPENDENCY_PROVIDER
+    )
+
+    // On the @AssistedInject-annotated constructor, any parameter annotated with @Assisted should not have any icons on it.
+    myFixture.configureFromExistingVirtualFile(assistedInject)
+    myFixture.moveCaret("@Assisted val i|d: String")
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isEmpty()
+  }
+
+  private fun checkGutterIcon(virtualFile: VirtualFile,
+                              caretLocation: String,
+                              tooltipText: String,
+                              resultStrings: List<String>,
+                              expectedIcon: Icon) {
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.moveCaret(caretLocation)
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+    assertThat(icons.map { it.icon }).contains(expectedIcon)
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == tooltipText }!!)
+    assertThat(gotoRelatedItems).hasSize(resultStrings.size)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
+    assertThat(result).containsExactlyElementsIn(resultStrings)
   }
 
   fun testObjectClassInKotlin() {

@@ -70,6 +70,7 @@ const val DAGGER_WORKER_INJECT_ANNOTATION = "androidx.hilt.work.WorkerInject"
 const val JAVAX_INJECT_PROVIDER = "javax.inject.Provider"
 const val DAGGER_ASSISTED_FACTORY = "dagger.assisted.AssistedFactory"
 const val DAGGER_ASSISTED_INJECT = "dagger.assisted.AssistedInject"
+const val DAGGER_ASSISTED = "dagger.assisted.Assisted"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -93,9 +94,14 @@ private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, sco
   return getDaggerProvidesMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
          getDaggerBindsMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
          getDaggerBindsInstanceMethodsAndParametersForType(type, scope).filterByQualifier(qualifierInfo) +
-         getDaggerInjectedConstructorsForType(type)
+         getDaggerInjectedConstructorsForType(type) +
+         getAssistedFactoryObjectForType(type)
 }
 
+private fun getAssistedFactoryObjectForType(type: PsiType): Collection<PsiModifierListOwner> {
+  val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
+  return if (clazz.isDaggerAssistedFactory) listOf(clazz) else emptyList()
+}
 
 /**
  * Returns all @BindsInstance-annotated methods and params that return given [type] within [scope].
@@ -137,7 +143,8 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
   val search = DaggerAnnotatedElementsSearch.getInstance(project)
   return injectedConstructorAnnotations.flatMap { search.searchParameterOfMethodAnnotatedWith(it, scope, unboxedType) } +
          search.searchParameterOfMethodAnnotatedWith(DAGGER_BINDS_ANNOTATION, scope, unboxedType) +
-         search.searchParameterOfMethodAnnotatedWith(DAGGER_PROVIDES_ANNOTATION, scope, unboxedType)
+         search.searchParameterOfMethodAnnotatedWith(DAGGER_PROVIDES_ANNOTATION, scope, unboxedType) +
+         search.searchParameterOfMethodAnnotatedWith(DAGGER_ASSISTED_INJECT, scope, unboxedType)
 }
 
 /**
@@ -282,11 +289,17 @@ private val PsiElement?.isBindsInstanceMethodOrParameter: Boolean
            this is KtParameter && findAnnotation(FqName(DAGGER_BINDS_INSTANCE_ANNOTATION)) != null
   }
 
+private val PsiElement?.isAssistedParameter: Boolean
+  get() {
+    return this is PsiParameter && hasAnnotation(DAGGER_ASSISTED) ||
+           this is KtParameter && findAnnotation(FqName(DAGGER_ASSISTED)) != null
+  }
+
 /**
  * True if PsiElement is Dagger provider i.e @Provides/@Binds/@BindsInstance-annotated method or @Inject-annotated constructor or
  * @BindsInstance-annotated parameter.
  */
-val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor || isBindsInstanceMethodOrParameter
+val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor || isBindsInstanceMethodOrParameter || isDaggerAssistedFactory
 
 /**
  * True if PsiElement is @AssistedInject-annotated constructor.
@@ -312,7 +325,9 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is PsiField && isInjected ||
            this is KtProperty && isInjected ||
            this is PsiParameter && declarationScope.isDaggerProvider ||
-           this is KtParameter && this.ownerFunction.isDaggerProvider
+           this is KtParameter && this.ownerFunction.isDaggerProvider ||
+           this is KtParameter && this.ownerFunction.isAssistedInjectedConstructor && !this.isAssistedParameter ||
+           this is PsiParameter && declarationScope.isAssistedInjectedConstructor && !this.isAssistedParameter
   }
 
 
