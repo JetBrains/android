@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -67,6 +68,8 @@ const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
 const val DAGGER_VIEW_MODEL_INJECT_ANNOTATION = "androidx.hilt.lifecycle.ViewModelInject"
 const val DAGGER_WORKER_INJECT_ANNOTATION = "androidx.hilt.work.WorkerInject"
 const val JAVAX_INJECT_PROVIDER = "javax.inject.Provider"
+const val DAGGER_ASSISTED_FACTORY = "dagger.assisted.AssistedFactory"
+const val DAGGER_ASSISTED_INJECT = "dagger.assisted.AssistedInject"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -93,6 +96,7 @@ private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, sco
          getDaggerInjectedConstructorsForType(type)
 }
 
+
 /**
  * Returns all @BindsInstance-annotated methods and params that return given [type] within [scope].
  */
@@ -110,8 +114,7 @@ private fun getDaggerBindsInstanceMethodsAndParametersForType(type: PsiType, sco
 @WorkerThread
 fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner> {
   val module = element.module ?: return emptyList()
-  val scope = GlobalSearchScope.moduleWithDependentsScope(module)
-    .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
+  val scope = module.moduleWithDependentsAndDependenciesScope()
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
   return getDaggerProviders(type, qualifierInfo, scope)
@@ -153,8 +156,7 @@ private fun getDaggerConsumers(type: PsiType, qualifierInfo: QualifierInfo?, sco
 @WorkerThread
 fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
   val module = element.module ?: return emptyList()
-  val scope = GlobalSearchScope.moduleWithDependentsScope(module)
-    .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
+  val scope = module.moduleWithDependentsAndDependenciesScope()
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
   var consumers = getDaggerConsumers(type, qualifierInfo, scope)
@@ -172,6 +174,45 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
   }
 
   return consumers
+}
+
+/**
+ * Returns all the relevant methods from @AssistedFactory-annotated classes where the return type matches class [constructor] belongs to.
+ */
+@WorkerThread
+fun getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(constructor: PsiElement): Collection<PsiMethod> {
+  val module = constructor.module ?: return emptyList()
+  val (type, _) = extractTypeAndQualifierInfo(constructor) ?: return emptyList()
+
+  // No need to check for qualifiers since AssistedFactories can only have a single abstract, non-default method.
+  return getAssistedFactoryMethodsForType(type, module)
+}
+
+/**
+ * Returns all the relevant methods from @AssistedFactory-annotated clases where the return type matches [type], scope to the [module] and
+ * it's dependents.
+ */
+private fun getAssistedFactoryMethodsForType(type: PsiType, module: Module): Collection<PsiMethod> {
+  val scope = module.moduleWithDependentsAndDependenciesScope()
+  val psiClasses = DaggerAnnotatedElementsSearch.getInstance(module.project).searchClasses(DAGGER_ASSISTED_FACTORY, scope)
+  return psiClasses.flatMap { it.methods.toList() }.filter { it.returnType == type }
+}
+
+/**
+ * Returns all the @AssistedInject-annotated constructors for a given @AssistedFactory abstract method
+ */
+@WorkerThread
+fun getDaggerAssistedInjectConstructorForAssistedFactoryMethod(element: PsiElement): Collection<PsiMethod> {
+  val (type, _) = extractTypeAndQualifierInfo(element) ?: return emptyList()
+  return getDaggerAssistedInjectConstructorsForType(type)
+}
+
+/**
+ * Returns all @AssistedInject-annotated constructors for a given [type].
+ */
+private fun getDaggerAssistedInjectConstructorsForType(type: PsiType): Collection<PsiMethod> {
+  val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
+  return clazz.constructors.filter { it.hasAnnotation(DAGGER_ASSISTED_INJECT) }
 }
 
 /**
@@ -248,6 +289,21 @@ private val PsiElement?.isBindsInstanceMethodOrParameter: Boolean
 val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor || isBindsInstanceMethodOrParameter
 
 /**
+ * True if PsiElement is @AssistedInject-annotated constructor.
+ */
+val PsiElement?.isAssistedInjectedConstructor: Boolean
+  get() = this is PsiMethod && isConstructor && this.hasAnnotation(DAGGER_ASSISTED_INJECT) ||
+          this is KtConstructor<*> && this.findAnnotation(FqName(DAGGER_ASSISTED_INJECT)) != null
+
+
+/**
+ * True if PsiElement is @AssistedInject-annotated constructor.
+ */
+val PsiElement?.isAssistedFactoryMethod: Boolean
+  get() = (this is PsiMethod && containingClass.isDaggerAssistedFactory && this.returnType?.unboxed != PsiType.VOID) ||
+          (this is KtNamedFunction && containingClass().isDaggerAssistedFactory && this.psiType?.unboxed != PsiType.VOID)
+
+/**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field or param of Dagger provider, see [isDaggerProvider].
  */
 val PsiElement?.isDaggerConsumer: Boolean
@@ -302,6 +358,8 @@ internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWi
 
 internal val PsiElement?.isDaggerSubcomponentFactory get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
 
+internal val PsiElement?.isDaggerAssistedFactory get() = isClassOrObjectAnnotatedWith(DAGGER_ASSISTED_FACTORY)
+
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
  *
@@ -310,6 +368,8 @@ internal val PsiElement?.isDaggerSubcomponentFactory get() = isClassOrObjectAnno
 private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, QualifierInfo?>? {
   var type: PsiType =
     when (element) {
+      is PsiClass -> toPsiType(element)
+      is KtClass -> element.toPsiType()
       is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
       is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
       is PsiField -> element.type
@@ -499,4 +559,11 @@ internal fun PsiClass.isParentOf(component: PsiClass): Boolean {
                         ?: return@any false
     subcomponents.any { it.qualifiedName == component.qualifiedName }
   }
+}
+
+/**
+ * Creates a scope that includes the dependents, content and dependencies of the module.
+ */
+private fun Module.moduleWithDependentsAndDependenciesScope(): GlobalSearchScope {
+  return GlobalSearchScope.moduleWithDependentsScope(this).uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(this))
 }

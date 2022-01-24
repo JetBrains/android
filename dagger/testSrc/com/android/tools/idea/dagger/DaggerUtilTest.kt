@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -315,6 +316,189 @@ class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<KtFunction>().isDaggerProvider).isTrue()
     assertThat(myFixture.moveCaret("notBindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider).isFalse()
+  }
+
+  fun testIsAssistedFactoryMethod() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+      import dagger.assisted.AssistedFactory;
+
+      @AssistedFactory
+      public interface FooFactoryJava {
+          Foo create(String id);
+          void createNothing();
+      }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("Foo cre|ate(String id);").parentOfType<PsiMethod>().isAssistedFactoryMethod).isTrue()
+    assertThat(myFixture.moveCaret("void cre|ateNothing();").parentOfType<PsiMethod>().isAssistedFactoryMethod).isFalse()
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+      public interface NotFactory {
+          Foo create(String id);
+      }
+      """.trimIndent()
+    )
+    assertThat(myFixture.moveCaret("Foo crea|te(String id);").parentOfType<PsiMethod>().isAssistedFactoryMethod).isFalse()
+  }
+
+  fun testIsAssistedFactoryMethod_kotlin() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+      import dagger.assisted.AssistedFactory
+
+      @AssistedFactory
+      interface FooFactory {
+          // Is a factory method
+          fun create(id: String): Foo
+
+          // Is not a factory method (returns null)
+          fun createNothing(id: String)
+      }
+
+      interface NotFactory {
+          // Is not a factory method (NotFactory is not annotated with @AssistedFactory)
+          fun create(): Foo
+      }
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("fun cre|ate(id: String): Foo").parentOfType<KtFunction>().isAssistedFactoryMethod).isTrue()
+    assertThat(myFixture.moveCaret("fun creat|eNothing(id: String)").parentOfType<KtFunction>().isAssistedFactoryMethod).isFalse()
+    assertThat(myFixture.moveCaret("fun cre|ate(): Foo").parentOfType<KtFunction>().isAssistedFactoryMethod).isFalse()
+  }
+
+  fun testIsAssistedInjectedConstructor() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+      import dagger.assisted.Assisted;
+      import dagger.assisted.AssistedInject;
+
+      public class FooJava {
+          private String id;
+
+          @AssistedInject public FooJava(@Assisted String id) {
+              this.id = id;
+          }
+
+          public FooJava() {
+              this.id = "id";
+          }
+      }
+    """.trimIndent()
+    )
+
+    assertThat(
+      myFixture.moveCaret(
+        "@AssistedInject public FooJ|ava(@Assisted String id) {").parentOfType<PsiMethod>().isAssistedInjectedConstructor).isTrue()
+    assertThat(myFixture.moveCaret(
+      "public FooJ|ava() {").parentOfType<PsiMethod>().isAssistedInjectedConstructor).isFalse()
+  }
+
+  fun testIsAssistedInjectedConstructor_kotlin() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      class Foo @AssistedInject constructor(
+          @Assisted val id: String
+      ) {
+          constructor(id: String, nothing: String) : this(id) {
+              //Do Nothing
+          }
+      }
+    """.trimIndent()
+    )
+
+    assertThat(
+      myFixture.moveCaret(
+        "class Foo @AssistedInject construc|tor(").parentOfType<KtConstructor<*>>().isAssistedInjectedConstructor).isTrue()
+    assertThat(myFixture.moveCaret(
+      "constr|uctor(id: String, nothing: String) : this(id) {").parentOfType<KtConstructor<*>>().isAssistedInjectedConstructor).isFalse()
+  }
+
+  fun testGetDaggerAssistedFactoryMethodForAssistedProvider() {
+    myFixture.addFileToProject(
+      "FooFactoryJava.java",
+      //language=JAVA
+      """
+      import dagger.assisted.AssistedFactory;
+
+      @AssistedFactory
+      public interface FooFactoryJava {
+          FooJava create(String id);
+          void createNothing();
+      }
+      """.trimIndent()
+    )
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
+      import dagger.assisted.Assisted;
+      import dagger.assisted.AssistedInject;
+
+      public class FooJava {
+          @AssistedInject public FooJava(@Assisted String id) {}
+      }
+    """.trimIndent()
+    )
+    val methodList = getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
+      myFixture.moveCaret("@AssistedInject public Foo|Java(@Assisted String id)").parentOfType<PsiMethod>()!!).toList()
+
+    assertThat(methodList).hasSize(1)
+    assertThat(methodList[0].name).isEqualTo("create")
+    assertThat(methodList[0].containingClass!!.name).isEqualTo("FooFactoryJava")
+  }
+
+  fun testGetDaggerAssistedFactoryMethodForAssistedProvider_kotlin() {
+    myFixture.addFileToProject(
+      "FooFactory.kt",
+      //language=kotlin
+      """
+      import dagger.assisted.AssistedFactory
+
+      @AssistedFactory
+      interface FooFactory {
+          // Is a factory method
+          fun create(id: String): Foo
+
+          // Is not a factory method (returns null)
+          fun createNothing(id: String)
+      }
+    """.trimIndent()
+    )
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      class Foo @AssistedInject constructor(
+          @Assisted val id: String
+      )
+    """.trimIndent()
+    )
+    val methodList = getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
+      myFixture.moveCaret("class Foo @AssistedInject cons|tructor").parentOfType<KtConstructor<*>>()!!).toList()
+
+    assertThat(methodList).hasSize(1)
+    assertThat(methodList[0].name).isEqualTo("create")
+    assertThat(methodList[0].containingClass!!.name).isEqualTo("FooFactory")
   }
 
   fun testGetDaggerProviders_providesMethod() {

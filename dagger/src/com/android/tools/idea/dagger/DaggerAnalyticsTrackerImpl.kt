@@ -137,6 +137,8 @@ internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementTy
     element.isDaggerSubcomponent -> DaggerEditorEvent.ElementType.SUBCOMPONENT
     element.isDaggerComponentInstantiationMethod -> DaggerEditorEvent.ElementType.COMPONENT_METHOD
     element.isDaggerEntryPointInstantiationMethod -> DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
+    element.isAssistedInjectedConstructor -> DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
+    element.isAssistedFactoryMethod -> DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
     else -> error("Invalid PsiElement for metrics")
   }
 }

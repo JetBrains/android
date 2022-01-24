@@ -559,6 +559,108 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
                                      "Modules included: MyModule")
   }
 
+
+  fun testAssistedInjectFactoriesAndConstructors() {
+    myFixture.addFileToProject(
+      "test/Repository.kt",
+      //language=kotlin
+      """
+      package test
+      import javax.inject.Inject
+
+      class Repository @Inject constructor()
+    """.trimIndent()
+    )
+    val assistedFactory = myFixture.addFileToProject(
+      "test/AssistedFactory.kt",
+      //language=kotlin
+      """
+      package test
+
+      import dagger.assisted.AssistedFactory
+
+      // Gutter icon with 'down' arrow as this is consumed somewhere else,
+      // possible consumers are:
+      // * @Provides method parameter
+      // * @Inject constructor parameter
+      // * @Inject field
+      @AssistedFactory
+      interface FooFactory {
+          // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
+          fun create(id: String): Foo
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    val assistedInject = myFixture.addFileToProject(
+      "test/AssistedInject.kt",
+      //language=kotlin
+      """
+      package test
+
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
+      // with 'down arrow', indicating this is consumed somewhere else. Link goes
+      // to FooFactory#create()
+      class Foo @AssistedInject constructor(
+          // Gutter icon with the 'up' arrow, link to 'Repository' provider.
+          val repository: Repository,
+          // This is the assisted value, it does not need a gutter icon since the
+          // @AssistedInject constructor links to the assisted factory.
+          @Assisted val id: String
+      )
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Assisted Inject constructor tests
+    with(assistedInject) {
+      myFixture.configureFromExistingVirtualFile(this)
+      myFixture.moveCaret("class Foo @AssistedInject constructo|r")
+      val icons = myFixture.findGuttersAtCaret()
+      assertThat(icons).isNotEmpty()
+
+      val icon = icons.find { it.tooltipText == "Foo(Repository, String) is created by create" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      val gotoRelatedItems = getGotoElements(icon)
+      assertThat(gotoRelatedItems).hasSize(1)
+      val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
+      assertThat(result).containsExactly("AssistedFactory methods: create")
+
+      clickOnIcon(icon)
+      assertThat(trackerService.calledMethods).hasSize(3)
+      assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ")
+      assertThat(trackerService.calledMethods[0].removePrefix(
+        "trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ").toInt()).isNotNull()
+      assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter ASSISTED_INJECTED_CONSTRUCTOR")
+      assertThat(trackerService.calledMethods[2]).isEqualTo(
+        "trackNavigation CONTEXT_GUTTER ASSISTED_INJECTED_CONSTRUCTOR ASSISTED_FACTORY_METHOD")
+    }
+
+    // Assisted Factory method tests
+    with(assistedFactory) {
+      myFixture.configureFromExistingVirtualFile(this)
+      myFixture.moveCaret("creat|e")
+      val icons = myFixture.findGuttersAtCaret()
+      assertThat(icons).isNotEmpty()
+
+      val icon = icons.find { it.tooltipText == "create(String) is defined by Foo" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      val gotoRelatedItems = getGotoElements(icon)
+      assertThat(gotoRelatedItems).hasSize(1)
+      val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
+      assertThat(result).containsExactly("AssistedInject constructors: Foo")
+
+      clickOnIcon(icon)
+      assertThat(trackerService.calledMethods).hasSize(6)
+      assertThat(trackerService.calledMethods[3]).startsWith("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+      assertThat(trackerService.calledMethods[3].removePrefix(
+        "trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ").toInt()).isNotNull()
+      assertThat(trackerService.calledMethods[4]).isEqualTo("trackClickOnGutter ASSISTED_FACTORY_METHOD")
+      assertThat(trackerService.calledMethods[5]).isEqualTo(
+        "trackNavigation CONTEXT_GUTTER ASSISTED_FACTORY_METHOD ASSISTED_INJECTED_CONSTRUCTOR")
+    }
+  }
+
   fun testObjectClassInKotlin() {
     val moduleFile = myFixture.addFileToProject("test/MyModule.kt",
       //language=kotlin

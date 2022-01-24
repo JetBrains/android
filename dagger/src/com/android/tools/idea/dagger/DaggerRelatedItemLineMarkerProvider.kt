@@ -80,6 +80,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val (icon, gotoTargets) = when {
       parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
       parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
+      parent.isAssistedInjectedConstructor -> getIconAndGotoItemsForAssistedProvider(parent)
+      parent.isAssistedFactoryMethod -> getIconAndGotoItemsForAssistedFactoryMethod(parent)
       parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
       parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
@@ -114,6 +116,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     result.add(info)
   }
 
+  @Suppress("DialogTitleCapitalization")
   private fun getTooltipProvider(
     targetElement: PsiElement,
     gotoTargets: List<GotoRelatedItem>
@@ -140,6 +143,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
             message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
             message("included.in.modules") -> message("navigate.to.module.that.include", fromElementString, toElementString)
+            message("assisted.inject") -> message("navigate.to.assisted.inject", fromElementString, toElementString)
+            message("assisted.factory") -> message("navigate.to.assisted.factory", fromElementString, toElementString)
             else -> error("[Dagger tools] Unknown navigation group: $group")
           }
         }
@@ -219,6 +224,20 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components + entryPoints)
+  }
+
+  private fun getIconAndGotoItemsForAssistedProvider(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers = getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("assisted.factory"), it.name)
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers)
+  }
+
+  private fun getIconAndGotoItemsForAssistedFactoryMethod(provider: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
+    val consumers = getDaggerAssistedInjectConstructorForAssistedFactoryMethod(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("assisted.inject"), it.name)
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, consumers)
   }
 
   private fun getProvidersFor(consumer: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
