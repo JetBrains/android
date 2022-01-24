@@ -59,7 +59,6 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesUtil;
 import com.intellij.refactoring.util.RefactoringUIUtil;
-import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
@@ -69,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import javax.swing.*;
+import com.intellij.util.CommonJavaRefactoringUtil;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -313,7 +313,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
         MoveClassesOrPackagesUtil.doMoveClass(
           (PsiClass)element,
-          RefactoringUtil
+          CommonJavaRefactoringUtil
             .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
           true);
       }

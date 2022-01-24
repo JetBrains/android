@@ -45,8 +45,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.CommonJavaRefactoringUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
@@ -354,7 +354,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;
     final TemplateImpl template;
-    final boolean inStaticContext = RefactoringUtil.isInStaticContext(element, null);
+    final boolean inStaticContext = CommonJavaRefactoringUtil.isInStaticContext(element, null);
     final Project project = module.getProject();
 
     if ((extendsContext || extendsFragment) && !inStaticContext) {
