@@ -60,7 +60,7 @@ public class ProjectWithKotlinTestUtil {
   public static final String TYPE_CLASS = "Class";
   public static final String TYPE_FILE = "File";
   public static final String TYPE_INTERFACE = "Interface";
-  public static final String TYPE_ENUMCLASS = "Enum Class";
+  public static final String TYPE_ENUMCLASS = "Enum class";
   public static final String TYPE_OBJECT = "Object";
   public static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
