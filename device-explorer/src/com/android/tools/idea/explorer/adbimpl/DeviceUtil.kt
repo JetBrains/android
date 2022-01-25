@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.explorer.adbimpl
 
-import com.android.ddmlib.IDevice;
-import org.jetbrains.annotations.NotNull;
+import com.android.ddmlib.IDevice
 
-final class DeviceUtil {
-  private DeviceUtil() {
-  }
-
-  @NotNull
-  static String toDebugString(@NotNull IDevice device) {
-    return device.getName() + " (" + device.getSerialNumber() + ") - " + device.getState();
+internal object DeviceUtil {
+  fun toDebugString(device: IDevice): String {
+    return device.name + " (" + device.serialNumber + ") - " + device.state
   }
 }
