@@ -23,6 +23,9 @@
 #include "casts.h"
 #include "common.h"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
+
 namespace screensharing {
 
 class Jni;
@@ -254,3 +257,5 @@ private:
 };
 
 }  // namespace screensharing
+
+#pragma clang diagnostic pop
