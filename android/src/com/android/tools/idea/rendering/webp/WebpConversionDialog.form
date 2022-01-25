@@ -82,7 +82,7 @@
           <grid row="3" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Use lossless encoding"/>
+          <text value="Lossless encoding"/>
         </properties>
       </component>
       <component id="3bc2e" class="com.intellij.ui.components.JBLabel" binding="myLosslessReqLabel">
