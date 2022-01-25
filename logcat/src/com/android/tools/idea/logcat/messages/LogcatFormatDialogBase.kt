@@ -87,7 +87,10 @@ private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
 /**
  * A base class for a Formatting Options dialog.
  */
-internal abstract class LogcatFormatDialogBase(private val project: Project) : Disposable {
+internal abstract class LogcatFormatDialogBase(
+  private val project: Project,
+  protected val applyAction: ApplyAction
+) : Disposable {
   private val components = mutableListOf<JComponent>()
 
   private lateinit var showTimestampCheckbox: JBCheckBox
@@ -113,7 +116,7 @@ internal abstract class LogcatFormatDialogBase(private val project: Project) : D
   val dialogWrapper: DialogWrapper by lazy {
     createDialogWrapper().apply {
       Disposer.register(disposable, this@LogcatFormatDialogBase)
-      onComponentsChanged()
+      onComponentsChanged(isUserAction = false)
       pack()
     }
   }
@@ -155,7 +158,7 @@ internal abstract class LogcatFormatDialogBase(private val project: Project) : D
     val panel = panel {
       createComponents(this, formattingOptions)
     }
-    val refresh: () -> Unit = ::onComponentsChanged
+    val refresh: () -> Unit = { onComponentsChanged(isUserAction = true) }
     val itemEventListener: (e: ItemEvent) -> Unit = { refresh() }
     val changeEventListener: (e: ChangeEvent) -> Unit = { refresh() }
 
@@ -299,7 +302,7 @@ internal abstract class LogcatFormatDialogBase(private val project: Project) : D
     }
   }
 
-  protected open fun onComponentsChanged() {
+  protected open fun onComponentsChanged(isUserAction: Boolean) {
     applyToFormattingOptions(sampleFormattingOptions)
     val textAccumulator = TextAccumulator()
     sampleMessageFormatter.formatMessages(sampleFormattingOptions, textAccumulator, sampleMessages)
@@ -308,5 +311,9 @@ internal abstract class LogcatFormatDialogBase(private val project: Project) : D
     DocumentAppender(project, sampleEditor.document, MAX_SAMPLE_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)
     sampleEditor.document.insertString(sampleEditor.document.textLength, " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH))
     sampleEditor.document.setReadOnly(true)
+  }
+
+  interface ApplyAction {
+    fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase)
   }
 }

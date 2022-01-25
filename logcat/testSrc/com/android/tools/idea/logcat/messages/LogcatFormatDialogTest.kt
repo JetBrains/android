@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
@@ -22,6 +23,7 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.android.tools.idea.logcat.util.findComponentWithLabel
+import com.android.tools.idea.logcat.util.getButton
 import com.android.tools.idea.logcat.util.getCheckBox
 import com.android.tools.idea.logcat.util.getLabel
 import com.google.common.truth.Truth.assertThat
@@ -33,6 +35,8 @@ import com.intellij.ui.JBIntSpinner
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import javax.swing.JComboBox
 
 /**
@@ -51,7 +55,8 @@ class LogcatFormatDialogTest {
     TagFormat(maxLength = 20, hideDuplicates = true, enabled = true),
     AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
 
-  private val dialog by lazy { LogcatFormatDialog(projectRule.project, formattingOptions) }
+  private val applyAction = mock<LogcatFormatDialogBase.ApplyAction>()
+  private val dialog by lazy { LogcatFormatDialog(projectRule.project, formattingOptions, applyAction) }
   private val showTimestampCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show timestamp") }
   private val timestampFormatComboBox by lazy { dialog.dialogWrapper.findComponentWithLabel<JComboBox<TimestampFormat.Style>>("Format:") }
   private val showProcessIdsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show process id") }
@@ -380,6 +385,24 @@ class LogcatFormatDialogTest {
       showAppNameCheckBox.isSelected = true
 
       assertThat(dialog.sampleEditor.document.text.lines().maxOf(String::length)).isEqualTo(maxLineLength)
+    }
+  }
+
+  @Test
+  fun clickOk_activatesApplyAction() {
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      it.getButton("OK").doClick()
+
+      verify(applyAction).onApply(dialog)
+    }
+  }
+
+  @Test
+  fun clickCancel_doesNotActivateApplyAction() {
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      it.getButton("Cancel").doClick()
+
+      verify(applyAction, never()).onApply(dialog)
     }
   }
 }

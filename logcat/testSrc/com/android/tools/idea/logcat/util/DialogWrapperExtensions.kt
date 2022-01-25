@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.util
 
 import com.android.tools.adtui.TreeWalker
 import com.intellij.openapi.ui.DialogWrapper
+import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 import kotlin.test.fail
@@ -24,13 +25,15 @@ import kotlin.test.fail
 /**
  * Convenient methods for finding controls in a dialog.
  */
-internal fun DialogWrapper.getCheckBox(text: String): JCheckBox =
-  TreeWalker(rootPane).descendants().filterIsInstance<JCheckBox>()
-    .firstOrNull { it.text == text } ?: fail("Checkbox with label '$text' not found")
+internal fun DialogWrapper.getCheckBox(text: String): JCheckBox = getTextComponent(text) { it.text }
 
-internal fun DialogWrapper.getLabel(text: String): JLabel =
-  TreeWalker(rootPane).descendants().filterIsInstance<JLabel>()
-    .firstOrNull { it.text == text } ?: fail("Label '$text' not found")
+internal fun DialogWrapper.getLabel(text: String): JLabel = getTextComponent(text) { it.text }
+
+internal fun DialogWrapper.getButton(text: String): JButton = getTextComponent(text) { it.text }
+
+private inline fun <reified T> DialogWrapper.getTextComponent(text: String, getText: (T) -> String): T =
+  TreeWalker(rootPane).descendants().filterIsInstance<T>()
+    .firstOrNull { getText(it) == text } ?: fail("${T::class.simpleName} '$text' not found")
 
 internal inline fun <reified T> DialogWrapper.findComponentWithLabel(text: String): T {
   val components = TreeWalker(rootPane).descendants().toList()

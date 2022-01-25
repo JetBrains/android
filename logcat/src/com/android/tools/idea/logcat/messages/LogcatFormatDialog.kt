@@ -23,8 +23,11 @@ import com.intellij.ui.components.dialog
 /**
  * A variant of [LogcatFormatDialogBase] that sets the options for a specific FormattingOptions object.
  */
-internal class LogcatFormatDialog(private val project: Project, private val formattingOptions: FormattingOptions)
-  : LogcatFormatDialogBase(project) {
+internal class LogcatFormatDialog(
+  private val project: Project,
+  private val formattingOptions: FormattingOptions,
+  apply: ApplyAction,
+) : LogcatFormatDialogBase(project, apply) {
 
   override fun createDialogWrapper(): DialogWrapper =
     dialog(
@@ -33,5 +36,9 @@ internal class LogcatFormatDialog(private val project: Project, private val form
       resizable = true,
       modality = DialogWrapper.IdeModalityType.PROJECT,
       panel = createPanel(formattingOptions),
+      ok = {
+        applyAction.onApply(this)
+        emptyList()
+      }
     )
 }

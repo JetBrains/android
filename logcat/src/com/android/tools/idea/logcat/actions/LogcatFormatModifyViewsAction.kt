@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.LogcatFormatDialogBase
 import com.android.tools.idea.logcat.messages.LogcatFormatPresetsDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -38,13 +39,15 @@ internal class LogcatFormatModifyViewsAction(
     val defaultFormatting = androidLogcatFormattingOptions.defaultFormatting
     val initialFormatting = logcatPresenter.formattingOptions.getStyle() ?: defaultFormatting
 
-    val dialog = LogcatFormatPresetsDialog(project, initialFormatting, defaultFormatting)
-    if (dialog.dialogWrapper.showAndGet()) {
-      androidLogcatFormattingOptions.standardFormattingOptions.copyFrom(dialog.standardFormattingOptions)
-      androidLogcatFormattingOptions.compactFormattingOptions.copyFrom(dialog.compactFormattingOptions)
-      androidLogcatFormattingOptions.defaultFormatting = dialog.defaultFormatting
-      LogcatToolWindowFactory.logcatPresenters.filter { it.formattingOptions.getStyle() != null }.forEach(LogcatPresenter::reloadMessages)
-    }
+    LogcatFormatPresetsDialog(project, initialFormatting, defaultFormatting, object : LogcatFormatDialogBase.ApplyAction {
+      override fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase) {
+        val dialog = logcatFormatDialogBase as LogcatFormatPresetsDialog
+        androidLogcatFormattingOptions.standardFormattingOptions.copyFrom(dialog.standardFormattingOptions)
+        androidLogcatFormattingOptions.compactFormattingOptions.copyFrom(dialog.compactFormattingOptions)
+        androidLogcatFormattingOptions.defaultFormatting = dialog.defaultFormatting
+        LogcatToolWindowFactory.logcatPresenters.filter { it.formattingOptions.getStyle() != null }.forEach(LogcatPresenter::reloadMessages)
+      }
+    }).dialogWrapper.show()
   }
 }
 

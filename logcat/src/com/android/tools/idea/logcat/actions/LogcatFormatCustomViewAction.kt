@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatFormatDialog
+import com.android.tools.idea.logcat.messages.LogcatFormatDialogBase
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -32,12 +33,13 @@ internal class LogcatFormatCustomViewAction(
 ) : SelectableAction(LogcatBundle.message("logcat.format.action.custom")), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val dialog = LogcatFormatDialog(project, logcatPresenter.formattingOptions)
-    if (dialog.dialogWrapper.showAndGet()) {
-      val formattingOptions = FormattingOptions()
-      dialog.applyToFormattingOptions(formattingOptions)
-      logcatPresenter.formattingOptions = formattingOptions
-    }
+    LogcatFormatDialog(project, logcatPresenter.formattingOptions, object : LogcatFormatDialogBase.ApplyAction {
+      override fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase) {
+        val formattingOptions = FormattingOptions()
+        logcatFormatDialogBase.applyToFormattingOptions(formattingOptions)
+        logcatPresenter.formattingOptions = formattingOptions
+      }
+    }).dialogWrapper.show()
   }
 
   override fun isSelected(): Boolean = logcatPresenter.formattingOptions.getStyle() == null
