@@ -49,7 +49,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val watchFaceInfo = "${(configuration as AndroidComplicationConfiguration).watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
+    val watchFaceInfo = "${configuration.watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
     val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
       processHandler.addDevice(device)
@@ -74,7 +74,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
   }
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {
-    val watchFaceInfo = (configuration as AndroidComplicationConfiguration).watchFaceInfo
+    val watchFaceInfo = configuration.watchFaceInfo
     return getApplicationInstaller().installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "") { info ->
       console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
     }
