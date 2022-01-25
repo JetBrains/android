@@ -55,6 +55,7 @@ import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 val MODERN_DEVICE = object : DeviceDescriptor {
   override val manufacturer = "Google"
@@ -147,7 +148,7 @@ class LayoutInspectorRule(
     private set
   private val launcherDisposable = Disposer.newDisposable()
 
-  private var runningThreadCount = 0
+  private var runningThreadCount = AtomicInteger(0)
 
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
@@ -155,9 +156,9 @@ class LayoutInspectorRule(
     }
     else {
       Thread {
-        runningThreadCount++
+        runningThreadCount.incrementAndGet()
         runnable.run()
-        runningThreadCount--
+        runningThreadCount.decrementAndGet()
         asyncLaunchLatch.countDown()
       }.start()
     }
@@ -165,7 +166,7 @@ class LayoutInspectorRule(
 
   fun awaitLaunch() {
     assertThat(asyncLaunchLatch.await(10, TimeUnit.SECONDS)).isTrue()
-    // TODO: b/215769399 assertThat(runningThreadCount).isEqualTo(0)
+    assertThat(runningThreadCount.get()).isEqualTo(0)
   }
 
   fun startLaunch(expectedTasks: Int) {
