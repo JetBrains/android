@@ -36,6 +36,7 @@ import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 
+@org.junit.Ignore("b/216195279")
 class CaptureNodeSummaryDetailsViewTest {
 
   @get:Rule
