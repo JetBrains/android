@@ -499,7 +499,10 @@ Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/kotlin-reflect.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-949.jar
 Android Studio Preview.app/Contents/lib/kotlin-test.jar
 Android Studio Preview.app/Contents/lib/kotlinx.jar
 Android Studio Preview.app/Contents/lib/openapi.jar
