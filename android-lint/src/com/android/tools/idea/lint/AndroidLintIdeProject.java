@@ -47,6 +47,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -364,7 +365,12 @@ public class AndroidLintIdeProject extends LintIdeProject {
       dir = VfsUtilCore.virtualToIoFile(mainContentRoot);
     }
     else {
-      dir = AndroidRootUtil.findModuleRootFolderPath(module);
+      // For Java modules we just use the first content root that is we can find
+      VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
+      if (roots.length == 0) {
+        return null;
+      }
+      dir = VfsUtilCore.virtualToIoFile(roots[0]);
     }
     return dir;
   }
