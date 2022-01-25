@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
+import org.jetbrains.plugins.gradle.model.ExternalProject
 
 /**
  * A sealed wrapper around a gradle model of a module identified by its gradle path.
@@ -36,9 +37,9 @@ sealed class PsResolvedModuleModel {
   ) : PsResolvedModuleModel()
 
   data class PsJavaModuleResolvedModel(
-      override val gradlePath: String,
-      override val buildFile: String?,
-      val model: JavaModuleModel,
-      val syncIssues: SyncIssues
+    override val gradlePath: String,
+    override val buildFile: String?,
+    val model: ExternalProject,
+    val syncIssues: SyncIssues
   ) : PsResolvedModuleModel()
 }

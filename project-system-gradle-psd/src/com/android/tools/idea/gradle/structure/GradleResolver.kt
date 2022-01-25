@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.plugins.gradle.model.ExternalProject
 
 class GradleResolver {
   /**
@@ -72,7 +73,7 @@ private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
   }
 
   fun tryJavaModels(): PsResolvedModuleModel.PsJavaModuleResolvedModel? {
-    val javaModel = module.findModel(JavaModuleModel::class.java) ?: return null
+    val javaModel = module.findModel(ExternalProject::class.java) ?: return null
     val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
     return PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, javaModel, syncIssues)
   }

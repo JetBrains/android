@@ -78,8 +78,10 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -192,7 +194,9 @@ public class GradleSyncExecutor {
     }
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 
+
     if (projectDataNode != null) {
+      @SuppressWarnings("UnstableApiUsage") DataNode<ExternalProject> rootProjectNode = find(projectDataNode, ExternalProjectDataCache.KEY);
       Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
       for (DataNode<ModuleData> moduleNode : moduleNodes) {
         DataNode<GradleModuleModel> gradleModelNode = find(moduleNode, GRADLE_MODULE_MODEL);
@@ -218,17 +222,38 @@ public class GradleSyncExecutor {
             continue;
           }
 
-          DataNode<JavaModuleModel> javaModelNode = find(moduleNode, JAVA_MODULE_MODEL);
-          if (javaModelNode != null) {
-            moduleModules.addModel(JavaModuleModel.class, javaModelNode.getData());
-
-            builder.add(moduleModules);
+          if (rootProjectNode != null) {
+            ExternalProject project = findExternalProjectForModule(rootProjectNode, moduleNode);
+            if (project != null) {
+              moduleModules.addModel(ExternalProject.class, project);
+              builder.add(moduleModules);
+            }
           }
         }
       }
     }
 
     return builder.build();
+  }
+
+  @Nullable
+  private ExternalProject findExternalProjectForModule(@NotNull DataNode<ExternalProject> rootProjectNode,
+                                                       @NotNull DataNode<ModuleData> moduleNode) {
+    String[] moduleIdParts = moduleNode.getData().getId().split(":");
+    ExternalProject project = rootProjectNode.getData();
+    for (String idPart : moduleIdParts) {
+      if (idPart.isEmpty()) {
+        continue;
+      }
+
+      project = project.getChildProjects().get(idPart);
+      if (project == null) {
+        Logger.getInstance(GradleSyncExecutor.class)
+          .warn("Could not find ExternalProject for " + moduleNode.getData().getId(), new Throwable());
+        return null;
+      }
+    }
+    return project;
   }
 
   @WorkerThread

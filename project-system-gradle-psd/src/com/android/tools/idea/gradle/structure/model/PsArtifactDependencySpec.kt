@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.text.nullize
 import org.gradle.tooling.model.GradleModuleVersion
+import org.jetbrains.plugins.gradle.ExternalDependencyId
 import java.util.regex.Pattern
 
 /**
@@ -98,6 +99,9 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
 
     fun create(moduleVersion: GradleModuleVersion): PsArtifactDependencySpec =
       create(moduleVersion.group, moduleVersion.name, moduleVersion.version)
+
+    fun create(id: ExternalDependencyId): PsArtifactDependencySpec =
+      create(id.group, id.name, id.version)
   }
 }
 

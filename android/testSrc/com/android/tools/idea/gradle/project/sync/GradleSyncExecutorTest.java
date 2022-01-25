@@ -26,7 +26,6 @@ import static com.intellij.openapi.vfs.VfsUtil.saveText;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -43,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
 
 public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   protected GradleSyncExecutor mySyncExecutor;
@@ -144,7 +144,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   private static void assertContainsJavaModels(@NotNull GradleModuleModels models) {
-    assertModelsPresent(models, JavaModuleModel.class, GradleModuleModel.class);
+    assertModelsPresent(models, ExternalProject.class, GradleModuleModel.class);
   }
 
   private static void assertModelsPresent(@NotNull GradleModuleModels models, @NotNull Class<?>... expectedModelTypes) {

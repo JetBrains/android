@@ -30,6 +30,13 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependencyCollection
 import com.android.tools.idea.gradle.structure.model.matchJarDeclaredDependenciesIn
 import com.android.tools.idea.gradle.structure.model.relativeFile
+import com.jetbrains.rd.util.first
+import org.jetbrains.plugins.gradle.model.ExternalLibraryDependency
+import org.jetbrains.plugins.gradle.model.ExternalMultiLibraryDependency
+import org.jetbrains.plugins.gradle.model.ExternalProjectDependency
+import org.jetbrains.plugins.gradle.model.FileCollectionDependency
+import org.jetbrains.plugins.gradle.model.UnresolvedExternalDependency
+import java.io.File
 
 interface PsJavaDependencyCollection<out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
   : PsDependencyCollection<PsJavaModule, LibraryDependencyT, JarDependencyT, ModuleDependencyT>
@@ -81,46 +88,56 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency> {
   override fun collectResolvedDependencies(container: PsJavaModule) {
     val gradleModel = parent.resolvedModel
-    gradleModel
-      ?.jarLibraryDependencies
-      ?.filter { it.scope.equals("COMPILE", ignoreCase = true) || it.scope.equals("PROVIDED", ignoreCase = true) }
-      ?.forEach { addLibrary(it) }
-    gradleModel
-      ?.javaModuleDependencies
-      ?.forEach { moduleDependency ->
-        // Replace the first colon in Windows path, otherwise the path is not removed properly from module ID for findModuleByGradlePath
-        val strippedModuleId = if (moduleDependency.moduleId[1] == ':' && moduleDependency.moduleId[2] == '\\')
-          moduleDependency.moduleId.replaceFirst(':', '_', false)
-        else
-          moduleDependency.moduleId
-        parent.parent.findModuleByGradlePath(strippedModuleId.replaceBefore(':', "").substring(1))
-          ?.let { module -> addModule(module, moduleDependency.scope ?: "") }
+
+    fun processFile(file: File) {
+      val artifactCanonicalFile = file?.canonicalFile ?: return
+      val matchingDeclaredDependencies =
+        matchJarDeclaredDependenciesIn(parent.dependencies, artifactCanonicalFile)
+      val path = parent.relativeFile(artifactCanonicalFile)
+      val jarDependency = PsResolvedJarJavaDependency(parent, this, path.path.orEmpty(), matchingDeclaredDependencies)
+      addJarDependency(jarDependency)
+    }
+
+    gradleModel?.sourceSets?.filter { it.key == "main" }?.first()?.also {
+      (_, sourceSet) ->
+      sourceSet.dependencies.filter { it.scope == "COMPILE" || it.scope == "PROVIDED" }.forEach { dependency ->
+        when (dependency) {
+          is ExternalLibraryDependency -> {
+            addLibrary(dependency)
+          }
+          is ExternalMultiLibraryDependency -> {
+            dependency.files.forEach(::processFile)
+          }
+          is FileCollectionDependency -> {
+            dependency.files.forEach(::processFile)
+          }
+          is ExternalProjectDependency -> {
+            val module = parent.parent.findModuleByGradlePath(dependency.projectPath);
+            if (module != null) {
+              addModule(module, dependency.scope)
+            }
+          }
+          is UnresolvedExternalDependency -> Unit
+        }
       }
+    }
   }
 
-  private fun addLibrary(library: JarLibraryDependency) {
+  private fun addLibrary(library: ExternalLibraryDependency) {
     val parsedDependencies = parent.dependencies
-    val group = library.moduleVersion?.group ?: ""
-    val name = library.moduleVersion?.name
-    val version = library.moduleVersion?.version
-    val coordinates = if (name != null && version != null) GradleCoordinate(group, name, version) else null
+    val group = library.id.group
+    val name = library.id.name
+    val version = library.id.version
+    val coordinates = if (group != null && version != null) GradleCoordinate(group, name, version) else null
     if (coordinates != null) {
       val matchingDeclaredDependencies = parsedDependencies
         .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
         // TODO(b/110774403): Support Java module dependency scopes.
-        .filter { library.moduleVersion != null }
       addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies).also {
-        library.binaryPath?.let { file ->
+        library.file?.let { file ->
           it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(coordinates.toString(), file))
         }
       })
-    } else {
-      val artifactCanonicalFile = library.binaryPath?.canonicalFile ?: return
-      val matchingDeclaredDependencies =
-        matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
-      val path = parent.relativeFile(artifactCanonicalFile)
-      val jarDependency = PsResolvedJarJavaDependency(parent, this, path.path.orEmpty(), matchingDeclaredDependencies)
-      addJarDependency(jarDependency)
     }
   }
 

@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.google.common.base.CaseFormat
+import org.jetbrains.plugins.gradle.model.ExternalLibraryDependency
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
@@ -121,7 +122,7 @@ class PsDeclaredLibraryJavaDependency(
 
 class PsResolvedLibraryJavaDependency(
   parent: PsJavaModule,
-  library: JarLibraryDependency,
+  library: ExternalLibraryDependency,
   override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
@@ -131,7 +132,7 @@ class PsResolvedLibraryJavaDependency(
 
   override val joinedConfigurationNames: String = library.scope ?: ""
 
-  override val spec: PsArtifactDependencySpec = PsArtifactDependencySpec.create(library.moduleVersion!!)
+  override val spec: PsArtifactDependencySpec = PsArtifactDependencySpec.create(library.id)
 
   override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
 
