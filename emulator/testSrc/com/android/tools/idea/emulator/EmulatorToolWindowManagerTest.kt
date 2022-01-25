@@ -298,11 +298,8 @@ class EmulatorToolWindowManagerTest {
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow = TestToolWindow(project, this)
 
-    override fun getToolWindow(id: String?): ToolWindow {
-/* b/216195466
-      assertThat(id).isEqualTo(EMULATOR_TOOL_WINDOW_ID)
-b/216195466 */
-      return toolWindow
+    override fun getToolWindow(id: String?): ToolWindow? {
+      return if (id == EMULATOR_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
     }
 
     override fun invokeLater(runnable: Runnable) {
