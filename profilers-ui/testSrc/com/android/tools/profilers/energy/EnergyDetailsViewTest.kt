@@ -40,6 +40,7 @@ import javax.swing.JPanel
 import javax.swing.JTextPane
 
 @RunsInEdt
+@org.junit.Ignore("b/216286446")
 class EnergyDetailsViewTest {
   private val wakeLockAcquired = Energy.WakeLockAcquired.newBuilder()
     .setTag("wakeLockTag")

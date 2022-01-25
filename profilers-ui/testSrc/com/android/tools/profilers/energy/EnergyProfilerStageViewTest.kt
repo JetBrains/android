@@ -36,6 +36,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 @RunsInEdt
+@org.junit.Ignore("b/216286446")
 class EnergyProfilerStageViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
