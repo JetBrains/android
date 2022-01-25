@@ -396,8 +396,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun <T> sendResponse(responseObserver: StreamObserver<T>, response: T) {
-    responseObserver.onNext(response)
-    responseObserver.onCompleted()
+    try {
+      responseObserver.onNext(response)
+      responseObserver.onCompleted()
+    }
+    catch (e: StatusRuntimeException) {
+      if (e.status.code != Status.Code.CANCELLED) {
+        throw e
+      }
+    }
   }
 
   private fun <T> sendStreamingResponse(responseObserver: StreamObserver<T>, response: T) {
