@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.google.common.util.concurrent.FutureCallback;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class CountDownLatchFutureCallback<V> implements FutureCallback<V> {
+public final class CountDownLatchFutureCallback<V> implements FutureCallback<V> {
   private final @NotNull FutureCallback<@Nullable V> myDelegate;
   private final @NotNull CountDownLatch myLatch;
 
-  CountDownLatchFutureCallback(@NotNull FutureCallback<@Nullable V> delegate, @NotNull CountDownLatch latch) {
+  public CountDownLatchFutureCallback(@NotNull FutureCallback<@Nullable V> delegate, @NotNull CountDownLatch latch) {
     myDelegate = delegate;
     myLatch = latch;
   }

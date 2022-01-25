@@ -24,7 +24,6 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValu
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
-import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
@@ -70,11 +69,14 @@ import org.jetbrains.annotations.Nullable;
 public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
+  private final @NotNull NewSetDevices myNewSetDevices;
 
-  private static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
+  @VisibleForTesting
+  static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
     private final @NotNull VirtualDeviceTableModel myModel;
 
-    private SetDevices(@NotNull VirtualDeviceTableModel model) {
+    @VisibleForTesting
+    SetDevices(@NotNull VirtualDeviceTableModel model) {
       myModel = model;
     }
 
@@ -97,18 +99,26 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     }
   }
 
+  @VisibleForTesting
+  interface NewSetDevices {
+    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTableModel model);
+  }
+
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel, new VirtualDeviceTableModel());
+    this(panel, new VirtualDeviceAsyncSupplier(), SetDevices::new);
   }
 
   @VisibleForTesting
-  VirtualDeviceTable(@NotNull VirtualDevicePanel panel, @NotNull VirtualDeviceTableModel model) {
-    super(model, VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
+  VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
+                     @NotNull VirtualDeviceAsyncSupplier asyncSupplier,
+                     @NotNull NewSetDevices newSetDevices) {
+    super(new VirtualDeviceTableModel(), VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
     myPanel = panel;
-    myAsyncSupplier = new VirtualDeviceAsyncSupplier();
+    myAsyncSupplier = asyncSupplier;
+    myNewSetDevices = newSetDevices;
 
-    model.addTableModelListener(event -> sizeWidthsToFit());
+    dataModel.addTableModelListener(event -> sizeWidthsToFit());
 
     Project project = panel.getProject();
 
@@ -133,7 +143,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
     setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
 
-    setRowSorter(newRowSorter(model));
+    setRowSorter(newRowSorter(dataModel));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
@@ -183,10 +193,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     sorter.setSortKeys(Collections.singletonList(new SortKey(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, SortOrder.ASCENDING)));
 
     return sorter;
-  }
-
-  public @NotNull DevicePanel getPanel() {
-    return myPanel;
   }
 
   @Override
@@ -261,7 +267,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   public void refreshAvds() {
-    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), new SetDevices(getModel()));
+    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(getModel()));
   }
 
   @Override
