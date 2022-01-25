@@ -1057,7 +1057,7 @@ internal class ManageSnapshotsDialog(
         for (i in 0 until model.rowCount) {
           val snapshotFolder = model.getItem(i).snapshotFolder
           val row = table.convertRowIndexToView(i)
-          if (snapshotFolder in selected) {
+          if (selected.contains(snapshotFolder)) {
             selectionModel.addSelectionInterval(row, row)
           }
           if (snapshotFolder == anchor) {
