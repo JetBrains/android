@@ -66,6 +66,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.AffineTransform
+import java.util.concurrent.CancellationException
 import kotlin.math.min
 
 /**
@@ -168,6 +169,9 @@ class DeviceView(
         }
       })
       deviceClient.startVideoDecoding(decoder)
+    }
+    catch (_: CancellationException) {
+      // The view has been closed.
     }
     catch (e: Throwable) {
       thisLogger().error("Failed to initialize the screen sharing agent", e)
