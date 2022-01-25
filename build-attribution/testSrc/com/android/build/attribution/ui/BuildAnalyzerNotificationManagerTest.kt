@@ -70,7 +70,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
     // Add a fake build tab
     project.getService(BuildContentManager::class.java).addContent(
-      ContentImpl(JPanel(), BuildContentManagerImpl.Build_Tab_Title_Supplier.get(), true)
+      ContentImpl(JPanel(), BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get(), true)
     )
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
