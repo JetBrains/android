@@ -1111,4 +1111,92 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       """.trimMargin()
     )
   }
+
+  fun testFromKotlinAssistedInjectedConstructorToKotlinAssistedFactoryMethod() {
+    myFixture.loadNewFile(
+      "test/FooFactory.kt",
+      //language=kotlin
+      """
+      import dagger.assisted.AssistedFactory
+
+      @AssistedFactory
+      interface FooFactory {
+          // Is a factory method
+          fun create(id: String): Foo
+      }
+    """.trimIndent()
+    )
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      class Foo @AssistedInject con<caret>structor(
+          @Assisted val id: String
+      )
+    """.trimIndent()
+    )
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      |  AssistedFactory methods (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     FooFactory.kt (1)
+      |      FooFactory (1)
+      |       6fun create(id: String): Foo
+      """.trimMargin()
+    )
+  }
+
+  fun testFromKotlinAssistedFactoryMethodToKotlinAssistedInjectedConstructor() {
+    myFixture.loadNewFile(
+      "test/Foo.kt",
+      //language=kotlin
+      """
+      import dagger.assisted.Assisted
+      import dagger.assisted.AssistedInject
+
+      class Foo @AssistedInject constructor(
+          @Assisted val id: String
+      )
+    """.trimIndent()
+    )
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+      import dagger.assisted.AssistedFactory
+
+      @AssistedFactory
+      interface FooFactory {
+          // Is a factory method
+          fun cre<caret>ate(id: String): Foo
+      }
+    """.trimIndent()
+    )
+
+    val trackerService = TestDaggerAnalyticsTracker()
+    project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      |  AssistedInject constructors (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     Foo.kt (1)
+      |      Foo (1)
+      |       4class Foo @AssistedInject constructor(
+      """.trimMargin()
+    )
+
+    assertThat(trackerService.calledMethods).hasSize(1)
+    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+    assertThat(trackerService.calledMethods.last()
+                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ").toInt()).isNotNull()
+
+  }
 }
