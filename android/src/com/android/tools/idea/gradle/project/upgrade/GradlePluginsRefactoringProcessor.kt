@@ -185,8 +185,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.2.1")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("1.4.1")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("1.2.1")
+        VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("1.4.1")
       }
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
@@ -199,8 +199,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("4.0.1")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("4.0.1")
+        VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
       }
 
     /**
