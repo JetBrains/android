@@ -18,9 +18,9 @@ package com.android.tools.idea.refactoring.modularize
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.refactoring.PackageWrapper
-import com.intellij.refactoring.util.RefactoringUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.CommonJavaRefactoringUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.idea.refactoring.move.moveFilesOrDirectories.MoveKotlinFileHandler
 import org.jetbrains.kotlin.idea.util.sourceRoots
@@ -62,7 +62,7 @@ class AndroidModularizeKotlinRefactoringTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
     runWriteAction {
-      val psiDirectory = RefactoringUtil.createPackageDirectoryInSourceRoot(
+      val psiDirectory = CommonJavaRefactoringUtil.createPackageDirectoryInSourceRoot(
         PackageWrapper(myFixture.psiManager, "p1.p2"), myAdditionalModules[0].sourceRoots[0])
 
       MoveKotlinFileHandler().findUsages(activity, psiDirectory, true, true)

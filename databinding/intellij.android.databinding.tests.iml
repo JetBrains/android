@@ -36,5 +36,6 @@
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.java.impl.refactorings" scope="TEST" />
   </component>
 </module>

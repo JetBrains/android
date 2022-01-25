@@ -184,5 +184,6 @@
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="library" name="javaslang" level="project" />
     <orderEntry type="module" module-name="intellij.java.impl.inspections" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.impl.refactorings" scope="TEST" />
   </component>
 </module>
