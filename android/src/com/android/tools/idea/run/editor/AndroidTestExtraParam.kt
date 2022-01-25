@@ -57,11 +57,13 @@ data class AndroidTestExtraParam @JvmOverloads constructor(
      */
     @JvmStatic
     fun parseFromString(extraParams: String): Sequence<AndroidTestExtraParam> {
-      return extraParams.splitToSequence("-e")
+      return " $extraParams"
+        .splitToSequence(" -e ")
         .drop(1)  // We split string by "-e", so we need to discard the first element which is a substring before the first "-e".
         .map { it.trim() }
         .filter { it.isNotBlank() }
         .map { it.split(' ', limit = 2) + "" }  // Pad with empty string for key-only param.
+        .filter { it[0] != "-e" && it[1] != "-e"}
         .map { (key, value) -> AndroidTestExtraParam(key, value.trim()) }
     }
   }

@@ -42,9 +42,12 @@ class AndroidTestExtraParamTest : AndroidGradleTestCase() {
                        AndroidTestExtraParam("key2", "value2 with space"))
 
     // Leading and trailing whitespace should be removed.
-    assertThat(parseFromString("    -e    key1     value1     -e    key2    value2     ").toList())
+    assertThat(parseFromString("    -e    key1     value1    -e    key2    value2     ").toList())
       .containsExactly(AndroidTestExtraParam("key1", "value1"),
                        AndroidTestExtraParam("key2", "value2"))
+
+    assertThat(parseFromString("-e k-ey1 valu-e1").toList())
+      .containsExactly(AndroidTestExtraParam("k-ey1", "valu-e1"))
 
     // Malformed input.
     assertThat(parseFromString("This is invalid input").toList()).isEmpty()

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectPro
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -330,15 +331,11 @@ class GradleConnectedAndroidTestInvoker(
         withArgument("-P$UNINSTALL_INCOMPATIBLE_APKS_PROPERTY=true")
       }
 
-      // Extra instrumentation params are stored as a String with the format "-e name1 value1 -e name2 value2 ...". To use these arguments
+      // Extra instrumentation params are stored as a String with the format "-e name1 value1 -e name2 value2...". To use these arguments
       // in a Gradle test, each argument needs to be in the format "-Pandroid.testInstrumentationRunnerArguments.name=value".
-      val extraInstrumentationOptionsList = extraInstrumentationOptions.split("-e")
+      val extraInstrumentationOptionsList = parseFromString(extraInstrumentationOptions).toList()
       for (param in extraInstrumentationOptionsList) {
-        if (param == "") {
-          continue
-        }
-        val nameValuePair = param.trim().split(" ")
-        withArgument("-Pandroid.testInstrumentationRunnerArguments.${nameValuePair[0]}=${nameValuePair[1]}")
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.${param.NAME}=${param.VALUE.trim()}")
       }
 
       // Don't switch focus to build tool window even after build failure because
