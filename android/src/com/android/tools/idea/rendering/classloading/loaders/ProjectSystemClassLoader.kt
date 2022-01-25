@@ -41,8 +41,6 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    */
   private val virtualFileCache = ConcurrentHashMap<String, Pair<VirtualFile, ClassModificationTimestamp>>()
 
-  private val nonProjectFiles: MutableSet<String> = Collections.newSetFromMap(ContainerUtil.createConcurrentSoftMap())
-
   /**
    * [Sequence] of all the [VirtualFile]s and their associated [ClassModificationTimestamp] that have been loaded
    * by this [ProjectSystemClassLoader].
@@ -60,7 +58,7 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    */
   fun findClassVirtualFile(fqcn: String): VirtualFile? {
     // Avoid loading a few well known system prefixes for the project class loader and also classes that have failed before.
-    if (fqcn.isSystemPrefix() || nonProjectFiles.contains(fqcn)) {
+    if (fqcn.isSystemPrefix()) {
       return null
     }
     val cachedVirtualFile = virtualFileCache[fqcn]
@@ -71,9 +69,6 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
     if (vFile != null) {
       virtualFileCache[fqcn] = Pair(vFile, ClassModificationTimestamp.fromVirtualFile(vFile))
     }
-    else {
-      nonProjectFiles.add(fqcn)
-    }
 
     return vFile
   }
@@ -83,7 +78,6 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    */
   fun invalidateCaches() {
     virtualFileCache.clear()
-    nonProjectFiles.clear()
   }
 
   override fun loadClass(fqcn: String): ByteArray? = try {

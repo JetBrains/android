@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -142,5 +143,25 @@ class ProjectSystemClassLoaderTest {
     assertNull(loader.loadClass("java.lang.Test"))
     assertEquals(virtualFile3.contentsToByteArray(), loader.loadClass("test.package.A"))
     assertEquals(1, loader.loadedVirtualFiles.count())
+  }
+
+  /**
+   * Regression test for b/216309775. If a class is not found, but then added by a build, the project class loader should pick it up.
+   */
+  @Test
+  fun `verify failed class loads are not cached`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    val virtualFile1 = TestVirtualFile(rootDir, "file1")
+    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val classes = mutableMapOf(
+      "test.package.A" to virtualFile1
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertNull(loader.loadClass("test.package.B"))
+    classes["test.package.B"] = virtualFile2
+    assertNotNull(loader.loadClass("test.package.B"))
   }
 }
