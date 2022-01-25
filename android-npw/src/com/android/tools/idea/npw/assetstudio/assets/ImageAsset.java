@@ -197,7 +197,7 @@ public final class ImageAsset extends BaseAsset {
 
   @UiThread
   @Override
-  public PersistentState getState() {
+  public @NotNull PersistentState getState() {
     PersistentState state = super.getState();
     state.setEncoded(IMAGE_PATH_PROPERTY, myImagePath.getValueOrNull(),
                      file -> FileUtil.filesEqual(file, myDefaultImagePath) ? null : file.getPath());
