@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
 internal class LogcatFormatCustomViewAction(
   private val project: Project,
   private val logcatPresenter: LogcatPresenter,
-) : SelectableAction(LogcatBundle.message("logcat.format.action.custom")), DumbAware {
+) : SelectableAction(LogcatBundle.message("logcat.format.custom.action.text")), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
     LogcatFormatDialog(project, logcatPresenter.formattingOptions, object : LogcatFormatDialogBase.ApplyAction {

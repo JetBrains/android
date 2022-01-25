@@ -29,7 +29,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
  * An action that opens a popup menu with Logcat format-related actions
  */
 internal class LogcatFormatAction(private val project: Project, private val logcatPresenter: LogcatPresenter)
-  : DumbAwareAction(null, LogcatBundle.message("logcat.format.action.description"), AllIcons.Actions.Properties) {
+  : DumbAwareAction(LogcatBundle.message("logcat.format.action.text"), null, AllIcons.Actions.Properties) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val actionGroup = DefaultActionGroup(

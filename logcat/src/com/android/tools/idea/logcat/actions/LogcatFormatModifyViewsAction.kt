@@ -32,7 +32,7 @@ import com.intellij.openapi.project.Project
 internal class LogcatFormatModifyViewsAction(
   private val project: Project,
   private val logcatPresenter: LogcatPresenter,
-) : DumbAwareAction(LogcatBundle.message("logcat.format.action.modify")) {
+) : DumbAwareAction(LogcatBundle.message("logcat.format.modify.action.text")) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()

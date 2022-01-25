@@ -61,8 +61,8 @@ class LogcatFormatActionTest {
   fun presentation() {
     val action = LogcatFormatAction(projectRule.project, fakeLogcatPresenter)
 
-    assertThat(action.templatePresentation.text).isNull()
-    assertThat(action.templatePresentation.description).isEqualTo("Configure Logcat formatting options")
+    assertThat(action.templatePresentation.text).isEqualTo("Configure Logcat Formatting Options")
+    assertThat(action.templatePresentation.description).isNull()
     assertThat(action.templatePresentation.icon).isSameAs(AllIcons.Actions.Properties)
   }
 

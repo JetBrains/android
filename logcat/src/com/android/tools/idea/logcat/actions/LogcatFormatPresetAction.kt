@@ -28,7 +28,7 @@ import com.intellij.openapi.project.DumbAware
  */
 sealed class LogcatFormatPresetAction(private val style: FormattingOptions.Style, private val logcatPresenter: LogcatPresenter)
   : SelectableAction(
-  LogcatBundle.message("logcat.format.action.view.type", style.displayName)), DumbAware {
+  LogcatBundle.message("logcat.format.preset.action.text", style.displayName)), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     if (!isSelected()) {
       logcatPresenter.formattingOptions = style.formattingOptions

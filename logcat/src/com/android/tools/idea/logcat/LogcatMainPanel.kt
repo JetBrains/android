@@ -63,7 +63,6 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
@@ -290,9 +289,8 @@ internal class LogcatMainPanel(
     return SimpleActionGroup().apply {
       add(ClearLogcatAction(this@LogcatMainPanel))
       add(ScrollToTheEndToolbarAction(editor).apply {
-        val text = LogcatBundle.message("logcat.scroll.to.end.text")
-        templatePresentation.text = StringUtil.toTitleCase(text)
-        templatePresentation.description = text
+        @Suppress("DialogTitleCapitalization")
+        templatePresentation.text = LogcatBundle.message("logcat.scroll.to.end.action.text")
       })
       add(object : ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE) {
         override fun getEditor(e: AnActionEvent) = this@LogcatMainPanel.editor
