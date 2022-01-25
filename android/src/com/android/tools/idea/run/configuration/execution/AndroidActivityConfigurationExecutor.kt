@@ -30,6 +30,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -48,7 +49,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
     }
     val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller()
+    val applicationInstaller = getApplicationInstaller(console)
     val processHandler = ActivityProcessHandler(appId, console)
     devices.forEach { device ->
       val terminator = ApplicationTerminator(device, appId)
@@ -58,9 +59,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
       processHandler.addDevice(device)
       ProgressManager.checkCanceled()
       indicator?.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.PM_INSTALL_OPTIONS) {
-        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
-      }
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.PM_INSTALL_OPTIONS)
       activateActivity(device, app, console)
     }
     ProgressManager.checkCanceled()

@@ -71,8 +71,7 @@ internal class TestApplicationInstaller : ApplicationInstaller {
   override fun installAppOnDevice(device: IDevice,
                                   appId: String,
                                   apksPaths: List<String>,
-                                  installFlags: String,
-                                  infoReceiver: (String) -> Unit): App {
+                                  installFlags: String): App {
     return appIdToApp[appId]!!
   }
 }

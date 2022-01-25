@@ -88,7 +88,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
     // Mock console.
     val console: ConsoleView = Mockito.mock(ConsoleView::class.java)
@@ -154,6 +154,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
           "Broadcast completed: result=1"
         request.contains("DEBUG_SYSUI --es operation show-watchface") ->
           "Broadcast completed: result=0"
+        request.contains("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --ecn component 'com.example.app'") ->
+          "Broadcast completed: result=1"
         else -> "Unknown request: $request"
       }
     }
@@ -169,8 +171,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
     doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
+
     // Mock console.
     val console: ConsoleView = Mockito.mock(ConsoleView::class.java)
     doReturn(console).`when`(executor).createConsole()
@@ -179,7 +182,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(7)).executeShellCommand(
+    Mockito.verify(device, times(9)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -191,24 +194,27 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
     // Set debug app.
     assertThat(commands[1]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --ecn component 'com.example.app'")
     // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+    assertThat(commands[3]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
                                       " --ecn component 'com.example.app/com.example.app.Component'" +
                                       " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
                                       " --ei slot 1 --ei type 3")
     // Set debug app.
-    assertThat(commands[3]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[4]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[5]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --ecn component 'com.example.app'")
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(commands[4]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+    assertThat(commands[6]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
                                       " --ecn component 'com.example.app/com.example.app.Component'" +
                                       " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
                                       " --ei slot 3 --ei type 5")
     // Set watch face.
-    assertThat(commands[5]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE" +
+    assertThat(commands[7]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE" +
                                       " --es operation set-watchface" +
                                       " --ecn component com.example.watchface/com.example.watchface.MyWatchFace")
     // Show watch face.
-    assertThat(commands[6]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+
+    assertThat(commands[8]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
 
     // Verify that a warning was raised.
     Mockito.verify(console, times(1))

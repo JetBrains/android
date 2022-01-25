@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
@@ -26,6 +27,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
@@ -50,7 +52,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
     executor.doOnDevices(listOf(device))
 
@@ -81,7 +83,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
-    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
     // Mock debugSessionStarter.
     Mockito.doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 

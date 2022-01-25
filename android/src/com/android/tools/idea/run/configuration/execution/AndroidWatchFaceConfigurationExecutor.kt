@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -34,6 +35,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
@@ -49,7 +51,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
     Disposer.register(project, console)
-    val applicationInstaller = getApplicationInstaller()
+    val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val processHandler = WatchFaceProcessHandler(console)
     devices.forEach { device ->
@@ -71,9 +73,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       checkCanceled()
       text = "Installing the watch face"
     }
-    return applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
-      console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
-    }
+    return applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
   }
 
   private fun setWatchFace(app: App, mode: AppComponent.Mode) {
@@ -88,6 +88,12 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     catch (ex: DeployerException) {
       throw throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput()}", ex)
     }
+  }
+
+  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
+    RunContentDescriptor {
+    checkAndroidVersionForWearDebugging(device.version, console)
+    return super.startDebugger(device, processHandler, console)
   }
 }
 

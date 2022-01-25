@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData.DebuggerStatus
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
@@ -149,9 +150,8 @@ class AndroidRemoteDebugProcessHandler(
   private val processHandler: AndroidProcessHandlerForDevices
 ) : RemoteDebugProcessHandler(project, false) {
 
-  companion object {
-    const val CLEAR_DEBUG_APP_COMMAND = "am clear-debug-app"
-  }
+  private val DEBUG_SURFACE_CLEAR = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app' --ecn component "
+  private val ACTIVITY_MANAGER_CLEAR = "am clear-debug-app"
 
   override fun detachIsDefault() = false
 
@@ -159,7 +159,9 @@ class AndroidRemoteDebugProcessHandler(
     super.destroyProcess()
     processHandler.destroyProcess()
     processHandler.devices.forEach {
-      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, console)
+      val dummyReceiver = CommandResultReceiver()
+      it.executeShellCommand(DEBUG_SURFACE_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
+      it.executeShellCommand(ACTIVITY_MANAGER_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
     }
   }
 }

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.MultiReceiver
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -52,7 +53,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     }
     val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller()
+    val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
@@ -66,9 +67,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       }
       indicator?.checkCanceled()
       indicator?.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
-        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
-      }
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
       val tileIndex = setWatchTile(app, mode, indicator, console)
       val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
       val showTileReceiver = CommandResultReceiver()
@@ -101,6 +100,12 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
+  }
+
+  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
+    RunContentDescriptor {
+    checkAndroidVersionForWearDebugging(device.version, console)
+    return super.startDebugger(device, processHandler, console)
   }
 }
 

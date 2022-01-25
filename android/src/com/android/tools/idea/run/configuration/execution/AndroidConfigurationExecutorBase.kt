@@ -17,6 +17,8 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
@@ -119,8 +121,8 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     throw ExecutionException("Device didn't come online")
   }
 
-  fun getApplicationInstaller(): ApplicationInstaller {
-    return ApplicationInstallerImpl(project)
+  fun getApplicationInstaller(console: ConsoleView): ApplicationInstaller {
+    return ApplicationInstallerImpl(project, console)
   }
 
   internal fun createConsole(): ConsoleView {
@@ -141,7 +143,8 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     return apkProvider.getApks(device).single().files.map { it.apkFile.path }
   }
 
-  private fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView): RunContentDescriptor {
+  protected open fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
+    RunContentDescriptor {
     return getDebugSessionStarter().attachDebuggerToClient(device, processHandler, console)
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
@@ -24,12 +25,14 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
+import com.android.utils.ILogger
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.util.AndroidBundle
@@ -49,7 +52,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     }
     val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
-    val applicationInstaller = getApplicationInstaller()
+    val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val watchFaceInfo = "${configuration.watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
     val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
@@ -63,9 +66,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
         console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
       }
       indicator?.checkCanceled()
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) { info ->
-        console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
-      }
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
       indicator?.checkCanceled()
       val appWatchFace = installWatchApp(device, console)
 
@@ -83,9 +84,13 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {
     val watchFaceInfo = configuration.watchFaceInfo
-    return getApplicationInstaller().installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "") { info ->
-      console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
-    }
+    return getApplicationInstaller(console).installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "")
+  }
+
+  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
+    RunContentDescriptor {
+    checkAndroidVersionForWearDebugging(device.version, console)
+    return super.startDebugger(device, processHandler, console)
   }
 }
 

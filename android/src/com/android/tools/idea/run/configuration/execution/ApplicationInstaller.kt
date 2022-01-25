@@ -30,6 +30,7 @@ import com.android.tools.idea.run.DeploymentService
 import com.android.tools.idea.run.IdeService
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -39,24 +40,36 @@ interface ApplicationInstaller {
   fun installAppOnDevice(device: IDevice,
                          appId: String,
                          apksPaths: List<String>,
-                         installFlags: String,
-                         infoReceiver: (String) -> Unit): App
+                         installFlags: String): App
 }
 
-class ApplicationInstallerImpl(private val project: Project) : ApplicationInstaller {
+class ApplicationInstallerImpl(private val project: Project, private val console: ConsoleView) : ApplicationInstaller {
+
+  internal class LogWithConsole(logger: Logger, val console: ConsoleView) : LogWrapper(logger) {
+    override fun info(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
+      if (msgFormat.contains("$ adb")) {
+        console.print(msgFormat + "\n")
+      }
+      super.info(msgFormat, *args)
+    }
+    override fun warning(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
+      console.printError(msgFormat + "\n")
+      super.info(msgFormat, *args)
+    }
+  }
+
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun installAppOnDevice(device: IDevice,
                                   appId: String,
                                   apksPaths: List<String>,
-                                  installFlags: String,
-                                  infoReceiver: (String) -> Unit): App {
-    val deployer = getDeployer(device, infoReceiver)
+                                  installFlags: String): App {
+    val deployer = getDeployer(device)
 
     try {
       val result = deployer.install(appId, apksPaths, getInstallOptions(device, appId, installFlags), Deployer.InstallMode.DELTA)
       if (result.skippedInstall) {
-        infoReceiver("App restart successful without requiring a re-install.")
+        LOG.info("App restart successful without requiring a re-install.")
       }
       return result.app
     }
@@ -65,16 +78,8 @@ class ApplicationInstallerImpl(private val project: Project) : ApplicationInstal
     }
   }
 
-  private fun getDeployer(device: IDevice, commandPrinter: (String) -> Unit): Deployer {
-    val logger = object : LogWrapper(LOG) {
-      override fun info(msgFormat: String, vararg args: Any?) { // print to user console commands that we run on device
-        if (msgFormat.contains("$ adb")) {
-          commandPrinter(msgFormat + "\n")
-        }
-        super.info(msgFormat, *args)
-      }
-    }
-    val adb = AdbClient(device, logger)
+  private fun getDeployer(device: IDevice): Deployer {
+    val adb = AdbClient(device, LogWrapper(LOG))
     val service = DeploymentService.getInstance(project)
 
     val option = DeployerOption.Builder().setUseOptimisticSwap(
@@ -87,9 +92,10 @@ class ApplicationInstallerImpl(private val project: Project) : ApplicationInstal
     // Collection that will accumulate metrics for the deployment.
     val metrics = MetricsRecorder()
 
-    val installer = AdbInstaller(getLocalInstaller(), adb, metrics.deployMetrics, logger, AdbInstaller.Mode.DAEMON)
+    val loggerWithConsole = LogWithConsole(LOG, console)
+    val installer = AdbInstaller(getLocalInstaller(), adb, metrics.deployMetrics, loggerWithConsole, AdbInstaller.Mode.DAEMON)
     return Deployer(adb, service.deploymentCacheDatabase, service.dexDatabase, service.taskRunner, installer, IdeService(project), metrics,
-                    logger, option)
+                    loggerWithConsole, option)
   }
 
   private fun getLocalInstaller(): String? {
