@@ -171,6 +171,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     // For the main content area, display a grid if icons.
     myIconTable.setBackground(iconBackgroundColor);
     myIconTable.setDefaultRenderer(VdIcon.class, new IconPickerCellRenderer());
+    myIconTable.setTableHeader(null);
     myIconTable.setRowHeight(ICON_ROW_HEIGHT);
     myIconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myIconTable.setCellSelectionEnabled(true);
