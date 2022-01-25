@@ -221,6 +221,10 @@ public final class StudioFlags {
     NELE, "motion.area.graph", "Show area graph in Timeline panel",
     "Show area graph in Timeline panel for Motion Editor.",
     true);
+  public static final Flag<Boolean> NELE_MOTION_SAVE_GIF = Flag.create(
+    NELE, "motion.save.gif", "Enable save GIF feature",
+    "Enable save a selected transition as a GIF file in Motion Editor.",
+    true);
   public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",

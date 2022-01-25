@@ -956,6 +956,14 @@ public class TimeLinePanel extends JPanel {
     mMotionEditorSelector = listeners;
   }
 
+  public int getYoyoMode() {
+    return myYoyo;
+  }
+
+  public float getSpeedMultiplier() {
+    return ourSpeedsMultipliers[mCurrentSpeed];
+  }
+
   /**
    * This is a very simple vertical flow layout with special handling of the last Component
    */

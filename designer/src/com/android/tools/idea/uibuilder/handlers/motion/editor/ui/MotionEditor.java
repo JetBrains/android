@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
@@ -256,6 +255,13 @@ public class MotionEditor extends JPanel {
       @Override
       public void select(MTag selected, int flags) {
         selectTag(selected, flags);
+      }
+
+      @Override
+      public void performAction(int type) {
+       if (type == SAVE_GIF) {
+         mTransitionPanel.mTimeLinePanel.notifyTimeLineListeners(MotionEditorSelector.TimeLineCmd.MOTION_CAPTURE, 0f);
+       }
       }
 
       @Override
@@ -830,5 +836,13 @@ public class MotionEditor extends JPanel {
     }
 
     void perform(Action action, MTag[] tag);
+  }
+
+  public int getPlayMode() {
+    return mTransitionPanel.mTimeLinePanel.getYoyoMode();
+  }
+
+  public float getTimeLineSpeed() {
+    return mTransitionPanel.mTimeLinePanel.getSpeedMultiplier();
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
@@ -25,6 +26,13 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -52,6 +60,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The overview panel displays graphically the layout and the transitions and allows selection for ether.
@@ -95,6 +106,10 @@ class OverviewPanel extends JPanel {
   private MTag mMouseOverDerived;
   private float mTransitionProgress = Float.NaN;
   private boolean mControlDown = false;
+  private final ActionGroup myActionGroup;
+  private boolean mTransitionHovered = false;
+  private JPopupMenu mPopupMenu = new JPopupMenu();
+  private boolean mShowSaveGif = StudioFlags.NELE_MOTION_SAVE_GIF.get();
 
   /**
    * Defines the progress along the selected Transition
@@ -130,11 +145,16 @@ class OverviewPanel extends JPanel {
 
   public OverviewPanel() {
     setBackground(MEUI.ourPrimaryPanelBackground);
+    myActionGroup = createPopupActionGroup();
 
     setToolTipText("OverViewPanel showing ConstraintSets and Transitions");
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
+        if (SwingUtilities.isRightMouseButton(e) && e.getClickCount() == 1 && mTransitionHovered && mShowSaveGif){
+          showPopupMenu(e);
+          return;
+        }
         requestFocusInWindow();
         updateFromMouse(e.getX(), e.getY(), false);
       }
@@ -365,13 +385,15 @@ class OverviewPanel extends JPanel {
         switch (found.getTagName()) {
           case "Transition":
             setToolTipText("Transition " + Utils.formatTransition(found));
-
+            mTransitionHovered = true;
             break;
           case "ConstraintSet":
             setToolTipText("ConstraintSet " + Utils.stripID(found.getAttributeValue("id")));
+            mTransitionHovered = false;
             break;
           default:
             setToolTipText("Original MotionLayout");
+            mTransitionHovered = false;
         }
 
         repaint();
@@ -1245,5 +1267,26 @@ class OverviewPanel extends JPanel {
     calcDimensions();
     revalidate();
     repaint();
+  }
+
+  private void showPopupMenu(@NotNull MouseEvent e) {
+    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, myActionGroup);
+    popupMenu.getComponent().show(e.getComponent(),e.getX(), e.getY());
+  }
+
+  // create an action group for the popup menu of a transition
+  @NotNull
+  private ActionGroup createPopupActionGroup() {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    AnAction mySaveGifAction = new AnAction("Save Gif", "Save selected transition as Gif", MEIcons.SAVE) {
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent event) {
+        mListener.performAction(MTagActionListener.SAVE_GIF);
+      }
+    };
+
+    group.add(mySaveGifAction);
+    return group;
   }
 }
