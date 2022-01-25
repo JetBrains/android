@@ -40,9 +40,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -82,8 +82,13 @@ class EmulatorToolWindowManagerTest {
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, projectRule.testRootDisposable)
 
     val windowManager = TestToolWindowManager(project)
+    project.replaceService(ToolWindowManager::class.java, windowManager, projectRule.testRootDisposable)
     toolWindow = windowManager.toolWindow
-    project.registerServiceInstance(ToolWindowManager::class.java, windowManager)
+  }
+
+  @After
+  fun tearDown() {
+    toolWindow.hide();
   }
 
   @Test
