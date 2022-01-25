@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL;
-import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
+import static com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL;
+import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.project.ProjectUtil.guessProjectDir;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -30,7 +30,7 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.android.tools.idea.util.FormatUtil;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

@@ -43,8 +43,8 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.uniquenessSatisfied
 import com.android.tools.idea.templates.validate
-import com.android.tools.idea.ui.wizard.WizardUtils
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint

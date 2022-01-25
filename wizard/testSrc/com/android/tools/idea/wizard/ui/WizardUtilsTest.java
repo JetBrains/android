@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.wizard.ui;
 
-import com.android.tools.adtui.validation.Validator.Result;
-import com.android.tools.adtui.validation.Validator.Severity;
+import static com.android.tools.idea.wizard.ui.WizardUtils.getProjectLocationParent;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.ide.GeneralSettings;
@@ -27,26 +30,9 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.android.tools.idea.ui.wizard.WizardUtils.getProjectLocationParent;
-import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
-import static com.google.common.base.Strings.repeat;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class WizardUtilsTest {
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.onDisk();
-
-  @Test
-  public void validatePackageNameWithNullPackage() {
-    assertThat(validatePackageName(null)).isEqualTo("Package name is missing");
-  }
-
-  @Test
-  public void validatePackageNameWithLongPackage() {
-    assertThat(validatePackageName(repeat("A", 200))).isEqualTo("Package name is too long");
-  }
 
   @Test
   public void defaultProjectLocation() {

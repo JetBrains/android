@@ -17,4 +17,4 @@
 /**
  * Custom UI components useful for giving Android Studio wizards a consistent look and feel.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.wizard.ui;

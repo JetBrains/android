@@ -38,7 +38,7 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.ThrottledProgressWrapper;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

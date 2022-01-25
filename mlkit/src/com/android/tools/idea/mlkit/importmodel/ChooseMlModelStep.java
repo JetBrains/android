@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.LARGE;
+import static com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.LARGE;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;

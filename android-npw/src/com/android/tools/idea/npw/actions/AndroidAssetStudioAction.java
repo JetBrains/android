@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.actions;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.AnAction;

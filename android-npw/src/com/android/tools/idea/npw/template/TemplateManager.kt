@@ -27,8 +27,8 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.templates.AdditionalTemplateActionsProvider
-import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category

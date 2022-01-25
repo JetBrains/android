@@ -23,7 +23,7 @@ import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
+import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
 import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
@@ -57,7 +57,7 @@ import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.Category;
@@ -84,12 +84,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -196,7 +196,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
     myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
-                                       value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
+                                       value -> Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(myProjectModel.getLanguage(), value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.validate.select.language")));

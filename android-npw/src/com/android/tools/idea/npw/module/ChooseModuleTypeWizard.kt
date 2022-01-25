@@ -27,7 +27,7 @@ import com.android.tools.idea.npw.project.TABLE_CELL_LEFT_PADDING
 import com.android.tools.idea.npw.project.TABLE_CELL_WIDTH
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
-import com.android.tools.idea.ui.wizard.StudioWizardLayout
+import com.android.tools.idea.wizard.ui.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.SkippableWizardStep

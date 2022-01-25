@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

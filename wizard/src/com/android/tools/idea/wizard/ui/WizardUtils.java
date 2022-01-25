@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.wizard.ui;
 
 import static com.intellij.util.ui.JBUI.Borders.empty;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
@@ -29,10 +29,7 @@ import com.intellij.util.SystemProperties;
 import java.io.File;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Static utility methods useful across wizards
@@ -48,15 +45,6 @@ public final class WizardUtils {
       this.border = border;
     }
   }
-
-  /**
-   * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
-   * A windows directory path cannot be longer than 250 chars
-   * On unix/mac a directory name cannot be longer than 250 chars
-   * On all platforms, aapt fails with really cryptic errors if the package name is longer that ~200 chars
-   * Having a sane length for the package also seems a good thing
-   */
-  private static final int PACKAGE_LENGTH_LIMIT = 100;
 
   /**
    * Returns the parent directory which the last project was created into or a reasonable default
@@ -77,15 +65,6 @@ public final class WizardUtils {
 
     String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
     return new File(SystemProperties.getUserHome(), child);
-  }
-
-  @Nullable
-  public static String validatePackageName(@Nullable String packageName) {
-    packageName = (packageName == null) ? "" : packageName;
-    if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
-      return AndroidBundle.message("android.wizard.module.package.too.long");
-    }
-    return AndroidUtils.validateAndroidPackageName(packageName);
   }
 
   /**

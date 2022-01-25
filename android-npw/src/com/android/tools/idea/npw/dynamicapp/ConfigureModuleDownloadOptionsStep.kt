@@ -27,7 +27,7 @@ import com.android.tools.idea.observable.expressions.bool.IsEqualToExpression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ide.BrowserUtil

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
+import com.android.tools.idea.wizard.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager

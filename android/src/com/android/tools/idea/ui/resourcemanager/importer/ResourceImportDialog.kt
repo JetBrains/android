@@ -16,8 +16,8 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.help.AndroidWebHelpProvider
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
+import com.android.tools.idea.wizard.ui.ProposedFileTreeCellRenderer
+import com.android.tools.idea.wizard.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets

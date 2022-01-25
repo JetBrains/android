@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBLabel

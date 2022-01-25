@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.util;
 
+import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.util.AndroidUtils.isValidAndroidPackageName;
 import static org.jetbrains.android.util.AndroidUtils.isValidJavaPackageName;
@@ -89,5 +90,13 @@ public class AndroidUtilsTest extends AndroidTestCase {
                                                                 "</root>");
     String context = AndroidUtils.getDeclaredContextFqcn(myModule, file);
     assertThat(context).isEqualTo("com.example.android.MainActivity");
+  }
+
+  public void testValidatePackageNameWithNullPackage() {
+    assertThat(AndroidUtils.validatePackageName(null)).isEqualTo("Package name is missing");
+  }
+
+  public void testValidatePackageNameWithLongPackage() {
+    assertThat(AndroidUtils.validatePackageName(repeat("A", 200))).isEqualTo("Package name is too long");
   }
 }

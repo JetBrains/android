@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.FRAGMENT_GALLERY
 import com.intellij.openapi.actionSystem.AnAction

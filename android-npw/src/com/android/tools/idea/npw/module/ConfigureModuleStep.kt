@@ -54,8 +54,8 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language

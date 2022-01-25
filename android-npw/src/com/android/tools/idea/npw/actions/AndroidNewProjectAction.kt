@@ -19,8 +19,8 @@ package com.android.tools.idea.npw.actions
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard.Builder
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle.actionText

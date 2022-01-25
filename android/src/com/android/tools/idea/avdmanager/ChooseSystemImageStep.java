@@ -20,7 +20,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.project.Project;

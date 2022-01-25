@@ -28,7 +28,7 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.ui.validation.validators.PathValidator
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent

@@ -159,6 +159,15 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
 
+  /**
+   * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
+   * A windows directory path cannot be longer than 250 chars
+   * On unix/mac a directory name cannot be longer than 250 chars
+   * On all platforms, aapt fails with really cryptic errors if the package name is longer that ~200 chars
+   * Having a sane length for the package also seems a good thing
+   */
+  private static final int PACKAGE_LENGTH_LIMIT = 100;
+
   private AndroidUtils() {
   }
 
@@ -630,6 +639,15 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
 
     return null;
+  }
+
+  @Nullable
+  public static String validatePackageName(@Nullable String packageName) {
+    packageName = (packageName == null) ? "" : packageName;
+    if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
+      return AndroidBundle.message("android.wizard.module.package.too.long");
+    }
+    return AndroidUtils.validateAndroidPackageName(packageName);
   }
 
   @Nullable

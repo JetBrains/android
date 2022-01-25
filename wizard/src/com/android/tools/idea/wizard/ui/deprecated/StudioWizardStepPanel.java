@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard.deprecated;
+package com.android.tools.idea.wizard.ui.deprecated;
 
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;

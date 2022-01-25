@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseCustomFragmentTemplatesStep
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction

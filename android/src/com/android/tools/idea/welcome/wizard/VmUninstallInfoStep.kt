@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.uiDesigner.core.Spacer

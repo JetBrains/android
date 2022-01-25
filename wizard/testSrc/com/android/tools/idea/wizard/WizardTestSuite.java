@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.validator
+package com.android.tools.idea.wizard;
 
-import com.android.tools.adtui.validation.Validator
-import org.jetbrains.android.util.AndroidUtils
+import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.tests.IdeaTestSuiteBase;
+import org.junit.runner.RunWith;
 
-class PackageNameValidator: Validator<String> {
-  override fun validate(value: String): Validator.Result =
-    Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value))
+@RunWith(JarTestSuiteRunner.class)
+@JarTestSuiteRunner.ExcludeClasses(WizardTestSuite.class)
+public class WizardTestSuite extends IdeaTestSuiteBase {
 }
