@@ -22,6 +22,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
+import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -95,7 +96,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 class ComplicationProcessHandler(private val complicationComponentName: String,
                                  private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = ConsoleOutputReceiver({ false }, console)
+    val receiver = CommandResultReceiver()
 
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     console.printShellCommand(removeComplicationCommand)
@@ -103,5 +104,8 @@ class ComplicationProcessHandler(private val complicationComponentName: String,
 
     console.printShellCommand(UNSET_WATCH_FACE)
     device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printError("Warning: Complication was not stopped.")
+    }
   }
 }

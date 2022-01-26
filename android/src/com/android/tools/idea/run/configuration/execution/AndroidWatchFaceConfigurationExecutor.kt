@@ -110,9 +110,12 @@ internal fun showWatchFace(device: IDevice, console: ConsoleView) {
 class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
 
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = ConsoleOutputReceiver({ false }, console)
+    val receiver = CommandResultReceiver()
 
     console.printShellCommand(UNSET_WATCH_FACE)
     device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printError("Warning: Watch face was not stopped.")
+    }
   }
 }

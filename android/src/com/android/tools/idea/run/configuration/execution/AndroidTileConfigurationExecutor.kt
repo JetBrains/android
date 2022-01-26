@@ -119,10 +119,12 @@ private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> B
 
 class TileProcessHandler(private val tileName: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = ConsoleOutputReceiver({ false }, console)
-
+    val receiver = CommandResultReceiver()
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
     console.printShellCommand(removeTileCommand)
     device.executeShellCommand(removeTileCommand, receiver, 5, TimeUnit.SECONDS)
+    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printError("Warning: Tile was not stopped.")
+    }
   }
 }
