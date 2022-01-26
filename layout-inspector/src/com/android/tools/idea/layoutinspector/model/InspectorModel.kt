@@ -177,6 +177,10 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     selectionListeners.forEach { it(old, new, origin) }
   }
 
+  fun updatePropertiesPanel() {
+    setSelection(selection, SelectionOrigin.INTERNAL)
+  }
+
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
   }
@@ -332,6 +336,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composeLineNumber = newNode.composeLineNumber
         oldNode.composeFlags = newNode.composeFlags
         oldNode.recomposeCount = newNode.recomposeCount
+        oldNode.recomposeSkips = newNode.recomposeSkips
       }
 
       oldNode.children.clear()

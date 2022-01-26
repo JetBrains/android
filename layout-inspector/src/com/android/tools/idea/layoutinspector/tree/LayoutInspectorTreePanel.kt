@@ -103,7 +103,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withToggleClickCount(3)
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
-      .withColumn(createIntColumnInfo<TreeViewNode>("RecompositionCounts", { (it.view as? ComposeViewNode)?.recomposeCount }))
+      .withColumn(createIntColumnInfo<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }))
+      .withColumn(createIntColumnInfo<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }))
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
@@ -173,8 +174,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
-  fun showRecompositionColumn(show: Boolean) =
+  fun showRecompositionColumn(show: Boolean) {
     setColumnVisibility(1, show)
+    setColumnVisibility(2, show)
+  }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {

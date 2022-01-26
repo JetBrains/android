@@ -302,6 +302,8 @@ class AppInspectionPropertiesProviderTest {
       result.table.run {
         assertParameter("text", PropertyType.STRING, "placeholder")
         assertParameter("clickable", PropertyType.BOOLEAN, "true")
+        assertParameter("count", PropertyType.INT32, "7", PropertySection.RECOMPOSITIONS)
+        assertParameter("skips", PropertyType.INT32, "14", PropertySection.RECOMPOSITIONS)
       }
     }
 

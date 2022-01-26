@@ -17,19 +17,26 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DECLARED
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DEFAULT
 import com.android.tools.idea.layoutinspector.properties.PropertySection.LAYOUT
 import com.android.tools.idea.layoutinspector.properties.PropertySection.MERGED
 import com.android.tools.idea.layoutinspector.properties.PropertySection.PARAMETERS
+import com.android.tools.idea.layoutinspector.properties.PropertySection.RECOMPOSITIONS
 import com.android.tools.idea.layoutinspector.properties.PropertySection.UNMERGED
 import com.android.tools.idea.layoutinspector.properties.PropertyType.DIMENSION
 import com.android.tools.idea.layoutinspector.properties.PropertyType.FLOAT
+import com.android.tools.idea.layoutinspector.properties.PropertyType.INT32
 import com.android.tools.idea.layoutinspector.properties.PropertyType.STRING
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
@@ -84,7 +91,9 @@ class InspectorPropertiesViewTest {
     val param = ParameterItem("modifier", STRING, "", PARAMETERS, id, context, -1, 0)
     val semantic1 = ParameterItem("Text", STRING, "Hello", MERGED, id, context, -1, 0)
     val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
-    val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2))
+    val counts = InspectorPropertyItem(NAMESPACE_INTERNAL, "count", INT32, "7", RECOMPOSITIONS, null, id, context)
+    val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
+    val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
     assertThat(inspector.lines).hasSize(13)
     assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
     assertTable(inspector.lines[2], text)
@@ -100,7 +109,44 @@ class InspectorPropertiesViewTest {
     assertTable(inspector.lines[12], semantic2)
   }
 
-  private fun createInspector(properties: List<InspectorPropertyItem>): FakeInspectorPanel {
+  @Test
+  fun testPropertiesShowUpInCorrectTableWhenShowingRecompositionCounts() {
+    val context = object : ViewNodeAndResourceLookup {
+      override val resourceLookup: ResourceLookup = mock()
+      override val selection: ViewNode? = null
+      override fun get(id: Long): ViewNode? = null
+    }
+    val id = 3L
+    val text = InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
+    val width = InspectorPropertyItem(ANDROID_URI, "layout_width", DIMENSION, "2", LAYOUT, null, id, context)
+    val alpha = InspectorPropertyItem(ANDROID_URI, "alpha", FLOAT, "0.5", DEFAULT, null, id, context)
+    val param = ParameterItem("modifier", STRING, "", PARAMETERS, id, context, -1, 0)
+    val semantic1 = ParameterItem("Text", STRING, "Hello", MERGED, id, context, -1, 0)
+    val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
+    val counts = InspectorPropertyItem(NAMESPACE_INTERNAL, "count", INT32, "7", RECOMPOSITIONS, null, id, context)
+    val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
+    val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips), ::showRecompositions)
+    assertThat(inspector.lines).hasSize(15)
+    assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
+    assertTable(inspector.lines[2], text)
+    assertThat(inspector.lines[3].title).isEqualTo("Layout")
+    assertTable(inspector.lines[4], width)
+    assertThat(inspector.lines[5].title).isEqualTo("All Attributes")
+    assertTable(inspector.lines[6], alpha, width, text)
+    assertThat(inspector.lines[7].title).isEqualTo("Parameters")
+    assertTable(inspector.lines[8], param)
+    assertThat(inspector.lines[9].title).isEqualTo("Merged Semantics")
+    assertTable(inspector.lines[10], semantic1)
+    assertThat(inspector.lines[11].title).isEqualTo("Declared Semantics")
+    assertTable(inspector.lines[12], semantic2)
+    assertThat(inspector.lines[13].title).isEqualTo("Recomposition")
+    assertTable(inspector.lines[14], counts, skips)
+  }
+
+  private fun createInspector(
+    properties: List<InspectorPropertyItem>,
+    customize: (InspectorPropertiesModel) -> Unit = {}
+  ): FakeInspectorPanel {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
     val propertiesModel = InspectorPropertiesModel()
@@ -108,8 +154,17 @@ class InspectorPropertiesViewTest {
     val inspector = FakeInspectorPanel()
     val tab = propertiesView.tabs.single()
     propertiesModel.properties = PropertiesTable.create(table)
+    customize(propertiesModel)
     tab.attachToInspector(inspector)
     return inspector
+  }
+
+  private fun showRecompositions(propertiesModel: InspectorPropertiesModel) {
+    val model = model {}
+    val settings = FakeTreeSettings()
+    val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatistics(model, settings), settings)
+    propertiesModel.layoutInspector = layoutInspector
+    settings.showRecompositions = true
   }
 
   private fun Table<String, String, InspectorPropertyItem>.addProperty(property: InspectorPropertyItem) =

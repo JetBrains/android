@@ -67,6 +67,7 @@ class ComposeViewNode(
   textValue: String,
   layoutFlags: Int,
   var recomposeCount: Int,
+  var recomposeSkips: Int,
   var composeFilename: String,
   var composePackageHash: Int,
   var composeOffset: Int,
@@ -89,6 +90,11 @@ class ComposeViewNode(
 
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
     treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
+
+  fun resetRecomposeCounts() {
+    recomposeCount = 0
+    recomposeSkips = 0
+  }
 
   @Suppress("NOTHING_TO_INLINE")
   inline fun Int.hasFlag(flag: Int) = flag and this == flag

@@ -36,6 +36,7 @@ fun parameterNamespaceOf(section: PropertySection) = when (section) {
   PropertySection.MERGED -> "merged"
   PropertySection.UNMERGED -> "unmerged"
   PropertySection.DIMENSION -> "internal"
+  PropertySection.RECOMPOSITIONS -> "internal"
   else -> ""
 }
 

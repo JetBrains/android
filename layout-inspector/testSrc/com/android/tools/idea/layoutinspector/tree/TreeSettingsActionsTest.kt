@@ -144,24 +144,38 @@ class TreeSettingsActionsTest {
     val model = inspector.layoutInspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
+    var selectionUpdate = 0
+    model.selectionListeners.add { _, _, _ ->
+      selectionUpdate++
+    }
     compose1.recomposeCount = 7
+    compose1.recomposeSkips = 8
     compose2.recomposeCount = 17
+    compose2.recomposeSkips = 18
     assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(currentClient).updateRecompositionCountSettings()
     verify(event.treePanel())!!.showRecompositionColumn(true)
     assertThat(compose1.recomposeCount).isEqualTo(0)
+    assertThat(compose1.recomposeSkips).isEqualTo(0)
     assertThat(compose2.recomposeCount).isEqualTo(0)
+    assertThat(compose1.recomposeSkips).isEqualTo(0)
+    assertThat(selectionUpdate).isEqualTo(1)
 
     compose1.recomposeCount = 7
+    compose1.recomposeSkips = 8
     compose2.recomposeCount = 17
+    compose2.recomposeSkips = 18
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(currentClient, times(2)).updateRecompositionCountSettings()
     verify(event.treePanel(), times(2))!!.showRecompositionColumn(true)
     assertThat(compose1.recomposeCount).isEqualTo(0)
+    assertThat(compose1.recomposeSkips).isEqualTo(0)
     assertThat(compose2.recomposeCount).isEqualTo(0)
+    assertThat(compose1.recomposeSkips).isEqualTo(0)
+    assertThat(selectionUpdate).isEqualTo(2)
   }
 
   private fun AnAction.testActionVisibility(event: AnActionEvent, controllingCapability: Capability) {

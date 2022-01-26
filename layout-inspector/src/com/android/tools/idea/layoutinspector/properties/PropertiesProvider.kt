@@ -19,8 +19,10 @@ import com.android.SdkConstants.ATTR_HEIGHT
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_WIDTH
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DIMENSION
+import com.android.tools.idea.layoutinspector.properties.PropertySection.RECOMPOSITIONS
 import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.util.concurrent.Futures
@@ -75,6 +77,17 @@ fun addInternalProperties(
   add(table, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, view.drawId, lookup)
   add(table, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, view.drawId, lookup)
   attrId?.let { add(table, ATTR_ID, Type.STRING, it, VIEW, view.drawId, lookup) }
+
+  (view as? ComposeViewNode)?.addComposeProperties(table, lookup)
+}
+
+private fun ComposeViewNode.addComposeProperties(table: PropertiesTable<InspectorPropertyItem>, lookup: ViewNodeAndResourceLookup) {
+  if (recomposeCount > 0 || recomposeSkips > 0) {
+    // Do not show the "Recomposition" section in the properties panel for nodes without any counts.
+    // This includes inlined composables for which we are unable to get recomposition counts for.
+    add(table, "count", Type.INT32, recomposeCount.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(table, "skips", Type.INT32, recomposeSkips.toString(), RECOMPOSITIONS, drawId, lookup)
+  }
 }
 
 private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: Type, value: String?, section: PropertySection, id: Long,

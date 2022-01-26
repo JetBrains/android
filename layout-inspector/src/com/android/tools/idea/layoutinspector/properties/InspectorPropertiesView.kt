@@ -76,5 +76,12 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
     tab.builders.add(InspectorTableBuilder("Declared Semantics", { it.section == PropertySection.UNMERGED },
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Recomposition", { it.section == PropertySection.RECOMPOSITIONS && showRecompositions(model) },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+  }
+
+  // When TreeSettings.showRecompositions is off, we will want to hide the Recomposition section:
+  private fun showRecompositions(model: InspectorPropertiesModel): Boolean {
+    return model.layoutInspector?.treeSettings?.showRecompositions ?: false
   }
 }
