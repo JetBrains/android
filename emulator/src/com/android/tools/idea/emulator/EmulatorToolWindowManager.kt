@@ -501,6 +501,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   private inner class ToggleDeviceFrameAction : ToggleAction("Show Device Frame"), DumbAware {
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      val panel = selectedPanel
+      event.presentation.isEnabled = panel is EmulatorToolWindowPanel && panel.emulator.emulatorConfig.skinFolder != null
+    }
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return deviceFrameVisible
     }
@@ -511,6 +518,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private inner class ToggleZoomToolbarAction : ToggleAction("Show Zoom Controls"), DumbAware {
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return zoomToolbarIsVisible
     }
