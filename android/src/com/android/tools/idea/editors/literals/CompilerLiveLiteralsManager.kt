@@ -87,7 +87,7 @@ object CompilerLiveLiteralsManager {
     }
     return withContext(workerThread) {
       val packageName = runReadAction { sourceFile.packageName }
-      val overlayLoader = if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+      val overlayLoader = if (FasterPreviewApplicationConfiguration.getInstance().isEnabled) {
         sourceFile.module?.let { ModuleClassLoaderOverlays.getInstance(it) }
       } else null
       val liveLiteralClasses = runReadAction {

@@ -17,6 +17,7 @@
 package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.classloading.ClassTransform
@@ -274,7 +275,7 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   init {
     // Project classes loading pipeline
-    val projectLoader = if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+    val projectLoader = if (!FasterPreviewApplicationConfiguration.getInstance().isEnabled) {
       createProjectLoader(projectSystemLoader, onClassRewrite)
     }
     else {
