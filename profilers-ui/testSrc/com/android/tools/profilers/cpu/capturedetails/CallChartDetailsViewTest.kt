@@ -36,6 +36,7 @@ import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +47,9 @@ class CallChartDetailsViewTest {
   @JvmField
   @Rule
   val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", FakeTransportService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()

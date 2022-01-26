@@ -28,6 +28,7 @@ import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESP
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -36,7 +37,6 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 @RunsInEdt
-@org.junit.Ignore("b/216286446")
 class EnergyProfilerStageViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
@@ -45,7 +45,10 @@ class EnergyProfilerStageViewTest {
   @get:Rule
   var grpcChannel = FakeGrpcChannel(EnergyProfilerStageViewTest::class.java.simpleName, transportService, energyService,
                                     FakeProfilerService(timer))
-  @get:Rule val myEdtRule = EdtRule()
+  @get:Rule
+  val edtRule = EdtRule()
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var view: StudioProfilersView
 

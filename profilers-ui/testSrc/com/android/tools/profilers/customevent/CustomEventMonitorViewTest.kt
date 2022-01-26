@@ -16,27 +16,31 @@
 package com.android.tools.profilers.customevent
 
 import com.android.tools.adtui.LegendComponent
-import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
-
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
-import java.util.concurrent.TimeUnit
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class CustomEventMonitorViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
   private lateinit var monitorView: CustomEventMonitorView
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setUp() {

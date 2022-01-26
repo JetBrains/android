@@ -40,6 +40,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,8 +54,11 @@ class CpuThreadTrackRendererTest {
   private val ideProfilerComponents = FakeIdeProfilerComponents()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
+  val grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilers: StudioProfilers
   private lateinit var profilersView: StudioProfilersView

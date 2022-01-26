@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +42,9 @@ class BottomUpDetailsViewTest {
   @JvmField
   @Rule
   val grpcChannel = FakeGrpcChannel("BottomUpDetailsViewTest", FakeTransportService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()

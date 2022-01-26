@@ -36,6 +36,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,6 +56,9 @@ class CapturePanelTest {
                                     FakeProfilerService(myTimer),
                                     FakeCpuService(), FakeEventService(),
                                     FakeNetworkService.Builder().build())
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setupBase() {

@@ -46,6 +46,7 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.SystemInfoRt;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
@@ -91,6 +92,7 @@ public class NetworkProfilerStageViewTest {
                         new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
   @Rule public final EdtRule myEdtRule = new EdtRule();
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   @Before
   public void setUp() {

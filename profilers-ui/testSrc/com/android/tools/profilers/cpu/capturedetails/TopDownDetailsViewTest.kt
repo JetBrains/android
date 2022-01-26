@@ -31,6 +31,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.capturedetails.TopDownNodeTest.newNode
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +44,9 @@ class TopDownDetailsViewTest {
   @JvmField
   @Rule
   val grpcChannel = FakeGrpcChannel("TopDownDetailsViewTest", FakeTransportService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()

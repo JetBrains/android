@@ -35,6 +35,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.truth.Truth;
+import com.intellij.testFramework.ApplicationRule;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
@@ -69,9 +70,13 @@ public class EventMonitorViewTest {
     return myGrpcChannel;
   }
 
+  @Rule
+  public final ApplicationRule myApplicationRule = new ApplicationRule();
+
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers =
+      new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), new FakeIdeProfilerServices(), myTimer);
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);

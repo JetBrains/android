@@ -27,6 +27,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,10 +40,14 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var usageTooltipView: FakeCpuUsageTooltipView
+
   @Rule
   @JvmField
   val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService,
                                       FakeTransportService(timer), FakeProfilerService(timer))
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setUp() {

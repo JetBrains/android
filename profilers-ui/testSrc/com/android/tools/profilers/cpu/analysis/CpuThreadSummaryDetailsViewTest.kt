@@ -31,6 +31,7 @@ import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,6 +46,9 @@ class CpuThreadSummaryDetailsViewTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CpuThreadSummaryDetailsViewTest")
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
 

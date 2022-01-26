@@ -26,6 +26,7 @@ import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -34,7 +35,6 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-@org.junit.Ignore("b/216195279")
 class LifecycleTooltipViewTest {
 
   private lateinit var myActivityTooltipView: FakeLifecycleTooltipView
@@ -42,8 +42,12 @@ class LifecycleTooltipViewTest {
   private var myTimer: FakeTimer = FakeTimer()
   private lateinit var myMonitor: EventMonitor
   private var myEventService = FakeEventService()
+
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel("LifecycleTooltipViewTest", myEventService)
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setup() {

@@ -26,20 +26,24 @@ import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-@org.junit.Ignore("b/216195279")
 class UserEventTooltipViewTest {
 
   private var mySimpleEventTooltipView: FakeUserEventTooltipView? = null
   private var myTimer: FakeTimer = FakeTimer()
   private var myMonitor: EventMonitor? = null
   private var myEventService = FakeEventService()
+
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel("UserEventTooltipViewTest", myEventService)
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Before
   fun setup() {
@@ -49,7 +53,7 @@ class UserEventTooltipViewTest {
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     // Need to set the view range, and component bounds as they are used by the view in determining how much time
     // around an event should be considered when determining if the tooltip range overlaps the icon.
-    view.stageView.component.setBounds(0,0,1024,1024)
+    view.stageView.component.setBounds(0, 0, 1024, 1024)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toNanos(1) * 1.0
     mySimpleEventTooltipView = FakeUserEventTooltipView(view.stageView, UserEventTooltip(myMonitor!!.timeline, myMonitor!!.userEvents))

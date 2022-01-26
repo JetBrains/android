@@ -29,6 +29,7 @@ import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESP
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -40,7 +41,6 @@ import javax.swing.JPanel
 import javax.swing.JTextPane
 
 @RunsInEdt
-@org.junit.Ignore("b/216286446")
 class EnergyDetailsViewTest {
   private val wakeLockAcquired = Energy.WakeLockAcquired.newBuilder()
     .setTag("wakeLockTag")
@@ -116,8 +116,10 @@ class EnergyDetailsViewTest {
   @get:Rule
   var grpcChannel = FakeGrpcChannel(EnergyDetailsViewTest::class.java.simpleName, transportService, energyService,
                                     FakeProfilerService(timer))
-  @get:Rule val myEdtRule = EdtRule()
-
+  @get:Rule
+  val edtRule = EdtRule()
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var view: EnergyDetailsView
 

@@ -29,6 +29,7 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,11 +37,13 @@ import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 
-@org.junit.Ignore("b/216195279")
 class CaptureNodeSummaryDetailsViewTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CaptureNodeSummaryDetailsViewTest")
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
 

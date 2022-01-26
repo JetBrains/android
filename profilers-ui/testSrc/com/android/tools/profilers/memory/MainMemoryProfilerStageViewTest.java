@@ -71,6 +71,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ApplicationRule;
 import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
@@ -103,6 +104,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+
   private StudioProfilersView myProfilersView;
 
   @Override

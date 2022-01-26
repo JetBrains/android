@@ -37,6 +37,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
@@ -73,6 +74,7 @@ public class ThreadsViewTest {
                         FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
 
   @Rule public final EdtRule myEdtRule = new EdtRule();
+  @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private NetworkProfilerStageView myStageView;
   private ThreadsView myThreadsView;

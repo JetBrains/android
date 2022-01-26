@@ -29,9 +29,10 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,23 +43,28 @@ class MemoryVisualizationTooltipViewTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL",
-                                      FakeTransportService(timer),
-                                      FakeProfilerService(timer),
-                                      FakeMemoryService())
+  val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL",
+                                    FakeTransportService(timer),
+                                    FakeProfilerService(timer),
+                                    FakeMemoryService())
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
   private lateinit var fakeIdeProfilerComponents: FakeIdeProfilerComponents
   private lateinit var stage: MainMemoryProfilerStage
   private lateinit var visualizationView: MemoryVisualizationView
   private lateinit var tooltip: MemoryVisualizationTooltipView
   private lateinit var simpleNode: ClassifierSetHNode
   private val visualizationModel = MemoryVisualizationModel()
+
   @Before
   fun before() {
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
     val fakeIdeProfilerServices = FakeIdeProfilerServices()
     fakeIdeProfilerComponents = FakeIdeProfilerComponents()
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
     stage = MainMemoryProfilerStage(profilers, loader)
     visualizationView = MemoryVisualizationView(stage.captureSelection, StudioProfilersView(profilers, fakeIdeProfilerComponents))
 

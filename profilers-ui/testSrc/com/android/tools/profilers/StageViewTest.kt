@@ -19,15 +19,18 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
-@org.junit.Ignore("b/216195279")
 class StageViewTest {
   @get:Rule
   val grpcChannel = FakeGrpcChannel("StageViewTest")
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Test
   fun testSelectionTimeLabel() {

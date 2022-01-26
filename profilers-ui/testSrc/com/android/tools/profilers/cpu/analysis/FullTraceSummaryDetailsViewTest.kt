@@ -24,6 +24,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +38,9 @@ class FullTraceSummaryDetailsViewTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("FullTraceSummaryDetailsViewTest")
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilersView: StudioProfilersView
 
