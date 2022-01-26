@@ -17,9 +17,13 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.MultiReceiver
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
+import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -45,27 +49,57 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
     Disposer.register(project, console)
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val processHandler = WatchFaceProcessHandler(console)
     devices.forEach { device ->
       processHandler.addDevice(device)
-      indicator?.checkCanceled()
-      indicator?.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
-        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
-      }
-      val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      console.printShellCommand(SHOW_WATCH_FACE)
-      device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+      val app = installWatchFace(device, applicationInstaller, console)
+      setWatchFace(app, mode, console)
+      showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
     return createRunContentDescriptor(devices, processHandler, console)
   }
-}
 
+  private fun installWatchFace(device: IDevice, applicationInstaller: ApplicationInstaller, console: ConsoleView): App {
+    ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
+      checkCanceled()
+      text = "Installing the watch face"
+    }
+    return applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
+      console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
+    }
+  }
+
+  private fun setWatchFace(app: App, mode: AppComponent.Mode, console: ConsoleView) {
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
+      checkCanceled()
+      text = "Launching the watch face"
+    }
+    val outputReceiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
+    try {
+      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, outputReceiver)
+    }
+    catch (ex: DeployerException) {
+      throw throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput()}", ex)
+    }
+  }
+
+  private fun showWatchFace(device: IDevice, console: ConsoleView) {
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
+      checkCanceled()
+      text = "Jumping to the watch face"
+    }
+    val resultReceiver = CommandResultReceiver()
+    val receiver = MultiReceiver(resultReceiver, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console))
+    console.printShellCommand(SHOW_WATCH_FACE)
+    device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+    if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      console.printError("WARN: Launch was successful, but you may need to bring up the watch face manually")
+    }
+  }
+}
 
 class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
 

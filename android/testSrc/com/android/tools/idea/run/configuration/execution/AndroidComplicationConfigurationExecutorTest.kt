@@ -61,7 +61,15 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val device = getMockDevice()
+    val device = getMockDevice { request ->
+      when {
+        request.contains("DEBUG_SURFACE --es operation set-complication") ->
+          "Broadcast completed: result=1"
+        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
+          "Broadcast completed: result=1"
+        else -> "Unknown request: $request"
+      }
+    }
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
@@ -120,7 +128,15 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val device = getMockDevice()
+    val device = getMockDevice { request ->
+      when {
+        request.contains("DEBUG_SURFACE --es operation set-complication") ->
+          "Broadcast completed: result=1"
+        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
+          "Broadcast completed: result=1"
+        else -> "Unknown request: $request"
+      }
+    }
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())

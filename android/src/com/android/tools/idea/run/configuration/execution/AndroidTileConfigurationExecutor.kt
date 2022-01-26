@@ -17,9 +17,12 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
+import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -27,6 +30,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import java.util.concurrent.TimeUnit
@@ -53,12 +57,10 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      val addTileReceiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, addTileReceiver)
-      verifyResponse(addTileReceiver, console)
-      val showTileCommand = SHOW_TILE_COMMAND + addTileReceiver.index!!
+      val tileIndex = setWatchTile(app, mode, indicator, console)
+      val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
       console.printShellCommand(showTileCommand)
-      val showTileReceiver = ShowTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
+      val showTileReceiver = CommandResultReceiver()
       device.executeShellCommand(showTileCommand, showTileReceiver, 5, TimeUnit.SECONDS)
       verifyResponse(showTileReceiver, console)
     }
@@ -66,25 +68,29 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     return createRunContentDescriptor(devices, processHandler, console)
   }
 
-  private fun verifyResponse(receiver: AddTileCommandResultReceiver, console: ConsoleView) {
-    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      throw ExecutionException("Error while setting the tile, message: ${receiver.getOutput()}")
+  private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
+    val indexReceiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
+    try {
+      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, indexReceiver)
     }
-    if (receiver.index == null) {
+    catch (ex: DeployerException) {
+      throw ExecutionException("Error while setting the tile, message: ${indexReceiver.getOutput()}", ex)
+    }
+
+    if (indexReceiver.index == null) {
       throw ExecutionException("Tile index was not found.")
     }
+    return indexReceiver.index!!
   }
 
-  private fun verifyResponse(receiver: ShowTileCommandResultReceiver, console: ConsoleView) {
+  private fun verifyResponse(receiver: CommandResultReceiver, console: ConsoleView) {
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
   }
-
 }
 
-
-private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : CommandResultReceiver(
+private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : AndroidLaunchReceiver(
   isCancelledCheck, consoleView) {
   private val indexPattern = "Index=\\[(\\d+)]".toRegex()
   var index: Int? = null
@@ -94,9 +100,6 @@ private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, cons
     lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
   }
 }
-
-private class ShowTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : CommandResultReceiver(
-  isCancelledCheck, consoleView)
 
 class TileProcessHandler(private val tileName: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {

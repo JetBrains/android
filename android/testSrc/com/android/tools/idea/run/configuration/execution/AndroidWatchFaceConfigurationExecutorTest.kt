@@ -48,7 +48,17 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
-    val device = getMockDevice()
+    val device = getMockDevice { request: String ->
+      when {
+        request.contains("DEBUG_SURFACE --es operation version") ->
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\""
+        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+        else -> "Unknown request: $request"
+      }
+    }
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
@@ -79,7 +89,17 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
-    val device = getMockDevice()
+    val device = getMockDevice { request: String ->
+      when {
+        request.contains("DEBUG_SURFACE --es operation version") ->
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"3\""
+        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
+          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+        else -> "Unknown request: $request"
+      }
+    }
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.

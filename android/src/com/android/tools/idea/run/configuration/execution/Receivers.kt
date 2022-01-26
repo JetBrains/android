@@ -34,22 +34,6 @@ internal open class AndroidLaunchReceiver(private val isCancelledCheck: () -> Bo
   }
 }
 
-internal open class CommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : AndroidLaunchReceiver(
-  isCancelledCheck, consoleView) {
-
-  private val resultCodePattern = "result=(\\d+)".toRegex()
-  var resultCode: Int? = null
-
-  override fun processNewLines(lines: Array<String>) {
-    super.processNewLines(lines)
-    lines.forEach { line -> extractPattern(line, resultCodePattern)?.let { resultCode = it.toInt() } }
-  }
-
-  companion object {
-    const val SUCCESS_CODE = 1
-  }
-}
-
 internal fun extractPattern(line: String, pattern: Regex): String? {
   return pattern.find(line)?.groupValues?.getOrNull(1)
 }
