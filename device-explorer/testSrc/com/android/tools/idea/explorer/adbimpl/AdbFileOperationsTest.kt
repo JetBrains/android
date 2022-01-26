@@ -24,12 +24,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
-import com.intellij.util.containers.toArray
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.core.IsInstanceOf
 import org.jetbrains.ide.PooledThreadExecutor
-import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -37,8 +35,6 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.util.concurrent.ExecutionException
-import java.util.function.Consumer
 
 @RunWith(Parameterized::class)
 class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, private val testDevice: TestDevices) {
@@ -55,6 +51,9 @@ class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, priv
   @get:Rule
   val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER, deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
 
+  val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+  val scope = CoroutineScope(dispatcher)
+
   @Before
   fun setUp() {
     // AdbLib makes use of ApplicationManager, so we need to set one up.
@@ -69,7 +68,7 @@ class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, priv
       hostConnectionType = DeviceState.HostConnectionType.USB)
 
     val device = adb.bridge.devices.single()
-    return AdbFileOperations(device, AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE.asCoroutineDispatcher())
+    return AdbFileOperations(device, AdbDeviceCapabilities(scope, device), dispatcher)
   }
 
   @Test

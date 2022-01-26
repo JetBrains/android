@@ -142,7 +142,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
     }
     checkState(State.SetupDone)
 
-    withContext(dispatcher) {
+    withContext(coroutineScope.coroutineContext) {
       AdbService.getInstance().terminateDdmlib()
     }
 
@@ -172,7 +172,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
           this@AdbDeviceFileSystemService.bridge = bridge
           if (bridge.hasInitialDeviceList()) {
             for (device in bridge.devices) {
-              myDevices.add(AdbDeviceFileSystem(device, edtExecutor, dispatcher))
+              myDevices.add(AdbDeviceFileSystem(coroutineScope, device, edtExecutor, dispatcher))
             }
           }
         }
@@ -185,7 +185,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
       LOGGER.info(String.format("Device connected: %s", device))
       coroutineScope.launch(uiThread) {
         if (findDevice(device) == null) {
-          val newDevice = AdbDeviceFileSystem(device, edtExecutor, dispatcher)
+          val newDevice = AdbDeviceFileSystem(coroutineScope, device, edtExecutor, dispatcher)
           myDevices.add(newDevice)
           listeners.forEach { it.deviceAdded(newDevice) }
         }

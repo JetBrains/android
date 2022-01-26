@@ -27,19 +27,24 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 /**
  * Helper class used to detect various capabilities/features supported by a [IDevice]
  * so callers can make decisions about which adb commands to use.
  */
-class AdbDeviceCapabilities(private val device: IDevice) {
+class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: IDevice) {
   private val logger = thisLogger()
 
   private val shellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
 
-  fun supportsTestCommand() = supportsTestCommand.value
-  private val supportsTestCommand = lazy {
+  suspend fun supportsTestCommand() = supportsTestCommand.await()
+  private val supportsTestCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_test_test__file__.tmp")).use { tempFile ->
       // Create the remote file used for testing capability
@@ -61,8 +66,8 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun supportsRmForceFlag() = supportsRmForceFlag.value
-  private val supportsRmForceFlag = lazy {
+  suspend fun supportsRmForceFlag() = supportsRmForceFlag.await()
+  private val supportsRmForceFlag = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_rm_test_file__.tmp")).use { tempFile ->
       // Create the remote file used for testing capability
@@ -85,8 +90,8 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun supportsTouchCommand() = supportsTouchCommand.value
-  private val supportsTouchCommand = lazy {
+  suspend fun supportsTouchCommand() = supportsTouchCommand.await()
+  private val supportsTouchCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_touch_test_file__.tmp")).use { tempFile ->
 
@@ -109,8 +114,8 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun supportsSuRootCommand() = supportsSuRootCommand.value
-  private val supportsSuRootCommand = lazy {
+  suspend fun supportsSuRootCommand() = supportsSuRootCommand.await()
+  private val supportsSuRootCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     // Try a "su" command ("id") that should always succeed, unless "su" is not supported
     val command = AdbShellCommandBuilder().withSuRootPrefix().withText("id").build()
@@ -127,8 +132,8 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun isRoot() = isRoot.value
-  private val isRoot = lazy {
+  suspend fun isRoot() = isRoot.await()
+  private val isRoot = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
 
     // Note: The "isRoot" method below does not cache its results in case of negative answer.
@@ -137,8 +142,8 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     device.isRoot
   }
 
-  fun supportsCpCommand() = supportsCpCommand.value
-  private val supportsCpCommand = lazy {
+  suspend fun supportsCpCommand() = supportsCpCommand.await()
+  private val supportsCpCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file__.tmp")).use { srcFile ->
       ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp")).use { dstFile ->
@@ -170,15 +175,15 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun hasEscapingLs() = hasEscapingLs.value
-  private val hasEscapingLs = lazy {
+  suspend fun hasEscapingLs(): Boolean = hasEscapingLs.await()
+  private val hasEscapingLs = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
     try {
       touchEscapedPath()
     }
     catch (exception: AdbShellCommandException) {
       logger.info("""Device "${device.toDebugString()}" does not seem to support the touch command""", exception)
-      return@lazy false
+      return@async false
     }
     try {
       ScopedRemoteFile(ESCAPING_LS_NOT_ESCAPED_PATH).use { file ->
@@ -192,16 +197,16 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  private fun touchEscapedPath() {
+  private suspend fun touchEscapedPath() {
     val command = AdbShellCommandBuilder().withText("touch $ESCAPING_LS_ESCAPED_PATH").build()
     val result = shellCommandsUtil.executeCommand(device, command)
     result.throwIfError()
-    if (result.output.isNotEmpty()) {
+    if (!result.isEmpty()) {
       throw AdbShellCommandException("Unexpected output from touch")
     }
   }
 
-  private fun lsEscapedPath(): Boolean {
+  private suspend fun lsEscapedPath(): Boolean {
     val command = AdbShellCommandBuilder().withText("ls $ESCAPING_LS_ESCAPED_PATH").build()
     val result = shellCommandsUtil.executeCommand(device, command)
     result.throwIfError()
@@ -212,15 +217,15 @@ class AdbDeviceCapabilities(private val device: IDevice) {
     }
   }
 
-  fun supportsMkTempCommand() = supportsMkTempCommand.value
-  private val supportsMkTempCommand = lazy  {
+  suspend fun supportsMkTempCommand() = supportsMkTempCommand.await()
+  private val supportsMkTempCommand = coroutineScope.async(start = CoroutineStart.LAZY)  {
     assertNotDispatchThread()
     // Copy source file to destination file
     val command = AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(AdbPathUtil.DEVICE_TEMP_DIRECTORY).build()
     val commandResult = shellCommandsUtil.executeCommand(device, command)
     try {
       commandResult.throwIfError()
-      if (commandResult.output.isEmpty()) {
+      if (commandResult.isEmpty()) {
         throw AdbShellCommandException("Unexpected output from mktemp, assuming not supported")
       }
 
@@ -242,17 +247,42 @@ class AdbDeviceCapabilities(private val device: IDevice) {
    * The [.close] method attempts to delete the file from the remote device
    * unless the [setDeletedOnClose(false)][.setDeleteOnClose] is called.
    */
-  private inner class ScopedRemoteFile(val remotePath: String) : AutoCloseable {
+  private inner class ScopedRemoteFile(val remotePath: String) {
     var deleteOnClose = false
 
+    // TODO: Convert this blocking call to use AdbLib. We should already be on the background thread.
     @Throws(TimeoutException::class, AdbCommandRejectedException::class, SyncException::class, IOException::class)
-    fun create() {
+    suspend fun create() {
       assert(!deleteOnClose)
+      assertNotDispatchThread()
       createRemoteTemporaryFile()
       deleteOnClose = true
     }
 
-    override fun close() {
+    /** Suspending version of [AutoCloseable.use()] */
+    suspend fun <R> use(block: suspend (ScopedRemoteFile) -> R): R {
+      var exception: Throwable? = null
+      try {
+        return block(this)
+      } catch (e: Throwable) {
+        exception = e
+        throw e
+      } finally {
+        withContext(NonCancellable) {
+          when (exception) {
+            null -> close()
+            else ->
+              try {
+                close()
+              } catch (closeException: Throwable) {
+                exception.addSuppressed(closeException)
+              }
+          }
+        }
+      }
+    }
+
+    suspend fun close() {
       if (!deleteOnClose) {
         return
       }
@@ -312,7 +342,7 @@ class AdbDeviceCapabilities(private val device: IDevice) {
 
     private fun AdbShellCommandResult.outputSummary(): String =
       when {
-        output.isEmpty() -> "[command output is empty]"
+        isEmpty() -> "[command output is empty]"
         else -> output.joinToString(prefix = "\n  ", postfix = "", separator = "\n  ", limit = 5)
       }
   }

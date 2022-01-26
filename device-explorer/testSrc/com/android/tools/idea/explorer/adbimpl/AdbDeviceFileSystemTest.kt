@@ -33,6 +33,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
@@ -72,6 +73,9 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
   val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER,
                                  deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
 
+  val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+  val coroutineScope = CoroutineScope(dispatcher)
+
   @Before
   fun setUp() {
     // AdbLib makes use of ApplicationManager, so we need to set one up.
@@ -93,7 +97,8 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
 
     myMockDevice = adb.bridge.devices.single()
     val edtExecutor = FutureCallbackExecutor(myCallbackExecutor)
-    myFileSystem = AdbDeviceFileSystem(myMockDevice, edtExecutor, PooledThreadExecutor.INSTANCE.asCoroutineDispatcher())
+
+    myFileSystem = AdbDeviceFileSystem(coroutineScope, myMockDevice, edtExecutor, dispatcher)
     val fileNameGenerator: UniqueFileNameGenerator = object : UniqueFileNameGenerator() {
       private var myNextId = 0
       override fun getUniqueFileName(prefix: String, suffix: String): String {

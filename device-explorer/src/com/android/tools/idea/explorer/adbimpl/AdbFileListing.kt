@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.FileListingService
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.ddmlib.TimeoutException
 import com.android.tools.idea.adb.AdbShellCommandsUtil
 import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.util.regex.MatchResult
 
 class AdbFileListing(
@@ -102,8 +98,7 @@ class AdbFileListing(
     }
   }
 
-  @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
-  private fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
+  private suspend fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
     val command = AdbShellCommandBuilder()
     if (runAs != null) {
       command.withRunAs(runAs)

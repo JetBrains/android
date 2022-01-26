@@ -35,6 +35,10 @@ public class AdbShellCommandResult {
     return myOutput;
   }
 
+  public boolean isEmpty() {
+    return myOutput.isEmpty() || (myOutput.size() == 1 && myOutput.get(0).isEmpty());
+  }
+
   public boolean isError() {
     return myError;
   }

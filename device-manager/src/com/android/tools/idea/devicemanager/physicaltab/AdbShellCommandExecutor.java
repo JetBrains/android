@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 final class AdbShellCommandExecutor {
   @NotNull Optional<@NotNull List<@NotNull String>> execute(@NotNull IDevice device, @NotNull String command) {
     try {
-      return getOutput(AdbShellCommandsUtil.getInstance().executeCommand(device, command));
+      return getOutput(AdbShellCommandsUtil.getInstance().executeCommandBlocking(device, command));
     }
     catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException exception) {
       Logger.getInstance(AdbShellCommandExecutor.class).warn(exception);

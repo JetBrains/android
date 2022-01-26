@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.ddmlib.SyncException
-import com.android.ddmlib.TimeoutException
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandsUtil
 import com.android.tools.idea.flags.StudioFlags
@@ -27,7 +23,6 @@ import com.google.common.base.Strings.emptyToNull
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 class AdbFileOperations(
   private val device: IDevice,
@@ -175,14 +170,7 @@ class AdbFileOperations(
     }
   }
 
-  @Throws(
-    TimeoutException::class,
-    AdbCommandRejectedException::class,
-    ShellCommandUnresponsiveException::class,
-    IOException::class,
-    AdbShellCommandException::class
-  )
-  private fun touchFileRunAs(remotePath: String, runAs: String?) {
+  private suspend fun touchFileRunAs(remotePath: String, runAs: String?) {
     val command = when {
       deviceCapabilities.supportsTouchCommand() ->
         // Touch creates an empty file if the file does not exist.
@@ -194,21 +182,13 @@ class AdbFileOperations(
     shellCommandsUtil.executeCommand(device, command).throwIfError()
   }
 
-  @Throws(
-    TimeoutException::class,
-    AdbCommandRejectedException::class,
-    ShellCommandUnresponsiveException::class,
-    IOException::class,
-    SyncException::class
-  )
-  private fun getRmCommand(runAs: String?, path: String, recursive: Boolean): String {
+  private suspend fun getRmCommand(runAs: String?, path: String, recursive: Boolean): String {
     val recursiveArg = if (recursive) "-r " else ""
     val forceArg = if (deviceCapabilities.supportsRmForceFlag()) "-f " else ""
     return getCommand(runAs, "rm $recursiveArg$forceArg").withEscapedPath(path).build()
   }
 
-  @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
-  private fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
+  private suspend fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
     val command = AdbShellCommandBuilder()
     if (deviceCapabilities.supportsSuRootCommand()) {
       command.withSuRootPrefix()

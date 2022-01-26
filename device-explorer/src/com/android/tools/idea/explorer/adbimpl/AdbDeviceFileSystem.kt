@@ -23,12 +23,14 @@ import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceState
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
-class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, val dispatcher: CoroutineDispatcher) : DeviceFileSystem {
+class AdbDeviceFileSystem(coroutineScope: CoroutineScope, val device: IDevice, edtExecutor: Executor, val dispatcher: CoroutineDispatcher) : DeviceFileSystem {
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
-  val capabilities = AdbDeviceCapabilities(this.device)
+  val capabilities = AdbDeviceCapabilities(coroutineScope + dispatcher, this.device)
   val adbFileListing = AdbFileListing(this.device, capabilities, dispatcher)
   val adbFileOperations = AdbFileOperations(this.device, capabilities, dispatcher)
   val adbFileTransfer = AdbFileTransfer(this.device, adbFileOperations, myEdtExecutor, dispatcher)

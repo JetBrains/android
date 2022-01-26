@@ -19,7 +19,9 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import org.fest.swing.timing.Wait
@@ -34,29 +36,32 @@ internal fun prepareAdbInstall(adbPath: String, vararg apkFiles: File) =
 
 internal fun waitForAppInstalled(device: IDevice, appId: String) {
   val exec = Executors.newSingleThreadExecutor()
-  val adbOps = AdbFileOperations(device, AdbDeviceCapabilities(device), exec.asCoroutineDispatcher())
-  try {
-    Wait.seconds(10)
-      .expecting("instant app to be listed from `pm packages list`")
-      .until {
-        try {
-          runBlocking {
-            withTimeout(Duration.ofSeconds(10))  {
-              adbOps.listPackages().any { appId == it }
+  val dispatcher = exec.asCoroutineDispatcher()
+  runBlocking {
+    val adbOps = AdbFileOperations(device, AdbDeviceCapabilities(this + dispatcher, device), dispatcher)
+    try {
+      Wait.seconds(10)
+        .expecting("instant app to be listed from `pm packages list`")
+        .until {
+          try {
+            runBlocking {
+              withTimeout(Duration.ofSeconds(10))  {
+                adbOps.listPackages().any { appId == it }
+              }
             }
           }
+          catch (interrupt: InterruptedException) {
+            Thread.currentThread().interrupt()
+            false
+          }
+          catch (otherExceptions: Exception) {
+            false
+          }
         }
-        catch (interrupt: InterruptedException) {
-          Thread.currentThread().interrupt()
-          false
-        }
-        catch (otherExceptions: Exception) {
-          false
-        }
-      }
-  }
-  finally {
-    exec.shutdown()
+    }
+    finally {
+      exec.shutdown()
+    }
   }
 }
 
