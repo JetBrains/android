@@ -6,6 +6,7 @@ cc_library(
     srcs = glob(["app/src/main/cpp/**/*.cc"]),
     hdrs = glob(["app/src/main/cpp/**/*.h"]),
     copts = ANDROID_COPTS + [
+        "-Wno-macro-redefined",
         "-D__ANDROID_API__=26",
     ],
     includes = [
