@@ -67,7 +67,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.StripeButton;
+import com.intellij.toolWindow.StripeButton;
 import com.intellij.openapi.wm.impl.ToolWindowsPane;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
