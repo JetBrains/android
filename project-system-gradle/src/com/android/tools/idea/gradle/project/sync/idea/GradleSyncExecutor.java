@@ -158,7 +158,6 @@ public class GradleSyncExecutor {
 
     String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
     VirtualFile projectRootFolder = project.getBaseDir();
-    projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
 
     if (!GradleProjectImportUtil.canOpenGradleProject(projectRootFolder)) {
       return null;
