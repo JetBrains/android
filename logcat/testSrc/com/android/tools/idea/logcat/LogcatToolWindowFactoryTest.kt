@@ -30,13 +30,13 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

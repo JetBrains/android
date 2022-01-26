@@ -17,8 +17,8 @@ package com.android.tools.adtui.toolwindow.splittingtabs.state
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.ProjectRule
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
