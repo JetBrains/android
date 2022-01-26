@@ -39,7 +39,7 @@ public class EmbeddedDistributionPathsTest {
       StudioPathManager.resolvePathFromSourcesRoot("out/repo"),
       StudioPathManager.resolvePathFromSourcesRoot("out/studio/repo"),
       StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/common/m2/repository"),
-      StudioPathManager.resolvePathFromSourcesRoot("../maven/repo"),
+      StudioPathManager.resolvePathFromSourcesRoot("../maven/repository"),
       Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo")
     );
     expectedRepo = expectedRepo.stream().filter(Files::isDirectory).collect(Collectors.toList());

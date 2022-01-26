@@ -85,7 +85,7 @@ public class EmbeddedDistributionPaths {
       repoCandidates.add("prebuilts/tools/common/m2/repository");
       repoCandidates.add(System.getProperty("java.io.tmpdir") + "/offline-maven-repo");
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
-      repoCandidates.add("../maven/repo");
+      repoCandidates.add("../maven/repository");
 
       for (String candidate : repoCandidates) {
         Path candidateDir = StudioPathManager.resolvePathFromSourcesRoot(candidate);
