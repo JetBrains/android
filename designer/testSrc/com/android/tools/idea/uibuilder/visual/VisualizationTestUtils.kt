@@ -23,7 +23,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlin.test.assertNotNull
 
 class VisualizationTestToolWindowManager(private val project: Project, private val disposableParent: Disposable)

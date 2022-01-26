@@ -29,8 +29,8 @@ import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import org.jetbrains.android.AndroidTestCase
 import java.util.*

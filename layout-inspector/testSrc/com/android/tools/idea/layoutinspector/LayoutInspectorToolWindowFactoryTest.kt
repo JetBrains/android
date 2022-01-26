@@ -19,10 +19,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
 import org.junit.Test
 
