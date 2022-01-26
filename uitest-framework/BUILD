@@ -49,5 +49,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
     ],
 )

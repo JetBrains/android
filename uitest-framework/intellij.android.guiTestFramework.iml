@@ -53,5 +53,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
   </component>
 </module>
