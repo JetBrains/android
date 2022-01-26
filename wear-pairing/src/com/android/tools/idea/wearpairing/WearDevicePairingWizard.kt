@@ -18,13 +18,17 @@ package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.emulator.EmulatorSettings
-import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
-import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
+import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -33,10 +37,6 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import java.net.URL
 
 // Keep an instance, so if the wizard is already running, just bring it to the front

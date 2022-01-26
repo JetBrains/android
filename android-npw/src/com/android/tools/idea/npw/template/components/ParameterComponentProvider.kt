@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.wizard.ui.WizardUtils
 import com.android.tools.idea.wizard.template.Parameter
-import com.google.common.base.Strings
+import com.android.tools.idea.wizard.ui.WizardUtils
 import javax.swing.JComponent
 
 /**

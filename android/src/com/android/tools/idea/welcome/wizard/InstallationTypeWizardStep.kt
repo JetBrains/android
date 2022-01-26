@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.ui.layout.Cell
 import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel

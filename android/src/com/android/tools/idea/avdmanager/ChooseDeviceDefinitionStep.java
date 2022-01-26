@@ -20,15 +20,15 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Consumer;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Optional;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link ModelWizardStep} for selecting a device definition from the devices declared in the SDK

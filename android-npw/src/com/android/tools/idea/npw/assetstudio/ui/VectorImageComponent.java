@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel.DEFAULT_EVEN_CELL_COLOR;
+import static com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel.DEFAULT_ODD_CELL_COLOR;
+
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageComponent;
 import com.android.tools.adtui.util.GraphicsUtil;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel.DEFAULT_EVEN_CELL_COLOR;
-import static com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel.DEFAULT_ODD_CELL_COLOR;
 
 /**
  * A Swing component that displays an image centered in the middle.

@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseCustomFragmentTemplatesStep
-import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
@@ -31,6 +30,7 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.currentRecyclerViewLayout
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.recyclerViewAdapterFragmentTemplate
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.recyclerViewAdapterNoFragmentTemplate
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.GENERATE_RECYCLER
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile

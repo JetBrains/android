@@ -16,14 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.intellij.openapi.project.Project;
+import java.beans.PropertyChangeListener;
+import javax.swing.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.beans.PropertyChangeListener;
 
 /**
  * A base class for actions that operate on {@link Device}s and can be bound to buttons
