@@ -31,11 +31,16 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import kotlin.math.sqrt
 
-private fun buildState(name: String, screenWidthPx: Int, screenHeightPx: Int, density: Density = Density.MEDIUM): State = State().apply {
+private fun buildState(name: String,
+                       screenWidthPx: Int,
+                       screenHeightPx: Int,
+                       density: Density = Density.MEDIUM,
+                       screenRound: ScreenRound? = null): State = State().apply {
   this.name = name
   orientation = ScreenOrientation.PORTRAIT
   hardware = Hardware().apply {
@@ -52,7 +57,7 @@ private fun buildState(name: String, screenWidthPx: Int, screenHeightPx: Int, de
       diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
       size = ScreenSize.getScreenSize(diagonalLength)
       ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
-      screenRound = ScreenRound.NOTROUND
+      this.screenRound = screenRound ?: ScreenRound.NOTROUND
       chin = 0
     }
   }
@@ -75,9 +80,13 @@ private val defaultDevice = buildDevice("default", "DEFAULT")
 private val pixel4Device = buildDevice("Pixel 4", "pixel_4")
 private val nexus7Device = buildDevice("Nexus 7", "Nexus 7")
 private val nexus10Device = buildDevice("Nexus 10", "Nexus 10")
+private val roundWearOsDevice = buildDevice("Wear OS Round Device", "wearos_round",
+                                            states = listOf(buildState("default", 1000, 100,
+                                                                       screenRound = ScreenRound.ROUND).apply { isDefaultState = true }))
+
 
 private val deviceProvider: (Configuration) -> Collection<Device> = {
-  listOf(pixel4Device, nexus7Device, nexus10Device)
+  listOf(pixel4Device, nexus7Device, nexus10Device, roundWearOsDevice)
 }
 
 /**
@@ -114,7 +123,7 @@ class PreviewElementConfigurationTest() {
   }
 
   @Test
-  fun testSpecificDeviceSizes() {
+  fun `test specified device sizes`() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     configManager.defaultDevice
     val configuration = Configuration.create(configManager, null, FolderConfiguration.createDefault())
@@ -132,10 +141,10 @@ class PreviewElementConfigurationTest() {
       assertEquals(2000, screenSize.height)
     }
     SinglePreviewElementInstance("WithSize",
-                                                              PreviewDisplaySettings("Name", null, false, false, null), null, null,
-                                                              PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
-                                                                                               null),
-                                                              ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+                                 PreviewDisplaySettings("Name", null, false, false, null), null, null,
+                                 PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
+                                                                  null),
+                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
                                                devicesProvider = deviceProvider,
@@ -146,11 +155,11 @@ class PreviewElementConfigurationTest() {
     }
 
     SinglePreviewElementInstance("WithSizeAndDecorations",
-                                                                            PreviewDisplaySettings("Name", null, true, false, null), null,
-                                                                            null,
-                                                                            PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
-                                                                                                             null, null, null),
-                                                                            ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+                                 PreviewDisplaySettings("Name", null, true, false, null), null,
+                                 null,
+                                 PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
+                                                                  null, null, null),
+                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
                                                devicesProvider = deviceProvider,
@@ -159,5 +168,25 @@ class PreviewElementConfigurationTest() {
       assertEquals(1000, screenSize.width)
       assertEquals(2000, screenSize.height)
     }
+  }
+
+
+  @Test
+  fun `device round frame is not displayed when frame is not enabled`() {
+    val config = Configuration.create(ConfigurationManager.getOrCreateInstance(fixture.module), null, FolderConfiguration.createDefault())
+    val wearOsConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, "id:wearos_round")
+    wearOsConfiguration.applyConfigurationForTest(config,
+                                                  highestApiTarget = { null },
+                                                  devicesProvider = deviceProvider,
+                                                  defaultDeviceProvider = { defaultDevice },
+                                                  useDeviceFrame = false)
+    assertTrue(config.device!!.allStates.none { it.hardware.screen.screenRound == ScreenRound.ROUND })
+
+    wearOsConfiguration.applyConfigurationForTest(config,
+                                                  highestApiTarget = { null },
+                                                  devicesProvider = deviceProvider,
+                                                  defaultDeviceProvider = { defaultDevice },
+                                                  useDeviceFrame = true)
+    assertTrue(config.device!!.allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND })
   }
 }
