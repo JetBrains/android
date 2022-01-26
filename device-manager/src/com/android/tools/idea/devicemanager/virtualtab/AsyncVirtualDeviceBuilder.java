@@ -63,11 +63,11 @@ final class AsyncVirtualDeviceBuilder {
   @UiThread
   @NotNull ListenableFuture<@NotNull VirtualDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.transform(mySizeOnDiskFuture, this::build, EdtExecutorService.getInstance());
+    return Futures.whenAllComplete(mySizeOnDiskFuture).call(this::build, EdtExecutorService.getInstance());
   }
 
   @UiThread
-  private @NotNull VirtualDevice build(long sizeOnDisk) {
+  private @NotNull VirtualDevice build() {
     IdDisplay tag = myDevice.getTag();
     AndroidVersion version = myDevice.getAndroidVersion();
 
