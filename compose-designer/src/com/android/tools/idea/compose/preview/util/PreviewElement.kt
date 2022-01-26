@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.resources.Density
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.ComposeLibraryNamespace
@@ -214,11 +215,12 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
     // When the device frame is not being displayed and the user has given us some specific sizes, we want to apply those to the
     // device itself.
     // This is to match the intuition that those sizes always determine the size of the composable.
-      renderConfiguration.device?.let { device ->
-        val dpiFactor = renderConfiguration.density.dpiValue / 160
-        updateConfigurationScreenSize(renderConfiguration,
-                                      it.width * dpiFactor,
-                                      it.height * dpiFactor, device)
+    renderConfiguration.device?.let { device ->
+      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the current dpi vs the default dpi (160).
+      val dpiFactor = renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
+      updateConfigurationScreenSize(renderConfiguration,
+                                    it.width * dpiFactor,
+                                    it.height * dpiFactor, device)
     }
   }
   renderConfiguration.finishBulkEditing()
