@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -67,6 +68,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     items.add(newDuplicateItem());
     items.add(new WipeDataItem(this));
     newColdBootNowItem().ifPresent(items::add);
+    items.add(newShowOnDiskItem());
 
     return items;
   }
@@ -113,6 +115,22 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     });
 
     return Optional.of(item);
+  }
+
+  private @NotNull JComponent newShowOnDiskItem() {
+    AbstractButton item = new JBMenuItem("Show on Disk");
+    item.setToolTipText("Open the location of this AVD's data files");
+
+    item.addActionListener(actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_SHOW_ON_DISK_ACTION)
+        .build();
+
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
+      RevealFileAction.openDirectory(myDevice.getAvdInfo().getDataFolderPath());
+    });
+
+    return item;
   }
 
   @Override

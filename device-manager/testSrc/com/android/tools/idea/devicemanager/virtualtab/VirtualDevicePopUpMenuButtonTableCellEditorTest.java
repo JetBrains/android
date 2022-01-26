@@ -41,7 +41,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     Collection<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(2, items.size());
+    assertEquals(3, items.size());
   }
 
   @Test
@@ -53,7 +53,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(3, items.size());
+    assertEquals(4, items.size());
 
     AbstractButton item = (AbstractButton)items.get(2);
 
