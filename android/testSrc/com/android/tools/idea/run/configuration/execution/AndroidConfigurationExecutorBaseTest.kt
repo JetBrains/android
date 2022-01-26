@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
@@ -53,11 +54,20 @@ abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
     return projectSystemMock
   }
 
-  protected fun getMockDevice(): IDevice {
+  protected fun getMockDevice(replies: (request: String) -> String = { request -> "Mock reply: $request" }): IDevice {
     val device = Mockito.mock(IDevice::class.java)
     Mockito.`when`(device.version).thenReturn(AndroidVersion(20, null))
     Mockito.`when`(device.density).thenReturn(640)
     Mockito.`when`(device.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86).map { it.toString() })
+    Mockito.`when`(
+      device.executeShellCommand(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any())
+    ).thenAnswer { invocation ->
+      val request = invocation.arguments[0] as String
+      val receiver = invocation.arguments[1] as IShellOutputReceiver
+      val reply = replies(request)
+      val byteArray = "$reply\n".toByteArray(Charsets.UTF_8)
+      receiver.addOutput(byteArray, 0, byteArray.size)
+    }
     return device
   }
 
