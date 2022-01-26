@@ -174,10 +174,9 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
   // They have to be converted to a sequence of pointer-specific events.
   if (action == AMOTION_EVENT_ACTION_DOWN) {
-    for (int i = 1; i < message.get_pointers().size(); i++) {
-      event.pointer_count = i;
+    for (int i = 1; event.pointer_count = i, i < message.get_pointers().size(); i++) {
       input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
-      event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (event.pointer_count << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+      event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
     }
   }
   else if (action == AMOTION_EVENT_ACTION_UP) {
