@@ -947,6 +947,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       nativeBuildSystem = when (nativeModule.nativeBuildSystem) {
         NativeBuildSystem.NDK_BUILD -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.NDK_BUILD
         NativeBuildSystem.CMAKE -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.CMAKE
+        NativeBuildSystem.NINJA -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.NINJA
         // No forward compatibility. Old Studio cannot open projects with newer AGP.
         else -> error("Unknown native build system: ${nativeModule.nativeBuildSystem}")
       },

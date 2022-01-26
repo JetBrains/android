@@ -19,7 +19,7 @@ package com.android.tools.idea.gradle.model.ndk.v2
 import java.io.File
 
 enum class NativeBuildSystem {
-    NDK_BUILD, CMAKE
+    NDK_BUILD, CMAKE, NINJA
 }
 
 /**
