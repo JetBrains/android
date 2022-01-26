@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.gradle.util.ui;
 
-import static com.intellij.ide.ui.UISettings.setupAntialiasing;
-import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
-import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
-import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
-import static com.intellij.util.ui.UIUtil.drawHeader;
-import static com.intellij.util.ui.UIUtil.drawImage;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -32,6 +25,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.toolWindow.ToolWindowHeader;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.Wrapper;
@@ -39,20 +33,23 @@ import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
+import org.jetbrains.annotations.NotNull;
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.EventListener;
 import java.util.List;
-import javax.swing.*;
-import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.ide.ui.UISettings.setupAntialiasing;
+import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
+import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
+import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
+import static com.intellij.util.ui.UIUtil.drawHeader;
+import static com.intellij.util.ui.UIUtil.drawImage;
 
 /**
- * Adapted from {@link com.intellij.openapi.wm.impl.ToolWindowHeader}.
+ * Adapted from {@link ToolWindowHeader}.
  */
 public class Header extends JPanel {
   @NotNull private final String myTitle;
