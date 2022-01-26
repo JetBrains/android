@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.literals
 
-import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -24,10 +23,10 @@ import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 
-@com.intellij.openapi.components.State(name = "LiveLiteralsConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
+@com.intellij.openapi.components.State(name = "FasterPreviewConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
-class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<LiveLiteralsApplicationConfiguration.State>(State()) {
-  class State: BaseState() {
+class FasterPreviewApplicationConfiguration : SimplePersistentStateComponent<FasterPreviewApplicationConfiguration.State>(State()) {
+  class State : BaseState() {
     var isEnabled by property(true)
   }
 
@@ -36,16 +35,14 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
    * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable]
    */
   var isEnabled
-    get() = StudioFlags.COMPOSE_LIVE_LITERALS.get()
+    get() = StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()
             && state.isEnabled
     set(value) {
-      if (state.isEnabled != value) {
-        state.isEnabled = value
-        LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value)
-      }
+      state.isEnabled = value
     }
 
   companion object {
-    fun getInstance(): LiveLiteralsApplicationConfiguration = ApplicationManager.getApplication().getService(LiveLiteralsApplicationConfiguration::class.java)
+    fun getInstance(): FasterPreviewApplicationConfiguration = ApplicationManager.getApplication().getService(
+      FasterPreviewApplicationConfiguration::class.java)
   }
 }

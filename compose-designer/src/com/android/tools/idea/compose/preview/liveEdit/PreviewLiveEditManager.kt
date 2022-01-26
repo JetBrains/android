@@ -18,6 +18,8 @@ package com.android.tools.idea.compose.preview.liveEdit
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
+import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -39,6 +41,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.messages.Topic
 import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -46,6 +49,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidPlatform
@@ -380,11 +385,17 @@ private val FIXED_COMPILER_ARGS = listOf(
   "-no-stdlib", "-no-reflect", // Included as part of the libraries classpath
   "-Xdisable-default-scripting-plugin",
   "-jvm-target", "1.8")
+
+/**
+ * Arguments to pass to the compiler when we want Live Literals code generation to be enabled.
+ */
+private val LIVE_LITERALS_ARGS = listOf("-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true")
 private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.live.edit.max.cached.requests", 5)
 
 /**
  * Service that talks to the compiler daemon and manages the daemons and compilation requests.
  *
+ * @param project [Project] this manager is working with
  * @param alternativeDaemonFactory Optional daemon factory to use if the default one should not be used. Mainly for testing.
  * @param moduleClassPathLocator A method that given a [Module] returns the classpath to be passed to the compiler when making
  *  compilation requests for it.
@@ -394,13 +405,14 @@ private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.live.edit.
  */
 @Service
 class PreviewLiveEditManager private constructor(
+  private val project: Project,
   alternativeDaemonFactory: ((String) -> CompilerDaemonClient)? = null,
   private val moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
   private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
   @Suppress("unused") // Needed for IntelliJ service constructor call
-  constructor(project: Project) : this(null)
+  constructor(project: Project) : this(project, null)
 
   private val log = Logger.getInstance(PreviewLiveEditManager::class.java)
 
@@ -418,6 +430,21 @@ class PreviewLiveEditManager private constructor(
   private val requestTracker = CacheBuilder.newBuilder()
     .maximumSize(maxCachedRequests.toLong())
     .build<CompileRequestId, CompletableDeferred<Pair<CompilationResult, String>>>()
+
+  private val compilingMutex = Mutex(false)
+
+  /**
+   * Returns true when the feature is enabled
+   */
+  val isEnabled: Boolean
+    get() = FasterPreviewApplicationConfiguration.getInstance().isEnabled
+
+  /**
+   * Returns true when the feature is available. The feature will not be available if it's currently building or if an unsupported change
+   * is doing.
+   */
+  val isAvailable: Boolean
+    get() = isEnabled && !compilingMutex.isLocked
 
   /**
    * Stops all the daemons managed by this [PreviewLiveEditManager].
@@ -441,8 +468,7 @@ class PreviewLiveEditManager private constructor(
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
-                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
-    withContext(scope.coroutineContext) {
+                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> = compilingMutex.withLock {
       val startTime = System.currentTimeMillis()
       indicator.text = "Building classpath"
       val classPathString = moduleClassPathLocator(module).joinToString(File.pathSeparator)
@@ -461,7 +487,7 @@ class PreviewLiveEditManager private constructor(
       // If the request is already running, we wait for the result of that one instead.
       if (isRunning) {
         log.debug("Waiting for request id=$requestId")
-        return@withContext pendingRequest.await()
+        return@withLock pendingRequest.await()
       }
 
       val outputDir = Files.createTempDirectory("overlay")
@@ -471,7 +497,11 @@ class PreviewLiveEditManager private constructor(
       log.debug("Compiling $outputAbsolutePath (id=$requestId)")
 
       val inputFilesArgs = files.map { it.virtualFile.path }.toList()
+      val liveLiteralsArgs = if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
+        LIVE_LITERALS_ARGS
+      else emptyList()
       val args = FIXED_COMPILER_ARGS +
+                 liveLiteralsArgs +
                  classPathArgs +
                  listOf("-d", outputAbsolutePath) +
                  inputFilesArgs
@@ -482,23 +512,33 @@ class PreviewLiveEditManager private constructor(
         daemonRegistry.getOrCreateDaemon(runtimeVersion)
       }
       catch (t: Throwable) {
-        return@withContext Pair(CompilationResult.DaemonStartFailure(t), outputAbsolutePath)
+        return@withLock  Pair(CompilationResult.DaemonStartFailure(t), outputAbsolutePath)
       }
 
+      try {
+        project.messageBus.syncPublisher(LIVE_EDIT_MANAGER_TOPIC).onCompilationStarted(files)
+      }
+      catch (_: Throwable) {
+      }
       indicator.text = "Compiling"
       val result = try {
         daemon.compileRequest(args)
       }
       catch (t: Throwable) {
-        return@withContext Pair(CompilationResult.RequestException(t), outputAbsolutePath)
+        return@withLock  Pair(CompilationResult.RequestException(t), outputAbsolutePath)
       }
       log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result, id=$requestId)")
-      Pair(result, outputAbsolutePath).also {
+      return@withLock Pair(result, outputAbsolutePath).also {
         synchronized(requestTracker) {
           pendingRequest.complete(it)
         }
+        try {
+          project.messageBus.syncPublisher(LIVE_EDIT_MANAGER_TOPIC).onCompilationComplete(result, files)
+        }
+        catch (_: Throwable) {
+        }
       }
-    }
+  }
 
   /**
    * Sends a compilation request for the a single [file]. See [PreviewLiveEditManager.compileRequest].
@@ -508,6 +548,17 @@ class PreviewLiveEditManager private constructor(
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
     compileRequest(listOf(file), module, indicator)
+
+  /**
+   * Adds a [CompileListener] that will be notified when this manager has completed a build.
+   */
+  fun addCompileListener(parentDisposable: Disposable, listener: CompileListener) {
+    val disposable = Disposer.newDisposable().also {
+      Disposer.register(parentDisposable, this)
+      Disposer.register(this@PreviewLiveEditManager, it)
+    }
+    project.messageBus.connect(disposable).subscribe(LIVE_EDIT_MANAGER_TOPIC, listener)
+  }
 
   override fun dispose() {}
 
@@ -520,9 +571,17 @@ class PreviewLiveEditManager private constructor(
                         moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
                         moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
                         maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): PreviewLiveEditManager =
-      PreviewLiveEditManager(alternativeDaemonFactory = daemonFactory,
+      PreviewLiveEditManager(project = project,
+                             alternativeDaemonFactory = daemonFactory,
                              moduleClassPathLocator = moduleClassPathLocator,
                              moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
                              maxCachedRequests = maxCachedRequests)
+
+    interface CompileListener {
+      fun onCompilationStarted(files: Collection<PsiFile>)
+      fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>)
+    }
+
+    private val LIVE_EDIT_MANAGER_TOPIC = Topic("Live Edit Manager Topic", CompileListener::class.java)
   }
 }

@@ -25,14 +25,15 @@ import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
-import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
+import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.liveEdit.fastCompileAsync
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -107,13 +108,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -651,6 +652,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildSucceeded() {
         LOG.debug("buildSucceeded")
+        if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+          module?.let {
+            // When the build completes successfully, we do not need the overlay until a modifications has happened.
+            ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
+          }
+        }
 
         var needsRefresh = false
         previewFreshnessLock.withLock {
@@ -684,17 +691,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           PreviewLiveEditManager.getInstance(project).preStartDaemon(module)
         }
 
-        if (hasLiveLiterals) {
-          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
-        }
-
-        EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         if (needsRefresh) {
           invalidate()
           requestRefresh()
         }
-        // Force updating toolbar icons when build starts
-        ActivityTracker.getInstance().inc()
+
+        afterBuildComplete(true)
       }
 
       override fun buildFailed() {
@@ -710,9 +712,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           someConcurrentBuildFailed = pendingBuildsCount != 0
         }
 
-        composeWorkBench.updateVisibilityAndNotifications()
-        // Force updating toolbar icons after build
-        ActivityTracker.getInstance().inc()
+        afterBuildComplete(false)
       }
 
       override fun buildCleaned() {
@@ -738,16 +738,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         }
 
-        // Stop live literals monitoring for this preview. If the new build has live literals, they will
-        // be re-enabled later automatically via the HasLiveLiterals check.
-        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
         composeWorkBench.updateProgress(message("panel.building"))
-        // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
-        // build is complete and refresh is triggered.
-        ComposePreviewAnimationManager.invalidate()
-        EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
-        // Force updating toolbar icons after build
-        ActivityTracker.getInstance().inc()
+        afterBuildStarted()
       }
     }, this, allowMultipleSubscriptionsPerProject = true)
 
@@ -755,7 +747,43 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     project.runWhenSmartAndSyncedOnEdt(this, {
       requestRefresh()
     })
+
+    PreviewLiveEditManager.getInstance(project).addCompileListener(this, object: PreviewLiveEditManager.Companion.CompileListener {
+      override fun onCompilationStarted(files: Collection<PsiFile>) {
+        psiFilePointer?.element?.let { editorFile ->
+          if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
+        }
+      }
+
+      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+        psiFilePointer?.element?.let { editorFile ->
+          if (files.any { it.isEquivalentTo(editorFile) }) afterBuildComplete(result == CompilationResult.Success)
+        }
+      }
+    })
   }
+
+  private fun afterBuildComplete(isSuccessful: Boolean) {
+    if (isSuccessful && hasLiveLiterals) {
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+    // Force updating toolbar icons after build
+    ActivityTracker.getInstance().inc()
+  }
+
+  private fun afterBuildStarted() {
+    // Stop live literals monitoring for this preview. If the new build has live literals, they will
+    // be re-enabled later automatically via the HasLiveLiterals check.
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
+    // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
+    // build is complete and refresh is triggered.
+    ComposePreviewAnimationManager.invalidate()
+    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+    // Force updating toolbar icons after build
+    ActivityTracker.getInstance().inc()
+  }
+
 
   /**
    * Initializes the flows that will listen to different events and will call [requestRefresh].
@@ -839,7 +867,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }.collectLatest {
             if (isBuildOnSaveEnabled && !hasSyntaxErrors()) {
               if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-                SingleFileCompileAction.compile(this@ComposePreviewRepresentation)
+                psiFilePointer.element?.let {
+                  fastCompileAsync(this@ComposePreviewRepresentation, it)
+                }
               }
               else {
                 requestBuildForSurface(surface, false)

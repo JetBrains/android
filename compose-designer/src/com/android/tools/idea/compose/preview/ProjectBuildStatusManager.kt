@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
+import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
 import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -156,6 +159,10 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
 
   override val isBuilding: Boolean get() = _isBuilding.get()
 
+  private fun onSuccessfulBuild() {
+    fileChangeDetector.markFileAsUpToDate(editorFile.element)
+  }
+
   init {
     Disposer.register(parentDisposable) {
       fileChangeDetector.clearMarks(editorFile.element)
@@ -175,11 +182,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                             _isBuilding.set(false)
                             LOG.debug("buildFinished $result")
                             if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-                              fileChangeDetector.markFileAsUpToDate(editorFile.element)
+                              onSuccessfulBuild()
                               return
                             }
                             projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-                              fileChangeDetector.markFileAsUpToDate(editorFile.element)
+                              onSuccessfulBuild()
                               ProjectBuildStatus.Built
                             }
                             else {
@@ -209,6 +216,17 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         }
       }
     })
+
+    if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+      PreviewLiveEditManager.getInstance(project).addCompileListener(parentDisposable, object: PreviewLiveEditManager.Companion.CompileListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {}
+
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+          val file = editorFile.element ?: return
+          if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
+        }
+      })
+    }
   }
 
   private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile.element)

@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.liveEdit
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiManager
-import com.intellij.testFramework.PlatformTestUtil
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -88,7 +81,10 @@ internal class PreviewLiveEditManagerTest {
     get() = projectRule.project
 
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+
+  @get:Rule
+  val restoreLiteralsFlagRule = RestoreFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS)
 
   @Test
   fun `pre-start daemon`() {
@@ -191,7 +187,7 @@ internal class PreviewLiveEditManagerTest {
     var modificationCount = 0L
 
     // Mock file to use so we control when it is signal as "modified".
-    val mockFile = object: MockPsiFile(actualFile.virtualFile, actualFile.manager) {
+    val mockFile = object : MockPsiFile(actualFile.virtualFile, actualFile.manager) {
       override fun getModificationStamp(): Long = modificationCount
     }
     val blockingDaemon = BlockingDaemonClient()
@@ -248,6 +244,8 @@ internal class PreviewLiveEditManagerTest {
       -Xdisable-default-scripting-plugin
       -jvm-target
       1.8
+      -P
+      plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
       -cp
       A.jar:b/c/Test.class
       -d
@@ -256,10 +254,41 @@ internal class PreviewLiveEditManagerTest {
     """.trimIndent(), requestParameters)
     }
 
+    // Check, disabling Live Literals disables the compiler flag.
     run {
       compilationRequests.clear()
-      val file2 = projectRule.fixture.addFileToProject("testB.kt", """
-      fun emptyB() {}
+      StudioFlags.COMPOSE_LIVE_LITERALS.override(false)
+      try {
+        val file2 = projectRule.fixture.addFileToProject("testB.kt", """
+          fun emptyB() {}
+        """.trimIndent())
+        assertTrue(manager.compileRequest(listOf(file2), projectRule.module).first == CompilationResult.Success)
+        val requestParameters = compilationRequests.single().joinToString("\n")
+          .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+        assertEquals("""
+        -verbose
+        -version
+        -no-stdlib
+        -no-reflect
+        -Xdisable-default-scripting-plugin
+        -jvm-target
+        1.8
+        -cp
+        A.jar:b/c/Test.class
+        -d
+        /tmp/overlay0
+        /src/testB.kt
+      """.trimIndent(), requestParameters)
+      }
+      finally {
+        StudioFlags.COMPOSE_LIVE_LITERALS.clearOverride()
+      }
+    }
+
+    run {
+      compilationRequests.clear()
+      val file2 = projectRule.fixture.addFileToProject("testC.kt", """
+      fun emptyC() {}
     """.trimIndent())
       assertTrue(manager.compileRequest(listOf(file, file2), projectRule.module).first == CompilationResult.Success)
       val requestParameters = compilationRequests.single().joinToString("\n")
@@ -272,12 +301,14 @@ internal class PreviewLiveEditManagerTest {
       -Xdisable-default-scripting-plugin
       -jvm-target
       1.8
+      -P
+      plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
       -cp
       A.jar:b/c/Test.class
       -d
       /tmp/overlay0
       /src/test.kt
-      /src/testB.kt
+      /src/testC.kt
     """.trimIndent(), requestParameters)
     }
   }
