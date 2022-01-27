@@ -100,15 +100,14 @@ internal class DeviceClient(
   }
 
   fun createVideoDecoder(maxOutputSize: Dimension) : VideoDecoder =
-    VideoDecoder(this, videoChannel, maxOutputSize)
+      VideoDecoder(videoChannel, maxOutputSize)
 
   /**
    * Starts decoding of the video stream. Video decoding continues until the video socket
    * connection is closed, for example, by a [disconnect] call.
    */
-  fun startVideoDecoding(decoder: VideoDecoder) {
-    coroutineScope.launch { decoder.run() }
-  }
+  fun startVideoDecoding(decoder: VideoDecoder) =
+      decoder.start(coroutineScope)
 
   override fun dispose() {
     // Disconnect socket channels asynchronously.
