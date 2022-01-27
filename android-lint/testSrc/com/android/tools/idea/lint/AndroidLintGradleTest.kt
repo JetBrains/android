@@ -18,6 +18,7 @@ package com.android.tools.idea.lint
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
@@ -86,6 +87,23 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
                         "No warnings."
     )
   }
+
+  fun testWarningsInNonAndroidLibrary() {
+    // Make sure we get lint violations in java library modules as well
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
+
+    val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/UseValueOf.java")
+    myFixture.checkLint(
+      debug, AndroidLintUseValueOfInspection(), "new Int|eger",
+      """
+      Warning: Use `Integer.valueOf(5)` instead
+              Integer myInt = new Integer(5);
+                              ~~~~~~~~~~~~~~
+          Fix: Replace with valueOf()
+          Fix: Suppress: Add @SuppressLint("UseValueOf") annotation
+      """.trimIndent()
+    )
+  }
 }
 
 fun JavaCodeInsightTestFixture.loadFile(filePath: String): PsiFile {
@@ -99,10 +117,10 @@ fun JavaCodeInsightTestFixture.loadFile(filePath: String): PsiFile {
 
 fun PsiFile.findCaretOffset(caret: String): Int {
   val delta = caret.indexOf("|")
-  if (delta == -1) AndroidGradleTestCase.fail("${name} does not contain caret marker, |")
+  if (delta == -1) AndroidGradleTestCase.fail("$name does not contain caret marker, |")
   val context = caret.substring(0, delta) + caret.substring(delta + 1)
   val index = text.indexOf(context)
-  if (index == -1) AndroidGradleTestCase.fail("${name} does not contain $context")
+  if (index == -1) AndroidGradleTestCase.fail("$name does not contain $context")
   return index + delta
 }
 
