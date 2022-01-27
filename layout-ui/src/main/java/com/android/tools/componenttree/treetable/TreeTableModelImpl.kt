@@ -15,7 +15,6 @@
  */
 package com.android.tools.componenttree.treetable
 
-import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.NodeType
@@ -24,7 +23,6 @@ import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.containers.ContainerUtil
 import java.awt.Image
 import java.awt.datatransfer.Transferable
-import javax.swing.Icon
 import javax.swing.JTree
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
@@ -76,7 +74,6 @@ private fun <T> NodeType<T>.createDragImage(item: Any): Image? {
  * Implementation of the tree model specified in the [com.android.tools.componenttree.api.ComponentTreeBuilder].
  */
 class TreeTableModelImpl(
-  val badgeItems: List<BadgeItem>,
   val columns: List<ColumnInfo>,
   private val nodeTypeLookupMap: Map<Class<*>, NodeType<*>>,
   private val invokeLater: (Runnable) -> Unit
@@ -92,7 +89,7 @@ class TreeTableModelImpl(
   }
 
   override fun columnDataChanged() = fireColumnDataChanged()
-  // endregion
+// endregion
 
 // region TreeTableModel implementation
   override fun getRoot() = treeRoot
@@ -110,18 +107,16 @@ class TreeTableModelImpl(
     modelListeners.remove(listener)
   }
 
-  override fun getColumnCount(): Int = 1 + columns.size + badgeItems.size
+  override fun getColumnCount(): Int = 1 + columns.size
 
   override fun getColumnName(column: Int): String = when (column) {
     0 -> "Tree"
-    in 1..columns.size -> columns[column - 1].name
-    else -> "Badge$column"
+    else -> columns[column -1].name
   }
 
   override fun getColumnClass(column: Int): Class<*> = when (column) {
     0 -> com.intellij.ui.treeStructure.treetable.TreeTableModel::class.java
-    in 1..columns.size -> ColumnInfo::class.java
-    else -> Icon::class.java
+    else -> columns[column - 1].javaClass
   }
 
   override fun getValueAt(node: Any?, column: Int): Any? = node

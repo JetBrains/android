@@ -20,15 +20,16 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
@@ -36,6 +37,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.fileEditor.impl.IdeUiServiceImpl
 import com.intellij.openapi.options.advanced.AdvancedSettingBean
 import com.intellij.openapi.options.advanced.AdvancedSettingType
 import com.intellij.openapi.options.advanced.AdvancedSettings
@@ -83,6 +85,9 @@ object ComponentTreeManualTest {
     }
   }
 
+  /**
+   * Override as many services needed to run this test application without exceptions.
+   */
   private fun startTestApplication(): MockApplication {
     val disposable = Disposer.newDisposable()
     val app = TestApplication(disposable)
@@ -90,6 +95,8 @@ object ComponentTreeManualTest {
     app.registerService(DataManager::class.java, DataManagerImpl())
     app.registerService(WindowManager::class.java, WindowManagerImpl())
     app.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    @Suppress("UnstableApiUsage")
+    app.registerService(IdeUiService::class.java, IdeUiServiceImpl())
     @Suppress("UnstableApiUsage")
     app.extensionArea.registerExtensionPoint(AdvancedSettingBean.EP_NAME.name, AdvancedSettingBean::class.java.name,
                                              ExtensionPoint.Kind.BEAN_CLASS, false)
@@ -229,12 +236,12 @@ private class ComponentTreeTest {
     }
   }
 
-  private inner class Badge(val context: String): BadgeItem {
+  private inner class Badge(context: String): IconColumn(context) {
     val popup = createPopup(context)
 
     override fun getIcon(item: Any): Icon? {
       val itemValue = item as? Item
-      return when (context) {
+      return when (name) {
         "badge1" -> itemValue?.badge1
         "badge2" -> itemValue?.badge2
         "badge3" -> itemValue?.badge3
@@ -244,20 +251,20 @@ private class ComponentTreeTest {
 
     override fun getHoverIcon(item: Any): Icon? {
       val itemValue = item as? Item
-      return when (context) {
+      return when (name) {
         "badge3" -> itemValue?.hover3
         else -> null
       }
     }
 
     override val leftDivider: Boolean
-      get() = context == "badge3"
+      get() = name == "badge3"
 
-    override fun getTooltipText(item: Any?) = "Tooltip for $item"
+    override fun getTooltipText(item: Any) = "Tooltip for $item"
 
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (getIcon(item) != null) {
-        JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+        JOptionPane.showMessageDialog(frame, "Badge: $name for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
       }
     }
 
@@ -266,7 +273,7 @@ private class ComponentTreeTest {
     }
 
     override fun toString(): String {
-      return context
+      return name
     }
   }
 }

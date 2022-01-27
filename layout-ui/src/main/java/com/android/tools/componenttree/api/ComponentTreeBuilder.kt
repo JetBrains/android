@@ -114,9 +114,10 @@ class ComponentTreeBuilder {
   fun withColumn(columnInfo: ColumnInfo) = apply { columns.add(columnInfo) }
 
   /**
-   * Add a badge icon to the right of any column added with [withColumn].
+   * Add a badge column to the right of the tree node item.
    */
-  fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
+  fun withBadgeSupport(badge: BadgeItem) =
+    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) apply { columns.add(badge) } else apply { badges.add(badge) }
 
   /**
    * Add Drag and Drop support.
@@ -182,7 +183,7 @@ class ComponentTreeBuilder {
   }
 
   private fun buildTreeTable(): ComponentTreeBuildResult {
-    val model = TreeTableModelImpl(badges, columns, nodeTypeMap, invokeLater)
+    val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
                               installTreeSearch)
     table.name = componentName // For UI tests

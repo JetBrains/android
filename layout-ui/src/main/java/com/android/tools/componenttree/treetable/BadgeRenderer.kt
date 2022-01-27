@@ -18,8 +18,6 @@ package com.android.tools.componenttree.treetable
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.api.BadgeItem
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.EmptyIcon
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import javax.swing.Icon
@@ -30,17 +28,16 @@ import javax.swing.table.TableCellRenderer
 /**
  * Renderer used for each [BadgeItem] specified.
  */
-class BadgeRenderer(val badge: BadgeItem) : TableCellRenderer, JBLabel() {
+class BadgeRenderer(val badge: BadgeItem, val emptyIcon: Icon) : TableCellRenderer, JBLabel() {
   init {
     horizontalAlignment = JLabel.CENTER
     text = null
-    // Add border of 2 left & right, and space for the left divider
-    border = JBUI.Borders.empty(0, if (badge.leftDivider) 3 else 2, 0, 2)
+    border = badge.createBorder()
   }
 
   override fun getTableCellRendererComponent(
     table: JTable,
-    value: Any?,
+    value: Any,
     isSelected: Boolean,
     hasFocus: Boolean,
     row: Int,
@@ -49,8 +46,8 @@ class BadgeRenderer(val badge: BadgeItem) : TableCellRenderer, JBLabel() {
     val focused = isSelected && table.hasFocus()
     val hoverCell = table.hoverCell
     background = UIUtil.getTreeBackground(isSelected, focused)
-    val hoverIcon = if (value != null && hoverCell?.equalTo(row, column) == true) badge.getHoverIcon(value) else null
-    icon = (hoverIcon ?: value?.let { badge.getIcon(it) })?.white(focused) ?: EmptyIcon.ICON_16
+    val hoverIcon = if (hoverCell?.equalTo(row, column) == true) badge.getHoverIcon(value) else null
+    icon = (hoverIcon ?: badge.getIcon(value))?.white(focused) ?: emptyIcon
     toolTipText = badge.getTooltipText(value)
     return this
   }
