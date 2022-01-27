@@ -1,423 +1,400 @@
 MODULE                        : project
-    externalProject               : project
-        externalSystemId              : GRADLE
-        id                            : project
+    externalProject               : project (DefaultExternalProject)
         name                          : project
         qName                         : project
-        group                         :
         version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build
+                buildFile                     : <ROOT>/app/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApk                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApk           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApk         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    apk                           : <empty>
+                    archives                      : <empty>
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    debugAabPublication           : <empty>
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    debugApk                      : <empty>
+                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    releaseAabPublication         : <empty>
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    releaseApk                    : <empty>
+                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApk                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugApk                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseApk                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            lib                           : :lib (DefaultExternalProject)
+                name                          : lib
+                qName                         : :lib
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/lib
+                buildDir                      : <ROOT>/lib/build
+                buildFile                     : <ROOT>/lib/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugPublish       : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestPublish            : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleasePublish     : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugPublish                  : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    - default                     : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    publish                       : <empty>
+                    - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releasePublish                : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugPublish              : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testPublish                   : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleasePublish            : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            otherlib                      : :otherlib (DefaultExternalProject)
+                name                          : otherlib
+                qName                         : :otherlib
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/otherlib
+                buildDir                      : <ROOT>/otherlib/build
+                buildFile                     : <ROOT>/otherlib/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugPublish       : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestPublish            : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleasePublish     : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - archives                    : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAllApiPublication      : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
+                    - debugAllRuntimePublication  : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    - debugApiPublication         : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugPublish                  : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    - debugRuntimePublication     : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    - default                     : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    publish                       : <empty>
+                    - releaseAllApiPublication    : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    - releaseAllRuntimePublication          : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApiPublication       : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releasePublish                : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    - releaseRuntimePublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugPublish              : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testPublish                   : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleasePublish            : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
-        externalProject               : app
-            externalSystemId              : GRADLE
-            id                            : :app
-            name                          : app
-            qName                         : :app
-            group                         : project
-            version                       : unspecified
-            sourceCompatibility           : 11
-            targetCompatibility           : 11
-            projectDir                    : <ROOT>/app
-            buildDir                      : <ROOT>/app/build
-            buildFile                     : <ROOT>/app/build.gradle
-            configurationArtifacts        : _internal_aapt2_binary
-            configurationArtifacts        : androidApis
-            configurationArtifacts        : androidTestAnnotationProcessor
-            configurationArtifacts        : androidTestApi
-            configurationArtifacts        : androidTestApk
-            configurationArtifacts        : androidTestCompile
-            configurationArtifacts        : androidTestCompileOnly
-            configurationArtifacts        : androidTestDebugAnnotationProcessor
-            configurationArtifacts        : androidTestDebugApi
-            configurationArtifacts        : androidTestDebugApk
-            configurationArtifacts        : androidTestDebugCompile
-            configurationArtifacts        : androidTestDebugCompileOnly
-            configurationArtifacts        : androidTestDebugImplementation
-            configurationArtifacts        : androidTestDebugProvided
-            configurationArtifacts        : androidTestDebugRuntimeOnly
-            configurationArtifacts        : androidTestDebugWearApp
-            configurationArtifacts        : androidTestImplementation
-            configurationArtifacts        : androidTestProvided
-            configurationArtifacts        : androidTestReleaseAnnotationProcessor
-            configurationArtifacts        : androidTestReleaseApi
-            configurationArtifacts        : androidTestReleaseApk
-            configurationArtifacts        : androidTestReleaseCompile
-            configurationArtifacts        : androidTestReleaseCompileOnly
-            configurationArtifacts        : androidTestReleaseImplementation
-            configurationArtifacts        : androidTestReleaseProvided
-            configurationArtifacts        : androidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidTestReleaseWearApp
-            configurationArtifacts        : androidTestRuntimeOnly
-            configurationArtifacts        : androidTestUtil
-            configurationArtifacts        : androidTestWearApp
-            configurationArtifacts        : annotationProcessor
-            configurationArtifacts        : api
-            configurationArtifacts        : apk
-            configurationArtifacts        : archives
-            configurationArtifacts        : compile
-            configurationArtifacts        : compileOnly
-            configurationArtifacts        : coreLibraryDesugaring
-            configurationArtifacts        : debugAabPublication
-            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugAndroidTestCompileClasspath
-            configurationArtifacts        : debugAndroidTestRuntimeClasspath
-            configurationArtifacts        : debugAnnotationProcessor
-            configurationArtifacts        : debugAnnotationProcessorClasspath
-            configurationArtifacts        : debugApi
-            configurationArtifacts        : debugApiElements
-            configurationArtifacts        : debugApk
-            configurationArtifacts        : debugApkPublication
-                -                             : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
-            configurationArtifacts        : debugCompile
-            configurationArtifacts        : debugCompileClasspath
-            configurationArtifacts        : debugCompileOnly
-            configurationArtifacts        : debugImplementation
-            configurationArtifacts        : debugProvided
-            configurationArtifacts        : debugReverseMetadataValues
-            configurationArtifacts        : debugRuntimeClasspath
-            configurationArtifacts        : debugRuntimeElements
-            configurationArtifacts        : debugRuntimeOnly
-            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugUnitTestCompileClasspath
-            configurationArtifacts        : debugUnitTestRuntimeClasspath
-            configurationArtifacts        : debugWearApp
-            configurationArtifacts        : debugWearBundling
-            configurationArtifacts        : default
-            configurationArtifacts        : implementation
-            configurationArtifacts        : lintChecks
-            configurationArtifacts        : lintClassPath
-            configurationArtifacts        : lintPublish
-            configurationArtifacts        : provided
-            configurationArtifacts        : releaseAabPublication
-            configurationArtifacts        : releaseAnnotationProcessor
-            configurationArtifacts        : releaseAnnotationProcessorClasspath
-            configurationArtifacts        : releaseApi
-            configurationArtifacts        : releaseApiElements
-            configurationArtifacts        : releaseApk
-            configurationArtifacts        : releaseApkPublication
-                -                             : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
-            configurationArtifacts        : releaseCompile
-            configurationArtifacts        : releaseCompileClasspath
-            configurationArtifacts        : releaseCompileOnly
-            configurationArtifacts        : releaseImplementation
-            configurationArtifacts        : releaseProvided
-            configurationArtifacts        : releaseReverseMetadataValues
-            configurationArtifacts        : releaseRuntimeClasspath
-            configurationArtifacts        : releaseRuntimeElements
-            configurationArtifacts        : releaseRuntimeOnly
-            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : releaseUnitTestCompileClasspath
-            configurationArtifacts        : releaseUnitTestRuntimeClasspath
-            configurationArtifacts        : releaseWearApp
-            configurationArtifacts        : releaseWearBundling
-            configurationArtifacts        : runtimeOnly
-            configurationArtifacts        : testAnnotationProcessor
-            configurationArtifacts        : testApi
-            configurationArtifacts        : testApk
-            configurationArtifacts        : testCompile
-            configurationArtifacts        : testCompileOnly
-            configurationArtifacts        : testDebugAnnotationProcessor
-            configurationArtifacts        : testDebugApi
-            configurationArtifacts        : testDebugApk
-            configurationArtifacts        : testDebugCompile
-            configurationArtifacts        : testDebugCompileOnly
-            configurationArtifacts        : testDebugImplementation
-            configurationArtifacts        : testDebugProvided
-            configurationArtifacts        : testDebugRuntimeOnly
-            configurationArtifacts        : testDebugWearApp
-            configurationArtifacts        : testImplementation
-            configurationArtifacts        : testProvided
-            configurationArtifacts        : testReleaseAnnotationProcessor
-            configurationArtifacts        : testReleaseApi
-            configurationArtifacts        : testReleaseApk
-            configurationArtifacts        : testReleaseCompile
-            configurationArtifacts        : testReleaseCompileOnly
-            configurationArtifacts        : testReleaseImplementation
-            configurationArtifacts        : testReleaseProvided
-            configurationArtifacts        : testReleaseRuntimeOnly
-            configurationArtifacts        : testReleaseWearApp
-            configurationArtifacts        : testRuntimeOnly
-            configurationArtifacts        : testWearApp
-            configurationArtifacts        : wearApp
-        externalProject               : lib
-            externalSystemId              : GRADLE
-            id                            : :lib
-            name                          : lib
-            qName                         : :lib
-            group                         : project
-            version                       : unspecified
-            sourceCompatibility           : 11
-            targetCompatibility           : 11
-            projectDir                    : <ROOT>/lib
-            buildDir                      : <ROOT>/lib/build
-            buildFile                     : <ROOT>/lib/build.gradle
-            configurationArtifacts        : _internal_aapt2_binary
-            configurationArtifacts        : androidApis
-            configurationArtifacts        : androidTestAnnotationProcessor
-            configurationArtifacts        : androidTestApi
-            configurationArtifacts        : androidTestCompile
-            configurationArtifacts        : androidTestCompileOnly
-            configurationArtifacts        : androidTestDebugAnnotationProcessor
-            configurationArtifacts        : androidTestDebugApi
-            configurationArtifacts        : androidTestDebugCompile
-            configurationArtifacts        : androidTestDebugCompileOnly
-            configurationArtifacts        : androidTestDebugImplementation
-            configurationArtifacts        : androidTestDebugProvided
-            configurationArtifacts        : androidTestDebugPublish
-            configurationArtifacts        : androidTestDebugRuntimeOnly
-            configurationArtifacts        : androidTestDebugWearApp
-            configurationArtifacts        : androidTestImplementation
-            configurationArtifacts        : androidTestProvided
-            configurationArtifacts        : androidTestPublish
-            configurationArtifacts        : androidTestReleaseAnnotationProcessor
-            configurationArtifacts        : androidTestReleaseApi
-            configurationArtifacts        : androidTestReleaseCompile
-            configurationArtifacts        : androidTestReleaseCompileOnly
-            configurationArtifacts        : androidTestReleaseImplementation
-            configurationArtifacts        : androidTestReleaseProvided
-            configurationArtifacts        : androidTestReleasePublish
-            configurationArtifacts        : androidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidTestReleaseWearApp
-            configurationArtifacts        : androidTestRuntimeOnly
-            configurationArtifacts        : androidTestUtil
-            configurationArtifacts        : androidTestWearApp
-            configurationArtifacts        : annotationProcessor
-            configurationArtifacts        : api
-            configurationArtifacts        : archives
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : compile
-            configurationArtifacts        : compileOnly
-            configurationArtifacts        : coreLibraryDesugaring
-            configurationArtifacts        : debugAllApiPublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-            configurationArtifacts        : debugAllRuntimePublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugAndroidTestCompileClasspath
-            configurationArtifacts        : debugAndroidTestRuntimeClasspath
-            configurationArtifacts        : debugAnnotationProcessor
-            configurationArtifacts        : debugAnnotationProcessorClasspath
-            configurationArtifacts        : debugApi
-            configurationArtifacts        : debugApiElements
-            configurationArtifacts        : debugApiPublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-            configurationArtifacts        : debugCompile
-            configurationArtifacts        : debugCompileClasspath
-            configurationArtifacts        : debugCompileOnly
-            configurationArtifacts        : debugImplementation
-            configurationArtifacts        : debugProvided
-            configurationArtifacts        : debugPublish
-            configurationArtifacts        : debugRuntimeClasspath
-            configurationArtifacts        : debugRuntimeElements
-            configurationArtifacts        : debugRuntimeOnly
-            configurationArtifacts        : debugRuntimePublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugUnitTestCompileClasspath
-            configurationArtifacts        : debugUnitTestRuntimeClasspath
-            configurationArtifacts        : debugWearApp
-            configurationArtifacts        : default
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : implementation
-            configurationArtifacts        : lintChecks
-            configurationArtifacts        : lintClassPath
-            configurationArtifacts        : lintPublish
-            configurationArtifacts        : provided
-            configurationArtifacts        : publish
-            configurationArtifacts        : releaseAllApiPublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : releaseAllRuntimePublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : releaseAnnotationProcessor
-            configurationArtifacts        : releaseAnnotationProcessorClasspath
-            configurationArtifacts        : releaseApi
-            configurationArtifacts        : releaseApiElements
-            configurationArtifacts        : releaseApiPublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : releaseCompile
-            configurationArtifacts        : releaseCompileClasspath
-            configurationArtifacts        : releaseCompileOnly
-            configurationArtifacts        : releaseImplementation
-            configurationArtifacts        : releaseProvided
-            configurationArtifacts        : releasePublish
-            configurationArtifacts        : releaseRuntimeClasspath
-            configurationArtifacts        : releaseRuntimeElements
-            configurationArtifacts        : releaseRuntimeOnly
-            configurationArtifacts        : releaseRuntimePublication
-                -                             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : releaseUnitTestCompileClasspath
-            configurationArtifacts        : releaseUnitTestRuntimeClasspath
-            configurationArtifacts        : releaseWearApp
-            configurationArtifacts        : runtimeOnly
-            configurationArtifacts        : testAnnotationProcessor
-            configurationArtifacts        : testApi
-            configurationArtifacts        : testCompile
-            configurationArtifacts        : testCompileOnly
-            configurationArtifacts        : testDebugAnnotationProcessor
-            configurationArtifacts        : testDebugApi
-            configurationArtifacts        : testDebugCompile
-            configurationArtifacts        : testDebugCompileOnly
-            configurationArtifacts        : testDebugImplementation
-            configurationArtifacts        : testDebugProvided
-            configurationArtifacts        : testDebugPublish
-            configurationArtifacts        : testDebugRuntimeOnly
-            configurationArtifacts        : testDebugWearApp
-            configurationArtifacts        : testImplementation
-            configurationArtifacts        : testProvided
-            configurationArtifacts        : testPublish
-            configurationArtifacts        : testReleaseAnnotationProcessor
-            configurationArtifacts        : testReleaseApi
-            configurationArtifacts        : testReleaseCompile
-            configurationArtifacts        : testReleaseCompileOnly
-            configurationArtifacts        : testReleaseImplementation
-            configurationArtifacts        : testReleaseProvided
-            configurationArtifacts        : testReleasePublish
-            configurationArtifacts        : testReleaseRuntimeOnly
-            configurationArtifacts        : testReleaseWearApp
-            configurationArtifacts        : testRuntimeOnly
-            configurationArtifacts        : testWearApp
-            configurationArtifacts        : wearApp
-        externalProject               : otherlib
-            externalSystemId              : GRADLE
-            id                            : :otherlib
-            name                          : otherlib
-            qName                         : :otherlib
-            group                         : project
-            version                       : unspecified
-            sourceCompatibility           : 11
-            targetCompatibility           : 11
-            projectDir                    : <ROOT>/otherlib
-            buildDir                      : <ROOT>/otherlib/build
-            buildFile                     : <ROOT>/otherlib/build.gradle
-            configurationArtifacts        : _internal_aapt2_binary
-            configurationArtifacts        : androidApis
-            configurationArtifacts        : androidTestAnnotationProcessor
-            configurationArtifacts        : androidTestApi
-            configurationArtifacts        : androidTestCompile
-            configurationArtifacts        : androidTestCompileOnly
-            configurationArtifacts        : androidTestDebugAnnotationProcessor
-            configurationArtifacts        : androidTestDebugApi
-            configurationArtifacts        : androidTestDebugCompile
-            configurationArtifacts        : androidTestDebugCompileOnly
-            configurationArtifacts        : androidTestDebugImplementation
-            configurationArtifacts        : androidTestDebugProvided
-            configurationArtifacts        : androidTestDebugPublish
-            configurationArtifacts        : androidTestDebugRuntimeOnly
-            configurationArtifacts        : androidTestDebugWearApp
-            configurationArtifacts        : androidTestImplementation
-            configurationArtifacts        : androidTestProvided
-            configurationArtifacts        : androidTestPublish
-            configurationArtifacts        : androidTestReleaseAnnotationProcessor
-            configurationArtifacts        : androidTestReleaseApi
-            configurationArtifacts        : androidTestReleaseCompile
-            configurationArtifacts        : androidTestReleaseCompileOnly
-            configurationArtifacts        : androidTestReleaseImplementation
-            configurationArtifacts        : androidTestReleaseProvided
-            configurationArtifacts        : androidTestReleasePublish
-            configurationArtifacts        : androidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidTestReleaseWearApp
-            configurationArtifacts        : androidTestRuntimeOnly
-            configurationArtifacts        : androidTestUtil
-            configurationArtifacts        : androidTestWearApp
-            configurationArtifacts        : annotationProcessor
-            configurationArtifacts        : api
-            configurationArtifacts        : archives
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : compile
-            configurationArtifacts        : compileOnly
-            configurationArtifacts        : coreLibraryDesugaring
-            configurationArtifacts        : debugAllApiPublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-            configurationArtifacts        : debugAllRuntimePublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugAndroidTestCompileClasspath
-            configurationArtifacts        : debugAndroidTestRuntimeClasspath
-            configurationArtifacts        : debugAnnotationProcessor
-            configurationArtifacts        : debugAnnotationProcessorClasspath
-            configurationArtifacts        : debugApi
-            configurationArtifacts        : debugApiElements
-            configurationArtifacts        : debugApiPublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-            configurationArtifacts        : debugCompile
-            configurationArtifacts        : debugCompileClasspath
-            configurationArtifacts        : debugCompileOnly
-            configurationArtifacts        : debugImplementation
-            configurationArtifacts        : debugProvided
-            configurationArtifacts        : debugPublish
-            configurationArtifacts        : debugRuntimeClasspath
-            configurationArtifacts        : debugRuntimeElements
-            configurationArtifacts        : debugRuntimeOnly
-            configurationArtifacts        : debugRuntimePublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugUnitTestCompileClasspath
-            configurationArtifacts        : debugUnitTestRuntimeClasspath
-            configurationArtifacts        : debugWearApp
-            configurationArtifacts        : default
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : implementation
-            configurationArtifacts        : lintChecks
-            configurationArtifacts        : lintClassPath
-            configurationArtifacts        : lintPublish
-            configurationArtifacts        : provided
-            configurationArtifacts        : publish
-            configurationArtifacts        : releaseAllApiPublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : releaseAllRuntimePublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : releaseAnnotationProcessor
-            configurationArtifacts        : releaseAnnotationProcessorClasspath
-            configurationArtifacts        : releaseApi
-            configurationArtifacts        : releaseApiElements
-            configurationArtifacts        : releaseApiPublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : releaseCompile
-            configurationArtifacts        : releaseCompileClasspath
-            configurationArtifacts        : releaseCompileOnly
-            configurationArtifacts        : releaseImplementation
-            configurationArtifacts        : releaseProvided
-            configurationArtifacts        : releasePublish
-            configurationArtifacts        : releaseRuntimeClasspath
-            configurationArtifacts        : releaseRuntimeElements
-            configurationArtifacts        : releaseRuntimeOnly
-            configurationArtifacts        : releaseRuntimePublication
-                -                             : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : releaseUnitTestCompileClasspath
-            configurationArtifacts        : releaseUnitTestRuntimeClasspath
-            configurationArtifacts        : releaseWearApp
-            configurationArtifacts        : runtimeOnly
-            configurationArtifacts        : testAnnotationProcessor
-            configurationArtifacts        : testApi
-            configurationArtifacts        : testCompile
-            configurationArtifacts        : testCompileOnly
-            configurationArtifacts        : testDebugAnnotationProcessor
-            configurationArtifacts        : testDebugApi
-            configurationArtifacts        : testDebugCompile
-            configurationArtifacts        : testDebugCompileOnly
-            configurationArtifacts        : testDebugImplementation
-            configurationArtifacts        : testDebugProvided
-            configurationArtifacts        : testDebugPublish
-            configurationArtifacts        : testDebugRuntimeOnly
-            configurationArtifacts        : testDebugWearApp
-            configurationArtifacts        : testImplementation
-            configurationArtifacts        : testProvided
-            configurationArtifacts        : testPublish
-            configurationArtifacts        : testReleaseAnnotationProcessor
-            configurationArtifacts        : testReleaseApi
-            configurationArtifacts        : testReleaseCompile
-            configurationArtifacts        : testReleaseCompileOnly
-            configurationArtifacts        : testReleaseImplementation
-            configurationArtifacts        : testReleaseProvided
-            configurationArtifacts        : testReleasePublish
-            configurationArtifacts        : testReleaseRuntimeOnly
-            configurationArtifacts        : testReleaseWearApp
-            configurationArtifacts        : testRuntimeOnly
-            configurationArtifacts        : testWearApp
-            configurationArtifacts        : wearApp
+        externalSystemId              : GRADLE
 MODULE                        : project.app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -747,7 +724,7 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               : app (*seen*)
+    externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
@@ -1054,7 +1031,7 @@ MODULE                        : project.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               : lib (*seen*)
+    externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
@@ -1345,7 +1322,7 @@ MODULE                        : project.otherlib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               : otherlib (*seen*)
+    externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest
 MODULE                        : project.otherlib.main
 MODULE                        : project.otherlib.unitTest

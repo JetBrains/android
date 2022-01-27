@@ -1,552 +1,533 @@
 MODULE                        : kotlinMultiPlatform
-    externalProject               : kotlinMultiPlatform
-        externalSystemId              : GRADLE
-        id                            : kotlinMultiPlatform
+    externalProject               : kotlinMultiPlatform (DefaultExternalProject)
         name                          : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
-        group                         :
         version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : kotlinMultiPlatform
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build [-]
+                buildFile                     : <ROOT>/app/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    androidApis                   : <empty>
+                    androidJacocoAnt              : <empty>
+                    androidJdkImage               : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApiDependenciesMetadata      : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestCompileOnlyDependenciesMetadata        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApiDependenciesMetadata : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugImplementationDependenciesMetadata          : <empty>
+                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestImplementationDependenciesMetadata     : <empty>
+                    androidTestIntransitiveDependenciesMetadata       : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApiDependenciesMetadata         : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
+                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    apiDependenciesMetadata       : <empty>
+                    archives                      : <empty>
+                    compileOnly                   : <empty>
+                    compileOnlyDependenciesMetadata         : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestApi           : <empty>
+                    debugAndroidTestApiDependenciesMetadata : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestCompileOnly   : <empty>
+                    debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
+                    debugAndroidTestImplementation          : <empty>
+                    debugAndroidTestImplementationDependenciesMetadata          : <empty>
+                    debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAndroidTestRuntimeOnly   : <empty>
+                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiDependenciesMetadata  : <empty>
+                    debugApiElements              : <empty>
+                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugCompileOnlyDependenciesMetadata    : <empty>
+                    debugImplementation           : <empty>
+                    debugImplementationDependenciesMetadata : <empty>
+                    debugIntransitiveDependenciesMetadata   : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugRuntimeOnlyDependenciesMetadata    : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestApi              : <empty>
+                    debugUnitTestApiDependenciesMetadata    : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestCompileOnly      : <empty>
+                    debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
+                    debugUnitTestImplementation   : <empty>
+                    debugUnitTestImplementationDependenciesMetadata   : <empty>
+                    debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugUnitTestRuntimeOnly      : <empty>
+                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    implementationDependenciesMetadata      : <empty>
+                    intransitiveDependenciesMetadata        : <empty>
+                    kotlinCompilerClasspath       : <empty>
+                    kotlinCompilerPluginClasspath : <empty>
+                    kotlinCompilerPluginClasspathDebug      : <empty>
+                    kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
+                    kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
+                    kotlinCompilerPluginClasspathRelease    : <empty>
+                    kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                    kotlinKlibCommonizerClasspath : <empty>
+                    kotlinNativeCompilerPluginClasspath     : <empty>
+                    lintChecks                    : <empty>
+                    lintPublish                   : <empty>
+                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiDependenciesMetadata          : <empty>
+                    releaseApiElements            : <empty>
+                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseCompileOnlyDependenciesMetadata  : <empty>
+                    releaseImplementation         : <empty>
+                    releaseImplementationDependenciesMetadata         : <empty>
+                    releaseIntransitiveDependenciesMetadata : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestApi            : <empty>
+                    releaseUnitTestApiDependenciesMetadata  : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestCompileOnly    : <empty>
+                    releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                    releaseUnitTestImplementation : <empty>
+                    releaseUnitTestImplementationDependenciesMetadata : <empty>
+                    releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseUnitTestRuntimeOnly    : <empty>
+                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    runtimeOnlyDependenciesMetadata         : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApiDependenciesMetadata   : <empty>
+                    testCompileOnly               : <empty>
+                    testCompileOnlyDependenciesMetadata     : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugApiDependenciesMetadata        : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugCompileOnlyDependenciesMetadata          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugImplementationDependenciesMetadata       : <empty>
+                    testDebugIntransitiveDependenciesMetadata         : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
+                    testDebugWearApp              : <empty>
+                    testFixturesAnnotationProcessor         : <empty>
+                    testFixturesApi               : <empty>
+                    testFixturesApiDependenciesMetadata     : <empty>
+                    testFixturesCompileOnly       : <empty>
+                    testFixturesCompileOnlyDependenciesMetadata       : <empty>
+                    testFixturesDebugAnnotationProcessor    : <empty>
+                    testFixturesDebugApi          : <empty>
+                    testFixturesDebugApiDependenciesMetadata          : <empty>
+                    testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
+                    testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugImplementationDependenciesMetadata         : <empty>
+                    testFixturesDebugIntransitiveDependenciesMetadata : <empty>
+                    testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
+                    testFixturesDebugWearApp      : <empty>
+                    testFixturesImplementation    : <empty>
+                    testFixturesImplementationDependenciesMetadata    : <empty>
+                    testFixturesIntransitiveDependenciesMetadata      : <empty>
+                    testFixturesReleaseAnnotationProcessor  : <empty>
+                    testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseApiDependenciesMetadata        : <empty>
+                    testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
+                    testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseImplementationDependenciesMetadata       : <empty>
+                    testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
+                    testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
+                    testFixturesReleaseWearApp    : <empty>
+                    testFixturesRuntimeOnly       : <empty>
+                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
+                    testFixturesWearApp           : <empty>
+                    testImplementation            : <empty>
+                    testImplementationDependenciesMetadata  : <empty>
+                    testIntransitiveDependenciesMetadata    : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseApiDependenciesMetadata      : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseCompileOnlyDependenciesMetadata        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseImplementationDependenciesMetadata     : <empty>
+                    testReleaseIntransitiveDependenciesMetadata       : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testRuntimeOnlyDependenciesMetadata     : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            module2                       : :module2 (DefaultExternalProject)
+                name                          : module2
+                qName                         : :module2
+                group                         : kotlinMultiPlatform
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/module2
+                buildDir                      : <ROOT>/module2/build [-]
+                buildFile                     : <ROOT>/module2/build.gradle
+                externalSystemId              : GRADLE
+                - artifacts                   : <ROOT>/module2/build/libs/module2-metadata.jar [-]
+                artifactsByConfiguration
+                    _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                    _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                    _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                    _internal-unified-test-platform-android-test-plugin         : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                    _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                    _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                    _internal-unified-test-platform-core    : <empty>
+                    _internal-unified-test-platform-launcher          : <empty>
+                    androidAndroidTestApi         : <empty>
+                    androidAndroidTestApiDependenciesMetadata         : <empty>
+                    androidAndroidTestCompileOnly : <empty>
+                    androidAndroidTestCompileOnlyDependenciesMetadata : <empty>
+                    androidAndroidTestDebugApi    : <empty>
+                    androidAndroidTestDebugApiDependenciesMetadata    : <empty>
+                    androidAndroidTestDebugCompileOnly      : <empty>
+                    androidAndroidTestDebugCompileOnlyDependenciesMetadata      : <empty>
+                    androidAndroidTestDebugImplementation   : <empty>
+                    androidAndroidTestDebugImplementationDependenciesMetadata   : <empty>
+                    androidAndroidTestDebugIntransitiveDependenciesMetadata     : <empty>
+                    androidAndroidTestDebugRuntimeOnly      : <empty>
+                    androidAndroidTestDebugRuntimeOnlyDependenciesMetadata      : <empty>
+                    androidAndroidTestImplementation        : <empty>
+                    androidAndroidTestImplementationDependenciesMetadata        : <empty>
+                    androidAndroidTestIntransitiveDependenciesMetadata          : <empty>
+                    androidAndroidTestReleaseApi  : <empty>
+                    androidAndroidTestReleaseApiDependenciesMetadata  : <empty>
+                    androidAndroidTestReleaseCompileOnly    : <empty>
+                    androidAndroidTestReleaseCompileOnlyDependenciesMetadata    : <empty>
+                    androidAndroidTestReleaseImplementation : <empty>
+                    androidAndroidTestReleaseImplementationDependenciesMetadata : <empty>
+                    androidAndroidTestReleaseIntransitiveDependenciesMetadata   : <empty>
+                    androidAndroidTestReleaseRuntimeOnly    : <empty>
+                    androidAndroidTestReleaseRuntimeOnlyDependenciesMetadata    : <empty>
+                    androidAndroidTestRuntimeOnly : <empty>
+                    androidAndroidTestRuntimeOnlyDependenciesMetadata : <empty>
+                    androidApis                   : <empty>
+                    androidDebugAndroidTestApi    : <empty>
+                    androidDebugAndroidTestApiDependenciesMetadata    : <empty>
+                    androidDebugAndroidTestCompileClasspath : <empty>
+                    androidDebugAndroidTestCompileOnly      : <empty>
+                    androidDebugAndroidTestCompileOnlyDependenciesMetadata      : <empty>
+                    androidDebugAndroidTestImplementation   : <empty>
+                    androidDebugAndroidTestImplementationDependenciesMetadata   : <empty>
+                    androidDebugAndroidTestIntransitiveDependenciesMetadata     : <empty>
+                    androidDebugAndroidTestRuntimeClasspath : <empty>
+                    androidDebugAndroidTestRuntimeOnly      : <empty>
+                    androidDebugAndroidTestRuntimeOnlyDependenciesMetadata      : <empty>
+                    androidDebugApi               : <empty>
+                    androidDebugApiDependenciesMetadata     : <empty>
+                    - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    androidDebugCompileClasspath  : <empty>
+                    androidDebugCompileOnly       : <empty>
+                    androidDebugCompileOnlyDependenciesMetadata       : <empty>
+                    androidDebugImplementation    : <empty>
+                    androidDebugImplementationDependenciesMetadata    : <empty>
+                    androidDebugIntransitiveDependenciesMetadata      : <empty>
+                    androidDebugRuntimeClasspath  : <empty>
+                    androidDebugRuntimeOnly       : <empty>
+                    androidDebugRuntimeOnlyDependenciesMetadata       : <empty>
+                    - androidDebugSourceArtifacts : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                    androidDebugUnitTestApi       : <empty>
+                    androidDebugUnitTestApiDependenciesMetadata       : <empty>
+                    androidDebugUnitTestCompileClasspath    : <empty>
+                    androidDebugUnitTestCompileOnly         : <empty>
+                    androidDebugUnitTestCompileOnlyDependenciesMetadata         : <empty>
+                    androidDebugUnitTestImplementation      : <empty>
+                    androidDebugUnitTestImplementationDependenciesMetadata      : <empty>
+                    androidDebugUnitTestIntransitiveDependenciesMetadata        : <empty>
+                    androidDebugUnitTestRuntimeClasspath    : <empty>
+                    androidDebugUnitTestRuntimeOnly         : <empty>
+                    androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
+                    androidJacocoAnt              : <empty>
+                    androidJdkImage               : <empty>
+                    androidMainApi                : <empty>
+                    androidMainApiDependenciesMetadata      : <empty>
+                    androidMainCompileOnly        : <empty>
+                    androidMainCompileOnlyDependenciesMetadata        : <empty>
+                    androidMainImplementation     : <empty>
+                    androidMainImplementationDependenciesMetadata     : <empty>
+                    androidMainIntransitiveDependenciesMetadata       : <empty>
+                    androidMainRuntimeOnly        : <empty>
+                    androidMainRuntimeOnlyDependenciesMetadata        : <empty>
+                    androidReleaseApi             : <empty>
+                    androidReleaseApiDependenciesMetadata   : <empty>
+                    - androidReleaseArchives      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    androidReleaseCompileClasspath          : <empty>
+                    androidReleaseCompileOnly     : <empty>
+                    androidReleaseCompileOnlyDependenciesMetadata     : <empty>
+                    androidReleaseImplementation  : <empty>
+                    androidReleaseImplementationDependenciesMetadata  : <empty>
+                    androidReleaseIntransitiveDependenciesMetadata    : <empty>
+                    androidReleaseRuntimeClasspath          : <empty>
+                    androidReleaseRuntimeOnly     : <empty>
+                    androidReleaseRuntimeOnlyDependenciesMetadata     : <empty>
+                    - androidReleaseSourceArtifacts         : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                    androidReleaseUnitTestApi     : <empty>
+                    androidReleaseUnitTestApiDependenciesMetadata     : <empty>
+                    androidReleaseUnitTestCompileClasspath  : <empty>
+                    androidReleaseUnitTestCompileOnly       : <empty>
+                    androidReleaseUnitTestCompileOnlyDependenciesMetadata       : <empty>
+                    androidReleaseUnitTestImplementation    : <empty>
+                    androidReleaseUnitTestImplementationDependenciesMetadata    : <empty>
+                    androidReleaseUnitTestIntransitiveDependenciesMetadata      : <empty>
+                    androidReleaseUnitTestRuntimeClasspath  : <empty>
+                    androidReleaseUnitTestRuntimeOnly       : <empty>
+                    androidReleaseUnitTestRuntimeOnlyDependenciesMetadata       : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApiDependenciesMetadata      : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestCompileOnlyDependenciesMetadata        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApiDependenciesMetadata : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugImplementationDependenciesMetadata          : <empty>
+                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestFixturesApi        : <empty>
+                    androidTestFixturesApiDependenciesMetadata        : <empty>
+                    androidTestFixturesCompileOnly          : <empty>
+                    androidTestFixturesCompileOnlyDependenciesMetadata          : <empty>
+                    androidTestFixturesDebugApi   : <empty>
+                    androidTestFixturesDebugApiDependenciesMetadata   : <empty>
+                    androidTestFixturesDebugCompileOnly     : <empty>
+                    androidTestFixturesDebugCompileOnlyDependenciesMetadata     : <empty>
+                    androidTestFixturesDebugImplementation  : <empty>
+                    androidTestFixturesDebugImplementationDependenciesMetadata  : <empty>
+                    androidTestFixturesDebugIntransitiveDependenciesMetadata    : <empty>
+                    androidTestFixturesDebugRuntimeOnly     : <empty>
+                    androidTestFixturesDebugRuntimeOnlyDependenciesMetadata     : <empty>
+                    androidTestFixturesImplementation       : <empty>
+                    androidTestFixturesImplementationDependenciesMetadata       : <empty>
+                    androidTestFixturesIntransitiveDependenciesMetadata         : <empty>
+                    androidTestFixturesReleaseApi : <empty>
+                    androidTestFixturesReleaseApiDependenciesMetadata : <empty>
+                    androidTestFixturesReleaseCompileOnly   : <empty>
+                    androidTestFixturesReleaseCompileOnlyDependenciesMetadata   : <empty>
+                    androidTestFixturesReleaseImplementation          : <empty>
+                    androidTestFixturesReleaseImplementationDependenciesMetadata          : <empty>
+                    androidTestFixturesReleaseIntransitiveDependenciesMetadata  : <empty>
+                    androidTestFixturesReleaseRuntimeOnly   : <empty>
+                    androidTestFixturesReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestFixturesRuntimeOnly          : <empty>
+                    androidTestFixturesRuntimeOnlyDependenciesMetadata          : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestImplementationDependenciesMetadata     : <empty>
+                    androidTestIntransitiveDependenciesMetadata       : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApiDependenciesMetadata         : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
+                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
+                    - archives                    : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    - archives                    : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    commonMainApi                 : <empty>
+                    commonMainApiDependenciesMetadata       : <empty>
+                    commonMainCompileOnly         : <empty>
+                    commonMainCompileOnlyDependenciesMetadata         : <empty>
+                    commonMainImplementation      : <empty>
+                    commonMainImplementationDependenciesMetadata      : <empty>
+                    commonMainIntransitiveDependenciesMetadata        : <empty>
+                    commonMainRuntimeOnly         : <empty>
+                    commonMainRuntimeOnlyDependenciesMetadata         : <empty>
+                    commonTestApi                 : <empty>
+                    commonTestApiDependenciesMetadata       : <empty>
+                    commonTestCompileOnly         : <empty>
+                    commonTestCompileOnlyDependenciesMetadata         : <empty>
+                    commonTestImplementation      : <empty>
+                    commonTestImplementationDependenciesMetadata      : <empty>
+                    commonTestIntransitiveDependenciesMetadata        : <empty>
+                    commonTestRuntimeOnly         : <empty>
+                    commonTestRuntimeOnlyDependenciesMetadata         : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    - debugVariantAllApiPublication         : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    - debugVariantAllRuntimePublication     : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    - debugVariantDebugApiPublication       : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    - debugVariantDebugRuntimePublication   : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
+                    debugWearApp                  : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    kotlinCompilerClasspath       : <empty>
+                    kotlinCompilerPluginClasspath : <empty>
+                    kotlinCompilerPluginClasspathAndroidDebug         : <empty>
+                    kotlinCompilerPluginClasspathAndroidDebugAndroidTest        : <empty>
+                    kotlinCompilerPluginClasspathAndroidDebugUnitTest : <empty>
+                    kotlinCompilerPluginClasspathAndroidRelease       : <empty>
+                    kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
+                    kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                    kotlinKlibCommonizerClasspath : <empty>
+                    kotlinNativeCompilerPluginClasspath     : <empty>
+                    lintChecks                    : <empty>
+                    lintPublish                   : <empty>
+                    metadataApi                   : <empty>
+                    - metadataApiElements         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
+                    metadataCompileClasspath      : <empty>
+                    metadataCompileOnly           : <empty>
+                    metadataDefault               : <empty>
+                    metadataImplementation        : <empty>
+                    metadataRuntimeOnly           : <empty>
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    - releaseVariantAllApiPublication       : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    - releaseVariantAllRuntimePublication   : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    - releaseVariantReleaseApiPublication   : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    - releaseVariantReleaseRuntimePublication         : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                    releaseWearApp                : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testFixturesAnnotationProcessor         : <empty>
+                    testFixturesApi               : <empty>
+                    testFixturesCompileOnly       : <empty>
+                    testFixturesDebugAnnotationProcessor    : <empty>
+                    testFixturesDebugApi          : <empty>
+                    testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugWearApp      : <empty>
+                    testFixturesImplementation    : <empty>
+                    testFixturesReleaseAnnotationProcessor  : <empty>
+                    testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseWearApp    : <empty>
+                    testFixturesRuntimeOnly       : <empty>
+                    testFixturesWearApp           : <empty>
+                    testImplementation            : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
-        externalProject               : app
-            externalSystemId              : GRADLE
-            id                            : :app
-            name                          : app
-            qName                         : :app
-            group                         : kotlinMultiPlatform
-            version                       : unspecified
-            sourceCompatibility           : 11
-            targetCompatibility           : 11
-            projectDir                    : <ROOT>/app
-            buildDir                      : <ROOT>/app/build [-]
-            buildFile                     : <ROOT>/app/build.gradle
-            configurationArtifacts        : androidApis
-            configurationArtifacts        : androidJacocoAnt
-            configurationArtifacts        : androidJdkImage
-            configurationArtifacts        : androidTestAnnotationProcessor
-            configurationArtifacts        : androidTestApi
-            configurationArtifacts        : androidTestApiDependenciesMetadata
-            configurationArtifacts        : androidTestCompileOnly
-            configurationArtifacts        : androidTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugAnnotationProcessor
-            configurationArtifacts        : androidTestDebugApi
-            configurationArtifacts        : androidTestDebugApiDependenciesMetadata
-            configurationArtifacts        : androidTestDebugCompileOnly
-            configurationArtifacts        : androidTestDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugImplementation
-            configurationArtifacts        : androidTestDebugImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestDebugRuntimeOnly
-            configurationArtifacts        : androidTestDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugWearApp
-            configurationArtifacts        : androidTestImplementation
-            configurationArtifacts        : androidTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseAnnotationProcessor
-            configurationArtifacts        : androidTestReleaseApi
-            configurationArtifacts        : androidTestReleaseApiDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseCompileOnly
-            configurationArtifacts        : androidTestReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseImplementation
-            configurationArtifacts        : androidTestReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidTestReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseWearApp
-            configurationArtifacts        : androidTestRuntimeOnly
-            configurationArtifacts        : androidTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestUtil
-            configurationArtifacts        : androidTestWearApp
-            configurationArtifacts        : annotationProcessor
-            configurationArtifacts        : api
-            configurationArtifacts        : apiDependenciesMetadata
-            configurationArtifacts        : archives
-            configurationArtifacts        : compileOnly
-            configurationArtifacts        : compileOnlyDependenciesMetadata
-            configurationArtifacts        : coreLibraryDesugaring
-            configurationArtifacts        : debugAabPublication
-                -                             : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugAndroidTestApi
-            configurationArtifacts        : debugAndroidTestApiDependenciesMetadata
-            configurationArtifacts        : debugAndroidTestCompileClasspath
-            configurationArtifacts        : debugAndroidTestCompileOnly
-            configurationArtifacts        : debugAndroidTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : debugAndroidTestImplementation
-            configurationArtifacts        : debugAndroidTestImplementationDependenciesMetadata
-            configurationArtifacts        : debugAndroidTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : debugAndroidTestRuntimeClasspath
-            configurationArtifacts        : debugAndroidTestRuntimeOnly
-            configurationArtifacts        : debugAndroidTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : debugAnnotationProcessor
-            configurationArtifacts        : debugAnnotationProcessorClasspath
-            configurationArtifacts        : debugApi
-            configurationArtifacts        : debugApiDependenciesMetadata
-            configurationArtifacts        : debugApiElements
-            configurationArtifacts        : debugApkPublication
-                -                             : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
-            configurationArtifacts        : debugCompileClasspath
-            configurationArtifacts        : debugCompileOnly
-            configurationArtifacts        : debugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : debugImplementation
-            configurationArtifacts        : debugImplementationDependenciesMetadata
-            configurationArtifacts        : debugIntransitiveDependenciesMetadata
-            configurationArtifacts        : debugReverseMetadataValues
-            configurationArtifacts        : debugRuntimeClasspath
-            configurationArtifacts        : debugRuntimeElements
-            configurationArtifacts        : debugRuntimeOnly
-            configurationArtifacts        : debugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugUnitTestApi
-            configurationArtifacts        : debugUnitTestApiDependenciesMetadata
-            configurationArtifacts        : debugUnitTestCompileClasspath
-            configurationArtifacts        : debugUnitTestCompileOnly
-            configurationArtifacts        : debugUnitTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : debugUnitTestImplementation
-            configurationArtifacts        : debugUnitTestImplementationDependenciesMetadata
-            configurationArtifacts        : debugUnitTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : debugUnitTestRuntimeClasspath
-            configurationArtifacts        : debugUnitTestRuntimeOnly
-            configurationArtifacts        : debugUnitTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : debugWearApp
-            configurationArtifacts        : debugWearBundling
-            configurationArtifacts        : default
-            configurationArtifacts        : implementation
-            configurationArtifacts        : implementationDependenciesMetadata
-            configurationArtifacts        : intransitiveDependenciesMetadata
-            configurationArtifacts        : kotlinCompilerClasspath
-            configurationArtifacts        : kotlinCompilerPluginClasspath
-            configurationArtifacts        : kotlinCompilerPluginClasspathDebug
-            configurationArtifacts        : kotlinCompilerPluginClasspathDebugAndroidTest
-            configurationArtifacts        : kotlinCompilerPluginClasspathDebugUnitTest
-            configurationArtifacts        : kotlinCompilerPluginClasspathRelease
-            configurationArtifacts        : kotlinCompilerPluginClasspathReleaseUnitTest
-            configurationArtifacts        : kotlinKlibCommonizerClasspath
-            configurationArtifacts        : kotlinNativeCompilerPluginClasspath
-            configurationArtifacts        : lintChecks
-            configurationArtifacts        : lintPublish
-            configurationArtifacts        : releaseAabPublication
-                -                             : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
-            configurationArtifacts        : releaseAnnotationProcessor
-            configurationArtifacts        : releaseAnnotationProcessorClasspath
-            configurationArtifacts        : releaseApi
-            configurationArtifacts        : releaseApiDependenciesMetadata
-            configurationArtifacts        : releaseApiElements
-            configurationArtifacts        : releaseApkPublication
-                -                             : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
-            configurationArtifacts        : releaseCompileClasspath
-            configurationArtifacts        : releaseCompileOnly
-            configurationArtifacts        : releaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : releaseImplementation
-            configurationArtifacts        : releaseImplementationDependenciesMetadata
-            configurationArtifacts        : releaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : releaseReverseMetadataValues
-            configurationArtifacts        : releaseRuntimeClasspath
-            configurationArtifacts        : releaseRuntimeElements
-            configurationArtifacts        : releaseRuntimeOnly
-            configurationArtifacts        : releaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : releaseUnitTestApi
-            configurationArtifacts        : releaseUnitTestApiDependenciesMetadata
-            configurationArtifacts        : releaseUnitTestCompileClasspath
-            configurationArtifacts        : releaseUnitTestCompileOnly
-            configurationArtifacts        : releaseUnitTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : releaseUnitTestImplementation
-            configurationArtifacts        : releaseUnitTestImplementationDependenciesMetadata
-            configurationArtifacts        : releaseUnitTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : releaseUnitTestRuntimeClasspath
-            configurationArtifacts        : releaseUnitTestRuntimeOnly
-            configurationArtifacts        : releaseUnitTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : releaseWearApp
-            configurationArtifacts        : releaseWearBundling
-            configurationArtifacts        : runtimeOnly
-            configurationArtifacts        : runtimeOnlyDependenciesMetadata
-            configurationArtifacts        : testAnnotationProcessor
-            configurationArtifacts        : testApi
-            configurationArtifacts        : testApiDependenciesMetadata
-            configurationArtifacts        : testCompileOnly
-            configurationArtifacts        : testCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testDebugAnnotationProcessor
-            configurationArtifacts        : testDebugApi
-            configurationArtifacts        : testDebugApiDependenciesMetadata
-            configurationArtifacts        : testDebugCompileOnly
-            configurationArtifacts        : testDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testDebugImplementation
-            configurationArtifacts        : testDebugImplementationDependenciesMetadata
-            configurationArtifacts        : testDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : testDebugRuntimeOnly
-            configurationArtifacts        : testDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testDebugWearApp
-            configurationArtifacts        : testFixturesAnnotationProcessor
-            configurationArtifacts        : testFixturesApi
-            configurationArtifacts        : testFixturesApiDependenciesMetadata
-            configurationArtifacts        : testFixturesCompileOnly
-            configurationArtifacts        : testFixturesCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugAnnotationProcessor
-            configurationArtifacts        : testFixturesDebugApi
-            configurationArtifacts        : testFixturesDebugApiDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugCompileOnly
-            configurationArtifacts        : testFixturesDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugImplementation
-            configurationArtifacts        : testFixturesDebugImplementationDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugRuntimeOnly
-            configurationArtifacts        : testFixturesDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesDebugWearApp
-            configurationArtifacts        : testFixturesImplementation
-            configurationArtifacts        : testFixturesImplementationDependenciesMetadata
-            configurationArtifacts        : testFixturesIntransitiveDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseAnnotationProcessor
-            configurationArtifacts        : testFixturesReleaseApi
-            configurationArtifacts        : testFixturesReleaseApiDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseCompileOnly
-            configurationArtifacts        : testFixturesReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseImplementation
-            configurationArtifacts        : testFixturesReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseRuntimeOnly
-            configurationArtifacts        : testFixturesReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesReleaseWearApp
-            configurationArtifacts        : testFixturesRuntimeOnly
-            configurationArtifacts        : testFixturesRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testFixturesWearApp
-            configurationArtifacts        : testImplementation
-            configurationArtifacts        : testImplementationDependenciesMetadata
-            configurationArtifacts        : testIntransitiveDependenciesMetadata
-            configurationArtifacts        : testReleaseAnnotationProcessor
-            configurationArtifacts        : testReleaseApi
-            configurationArtifacts        : testReleaseApiDependenciesMetadata
-            configurationArtifacts        : testReleaseCompileOnly
-            configurationArtifacts        : testReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : testReleaseImplementation
-            configurationArtifacts        : testReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : testReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : testReleaseRuntimeOnly
-            configurationArtifacts        : testReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testReleaseWearApp
-            configurationArtifacts        : testRuntimeOnly
-            configurationArtifacts        : testRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : testWearApp
-            configurationArtifacts        : wearApp
-        externalProject               : module2
-            externalSystemId              : GRADLE
-            id                            : :module2
-            name                          : module2
-            qName                         : :module2
-            group                         : kotlinMultiPlatform
-            version                       : unspecified
-            sourceCompatibility           : 11
-            targetCompatibility           : 11
-            projectDir                    : <ROOT>/module2
-            buildDir                      : <ROOT>/module2/build [-]
-            buildFile                     : <ROOT>/module2/build.gradle
-             - artifact                   : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-            configurationArtifacts        : _internal-unified-test-platform-android-device-provider-ddmlib
-            configurationArtifacts        : _internal-unified-test-platform-android-device-provider-gradle
-            configurationArtifacts        : _internal-unified-test-platform-android-driver-instrumentation
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-host-additional-test-output
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-host-coverage
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-host-device-info
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-host-logcat
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-host-retention
-            configurationArtifacts        : _internal-unified-test-platform-android-test-plugin-result-listener-gradle
-            configurationArtifacts        : _internal-unified-test-platform-core
-            configurationArtifacts        : _internal-unified-test-platform-launcher
-            configurationArtifacts        : androidAndroidTestApi
-            configurationArtifacts        : androidAndroidTestApiDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestCompileOnly
-            configurationArtifacts        : androidAndroidTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestDebugApi
-            configurationArtifacts        : androidAndroidTestDebugApiDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestDebugCompileOnly
-            configurationArtifacts        : androidAndroidTestDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestDebugImplementation
-            configurationArtifacts        : androidAndroidTestDebugImplementationDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestDebugRuntimeOnly
-            configurationArtifacts        : androidAndroidTestDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestImplementation
-            configurationArtifacts        : androidAndroidTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestReleaseApi
-            configurationArtifacts        : androidAndroidTestReleaseApiDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestReleaseCompileOnly
-            configurationArtifacts        : androidAndroidTestReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestReleaseImplementation
-            configurationArtifacts        : androidAndroidTestReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidAndroidTestReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidAndroidTestRuntimeOnly
-            configurationArtifacts        : androidAndroidTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidApis
-            configurationArtifacts        : androidDebugAndroidTestApi
-            configurationArtifacts        : androidDebugAndroidTestApiDependenciesMetadata
-            configurationArtifacts        : androidDebugAndroidTestCompileClasspath
-            configurationArtifacts        : androidDebugAndroidTestCompileOnly
-            configurationArtifacts        : androidDebugAndroidTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidDebugAndroidTestImplementation
-            configurationArtifacts        : androidDebugAndroidTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidDebugAndroidTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidDebugAndroidTestRuntimeClasspath
-            configurationArtifacts        : androidDebugAndroidTestRuntimeOnly
-            configurationArtifacts        : androidDebugAndroidTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidDebugApi
-            configurationArtifacts        : androidDebugApiDependenciesMetadata
-            configurationArtifacts        : androidDebugArchives
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-            configurationArtifacts        : androidDebugCompileClasspath
-            configurationArtifacts        : androidDebugCompileOnly
-            configurationArtifacts        : androidDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidDebugImplementation
-            configurationArtifacts        : androidDebugImplementationDependenciesMetadata
-            configurationArtifacts        : androidDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidDebugRuntimeClasspath
-            configurationArtifacts        : androidDebugRuntimeOnly
-            configurationArtifacts        : androidDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidDebugSourceArtifacts
-                -                             : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
-            configurationArtifacts        : androidDebugUnitTestApi
-            configurationArtifacts        : androidDebugUnitTestApiDependenciesMetadata
-            configurationArtifacts        : androidDebugUnitTestCompileClasspath
-            configurationArtifacts        : androidDebugUnitTestCompileOnly
-            configurationArtifacts        : androidDebugUnitTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidDebugUnitTestImplementation
-            configurationArtifacts        : androidDebugUnitTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidDebugUnitTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidDebugUnitTestRuntimeClasspath
-            configurationArtifacts        : androidDebugUnitTestRuntimeOnly
-            configurationArtifacts        : androidDebugUnitTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidJacocoAnt
-            configurationArtifacts        : androidJdkImage
-            configurationArtifacts        : androidMainApi
-            configurationArtifacts        : androidMainApiDependenciesMetadata
-            configurationArtifacts        : androidMainCompileOnly
-            configurationArtifacts        : androidMainCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidMainImplementation
-            configurationArtifacts        : androidMainImplementationDependenciesMetadata
-            configurationArtifacts        : androidMainIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidMainRuntimeOnly
-            configurationArtifacts        : androidMainRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidReleaseApi
-            configurationArtifacts        : androidReleaseApiDependenciesMetadata
-            configurationArtifacts        : androidReleaseArchives
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : androidReleaseCompileClasspath
-            configurationArtifacts        : androidReleaseCompileOnly
-            configurationArtifacts        : androidReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidReleaseImplementation
-            configurationArtifacts        : androidReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : androidReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidReleaseRuntimeClasspath
-            configurationArtifacts        : androidReleaseRuntimeOnly
-            configurationArtifacts        : androidReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidReleaseSourceArtifacts
-                -                             : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
-            configurationArtifacts        : androidReleaseUnitTestApi
-            configurationArtifacts        : androidReleaseUnitTestApiDependenciesMetadata
-            configurationArtifacts        : androidReleaseUnitTestCompileClasspath
-            configurationArtifacts        : androidReleaseUnitTestCompileOnly
-            configurationArtifacts        : androidReleaseUnitTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidReleaseUnitTestImplementation
-            configurationArtifacts        : androidReleaseUnitTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidReleaseUnitTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidReleaseUnitTestRuntimeClasspath
-            configurationArtifacts        : androidReleaseUnitTestRuntimeOnly
-            configurationArtifacts        : androidReleaseUnitTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestAnnotationProcessor
-            configurationArtifacts        : androidTestApi
-            configurationArtifacts        : androidTestApiDependenciesMetadata
-            configurationArtifacts        : androidTestCompileOnly
-            configurationArtifacts        : androidTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugAnnotationProcessor
-            configurationArtifacts        : androidTestDebugApi
-            configurationArtifacts        : androidTestDebugApiDependenciesMetadata
-            configurationArtifacts        : androidTestDebugCompileOnly
-            configurationArtifacts        : androidTestDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugImplementation
-            configurationArtifacts        : androidTestDebugImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestDebugRuntimeOnly
-            configurationArtifacts        : androidTestDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestDebugWearApp
-            configurationArtifacts        : androidTestFixturesApi
-            configurationArtifacts        : androidTestFixturesApiDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesCompileOnly
-            configurationArtifacts        : androidTestFixturesCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesDebugApi
-            configurationArtifacts        : androidTestFixturesDebugApiDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesDebugCompileOnly
-            configurationArtifacts        : androidTestFixturesDebugCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesDebugImplementation
-            configurationArtifacts        : androidTestFixturesDebugImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesDebugIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesDebugRuntimeOnly
-            configurationArtifacts        : androidTestFixturesDebugRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesImplementation
-            configurationArtifacts        : androidTestFixturesImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesReleaseApi
-            configurationArtifacts        : androidTestFixturesReleaseApiDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesReleaseCompileOnly
-            configurationArtifacts        : androidTestFixturesReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesReleaseImplementation
-            configurationArtifacts        : androidTestFixturesReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesReleaseRuntimeOnly
-            configurationArtifacts        : androidTestFixturesReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestFixturesRuntimeOnly
-            configurationArtifacts        : androidTestFixturesRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestImplementation
-            configurationArtifacts        : androidTestImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseAnnotationProcessor
-            configurationArtifacts        : androidTestReleaseApi
-            configurationArtifacts        : androidTestReleaseApiDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseCompileOnly
-            configurationArtifacts        : androidTestReleaseCompileOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseImplementation
-            configurationArtifacts        : androidTestReleaseImplementationDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseIntransitiveDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseRuntimeOnly
-            configurationArtifacts        : androidTestReleaseRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestReleaseWearApp
-            configurationArtifacts        : androidTestRuntimeOnly
-            configurationArtifacts        : androidTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : androidTestUtil
-            configurationArtifacts        : androidTestWearApp
-            configurationArtifacts        : annotationProcessor
-            configurationArtifacts        : api
-            configurationArtifacts        : archives
-                -                             : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : commonMainApi
-            configurationArtifacts        : commonMainApiDependenciesMetadata
-            configurationArtifacts        : commonMainCompileOnly
-            configurationArtifacts        : commonMainCompileOnlyDependenciesMetadata
-            configurationArtifacts        : commonMainImplementation
-            configurationArtifacts        : commonMainImplementationDependenciesMetadata
-            configurationArtifacts        : commonMainIntransitiveDependenciesMetadata
-            configurationArtifacts        : commonMainRuntimeOnly
-            configurationArtifacts        : commonMainRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : commonTestApi
-            configurationArtifacts        : commonTestApiDependenciesMetadata
-            configurationArtifacts        : commonTestCompileOnly
-            configurationArtifacts        : commonTestCompileOnlyDependenciesMetadata
-            configurationArtifacts        : commonTestImplementation
-            configurationArtifacts        : commonTestImplementationDependenciesMetadata
-            configurationArtifacts        : commonTestIntransitiveDependenciesMetadata
-            configurationArtifacts        : commonTestRuntimeOnly
-            configurationArtifacts        : commonTestRuntimeOnlyDependenciesMetadata
-            configurationArtifacts        : compileOnly
-            configurationArtifacts        : coreLibraryDesugaring
-            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugAndroidTestCompileClasspath
-            configurationArtifacts        : debugAndroidTestRuntimeClasspath
-            configurationArtifacts        : debugAnnotationProcessor
-            configurationArtifacts        : debugAnnotationProcessorClasspath
-            configurationArtifacts        : debugApi
-            configurationArtifacts        : debugApiElements
-            configurationArtifacts        : debugCompileClasspath
-            configurationArtifacts        : debugCompileOnly
-            configurationArtifacts        : debugImplementation
-            configurationArtifacts        : debugRuntimeClasspath
-            configurationArtifacts        : debugRuntimeElements
-            configurationArtifacts        : debugRuntimeOnly
-            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : debugUnitTestCompileClasspath
-            configurationArtifacts        : debugUnitTestRuntimeClasspath
-            configurationArtifacts        : debugVariantAllApiPublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-            configurationArtifacts        : debugVariantAllRuntimePublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-            configurationArtifacts        : debugVariantDebugApiPublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-            configurationArtifacts        : debugVariantDebugRuntimePublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
-            configurationArtifacts        : debugWearApp
-            configurationArtifacts        : default
-            configurationArtifacts        : implementation
-            configurationArtifacts        : kotlinCompilerClasspath
-            configurationArtifacts        : kotlinCompilerPluginClasspath
-            configurationArtifacts        : kotlinCompilerPluginClasspathAndroidDebug
-            configurationArtifacts        : kotlinCompilerPluginClasspathAndroidDebugAndroidTest
-            configurationArtifacts        : kotlinCompilerPluginClasspathAndroidDebugUnitTest
-            configurationArtifacts        : kotlinCompilerPluginClasspathAndroidRelease
-            configurationArtifacts        : kotlinCompilerPluginClasspathAndroidReleaseUnitTest
-            configurationArtifacts        : kotlinCompilerPluginClasspathMetadataMain
-            configurationArtifacts        : kotlinKlibCommonizerClasspath
-            configurationArtifacts        : kotlinNativeCompilerPluginClasspath
-            configurationArtifacts        : lintChecks
-            configurationArtifacts        : lintPublish
-            configurationArtifacts        : metadataApi
-            configurationArtifacts        : metadataApiElements
-                -                             : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-            configurationArtifacts        : metadataCompileClasspath
-            configurationArtifacts        : metadataCompileOnly
-            configurationArtifacts        : metadataDefault
-            configurationArtifacts        : metadataImplementation
-            configurationArtifacts        : metadataRuntimeOnly
-            configurationArtifacts        : releaseAnnotationProcessor
-            configurationArtifacts        : releaseAnnotationProcessorClasspath
-            configurationArtifacts        : releaseApi
-            configurationArtifacts        : releaseApiElements
-            configurationArtifacts        : releaseCompileClasspath
-            configurationArtifacts        : releaseCompileOnly
-            configurationArtifacts        : releaseImplementation
-            configurationArtifacts        : releaseRuntimeClasspath
-            configurationArtifacts        : releaseRuntimeElements
-            configurationArtifacts        : releaseRuntimeOnly
-            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
-            configurationArtifacts        : releaseUnitTestCompileClasspath
-            configurationArtifacts        : releaseUnitTestRuntimeClasspath
-            configurationArtifacts        : releaseVariantAllApiPublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : releaseVariantAllRuntimePublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : releaseVariantReleaseApiPublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : releaseVariantReleaseRuntimePublication
-                -                             : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
-            configurationArtifacts        : releaseWearApp
-            configurationArtifacts        : runtimeOnly
-            configurationArtifacts        : testAnnotationProcessor
-            configurationArtifacts        : testCompileOnly
-            configurationArtifacts        : testDebugAnnotationProcessor
-            configurationArtifacts        : testDebugCompileOnly
-            configurationArtifacts        : testDebugImplementation
-            configurationArtifacts        : testDebugRuntimeOnly
-            configurationArtifacts        : testDebugWearApp
-            configurationArtifacts        : testFixturesAnnotationProcessor
-            configurationArtifacts        : testFixturesApi
-            configurationArtifacts        : testFixturesCompileOnly
-            configurationArtifacts        : testFixturesDebugAnnotationProcessor
-            configurationArtifacts        : testFixturesDebugApi
-            configurationArtifacts        : testFixturesDebugCompileOnly
-            configurationArtifacts        : testFixturesDebugImplementation
-            configurationArtifacts        : testFixturesDebugRuntimeOnly
-            configurationArtifacts        : testFixturesDebugWearApp
-            configurationArtifacts        : testFixturesImplementation
-            configurationArtifacts        : testFixturesReleaseAnnotationProcessor
-            configurationArtifacts        : testFixturesReleaseApi
-            configurationArtifacts        : testFixturesReleaseCompileOnly
-            configurationArtifacts        : testFixturesReleaseImplementation
-            configurationArtifacts        : testFixturesReleaseRuntimeOnly
-            configurationArtifacts        : testFixturesReleaseWearApp
-            configurationArtifacts        : testFixturesRuntimeOnly
-            configurationArtifacts        : testFixturesWearApp
-            configurationArtifacts        : testImplementation
-            configurationArtifacts        : testReleaseAnnotationProcessor
-            configurationArtifacts        : testReleaseCompileOnly
-            configurationArtifacts        : testReleaseImplementation
-            configurationArtifacts        : testReleaseRuntimeOnly
-            configurationArtifacts        : testReleaseWearApp
-            configurationArtifacts        : testRuntimeOnly
-            configurationArtifacts        : testWearApp
-            configurationArtifacts        : wearApp
+        externalSystemId              : GRADLE
 MODULE                        : kotlinMultiPlatform.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -2612,28 +2593,240 @@ MODULE                        : kotlinMultiPlatform.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    KotlinGradleModel
-        hasKotlinPlugin               : true
-        implements                    :
-        kotlinTarget                  : kotlin-android
+    kotlinGradleModel             : KotlinGradleModelImpl
+        additionalVisibleSourceSets
+            debug                         : <empty>
+            - debugAndroidTest            : debug
+            - debugAndroidTest            : main
+            - debugUnitTest               : debug
+            - debugUnitTest               : main
+        cachedCompilerArgumentsBySourceSet
+            debug
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
+                    - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
+                    jvmDefault                    : disable
+                    jvmTarget                     : 1.8
+                    moduleName                    : app_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    parallelBackendThreads        : 1
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            debugAndroidTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
+                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                    - classpath                   : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
+                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
+                    jvmDefault                    : disable
+                    jvmTarget                     : 1.8
+                    moduleName                    : app_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    parallelBackendThreads        : 1
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            debugUnitTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
+                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
+                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
+                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
+                    - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
+                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
+                    jvmDefault                    : disable
+                    jvmTarget                     : 1.8
+                    moduleName                    : app_debug
+                    noJdk                         : true
+                    noReflect                     : true
+                    noStdlib                      : true
+                    parallelBackendThreads        : 1
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    errors                        : ArgumentParseErrors
+                    explicitApi                   : disable
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
         gradleUserHome                : <GRADLE>
-        kotlinTaskProperties          : debug
-            incremental                   : true
-            pureKotlinSourceFolders       : <ROOT>/app/src/debug/kotlin [-]
-            pureKotlinSourceFolders       : <ROOT>/app/src/debug/java [-]
-            pluginVersion                 : 1.5.30
-        kotlinTaskProperties          : debugAndroidTest
-            incremental                   : true
-            pureKotlinSourceFolders       : <ROOT>/app/src/debugAndroidTest/kotlin [-]
-            pluginVersion                 : 1.5.30
-        kotlinTaskProperties          : debugUnitTest
-            incremental                   : true
-            pureKotlinSourceFolders       : <ROOT>/app/src/debugUnitTest/kotlin [-]
-            pluginVersion                 : 1.5.30
-        compilerArgumentsBySourceSet  : debug
-        compilerArgumentsBySourceSet  : debugAndroidTest
-        compilerArgumentsBySourceSet  : debugUnitTest
-    externalProject               : app (*seen*)
+        hasKotlinPlugin               : true
+        kotlinTarget                  : kotlin-android
+        kotlinTaskProperties
+            debug                         : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : 1.5.30
+                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/kotlin [-]
+                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/java [-]
+            debugAndroidTest              : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : 1.5.30
+                - pureKotlinSourceFolders     : <ROOT>/app/src/debugAndroidTest/kotlin [-]
+            debugUnitTest                 : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : 1.5.30
+                - pureKotlinSourceFolders     : <ROOT>/app/src/debugUnitTest/kotlin [-]
+    externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.app.androidTest
 MODULE                        : kotlinMultiPlatform.app.main
 MODULE                        : kotlinMultiPlatform.app.unitTest
@@ -3162,7 +3355,7 @@ MODULE                        : kotlinMultiPlatform.module2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               : module2 (*seen*)
+    externalProject               : :module2 (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.module2.androidTest
 MODULE                        : kotlinMultiPlatform.module2.commonMain
 MODULE                        : kotlinMultiPlatform.module2.commonTest

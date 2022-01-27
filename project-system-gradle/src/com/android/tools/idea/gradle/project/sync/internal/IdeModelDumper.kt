@@ -33,7 +33,8 @@ import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModelSyncFile
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -44,32 +45,34 @@ import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
-import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
-import com.google.common.collect.Sets
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
+import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
+import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
-import org.jetbrains.plugins.gradle.model.ExternalDependency
+import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
 fun ProjectDumper.dumpAndroidIdeModel(
   project: Project,
-  kotlinModels: (com.intellij.openapi.module.Module) -> KotlinGradleModel?,
-  kaptModels: (com.intellij.openapi.module.Module) -> KaptGradleModel?,
-  externalProjects: (com.intellij.openapi.module.Module) -> ExternalProject?
+  kotlinModels: (Module) -> KotlinGradleModel?,
+  kaptModels: (Module) -> KaptGradleModel?,
+  externalProjects: (Module) -> ExternalProject?
 ) {
   nest(File(project.basePath!!), "PROJECT") {
     with(ideModelDumper(this)) {
@@ -128,11 +131,28 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
   }
 }
 
+private val jbModelDumpers = listOf<SpecializedDumper>(
+  SpecializedDumper<CompilerArgumentsCacheAware> { Unit },
+  SpecializedDumper<EntityArgsInfo> {
+    head(propertyName)
+    nest {
+      prop("compilerArguments", it.currentCompilerArguments, it.defaultCompilerArguments)
+      prop("dependencyClasspath", it.dependencyClasspath)
+    }
+  },
+  SpecializedDumper<CachedExtractedArgsInfo> {
+    prop(
+      propertyName,
+      restoreExtractedArgs(it, CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder)
+    )
+  },
+  SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  }
+)
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
+  val modelDumper = ModelDumper(jbModelDumpers)
   object {
-    val seenExternalProjects = Sets.newIdentityHashSet<ExternalProject>()
-
     fun dump(ideAndroidModel: IdeAndroidProject) {
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
@@ -672,163 +692,19 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     fun dump(kotlinGradleModel: KotlinGradleModel) {
-      head("KotlinGradleModel")
-      nest {
-        prop("hasKotlinPlugin") { kotlinGradleModel.hasKotlinPlugin.takeIf { it }?.toString() }
-        prop("coroutines") { kotlinGradleModel.coroutines }
-        prop("platformPluginId") { kotlinGradleModel.platformPluginId }
-        prop("implements") { kotlinGradleModel.implements.joinToString() }
-        prop("kotlinTarget") { kotlinGradleModel.kotlinTarget }
-        prop("gradleUserHome") { kotlinGradleModel.gradleUserHome.toPrintablePath() }
-        kotlinGradleModel.kotlinTaskProperties.forEach { key, value ->
-          head("kotlinTaskProperties") { key }
-          nest {
-            prop("incremental") { value.incremental?.toString() }
-            prop("packagePrefix") { value.packagePrefix }
-            value.pureKotlinSourceFolders?.forEach { prop("pureKotlinSourceFolders") { it.path.toPrintablePath() } }
-            prop("pluginVersion") { value.pluginVersion?.replaceKnownPatterns() }
-          }
-        }
-        kotlinGradleModel.cachedCompilerArgumentsBySourceSet.forEach { key, value ->
-          head("compilerArgumentsBySourceSet") { key }
-          nest {
-            fun dumpArg(title: String, arg: String) {
-              val (name, values) = when {
-                !arg.contains('=') && !arg.contains(':') -> arg to sequenceOf<String>()
-                arg.contains('=') -> arg.substringBefore('=', "") to arg.substringAfter('=', arg).splitToSequence(',')
-                else -> "" to arg.splitToSequence(':')
-              }
-              if (name == "plugin:org.jetbrains.kotlin.android:configuration") return // Base64 encoded serialized format.
-              head(title) { name.replaceKnownPaths() }
-              nest {
-                values.forEach {
-                  prop("-") { it.toPrintablePath() }
-                }
-              }
-            }
-
-            // TODO(b/215353008): Fix compilation against Kotlin 213.
-            // value.currentArguments.forEach { dumpArg("currentArguments", it) }
-            // value.defaultArguments.forEach { dumpArg("defaultArguments", it) }
-            // value.dependencyClasspath.forEach { prop("dependencyClasspath") { it.toPrintablePath() } }
-          }
-        }
-      }
+      modelDumper.dumpModel(this@with, "kotlinGradleModel", kotlinGradleModel)
     }
 
     fun dump(kaptGradleModel: KaptGradleModel) {
       if (!kaptGradleModel.isEnabled) return // Usually models are present for all modules with Kotlin but disabled.
-      head("kaptGradleModel")
-      nest {
-        prop("buildDirectory") { kaptGradleModel.buildDirectory.path.toPrintablePath() }
-        kaptGradleModel.sourceSets.forEach { sourceSet ->
-          head("sourceSets") { sourceSet.sourceSetName }
-          nest {
-            prop("isTest") { sourceSet.isTest.takeIf { it }?.toString() }
-            prop("generatedSourcesDir") { sourceSet.generatedSourcesDir.toPrintablePath() }
-            prop("generatedClassesDir") { sourceSet.generatedClassesDir.toPrintablePath() }
-            prop("generatedKotlinSourcesDir") { sourceSet.generatedKotlinSourcesDir.toPrintablePath() }
-          }
-        }
-      }
+      modelDumper.dumpModel(this@with, "kaptGradleModel", kaptGradleModel)
     }
 
-    fun dump(externalProject: ExternalProject, name: String? = null) {
-      val seen = !seenExternalProjects.add(externalProject)
-      head("externalProject") { (name ?: externalProject.name) + (if (seen) " (*seen*)" else "") }
-      if (seen) return
-      nest {
-        prop("externalSystemId") { externalProject.externalSystemId }
-        prop("id") { externalProject.id }
-        prop("name") { externalProject.name }
-        prop("qName") { externalProject.qName }
-        prop("description") { externalProject.description }
-        prop("group") { externalProject.group }
-        prop("version") { externalProject.version }
-        prop("sourceCompatibility") { externalProject.sourceCompatibility }
-        prop("targetCompatibility") { externalProject.targetCompatibility }
-        prop("projectDir") { externalProject.projectDir.path.toPrintablePath() }
-        prop("buildDir") { externalProject.buildDir.path.toPrintablePath() }
-        prop("buildFile") { externalProject.buildFile?.path?.toPrintablePath() }
-        externalProject.artifacts.forEach { prop(" - artifact") { it.path.toPrintablePath() } }
-        externalProject.artifactsByConfiguration.entries.sortedBy { it.key }
-          .forEach { (configuration, artifacts) ->
-            head("configurationArtifacts") { configuration }
-            nest {
-              artifacts.map { it.path.toPrintablePath() }.sorted().forEach { prop("-") { it } }
-            }
-          }
-        externalProject.tasks.entries.sortedBy { it.key }
-          .forEach { (name, task) ->
-            head("task") { name }
-            nest {
-              prop("name") { task.name }
-              prop("qName") { task.qName }
-              prop("description") { task.description }
-              prop("group") { task.group }
-              prop("type") { task.type }
-              prop("test") { task.isTest.takeIf { it }?.toString() }
-            }
-          }
-
-        externalProject.sourceSets.entries.sortedBy { it.key }
-          .forEach { (name, sourceset) ->
-            head("externalSourceSet") { name }
-            nest {
-              prop("name") { sourceset.name }
-              prop("sourceCompatibility") { sourceset.sourceCompatibility }
-              prop("isPreview") { sourceset.isPreview.takeIf { it }?.toString() }
-              prop("targetCompatibility") { sourceset.targetCompatibility }
-              sourceset.artifacts.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - artifact") { it } }
-              sourceset.sources.entries.sortedBy { it.key.toDescription() }
-                .forEach { (type, sources) ->
-                  head("sources") { type.toDescription() }
-                  nest {
-                    prop("name") { sources.name }
-                    sources.srcDirs.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - srcDir") { it } }
-                    prop("outputDir") { sources.outputDir.path.toPrintablePath() }
-                    sources.gradleOutputDirs.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - gradleOutputDir") { it } }
-                    prop("isCompilerOutputPathInherited") { sources.isCompilerOutputPathInherited.takeIf { it }?.toString() }
-                    sources.excludes.sorted().forEach { prop(" - exclude") { it } }
-                    sources.includes.sorted().forEach { prop(" - include") { it } }
-                    sources.patterns.includes.sorted().forEach { prop(" - patterns.include") { it.toString() } }
-                    sources.patterns.excludes.sorted().forEach { prop(" - patterns.exclude") { it.toString() } }
-                    sources.filters.map { it.toString() }.sorted().forEach { prop(" - filter") { it } }
-                  }
-                }
-              sourceset.dependencies.sortedBy { it.id.toString().replaceKnownPaths() }.forEach { dump(it) }
-            }
-          }
-
-        externalProject.childProjects.entries.sortedBy { it.key }.forEach { (key, project) ->
-          dump(project, key)
-        }
-      }
-    }
-
-    fun dump(dependency: ExternalDependency) {
-      head("externalDependency") { dependency.id.toString().replaceKnownPaths() }
-      nest {
-        prop("group") { dependency.group }
-        prop("name") { dependency.name.replaceKnownPaths() }
-        prop("version") { replaceToolsVersion(dependency.id.toString(), dependency.version) }
-        prop("scope") { dependency.scope }
-        prop("packaging") { dependency.packaging }
-        prop("classifier") { dependency.classifier }
-        prop("selectionReason") { dependency.selectionReason }
-        prop("classpathOrder") { dependency.classpathOrder.takeIf { it != 0 }?.toString() }
-        prop("exported") { dependency.exported.takeIf { it }?.toString() }
-        dependency.dependencies.forEach { dump(it) }
-      }
+    fun dump(externalProject: ExternalProject) {
+      modelDumper.dumpModel(this@with, "externalProject", externalProject)
     }
   }
 }
-
-private fun IExternalSystemSourceType.toDescription(): String {
-  fun Boolean.to(name: String) = if (this) name else ""
-  return "${isExcluded.to("/excluded")}${isGenerated.to("/generated")}${isResource.to("/resource")}${isTest.to("/test")}"
-}
-
 
 class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
