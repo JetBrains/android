@@ -198,7 +198,6 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.30",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.0",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.5.21",
