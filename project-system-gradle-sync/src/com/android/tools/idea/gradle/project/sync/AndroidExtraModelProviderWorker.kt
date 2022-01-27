@@ -123,7 +123,7 @@ internal class AndroidExtraModelProviderWorker(
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")
       override val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") safeGet(androidProject::getSyncIssues, null)
       override val variantNameResolver: VariantNameResolver = fun(_: String?, _: (String) -> String?): String? = null
-      val ndkVersion: String = safeGet(androidProject::getNdkVersion, "")
+      val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
 
       override fun createVariantFetcher(): IdeVariantFetcher = v1VariantFetcher(modelCache)
     }

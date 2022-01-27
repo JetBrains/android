@@ -242,7 +242,7 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
     }
 
     @Override
-    @NonNull
+    @Nullable
     public String getNdkVersion() {
         return myNdkVersion;
     }

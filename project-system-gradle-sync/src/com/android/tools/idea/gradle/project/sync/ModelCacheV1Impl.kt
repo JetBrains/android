@@ -890,7 +890,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     )
   }
 
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl {
+  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl {
+    val defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, "")
     return IdeNativeAndroidProjectImpl(
       modelVersion = project.modelVersion,
       apiVersion = project.apiVersion,
@@ -901,8 +902,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       toolChains = copy(project::getToolChains, ::nativeToolchainFrom),
       settings = copy(project::getSettings, ::nativeSettingsFrom),
       fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
-      defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, ""),
-      ndkVersion = ndkVersion,
+      defaultNdkVersion = defaultNdkVersion,
+      ndkVersion = ndkVersion ?: defaultNdkVersion,
       buildSystems = copy(project::getBuildSystems, ::deduplicateString)
     )
   }
@@ -1167,7 +1168,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
 
     override fun nativeAndroidProjectFrom(
       project: NativeAndroidProject,
-      ndkVersion: String
+      ndkVersion: String?
     ): IdeNativeAndroidProjectImpl = lock.withLock { nativeAndroidProjectFrom(project, ndkVersion) }
   }
 }

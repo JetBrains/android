@@ -348,7 +348,7 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public String getNdkVersion() {
     return "21.0.0";
   }
