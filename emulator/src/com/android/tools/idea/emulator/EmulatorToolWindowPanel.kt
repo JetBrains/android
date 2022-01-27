@@ -179,7 +179,7 @@ class EmulatorToolWindowPanel(
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
       mainToolbar.updateActionsImmediately()
     }
-    installFileDropHandler(this, emulatorView, project)
+    installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
     emulator.addConnectionStateListener(this)

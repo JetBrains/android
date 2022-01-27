@@ -21,6 +21,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.idea.emulator.AbstractDisplayPanel
 import com.android.tools.idea.emulator.DeviceId
 import com.android.tools.idea.emulator.RunningDevicePanel
+import com.android.tools.idea.emulator.installFileDropHandler
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -112,6 +113,8 @@ internal class DeviceToolWindowPanel(
     primaryDeviceView = deviceView
     mainToolbar.setTargetComponent(deviceView)
     centerPanel.addToCenter(primaryDisplayPanel)
+
+    installFileDropHandler(this, id.serialNumber, deviceView, project)
   }
 
   /**

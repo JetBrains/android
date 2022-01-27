@@ -42,13 +42,13 @@ import javax.swing.JComponent
 
 /**
  * Installs a drop handler that installs .apk files and copies all other files to the emulator's Download
- * directory. The lifetime of the drop handler is determined by the lifetime of [emulatorView].
+ * directory. The lifetime of the drop handler is determined by the lifetime of [displayView].
  *
  * @param dropTarget the drop target component
- * @param emulatorView the view associated with the emulator
- * @param project the project associated with [emulatorView]
+ * @param displayView the view associated with the emulator
+ * @param project the project associated with [displayView]
  */
-fun installFileDropHandler(dropTarget: JComponent, emulatorView: EmulatorView, project: Project) {
+fun installFileDropHandler(dropTarget: JComponent, deviceSerialNumber: String, displayView: AbstractDisplayView, project: Project) {
   DnDSupport.createBuilder(dropTarget)
     .enableAsNativeTarget()
     .setTargetChecker { event ->
@@ -58,15 +58,19 @@ fun installFileDropHandler(dropTarget: JComponent, emulatorView: EmulatorView, p
       }
       return@setTargetChecker true
     }
-    .setDisposableParent(emulatorView)
-    .setDropHandler(EmulatorFileDropHandler(emulatorView, project))
+    .setDisposableParent(displayView)
+    .setDropHandler(EmulatorFileDropHandler(deviceSerialNumber, displayView, project))
     .install()
 }
 
 /**
  * Drop handler that installs .apk files and pushes other files to the AVD.
  */
-private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, private val project: Project) : DnDDropHandler {
+private class EmulatorFileDropHandler(
+  private val deviceSerialNumber: String,
+  private val displayView: AbstractDisplayView,
+  private val project: Project
+) : DnDDropHandler {
 
   override fun drop(event: DnDEvent) {
     val files = FileCopyPasteUtil.getFileListFromAttachedObject(event.attachedObject)
@@ -79,7 +83,7 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
     val fileNames = files.joinToString(", ") { it.name }
 
     if (fileTypes.contains(FileType.APK)) {
-      emulatorView.showLongRunningOperationIndicator("Installing $fileNames")
+      displayView.showLongRunningOperationIndicator("Installing $fileNames")
 
       val resultFuture: ListenableFuture<InstallResult> = findDevice().transform(getAppExecutorService()) { install(files, it) }
 
@@ -93,16 +97,16 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
             val message = installResult.reason ?: ApkInstaller.message(installResult)
             notifyOfError(message)
           }
-          emulatorView.hideLongRunningOperationIndicator()
+          displayView.hideLongRunningOperationIndicator()
         },
         failure = { throwable ->
           val message = throwable?.message ?: "Installation failed"
           notifyOfError(message)
-          emulatorView.hideLongRunningOperationIndicator()
+          displayView.hideLongRunningOperationIndicator()
         })
     }
     else {
-      emulatorView.showLongRunningOperationIndicator("Copying $fileNames")
+      displayView.showLongRunningOperationIndicator("Copying $fileNames")
 
       val resultFuture: ListenableFuture<Unit> = findDevice().transform(getAppExecutorService()) { push(files, it) }
 
@@ -110,12 +114,12 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
         EdtExecutorService.getInstance(),
         success = {
           notifyOfSuccess("$fileNames copied")
-          emulatorView.hideLongRunningOperationIndicator()
+          displayView.hideLongRunningOperationIndicator()
         },
         failure = { throwable ->
           val message = throwable?.message ?: "Copying failed"
           notifyOfError(message)
-          emulatorView.hideLongRunningOperationIndicator()
+          displayView.hideLongRunningOperationIndicator()
         })
     }
   }
@@ -152,12 +156,11 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
   }
 
   private fun findDevice(): ListenableFuture<IDevice> {
-    val serialNumber = "emulator-${emulatorView.emulator.emulatorId.serialPort}"
     val adbFile = AndroidSdkUtils.findAdb(project).adbPath ?:
                   return Futures.immediateFailedFuture(RuntimeException("Could not find adb executable"))
     val bridgeFuture: ListenableFuture<AndroidDebugBridge> = AdbService.getInstance().getDebugBridge(adbFile)
     return bridgeFuture.transform(getAppExecutorService()) { debugBridge ->
-      debugBridge.devices.find { it.isEmulator && it.serialNumber == serialNumber } ?:
+      debugBridge.devices.find { it.serialNumber == deviceSerialNumber } ?:
           throw RuntimeException("Unable to find the device to copy the files to")
     }
   }

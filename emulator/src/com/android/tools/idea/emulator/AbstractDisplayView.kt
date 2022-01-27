@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.intellij.openapi.Disposable
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -40,7 +41,7 @@ import kotlin.math.roundToInt
 /**
  * Common base class for [EmulatorView] and [com.android.tools.idea.device.DeviceView].
  */
-abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel() {
+abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
   protected val disconnectedStateLabel = JLabel()
 
