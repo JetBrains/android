@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.legacy.LegacyAvdManagerUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -69,6 +70,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     items.add(new WipeDataItem(this));
     newColdBootNowItem().ifPresent(items::add);
     items.add(newShowOnDiskItem());
+    items.add(MenuItems.newViewDetailsItem(myPanel));
 
     return items;
   }

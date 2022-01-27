@@ -19,6 +19,7 @@ import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
@@ -59,7 +60,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     List<JComponent> items = new ArrayList<>();
     Optional<JComponent> optionalItem = newUnpairDeviceItem();
 
-    items.add(newViewDetailsItem());
+    items.add(MenuItems.newViewDetailsItem(myPanel));
     optionalItem.ifPresent(item -> items.add(new Separator()));
     items.add(newPairDeviceItem());
     optionalItem.ifPresent(items::add);
@@ -67,15 +68,8 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     return items;
   }
 
-  private @NotNull JComponent newViewDetailsItem() {
-    AbstractButton item = new JBMenuItem("View details");
-    item.addActionListener(event -> myPanel.viewDetails());
-
-    return item;
-  }
-
   private @NotNull JMenuItem newPairDeviceItem() {
-    JMenuItem item = new JBMenuItem("Pair device");
+    JMenuItem item = new JBMenuItem("Pair Device");
 
     boolean phone = myDevice.getType().equals(DeviceType.PHONE);
     boolean online = myDevice.isOnline();
@@ -113,7 +107,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
       return Optional.empty();
     }
 
-    JMenuItem item = new JBMenuItem("Unpair device");
+    AbstractButton item = new JBMenuItem("Unpair Device");
     PairingDevice otherDevice = pair.getPeerDevice(key);
     item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
     item.addActionListener(actionEvent -> {
