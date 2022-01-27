@@ -42,6 +42,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.Version;
 import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
@@ -203,6 +204,10 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
       contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
 
+      contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]",
+                                   Version.ANDROID_TOOLS_BASE_VERSION);
+      contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]",
+                                   Version.ANDROID_TOOLS_BASE_VERSION);
       // App compat version needs to match compile SDK
       String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
       // TODO(145548476): convert to androidx
@@ -241,6 +246,10 @@ public class AndroidGradleTests {
 
       contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
                                    kotlinVersion);
+      contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]",
+                                   Version.ANDROID_TOOLS_BASE_VERSION);
+      contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]",
+                                   Version.ANDROID_TOOLS_BASE_VERSION);
       // "implementation"(kotlin("stdlib", "1.3.61"))
       contents =
         replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", kotlinVersion);
