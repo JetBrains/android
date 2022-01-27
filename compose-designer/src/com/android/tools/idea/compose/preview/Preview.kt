@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.fastCompileAsync
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
@@ -75,7 +76,6 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -96,7 +96,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -112,7 +111,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -244,7 +242,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider<PreviewElement>,
                                    override val preferredInitialVisibility: PreferredVisibility,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
-  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, CodeOutOfDateTracker {
   /**
    * Fake device id to identify this preview with the live literals service. This allows live literals to track how
    * many "users" it has.
@@ -582,31 +580,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val requestId = UUID.randomUUID().toString().substring(0, 5)
   }
   // region Lifecycle handling
-  /**
-   * Lock used when processing events that affect the need of refreshing previews.
-   * These events are the invocations of [invalidateSavedBuildStatus] and the
-   * events captured by the ResourceChangeListener and the BuildListener.
-   */
-  private val previewFreshnessLock = ReentrantLock()
+  @TestOnly
+  override fun needsRefreshOnSuccessfulBuild() = previewFreshnessTracker.needsRefreshOnSuccessfulBuild()
 
-  @GuardedBy("previewFreshnessLock")
-  private var needsRefreshOnSuccessfulBuild = true
-  @GuardedBy("previewFreshnessLock")
-  private var kotlinJavaModificationCount = -1L
-  private val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(project).forLanguages { lang ->
-    lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
+  @TestOnly
+  override fun buildWillTriggerRefresh() = previewFreshnessTracker.buildWillTriggerRefresh()
+
+  private val previewFreshnessTracker = CodeOutOfDateTracker.create(module, this) {
+    invalidate()
+    requestRefresh()
   }
 
-  @TestOnly
-  internal fun needsRefreshOnSuccessfulBuild() = needsRefreshOnSuccessfulBuild
-
-  @TestOnly
-  internal fun buildWillTriggerRefresh() = needsRefreshOnSuccessfulBuild || kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
-
   override fun invalidateSavedBuildStatus() {
-    previewFreshnessLock.withLock {
-      needsRefreshOnSuccessfulBuild = true
-    }
+    previewFreshnessTracker.invalidateSavedBuildStatus()
   }
 
   /**
@@ -621,18 +607,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
-    // Set a ResourceChangeListener to update the need of refreshing the previews when corresponds
-    module?.androidFacet?.let {
-      ResourceNotificationManager
-        .getInstance(project)
-        .addListener({ reasons ->
-                       // If this listener was triggered by any reason but a project build,
-                       // then we need to refresh the previews on the next successful build
-                       reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
-                       if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
-                     }, it, null, null)
-    } ?: LOG.error("Couldn't set the ResourceChangeListener, some previews might not be refreshed correctly after successful builds")
-
     setupBuildListener(project, object : BuildListener {
       @GuardedBy("previewFreshnessLock")
       private var pendingBuildsCount = 0
@@ -644,26 +618,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         module?.let {
           // When the build completes successfully, we do not need the overlay until a modifications has happened.
           ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
-        }
-
-        var needsRefresh = false
-        previewFreshnessLock.withLock {
-          // This build listener could be set in the middle of a build process, what could lead to unintended behaviors.
-          // Make sure to avoid problems related to this by keeping pendingBuildsCount non-negative.
-          if (pendingBuildsCount > 0) pendingBuildsCount = pendingBuildsCount.dec()
-          else LOG.warn("pendingBuildsCount was $pendingBuildsCount when buildSucceeded")
-
-          if (needsRefreshOnSuccessfulBuild) needsRefresh = true
-
-          if (pendingBuildsCount == 0) {
-            // Only reset the need of refreshing the previews when every concurrent build succeeded
-            // As it might happen that the need of refresh was set by a build that failed.
-            if (!someConcurrentBuildFailed) {
-              needsRefreshOnSuccessfulBuild = false
-            }
-            // As there are no more pending builds, reset the failures flag
-            someConcurrentBuildFailed = false
-          }
         }
 
         val file = psiFilePointer.element
@@ -678,33 +632,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           FastPreviewManager.getInstance(project).preStartDaemon(module)
         }
 
-        if (needsRefresh) {
-          invalidate()
-          requestRefresh()
-        }
-
         afterBuildComplete(true)
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
 
-        previewFreshnessLock.withLock {
-          // This build listener could be set in the middle of a build process, what could lead to unintended behaviors.
-          // Make sure to avoid problems related to this by keeping pendingBuildsCount non-negative.
-          if (pendingBuildsCount > 0) pendingBuildsCount = pendingBuildsCount.dec()
-          else LOG.warn("pendingBuildsCount was $pendingBuildsCount when buildFailed")
-          // If there are some other concurrent builds happening, set the failures flag to true.
-          // Otherwise, reset it.
-          someConcurrentBuildFailed = pendingBuildsCount != 0
-        }
-
         afterBuildComplete(false)
       }
 
       override fun buildCleaned() {
         LOG.debug("buildCleaned")
-        invalidateSavedBuildStatus()
 
         // After a clean build, we can not re-load the classes so we need to invalidate the Live Literals.
         LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
@@ -713,17 +651,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildStarted() {
         LOG.debug("buildStarted")
-
-        previewFreshnessLock.withLock {
-          pendingBuildsCount = pendingBuildsCount.inc()
-          // The modification count is updated here and not in 'buildSucceeded' so that the changes
-          // made during the build process are not considered to be included in such build
-          val newKotlinJavaModificationCount = kotlinJavaModificationTracker.modificationCount
-          if (newKotlinJavaModificationCount != kotlinJavaModificationCount) {
-            needsRefreshOnSuccessfulBuild = true
-            kotlinJavaModificationCount = newKotlinJavaModificationCount
-          }
-        }
 
         composeWorkBench.updateProgress(message("panel.building"))
         afterBuildStarted()

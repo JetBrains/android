@@ -167,6 +167,7 @@ fun setupBuildListener(
     val lastResult = buildManager.getLastBuildResult()
     if (lastResult.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
       // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
+      buildable.buildStarted()
       buildable.buildSucceeded()
     }
   }

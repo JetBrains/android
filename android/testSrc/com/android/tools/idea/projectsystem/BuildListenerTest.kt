@@ -17,10 +17,8 @@ package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -195,7 +193,7 @@ class BuildListenerTest {
     processEvents()
 
 
-    assertThat(thirdListenerCalls).isEqualTo(1)
+    assertThat(thirdListenerCalls).isEqualTo(2) //
     // The second disposable was not disposed, and now we're allowing multiple listener subscriptions per project. Therefore, the second
     // listener will also be called.
     assertThat(secondListenerCalls).isEqualTo(2)
