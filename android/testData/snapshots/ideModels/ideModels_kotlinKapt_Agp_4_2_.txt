@@ -360,6 +360,9 @@ MODULE                        : MainActivity
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     kotlinScriptDef               : <empty>
                     kotlinScriptDefExtensions     : <empty>
+                    - mainSourceElements          : <ROOT>/javaLib/src/main/java
+                    - mainSourceElements          : <ROOT>/javaLib/src/main/kotlin [-]
+                    - mainSourceElements          : <ROOT>/javaLib/src/main/resources [-]
                     runtimeClasspath              : <empty>
                     - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                     - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
@@ -377,6 +380,7 @@ MODULE                        : MainActivity
                     testIntransitiveDependenciesMetadata    : <empty>
                     testKotlinScriptDef           : <empty>
                     testKotlinScriptDefExtensions : <empty>
+                    - testResultsElementsForTest  : <ROOT>/javaLib/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
                     testRuntimeOnlyDependenciesMetadata     : <empty>

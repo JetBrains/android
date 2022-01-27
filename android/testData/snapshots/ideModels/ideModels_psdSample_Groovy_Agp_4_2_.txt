@@ -939,6 +939,8 @@ MODULE                        : project
                     compileOnlyApi                : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    - mainSourceElements          : <ROOT>/jav/src/main/java [-]
+                    - mainSourceElements          : <ROOT>/jav/src/main/resources [-]
                     runtimeClasspath              : <empty>
                     - runtimeElements             : <ROOT>/jav/build/libs/jav.jar [-]
                     runtimeOnly                   : <empty>
@@ -946,6 +948,7 @@ MODULE                        : project
                     testCompileClasspath          : <empty>
                     testCompileOnly               : <empty>
                     testImplementation            : <empty>
+                    - testResultsElementsForTest  : <ROOT>/jav/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lib                           : :lib (DefaultExternalProject)

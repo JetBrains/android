@@ -477,6 +477,8 @@ MODULE                        : project
                     compileOnlyApi                : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    - mainSourceElements          : <ROOT>/lint/src/main/java
+                    - mainSourceElements          : <ROOT>/lint/src/main/resources [-]
                     runtimeClasspath              : <empty>
                     - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
                     runtimeOnly                   : <empty>
@@ -484,6 +486,7 @@ MODULE                        : project
                     testCompileClasspath          : <empty>
                     testCompileOnly               : <empty>
                     testImplementation            : <empty>
+                    - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish                   : :lintpublish (DefaultExternalProject)
@@ -577,6 +580,8 @@ MODULE                        : project
                     compileOnlyApi                : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    - mainSourceElements          : <ROOT>/lintpublish/src/main/java
+                    - mainSourceElements          : <ROOT>/lintpublish/src/main/resources [-]
                     runtimeClasspath              : <empty>
                     - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                     runtimeOnly                   : <empty>
@@ -584,6 +589,7 @@ MODULE                        : project
                     testCompileClasspath          : <empty>
                     testCompileOnly               : <empty>
                     testImplementation            : <empty>
+                    - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
@@ -677,6 +683,8 @@ MODULE                        : project
                     compileOnlyApi                : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/java
+                    - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/resources [-]
                     runtimeClasspath              : <empty>
                     - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                     runtimeOnly                   : <empty>
@@ -684,6 +692,7 @@ MODULE                        : project
                     testCompileClasspath          : <empty>
                     testCompileOnly               : <empty>
                     testImplementation            : <empty>
+                    - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
         projectDir                    : <ROOT>

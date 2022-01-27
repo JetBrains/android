@@ -635,7 +635,7 @@ PROJECT                       : testWithBuildSrc
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-7.4.jar!/
         LIBRARY
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -766,7 +766,7 @@ PROJECT                       : testWithBuildSrc
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-7.4.jar!/
         LIBRARY
             LibraryLevel                  : module
             IsModuleLevel                 : true

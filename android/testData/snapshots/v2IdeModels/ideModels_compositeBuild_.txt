@@ -8591,6 +8591,8 @@ MODULE                        : composite2
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
+            - mainSourceElements          : <ROOT>/TestCompositeLib2/src/main/java
+            - mainSourceElements          : <ROOT>/TestCompositeLib2/src/main/resources [-]
             runtimeClasspath              : <empty>
             - runtimeElements             : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
             runtimeOnly                   : <empty>
@@ -8598,6 +8600,7 @@ MODULE                        : composite2
             testCompileClasspath          : <empty>
             testCompileOnly               : <empty>
             testImplementation            : <empty>
+            - testResultsElementsForTest  : <ROOT>/TestCompositeLib2/build/test-results/test/binary [-]
             testRuntimeClasspath          : <empty>
             testRuntimeOnly               : <empty>
 MODULE                        : composite2.main
@@ -8681,6 +8684,8 @@ MODULE                        : composite4
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
+            - mainSourceElements          : <ROOT>/TestCompositeLib4/src/main/java
+            - mainSourceElements          : <ROOT>/TestCompositeLib4/src/main/resources [-]
             runtimeClasspath              : <empty>
             - runtimeElements             : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
             runtimeOnly                   : <empty>
@@ -8688,6 +8693,7 @@ MODULE                        : composite4
             testCompileClasspath          : <empty>
             testCompileOnly               : <empty>
             testImplementation            : <empty>
+            - testResultsElementsForTest  : <ROOT>/TestCompositeLib4/build/test-results/test/binary [-]
             testRuntimeClasspath          : <empty>
             testRuntimeOnly               : <empty>
 MODULE                        : composite4.main
@@ -8771,6 +8777,8 @@ MODULE                        : compositeNest
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
+            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
+            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
             runtimeClasspath              : <empty>
             - runtimeElements             : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             runtimeOnly                   : <empty>
@@ -8778,6 +8786,7 @@ MODULE                        : compositeNest
             testCompileClasspath          : <empty>
             testCompileOnly               : <empty>
             testImplementation            : <empty>
+            - testResultsElementsForTest  : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/test-results/test/binary [-]
             testRuntimeClasspath          : <empty>
             testRuntimeOnly               : <empty>
 MODULE                        : compositeNest.main
