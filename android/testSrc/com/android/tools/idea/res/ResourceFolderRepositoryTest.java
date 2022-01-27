@@ -55,7 +55,7 @@ import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.intellij.codeInsight.problems.MockWolfTheProblemSolver;
+import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
