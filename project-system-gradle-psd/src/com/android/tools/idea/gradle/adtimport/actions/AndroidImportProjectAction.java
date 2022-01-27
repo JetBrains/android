@@ -259,7 +259,7 @@ public final class AndroidImportProjectAction extends AnAction {
       }
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
-      Project project = ProjectManagerEx.getInstanceEx().newProject(projectDirPath.toPath(), OpenProjectTask.newProject().withProjectName(wizard.getProjectName()));
+      Project project = ProjectManagerEx.getInstanceEx().newProject(projectDirPath.toPath(), OpenProjectTask.build().asNewProject().withProjectName(wizard.getProjectName()));
       if (project == null) {
         return;
       }
