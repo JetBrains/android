@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.util.firstNotNullResult
 import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
-import java.net.BindException
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -52,8 +51,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 
-private const val MIN_PORT = 15050
-private const val MAX_PORT = 15099
 private const val DEVICE_PATH_BASE = "/data/local/tmp"
 private const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 private const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
@@ -84,18 +81,27 @@ internal class DeviceClient(
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
-    pushAgent(deviceSelector, adb)
+    val agentPushed = coroutineScope { async {
+      pushAgent(deviceSelector, adb)
+    }}
     pushTime = System.currentTimeMillis()
     val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
-    createServerSocketChannel(deviceSelector, adb, deviceSocket).use { serverSocketChannel ->
-      thisLogger().debug("Using port ${(serverSocketChannel.localAddress as InetSocketAddress).port}")
-      startAgent(deviceSelector, adb)
-      videoChannel = serverSocketChannel.accept()
-      connectionTime = System.currentTimeMillis()
-      controlChannel = serverSocketChannel.accept()
-      controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+    @Suppress("BlockingMethodInNonBlockingContext")
+    val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
+    val port = (asyncChannel.localAddress as InetSocketAddress).port
+    thisLogger().debug("Using port $port")
+    SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
+      ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
+        it.startForwarding()
+        agentPushed.await()
+        startAgent(deviceSelector, adb)
+        videoChannel = serverSocketChannel.accept()
+        connectionTime = System.currentTimeMillis()
+        controlChannel = serverSocketChannel.accept()
+        controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+        // Port forwarding can be removed since the already established connections will continue to work without it.
+      }
     }
-    adb.reverseKillForward(deviceSelector, deviceSocket)
     deviceController = DeviceController(this, controlChannel)
   }
 
@@ -136,26 +142,6 @@ internal class DeviceClient(
       }
       videoChannelClosed.await()
     }
-  }
-
-  private suspend fun createServerSocketChannel(
-      deviceSelector: DeviceSelector, adb: AdbDeviceServices, deviceSocket: SocketSpec): SuspendingServerSocketChannel {
-    for (port in MIN_PORT..MAX_PORT) {
-      adb.reverseForward(deviceSelector, deviceSocket, SocketSpec.Tcp(port))
-      try {
-        @Suppress("BlockingMethodInNonBlockingContext")
-        return SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress(port)))
-      }
-      catch (e: BindException) {
-        thisLogger().info("Unable to listen on port $port - ${e.message}")
-      }
-      catch (e: Exception) {
-        thisLogger().warn("Unable to listen on port $port", e)
-        adb.reverseKillForward(deviceSelector, deviceSocket)
-      }
-    }
-
-    throw IOException("No available TCP/IP ports")
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
@@ -220,6 +206,28 @@ internal class DeviceClient(
       }
       catch (_: EOFException) {
         // Device disconnected. This is not an error.
+      }
+    }
+  }
+
+  private class ClosableReverseForwarding(
+    val deviceSelector: DeviceSelector,
+    val deviceSocket: SocketSpec,
+    val localSocket: SocketSpec,
+    val adb: AdbDeviceServices,
+    ) : SuspendingCloseable {
+
+    var opened = false
+
+    suspend fun startForwarding() {
+      adb.reverseForward(deviceSelector, deviceSocket, localSocket)
+      opened = true
+    }
+
+    override suspend fun close() {
+      if (opened) {
+        opened = false
+        adb.reverseKillForward(deviceSelector, deviceSocket)
       }
     }
   }
