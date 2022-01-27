@@ -54,9 +54,9 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
 
     val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
     val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
-    val (matcher, userMessage) = when {
-      tooOldMatcher.find() -> tooOldMatcher to tooOldMatcher.group(0)
-      incompatiblePreviewMatcher.find() -> incompatiblePreviewMatcher to incompatiblePreviewMatcher.group(0)
+    val (matcher, userMessage, url) = when {
+      tooOldMatcher.find() -> Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
+      incompatiblePreviewMatcher.find() -> Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
       else -> return null
     }
     val version = GradleVersion.tryParseAndroidGradlePluginVersion(matcher.group(1)) ?: return null
@@ -75,7 +75,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     return buildIssueComposer.apply {
       addQuickFix(
         "See Android Studio & AGP compatibility options.",
-        OpenLinkQuickFix("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+        OpenLinkQuickFix(url)
       )
     }.composeBuildIssue()
   }
@@ -96,6 +96,11 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
   ): Boolean {
     return AgpVersionTooOld.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
            AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
+  }
+
+  companion object {
+    private const val TOO_OLD_URL = "https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility"
+    private const val PREVIEW_URL = "https://developer.android.com/studio/preview/features#agp-previews"
   }
 }
 
