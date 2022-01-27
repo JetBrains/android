@@ -216,6 +216,7 @@ public class AndroidLiveEditDeployMonitor {
       synchronized (ACTIVE_PROJECTS) {
         // Don't create multiple listeners for the same project, or we'll get events several times.
         if (!ACTIVE_PROJECTS.contains(project)) {
+          ACTIVE_PROJECTS.add(project);
           LiveEditService service = LiveEditService.Companion.getInstance(project);
           EditsListener listener = new EditsListener(project, packageName);
           service.addOnEditListener(listener::onLiteralsChanged);
