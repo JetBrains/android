@@ -1489,12 +1489,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pi
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/metadata.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/resources.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/scripts.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/t32.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/t64.exe
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/util.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/version.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/w32.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/w64.exe
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/wheel.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distro.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/html5lib/__init__.py
@@ -1742,9 +1738,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/se
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/_vendor/six.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/archive_util.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/build_meta.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli-32.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli-64.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli.exe
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/alias.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/bdist_egg.py
@@ -1779,9 +1772,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/se
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/extension.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/extern/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/glob.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui-32.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui-64.exe
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui.exe
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/installer.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/launch.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/lib2to3_ex.py

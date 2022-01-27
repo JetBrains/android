@@ -1465,12 +1465,8 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/metadata.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/resources.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/scripts.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/t32.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/t64.exe
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/util.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/version.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/w32.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/w64.exe
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distlib/wheel.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/distro.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_vendor/html5lib/__init__.py
@@ -1718,9 +1714,6 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/_vendor/six.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/archive_util.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/build_meta.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli-32.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli-64.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/cli.exe
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/alias.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/command/bdist_egg.py
@@ -1755,9 +1748,6 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/extension.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/extern/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/glob.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui-32.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui-64.exe
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/gui.exe
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/installer.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/launch.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/setuptools/lib2to3_ex.py
