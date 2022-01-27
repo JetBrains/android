@@ -115,20 +115,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
@@ -267,20 +267,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
@@ -387,20 +387,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
@@ -594,20 +594,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -version
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
@@ -681,20 +681,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -version
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
@@ -768,20 +768,20 @@ PROJECT                       : testSyncWithKotlinDsl
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 1.6
             CompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             CompilerSettings
                 additionalArguments           : -version
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.5
+            LanguageLevel                 : 1.6
             MergedCompilerArguments
-                apiVersion                    : 1.5
-                languageVersion               : 1.5
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 5
