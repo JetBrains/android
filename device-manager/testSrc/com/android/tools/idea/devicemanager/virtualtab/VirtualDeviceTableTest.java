@@ -41,13 +41,13 @@ public final class VirtualDeviceTableTest {
 
   @Test
   public void unselectedDevice() {
-    AvdInfo device = new AvdInfo("Pixel 3",
+    AvdInfo device = new AvdInfo("Pixel 5",
                                  Paths.get("ini", "file"),
                                  Paths.get("data", "folder", "path"),
                                  Mockito.mock(SystemImage.class),
                                  null);
 
-    VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.singletonList(VirtualDevices.build(device)));
+    VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.singletonList(TestVirtualDevices.pixel5Api31(device)));
     VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model);
 
     assertFalse(table.getSelectedDevice().isPresent());

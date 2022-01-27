@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import java.nio.file.Paths;
@@ -39,9 +40,6 @@ public final class VirtualDeviceDetailsPanelTest {
   public void newVirtualDeviceDetailsPanel() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_ANDROID_API, "30");
-    properties.put("hw.lcd.width", "1080");
-    properties.put("hw.lcd.height", "2160");
-    properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
                                   Paths.get("ini/file"),
@@ -50,7 +48,18 @@ public final class VirtualDeviceDetailsPanelTest {
                                   properties,
                                   AvdStatus.OK);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(VirtualDevices.build(avdInfo), WearPairingManager.INSTANCE, false);
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_3_API_30"))
+      .setName("Pixel 3 API 30")
+      .setTarget("Android 11.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setApi("30")
+      .setResolution(new Resolution(1080, 2160))
+      .setDensity(440)
+      .setAvdInfo(avdInfo)
+      .build();
+
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE, false);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
@@ -67,9 +76,6 @@ public final class VirtualDeviceDetailsPanelTest {
     properties.put(AvdManager.AVD_INI_TAG_ID, "google_apis_playstore");
     properties.put(AvdManager.AVD_INI_TAG_DISPLAY, "Google Play");
     properties.put(AvdManager.AVD_INI_ABI_TYPE, "x86");
-    properties.put("hw.lcd.width", "1080");
-    properties.put("hw.lcd.height", "2160");
-    properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
                                   Paths.get("ini/file"),
@@ -78,7 +84,18 @@ public final class VirtualDeviceDetailsPanelTest {
                                   properties,
                                   AvdStatus.ERROR_IMAGE_MISSING);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(VirtualDevices.build(avdInfo), WearPairingManager.INSTANCE, false);
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_3_API_30"))
+      .setName("Pixel 3 API 30")
+      .setTarget("Android 11.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setApi("30")
+      .setResolution(new Resolution(1080, 2160))
+      .setDensity(440)
+      .setAvdInfo(avdInfo)
+      .build();
+
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE, false);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
