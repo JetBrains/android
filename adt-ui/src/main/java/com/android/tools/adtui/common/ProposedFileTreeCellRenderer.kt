@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard.ui
+package com.android.tools.adtui.common
 
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes

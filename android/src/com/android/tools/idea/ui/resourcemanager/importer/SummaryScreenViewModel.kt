@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.tools.adtui.common.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
-import com.android.tools.idea.wizard.ui.ProposedFileTreeModel
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile

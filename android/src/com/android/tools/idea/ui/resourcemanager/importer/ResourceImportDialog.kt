@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.tools.adtui.common.ProposedFileTreeCellRenderer
+import com.android.tools.adtui.common.ProposedFileTreeModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
-import com.android.tools.idea.wizard.ui.ProposedFileTreeCellRenderer
-import com.android.tools.idea.wizard.ui.ProposedFileTreeModel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ide.wizard.AbstractWizard

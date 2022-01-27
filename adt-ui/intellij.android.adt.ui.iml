@@ -26,5 +26,6 @@
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>
