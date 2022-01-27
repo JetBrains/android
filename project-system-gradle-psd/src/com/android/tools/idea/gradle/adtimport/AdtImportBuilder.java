@@ -187,7 +187,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         request.isNewProject = true;
         importer.importProjectNoSync(request);
         Path projectDir = getBaseDirPath(request.project).getAbsoluteFile().toPath();
-        ProjectManagerEx.getInstanceEx().openProject(projectDir, OpenProjectTask.withProjectToClose(project, null, true));
+        OpenProjectTask options = OpenProjectTask.build().withProject(project).withForceOpenInNewFrame(true);
+        ProjectManagerEx.getInstanceEx().openProject(projectDir, options);
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_IMPORT_ADT_MODULE), syncListener);
