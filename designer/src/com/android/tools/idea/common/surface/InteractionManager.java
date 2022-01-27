@@ -693,10 +693,7 @@ public class InteractionManager implements Disposable {
       int x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
       int y = myLastMouseY;
 
-      // TODO (b/142953949): Should layer be hovered when action performed?
-      for (SceneView sceneView : mySurface.getSceneViews()) {
-        sceneView.onHover(x, y);
-      }
+      myInteractionHandler.stayHovering(x, y);
     }
 
     // --- Implements MouseWheelListener ----
@@ -719,10 +716,10 @@ public class InteractionManager implements Disposable {
       // to do the filtering at a higher level
       if (!e.isShiftDown() && (SystemInfo.isMac && e.isMetaDown() || e.isControlDown())) {
         if (scrollAmount < 0) {
-          mySurface.zoom(ZoomType.IN, x, y);
+          myInteractionHandler.zoom(ZoomType.IN, x, y);
         }
         else if (scrollAmount > 0) {
-          mySurface.zoom(ZoomType.OUT, x, y);
+          myInteractionHandler.zoom(ZoomType.OUT, x, y);
         }
         return;
       }

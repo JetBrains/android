@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
@@ -44,7 +45,17 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface) : Interact
 
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) { }
 
+  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
+    surface.zoom(type, mouseX, mouseY)
+  }
+
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) { }
+
+  override fun stayHovering(mouseX: Int, mouseY: Int) {
+    for (sceneView in surface.sceneViews) {
+      sceneView.onHover(mouseX, mouseY)
+    }
+  }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) { }
 

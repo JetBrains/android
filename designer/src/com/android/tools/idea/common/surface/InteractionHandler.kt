@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
@@ -102,6 +103,12 @@ interface InteractionHandler {
    */
   fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
 
+
+  /**
+   * Called by [InteractionManager] when a zooming event happens.
+   */
+  fun zoom(type: ZoomType, mouseX: Int, mouseY: Int)
+
   /**
    * Called when [InteractionManager] has no active [Interaction] but mouse is moved. ([mouseX], [mouseY]) is the mouse position , and
    * [modifiersEx] is the pressed modifiers when mouse moves.
@@ -109,6 +116,12 @@ interface InteractionHandler {
   fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                              @SwingCoordinate mouseY: Int,
                              @JdkConstants.InputEventMask modifiersEx: Int)
+
+  /**
+   * Called by [InteractionManager] when mouse doesn't move for [InteractionManager.HOVER_DELAY_MS] milliseconds. This function does not
+   * repeat even the mouse is still not moving.
+   */
+  fun stayHovering(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int)
 
   /**
    * Called by [InteractionManager] when the popup context menu event is triggered (e.g. right click on a component). Note that the event
@@ -201,6 +214,10 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     surface.getSceneViewAtOrPrimary(x, y)?.selectComponentAt(x, y, modifiersEx, allowToggle, false)
   }
 
+  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
+    surface.zoom(type, mouseX, mouseY)
+  }
+
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
@@ -216,6 +233,12 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     }
 
     surface.sceneManagers.map { it.sceneView }.forEach { it.onHover(mouseX, mouseY) }
+  }
+
+  override fun stayHovering(mouseX: Int, mouseY: Int) {
+    for (sceneView in surface.sceneViews) {
+      sceneView.onHover(mouseX, mouseY)
+    }
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
@@ -333,7 +356,10 @@ object NopInteractionHandler: InteractionHandler {
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
+  override fun zoom(type: ZoomType, x: Int, y: Int) {}
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}
+  override fun stayHovering(mouseX: Int, mouseY: Int) {}
+
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
@@ -363,8 +389,14 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
     delegate.createInteractionOnMouseWheelMoved(mouseWheelEvent)
 
+  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) =
+    delegate.zoom(type, mouseX, mouseY)
+
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) =
     delegate.mouseReleaseWhenNoInteraction(x, y, modifiersEx)
+
+  override fun stayHovering(mouseX: Int, mouseY: Int) =
+    delegate.stayHovering(mouseX, mouseY)
 
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) =
     delegate.singleClick(x, y, modifiersEx)

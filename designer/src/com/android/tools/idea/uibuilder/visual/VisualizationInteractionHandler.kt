@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.Coordinates
@@ -114,6 +115,10 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     }
   }
 
+  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
+    surface.zoom(type, mouseX, mouseY)
+  }
+
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
@@ -123,6 +128,10 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
       context.setMouseLocation(mouseX, mouseY)
       sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
     }
+    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+  }
+
+  override fun stayHovering(mouseX: Int, mouseY: Int) {
     surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
   }
 
