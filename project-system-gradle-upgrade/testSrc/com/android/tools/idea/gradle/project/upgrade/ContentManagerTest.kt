@@ -155,9 +155,9 @@ class ContentManagerTest {
     // Then UI is cleared showing Loading state,
     // Finally refresh logic results back in InvalidVersionError state.
     assertThat(uiStates).containsExactly(
-      InvalidVersionError(Severity.ERROR to "Invalid AGP version format."),
+      InvalidVersionError(ToolWindowModel.StatusMessage(Severity.ERROR, "Invalid AGP version format.")),
       Loading,
-      InvalidVersionError(Severity.ERROR to "Invalid AGP version format.")
+      InvalidVersionError(ToolWindowModel.StatusMessage(Severity.ERROR,"Invalid AGP version format."))
     ).inOrder()
   }
 
