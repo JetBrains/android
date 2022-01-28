@@ -118,18 +118,26 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       }
       finally {
         decodingContext.close()
+        onEndOfVideoStream()
       }
     }
   }
 
-  private fun notifyFrameListeners() {
+  private fun onNewFrameAvailable() {
     for (listener in frameListeners) {
       listener.onNewFrameAvailable()
     }
   }
 
+  private fun onEndOfVideoStream() {
+    for (listener in frameListeners) {
+      listener.onEndOfVideoStream()
+    }
+  }
+
   interface FrameListener {
     fun onNewFrameAvailable()
+    fun onEndOfVideoStream()
   }
 
   internal class VideoFrame(
@@ -139,7 +147,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       val frameNumber: Long,
       val originationTime: Long)
 
-  private inner class DecodingContext {
+  private inner class DecodingContext : AutoCloseable {
 
     private val codec: AVCodec
     private val codecContext: AVCodecContext
@@ -211,7 +219,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       }
     }
 
-    fun close() {
+    override fun close() {
       avcodec_close(codecContext)
       avcodec_free_context(codecContext)
       av_frame_free(decodingFrame)
@@ -332,7 +340,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
                                   header.originationTimestampUs / 1000)
       }
 
-      notifyFrameListeners()
+      onNewFrameAvailable()
     }
 
     private fun createSwsContext(renderingFrame: AVFrame): SwsContext {

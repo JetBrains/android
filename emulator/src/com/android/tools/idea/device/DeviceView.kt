@@ -156,6 +156,7 @@ class DeviceView(
         }
       }
       decoder.addFrameListener(object : VideoDecoder.FrameListener {
+
         override fun onNewFrameAvailable() {
           EventQueue.invokeLater {
             if (frameNumber == 0) {
@@ -167,6 +168,10 @@ class DeviceView(
             }
           }
         }
+
+        override fun onEndOfVideoStream() {
+          showDisconnectedMessage("Lost connection to the device. See the error log.")
+        }
       })
       deviceClient.startVideoDecoding(decoder)
     }
@@ -175,11 +180,17 @@ class DeviceView(
     }
     catch (e: Throwable) {
       thisLogger().error("Failed to initialize the screen sharing agent", e)
-      EventQueue.invokeLater {
-        hideLongRunningOperationIndicatorInstantly()
-        disconnectedStateLabel.text = "Failed to initialize the device agent. See the error log."
-        add(disconnectedStateLabel)
-      }
+      showDisconnectedMessage("Failed to initialize the device agent. See the error log.")
+    }
+  }
+
+  private fun showDisconnectedMessage(message: String) {
+    EventQueue.invokeLater {
+      decoder = null
+      hideLongRunningOperationIndicatorInstantly()
+      disconnectedStateLabel.text = message
+      add(disconnectedStateLabel)
+      revalidate()
     }
   }
 
