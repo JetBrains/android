@@ -103,7 +103,8 @@ class DeviceView(
   var frameNumber = 0
     private set
 
-  private val connected = true
+  private var connected = false
+  private var disposed = false
 
   private var multiTouchMode = false
     set(value) {
@@ -149,16 +150,19 @@ class DeviceView(
       deviceClient.startAgentAndConnect()
       val decoder = deviceClient.createVideoDecoder(realSize.rotatedByQuadrants(-displayRotationQuadrants))
       EventQueue.invokeLater {
-        this.deviceClient = deviceClient
-        this.decoder = decoder
-        if (width > 0 && height > 0) {
-          deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+        if (!disposed) {
+          this.deviceClient = deviceClient
+          this.decoder = decoder
+          if (width > 0 && height > 0) {
+            deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+          }
         }
       }
       decoder.addFrameListener(object : VideoDecoder.FrameListener {
 
         override fun onNewFrameAvailable() {
           EventQueue.invokeLater {
+            connected = true
             if (frameNumber == 0) {
               hideLongRunningOperationIndicatorInstantly()
             }
@@ -186,15 +190,19 @@ class DeviceView(
 
   private fun showDisconnectedMessage(message: String) {
     EventQueue.invokeLater {
-      decoder = null
-      hideLongRunningOperationIndicatorInstantly()
-      disconnectedStateLabel.text = message
-      add(disconnectedStateLabel)
-      revalidate()
+      if (!disposed) {
+        connected = false
+        decoder = null
+        hideLongRunningOperationIndicatorInstantly()
+        disconnectedStateLabel.text = message
+        add(disconnectedStateLabel)
+        revalidate()
+      }
     }
   }
 
   override fun dispose() {
+    disposed = true
   }
 
   override fun canZoom(): Boolean = connected
