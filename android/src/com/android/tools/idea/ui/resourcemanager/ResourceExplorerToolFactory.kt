@@ -20,7 +20,6 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.icons.AllIcons
@@ -28,7 +27,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -42,7 +40,6 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.function.Consumer
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -64,12 +61,12 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.displayLoading()
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
-      onCacheClean = Runnable {
-        project.runWhenSmartAndSyncedOnEdt(callback = Consumer {
+      onCacheClean = {
+        project.runWhenSmartAndSyncedOnEdt(callback = {
           createContent(toolWindow, project)
         })
       },
-      onSourceGenerationError = Runnable {
+      onSourceGenerationError = {
         toolWindow.displayWaitingForGoodSync()
       }
     )
@@ -87,37 +84,9 @@ private fun connectListeners(
   connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener(project, resourceExplorer, toolWindow))
 }
 
-/**
- * Find the facet corresponding to the current opened editor if any, otherwise returns the
- * facet of the first Android module if any is found.
- */
-private fun findCurrentFacet(project: Project): AndroidFacet? {
-  var facet: AndroidFacet?
-
-  // Find facet for opened file
-  facet = FileEditorManager.getInstance(project).selectedFiles
-    .asSequence()
-    .mapNotNull { ModuleUtilCore.findModuleForFile(it, project) }
-    .mapNotNull { it.androidFacet }
-    .firstOrNull()
-
-  // If no facet has been found, find the first project's module with a facet
-  if (facet == null) {
-    facet = findAllFacets(project)
-      .firstOrNull()
-  }
-  return facet
-}
-
-private fun findAllFacets(project: Project): Sequence<AndroidFacet> {
-  return ModuleManager.getInstance(project).modules
-    .asSequence()
-    .mapNotNull { it.androidFacet }
-}
-
 private fun createContent(toolWindow: ToolWindow, project: Project) {
   toolWindow.contentManager.removeAllContents(true)
-  val facet = findCurrentFacet(project)
+  val facet = findCompatibleFacetFromOpenedFiles(project)
   if (facet == null) {
     displayNoFacetView(project, toolWindow)
     return
@@ -129,7 +98,7 @@ private fun createContent(toolWindow: ToolWindow, project: Project) {
     toolWindow.displayWaitingForGoodSync()
   }
   // No existing successful sync, since there's a fair chance of having rendering issues, wait for next successful sync.
-  project.runWhenSmartAndSyncedOnEdt(callback = Consumer { result ->
+  project.runWhenSmartAndSyncedOnEdt(callback = { result ->
     if (result.isSuccessful) {
       displayInToolWindow(facet, toolWindow)
     } else {
@@ -253,7 +222,7 @@ private class SyncResultListener(
 ) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     // After sync, if the facet is not found anymore, recreate the view.
-    if (!findAllFacets(project).contains(resourceExplorer.facet)) {
+    if (!compatibleFacetExists(resourceExplorer.facet)) {
       createContent(toolWindow, project)
     }
   }

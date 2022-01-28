@@ -22,6 +22,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
+import com.android.tools.idea.ui.resourcemanager.findCompatibleFacets
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -41,13 +42,11 @@ import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerIm
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
-import com.android.tools.idea.util.androidFacet
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
@@ -57,7 +56,6 @@ import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
@@ -166,25 +164,25 @@ class ResourceExplorerListViewModelImpl(
                         typeFilters = filterOptions.currentResourceTypeActiveOptions)
   }
 
-  override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
+  override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync supplier@{
     val displayedModuleNames = mutableSetOf(facet.module.name)
     if (filterOptions.isShowModuleDependencies) {
       displayedModuleNames.addAll(AndroidDependenciesCache.getAndroidResourceDependencies(facet.module).map { it.module.name })
     }
 
-    ModuleManager.getInstance(facet.module.project).modules.filter { module ->
+    return@supplier findCompatibleFacets(facet.module.project).filter { facet ->
       // Don't include modules that are already being displayed.
-      !displayedModuleNames.contains(module.name)
-    }.flatMap { module ->
-      module.androidFacet?.let {
-        getResourceSections(it,
-                            showModuleDependencies = false,
-                            showLibraries = false,
-                            showSampleData = false,
-                            showAndroidResources = false,
-                            showThemeAttributes = false,
-                            typeFilters = filterOptions.currentResourceTypeActiveOptions)
-      } ?: emptyList()
+      !displayedModuleNames.contains(facet.module.name)
+    }.flatMap { facet ->
+      getResourceSections(
+        forFacet = facet,
+        showModuleDependencies = false,
+        showLibraries = false,
+        showSampleData = false,
+        showAndroidResources = false,
+        showThemeAttributes = false,
+        typeFilters = filterOptions.currentResourceTypeActiveOptions
+      )
     }
   }
 

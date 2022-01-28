@@ -23,13 +23,13 @@ import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
+import com.android.tools.idea.ui.resourcemanager.findCompatibleFacets
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.TypeFiltersModel
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
-import com.android.tools.idea.util.androidFacet
 import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
@@ -46,7 +46,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Comparing
@@ -62,7 +61,6 @@ import kotlin.properties.Delegates
 
 /**
  * View model for the [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar].
- * @param facetUpdaterCallback callback to call when a new facet is selected.
  */
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
@@ -77,6 +75,7 @@ class ResourceExplorerToolbarViewModel(
    */
   var updateUICallback = {}
 
+  /** Called when a new facet is selected. */
   var facetUpdaterCallback: (AndroidFacet) -> Unit = {}
 
   /** Callback for when a new resource is created from a toolbar action. */
@@ -249,18 +248,13 @@ class ResourceExplorerToolbarViewModel(
    * Return the [AnAction]s to switch to another module.
    * This method only returns Android modules.
    */
-  fun getAvailableModules(): List<String> = ModuleManager.getInstance(facet.module.project)
-    .modules
-    .mapNotNull { it.androidFacet }
-    .map { it.module.name }
-    .sorted()
+  fun getAvailableModules(): List<String> = findCompatibleFacets(facet.module.project).map { it.module.name }.sorted()
 
+  /**
+   * Calls [facetUpdaterCallback] when a new module is selected in the ComboBox.
+   */
   fun onModuleSelected(moduleName: String?) {
-    ModuleManager.getInstance(facet.module.project)
-      .modules
-      .firstOrNull { it.name == moduleName }
-      ?.let { it.androidFacet }
-      ?.run(facetUpdaterCallback)
+    findCompatibleFacets(facet.module.project).firstOrNull { it.module.name == moduleName }?.run(facetUpdaterCallback)
   }
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
