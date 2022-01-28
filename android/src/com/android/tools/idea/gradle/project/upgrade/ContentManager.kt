@@ -98,12 +98,17 @@ class ToolWindowModel(
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
 
+  enum class Severity(val icon: Icon) {
+    ERROR(AllIcons.General.Error),
+    WARNING(AllIcons.General.Warning),
+  }
+
   sealed class UIState{
     abstract val runEnabled: Boolean
     abstract val showLoadingState: Boolean
     abstract val runTooltip: String
     open val loadingText: String = ""
-    open val errorMessage: Pair<Icon, String>? = null
+    open val statusMessage: Pair<Severity, String>? = null
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
@@ -113,7 +118,7 @@ class ToolWindowModel(
       if (showLoadingState != other.showLoadingState) return false
       if (runTooltip != other.runTooltip) return false
       if (loadingText != other.loadingText) return false
-      if (errorMessage != other.errorMessage) return false
+      if (statusMessage != other.statusMessage) return false
 
       return true
     }
@@ -123,7 +128,7 @@ class ToolWindowModel(
       result = 31 * result + showLoadingState.hashCode()
       result = 31 * result + runTooltip.hashCode()
       result = 31 * result + loadingText.hashCode()
-      result = 31 * result + (errorMessage?.hashCode() ?: 0)
+      result = 31 * result + (statusMessage?.hashCode() ?: 0)
       return result
     }
 
@@ -159,7 +164,7 @@ class ToolWindowModel(
       override val runEnabled = true
       override val showLoadingState = false
       override val loadingText = ""
-      override val errorMessage = AllIcons.General.Warning to "Uncommitted changes in build files."
+      override val statusMessage = Severity.WARNING to "Uncommitted changes in build files."
       override val runTooltip = "There are uncommitted changes in project build files.  Before upgrading, " +
                                  "you should commit or revert changes to the build files so that changes from the upgrade process " +
                                  "can be handled separately."
@@ -168,18 +173,18 @@ class ToolWindowModel(
       override val runEnabled = false
       override val showLoadingState = false
       override val loadingText = ""
-      override val errorMessage = AllIcons.General.Error to "Cannot find AGP version in build files."
+      override val statusMessage = Severity.ERROR to "Cannot find AGP version in build files."
       override val runTooltip = "Cannot locate the version specification for the Android Gradle Plugin dependency, " +
                                 "possibly because the project's build files use features not currently support by the " +
                                 "Upgrade Assistant (for example: using constants defined in buildSrc)."
     }
     class InvalidVersionError(
-      override val errorMessage: Pair<Icon, String>
+      override val statusMessage: Pair<Severity, String>
     ) : UIState() {
       override val runEnabled = false
       override val showLoadingState = false
       override val runTooltip: String
-        get() = errorMessage.second
+        get() = statusMessage.second
     }
   }
 
@@ -278,7 +283,7 @@ class ToolWindowModel(
   fun newVersionSet(newVersionString: String) {
     val status = editingValidation(newVersionString)
     _selectedVersion = if (status.first == EditingErrorCategory.ERROR) {
-      uiState.set(UIState.InvalidVersionError(AllIcons.General.Error to status.second))
+      uiState.set(UIState.InvalidVersionError(Severity.ERROR to status.second))
       null
     }
     else {
@@ -613,12 +618,12 @@ class ContentManager(val project: Project) {
     }
     val messageLabel = JBLabel().apply {
       this@View.model.uiState.get().let { uiState ->
-        icon = uiState.errorMessage?.first
-        text = uiState.errorMessage?.second
+        icon = uiState.statusMessage?.first?.icon
+        text = uiState.statusMessage?.second
       }
       myListeners.listen(this@View.model.uiState) { uiState ->
-        icon = uiState.errorMessage?.first
-        text = uiState.errorMessage?.second
+        icon = uiState.statusMessage?.first?.icon
+        text = uiState.statusMessage?.second
       }
     }
 

@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.Severity
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AgpVersionNotLocatedError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AllDone
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.InvalidVersionError
@@ -154,9 +155,9 @@ class ContentManagerTest {
     // Then UI is cleared showing Loading state,
     // Finally refresh logic results back in InvalidVersionError state.
     assertThat(uiStates).containsExactly(
-      InvalidVersionError(AllIcons.General.Error to "Invalid AGP version format."),
+      InvalidVersionError(Severity.ERROR to "Invalid AGP version format."),
       Loading,
-      InvalidVersionError(AllIcons.General.Error to "Invalid AGP version format.")
+      InvalidVersionError(Severity.ERROR to "Invalid AGP version format.")
     ).inOrder()
   }
 
