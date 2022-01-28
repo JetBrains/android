@@ -8,6 +8,6 @@
     <option name="languageVersion" value="1.5" />
   </component>
   <component name="KotlinCompilerSettings">
-    <option name="additionalArguments" value="-version -Xjvm-default=enable -Xsam-conversions=class -Xstrict-java-nullability-assertions" />
+    <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xsam-conversions=class -Xstrict-java-nullability-assertions" />
   </component>
 </project>
