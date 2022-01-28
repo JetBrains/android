@@ -126,13 +126,10 @@ class TreeTableImpl(
   }
 
   fun setColumnVisibility(columnIndex: Int, visible: Boolean) {
-    if (visible) {
-      hiddenColumns.remove(columnIndex)
+    val changed = if (visible) hiddenColumns.remove(columnIndex) else hiddenColumns.add(columnIndex)
+    if (changed) {
+      initExtraColumns()
     }
-    else {
-      hiddenColumns.add(columnIndex)
-    }
-    initExtraColumns()
   }
 
   fun enableDnD() {

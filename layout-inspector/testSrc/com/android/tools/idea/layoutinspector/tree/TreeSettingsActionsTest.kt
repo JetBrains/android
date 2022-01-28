@@ -156,7 +156,7 @@ class TreeSettingsActionsTest {
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(currentClient).updateRecompositionCountSettings()
-    verify(event.treePanel())!!.showRecompositionColumn(true)
+    verify(event.treePanel())!!.updateRecompositionColumnVisibility()
     assertThat(compose1.recomposeCount).isEqualTo(0)
     assertThat(compose1.recomposeSkips).isEqualTo(0)
     assertThat(compose2.recomposeCount).isEqualTo(0)
@@ -170,12 +170,20 @@ class TreeSettingsActionsTest {
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(currentClient, times(2)).updateRecompositionCountSettings()
-    verify(event.treePanel(), times(2))!!.showRecompositionColumn(true)
+    verify(event.treePanel(), times(2))!!.updateRecompositionColumnVisibility()
     assertThat(compose1.recomposeCount).isEqualTo(0)
     assertThat(compose1.recomposeSkips).isEqualTo(0)
     assertThat(compose2.recomposeCount).isEqualTo(0)
     assertThat(compose1.recomposeSkips).isEqualTo(0)
     assertThat(selectionUpdate).isEqualTo(2)
+
+    // Disconnect and check modifying setting:
+    isConnected = false
+    assertThat(RecompositionCounts.isSelected(event)).isTrue()
+    RecompositionCounts.setSelected(event, false)
+    assertThat(RecompositionCounts.isSelected(event)).isFalse()
+    RecompositionCounts.setSelected(event, true)
+    assertThat(RecompositionCounts.isSelected(event)).isTrue()
   }
 
   private fun AnAction.testActionVisibility(event: AnActionEvent, controllingCapability: Capability) {

@@ -694,14 +694,34 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   }
 
   @Test
-  fun testInitialRecomposeCounts() {
+  fun testRecompositionColumnVisibility() {
+    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      // This test is specific to the TreeTable implementation of the component tree
+      return
+    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
     tree.setToolContext(inspector)
-    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isGreaterThan(0)
-    }
+    val columnModel = (tree.focusComponent as JTable).columnModel
+    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+
+    inspector.treeSettings.showRecompositions = false
+    tree.updateRecompositionColumnVisibility()
+    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+
+    inspector.treeSettings.showRecompositions = true
+    tree.updateRecompositionColumnVisibility()
+    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+
+    // The recomposition columns should be hidden when disconnected:
+    inspectorRule.launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
+    tree.updateRecompositionColumnVisibility()
+    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

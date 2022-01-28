@@ -42,6 +42,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
 import com.intellij.ui.TreeActions
@@ -103,8 +104,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withToggleClickCount(3)
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
-      .withColumn(createIntColumn<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }))
-      .withColumn(createIntColumn<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }))
+      .withColumn(createIntColumn<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }, leftDivider = true))
+      .withColumn(createIntColumn<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }, foreground = JBColor.lightGray))
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
@@ -174,7 +175,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
-  fun showRecompositionColumn(show: Boolean) {
+  fun updateRecompositionColumnVisibility() {
+    val show = layoutInspector?.treeSettings?.showRecompositions ?: false &&
+               layoutInspector?.currentClient?.isConnected ?: false
     setColumnVisibility(1, show)
     setColumnVisibility(2, show)
   }
@@ -189,7 +192,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.treeRoot = root
     layoutInspector?.layoutInspectorModel?.selectionListeners?.add(selectionChangedListener)
     layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
-    layoutInspector?.let { showRecompositionColumn(it.treeSettings.showRecompositions) }
+    layoutInspector?.let { updateRecompositionColumnVisibility() }
   }
 
   override fun getAdditionalActions() = additionalActions
@@ -334,7 +337,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun modelModified(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
       var changedNode = new?.let { addToRoot(it) }
-      if (windowRoots.keys.retainAll(layoutInspector?.layoutInspectorModel?.windows?.keys ?: emptyList())) {
+      if (windowRoots.keys.retainAll(layoutInspector?.layoutInspectorModel?.windows?.keys ?: emptySet())) {
         changedNode = root
       }
       if (changedNode == root) {
@@ -344,6 +347,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     } else {
       componentTreeModel.columnDataChanged()
     }
+    updateRecompositionColumnVisibility()
   }
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {
