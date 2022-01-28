@@ -25,7 +25,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
-import com.intellij.openapi.wm.impl.StripeButtonUI;
+import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.EventDispatcher;
@@ -142,7 +142,7 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
 
     @Override
     public void updateUI() {
-      setUI(new StripeButtonUI());
+      setUI(new StripeButtonUi());
       setFont(getLabelFont(FontSize.SMALL));
     }
 

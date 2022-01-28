@@ -27,7 +27,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
-import com.intellij.openapi.wm.impl.StripeButtonUI;
+import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
@@ -552,12 +552,12 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     @Override
     public void updateUI() {
-      setUI(new StripeButtonUI());
+      setUI(new StripeButtonUi());
       setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     }
 
     /**
-     * The {@link StripeButtonUI} is drawing the button slightly to the left for buttons on
+     * The {@link StripeButtonUi} is drawing the button slightly to the left for buttons on
      * the left side. Counteract this by translating the graphics 1 pixel to the right.
      */
     @Override
