@@ -19,7 +19,12 @@ import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.LogcatBundle.message
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FORMAT_DIALOG
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
@@ -76,7 +81,7 @@ private val sampleMessages = listOf(
 )
 
 private val MAX_SAMPLE_DOCUMENT_TEXT_LENGTH =
-  TimestampFormat.Style.DATETIME.width +
+  DATETIME.width +
   ProcessThreadFormat.Style.BOTH.width +
   MAX_TAG_LENGTH + 1 +
   MAX_APP_NAME_LENGTH + 1 +
@@ -89,7 +94,7 @@ private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
  */
 internal abstract class LogcatFormatDialogBase(
   private val project: Project,
-  protected val applyAction: ApplyAction
+  private val applyAction: ApplyAction
 ) : Disposable {
   private val components = mutableListOf<JComponent>()
 
@@ -189,6 +194,28 @@ internal abstract class LogcatFormatDialogBase(
       layoutBuilder.footerGroup()
     }
   }
+
+  protected fun onApply(isApplyButton: Boolean) {
+    LogcatUsageTracker.log(
+      LogcatUsageEvent.newBuilder()
+        .setType(FORMAT_DIALOG)
+        .setFormatDialog(getLogcatFormatDialogEvent().setIsApplyButtonUsed(isApplyButton))
+    )
+    applyAction.onApply(this)
+  }
+
+  protected open fun getLogcatFormatDialogEvent(): LogcatFormatDialogEvent.Builder =
+    LogcatFormatDialogEvent.newBuilder()
+      .setIsShowTimestamp(showTimestampCheckbox.isSelected)
+      .setIsShowDate(timestampStyleComboBox.item == DATETIME)
+      .setIsShowProcessId(showPidCheckbox.isSelected)
+      .setIsShowThreadId(includeTidCheckbox.isSelected)
+      .setIsShowTags(showTagsCheckbox.isSelected)
+      .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
+      .setTagWidth(tagWidthSpinner.number)
+      .setIsShowPackages(showPackagesCheckbox.isSelected)
+      .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
+      .setPackageWidth(packageWidthSpinner.number)
 
   private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
     titledRow(message("logcat.header.options.timestamp.title")) {

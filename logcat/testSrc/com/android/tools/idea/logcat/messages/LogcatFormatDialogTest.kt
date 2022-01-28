@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.messages
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
@@ -26,7 +27,9 @@ import com.android.tools.idea.logcat.util.findComponentWithLabel
 import com.android.tools.idea.logcat.util.getButton
 import com.android.tools.idea.logcat.util.getCheckBox
 import com.android.tools.idea.logcat.util.getLabel
+import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -46,8 +49,10 @@ import javax.swing.JComboBox
 class LogcatFormatDialogTest {
   private val projectRule = ProjectRule()
 
+  private val usageTrackerRule = UsageTrackerRule()
+
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule)
 
   private val formattingOptions = FormattingOptions(
     TimestampFormat(DATETIME, enabled = true),
@@ -403,6 +408,62 @@ class LogcatFormatDialogTest {
       it.getButton("Cancel").doClick()
 
       verify(applyAction, never()).onApply(dialog)
+    }
+  }
+
+  @Test
+  fun clickOk_logsUsage() {
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
+      dialogWrapper.getButton("OK").doClick()
+
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+        .containsExactly(
+          LogcatFormatDialogEvent.newBuilder()
+            .setIsApplyButtonUsed(false)
+            .setIsShowTimestamp(true)
+            .setIsShowDate(true)
+            .setIsShowProcessId(true)
+            .setIsShowThreadId(true)
+            .setIsShowTags(true)
+            .setIsShowRepeatedTags(false)
+            .setTagWidth(20)
+            .setIsShowPackages(true)
+            .setIsShowRepeatedPackages(false)
+            .setPackageWidth(20)
+            .build())
+    }
+  }
+
+  @Test
+  fun clickOk_afterChanges_logsUsage() {
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
+      showTimestampCheckBox.isSelected = false
+      timestampFormatComboBox.selectedItem = TIME
+      showProcessIdsCheckBox.isSelected = false
+      showThreadIdCheckBox.isSelected = false
+      showTagCheckBox.isSelected = false
+      showRepeatedTagsCheckBox.isSelected = true
+      tagWidthSpinner.number = 10
+      showAppNameCheckBox.isSelected = false
+      showRepeatedAppNamesCheckBox.isSelected = true
+      appNameWidthSpinner.number = 10
+      dialogWrapper.getButton("OK").doClick()
+
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+        .containsExactly(
+          LogcatFormatDialogEvent.newBuilder()
+            .setIsApplyButtonUsed(false)
+            .setIsShowTimestamp(false)
+            .setIsShowDate(false)
+            .setIsShowProcessId(false)
+            .setIsShowThreadId(false)
+            .setIsShowTags(false)
+            .setIsShowRepeatedTags(true)
+            .setTagWidth(10)
+            .setIsShowPackages(false)
+            .setIsShowRepeatedPackages(true)
+            .setPackageWidth(10)
+            .build())
     }
   }
 }

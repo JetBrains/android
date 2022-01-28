@@ -18,11 +18,14 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent.Preset
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
 import java.awt.event.ActionEvent
@@ -45,6 +48,7 @@ internal class LogcatFormatPresetsDialog(
   val standardFormattingOptions = STANDARD.formattingOptions.copy()
   val compactFormattingOptions = COMPACT.formattingOptions.copy()
   private lateinit var styleComboBoxComponent: ComboBox<FormattingOptions.Style>
+  private lateinit var setAsDefaultCheckBoxComponent: JBCheckBox
   private var doNotApplyToFormattingOptions: Boolean = false
   private var applyButton = ApplyButton()
 
@@ -101,6 +105,7 @@ internal class LogcatFormatPresetsDialog(
             setAsDefaultCheckBox.component.isSelected = item == defaultFormatting
           }
           styleComboBoxComponent = styleComboBox.component
+          setAsDefaultCheckBoxComponent = setAsDefaultCheckBox.component
         }
       }
     }
@@ -134,11 +139,17 @@ internal class LogcatFormatPresetsDialog(
     }
 
     override fun doOKAction() {
-      applyAction.onApply(this@LogcatFormatPresetsDialog)
+      onApply(isApplyButton = false)
       super.doOKAction()
     }
 
     override fun createActions(): Array<Action> = super.createActions() + applyButton
+  }
+
+  override fun getLogcatFormatDialogEvent(): LogcatUsageEvent.LogcatFormatDialogEvent.Builder {
+    return super.getLogcatFormatDialogEvent()
+      .setPreset(if (styleComboBoxComponent.item == STANDARD) Preset.STANDARD else Preset.COMPACT)
+      .setIsDefaultPreset(setAsDefaultCheckBoxComponent.isSelected)
   }
 
   private inner class ApplyButton : AbstractAction(CommonBundle.getApplyButtonText()) {
@@ -147,7 +158,7 @@ internal class LogcatFormatPresetsDialog(
     }
 
     override fun actionPerformed(e: ActionEvent) {
-      applyAction.onApply(this@LogcatFormatPresetsDialog)
+      onApply(isApplyButton = true)
       isEnabled = false
     }
   }

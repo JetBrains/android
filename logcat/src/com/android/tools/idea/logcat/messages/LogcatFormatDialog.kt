@@ -37,7 +37,7 @@ internal class LogcatFormatDialog(
       modality = DialogWrapper.IdeModalityType.PROJECT,
       panel = createPanel(formattingOptions),
       ok = {
-        applyAction.onApply(this)
+        onApply(isApplyButton = false)
         emptyList()
       }
     )

@@ -18,12 +18,16 @@ package com.android.tools.idea.logcat.messages
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.util.findComponentWithLabel
 import com.android.tools.idea.logcat.util.getButton
 import com.android.tools.idea.logcat.util.getCheckBox
+import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent.Preset
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -41,8 +45,10 @@ import javax.swing.JComboBox
 class LogcatFormatPresetsDialogTest {
   private val projectRule = ProjectRule()
 
+  private val usageTrackerRule = UsageTrackerRule()
+
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule)
 
   @Before
   fun setUp() {
@@ -227,6 +233,88 @@ class LogcatFormatPresetsDialogTest {
       applyButton.doClick()
 
       assertThat(applyButton.isEnabled).isFalse()
+    }
+  }
+
+  @Test
+  fun clickOk_logsUsage() {
+    val dialog = LogcatFormatPresetsDialog(projectRule.project, STANDARD, STANDARD, applyAction)
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
+      dialogWrapper.getButton("OK").doClick()
+
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+        .containsExactly(
+          LogcatUsageEvent.LogcatFormatDialogEvent.newBuilder()
+            .setIsApplyButtonUsed(false)
+            .setIsShowTimestamp(true)
+            .setIsShowDate(true)
+            .setIsShowProcessId(true)
+            .setIsShowThreadId(true)
+            .setIsShowTags(true)
+            .setIsShowRepeatedTags(true)
+            .setTagWidth(23)
+            .setIsShowPackages(true)
+            .setIsShowRepeatedPackages(true)
+            .setPackageWidth(35)
+            .setPreset(Preset.STANDARD)
+            .setIsDefaultPreset(true)
+            .build())
+    }
+  }
+
+  @Test
+  fun clickOk_afterChanges_logsUsage() {
+    val dialog = LogcatFormatPresetsDialog(projectRule.project, STANDARD, STANDARD, applyAction)
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
+      dialogWrapper.findComponentWithLabel<JComboBox<FormattingOptions.Style>>("View").selectedItem = COMPACT
+      dialogWrapper.getButton("OK").doClick()
+
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+        .containsExactly(
+          LogcatUsageEvent.LogcatFormatDialogEvent.newBuilder()
+            .setIsApplyButtonUsed(false)
+            .setIsShowTimestamp(true)
+            .setIsShowDate(false)
+            .setIsShowProcessId(false)
+            .setIsShowThreadId(true)
+            .setIsShowTags(false)
+            .setIsShowRepeatedTags(true)
+            .setTagWidth(23)
+            .setIsShowPackages(false)
+            .setIsShowRepeatedPackages(true)
+            .setPackageWidth(35)
+            .setPreset(Preset.COMPACT)
+            .setIsDefaultPreset(false)
+            .build())
+    }
+  }
+
+  @Test
+  fun clickApply_logsUsage() {
+    val dialog = LogcatFormatPresetsDialog(projectRule.project, STANDARD, STANDARD, applyAction)
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
+      // We need to make a change in order to enable the Apply button
+      dialogWrapper.getCheckBox("Show timestamp").isSelected = false
+
+      dialogWrapper.getButton("Apply").doClick()
+
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+        .containsExactly(
+          LogcatUsageEvent.LogcatFormatDialogEvent.newBuilder()
+            .setIsApplyButtonUsed(true)
+            .setIsShowTimestamp(false)
+            .setIsShowDate(true)
+            .setIsShowProcessId(true)
+            .setIsShowThreadId(true)
+            .setIsShowTags(true)
+            .setIsShowRepeatedTags(true)
+            .setTagWidth(23)
+            .setIsShowPackages(true)
+            .setIsShowRepeatedPackages(true)
+            .setPackageWidth(35)
+            .setPreset(Preset.STANDARD)
+            .setIsDefaultPreset(true)
+            .build())
     }
   }
 }

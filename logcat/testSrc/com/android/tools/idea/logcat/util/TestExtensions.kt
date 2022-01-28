@@ -16,6 +16,9 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.analytics.UsageTrackerRule
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.LOGCAT_USAGE
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.intellij.openapi.ui.DialogWrapper
 import javax.swing.JButton
 import javax.swing.JCheckBox
@@ -23,7 +26,7 @@ import javax.swing.JLabel
 import kotlin.test.fail
 
 /**
- * Convenient methods for finding controls in a dialog.
+ * Convenient extension functions used by tests
  */
 internal fun DialogWrapper.getCheckBox(text: String): JCheckBox = getTextComponent(text) { it.text }
 
@@ -46,3 +49,6 @@ internal inline fun <reified T> DialogWrapper.findComponentWithLabel(text: Strin
   return component as? T
          ?: fail("Component with label '$text' is a ${component::class.simpleName} but was expecting a ${T::class.simpleName}")
 }
+
+internal fun UsageTrackerRule.logcatEvents(): List<LogcatUsageEvent> =
+  usages.filter { it.studioEvent.kind == LOGCAT_USAGE }.map { it.studioEvent.logcatUsageEvent }
