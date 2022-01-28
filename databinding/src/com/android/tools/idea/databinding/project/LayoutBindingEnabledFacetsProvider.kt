@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.project
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.isMainModule
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
@@ -56,8 +56,14 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
-        val facets = project.getAndroidFacets()
-          .filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled() }
+        val facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+          .filter { facet ->
+            // In addition to main module, we should be getting the unitTest and androidTest modules too,
+            // but due to issues within resource repository, we can't do that yet because all the modules
+            // are currently backed by the same set of resources. In other words, getting resources from
+            // the androidTest module will give us resources from the main module and vice-versa.
+            facet.module.isMainModule() && (DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled())
+          }
 
         CachedValueProvider.Result.create(facets, dataBindingTracker, viewBindingTracker, moduleManager)
       }, false)
