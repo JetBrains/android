@@ -237,6 +237,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
         myTree.robot().pressAndReleaseKey(KeyEvent.VK_ADD);
         totalPath.append('/').append(path[i]);
       }
+      Wait.seconds(10);
       myTree.clickPath(totalPath.toString(), button);
       return myIdeFrameFixture;
     }
