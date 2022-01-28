@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.util
 
 import com.android.annotations.concurrency.GuardedBy
@@ -14,8 +29,12 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * Class to handle listeners and calls. This class is thread-safe and handles the case where listeners add or remove listeners
- * during their execution.
+ * Class to handle listeners and calls. This class is thread-safe and handles the case where listeners add or remove
+ * listeners during their execution.
+ *
+ * Please note that you may consider to use a more efficient ContainerUtil.createLockFreeCopyOnWriteList instead of
+ * this class.
+ *
  * @param T the listener type
  * @param myExecutor the executor to use when calling listeners in this collection
  */
@@ -86,7 +105,7 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
 
   companion object {
     /**
-     * Creates a ListenerHandler that will call listeners in the [.forEach] caller thread
+     * Creates a ListenerCollection that will call listeners in the [.forEach] caller thread
      */
     @JvmStatic
     fun <T> createWithDirectExecutor(): ListenerCollection<T> {
@@ -94,7 +113,7 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
     }
 
     /**
-     * Creates a ListenerHandler that will call listeners in the given [Executor]
+     * Creates a ListenerCollection that will call listeners in the given [Executor]
      */
     @JvmStatic
     fun <T> createWithExecutor(executor: Executor): ListenerCollection<T> {
