@@ -565,7 +565,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     @Override
     public void updateUI() {
-      setUI(StripeButtonUI.createUI(this));
+      setUI(new StripeButtonUI());
       setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     }
 

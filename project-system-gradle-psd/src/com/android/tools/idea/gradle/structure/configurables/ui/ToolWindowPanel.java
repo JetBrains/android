@@ -141,7 +141,7 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
 
     @Override
     public void updateUI() {
-      setUI(StripeButtonUI.createUI(this));
+      setUI(new StripeButtonUI());
       setFont(getLabelFont(FontSize.SMALL));
     }
 
