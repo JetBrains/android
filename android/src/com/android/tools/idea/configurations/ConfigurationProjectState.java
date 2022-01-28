@@ -16,16 +16,15 @@
 package com.android.tools.idea.configurations;
 
 
+import com.android.ide.common.resources.Locale;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Per project state for layouts */
 @SuppressWarnings("UnusedDeclaration") // Getters called by XML serialization reflection

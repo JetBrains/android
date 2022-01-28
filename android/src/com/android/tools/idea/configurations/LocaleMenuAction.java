@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -22,7 +23,6 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.FlagManager;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -173,7 +173,7 @@ public class LocaleMenuAction extends DropDownAction {
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
       presentation.setIcon(
-        locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? locale.getFlagImage() : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
+        locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? FlagManager.getFlagImage(locale) : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
       String brief = Locale.getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
@@ -193,7 +193,7 @@ public class LocaleMenuAction extends DropDownAction {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
       super(renderContext, title,
-            !isCurrentLocale && FlagManager.showFlagsForLanguages() && locale != Locale.ANY ? locale.getFlagImage() : null);
+            !isCurrentLocale && FlagManager.showFlagsForLanguages() && locale != Locale.ANY ? FlagManager.getFlagImage(locale) : null);
       myLocale = locale;
       myIsCurrentLocale = isCurrentLocale;
     }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.List;

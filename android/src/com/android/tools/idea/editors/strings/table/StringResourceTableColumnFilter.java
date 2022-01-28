@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 

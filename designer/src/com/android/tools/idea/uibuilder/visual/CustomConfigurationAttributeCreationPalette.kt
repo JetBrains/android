@@ -32,7 +32,7 @@ import com.android.tools.idea.configurations.getProjectThemeNames
 import com.android.tools.idea.configurations.getRecommendedThemeNames
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.editors.theme.ThemeResolver
-import com.android.tools.idea.rendering.Locale
+import com.android.ide.common.resources.Locale
 import com.intellij.psi.PsiFile
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel

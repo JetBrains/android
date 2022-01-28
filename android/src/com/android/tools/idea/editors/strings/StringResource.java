@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;

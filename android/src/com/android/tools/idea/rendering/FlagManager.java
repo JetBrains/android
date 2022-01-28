@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -264,5 +265,26 @@ public class FlagManager {
         return String.format("%1$s: %2$s", regionCode, regionName);
       }
     };
+  }
+
+  /**
+   * Returns a flag image to use for this locale
+   *
+   * @return a flag image, or a default globe icon
+   */
+  @NotNull
+  public static Icon getFlagImage(Locale locale) {
+    String languageCode = locale.qualifier.hasLanguage() ? locale.qualifier.getLanguage() : null;
+    if (languageCode == null) {
+      return StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+    }
+    String regionCode = locale.hasRegion() ? locale.qualifier.getRegion() : null;
+    FlagManager icons = FlagManager.get();
+    Icon image = icons.getFlag(languageCode, regionCode);
+    if (image == null) {
+      image = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
+    }
+
+    return image;
   }
 }

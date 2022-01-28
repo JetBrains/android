@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.table.LocaleColumnFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableColumnFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import java.util.stream.IntStream;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import javax.swing.JComponent;
-import java.util.stream.IntStream;
 
 class FilterLocalesAction extends ComboBoxAction {
 
@@ -80,7 +81,7 @@ class FilterLocalesAction extends ComboBoxAction {
   private AnAction newShowLocaleAction(@NotNull Locale locale) {
     String text = "Show " + Locale.getLocaleLabel(locale, false);
 
-    return new AnAction(text, null, locale.getFlagImage()) {
+    return new AnAction(text, null, FlagManager.getFlagImage(locale)) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setColumnFilter(new LocaleColumnFilter(locale));

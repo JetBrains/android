@@ -19,11 +19,11 @@ import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.junit.Assert.assertEquals;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;

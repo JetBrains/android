@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
+
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.*;
+import com.android.resources.Density;
+import com.android.resources.LayoutDirection;
+import com.android.resources.NightMode;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenSize;
+import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.configurations.ConfigurationListener.*;
 
 @SuppressWarnings("ConstantConditions")
 public class ConfigurationTest extends AndroidTestCase {

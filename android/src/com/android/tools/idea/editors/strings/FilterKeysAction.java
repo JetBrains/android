@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.editors.strings.table.*;
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.editors.strings.table.NeedsTranslationForLocaleRowFilter;
+import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
+import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.editors.strings.table.StringResourceTableRowFilter;
+import com.android.tools.idea.editors.strings.table.TextRowFilter;
+import com.android.tools.idea.editors.strings.table.TranslatableRowFilter;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -24,11 +31,11 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.ui.DialogBuilder;
+import java.util.stream.IntStream;
+import javax.swing.JComponent;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.stream.IntStream;
 
 final class FilterKeysAction extends ComboBoxAction {
   private final StringResourceTable myTable;
@@ -109,7 +116,7 @@ final class FilterKeysAction extends ComboBoxAction {
   private AnAction newShowKeysNeedingTranslationForLocaleAction(@NotNull Locale locale) {
     String text = "Show Keys Needing a Translation for " + Locale.getLocaleLabel(locale, false);
 
-    return new AnAction(text, null, locale.getFlagImage()) {
+    return new AnAction(text, null, FlagManager.getFlagImage(locale)) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent event) {
         myTable.setRowFilter(new NeedsTranslationForLocaleRowFilter(locale));

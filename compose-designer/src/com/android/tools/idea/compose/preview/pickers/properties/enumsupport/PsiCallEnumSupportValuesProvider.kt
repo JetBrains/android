@@ -32,7 +32,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.rendering.Locale
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction

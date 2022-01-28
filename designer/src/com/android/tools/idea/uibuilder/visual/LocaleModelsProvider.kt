@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.common.model.NlComponent
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.function.Consumer
 
 /**
  * This class provides the [NlModel]s with projects locales for [VisualizationForm].<br>
@@ -68,7 +65,8 @@ object LocaleModelsProvider: VisualizationModelsProvider {
                  .withComponentRegistrar(NlComponentRegistrar)
                  .build())
 
-    val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
+    val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(
+      Locale.LANGUAGE_CODE_COMPARATOR)
 
     for (locale in locales) {
       val betterFile = ConfigurationMatcher.getBetterMatch(defaultLocaleConfig, null, null, locale, null) ?: defaultFile

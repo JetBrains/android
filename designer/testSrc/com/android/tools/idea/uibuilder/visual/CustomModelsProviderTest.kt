@@ -21,7 +21,7 @@ import com.android.resources.UiMode
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.Locale
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language

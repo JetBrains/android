@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.ide.common.rendering.HardwareConfigHelper.isTv;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isWear;
+
+import com.android.ide.common.resources.Locale;
 import com.android.resources.Density;
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
@@ -24,15 +28,10 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.ide.common.rendering.HardwareConfigHelper.isTv;
-import static com.android.ide.common.rendering.HardwareConfigHelper.isWear;
 
 /**
  * An {@linkplain VaryingConfiguration} is a {@link Configuration} which

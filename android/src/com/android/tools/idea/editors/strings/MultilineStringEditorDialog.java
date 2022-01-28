@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class MultilineStringEditorDialog extends DialogWrapper {
   private JPanel myPanel;

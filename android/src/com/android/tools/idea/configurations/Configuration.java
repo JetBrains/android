@@ -33,6 +33,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.MASK_F
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -60,7 +61,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;

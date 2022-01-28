@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.Function;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 final class LocaleList extends JBList<Locale> {
   LocaleList(@NotNull Collection<Locale> locales) {
     super(locales);
 
     setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      label.setIcon(value.getFlagImage());
+      label.setIcon(FlagManager.getFlagImage(value));
       label.setText(Locale.getLocaleLabel(value, false));
     }));
     setFixedCellHeight(20);

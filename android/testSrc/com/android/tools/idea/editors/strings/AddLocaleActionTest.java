@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
+import com.android.ide.common.resources.Locale;
 import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 
 public final class AddLocaleActionTest {
   private Collection<Locale> myLocales;

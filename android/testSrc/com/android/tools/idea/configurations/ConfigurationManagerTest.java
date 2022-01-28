@@ -16,22 +16,21 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {

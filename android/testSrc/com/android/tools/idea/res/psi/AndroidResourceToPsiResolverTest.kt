@@ -27,7 +27,7 @@ import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.rendering.Locale
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret

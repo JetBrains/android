@@ -17,9 +17,9 @@ package com.android.tools.idea.editors.strings;
 
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
+import com.android.ide.common.resources.Locale;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.Application;

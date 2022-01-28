@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResource;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.FlagManager;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public final class NeedsTranslationForLocaleRowFilter extends StringResourceTabl
 
   @Override
   public void update(@NotNull Presentation presentation) {
-    presentation.setIcon(myLocale.getFlagImage());
+    presentation.setIcon(FlagManager.getFlagImage(myLocale));
     presentation.setText("Show Keys Needing a Translation for " + Locale.getLocaleLabel(myLocale, false));
   }
 

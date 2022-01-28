@@ -16,12 +16,12 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;

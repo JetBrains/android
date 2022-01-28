@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.rendering.FlagManager;
-import com.android.tools.idea.rendering.Locale;
-import org.jetbrains.annotations.NotNull;
+import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import java.awt.Component;
+import org.jetbrains.annotations.NotNull;
 
 final class LocaleRenderer implements TableCellRenderer {
   private final TableCellRenderer myRenderer;
@@ -46,7 +46,7 @@ final class LocaleRenderer implements TableCellRenderer {
       Locale locale = ((StringResourceTableModel)model).getLocale(table.convertColumnIndexToModel(column));
       assert locale != null;
       if (FlagManager.showFlagsForLanguages()) {
-        ((JLabel)component).setIcon(locale.getFlagImage());
+        ((JLabel)component).setIcon(FlagManager.getFlagImage(locale));
       } else {
         ((JLabel)component).setIcon(null);
       }

@@ -19,9 +19,9 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.Locale;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicValueResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;

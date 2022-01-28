@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
+
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.NightMode;
 import com.android.resources.ScreenOrientation;
@@ -22,13 +26,9 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
 
 public class NestedConfigurationTest extends AndroidTestCase {
   // The specific file doesn't matter; we're only using the destination folder

@@ -18,11 +18,11 @@ package com.android.tools.idea.editors.strings;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
