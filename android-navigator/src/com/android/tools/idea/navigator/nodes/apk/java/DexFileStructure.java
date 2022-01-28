@@ -81,7 +81,7 @@ class DexFileStructure {
       // For example:
       // For the FQN 'a.b.c.X' the class definition will be 'La/b/c/X;'
       Set<String> definitions = dexFile.getClasses().stream().map(DexBackedClassDef::getType).collect(Collectors.toSet());
-      for (int i = 0, m = dexFile.getMethodCount(); i < m; i++) {
+      for (int i = 0, m = dexFile.getMethodSection().size(); i < m; i++) {
         MethodReference methodRef = new DexBackedMethodReference(dexFile, i);
         String className = signatureToName(methodRef.getDefiningClass());
         String definition = "L" + className.replace('.', '/') + ";"; // This is how definitions are set in DexBackedDexFile

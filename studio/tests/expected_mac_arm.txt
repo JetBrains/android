@@ -1922,7 +1922,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/asm-analysis-9.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-9.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/auto-common-0.10.jar
 Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector_java_proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.2.4.jar
+Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
@@ -1931,7 +1931,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/core-3.4.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-proto-0.0.8-alpha07.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.2.4.jar
+Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-4.4-1.5.6.jar
@@ -1997,7 +1997,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata
 Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
-Android Studio Preview.app/Contents/plugins/android/lib/util-2.2.4.jar
+Android Studio Preview.app/Contents/plugins/android/lib/util-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
