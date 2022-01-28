@@ -617,14 +617,12 @@ class ContentManager(val project: Project) {
       }
     }
     val messageLabel = JBLabel().apply {
-      this@View.model.uiState.get().let { uiState ->
+      fun update(uiState: ToolWindowModel.UIState) {
         icon = uiState.statusMessage?.first?.icon
         text = uiState.statusMessage?.second
       }
-      myListeners.listen(this@View.model.uiState) { uiState ->
-        icon = uiState.statusMessage?.first?.icon
-        text = uiState.statusMessage?.second
-      }
+      update(this@View.model.uiState.get())
+      myListeners.listen(this@View.model.uiState, ::update)
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
