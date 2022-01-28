@@ -325,6 +325,7 @@ class RowAssetView : AssetView() {
   init {
     contentWrapper.border = JBUI.Borders.customLine(JBColor.border(), 1)
     viewWidth = DEFAULT_WIDTH
+    background = UIUtil.getListBackground()
     with(centerPanel) {
       add(JPanel(BorderLayout()).apply {
         add(titleLabel)
@@ -345,7 +346,6 @@ class RowAssetView : AssetView() {
 
     add(contentWrapper, BorderLayout.WEST)
     add(centerPanel)
-    isOpaque = false
   }
 
   override fun computeThumbnailSize(width: Int) = Dimension(width, width)
