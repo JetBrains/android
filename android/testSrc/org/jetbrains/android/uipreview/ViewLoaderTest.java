@@ -105,14 +105,13 @@ public class ViewLoaderTest extends AndroidTestCase {
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = RenderService.getInstance(myModule.getProject()).createLogger(myFacet);
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null, myClassLoader);
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+    assertNotNull(idManager);
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNull(facet != null ? ResourceRepositoryManager.getInstance(facet).getCachedAppResources() : null);
-    viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
-
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
-    assertNotNull(idManager);
+    viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R", idManager);
 
     assertEquals(0x7f0a000e, idManager.getCompiledId(new ResourceReference(RES_AUTO, ResourceType.STRING, "app_name")).intValue());
     // This value wasn't read from the R class since it wasn't a const.

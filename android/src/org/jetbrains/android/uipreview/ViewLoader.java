@@ -30,12 +30,14 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.intellij.facet.Facet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
@@ -49,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -440,32 +443,41 @@ public class ViewLoader {
    * @see ResourceIdManager#getFinalIdsUsed()
    */
   public void loadAndParseRClassSilently() {
-    final String rClassName = getRClassName(myModule);
-    try {
-      if (rClassName == null) {
-        LOG.info(String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
-        return;
-      }
-      myLogger.setResourceClass(rClassName);
-      loadAndParseRClass(rClassName);
-    }
-    catch (ClassNotFoundException | NoClassDefFoundError e) {
-      myLogger.setMissingResourceClass();
-    }
-    catch (InconvertibleClassError e) {
-      assert rClassName != null;
-      myLogger.addIncorrectFormatClass(rClassName, e);
-    }
+    // All the ids are loaded into the idManager for the "app module".
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+    idManager.resetCompiledIds();
+    Stream.concat(
+        Stream.of(myModule),
+        // Get all project (not external libraries) dependencies
+        AndroidDependenciesCache.getAllAndroidDependencies(myModule, false).stream().map(Facet::getModule))
+      .map(ViewLoader::getRClassName)
+      .forEach((rClassName) -> {
+        try {
+          if (rClassName == null) {
+            LOG.info(
+              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
+            return;
+          }
+          myLogger.setResourceClass(rClassName);
+          loadAndParseRClass(rClassName, idManager);
+        }
+        catch (ClassNotFoundException | NoClassDefFoundError e) {
+          myLogger.setMissingResourceClass();
+        }
+        catch (InconvertibleClassError e) {
+          assert rClassName != null;
+          myLogger.addIncorrectFormatClass(rClassName, e);
+        }
+      });
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException, InconvertibleClassError {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
 
     if (aClass == null) {
       if (LOG.isDebugEnabled()) {
