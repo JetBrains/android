@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeDependency<T: IdeLibrary> {
+sealed interface IdeDependency<T: IdeLibrary> {
   val target: T
 }
 
-interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T> {
+sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T> {
   /**
    * Returns whether the dependency is on the compile class path but is not on the runtime class
    * path.

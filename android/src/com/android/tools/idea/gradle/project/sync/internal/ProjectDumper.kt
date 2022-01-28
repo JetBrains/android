@@ -118,6 +118,7 @@ class ProjectDumper(
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
    */
+  fun File.toPrintablePath(): String = path.toPrintablePath()
   fun String.toPrintablePath(): String {
     fun String.splitPathAndSuffix(): Pair<String, String> =
       when {

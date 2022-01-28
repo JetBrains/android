@@ -113,23 +113,23 @@ data class IdeAndroidLibraryCore(
     _symbolFile = ""
   )
 
-  private fun String.translate(): String = folder.resolve(this).normalize().path
+  private fun String.translate(): File = folder.resolve(this).normalize().path.let(::File)
 
-  override val manifest: String get() = _manifest.translate()
-  override val compileJarFiles: List<String> get() = _compileJarFiles.map { it.translate() }
-  override val runtimeJarFiles: List<String> get() = _runtimeJarFiles.map { it.translate() }
-  override val resFolder: String get() = _resFolder.translate()
-  override val resStaticLibrary: File? get() = _resStaticLibrary?.translate()?.let(::File)
-  override val assetsFolder: String get() = _assetsFolder.translate()
-  override val jniFolder: String get() = _jniFolder.translate()
-  override val aidlFolder: String get() = _aidlFolder.translate()
-  override val renderscriptFolder: String get() = _renderscriptFolder.translate()
-  override val proguardRules: String get() = _proguardRules.translate()
-  override val lintJar: String? get() = _lintJar?.translate()
-  override val externalAnnotations: String get() = _externalAnnotations.translate()
-  override val publicResources: String get() = _publicResources.translate()
-  override val artifact: File get() = File(_artifact.translate())
-  override val symbolFile: String get() = _symbolFile.translate()
+  override val manifest: File get() = _manifest.translate()
+  override val compileJarFiles: List<File> get() = _compileJarFiles.map { it.translate() }
+  override val runtimeJarFiles: List<File> get() = _runtimeJarFiles.map { it.translate() }
+  override val resFolder: File get() = _resFolder.translate()
+  override val resStaticLibrary: File? get() = _resStaticLibrary?.translate()
+  override val assetsFolder: File get() = _assetsFolder.translate()
+  override val jniFolder: File get() = _jniFolder.translate()
+  override val aidlFolder: File get() = _aidlFolder.translate()
+  override val renderscriptFolder: File get() = _renderscriptFolder.translate()
+  override val proguardRules: File get() = _proguardRules.translate()
+  override val lintJar: File? get() = _lintJar?.translate()
+  override val externalAnnotations: File get() = _externalAnnotations.translate()
+  override val publicResources: File get() = _publicResources.translate()
+  override val artifact: File get() = _artifact.translate()
+  override val symbolFile: File get() = _symbolFile.translate()
 
   override val name: String
     get() = ""

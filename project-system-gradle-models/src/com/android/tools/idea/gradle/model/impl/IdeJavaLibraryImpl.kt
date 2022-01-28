@@ -45,7 +45,7 @@ data class IdeJavaLibraryCore(
     artifact = File("")
   )
 
-  override val lintJar: String?
+  override val lintJar: File?
     get() = null
 
   override val name: String

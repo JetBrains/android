@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import java.io.File
 import java.io.Serializable
 
 data class IdeModuleLibraryImpl(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
-  override val lintJar: String?,
+  override val lintJar: File?,
   override val sourceSet: IdeModuleSourceSet
 ) : IdeModuleLibrary, Serializable {
 

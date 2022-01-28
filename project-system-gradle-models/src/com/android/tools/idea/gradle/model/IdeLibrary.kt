@@ -20,16 +20,16 @@ import java.io.File
 /**
  * Represent a variant/module/artifact dependency.
  */
-interface IdeLibrary {
+sealed interface IdeLibrary {
   /**
    * Returns the location of the lint jar. The file may not point to an existing file.
    *
    * Only valid for Android Library
    */
-  val lintJar: String?
+  val lintJar: File?
 }
 
-interface IdeArtifactLibrary: IdeLibrary {
+sealed interface IdeArtifactLibrary: IdeLibrary {
   /**
    * Returns the artifact address in a unique way.
    *
@@ -57,23 +57,23 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   /**
    * Returns the location of the manifest relative to the folder.
    */
-  val manifest: String
+  val manifest: File
 
   /**
    * The list of jar files for compilation.
    */
-  val compileJarFiles: List<String>
+  val compileJarFiles: List<File>
 
   /**
    * The list of jar files for runtime/packaging.
    * This corresponds the the AAR main jar file and the localJars.
    */
-  val runtimeJarFiles: List<String>
+  val runtimeJarFiles: List<File>
 
   /**
    * Returns the location of the res folder. The file may not point to an existing folder.
    */
-  val resFolder: String
+  val resFolder: File
 
   /**
    * Returns the location of the namespaced resources static library (res.apk). Null if the library is not namespaced.
@@ -86,43 +86,43 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   /**
    * Returns the location of the assets folder. The file may not point to an existing folder.
    */
-  val assetsFolder: String
+  val assetsFolder: File
 
   /**
    * Returns the location of the jni libraries folder. The file may not point to an existing folder.
    */
-  val jniFolder: String
+  val jniFolder: File
 
     /**
    * Returns the location of the aidl import folder. The file may not point to an existing folder.
    */
-  val aidlFolder: String
+  val aidlFolder: File
 
   /**
    * Returns the location of the renderscript import folder. The file may not point to an existing folder.
    */
-  val renderscriptFolder: String
+  val renderscriptFolder: File
 
   /**
    * Returns the location of the proguard files. The file may not point to an existing file.
    */
-  val proguardRules: String
+  val proguardRules: File
 
   /**
    * Returns the location of the external annotations zip file (which may not exist).
    */
-  val externalAnnotations: String
+  val externalAnnotations: File
 
   /**
    * Returns the location of an optional file that lists the only resources that should be
    * considered public. The file may not point to an existing file.
    */
-  val publicResources: String
+  val publicResources: File
 
   /**
    * Returns the location of the text symbol file
    */
-  val symbolFile: String
+  val symbolFile: File
 }
 
 interface IdeJavaLibrary: IdeArtifactLibrary {

@@ -489,7 +489,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       buildId = buildId,
       projectPath = projectPath,
       variant = variant,
-      lintJar = lintJar?.path,
+      lintJar = lintJar?.path?.let(::File),
       sourceSet = if (isTestFixturesComponent) IdeModuleSourceSet.TEST_FIXTURES else IdeModuleSourceSet.MAIN
     )
     return moduleLibraryCores.internCore(core)

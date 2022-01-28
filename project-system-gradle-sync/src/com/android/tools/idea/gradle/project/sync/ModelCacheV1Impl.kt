@@ -310,7 +310,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
-      lintJar = copyNewProperty(library::getLintJar)?.path,
+      lintJar = copyNewProperty(library::getLintJar)?.path?.let(::File),
       sourceSet = IdeModuleSourceSet.MAIN
     )
     return moduleLibraryCores.internCore(core)

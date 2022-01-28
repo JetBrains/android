@@ -222,10 +222,10 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val classJar = model.mainArtifact.level2Dependencies.androidLibraries.first { lib ->
       lib.target.artifactAddress.startsWith(parameters.dataBindingLibArtifact)
     }.target.runtimeJarFiles.find {
-      (it.lastIndexOf('/') + 1 < it.length) && it.substring(it.lastIndexOf('/') + 1) == "classes.jar"
-    }.let { File(it) }
+      it.name == "classes.jar"
+    }
 
-    assertThat(classJar.exists()).isTrue()
+    assertThat(classJar?.exists()).isTrue()
     JarFile(classJar, true).use {
       val entry = it.getEntry(parameters.dataBindingBaseBindingClass)!!
       return ClassReader(it.getInputStream(entry))

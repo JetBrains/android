@@ -47,8 +47,7 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
     return Stream.of(model.getSelectedMainCompileLevel2Dependencies().getRuntimeOnlyClasses().stream(),
                      model.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
                        .flatMap(
-                         library -> library.getTarget().getRuntimeJarFiles().stream())
-                       .map(jar -> new File(jar)),
+                         library -> library.getTarget().getRuntimeJarFiles().stream()),
                      model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
                        .map(IdeJavaLibraryDependency::getTarget)
                        .map(IdeJavaLibrary::getArtifact))

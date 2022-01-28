@@ -21,22 +21,20 @@ import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -59,7 +57,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import org.codehaus.plexus.util.FileUtils
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
@@ -67,7 +64,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.li
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import java.io.File.separatorChar
 
 private val LOG = Logger.getInstance(AndroidDependenciesSetupContext::class.java)
 
@@ -269,16 +265,14 @@ private class AndroidDependenciesSetupContext(
   private inner class AndroidLibraryWorkItem(library: IdeAndroidLibraryDependency) : LibraryWorkItem<IdeAndroidLibraryDependency>(library) {
     override fun setupTarget() {
       val target = library.target
-      target.compileJarFiles.forEach { compileJar ->
-        if (FileUtils.fileExists(compileJar)) {
-          libraryData.addPath(BINARY, compileJar)
-        }
+      target.compileJarFiles.filter { it.exists() }.forEach { compileJar ->
+        libraryData.addPath(BINARY, compileJar.path)
       }
-      if (FileUtils.fileExists(target.resFolder)) {
-        libraryData.addPath(BINARY, target.resFolder)
+      if (target.resFolder.exists()) {
+        libraryData.addPath(BINARY, target.resFolder.path)
       }
-      if (FileUtils.fileExists(target.manifest)) {
-        libraryData.addPath(BINARY, target.manifest)
+      if (target.manifest.exists()) {
+        libraryData.addPath(BINARY, target.manifest.path)
       }
       setupAnnotationsFrom(libraryData, libraryName, target)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
@@ -352,19 +346,18 @@ private class AndroidDependenciesSetupContext(
     // Add external annotations.
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!
-    (library.compileJarFiles + library.resFolder).distinct().mapNotNull {
-      FilePaths.stringToFile(it)?.path
-    }.forEach { binaryPath ->
-      if (binaryPath.endsWith(separatorChar + FD_RES)) {
-        val annotationsFile = File(binaryPath.removeSuffix(FD_RES) + FN_ANNOTATIONS_ZIP)
+    (library.compileJarFiles + library.resFolder).distinct()
+      .forEach { binaryPath ->
+      if (binaryPath.name == FD_RES) {
+        val annotationsFile = binaryPath.parentFile.resolve(FN_ANNOTATIONS_ZIP)
         if (annotationsFile.isFile) {
           libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
         }
       }
       else if ((libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) ||
                 libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
-               binaryPath.endsWith(DOT_JAR)) {
-        val annotationsFile = File(binaryPath.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
+               binaryPath.name.endsWith(DOT_JAR)) {
+        val annotationsFile = binaryPath.let { it.parentFile.resolve(it.name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)}
         if (annotationsFile.isFile) {
           libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
         }
