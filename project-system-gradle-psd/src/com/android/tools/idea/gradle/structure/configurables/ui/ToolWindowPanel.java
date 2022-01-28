@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static com.intellij.openapi.wm.ToolWindowAnchor.BOTTOM;
+import static com.intellij.openapi.wm.ToolWindowAnchor.LEFT;
+import static com.intellij.openapi.wm.ToolWindowAnchor.RIGHT;
+import static com.intellij.util.ui.UIUtil.FontSize;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -23,16 +29,11 @@ import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.EventDispatcher;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.EventListener;
-
-import static com.intellij.openapi.wm.ToolWindowAnchor.*;
-import static com.intellij.util.ui.UIUtil.FontSize;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ToolWindowPanel extends JPanel implements Disposable {
   @NotNull private final ToolWindowHeader myHeader;
@@ -141,7 +142,7 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
 
     @Override
     public void updateUI() {
-      setUI(StripeButtonUI.createUI(this));
+      setUI(new StripeButtonUI());
       setFont(getLabelFont(FontSize.SMALL));
     }
 
