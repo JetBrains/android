@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
@@ -678,11 +679,8 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   public void testKaptIsEnabled() throws Exception {
     loadProject(KOTLIN_KAPT);
 
-    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
-    assertTrue(appModel.isKaptEnabled());
-
-    GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
-    assertFalse(rootModel.isKaptEnabled());
+    assertTrue(getModuleSystem(getModule("app")).isKaptEnabled());
+    assertFalse(getModuleSystem(getModule("lib")).isKaptEnabled());
   }
 
   public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {

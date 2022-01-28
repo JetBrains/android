@@ -343,6 +343,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   @JvmDefault
   val isViewBindingEnabled: Boolean get() = false
 
+  /** Whether KAPT is enabled for this module. */
+  @JvmDefault
+  val isKaptEnabled: Boolean get() = false
+
   /**
    * Whether the R class in applications and dynamic features are constant.
    *
