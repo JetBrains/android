@@ -21,17 +21,18 @@ import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import java.io.IOException
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.adb.AdbShellCommandResult
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.idea.adb.AdbShellCommandsUtil
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.TimeoutException
-import com.intellij.openapi.diagnostic.Logger
+import com.google.common.base.Stopwatch
+import com.intellij.openapi.diagnostic.thisLogger
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.Locale
 
 class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
+  private val logger = thisLogger()
+
   @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
   fun executeCommand(device: IDevice, command: String): AdbShellCommandResult {
     return executeCommandImpl(device, command, true)
@@ -44,11 +45,10 @@ class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
 
   @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
   fun executeRawCommand(device: IDevice, command: String, receiver: IShellOutputReceiver) {
-    val startTime = System.nanoTime()
+    val stopwatch = Stopwatch.createStarted()
     executeCommandImpl(device, command, receiver)
-    if (LOGGER.isTraceEnabled) {
-      val endTime = System.nanoTime()
-      LOGGER.trace(String.format(Locale.US, "Command took %,d ms to execute: %s", (endTime - startTime) / 1000000, command))
+    if (logger.isTraceEnabled) {
+      logger.trace("Command took $stopwatch to execute: $command")
     }
   }
 
@@ -57,10 +57,10 @@ class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
     val commandOutput: MutableList<String> = ArrayList()
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
-    val fullCommand = if (errorCheck) String.format("%s%s", command, COMMAND_ERROR_CHECK_SUFFIX) else command
+    val fullCommand = if (errorCheck) command + COMMAND_ERROR_CHECK_SUFFIX else command
     val receiver: MultiLineReceiver = object : MultiLineReceiver() {
       override fun processNewLines(lines: Array<String>) {
-        Arrays.stream(lines).forEach { e: String -> commandOutput.add(e) }
+        commandOutput.addAll(lines)
       }
 
       override fun isCancelled(): Boolean {
@@ -77,43 +77,42 @@ class AdbShellCommandsUtil(private val myUseAdbLib: Boolean) {
       commandOutput[commandOutput.size - 1] == ""
     ) {
       isError = true
-      commandOutput.remove(commandOutput[commandOutput.size - 1])
-      commandOutput.remove(commandOutput[commandOutput.size - 1])
+      commandOutput.removeLast()
+      commandOutput.removeLast()
     }
 
-    // Log first tow lines of the output for diagnostic purposes
+    // Log first two lines of the output for diagnostic purposes
     if (commandOutput.size >= 1) {
-      LOGGER.info(String.format(Locale.US, "  Output line 1 (out of %d): %s", commandOutput.size, commandOutput[0]))
+      logger.info("  Output line 1 (out of ${commandOutput.size}): ${commandOutput[0]}")
     }
     if (commandOutput.size >= 2) {
-      LOGGER.info(String.format(Locale.US, "  Output line 2 (out of %d): %s", commandOutput.size, commandOutput[1]))
+      logger.info("  Output line 2 (out of ${commandOutput.size}): ${commandOutput[1]}")
     }
-    if (LOGGER.isDebugEnabled) {
+    if (logger.isDebugEnabled) {
       for (i in 2 until commandOutput.size) {
-        LOGGER.debug(String.format(Locale.US, "  Output line %d (out of %d): %s", i + 1, commandOutput.size, commandOutput[i]))
+        logger.debug("  Output line ${i + 1} (out of ${commandOutput.size}): ${commandOutput[i]}")
       }
     }
+
     return AdbShellCommandResult(command, commandOutput, isError)
   }
 
   @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
   private fun executeCommandImpl(device: IDevice, command: String, receiver: IShellOutputReceiver) {
-    val startTime = System.nanoTime()
+    val stopwatch = Stopwatch.createStarted()
     if (myUseAdbLib) {
       executeShellCommand(device, command, receiver)
     } else {
       device.executeShellCommand(command, receiver)
     }
-    val endTime = System.nanoTime()
-    LOGGER.info(String.format(Locale.US, "Command took %,d ms to execute: %s", (endTime - startTime) / 1000000, command))
+    logger.info("Command took $stopwatch to execute: $command")
   }
 
   companion object {
-    private val LOGGER = Logger.getInstance(
-      AdbShellCommandsUtil::class.java
-    )
     private const val ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR"
-    private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER
+    private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo $ERROR_LINE_MARKER"
+
+    @JvmStatic
     val instance = AdbShellCommandsUtil(false)
   }
 }

@@ -83,7 +83,7 @@ class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, val dispat
     withContext(dispatcher) {
       when {
         // Root devices or "su 0" devices don't need mount points
-        capabilities.supportsSuRootCommand() || capabilities.isRoot -> createDirectFileEntry(entry)
+        capabilities.supportsSuRootCommand() || capabilities.isRoot() -> createDirectFileEntry(entry)
         // The "/data" folder has directories where we need to use "run-as"
         entry.fullPath == "/data" -> AdbDeviceDataDirectoryEntry(entry)
         else -> createDirectFileEntry(entry)

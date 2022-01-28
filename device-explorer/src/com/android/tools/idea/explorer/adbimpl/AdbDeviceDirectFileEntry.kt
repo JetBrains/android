@@ -103,7 +103,7 @@ class AdbDeviceDirectFileEntry(
 
   private suspend fun isDeviceSuAndNotRoot(): Boolean =
     withContext(fileSystem.dispatcher) {
-      fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot
+      fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot()
     }
 
   companion object {

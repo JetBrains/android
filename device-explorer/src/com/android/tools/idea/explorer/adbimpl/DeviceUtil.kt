@@ -17,8 +17,6 @@ package com.android.tools.idea.explorer.adbimpl
 
 import com.android.ddmlib.IDevice
 
-internal object DeviceUtil {
-  fun toDebugString(device: IDevice): String {
-    return device.name + " (" + device.serialNumber + ") - " + device.state
-  }
+fun IDevice.toDebugString(): String {
+  return "$name ($serialNumber) - $state"
 }
