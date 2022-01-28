@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.projectPath
+import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
@@ -168,7 +170,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       // TODO(b/74425541): Make sure it returns all the matching parsed dependencies rather than the first one.
       val matchingDeclaredDependencies =
         parsedDependencies
-          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
+          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
@@ -186,7 +188,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   }
 
   private fun addModule(module: PsModule, artifact: PsAndroidArtifact, projectVariant: String?) {
-    val gradlePath = module.gradlePath!!
+    val gradlePath = module.gradlePath
     val matchingParsedDependency =
       parent
         .dependencies

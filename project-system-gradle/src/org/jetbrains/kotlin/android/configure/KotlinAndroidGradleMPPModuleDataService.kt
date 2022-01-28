@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry
 import com.android.tools.idea.io.FilePaths
@@ -156,7 +157,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             } ?: return emptyList()
             return dependencies
                 .moduleDependencies
-                .mapNotNull { indexedModules.byId[it.projectPath!!] }
+                .mapNotNull { indexedModules.byId[it.projectPath] }
         }
         return emptyList()
     }

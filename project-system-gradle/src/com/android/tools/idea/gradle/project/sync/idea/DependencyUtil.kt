@@ -33,6 +33,9 @@ import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.buildId
+import com.android.tools.idea.gradle.model.projectPath
+import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath

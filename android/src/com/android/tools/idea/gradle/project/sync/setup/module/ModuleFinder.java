@@ -123,10 +123,10 @@ public class ModuleFinder {
    */
   @Nullable
   public Module findModuleFromDependency(@NotNull IdeModuleDependency library) {
-    String gradlePath = library.getProjectPath();
+    String gradlePath = library.getTarget().getProjectPath();
     if (isNotEmpty(gradlePath)) {
       Module module = null;
-      String projectFolderPath = library.getBuildId();
+      String projectFolderPath = library.getTarget().getBuildId();
       if (isNotEmpty(projectFolderPath)) {
         String moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
         module = myModulesByModuleId.get(moduleId);

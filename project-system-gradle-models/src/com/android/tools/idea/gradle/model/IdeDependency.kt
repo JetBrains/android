@@ -29,28 +29,25 @@ sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T>
 
 interface IdeAndroidLibraryDependency: IdeArtifactDependency<IdeAndroidLibrary>
 interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
+interface IdeModuleDependency: IdeDependency<IdeModuleLibrary>
 
-interface IdeModuleDependency: IdeDependency<IdeModuleLibrary> {
-  // NOTE: Target properties are exposed directly. This is to make it possible to drop the notion of `IdeModuleLibrary` once we can move
-  //       `lintJar` property elsewhere.
-  /**
-   * Returns the gradle path.
-   */
-  val projectPath: String get() = target.projectPath
+/**
+ * Returns the gradle path.
+ */
+val IdeModuleDependency.projectPath: String get() = target.projectPath
 
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
-  val variant: String? get() = target.variant
+/**
+ * Returns an optional variant name if the consumed artifact of the library is associated to
+ * one.
+ */
+val IdeModuleDependency.variant: String? get() = target.variant
 
-  /**
-   * Returns the build id.
-   */
-  val buildId: String get() = target.buildId
+/**
+ * Returns the build id.
+ */
+val IdeModuleDependency.buildId: String get() = target.buildId
 
-  /**
-   * Returns the sourceSet associated with the library.
-   */
-  val sourceSet: IdeModuleSourceSet get() = target.sourceSet
-}
+/**
+ * Returns the sourceSet associated with the library.
+ */
+val IdeModuleDependency.sourceSet: IdeModuleSourceSet get() = target.sourceSet
