@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.psi.KtTreeVisitor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
+import org.jetbrains.kotlin.resolve.calls.util.getParameterForArgument
 import java.lang.Integer.min
 import java.util.IdentityHashMap
 
