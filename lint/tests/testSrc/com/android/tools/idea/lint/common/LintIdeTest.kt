@@ -131,7 +131,7 @@ class LintIdeTest : UsefulTestCase() {
 
   fun testUseValueOfSuppress() {
     doTestWithFix(AndroidLintUseValueOfInspection(),
-                  "Suppress: Add @SuppressLint(\"UseValueOf\") annotation", "/src/test/pkg/UseValueOf.java", "java")
+                  "Suppress UseValueOf with an annotation", "/src/test/pkg/UseValueOf.java", "java")
   }
 
   fun testWrongQuote() {
@@ -154,7 +154,7 @@ class LintIdeTest : UsefulTestCase() {
   fun testAddSuperCallSuppress() {
     addCallSuper()
     doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Suppress: Add @SuppressLint(\"MissingSuperCall\") annotation", "/src/p1/p2/SuperTest.kt", "kt")
+                  "Suppress MissingSuperCall with an annotation", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testAddSuperCallExpression() {

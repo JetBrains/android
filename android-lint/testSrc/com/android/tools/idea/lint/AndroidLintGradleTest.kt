@@ -51,7 +51,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       Warning: Do not hardcode "/sdcard/"; use `Environment.getExternalStorageDirectory().getPath()` instead
           private String path = "/sdcard/foo"; // Deliberate lint warning
                                 ~~~~~~~~~~~~~
-          Fix: Suppress: Add @SuppressLint("SdCardPath") annotation
+          Fix: Suppress SdCardPath with an annotation
       """
     )
   }
@@ -100,7 +100,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
               Integer myInt = new Integer(5);
                               ~~~~~~~~~~~~~~
           Fix: Replace with valueOf()
-          Fix: Suppress: Add @SuppressLint("UseValueOf") annotation
+          Fix: Suppress UseValueOf with an annotation
       """.trimIndent()
     )
   }

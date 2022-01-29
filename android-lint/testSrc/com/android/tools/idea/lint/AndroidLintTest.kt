@@ -109,6 +109,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintSourceLockedOrientatio
 import com.android.tools.idea.lint.inspections.AndroidLintSpUsageInspection
 import com.android.tools.idea.lint.inspections.AndroidLintStringEscapingInspection
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection
+import com.android.tools.idea.lint.inspections.AndroidLintSuspiciousImportInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSwitchIntDefInspection
 import com.android.tools.idea.lint.inspections.AndroidLintTextFieldsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspection
@@ -129,6 +130,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintWifiManagerLeakInspect
 import com.android.tools.idea.lint.inspections.AndroidLintWrongCallInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongCaseInspection
 import com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection
+import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -178,7 +180,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
@@ -534,15 +535,38 @@ class AndroidLintTest : AndroidTestCase() {
   fun testSuppressInitJava() {
     // Regression test for https://issuetracker.google.com/151164628
     doTestWithFix(AndroidLintSdCardPathInspection(),
-                  "Suppress: Add @SuppressLint(\"SdCardPath\") annotation",
+                  "Suppress SdCardPath with an annotation",
                   "/src/p1/p2/Foo.java", "java")
   }
 
   fun testSuppressInit() {
     // Regression test for https://issuetracker.google.com/151164628 (Kotlin)
     doTestWithFix(AndroidLintClickableViewAccessibilityInspection(),
-                  "Suppress: Add @SuppressLint(\"ClickableViewAccessibility\") annotation",
+                  "Suppress ClickableViewAccessibility with an annotation",
                   "/src/p1/p2/suppressInit.kt", "kt")
+  }
+
+  fun testSuppressImportJava() {
+    // Regression test for https://issuetracker.google.com/216663026 (Java)
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportJava.java", "java")
+  }
+
+  fun testSuppressImportJavaCombine() {
+    // Like testSuppressImportJava, but here there is already an existing //noinspection
+    // comment on the line; verifies that we simply add the id to the list, not doubling
+    // up comments etc.
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportJava.java", "java")
+  }
+
+  fun testSuppressImportKotlin() {
+    // Regression test for https://issuetracker.google.com/216663026 (Kotlin)
+    doTestWithFix(AndroidLintSuspiciousImportInspection(),
+                  "Suppress SuspiciousImport with a comment",
+                  "/src/p1/p2/SuppressImportKotlin.kt", "kt")
   }
 
   fun testExportedService() {
@@ -1116,7 +1140,7 @@ class AndroidLintTest : AndroidTestCase() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Suppress: Add @SuppressLint(\"NewApi\") annotation",
+      "Suppress NewApi with an annotation",
       "/src/p1/p2/MyActivity.java", "java")
   }
 

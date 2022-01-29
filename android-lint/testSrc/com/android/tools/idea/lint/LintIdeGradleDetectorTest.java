@@ -134,12 +134,12 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testPathSuppress() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
-    doTest(inspection, "Suppress: Add //noinspection GradlePath");
+    doTest(inspection, "Suppress GradlePath with a comment");
   }
 
   public void testPathSuppressJoin() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
-    doTest(inspection, "Suppress: Add //noinspection GradlePath");
+    doTest(inspection, "Suppress GradlePath with a comment");
   }
 
   public void testBadPlayServicesVersion() throws Exception {
