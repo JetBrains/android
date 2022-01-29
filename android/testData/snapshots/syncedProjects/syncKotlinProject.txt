@@ -1201,17 +1201,6 @@ PROJECT                       : testSyncKotlinProject
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main [-]
-        LIBRARY                       : Gradle: kaptGeneratedTestClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            Scope                         : Test
-            LIBRARY                       : Gradle: kaptGeneratedTestClasses
-                *CLASSES                      : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test [-]
     MODULE                        : testSyncKotlinProject.contentLib.main
         ExternalModuleGroup           : testSyncKotlinProject
         ExternalModuleType            : sourceSet

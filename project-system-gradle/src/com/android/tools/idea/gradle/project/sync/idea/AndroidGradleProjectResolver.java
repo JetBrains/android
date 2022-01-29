@@ -556,23 +556,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable GradleAndroidModel androidModel,
                                                                      @NotNull DataNode<ModuleData> moduleDataNode,
                                                                      @Nullable KaptGradleModel kaptGradleModel) {
-    if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
+    if (androidModel == null || kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
       return;
     }
 
     Set<File> generatedClassesDirs = new HashSet<>();
     Set<File> generatedTestClassesDirs = new HashSet<>();
     kaptGradleModel.getSourceSets().forEach(sourceSet -> {
-      if (androidModel == null) {
-        // This is a non-android module
-        if (sourceSet.isTest()) {
-          generatedTestClassesDirs.add(sourceSet.getGeneratedClassesDirFile());
-        } else {
-          generatedClassesDirs.add(sourceSet.getGeneratedClassesDirFile());
-        }
-        return;
-      }
-
       File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
       Pair<IdeVariant, IdeBaseArtifact> result = findVariantAndArtifact(sourceSet, androidModel);
       if (result == null) {
