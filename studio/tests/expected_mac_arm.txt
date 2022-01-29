@@ -74,7 +74,6 @@ Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFound
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Modules/module.modulemap
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Resources/Info.plist
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/Current
-Android Studio Preview.app/Contents/jre/Contents/Home/bin/jaotc
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/jar
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/jarsigner
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/java
@@ -203,9 +202,6 @@ Android Studio Preview.app/Contents/jre/Contents/Home/legal/java.xml/xerces.md
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.accessibility/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.accessibility/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.accessibility/LICENSE
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.aot/ADDITIONAL_LICENSE_INFO
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.aot/ASSEMBLY_EXCEPTION
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.aot/LICENSE
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.attach/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.attach/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.attach/LICENSE
@@ -251,12 +247,6 @@ Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.opt/jop
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.ci/LICENSE
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler.management/ADDITIONAL_LICENSE_INFO
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler.management/ASSEMBLY_EXCEPTION
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler.management/LICENSE
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
-Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/LICENSE
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/LICENSE
@@ -355,6 +345,10 @@ Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/FiraCode-Medium.
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/FiraCode-Regular.ttf
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/FiraCode-Retina.ttf
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/Inconsolata.ttf
+Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/Inter-Bold.otf
+Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/Inter-BoldItalic.otf
+Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/Inter-Italic.otf
+Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/Inter-Regular.otf
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/JetBrainsMono-Bold-Italic.ttf
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/JetBrainsMono-Bold.ttf
 Android Studio Preview.app/Contents/jre/Contents/Home/lib/fonts/JetBrainsMono-BoldItalic.ttf
