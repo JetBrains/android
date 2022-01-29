@@ -30,7 +30,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.model.IdeAaptOptions;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
@@ -50,7 +49,6 @@ import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
@@ -63,7 +61,6 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
@@ -703,5 +700,9 @@ public class GradleAndroidModel implements AndroidModuleModel {
   @Override
   public boolean isInstantAppCompatible() {
     return getSelectedVariant().getInstantAppCompatible();
+  }
+
+  public boolean isKaptEnabled() {
+    return getAndroidProject().isKaptEnabled();
   }
 }

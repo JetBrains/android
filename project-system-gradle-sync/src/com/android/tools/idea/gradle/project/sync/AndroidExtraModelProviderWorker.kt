@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -118,7 +119,7 @@ internal class AndroidExtraModelProviderWorker(
     class V1Project(val modelCache: ModelCache.V1, androidProject: AndroidProject) : AndroidProjectResult() {
       override val buildName: String? = null
       override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
-      override val ideAndroidProject: IdeAndroidProject = modelCache.androidProjectFrom(androidProject)
+      override val ideAndroidProject: IdeAndroidProjectImpl = modelCache.androidProjectFrom(androidProject)
       override val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
       override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")
@@ -138,7 +139,7 @@ internal class AndroidExtraModelProviderWorker(
     ) : AndroidProjectResult() {
       override val buildName: String = basicAndroidProject.buildName
       override val agpVersion: String = modelVersions.agp
-      override val ideAndroidProject: IdeAndroidProject =
+      override val ideAndroidProject: IdeAndroidProjectImpl =
         modelCache.androidProjectFrom(basicAndroidProject, androidProject, modelVersions, androidDsl)
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val v2Variants: List<IdeVariantImpl> = let {
@@ -167,7 +168,7 @@ internal class AndroidExtraModelProviderWorker(
 
     abstract val buildName: String?
     abstract val agpVersion: String
-    abstract val ideAndroidProject: IdeAndroidProject
+    abstract val ideAndroidProject: IdeAndroidProjectImpl
     abstract val allVariantNames: Set<String>
     abstract val defaultVariantName: String?
     abstract val syncIssues: Collection<SyncIssue>?

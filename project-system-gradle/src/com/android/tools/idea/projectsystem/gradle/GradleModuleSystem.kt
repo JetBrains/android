@@ -24,9 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.getPackageName
@@ -398,7 +396,7 @@ class GradleModuleSystem(
 
   override val isViewBindingEnabled: Boolean get() = GradleAndroidModel.get(module)?.androidProject?.viewBindingOptions?.enabled ?: false
 
-  override val isKaptEnabled: Boolean get() = GradleFacet.getInstance(module)?.gradleModuleModel?.isKaptEnabled ?: false
+  override val isKaptEnabled: Boolean get() = GradleAndroidModel.get(module)?.androidProject?.isKaptEnabled ?: false
 
   override val applicationRClassConstantIds: Boolean get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true
 

@@ -185,4 +185,6 @@ interface IdeAndroidProject : Serializable {
    * Returns the testNamespace of the main artifact.
    */
   val testNamespace: String?
+
+  val isKaptEnabled: Boolean
 }

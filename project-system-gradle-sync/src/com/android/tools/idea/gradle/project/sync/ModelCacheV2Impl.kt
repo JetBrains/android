@@ -1123,7 +1123,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       testNamespace = project.androidTestNamespace,
       projectType = copyProjectType(basicProject.projectType),
       isBaseSplit = isBaseSplit,
-      agpFlags = agpFlags)
+      agpFlags = agpFlags,
+      isKaptEnabled = false
+    )
   }
 
   return object : ModelCache.V2 {

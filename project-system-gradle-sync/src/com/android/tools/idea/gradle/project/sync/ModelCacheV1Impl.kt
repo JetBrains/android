@@ -1143,7 +1143,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       testNamespace = testNamespace,
       projectType = getProjectType(project, parsedModelVersion),
       isBaseSplit = isBaseSplit,
-      agpFlags = agpFlags)
+      agpFlags = agpFlags,
+      isKaptEnabled = false
+    )
   }
 
   return object : ModelCache.V1 {

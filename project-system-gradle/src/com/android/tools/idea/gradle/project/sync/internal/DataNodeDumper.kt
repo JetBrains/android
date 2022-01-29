@@ -55,8 +55,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       gradlePlugins = $gradlePlugins
       buildFilePath = $buildFilePath
       gradleVersion = $gradleVersion
-      agpVersion = $agpVersion
-      isKaptEnabled = $isKaptEnabled""".replaceIndent("    ")
+      agpVersion = $agpVersion""".replaceIndent("    ")
     is ExternalProject -> "\n" + """
       externalSystemId = $externalSystemId
       id = $id

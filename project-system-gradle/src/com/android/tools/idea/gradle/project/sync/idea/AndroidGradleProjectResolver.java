@@ -366,7 +366,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         createGradleModuleModel(moduleName,
                                 gradleModule,
                                 androidModels == null ? null : androidModels.getAndroidProject().getAgpVersion(),
-                                kaptGradleModel,
                                 buildScriptClasspathModel,
                                 gradlePluginList);
     }
@@ -434,7 +433,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private static GradleModuleModel createGradleModuleModel(String moduleName,
                                                            @NotNull IdeaModule gradleModule,
                                                            @Nullable String modelVersionString,
-                                                           KaptGradleModel kaptGradleModel,
                                                            BuildScriptClasspathModel buildScriptClasspathModel,
                                                            Collection<String> gradlePluginList) {
     File buildScriptPath;
@@ -451,8 +449,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       gradlePluginList,
       buildScriptPath,
       (buildScriptClasspathModel == null) ? null : buildScriptClasspathModel.getGradleVersion(),
-      modelVersionString,
-      kaptGradleModel
+      modelVersionString
     );
   }
 

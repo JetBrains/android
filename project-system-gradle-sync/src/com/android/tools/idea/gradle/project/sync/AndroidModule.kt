@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
@@ -29,6 +28,7 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
@@ -94,7 +94,7 @@ class AndroidModule constructor(
   val buildName: String?,
   val buildNameMap: Map<String, File>?,
   gradleProject: BasicGradleProject,
-  val androidProject: IdeAndroidProject,
+  val androidProject: IdeAndroidProjectImpl,
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
@@ -149,7 +149,7 @@ class AndroidModule constructor(
       ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
-      androidProject,
+      androidProject.patchForKapt(kaptGradleModel),
       syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty(),
       selectedVariantName,
       syncedNativeVariantAbiName,
@@ -166,6 +166,8 @@ class AndroidModule constructor(
     }
   }
 }
+
+private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
 

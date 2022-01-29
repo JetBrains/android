@@ -90,7 +90,6 @@ import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -892,7 +891,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     variantsBuildInformation = variants.map {
       IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)
     },
-    lintChecksJars = listOf()
+    lintChecksJars = listOf(),
+    isKaptEnabled = false
   )
 }
 
@@ -1192,8 +1192,7 @@ private fun createAndroidModuleDataNode(
         gradlePlugins,
         moduleBasePath.resolve("build.gradle"),
         gradleVersion,
-        agpVersion,
-        false
+        agpVersion
       ),
       null
     )
@@ -1257,8 +1256,7 @@ private fun createJavaModuleDataNode(
           emptyList(),
           null,
           null,
-          null,
-          false
+          null
         ),
         null
       )

@@ -58,4 +58,5 @@ data class IdeAndroidProjectImpl(
   override val variantsBuildInformation: Collection<IdeVariantBuildInformation>,
   override val lintChecksJars: List<File>?,
   override val testNamespace: String?,
+  override val isKaptEnabled: Boolean,
 ) : IdeAndroidProject, Serializable
