@@ -20,9 +20,11 @@ import static org.junit.Assert.assertNull;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -122,5 +124,105 @@ public final class AsyncVirtualDeviceBuilderTest {
     assertEquals(1_024, device.getSizeOnDisk());
     assertEquals(new Resolution(1_080, 2_160), device.getResolution());
     assertEquals(new Resolution(393, 786), device.getDp());
+  }
+
+  @Test
+  public void wearOsTag() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
+
+    AvdInfo avdInfo = new AvdInfo("Wear_OS_Round_API_30",
+                                  Paths.get("ini", "file"),
+                                  Paths.get("data", "folder", "path"),
+                                  Mockito.mock(SystemImage.class),
+                                  properties,
+                                  AvdStatus.OK);
+
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+
+    Future<VirtualDevice> future = builder.buildAsync();
+    VirtualDevice device = TestDeviceManagerFutures.get(future);
+
+    assertEquals(DeviceType.WEAR_OS, device.getType());
+  }
+
+  @Test
+  public void androidTvTag() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
+
+    AvdInfo avdInfo = new AvdInfo("Android_TV_1080p_API_30",
+                                  Paths.get("ini", "file"),
+                                  Paths.get("data", "folder", "path"),
+                                  Mockito.mock(SystemImage.class),
+                                  properties,
+                                  AvdStatus.OK);
+
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+
+    Future<VirtualDevice> future = builder.buildAsync();
+    VirtualDevice device = TestDeviceManagerFutures.get(future);
+
+    assertEquals(DeviceType.TV, device.getType());
+  }
+
+  @Test
+  public void googleTvTag() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AvdManager.AVD_INI_TAG_ID, "google-tv");
+
+    AvdInfo avdInfo = new AvdInfo("Google_TV_1080p_API_30",
+                                  Paths.get("ini", "file"),
+                                  Paths.get("data", "folder", "path"),
+                                  Mockito.mock(SystemImage.class),
+                                  properties,
+                                  AvdStatus.OK);
+
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+
+    Future<VirtualDevice> future = builder.buildAsync();
+    VirtualDevice device = TestDeviceManagerFutures.get(future);
+
+    assertEquals(DeviceType.TV, device.getType());
+  }
+
+  @Test
+  public void automotiveTag() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive");
+
+    AvdInfo avdInfo = new AvdInfo("Automotive_1024p_landscape_API_30",
+                                  Paths.get("ini", "file"),
+                                  Paths.get("data", "folder", "path"),
+                                  Mockito.mock(SystemImage.class),
+                                  properties,
+                                  AvdStatus.OK);
+
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+
+    Future<VirtualDevice> future = builder.buildAsync();
+    VirtualDevice device = TestDeviceManagerFutures.get(future);
+
+    assertEquals(DeviceType.AUTOMOTIVE, device.getType());
+  }
+
+  @Test
+  public void automotivePlayTag() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive-playstore");
+
+    AvdInfo avdInfo = new AvdInfo("Automotive_1024p_landscape_API_30",
+                                  Paths.get("ini", "file"),
+                                  Paths.get("data", "folder", "path"),
+                                  Mockito.mock(SystemImage.class),
+                                  properties,
+                                  AvdStatus.OK);
+
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+
+    Future<VirtualDevice> future = builder.buildAsync();
+    VirtualDevice device = TestDeviceManagerFutures.get(future);
+
+    assertEquals(DeviceType.AUTOMOTIVE, device.getType());
   }
 }
