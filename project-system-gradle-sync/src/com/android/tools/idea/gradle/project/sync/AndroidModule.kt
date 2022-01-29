@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 
@@ -109,7 +111,7 @@ class AndroidModule constructor(
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
     return nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
-                      ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
+      ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
   }
 
 
@@ -121,10 +123,10 @@ class AndroidModule constructor(
     else -> NativeModelVersion.None
   }
 
-  var syncedVariant: IdeVariant? = null
+  var syncedVariant: IdeVariantImpl? = null
   var syncedNativeVariantAbiName: String? = null
   var syncedNativeVariant: IdeNativeVariantAbi? = null
-  var allVariants: List<IdeVariant>? = null
+  var allVariants: List<IdeVariantImpl>? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
   var kotlinGradleModel: KotlinGradleModel? = null
@@ -145,12 +147,12 @@ class AndroidModule constructor(
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
     val selectedVariantName =
       syncedVariant?.name
-      ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
-      ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
+        ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
+        ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject.patchForKapt(kaptGradleModel),
-      syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty(),
+      (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).patchForKapt(kaptGradleModel),
       selectedVariantName,
       syncedNativeVariantAbiName,
       projectSyncIssues.orEmpty(),
@@ -168,6 +170,33 @@ class AndroidModule constructor(
 }
 
 private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
+
+private fun List<IdeVariantImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantImpl> {
+  if (kaptModel == null) return this
+  val sourceSets = kaptModel.sourceSets.associateBy { it.sourceSetName }
+  return map { variant ->
+
+    fun <T> T.maybePatch(suffix: String, code: T.(KaptSourceSetModel) -> T): T {
+      val kaptSourceSet = sourceSets[variant.name + suffix] ?: return this
+      return code(kaptSourceSet)
+    }
+
+    fun IdeBaseArtifact.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<File> {
+      return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList()
+    }
+
+    variant.copy(
+      mainArtifact = variant.mainArtifact
+        .maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+      androidTestArtifact = variant.androidTestArtifact
+        ?.maybePatch("AndroidTest") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+      unitTestArtifact = variant.unitTestArtifact
+        ?.maybePatch("UnitTest") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+      testFixturesArtifact = variant.testFixturesArtifact
+        ?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+    )
+  }
+}
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
 

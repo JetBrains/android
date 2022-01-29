@@ -560,7 +560,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Set<File> generatedClassesDirs = new HashSet<>();
     Set<File> generatedTestClassesDirs = new HashSet<>();
     kaptGradleModel.getSourceSets().forEach(sourceSet -> {
-      File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
       Pair<IdeVariant, IdeBaseArtifact> result = findVariantAndArtifact(sourceSet, androidModel);
       if (result == null) {
         // No artifact was found for the current source set
@@ -570,10 +569,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       IdeVariant variant = result.first;
       IdeBaseArtifact artifact = result.second;
       if (artifact != null) {
-        if (kotlinGenSourceDir != null && !artifact.getGeneratedSourceFolders().contains(kotlinGenSourceDir)) {
-          artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
-        }
-
         if (variant.equals(androidModel.getSelectedVariant())) {
           File classesDirFile = sourceSet.getGeneratedClassesDirFile();
           if (classesDirFile != null) {

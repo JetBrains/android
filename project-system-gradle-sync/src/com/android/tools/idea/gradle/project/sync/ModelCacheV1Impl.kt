@@ -64,7 +64,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -74,9 +73,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeFilterData
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleDependency
@@ -694,8 +691,10 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       classesFolder = listOf(listOf(artifact.classesFolder), artifact.additionalClassesFolders).flatten(),
       ideSetupTaskNames = copyNewPropertyWithDefault(artifact::getIdeSetupTaskNames,
                                                      defaultValue = { setOf(artifact.sourceGenTaskName) }).toList(),
-      mutableGeneratedSourceFolders = copy(artifact::getGeneratedSourceFolders,
-                                           ::deduplicateFile).distinct().toMutableList(), // The source model can contain duplicates.
+      generatedSourceFolders = copy(
+        artifact::getGeneratedSourceFolders,
+        ::deduplicateFile
+      ).distinct(), // The source model can contain duplicates.
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
@@ -739,7 +738,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = listOf(artifact.classesFolder) + artifact.additionalClassesFolders,
       ideSetupTaskNames = copy(artifact::getIdeSetupTaskNames, ::deduplicateString).toList(),
-      mutableGeneratedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
+      generatedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),

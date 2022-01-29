@@ -35,7 +35,7 @@ data class IdeAndroidArtifactImpl(
   override val variantSourceProvider: IdeSourceProvider?,
   override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: Collection<String>,
-  private val mutableGeneratedSourceFolders: MutableList<File>,
+  override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
   override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
@@ -50,11 +50,5 @@ data class IdeAndroidArtifactImpl(
   override val codeShrinker: CodeShrinker?,
   override val modelSyncFiles: Collection<IdeModelSyncFile>
 ) : IdeAndroidArtifact {
-  override val generatedSourceFolders: Collection<File> get() = mutableGeneratedSourceFolders
-
-  override fun addGeneratedSourceFolder(generatedSourceFolder: File) {
-    mutableGeneratedSourceFolders.add(generatedSourceFolder)
-  }
-
   override val resValues: Map<String, IdeClassField> get() = emptyMap()
 }

@@ -32,11 +32,9 @@ import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.composites.BuildMap
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
@@ -657,7 +655,7 @@ internal class AndroidExtraModelProviderWorker(
   private class SyncVariantResultCore(
     val moduleConfiguration: ModuleConfiguration,
     val module: AndroidModule,
-    val ideVariant: IdeVariant,
+    val ideVariant: IdeVariantImpl,
     val nativeVariantAbi: NativeVariantAbiResult,
     val unresolvedDependencies: List<IdeUnresolvedDependencies>
   )
@@ -668,7 +666,7 @@ internal class AndroidExtraModelProviderWorker(
   ) {
     val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
     val module: AndroidModule get() = core.module
-    val ideVariant: IdeVariant get() = core.ideVariant
+    val ideVariant: IdeVariantImpl get() = core.ideVariant
     val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
     val unresolvedDependencies: List<IdeUnresolvedDependencies> get() = core.unresolvedDependencies
   }
@@ -760,11 +758,11 @@ internal class AndroidExtraModelProviderWorker(
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
   ): (BuildController) -> SyncVariantResultCore? {
     val module = androidModulesById[moduleConfiguration.id] ?: return { null }
-    return fun(controller: BuildController): SyncVariantResultCore? {
+    return fun(controller: BuildController): SyncVariantResultCore {
       val abiToRequest: String?
       val nativeVariantAbi: NativeVariantAbiResult?
-      val ideVariant: IdeVariant = module.variantFetcher(controller, variantNameResolvers, module, moduleConfiguration)
-                                   ?: error("Resolved variant '${moduleConfiguration.variant}' does not exist.")
+      val ideVariant: IdeVariantImpl = module.variantFetcher(controller, variantNameResolvers, module, moduleConfiguration)
+        ?: error("Resolved variant '${moduleConfiguration.variant}' does not exist.")
       val variantName = ideVariant.name
 
       module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variantName)

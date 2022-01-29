@@ -30,14 +30,9 @@ data class IdeJavaArtifactImpl(
   override val variantSourceProvider: IdeSourceProvider?,
   override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: Collection<String>,
-  private val mutableGeneratedSourceFolders: MutableList<File>,
+  override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
   override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
   override val mockablePlatformJar: File?
-) : IdeJavaArtifact {
-  override val generatedSourceFolders: Collection<File> get() = mutableGeneratedSourceFolders
-  override fun addGeneratedSourceFolder(generatedSourceFolder: File) {
-    mutableGeneratedSourceFolders.add(generatedSourceFolder)
-  }
-}
+) : IdeJavaArtifact
