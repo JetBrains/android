@@ -29,6 +29,8 @@ interface NetworkInspectorClient {
 class NetworkInspectorClientImpl(
   private val messenger: AppInspectorMessenger
 ) : NetworkInspectorClient {
+  private var ruleCount = 0
+
   override suspend fun getStartTimeStampNs(): Long {
     val response = messenger.sendRawCommand {
       startInspectionCommand = StartInspectionCommand.getDefaultInstance()
@@ -39,8 +41,15 @@ class NetworkInspectorClientImpl(
   override suspend fun interceptResponse(url: String, body: String) {
     messenger.sendRawCommand {
       interceptCommand = NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-        this.url = url
-        this.responseBody = body
+        interceptRuleAddedBuilder.apply {
+          ruleId = ruleCount
+          ruleCount += 1
+          ruleBuilder.apply {
+            this.url = url
+            this.responseBody = body
+          }
+        }
+
       }.build()
     }
   }
