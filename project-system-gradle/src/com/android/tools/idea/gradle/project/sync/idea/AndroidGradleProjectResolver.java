@@ -414,8 +414,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       createAndSetupTestDataNode(moduleNode, androidModel);
     }
 
-    // Ensure the kapt module is stored on the datanode so that dependency setup can use it
-    moduleNode.putUserData(AndroidGradleProjectResolverKeys.KAPT_GRADLE_MODEL_KEY, kaptGradleModel);
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
 
     // Populate extra things

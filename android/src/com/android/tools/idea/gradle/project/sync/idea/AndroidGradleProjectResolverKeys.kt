@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.intellij.openapi.util.Key
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 
 object AndroidGradleProjectResolverKeys {
   @JvmField
@@ -25,10 +24,6 @@ object AndroidGradleProjectResolverKeys {
   @JvmField
   val REFRESH_EXTERNAL_NATIVE_MODELS_KEY: Key<Boolean> = Key.create("refresh.external.native.models")
 
-  // For variant switching we need to store the Kapt model with all the source set information as we only setup one
-  // variant at a time
-  @JvmField
-  val KAPT_GRADLE_MODEL_KEY: Key<KaptGradleModel> = Key.create("KAPT_GRADLE_MODEL_KEY")
   @JvmField
   val REQUESTED_PROJECT_RESOLUTION_MODE_KEY: Key<ProjectResolutionMode> = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE")
 }
