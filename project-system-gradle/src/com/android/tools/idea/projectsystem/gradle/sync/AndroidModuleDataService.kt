@@ -48,7 +48,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
-import com.intellij.openapi.application.invokeLater
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -57,12 +57,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
@@ -198,6 +196,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     super.postProcess(toImport, projectData, project, modelsProvider)
     // We need to set the SDK in postProcess since we need to ensure that this is run after the code in
     // KotlinGradleAndroidModuleModelProjectDataService.
+    val modulesWithSDKSetupFailureByCompileTarget = mutableMapOf<String, MutableList<String>>()
     for (nodeToImport in toImport) {
       val mainModuleDataNode = ExternalSystemApiUtil.findParent(
         nodeToImport,
@@ -218,10 +217,21 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         IdeSdks.getInstance()
       )
 
+      if (sdkToUse == null) {
+        modulesWithSDKSetupFailureByCompileTarget.getOrPut(androidModel.androidProject.compileTarget) { mutableListOf() }
+          .add(androidModel.androidProject.name)
+      }
+
       val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
         module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
       }
+    }
+
+    modulesWithSDKSetupFailureByCompileTarget.forEach { (compileTarget, modules) ->
+      val message = "Could not find compile target $compileTarget for modules ${modules.joinToString(", ")}"
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup("Android SDK Setup Issues").createNotification(message, MessageType.ERROR).notify(project);
     }
   }
 }

@@ -19,11 +19,10 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.repository.api.RepoManager
 import com.android.tools.idea.gradle.project.sync.SdkSync
-import com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundException
 import com.android.tools.idea.gradle.util.LocalProperties
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
@@ -125,16 +124,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   }
 
   // 4 - We might have an SDK add-on being used attempt to find the SDK for an addon.
-  val addonSdk = findMatchingSdkForAddon(bootClasspath)
-
-  if (addonSdk == null) {
-    val message = "Module: '${moduleName}' platform '${compileTarget}' not found."
-    LOG.warn(message)
-
-    throw SdkPlatformNotFoundException(message)
-  }
-
-  return addonSdk
+  return findMatchingSdkForAddon(bootClasspath)
 }
 
 private fun AndroidSdks.findMatchingSdkForAddon(

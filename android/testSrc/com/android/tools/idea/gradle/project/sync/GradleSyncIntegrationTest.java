@@ -37,6 +37,9 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toC
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.util.io.FileUtil.copy;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
@@ -53,6 +56,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
@@ -71,6 +75,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
@@ -82,6 +87,8 @@ import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.build.events.StartBuildEvent;
+import com.intellij.notification.Notification;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
@@ -103,6 +110,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -114,6 +123,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -126,6 +136,8 @@ import java.util.Map;
 import java.util.Properties;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -706,6 +718,65 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
     assertThat(failureResult.getFailures().get(0).getMessage()).contains("Fake sync error");
+  }
+
+  public void testMissingSdkPlatform() throws Exception {
+    prepareProjectForImport(SIMPLE_APPLICATION);
+
+    // Create a temp SDK, so we can modify it for the test
+    Path sdk = TestUtils.getSdk();
+    File tempSdk = createTempDirectory("test", "sdk");
+    copyDir(sdk.toFile(), tempSdk);
+
+    // Delete all platforms for the given SDK and update local properties file to point to the temp SDK
+    Path platforms = tempSdk.toPath().resolve("platforms");
+    FileUtils.deleteDirectoryContents(platforms.toFile());
+    AndroidGradleTests.updateLocalProperties(getProjectFolderPath(), tempSdk);
+
+    List<Sdk> sdksToRemove = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance());
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      // We also need to remove all Android sdks from the jdk table and get the android sdk path to the temp sdk
+      IdeSdks.getInstance().setAndroidSdkPath(tempSdk, null);
+      for (Sdk androidSdk : sdksToRemove) {
+        ProjectJdkTable.getInstance().removeJdk(androidSdk);
+      }
+    });
+
+    final Notification[] expected = {null};
+
+    try {
+      // Watch for the expected notification
+      getProject().getMessageBus().connect(getTestRootDisposable()).subscribe(Notifications.TOPIC, new Notifications() {
+        @Override
+        public void notify(@NotNull Notification notification) {
+          if (notification.getGroupId().equals("Android SDK Setup Issues")) {
+            expected[0] = notification;
+          }
+        }
+      });
+
+      Project project = getProject();
+      EdtTestUtil.runInEdtAndGet(() -> {
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+        GradleProjectImporter.configureNewProject(project);
+        GradleProjectImporter.getInstance().importProjectNoSync(request);
+        return AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest());
+      });
+
+      // Ensure all post sync events have been processed
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    } finally {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        // Undo the setting of the SDK and re-add the removed sdks back to the project jdk table
+        IdeSdks.getInstance().setAndroidSdkPath(sdk.toFile(), null);
+        // Add back the SDKs we removed for other tests.
+        for (Sdk androidSdk : sdksToRemove) {
+          ProjectJdkTable.getInstance().addJdk(androidSdk);
+        }
+      });
+    }
+
+    assertNotNull(expected[0]);
   }
 
   public void testUnresolvedDependency() throws Exception {
