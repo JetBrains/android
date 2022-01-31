@@ -75,4 +75,54 @@ class NlTreeCellRendererTest {
     assertThat(labels[0].text).isEqualTo("Button")
     assertThat(labels[0].icon).isSameAs(StudioIcons.LayoutEditor.Palette.BUTTON)
   }
+
+  @Test
+  fun displayPreference() {
+    val badgeHandler = mock(NlTreeBadgeHandler::class.java)
+    val panel = mock(NlVisibilityGutterPanel::class.java)
+    val tree = NlComponentTree(projectRule.project, null, panel)
+    UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
+    val button = MockNlComponent.create(
+      ApplicationManager.getApplication().runReadAction<XmlTag> {
+        XmlTagUtil.createTag(projectRule.project, "<ListPreference></ListPreference>")
+          .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
+      }
+    )
+    tree.setUI(object : BasicTreeUI() {
+      override fun getLeftChildIndent() = 0
+      override fun getRightChildIndent() = 0
+      override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
+    })
+    val renderer = NlTreeCellRenderer(badgeHandler)
+    val component = renderer.getTreeCellRendererComponent(tree, button, selected = false, expanded = false, leaf = true, row = 3,
+                                                          hasFocus = false) as JComponent
+    val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
+    assertThat(labels[0].text).isEqualTo("ListPreference")
+    assertThat(labels[0].icon).isSameAs(StudioIcons.LayoutEditor.Palette.VIEW)
+  }
+
+  @Test
+  fun displayPreferenceCompat() {
+    val badgeHandler = mock(NlTreeBadgeHandler::class.java)
+    val panel = mock(NlVisibilityGutterPanel::class.java)
+    val tree = NlComponentTree(projectRule.project, null, panel)
+    UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
+    val button = MockNlComponent.create(
+      ApplicationManager.getApplication().runReadAction<XmlTag> {
+        XmlTagUtil.createTag(projectRule.project, "<SwitchPreferenceCompat></SwitchPreferenceCompat>")
+          .apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
+      }
+    )
+    tree.setUI(object : BasicTreeUI() {
+      override fun getLeftChildIndent() = 0
+      override fun getRightChildIndent() = 0
+      override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
+    })
+    val renderer = NlTreeCellRenderer(badgeHandler)
+    val component = renderer.getTreeCellRendererComponent(tree, button, selected = false, expanded = false, leaf = true, row = 3,
+                                                          hasFocus = false) as JComponent
+    val labels = UIUtil.findComponentsOfType(component, JLabel::class.java)
+    assertThat(labels[0].text).isEqualTo("SwitchPreferenceCompat")
+    assertThat(labels[0].icon).isSameAs(StudioIcons.LayoutEditor.Palette.VIEW)
+  }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.Font
@@ -116,10 +117,13 @@ class NlTreeCellRenderer(
 
     primaryLabel.icon = handler?.getIcon(value)?.let {
       if (selected && treeFocused) ColoredIconGenerator.generateWhiteIcon(it) else it
-    }
+    } ?: StudioIcons.LayoutEditor.Palette.VIEW
 
     val id = stripIdPrefix(value.id)
-    var primaryLabelText = if (id.isNotEmpty()) id else handler?.getTitle(value) ?: value.tagName
+    var primaryLabelText = id.ifBlank { handler?.getTitle(value) }
+    if (primaryLabelText.isNullOrBlank()) {
+      primaryLabelText = value.tagName
+    }
     var secondaryLabelText = handler?.getTitleAttributes(value) ?: ""
 
     val treeContainerWidth = tree.width
