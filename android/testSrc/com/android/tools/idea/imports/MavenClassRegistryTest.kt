@@ -386,7 +386,7 @@ class MavenClassRegistryTest {
             MavenClassRegistryBase.Library(
               artifact = "androidx.activity:activity",
               packageName = "androidx.activity",
-              version = "1.3.1"
+              version = "1.4.0"
             )
           )
         )
@@ -396,7 +396,7 @@ class MavenClassRegistryTest {
             MavenClassRegistryBase.Library(
               artifact = "androidx.activity:activity",
               packageName = "androidx.activity",
-              version = "1.3.1"
+              version = "1.4.0"
             )
           )
         )
