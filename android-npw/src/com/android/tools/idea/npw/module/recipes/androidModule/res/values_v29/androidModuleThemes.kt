@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values_v29
 
 fun androidModuleThemesMaterial3V29(themeName: String) =
+  // When the contents are modified, need to modify
+  // com.android.tools.idea.wizard.template.impl.activities.common.generateMaterial3Themes
   """<resources xmlns:tools="http://schemas.android.com/tools">
   <style name="$themeName" parent="Base.${themeName}">
     <!-- Transparent system bars for edge-to-edge. -->

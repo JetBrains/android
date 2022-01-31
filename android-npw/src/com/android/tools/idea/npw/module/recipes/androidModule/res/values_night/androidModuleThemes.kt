@@ -20,6 +20,8 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_A
 import com.android.tools.idea.wizard.template.MaterialColor.*
 
 fun androidModuleThemesMaterial3(themeName: String) =
+  // When the contents are modified, need to modify
+  // com.android.tools.idea.wizard.template.impl.activities.common.generateMaterial3Themes
   """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
   <style name="Base.${themeName}" parent="Theme.Material3.DayNight.NoActionBar">

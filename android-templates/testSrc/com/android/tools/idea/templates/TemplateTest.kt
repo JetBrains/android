@@ -140,7 +140,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
   annotation class TemplateCheck
 
-  private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+  private val withKotlin: ProjectStateCustomizer = { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
     projectData.language = Language.Kotlin
     // Use the Kotlin version for tests
     projectData.kotlinVersion = TestUtils.KOTLIN_VERSION_FOR_TESTS
@@ -165,7 +165,10 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   fun testNewBasicActivityMaterial3() {
     StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
     try {
-      checkCreateTemplate("Basic Activity (Material3)", withKotlin)
+      val withMaterial3: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
+        moduleData.isMaterial3 = true
+      }
+      checkCreateTemplate("Basic Activity (Material3)", withKotlin, withMaterial3)
     } finally {
       StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
     }
