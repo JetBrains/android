@@ -64,20 +64,20 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
+    List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
     if (!AndroidModel.isRequired(facet)) {
-      // Always just a single resource folder: simple.
-      VirtualFile primaryResourceDir = ContainerUtil.getFirstItem(folderManager.getFolders(), null);
-      if (primaryResourceDir == null) {
+      if (resourceDirectories.isEmpty()) {
         return new EmptyRepository(namespace);
       }
+      List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size());
+      addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
       return new ModuleResourceRepository(facet,
                                           namespace,
-                                          Collections.singletonList(resourceFolderRegistry.get(facet, primaryResourceDir)),
+                                          childRepositories,
                                           SourceSet.MAIN);
     }
 
-    List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
     DynamicValueResourceRepository dynamicResources = DynamicValueResourceRepository.create(facet, namespace);
     ModuleResourceRepository moduleRepository;
@@ -110,13 +110,12 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
+    List<VirtualFile> resourceDirectories = folderManager.getTestFolders();
 
-    if (!AndroidModel.isRequired(facet)) {
-      // No test resources in legacy projects.
+    if (!AndroidModel.isRequired(facet) && resourceDirectories.isEmpty()) {
       return new EmptyRepository(namespace);
     }
 
-    List<VirtualFile> resourceDirectories = folderManager.getTestFolders();
     List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size());
     addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
 
