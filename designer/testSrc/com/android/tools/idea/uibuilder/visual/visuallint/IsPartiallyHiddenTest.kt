@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer.isPartiallyHidden
 
 class IsPartiallyHiddenTest: LayoutTestCase() {
 
