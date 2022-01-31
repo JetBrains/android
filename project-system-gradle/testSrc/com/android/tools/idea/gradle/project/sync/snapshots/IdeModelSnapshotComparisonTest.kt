@@ -69,7 +69,9 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
   ) {
     CURRENT("NewAgp"),
     LEGACY_4_1("Agp_4.1", "4.1.0"),
-    LEGACY_4_2("Agp_4.2", "4.2.0");
+    LEGACY_4_2("Agp_4.2", "4.2.0"),
+    LEGACY_7_0("Agp_7.0", "7.0.0"),
+    LEGACY_7_1("Agp_7.1", "7.1.0");
 
     override fun toString(): String = suffix
   }
@@ -92,8 +94,9 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
-      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
+      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2, AgpVersion.LEGACY_7_0)),
+      // Test Fixtures support is available through AGP 7.2 and above.
+      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2, AgpVersion.LEGACY_7_0, AgpVersion.LEGACY_7_1)),
       TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
       TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR),

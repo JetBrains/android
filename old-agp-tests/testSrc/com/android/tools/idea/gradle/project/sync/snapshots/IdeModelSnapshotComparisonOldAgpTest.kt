@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-@OldAgpTest(agpVersions = ["4.1", "4.2"], gradleVersions = ["LATEST"])
+@OldAgpTest(agpVersions = ["4.1", "4.2", "7.0", "7.1"], gradleVersions = ["LATEST"])
 @RunsInEdt
 @RunWith(Parameterized::class)
 class IdeModelSnapshotComparisonOldAgpTest : IdeModelSnapshotComparisonTest() {
