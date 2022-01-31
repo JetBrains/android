@@ -17,6 +17,8 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.MultiLineReceiver
+import com.android.ddmlib.MultiReceiver
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -33,8 +35,11 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
+private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
+private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
   override val configuration = environment.runProfile as AndroidTileConfiguration
@@ -52,6 +57,13 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
       processHandler.addDevice(device)
+      val version = device.getWearDebugSurfaceVersion()
+      if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
+        throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version)
+      }
+      if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
+        console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+      }
       indicator?.checkCanceled()
       indicator?.text = "Installing app"
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
@@ -69,12 +81,15 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   }
 
   private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
-    val indexReceiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
+    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
+    val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
+    val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
+    val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, indexReceiver)
+      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
     }
     catch (ex: DeployerException) {
-      throw ExecutionException("Error while setting the tile, message: ${indexReceiver.getOutput()}", ex)
+      throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput()}", ex)
     }
 
     if (indexReceiver.index == null) {
@@ -90,20 +105,20 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   }
 }
 
-private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : AndroidLaunchReceiver(
-  isCancelledCheck, consoleView) {
+private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> Boolean) : MultiLineReceiver() {
   private val indexPattern = "Index=\\[(\\d+)]".toRegex()
   var index: Int? = null
 
-  override fun processNewLines(lines: Array<String>) {
-    super.processNewLines(lines)
-    lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
+  override fun isCancelled(): Boolean = isCancelledCheck()
+
+  override fun processNewLines(lines: Array<String>) = lines.forEach { line ->
+    extractPattern(line, indexPattern)?.let { index = it.toInt() }
   }
 }
 
 class TileProcessHandler(private val tileName: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidLaunchReceiver({ false }, console)
+    val receiver = ConsoleOutputReceiver({ false }, console)
 
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
     console.printShellCommand(removeTileCommand)

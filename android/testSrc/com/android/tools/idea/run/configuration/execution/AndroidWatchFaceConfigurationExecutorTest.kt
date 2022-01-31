@@ -68,7 +68,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(2)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
       commandsCaptor.capture(),
       MockitoKt.any(IShellOutputReceiver::class.java),
       MockitoKt.any(),
@@ -76,10 +76,13 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     )
     val commands = commandsCaptor.allValues
 
+
+    // check WatchFace API version.
+    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
     // Set WatchFace.
-    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
+    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
     // Showing WatchFace.
-    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
   }
 
   fun testDebug() {
@@ -111,7 +114,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(4)).executeShellCommand(
       commandsCaptor.capture(),
       MockitoKt.any(IShellOutputReceiver::class.java),
       MockitoKt.any(),
@@ -119,13 +122,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     )
     val commands = commandsCaptor.allValues
 
+    // check WatchFace API version.
+    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
     // Set debug app.
-    assertThat(commands[0]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[1]).isEqualTo("am set-debug-app -w 'com.example.app'")
     // Set WatchFace.
-    assertThat(commands[1]).isEqualTo(
+    assertThat(commands[2]).isEqualTo(
       "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
     // Showing WatchFace.
-    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+    assertThat(commands[3]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
   }
 
   fun testWatchFaceProcessHandler() {

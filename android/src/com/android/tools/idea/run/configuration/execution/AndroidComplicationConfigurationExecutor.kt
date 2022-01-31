@@ -26,15 +26,17 @@ import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_W
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
+
+private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
+private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
   override val configuration = environment.runProfile as AndroidComplicationConfiguration
@@ -53,6 +55,13 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
       processHandler.addDevice(device)
+      val version = device.getWearDebugSurfaceVersion()
+      if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
+        throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version)
+      }
+      if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
+        console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+      }
       indicator?.checkCanceled()
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) { info ->
         console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
@@ -60,7 +69,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       indicator?.checkCanceled()
       val appWatchFace = installWatchApp(device, console)
 
-      val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
+      val receiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
       configuration.chosenSlots.forEach { slot ->
         app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
                               receiver)
@@ -87,7 +96,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 class ComplicationProcessHandler(private val complicationComponentName: String,
                                  private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidLaunchReceiver({ false }, console)
+    val receiver = ConsoleOutputReceiver({ false }, console)
 
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     console.printShellCommand(removeComplicationCommand)

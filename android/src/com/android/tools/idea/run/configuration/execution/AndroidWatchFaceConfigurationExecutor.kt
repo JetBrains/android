@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
+private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
 class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
   override val configuration = environment.runProfile as AndroidWatchFaceConfiguration
@@ -54,8 +55,12 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     val processHandler = WatchFaceProcessHandler(console)
     devices.forEach { device ->
       processHandler.addDevice(device)
+      val version = device.getWearDebugSurfaceVersion()
+      if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
+        throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version)
+      }
       val app = installWatchFace(device, applicationInstaller, console)
-      setWatchFace(app, mode, console)
+      setWatchFace(app, mode)
       showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
@@ -72,12 +77,12 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
   }
 
-  private fun setWatchFace(app: App, mode: AppComponent.Mode, console: ConsoleView) {
+  private fun setWatchFace(app: App, mode: AppComponent.Mode) {
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
       checkCanceled()
       text = "Launching the watch face"
     }
-    val outputReceiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
+    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     try {
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, outputReceiver)
     }
@@ -92,11 +97,11 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       text = "Jumping to the watch face"
     }
     val resultReceiver = CommandResultReceiver()
-    val receiver = MultiReceiver(resultReceiver, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console))
+    val receiver = MultiReceiver(resultReceiver, ConsoleOutputReceiver({ indicator?.isCanceled == true }, console))
     console.printShellCommand(SHOW_WATCH_FACE)
     device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
     if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("WARN: Launch was successful, but you may need to bring up the watch face manually")
+      console.printError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }
 }
@@ -104,7 +109,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
 class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
 
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidLaunchReceiver({ false }, console)
+    val receiver = ConsoleOutputReceiver({ false }, console)
 
     console.printShellCommand(UNSET_WATCH_FACE)
     device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)

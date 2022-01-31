@@ -53,6 +53,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = getMockDevice { request ->
       when (request) {
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
+          "Broadcast completed: result=1, data=\"3\""
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component" ->
           "Broadcast completed: result=1, Index=[1]"
         else -> "Unknown request: $request"
@@ -72,7 +74,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(2)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
       commandsCaptor.capture(),
       MockitoKt.any(IShellOutputReceiver::class.java),
       MockitoKt.any(),
@@ -80,11 +82,13 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     )
     val commands = commandsCaptor.allValues
 
+    // Check version
+    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
     // Set Tile.
-    assertThat(commands[0]).isEqualTo(
+    assertThat(commands[1]).isEqualTo(
       "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
     // Showing Tile.
-    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1")
+    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1")
 
     // Verify that a warning was raised.
     Mockito.verify(console, Mockito.times(1)).printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
@@ -100,6 +104,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
                    "End of output."
     val device = getMockDevice { request ->
       when (request) {
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
+          "Broadcast completed: result=1, data=\"3\""
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component" -> response
         else -> "Unknown request: $request"
       }
@@ -123,6 +129,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val device = getMockDevice { request ->
       when (request) {
         // Test TileIndexReceiver
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
+          "Broadcast completed: result=1, data=\"3\""
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component" ->
           "Broadcast completed: result=1, Index=[101]"
         else -> "Unknown request: $request"
@@ -140,7 +148,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(4)).executeShellCommand(
       commandsCaptor.capture(),
       MockitoKt.any(IShellOutputReceiver::class.java),
       MockitoKt.any(),
@@ -148,13 +156,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     )
     val commands = commandsCaptor.allValues
 
+    // Check version
+    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
     // Set debug app.
-    assertThat(commands[0]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[1]).isEqualTo("am set-debug-app -w 'com.example.app'")
     // Set Tile.
-    assertThat(commands[1]).isEqualTo(
+    assertThat(commands[2]).isEqualTo(
       "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
     // Showing Tile.
-    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 101")
+    assertThat(commands[3]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 101")
   }
 
   fun testTileProcessHandler() {
