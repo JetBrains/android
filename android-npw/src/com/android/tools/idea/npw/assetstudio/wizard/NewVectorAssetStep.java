@@ -273,7 +273,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         }
 
         String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
-        if (!name.startsWith(ICON_PREFIX)) {
+        if (myAssetSourceType.get() == AssetSourceType.CLIP_ART && !name.startsWith(ICON_PREFIX)) {
           name = ICON_PREFIX + FileResourceNameValidator.getValidResourceFileName(name);
         }
         return FileResourceNameValidator.getValidResourceFileName(name);
