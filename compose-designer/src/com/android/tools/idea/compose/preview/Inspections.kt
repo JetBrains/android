@@ -197,6 +197,24 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
 }
 
 /**
+ * Inspection that checks if `@Preview` fontScale parameter is not positive.
+ */
+class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() {
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry) {
+    previewAnnotation.findValueArgument(PARAMETER_FONT_SCALE)?.let {
+      val fontScale = (it.getArgumentExpression() as? PsiElement)?.node?.text?.toFloatOrNull() ?: return
+      if (fontScale <= 0) {
+        holder.registerProblem(it.psiOrParent as PsiElement,
+                               message("inspection.preview.font.scale.description"),
+                               ProblemHighlightType.ERROR)
+      }
+    }
+  }
+}
+
+/**
  * Inspection that checks that `@Preview` is not present in unit test files
  */
 class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {

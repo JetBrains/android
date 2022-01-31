@@ -334,6 +334,32 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
   }
 
   @Test
+  fun testNegativeFontScale() {
+    fixture.enableInspections(PreviewFontScaleMustBeGreaterThanZero() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent = """
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      @Composable
+      @Preview(name = "Preview 1", fontScale = 2f)
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 2", fontScale = -2f)
+      fun Preview2() {
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals("9: Preview fontScale value must be greater than zero.",
+                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+  }
+
+  @Test
   fun testInspectionsWithNoImport() {
     fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
 
