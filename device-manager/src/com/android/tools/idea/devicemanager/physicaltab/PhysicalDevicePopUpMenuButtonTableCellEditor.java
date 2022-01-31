@@ -123,7 +123,9 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
       else {
         try {
           CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-          BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(key, true, continuation));
+          BuildersKt.runBlocking(context, (scope, continuation) ->
+            myManager.removeAllPairedDevices(key, true, continuation)
+          );
         }
         catch (InterruptedException exception) {
           Thread.currentThread().interrupt();

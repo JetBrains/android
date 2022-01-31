@@ -117,7 +117,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
       columnModel.getColumn(0).setPreferredWidth(80_000); // Some large number, 80% of total width
       columnModel.getColumn(1).setPreferredWidth(20_000);
 
-      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> unpairDevice(peerDevice.getDeviceID()));
+      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> unpair(phoneWearPair));
     }
 
     toolbar
@@ -167,7 +167,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     new WearDevicePairingWizard().show(project, myDeviceId.toString());
   }
 
-  private void unpairDevice(@NotNull String deviceId) {
+  private void unpair(@NotNull PhoneWearPair phoneWearPair) {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
       .setKind(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
       .build();
@@ -176,7 +176,9 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
 
     try {
       CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-      BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(deviceId, true, continuation));
+      BuildersKt.runBlocking(context, (scope, continuation) ->
+        myManager.removePairedDevices(phoneWearPair, true, continuation)
+      );
     }
     catch (InterruptedException exception) {
       Thread.currentThread().interrupt();

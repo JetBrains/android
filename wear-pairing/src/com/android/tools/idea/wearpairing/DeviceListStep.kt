@@ -349,7 +349,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                   ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
                 AndroidCoroutineScope(this@DeviceListStep).launch(ioThread) {
-                  WearPairingManager.removePairedDevices(listDevice.deviceID)
+                  WearPairingManager.removeAllPairedDevices(listDevice.deviceID)
                   // Update pairing icon
                   ApplicationManager.getApplication().invokeLater(
                     {

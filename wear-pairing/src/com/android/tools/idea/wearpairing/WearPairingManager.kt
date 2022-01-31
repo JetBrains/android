@@ -241,7 +241,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
                                        wearDevice: IDevice,
                                        connect: Boolean = true): PhoneWearPair {
     LOG.warn("Starting device bridge {connect = $connect}")
-    removePairedDevices(wear.deviceID, restartWearGmsCore = false)
+    removeAllPairedDevices(phone.deviceID, restartWearGmsCore = false)
+    removeAllPairedDevices(wear.deviceID, restartWearGmsCore = false)
 
     val hostPort = NetUtils.tryToFindAvailableSocketPort(5602)
     val phoneWearPair = PhoneWearPair(
@@ -286,15 +287,17 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     return state
   }
 
-  suspend fun removePairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) {
-    try {
-      val phoneWearPair = pairedDevicesTable[deviceID]
-      val phoneDeviceID = phoneWearPair?.phone?.deviceID ?: return
-      val wearDeviceID = phoneWearPair.wear.deviceID
+  suspend fun removeAllPairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) {
+    // Note: At the moment we only have at most one device, but in the future this will be a list
+    val phoneWearPair = pairedDevicesTable[deviceID] ?: return
+    removePairedDevices(phoneWearPair, restartWearGmsCore = restartWearGmsCore)
+  }
 
+  suspend fun removePairedDevices(phoneWearPair: PhoneWearPair, restartWearGmsCore: Boolean = true) {
+    try {
       mutex.withLock {
-        pairedDevicesTable.remove(phoneDeviceID)
-        pairedDevicesTable.remove(wearDeviceID)
+        pairedDevicesTable.remove(phoneWearPair.phone.deviceID)
+        pairedDevicesTable.remove(phoneWearPair.wear.deviceID)
       }
       pairingStatusListeners.forEach {
         it.pairingDeviceRemoved(phoneWearPair)
@@ -304,13 +307,13 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
       }
 
       val connectedDevices = getConnectedDevices()
-      connectedDevices[phoneDeviceID]?.apply {
+      connectedDevices[phoneWearPair.phone.deviceID]?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
         runCatching { removeForward(5601) } // Make sure there is no manual connection hanging around
         runCatching { if (phoneWearPair.hostPort > 0) removeForward(phoneWearPair.hostPort) }
       }
 
-      connectedDevices[wearDeviceID]?.apply {
+      connectedDevices[phoneWearPair.wear.deviceID]?.apply {
         LOG.warn("[$name] Remove AUTO-reverse")
         runCatching { removeReverse(5601) }
         if (restartWearGmsCore) {
@@ -452,7 +455,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     val deviceID = device.deviceID
     if (!deviceTable.contains(deviceID)) {
       if (device.isEmulator) {
-        removePairedDevices(deviceID) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+        removeAllPairedDevices(deviceID) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
       }
       else {
         deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"

@@ -189,7 +189,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
     val isNewWearPairingDevice =
       WearPairingManager.getPairedDevices(phonePairingDevice.deviceID)?.wear?.deviceID != wearPairingDevice.deviceID
-    WearPairingManager.removePairedDevices(phonePairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
+    WearPairingManager.removeAllPairedDevices(wearPairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     companionAppStep(phoneDevice, wearDevice)
   }
@@ -716,7 +716,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           val wearDeviceId = model.selectedWearDevice.valueOrNull?.deviceID ?: ""
           val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
           avdManager.findAvd(wearDeviceId)?.apply {
-            WearPairingManager.removePairedDevices(wearDeviceId, restartWearGmsCore = false)
+            WearPairingManager.removeAllPairedDevices(wearDeviceId, restartWearGmsCore = false)
             avdManager.stopAvd(this)
             waitForCondition(10_000) { model.selectedWearDevice.valueOrNull?.isOnline() != true }
             avdManager.wipeUserData(this)

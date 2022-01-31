@@ -59,7 +59,7 @@ internal class UnpairDeviceAction(
       }
       else {
         GlobalScope.launch(AndroidDispatchers.ioThread) {
-          WearPairingManager.removePairedDevices(deviceID)
+          WearPairingManager.removeAllPairedDevices(deviceID)
         }
       }
     }
