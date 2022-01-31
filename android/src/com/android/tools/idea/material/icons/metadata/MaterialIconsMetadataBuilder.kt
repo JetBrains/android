@@ -38,6 +38,13 @@ class MaterialIconsMetadataBuilder(
   }
 
   /**
+   * Remove [iconMetadata] from the list of icons.
+   */
+  fun removeIconMetadata(iconMetadata: MaterialMetadataIcon) {
+    iconsMap.remove(iconMetadata.name)
+  }
+
+  /**
    * Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this instance through [addIconMetadata].
    */
   fun build(): MaterialIconsMetadata {
