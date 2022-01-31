@@ -45,6 +45,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import java.awt.Component;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.swing.Icon;
@@ -118,7 +119,7 @@ public final class PairedDevicesPanelTest {
 
     PhoneWearPair phoneWearPair = new PhoneWearPair(phoneDevice, wearDevice);
     phoneWearPair.setPairingStatus(PairingState.CONNECTED);
-    when(myWearPairingManager.getPairedDevices(phoneKey.toString())).thenReturn(phoneWearPair);
+    when(myWearPairingManager.getPairsForDevice(phoneKey.toString())).thenReturn(Collections.singletonList(phoneWearPair));
 
     FakeUi fakeUi = createFakeUi(phoneKey);
 
@@ -144,7 +145,7 @@ public final class PairedDevicesPanelTest {
 
     PhoneWearPair phoneWearPair = new PhoneWearPair(phoneDevice, wearDevice);
     phoneWearPair.setPairingStatus(PairingState.CONNECTING);
-    when(myWearPairingManager.getPairedDevices(phoneKey.toString())).thenReturn(phoneWearPair);
+    when(myWearPairingManager.getPairsForDevice(phoneKey.toString())).thenReturn(Collections.singletonList(phoneWearPair));
 
     FakeUi fakeUi = createFakeUi(phoneKey);
     JTable table = fakeUi.findComponent(JBTable.class, (Predicate<JBTable>)t -> true);

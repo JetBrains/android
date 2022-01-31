@@ -101,15 +101,13 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   @SuppressWarnings("unused")
   private @NotNull Optional<@NotNull JComponent> newUnpairDeviceItem() {
     String key = myDevice.getKey().toString();
-    PhoneWearPair pair = myManager.getPairedDevices(key);
+    List<PhoneWearPair> pairList = myManager.getPairsForDevice(key);
 
-    if (pair == null) {
+    if (pairList.isEmpty()) {
       return Optional.empty();
     }
 
     AbstractButton item = new JBMenuItem("Unpair Device");
-    PairingDevice otherDevice = pair.getPeerDevice(key);
-    item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
         .setKind(DeviceManagerEvent.EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
@@ -121,6 +119,9 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
         myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
       }
       else {
+        PhoneWearPair pair = pairList.get(0);
+        PairingDevice otherDevice = pair.getPeerDevice(key);
+        item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
         try {
           CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
           BuildersKt.runBlocking(context, (scope, continuation) ->

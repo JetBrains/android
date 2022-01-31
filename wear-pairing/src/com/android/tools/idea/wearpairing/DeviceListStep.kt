@@ -334,7 +334,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          val phoneWearPair = WearPairingManager.getPairedDevices(listDevice.deviceID)
+          val phoneWearPair = WearPairingManager.getPairsForDevice(listDevice.deviceID).firstOrNull()
           if (phoneWearPair != null) {
             val peerDevice = phoneWearPair.getPeerDevice(listDevice.deviceID)
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
@@ -423,7 +423,7 @@ private fun PairingDevice.isDisabled(): Boolean {
 
 private fun PairingDevice.getTooltip(): String? {
   if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-    WearPairingManager.getPairedDevices(deviceID)?.apply {
+    WearPairingManager.getPairsForDevice(deviceID).firstOrNull()?.apply {
       return "Paired with ${getPeerDevice(deviceID).displayName}"
     }
   }

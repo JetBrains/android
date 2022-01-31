@@ -96,7 +96,7 @@ private val LOG get() = logger<WearPairingManager>()
 
 class DevicesConnectionStep(model: WearDevicePairingModel,
                             val project: Project?,
-                            val wizardAction: WizardAction,
+                            private val wizardAction: WizardAction,
                             private val isFirstStage: Boolean = true) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val coroutineScope = AndroidCoroutineScope(this)
   private var runningJob: Job? = null
@@ -188,7 +188,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       return
     }
     val isNewWearPairingDevice =
-      WearPairingManager.getPairedDevices(phonePairingDevice.deviceID)?.wear?.deviceID != wearPairingDevice.deviceID
+      WearPairingManager.getPairsForDevice(phonePairingDevice.deviceID)
+      .firstOrNull { wearPairingDevice.deviceID == it.wear.deviceID } == null
     WearPairingManager.removeAllPairedDevices(wearPairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     companionAppStep(phoneDevice, wearDevice)

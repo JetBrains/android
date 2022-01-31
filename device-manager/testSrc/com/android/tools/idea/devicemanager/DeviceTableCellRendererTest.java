@@ -29,6 +29,7 @@ import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
+import java.util.Collections;
 import javax.swing.JTable;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public final class DeviceTableCellRendererTest {
     Mockito.when(pair.getPairingStatus()).thenReturn(PairingState.CONNECTED);
 
     WearPairingManager manager = Mockito.mock(WearPairingManager.class);
-    Mockito.when(manager.getPairedDevices("86UX00F4R")).thenReturn(pair);
+    Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
 
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, manager);
     assert renderer.getPairedLabel().getIcon() == null;
@@ -92,7 +93,7 @@ public final class DeviceTableCellRendererTest {
     Mockito.when(pair.getPairingStatus()).thenReturn(PairingState.UNKNOWN);
 
     WearPairingManager manager = Mockito.mock(WearPairingManager.class);
-    Mockito.when(manager.getPairedDevices("86UX00F4R")).thenReturn(pair);
+    Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
 
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, manager);
     assert renderer.getPairedLabel().getIcon() == null;

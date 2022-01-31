@@ -30,6 +30,7 @@ import com.intellij.util.ui.UIUtil.FontSize;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -169,14 +170,16 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   }
 
   @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
-    PhoneWearPair pair = myManager.getPairedDevices(device.getKey().toString());
+    List<PhoneWearPair> pairList = myManager.getPairsForDevice(device.getKey().toString());
 
-    if (pair == null) {
+    if (pairList.isEmpty()) {
       return Optional.empty();
     }
 
-    if (pair.getPairingStatus().equals(PairingState.CONNECTED)) {
-      return Optional.of(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED);
+    for (PhoneWearPair pair : pairList) {
+      if (pair.getPairingStatus().equals(PairingState.CONNECTED)) {
+        return Optional.of(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED);
+      }
     }
 
     return Optional.of(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN);

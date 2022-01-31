@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.stdui.EmptyStatePanel;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
-import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
@@ -41,7 +40,8 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import java.awt.BorderLayout;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
@@ -67,7 +67,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     myDeviceId = deviceId;
     myManager = pairingManager;
 
-    createUi(myManager.getPairedDevices(myDeviceId.toString()));
+    createUi();
     myManager.addDevicePairingStatusChangedListener(this);
     Disposer.register(parent, this);
   }
@@ -80,36 +80,36 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   @Override
   public void pairingStatusChanged(@NotNull PhoneWearPair phoneWearPair) {
     if (phoneWearPair.contains(myDeviceId.toString())) {
-      ApplicationManager.getApplication().invokeLater(() -> createUi(phoneWearPair), ModalityState.any());
+      ApplicationManager.getApplication().invokeLater(this::createUi, ModalityState.any());
     }
   }
 
   @Override
   public void pairingDeviceRemoved(@NotNull PhoneWearPair phoneWearPair) {
     if (phoneWearPair.contains(myDeviceId.toString())) {
-      ApplicationManager.getApplication().invokeLater(() -> createUi(null), ModalityState.any());
+      ApplicationManager.getApplication().invokeLater(this::createUi, ModalityState.any());
     }
   }
 
   @UiThread
-  private void createUi(@Nullable PhoneWearPair phoneWearPair) {
+  private void createUi() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     removeAll();
 
     ToolbarDecorator toolbar;
-
-    if (phoneWearPair == null) {
+    List<PhoneWearPair> phoneWearPairList = myManager.getPairsForDevice(myDeviceId.toString());
+    if (phoneWearPairList.isEmpty()) {
       toolbar = new EmptyStateToolbarDecorator()
         .setRemoveAction(button -> {
         }) // Add remove button
         .setRemoveActionUpdater(event -> false); // Disable remove button
     }
     else {
-      PairingDevice peerDevice = phoneWearPair.getPeerDevice(myDeviceId.toString());
+      List<Pairing> pairings = phoneWearPairList.stream()
+        .map(pair -> new Pairing(pair.getPeerDevice(myDeviceId.toString()), pair.getPairingStatus()))
+        .collect(Collectors.toList());
 
-      Pairing pairing = new Pairing(peerDevice, phoneWearPair.getPairingStatus());
-
-      JTable table = new JBTable(new PairingTableModel(Collections.singletonList(pairing)));
+      JTable table = new JBTable(new PairingTableModel(pairings));
       table.setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
       table.setShowGrid(false);
 
@@ -117,7 +117,12 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
       columnModel.getColumn(0).setPreferredWidth(80_000); // Some large number, 80% of total width
       columnModel.getColumn(1).setPreferredWidth(20_000);
 
-      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> unpair(phoneWearPair));
+      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> {
+        int selectedIndex = table.getSelectedRow();
+        if (selectedIndex >= 0 && selectedIndex < phoneWearPairList.size()) {
+          unpair(phoneWearPairList.get(selectedIndex));
+        }
+      });
     }
 
     toolbar

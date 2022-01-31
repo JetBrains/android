@@ -25,6 +25,7 @@ import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
@@ -89,12 +90,13 @@ public class InfoSection extends JBPanel<InfoSection> {
       return Optional.empty();
     }
     String key = device.getKey().toString();
-    PhoneWearPair pair = manager.getPairedDevices(key);
+    List<PhoneWearPair> pairList = manager.getPairsForDevice(key);
 
-    if (pair == null) {
+    if (pairList.isEmpty()) {
       return Optional.empty();
     }
 
+    PhoneWearPair pair = pairList.get(0);
     InfoSection section = new InfoSection("Paired device");
     setText(section.addNameAndValueLabels("Paired with"), pair.getPeerDevice(key).getDisplayName());
     String paringStatus;
