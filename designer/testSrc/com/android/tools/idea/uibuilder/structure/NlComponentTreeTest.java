@@ -43,7 +43,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.adtui.workbench.ComponentStack;
+import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.actions.GotoComponentAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -56,14 +59,23 @@ import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
+import com.google.common.base.Charsets;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.LineColumn;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
@@ -71,13 +83,19 @@ import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.tree.TreePath;
+import kotlin.Suppress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 
@@ -85,6 +103,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   private BrowserLauncher myBrowserLauncher;
   @Mock
   private DataContext myDataContext;
+  @Nullable
+  private ComponentStack componentStack = null;
 
   @Override
   public void setUp() throws Exception {
@@ -92,6 +112,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     initMocks(this);
     replaceApplicationService(CopyPasteManager.class, new MockCopyPasteManager());
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
+    componentStack = new ComponentStack(getProject());
   }
 
   @Override
@@ -101,6 +122,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
       // tests through IJ)
       myBrowserLauncher = null;
       myDataContext = null;
+      if (componentStack != null) {
+        componentStack.restore();
+        componentStack = null;
+      }
     }
     finally {
       super.tearDown();
@@ -395,6 +420,56 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <LinearLayout>  [expanded]\n" +
                                        "        <Button>\n" +
                                        "    <AbsoluteLayout>\n");
+  }
+
+  public void testGotoDeclaration() throws IOException {
+    FileEditorManager fileManager = enableFileOpenCaptures();
+    NlComponentTree tree = createTree(createModel());
+    UIUtil.dispatchAllInvocationEvents();
+    tree.addSelectionRow(2); // Button
+    NlDesignSurface surface = tree.getDesignSurface();
+    assertThat(surface).isNotNull();
+    AnAction gotoDeclaration = new GotoComponentAction(surface);
+    gotoDeclaration.actionPerformed(mock(AnActionEvent.class));
+    checkEditor(fileManager, "relative.xml", 9, "<Button");
+  }
+
+  @NotNull
+  private FileEditorManager enableFileOpenCaptures() {
+    FileEditorManager fileManager = Mockito.mock(FileEditorManagerEx.class);
+    when(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor.class), ArgumentMatchers.anyBoolean()))
+      .thenReturn(Collections.singletonList(Mockito.mock(FileEditor.class)));
+    when(fileManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
+    when(fileManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    //noinspection UnstableApiUsage
+    when(fileManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(fileManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
+    if (componentStack != null) {
+      componentStack.registerComponentInstance(FileEditorManager.class, fileManager);
+    }
+    return fileManager;
+  }
+
+  private void checkEditor(
+    @NotNull FileEditorManager fileManager,
+    @NotNull String fileName,
+    int lineNumber,
+    @NotNull String text
+  ) throws IOException {
+    ArgumentCaptor<OpenFileDescriptor> file = ArgumentCaptor.forClass(OpenFileDescriptor.class);
+    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true));
+    OpenFileDescriptor descriptor = file.getValue();
+    Pair<LineColumn, String> line = findLineAtOffset(descriptor.getFile(), descriptor.getOffset());
+    assertThat(descriptor.getFile().getName()).isEqualTo(fileName);
+    assertThat(line.second).isEqualTo(text);
+    assertThat(line.first.line + 1).isEqualTo(lineNumber);
+  }
+
+  private Pair<LineColumn, String> findLineAtOffset(@NotNull VirtualFile file, int offset) throws IOException {
+    String text = new String(file.contentsToByteArray(), Charsets.UTF_8);
+    LineColumn line = StringUtil.offsetToLineColumn(text, offset);
+    String lineText = text.substring(offset - line.column, text.indexOf('\n', offset));
+    return Pair.create(line, lineText.trim());
   }
 
   public void testShiftHelpOnComponentTree() {
