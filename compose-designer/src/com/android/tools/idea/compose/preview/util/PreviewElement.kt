@@ -237,7 +237,7 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   if (device != null) {
     // Ensure the device is reset
     renderConfiguration.setEffectiveDevice(null, null)
-    // If the user is not using the device frame, we never want to use the round frame around. See b/202854655
+    // If the user is not using the device frame, we never want to use the round frame around. See b/215362733
     renderConfiguration.setDevice(
       if (useDeviceFrame) device else device.withoutRoundScreenFrame(),
       false)
