@@ -148,7 +148,9 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val stats = SessionStatistics(model, treeSettings)
     val panel = DeviceViewContentPanel(model, stats, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
-    assertEquals(Dimension(376, 394), panel.preferredSize)
+    assertEquals(Dimension(130, 160), panel.preferredSize)
+    panel.model.rotate(1.0, 0.0)
+    assertEquals(Dimension(376, 395), panel.preferredSize)
 
     settings.scalePercent = 100
     assertEquals(Dimension(1020, 1084), panel.preferredSize)
@@ -159,6 +161,8 @@ class DeviceViewContentPanelTest {
       }, listOf(ROOT), 0)
     // This is usually handled by a listener registered in DeviceViewPanel
     panel.model.refresh()
+    assertEquals(Dimension(200, 300), panel.preferredSize)
+    panel.model.rotate(1.0, 0.0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -965,7 +969,7 @@ class DeviceViewContentPanelTest {
   @Test
   fun testAutoScroll() {
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
+      view(ROOT, 0, 0, 300, 400) {
         view(VIEW1, 0, 0, 50, 50) {
           view(VIEW3, 30, 30, 10, 10)
         }
@@ -973,24 +977,23 @@ class DeviceViewContentPanelTest {
       }
     }
     val view1 = model[VIEW1]
-    val settings = EditorDeviceViewSettings(scalePercent = 200)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { mock() }, mock(), null,
-                                       disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, EditorDeviceViewSettings(), { mock() },
+                                       mock(), null, disposable.disposable)
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
-    scrollPane.setBounds(0, 0, 400, 400)
-    scrollPane.viewport.viewPosition = Point(600, 600)
+    scrollPane.setBounds(0, 0, 200, 200)
+    scrollPane.viewport.viewPosition = Point(100, 100)
     UIUtil.dispatchAllInvocationEvents()
 
     // No auto scrolling when selection is changed from the image:
     model.setSelection(view1, SelectionOrigin.INTERNAL)
-    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(600, 600))
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(100, 100))
 
     // Auto scrolling will be in effect when selecting from the component tree:
     model.setSelection(view1, SelectionOrigin.COMPONENT_TREE)
-    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(398, 278))
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(348, 277))
   }
 
   private class FakeActionPopupMenu(private val group: ActionGroup): ActionPopupMenu {

@@ -255,12 +255,17 @@ class DeviceViewContentPanel(
     }
   }
 
-  override fun getPreferredSize() =
-    if (inspectorModel.isEmpty) Dimension(0, 0)
-    // Give twice the needed size, so we have room to move the view around a little. Otherwise things can jump around
-    // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
-    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2,
-                   (model.maxHeight * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2)
+  override fun getPreferredSize(): Dimension {
+    val (desiredWidth, desiredHeight) = when {
+      inspectorModel.isEmpty -> Pair(0, 0)
+      // If rotated, give twice the needed size, so we have room to move the view around a little. Otherwise things can jump around
+      // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
+      model.isRotated -> Pair(model.maxWidth * 2, model.maxHeight * 2)
+      else -> inspectorModel.root.transitiveBounds.run { Pair(width, height) }
+    }
+    return Dimension((desiredWidth * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
+                     (desiredHeight * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2)
+  }
 
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
