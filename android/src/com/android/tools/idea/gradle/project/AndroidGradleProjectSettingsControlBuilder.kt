@@ -62,7 +62,6 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
     const val EMBEDDED_JDK_NAME = "Embedded JDK"
     const val ANDROID_STUDIO_JAVA_HOME_NAME = "Android Studio java home"
-    const val ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK"
   }
   init {
     // Drop original JdkComponents so new ones can be generated

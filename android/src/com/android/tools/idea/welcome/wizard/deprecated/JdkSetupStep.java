@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_TOOLTIP;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton;
+import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 

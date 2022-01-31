@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
-import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
+import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
