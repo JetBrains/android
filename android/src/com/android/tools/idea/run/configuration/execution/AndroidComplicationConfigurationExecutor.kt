@@ -33,6 +33,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
@@ -42,7 +43,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
   override val configuration = environment.runProfile as AndroidComplicationConfiguration
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor {
+  override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")

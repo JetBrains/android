@@ -16,8 +16,10 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.intellij.execution.configurations.ModuleRunConfiguration
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.module.Module
 
 /**
@@ -31,4 +33,8 @@ interface ComponentSpecificConfiguration : ModuleRunConfiguration {
 
 interface RunConfigurationWithDebugger : ModuleRunConfiguration {
   val androidDebuggerContext: AndroidDebuggerContext
+}
+
+interface RunConfigurationWithAndroidConfigurationExecutorBase {
+  fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutorBase
 }

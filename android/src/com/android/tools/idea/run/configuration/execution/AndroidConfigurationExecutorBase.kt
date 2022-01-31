@@ -28,38 +28,33 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
-import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.concurrency.AsyncPromise
+import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment) : RunProfileState {
+abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment) {
   abstract val configuration: ComponentSpecificConfiguration
   protected val project = environment.project
   protected val appId
     get() = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
             ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
-  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
-    throw RuntimeException("Unexpected code path")
-  }
-
   @WorkerThread
   @Throws(ExecutionException::class)
-  fun execute(stats: RunStats): RunContentDescriptor {
+  fun execute(stats: RunStats): Promise<RunContentDescriptor> {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
     stats.setDebuggable(LaunchUtils.canDebugApp(facet))
     stats.setExecutor(environment.executor.id)
@@ -72,14 +67,15 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     devices.forEach { LaunchUtils.initiateDismissKeyguard(it) }
     stats.beginLaunchTasks()
     val runContentDescriptor = doOnDevices(devices)
-    stats.endBeforeRunTasks()
+    stats.endLaunchTasks()
     return runContentDescriptor
   }
 
   @VisibleForTesting
   @Throws(ExecutionException::class)
-  abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor
+  abstract fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor>
 
+  @Throws(ExecutionException::class)
   private fun getDevices(stats: RunStats): List<IDevice> {
     val facet = AndroidFacet.getInstance(configuration.module!!)!!
     val provider = DeviceAndSnapshotComboBoxTargetProvider()
@@ -153,15 +149,17 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     devices: List<IDevice>,
     processHandler: AndroidProcessHandlerForDevices,
     console: ConsoleView
-  ): RunContentDescriptor {
-    return if (environment.executor.isDebug) {
+  ): Promise<RunContentDescriptor> {
+    val promise = AsyncPromise<RunContentDescriptor>()
+    if (environment.executor.isDebug) {
       processHandler.startNotify()
-      startDebugger(devices.single(), processHandler, console)
+      promise.setResult(startDebugger(devices.single(), processHandler, console))
     }
     else {
-      invokeAndWaitIfNeeded {
-        ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment)
+      invokeLater {
+        promise.setResult(ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment))
       }
     }
+    return promise
   }
 }

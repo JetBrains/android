@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.AndroidProjectTypes
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.deployer.model.App
@@ -26,22 +27,22 @@ import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
 import com.android.tools.idea.run.configuration.isDebug
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.concurrency.Promise
 
 class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
 
   override val configuration = environment.runProfile as AndroidRunConfiguration
   private val facet = AndroidFacet.getInstance(configuration.module!!)!!
 
-  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor {
+  @WorkerThread
+  override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
     val isDebug = environment.executor.isDebug
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")

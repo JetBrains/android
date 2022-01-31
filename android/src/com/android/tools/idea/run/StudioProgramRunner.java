@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -79,7 +80,7 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     if (config.canRunWithoutSync()) {
       return true;
     }
-    if (config instanceof AndroidRunConfiguration && ((AndroidRunConfiguration)config).getUseNewExecution()) {
+    if (config instanceof AndroidRunConfiguration && AndroidConfigurationProgramRunner.Companion.getUseNewExecutionForActivities()) {
       // In this case [AndroidConfigurationProgramRunner] is going to be used.
       return false;
     }

@@ -35,6 +35,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import org.jetbrains.concurrency.Promise
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
@@ -45,7 +46,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   override val configuration = environment.runProfile as AndroidTileConfiguration
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor {
+  override fun doOnDevices(devices: List<IDevice>): Promise<RunContentDescriptor> {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for a single device")

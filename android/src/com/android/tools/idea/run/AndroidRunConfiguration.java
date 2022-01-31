@@ -16,11 +16,9 @@
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.model.component.ComponentType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -31,8 +29,9 @@ import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration;
+import com.android.tools.idea.run.configuration.RunConfigurationWithAndroidConfigurationExecutorBase;
 import com.android.tools.idea.run.configuration.execution.AndroidActivityConfigurationExecutor;
-import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
@@ -53,7 +52,6 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -92,7 +90,8 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider,
-                                                                                    ComponentSpecificConfiguration {
+                                                                                    ComponentSpecificConfiguration,
+                                                                                    RunConfigurationWithAndroidConfigurationExecutorBase {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -183,24 +182,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       this,
       true,
       moduleSelector -> new ApplicationRunParameters<>(getProject(), moduleSelector));
-  }
-
-  @Override
-  public @Nullable RunProfileState doGetState(@NotNull Executor executor,
-                                              @NotNull ExecutionEnvironment env,
-                                              @NotNull RunStats stats) throws ExecutionException {
-    if (getUseNewExecution() && env.getUserData(SWAP_INFO_KEY) == null) {
-      validateBeforeRun(executor);
-      return new AndroidActivityConfigurationExecutor(env);
-    }
-    else {
-      return super.doGetState(executor, env, stats);
-    }
-  }
-
-  public boolean getUseNewExecution() {
-    return StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get() &&
-           AndroidConfigurationExecutionSettings.getInstance().getState().getEnableNewConfigurationFlow();
   }
 
   @Override
@@ -410,6 +391,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   public Module getModule() {
     return getConfigurationModule().getModule();
+  }
+
+  @NotNull
+  @Override
+  public AndroidConfigurationExecutorBase getExecutor(@NotNull ExecutionEnvironment environment) {
+    return new AndroidActivityConfigurationExecutor(environment);
   }
 
   public static boolean shouldDeployApkFromBundle(AndroidRunConfiguration configuration) {
