@@ -22,7 +22,6 @@ import com.intellij.util.PlatformIcons;
 import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class AndroidNinePatchFileType implements FileType {
   public static final String EXTENSION = SdkConstants.DOT_9PNG.substring(1);
@@ -49,7 +48,6 @@ public final class AndroidNinePatchFileType implements FileType {
     return EXTENSION;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return PlatformIcons.FILE_ICON;

@@ -22,7 +22,6 @@ import javax.swing.*;
 import org.intellij.images.ImagesIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class PhotoshopFileType implements FileType {
   public static final String EXTENSION = SdkConstants.DOT_PSD.substring(1);
@@ -49,7 +48,6 @@ public final class PhotoshopFileType implements FileType {
     return EXTENSION;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return ImagesIcons.ImagesFileType;

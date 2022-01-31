@@ -40,7 +40,6 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
     return false;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return StudioIcons.Profiler.Files.PROFILER_CAPTURE;
