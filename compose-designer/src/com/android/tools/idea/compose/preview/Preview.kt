@@ -1155,6 +1155,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launchWithProgress
       }
 
+      if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+        // Project needs to be built before being able to refresh.
+        requestLogger.debug("Project has not build, not able to refresh")
+        return@launchWithProgress
+      }
+
       if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
         composeWorkBench.handleLayoutlibNativeCrash { requestRefresh() }
         return@launchWithProgress
