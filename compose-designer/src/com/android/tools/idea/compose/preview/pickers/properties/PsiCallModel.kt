@@ -22,6 +22,8 @@ import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
@@ -177,6 +179,8 @@ private fun parserResolvedCallToPsiPropertyItems(
           }
         }
         PARAMETER_UI_MODE -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_SHOW_SYSTEM_UI,
+        PARAMETER_SHOW_BACKGROUND -> BooleanPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
       }.also {
         properties.add(it)

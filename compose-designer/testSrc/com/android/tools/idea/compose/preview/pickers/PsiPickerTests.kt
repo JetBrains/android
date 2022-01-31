@@ -253,6 +253,40 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     checkFontScaleChange("8.f", "8.0")
   }
 
+  @RunsInEdt
+  @Test
+  fun showBackgroundEditing() = runBlocking {
+    @Language("kotlin")
+    val fileContent = """
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
+
+      @Composable
+      @Preview
+      fun PreviewNoParameters() {
+      }
+      """.trimIndent()
+
+    val model = getFirstModel(fileContent)
+    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
+
+    fun checkShowBackgroundChange(newValue: String?, expectedPropertyValue: String?) {
+      model.properties["", "showBackground"].value = newValue
+      assertEquals(expectedPropertyValue, model.properties["", "showBackground"].value)
+      assertEquals("@Preview(showBackground = $expectedPropertyValue)", preview.annotationText())
+    }
+    fun checkShowBackgroundEmptyChange(newValue: String?, expectedPropertyValue: String?) {
+      model.properties["", "showBackground"].value = newValue
+      assertEquals(expectedPropertyValue, model.properties["", "showBackground"].value)
+      assertEquals("@Preview", preview.annotationText())
+    }
+
+    checkShowBackgroundChange("true", "true")
+    checkShowBackgroundEmptyChange(null, null)
+    checkShowBackgroundChange("false", "false")
+    checkShowBackgroundEmptyChange("", null)
+  }
+
   @Test
   fun `original order is preserved`() = runBlocking {
     @Language("kotlin")
