@@ -656,6 +656,23 @@ class PTableImplTest {
   }
 
   @Test
+  fun testCopyFromTextFieldEditor() {
+    table!!.setRowSelectionInterval(3, 3)
+    table!!.editCellAt(3, 1)
+    val textField = (table!!.editorComponent as SimpleEditorComponent).getComponent(0) as JTextField
+    textField.text = "Text being edited"
+    textField.select(5, 10)
+    val transferHandler = table!!.transferHandler
+    val clipboard: Clipboard = mock()
+    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.COPY)
+    val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
+    verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
+    val transferable = transferableCaptor.value
+    assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("being")
+  }
+
+  @Test
   fun testCut() {
     table!!.setRowSelectionInterval(3, 3)
     val transferHandler = table!!.transferHandler

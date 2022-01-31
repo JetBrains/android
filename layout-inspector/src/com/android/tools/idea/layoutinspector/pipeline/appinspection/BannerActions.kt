@@ -139,9 +139,7 @@ private fun <T : Component> Component.firstComponentOfClass(cls: Class<T>): T? {
     return cls.cast(this)
   }
   if (this is Container) {
-    components.asSequence().forEach { component ->
-      component.firstComponentOfClass(cls)?.let { return it }
-    }
+    return components.asSequence().mapNotNull { it.firstComponentOfClass(cls) }.firstOrNull()
   }
   return null
 }

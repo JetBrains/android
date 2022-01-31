@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
@@ -61,13 +60,14 @@ class ResolutionElementEditor(
   private val linkPanel = JPanel()
 
   init {
+    isOpaque = false
     background = UIUtil.TRANSPARENT_COLOR
     add(editor, BorderLayout.CENTER)
     add(linkPanel, BorderLayout.SOUTH)
     linkPanel.layout = BoxLayout(linkPanel, BoxLayout.Y_AXIS)
     linkPanel.isVisible = false
     linkPanel.background = UIUtil.TRANSPARENT_COLOR
-    editorModel.addListener(ValueChangedListener { updateFromModel() })
+    editorModel.addListener { updateFromModel() }
     editor.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(event: MouseEvent) {
         if (!event.isConsumed && event.clickCount > 1) {

@@ -22,6 +22,9 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.UIUtil
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.JComponent
@@ -121,6 +124,26 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     finally {
       updatingFromModel = false
     }
+  }
+
+  override fun paintComponent(g: Graphics) {
+    // Workaround for: JDK-4194023 : JTextField presents selection problems when anti-aliasing is turned on
+    // If some code has turned antialiasing (or fractionalMetrics) on for this graphics instance, turn these off before painting the text.
+    // The JDK is currently unable to paint text with selection when these are turned on. The user will see black on black.
+
+    // Also allow display of text selections in CommonTextField.
+    // This allows text selections in the layout inspector where these fields do not gain focus.
+    val g2 = g.create() as Graphics2D
+    val selectionVisible = caret.isSelectionVisible
+    caret.isSelectionVisible = true
+
+    g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF)
+    g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF)
+
+    super.paintComponent(g2)
+
+    caret.isSelectionVisible = selectionVisible
+    g2.dispose()
   }
 
   override fun setText(text: String?) {

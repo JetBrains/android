@@ -16,9 +16,12 @@
 package com.android.tools.property.ptable.impl
 
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable
+import java.awt.Component
+import java.awt.Container
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
+import javax.swing.JTextField
 import javax.swing.TransferHandler
 
 class PTableTransferHandler : TransferHandler() {
@@ -31,6 +34,12 @@ class PTableTransferHandler : TransferHandler() {
     val rows = table.selectedRows
     if (rows.isEmpty()) {
       return null
+    }
+    val editor = table.editorComponent
+    val textField = editor?.firstComponentOfClass(JTextField::class.java)
+    val selectedText = textField?.selectedText
+    if (selectedText != null) {
+      return BasicTransferable(selectedText, selectedText)
     }
     val plainStr = StringBuilder()
     val htmlStr = StringBuilder()
@@ -86,5 +95,15 @@ class PTableTransferHandler : TransferHandler() {
       actions = actions or MOVE
     }
     return actions
+  }
+
+  private fun <T : Component> Component.firstComponentOfClass(cls: Class<T>): T? {
+    if (cls.isInstance(this)) {
+      return cls.cast(this)
+    }
+    if (this is Container) {
+      return components.asSequence().mapNotNull { it.firstComponentOfClass(cls) }.firstOrNull()
+    }
+    return null
   }
 }
