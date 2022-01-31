@@ -743,25 +743,6 @@ public final class StudioFlags {
 
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
-    "If enabled, show actions to let user choose overlay image on preview.", true);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_SUB_VIEW_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "sub.view", "Enable the sub view feature",
-    "If enabled, changes the preview to focus on a component.", true);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "capture.v2", "Enable using V2 protocol to capture view data",
-    "If enabled, uses V2 protocol to capture view information from device.", false);
-  public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
-    "If enabled, users can edit properties in the properties table.", false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
-    "Turns on the dynamic layout inspector.", true);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
-    "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
-    false);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
