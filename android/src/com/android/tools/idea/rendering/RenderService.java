@@ -30,8 +30,8 @@ import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
@@ -225,7 +225,7 @@ public class RenderService implements Disposable {
          logger.getLinkManager().createRunnableLink(() -> {
            Project project = module.getProject();
            ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-           if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+           if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
              ((AndroidProjectSettingsService)service).openSdkSettings();
              return;
            }

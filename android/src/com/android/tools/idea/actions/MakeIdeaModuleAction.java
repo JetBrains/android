@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.actions.MakeGradleModuleAction;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -33,7 +33,7 @@ public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (project != null && ProjectSystemUtil.requiresAndroidModel(project)) {
       // Projects that require a Android model have their own action to build modules and projects.
       e.getPresentation().setEnabledAndVisible(false);
       return;

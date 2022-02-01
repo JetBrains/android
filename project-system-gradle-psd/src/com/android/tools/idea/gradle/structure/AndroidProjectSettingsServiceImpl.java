@@ -29,8 +29,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.bu
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorsPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigsPanelKt;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
@@ -294,6 +294,6 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   private boolean isGradleProjectInAndroidStudio() {
-    return IdeInfo.getInstance().isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
+    return IdeInfo.getInstance().isAndroidStudio() && ProjectSystemUtil.requiresAndroidModel(myProject);
   }
 }

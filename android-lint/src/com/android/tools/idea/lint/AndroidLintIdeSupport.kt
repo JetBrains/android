@@ -35,7 +35,6 @@ import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
-import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -43,6 +42,7 @@ import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -158,7 +158,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     else if (file.isGradleFile()) {
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       val project = file.project
-      if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+      if (project.requiresAndroidModel()) {
         AndroidFileChangeListener.getInstance(project)
       }
       return true

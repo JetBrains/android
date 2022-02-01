@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlH
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -106,7 +106,7 @@ public class GradleSyncInvokerImpl implements GradleSyncInvoker {
 
   private static boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
-    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || projectInfo.hasTopLevelGradleFile()) {
+    if (ProjectSystemUtil.requiresAndroidModel(project) || projectInfo.hasTopLevelGradleFile()) {
       boolean isImportedProject = projectInfo.isImportedProject();
       if (!isImportedProject) {
         FileDocumentManager.getInstance().saveAllDocuments();

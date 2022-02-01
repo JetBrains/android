@@ -38,8 +38,8 @@ import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -240,7 +240,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && AndroidModel.isRequired(facet);
     }
-    return AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
+    return ProjectSystemUtil.requiresAndroidModel(myProject);
   }
 
   @Nullable

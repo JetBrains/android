@@ -33,8 +33,8 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 import java.nio.file.Path
 
 /**
@@ -182,6 +182,14 @@ fun Project?.getAndroidFacets(): List<AndroidFacet> {
     facet.module.isHolderModule()
     }
   } ?: listOf()
+}
+
+/**
+ * Indicates whether the given project has at least one module backed by build models.
+ */
+fun Project.requiresAndroidModel(): Boolean {
+  val androidFacets: List<AndroidFacet> = getAndroidFacets()
+  return ContainerUtil.exists(androidFacets) { facet: AndroidFacet -> AndroidModel.isRequired(facet) }
 }
 
 fun isAndroidTestFile(project: Project, file: VirtualFile?) = runReadAction {

@@ -2,7 +2,7 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -29,6 +29,6 @@ public class CleanProjectAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabledAndVisible(AndroidProjectInfo.getInstance(project).requiresAndroidModel());
+    e.getPresentation().setEnabledAndVisible(ProjectSystemUtil.requiresAndroidModel(project));
   }
 }

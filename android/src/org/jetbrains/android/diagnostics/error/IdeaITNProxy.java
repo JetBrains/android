@@ -1,7 +1,7 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.diagnostics.error;
 
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -72,7 +72,7 @@ public class IdeaITNProxy {
 
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     for (int i = 0; i < projects.length; i++) {
-      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(AndroidProjectInfo.getInstance(projects[i]).requiresAndroidModel())));
+      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(ProjectSystemUtil.requiresAndroidModel(projects[i]))));
     }
 
     return params;

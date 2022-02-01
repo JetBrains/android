@@ -21,7 +21,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGra
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -68,7 +68,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
 
   @Test
   public void testIsGradleProjectWithRegularProject() {
-    expect.that(AndroidProjectInfo.getInstance(projectRule.getProject()).requiresAndroidModel()).isFalse();
+    expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isFalse();
   }
 
   @Test
@@ -77,7 +77,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
     AndroidFacet facet = AndroidFacet.getInstance(gradleModule(projectRule.getProject(), ":"));
 
     expect.that(facet.getProperties().ALLOW_USER_CONFIGURATION).isFalse();
-    expect.that(AndroidProjectInfo.getInstance(projectRule.getProject()).requiresAndroidModel()).isTrue();
+    expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isTrue();
   }
 
   @Test

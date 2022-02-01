@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.application.options.ModulesComboBox;
@@ -84,7 +83,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     final Project project = getEventProject(e);
     if (project == null) return;
 
-    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (!ProjectSystemUtil.requiresAndroidModel(project)) {
       myDelegate.actionPerformed(e);
       return;
     }

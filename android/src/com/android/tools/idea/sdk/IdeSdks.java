@@ -36,8 +36,8 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -494,7 +494,7 @@ public class IdeSdks {
 
     AndroidSdkEventListener[] eventListeners = AndroidSdkEventListener.EP_NAME.getExtensions();
     for (Project project : openProjects) {
-      if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+      if (!ProjectSystemUtil.requiresAndroidModel(project)) {
         continue;
       }
       for (AndroidSdkEventListener listener : eventListeners) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.project;
 
 import com.android.tools.idea.apk.debugging.ApkDebugging;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,7 +38,7 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myProjectInfo = new AndroidProjectInfo(getProject());
+    myProjectInfo = AndroidProjectInfo.getInstance(getProject());
   }
 
   public void testGetAllModulesofProjectType() {
@@ -60,18 +61,18 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
     //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertTrue(myProjectInfo.requiresAndroidModel());
+    assertTrue(ProjectSystemUtil.requiresAndroidModel(getProject()));
   }
 
   public void testRequiresAndroidModelWithUserConfigurableAndroidFacet() {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
     //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = true;
-    assertFalse(myProjectInfo.requiresAndroidModel());
+    assertFalse(ProjectSystemUtil.requiresAndroidModel(getProject()));
   }
 
   public void testRequiresAndroidModelWithModuleWithoutAndroidFacet() {
-    assertFalse(myProjectInfo.requiresAndroidModel());
+    assertFalse(ProjectSystemUtil.requiresAndroidModel(getProject()));
   }
 
   public void testDoesNotRequireAndroidModelWithApkFacet() {
@@ -81,7 +82,7 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
 
     createAndAddApkFacet(module);
 
-    assertFalse(myProjectInfo.requiresAndroidModel());
+    assertFalse(ProjectSystemUtil.requiresAndroidModel(getProject()));
   }
 
   public void testIsApkProject() {

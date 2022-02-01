@@ -41,9 +41,9 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -89,7 +89,6 @@ import javax.swing.Icon
  *
  */
 class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskProvider<MakeBeforeRunTask>() {
-  private val androidProjectInfo: AndroidProjectInfo = AndroidProjectInfo.getInstance(project)
   private val gradleProjectInfo: GradleProjectInfo = GradleProjectInfo.getInstance(project)
 
   override fun getId(): Key<MakeBeforeRunTask> = ID
@@ -217,7 +216,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     task: MakeBeforeRunTask
   ): Boolean {
     val androidRunConfiguration = if (configuration is AndroidRunConfigurationBase) configuration else null
-    if (!androidProjectInfo.requiresAndroidModel()) {
+    if (!project.requiresAndroidModel()) {
       val regularMake = CompileStepBeforeRun(project)
       return regularMake.executeTask(context, configuration, env, CompileStepBeforeRun.MakeBeforeRunTask())
     }
