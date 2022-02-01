@@ -78,14 +78,14 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 
-  private static <T extends AbstractExternalSystemTask> T createExternalSystemTask(Class<T> classToMock) {
+  private <T extends AbstractExternalSystemTask> T createExternalSystemTask(Class<T> classToMock) {
     T externalSystemTask = mock(classToMock);
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     when(taskId.getProjectSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
     when(externalSystemTask.getId()).thenReturn(taskId);
     when(externalSystemTask.getExternalSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
     when(externalSystemTask.getExternalProjectPath()).thenReturn("");
-    when(externalSystemTask.getIdeProject()).thenReturn(ProjectManager.getInstance().getDefaultProject());
+    when(externalSystemTask.getIdeProject()).thenReturn(getProject());
     return externalSystemTask;
   }
 }
