@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.logcat.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.runBlocking
 import com.intellij.ui.EditorTextField
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
@@ -40,7 +48,6 @@ import javax.swing.KeyStroke
 /**
  * Tests for [FilterTextField]
  */
-@RunsInEdt
 class FilterTextFieldTest {
   private val projectRule = ProjectRule()
 
@@ -48,6 +55,7 @@ class FilterTextFieldTest {
   val rule = RuleChain(projectRule, EdtRule())
 
   private val properties by lazy { PropertiesComponent.getInstance() }
+  private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(projectRule.project, this) } }
 
   @After
   fun tearDown() {
@@ -55,16 +63,18 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun constructor_setsText() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "text")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "text")
 
     assertThat(filterTextField.text).isEqualTo("text")
   }
 
   @Test
+  @RunsInEdt
   fun constructor_setsHistory() {
     properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "text")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "text")
 
     assertThat(filterTextField.model.getItems()).containsExactly(
       "text",
@@ -74,9 +84,10 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun constructor_emptyText() {
     properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
 
     assertThat(filterTextField.text).isEqualTo("")
     assertThat(filterTextField.model.getItems()).containsExactly(
@@ -86,22 +97,23 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun createEditor_putsUserData() {
     val editorFactory = EditorFactory.getInstance()
-    val logcatPresenter = FakeLogcatPresenter()
-    val filterTextField = FilterTextField(projectRule.project, logcatPresenter, initialText = "")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
     filterTextField.addNotify() // Creates editor
 
     val editor = filterTextField.getEditorEx()
 
-    assertThat(editor.getUserData(TAGS_PROVIDER_KEY)).isEqualTo(logcatPresenter)
-    assertThat(editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)).isEqualTo(logcatPresenter)
+    assertThat(editor.getUserData(TAGS_PROVIDER_KEY)).isEqualTo(fakeLogcatPresenter)
+    assertThat(editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)).isEqualTo(fakeLogcatPresenter)
     editorFactory.releaseEditor(editor)
   }
 
   @Test
+  @RunsInEdt
   fun pressEnter_addsToHistory() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
     filterTextField.addNotify() // Creates editor
     filterTextField.text = "foo"
 
@@ -115,8 +127,9 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun openPopup_addsToHistory() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
     filterTextField.addNotify() // Creates editor
     filterTextField.text = "foo"
 
@@ -126,8 +139,9 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun loosesFocus_addsToHistory() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
     filterTextField.addNotify() // Creates editor
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
@@ -138,8 +152,9 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun history_size() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "", maxHistorySize = 3)
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "", maxHistorySize = 3)
     filterTextField.addNotify() // Creates editor
 
     for (text in listOf("foo1", "foo2", "foo3", "foo4")) {
@@ -155,8 +170,9 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun history_bubbles() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "", maxHistorySize = 3)
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "", maxHistorySize = 3)
     filterTextField.addNotify() // Creates editor
 
     for (text in listOf("foo1", "foo2", "foo3", "foo1")) {
@@ -172,8 +188,9 @@ class FilterTextFieldTest {
   }
 
   @Test
+  @RunsInEdt
   fun clickClear() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "foo")
+    val filterTextField = FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "foo")
     filterTextField.size = Dimension(100, 100)
     val fakeUi = FakeUi(filterTextField)
     val clearButton = fakeUi.getComponent<JLabel> { true }
@@ -181,6 +198,18 @@ class FilterTextFieldTest {
     fakeUi.clickOn(clearButton)
 
     assertThat(filterTextField.text).isEmpty()
+  }
+
+  @Test
+  fun documentListenerIsCalled() = runBlocking {
+    val filterTextField = runInEdtAndGet { FilterTextField(projectRule.project, fakeLogcatPresenter, initialText = "") }
+    val documentListener = mock<DocumentListener>()
+
+    filterTextField.addDocumentListener(documentListener)
+    runInEdtAndWait { filterTextField.text = "foo" }
+
+    filterTextField.notifyFilterChangedTask.await()
+    verify(documentListener).documentChanged(any())
   }
 }
 

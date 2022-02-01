@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
+import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
@@ -26,6 +31,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.ui.components.BorderLayoutPanel
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
@@ -40,6 +46,7 @@ import javax.swing.KeyStroke
 import javax.swing.event.PopupMenuEvent
 
 private const val MAX_HISTORY_SIZE = 20
+private const val APPLY_FILTER_DELAY_MS = 100L
 
 /**
  * A text field for the filter.
@@ -59,6 +66,10 @@ internal class FilterTextField(
       add(initialText)
     }
   }
+  private val documentChangedListeners = mutableListOf<DocumentListener>()
+
+  @TestOnly
+  internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
 
   var text: String
     get() = textField.text
@@ -80,15 +91,27 @@ internal class FilterTextField(
       }
     })
 
-    textField.addFocusListener(object : FocusAdapter() {
-      override fun focusLost(e: FocusEvent?) {
-        addHistoryItem()
-      }
-    })
+    textField.apply {
+      addDocumentListener(object : DocumentListener {
+        override fun documentChanged(event: DocumentEvent) {
+          notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
+            for (listener in documentChangedListeners) {
+              listener.documentChanged(event)
+            }
+          }
+        }
+      })
+      addFocusListener(object : FocusAdapter() {
+        override fun focusLost(e: FocusEvent?) {
+          addHistoryItem()
+        }
+      })
+    }
   }
 
+  @UiThread
   fun addDocumentListener(listener: DocumentListener) {
-    textField.addDocumentListener(listener)
+    documentChangedListeners.add(listener)
   }
 
   // Registering a KeyListener doesn't seem to work.
