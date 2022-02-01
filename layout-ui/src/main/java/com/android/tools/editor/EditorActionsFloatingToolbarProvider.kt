@@ -138,13 +138,14 @@ abstract class EditorActionsFloatingToolbarProvider(
     for ((index, toolbar) in otherToolbars.values.withIndex()) {
       val controlsPanel = toolbar.component.wrapInDesignSurfaceUI()
       val otherControlsConstraints = GridBagConstraints().apply {
-        gridx = 0
+        gridx = 1
         gridy = index + 1
-        gridwidth = 2
+        weightx = 1.0
         anchor = GridBagConstraints.FIRST_LINE_END
         insets = VERTICAL_PANEL_MARGINS
       }
       floatingToolbar.add(controlsPanel, otherControlsConstraints)
+      controlsPanel.revalidate()
     }
     if (zoomLabelToolbar != null) {
       val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()

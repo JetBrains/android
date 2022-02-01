@@ -25,7 +25,6 @@ object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "
   override fun update(event: AnActionEvent) {
     super.update(event)
     val pannable = event.getData(PANNABLE_KEY)
-    event.presentation.isEnabledAndVisible = pannable != null
     event.presentation.isEnabled = pannable?.isPannable == true
     // setSelectedIcon doesn't work as expected, so instead we manually change the regular Icon when the Toggle is Selected
     event.presentation.icon = if (isSelected(event)) PAN_TOOL_SELECTED else PAN_TOOL
