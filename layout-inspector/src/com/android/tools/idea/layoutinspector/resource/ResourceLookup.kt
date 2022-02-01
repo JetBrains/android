@@ -68,8 +68,9 @@ class ResourceLookup(private val project: Project) {
   var fontScale: Float = DEFAULT_FONT_SCALE
 
   /**
-   * Update the configuration after a possible configuration change detected on the device.
+   * Updates the configuration after a possible configuration change detected on the device.
    */
+  @Slow
   fun updateConfiguration(
     folderConfig: FolderConfiguration,
     fontScaleFromConfig: Float,
@@ -82,6 +83,7 @@ class ResourceLookup(private val project: Project) {
     resolver = createResolver(folderConfig, appContext, stringTable, process)
   }
 
+  @Slow
   private fun createResolver(
     folderConfig: FolderConfiguration,
     appContext: AppContext,

@@ -31,7 +31,6 @@ import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;
@@ -45,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,10 +91,10 @@ public class ResourceResolverCache {
     myManager = manager;
   }
 
-  @NotNull
-  public ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
-                                              @NotNull String themeStyle,
-                                              @NotNull FolderConfiguration fullConfiguration) {
+  @Slow
+  public @NotNull ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
+                                                       @NotNull String themeStyle,
+                                                       @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null) {

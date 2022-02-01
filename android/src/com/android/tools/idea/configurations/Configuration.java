@@ -1272,8 +1272,8 @@ public class Configuration implements Disposable, ModificationTracker {
 
   // ---- Resolving resources ----
 
-  @NotNull
-  public ResourceResolver getResourceResolver() {
+  @Slow
+  public @NotNull ResourceResolver getResourceResolver() {
     String theme = getTheme();
     Device device = getDevice();
     ResourceResolverCache resolverCache = myManager.getResolverCache();
