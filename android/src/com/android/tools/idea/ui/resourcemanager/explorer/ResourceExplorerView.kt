@@ -28,6 +28,7 @@ import com.intellij.ui.JBSplitter
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
@@ -93,6 +94,8 @@ class ResourceExplorerView(
 
   private var listView: ResourceExplorerListView? = null
 
+  private var listViewJob: CompletableFuture<ResourceExplorerListViewModel>? = null
+
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
     add(getContentPanel())
@@ -109,7 +112,8 @@ class ResourceExplorerView(
   private fun populateResources() {
     listView?.let { Disposer.dispose(it) }
     listView = null
-    viewModel.createResourceListViewModel().whenCompleteAsync(BiConsumer { listViewModel, _ ->
+    listViewJob?.cancel(true)
+    listViewJob = viewModel.createResourceListViewModel().whenCompleteAsync(BiConsumer { listViewModel, _ ->
       // TODO: Add a loading screen if this process takes too long.
       listView = createResourcesListView(listViewModel).also {
         if (!Disposer.isDisposed(this)) {
