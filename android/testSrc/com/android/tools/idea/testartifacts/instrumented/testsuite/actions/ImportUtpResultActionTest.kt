@@ -18,17 +18,21 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.TextFormat
+import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.writeChild
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -87,5 +91,103 @@ class ImportUtpResultActionTest {
                                       ActionManager.getInstance(), 0)
     ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun createImportUtpResultAction() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/test-result.pb",
+        createTestResultsProto().toByteArray()
+      )
+
+    val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
+
+    assertThat(importActions).hasSize(1)
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest")
+  }
+
+  @Test
+  fun createImportUtpResultActionShouldPreferMergedResult() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/test-result.pb",
+        createTestResultsProto("MergedResult").toByteArray()
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/device1/test-result.pb",
+        createTestResultsProto("Device1Result").toByteArray()
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/device2/test-result.pb",
+        createTestResultsProto("Device2Result").toByteArray()
+      )
+
+    val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
+
+    assertThat(importActions).hasSize(1)
+    assertThat(importActions[0].action.templateText).contains("MergedResult")
+  }
+
+  @Test
+  fun createImportUtpResultActionShouldPreferMergedResultButFallbackToIndividualResult() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/device1/test-result.pb",
+        createTestResultsProto("Device1Result").toByteArray()
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/device2/test-result.pb",
+        createTestResultsProto("Device2Result").toByteArray()
+      )
+
+    val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
+
+    assertThat(importActions).hasSize(2)
+    assertThat(importActions[0].action.templateText).contains("Device1Result")
+    assertThat(importActions[1].action.templateText).contains("Device2Result")
+  }
+
+  @Test
+  fun createImportGradleManagedDeviceUtpResultAction() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/test-result.pb",
+        createTestResultsProto().toByteArray()
+      )
+
+    val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
+
+    assertThat(importActions).hasSize(1)
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest")
+  }
+
+  private fun createTestResultsProto(
+    testClassName: String = "ExampleInstrumentedTest"
+  ): TestSuiteResultProto.TestSuiteResult {
+    return TextFormat.parse(
+      """
+      test_result {
+        test_case {
+          test_class: "$testClassName"
+          test_package: "com.example.myapplication"
+          test_method: "useAppContext"
+          start_time {
+            seconds: 1643664452
+            nanos: 792000000
+          }
+          end_time {
+            seconds: 1643664452
+            nanos: 834000000
+          }
+        }
+        test_status: PASSED
+      }
+      """,
+      TestSuiteResultProto.TestSuiteResult::class.java
+    )
   }
 }

@@ -44,7 +44,6 @@ import com.intellij.util.text.DateFormatUtil
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 import java.util.Date
 import javax.swing.Icon
 
@@ -189,10 +188,13 @@ private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile): List<Im
 }
 
 private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
+  val resultPbFile = dir.findChild(TEST_RESULT_PB_FILE_NAME)
+  if (resultPbFile != null) {
+    return sequenceOf(resultPbFile)
+  }
   return dir.children.asSequence()
     .filter(VirtualFile::isDirectory)
-    .map { it.findChild(TEST_RESULT_PB_FILE_NAME) }
-    .filterNotNull()
+    .flatMap { findTestResultProto(it) }
 }
 
 private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
@@ -214,25 +216,20 @@ private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultA
 }
 
 private fun getDefaultAndroidGradlePluginTestDirectory(project: Project?): VirtualFile? {
-  if (project == null) {
-    return null
-  }
-  val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected")
-  return ModuleManager.getInstance(project).modules.asSequence().map { module ->
-    ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
-      it.findFileByRelativePath(relativePath.toString())
-    }.filterNotNull().firstOrNull()
-  }.filterNotNull().firstOrNull()
+  return findFileByRelativePathToContentRoot(project, "build/outputs/androidTest-results/connected")
 }
 
 private fun getDefaultAndroidGradlePluginDevicesTestDirectory(project: Project?): VirtualFile? {
+  return findFileByRelativePathToContentRoot(project, "build/outputs/androidTest-results/managedDevice")
+}
+
+private fun findFileByRelativePathToContentRoot(project: Project?, relativePath: String): VirtualFile? {
   if (project == null) {
     return null
   }
-  val relativePath = Paths.get("build", "outputs", "androidTest-results", "managedDevice")
   return ModuleManager.getInstance(project).modules.asSequence().map { module ->
     ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
-      it.findFileByRelativePath(relativePath.toString())
+      it.findFileByRelativePath(relativePath)
     }.filterNotNull().firstOrNull()
   }.filterNotNull().firstOrNull()
 }
