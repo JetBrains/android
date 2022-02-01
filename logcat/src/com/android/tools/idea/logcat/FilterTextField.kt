@@ -28,6 +28,8 @@ import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ActionListener
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -74,6 +76,12 @@ internal class FilterTextField(
     }
     addPopupMenuListener(object : PopupMenuListenerAdapter() {
       override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
+        addHistoryItem()
+      }
+    })
+
+    textField.addFocusListener(object : FocusAdapter() {
+      override fun focusLost(e: FocusEvent?) {
         addHistoryItem()
       }
     })

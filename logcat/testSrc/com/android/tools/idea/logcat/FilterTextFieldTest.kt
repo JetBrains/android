@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.logcat.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.google.common.truth.Truth.assertThat
@@ -24,10 +25,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.EditorTextField
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
+import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.ComboBoxModel
@@ -118,6 +121,18 @@ class FilterTextFieldTest {
     filterTextField.text = "foo"
 
     filterTextField.firePopupMenuWillBecomeVisible()
+
+    assertThat(filterTextField.model.getItems()).containsExactly("foo")
+  }
+
+  @Test
+  fun loosesFocus_addsToHistory() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    filterTextField.addNotify() // Creates editor
+    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+
+    filterTextField.text = "foo"
+    editorTextField.focusLost(FocusEvent(editorTextField, 0))
 
     assertThat(filterTextField.model.getItems()).containsExactly("foo")
   }
