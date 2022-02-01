@@ -47,10 +47,12 @@ class ViewNodeTest {
   @Test
   fun testIsSystemNode() {
     val model = model {
-      view(ROOT, layout = null) {
+      view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
         view(VIEW1, layout = LAYOUT_SCREEN_SIMPLE) {
           view(VIEW2, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
-            view(VIEW3, layout = LAYOUT_MAIN)
+            view(VIEW3, layout = LAYOUT_MAIN) {
+              view(VIEW4, layout = null, qualifiedName = "com.acme.MyImageView")
+            }
           }
         }
       }
@@ -60,29 +62,33 @@ class ViewNodeTest {
     val system2 = model[VIEW1]!!
     val system3 = model[VIEW2]!!
     val user1 = model[VIEW3]!!
+    val user2 = model[VIEW4]!!
 
     assertThat(system1.isSystemNode).isTrue()
     assertThat(system2.isSystemNode).isTrue()
     assertThat(system3.isSystemNode).isTrue()
     assertThat(user1.isSystemNode).isFalse()
+    assertThat(user2.isSystemNode).isFalse()
 
     treeSettings.hideSystemNodes = true
     assertThat(system1.isInComponentTree(treeSettings)).isFalse()
     assertThat(system2.isInComponentTree(treeSettings)).isFalse()
     assertThat(system3.isInComponentTree(treeSettings)).isFalse()
     assertThat(user1.isInComponentTree(treeSettings)).isTrue()
+    assertThat(user2.isInComponentTree(treeSettings)).isTrue()
 
     treeSettings.hideSystemNodes = false
     assertThat(system1.isInComponentTree(treeSettings)).isTrue()
     assertThat(system2.isInComponentTree(treeSettings)).isTrue()
     assertThat(system3.isInComponentTree(treeSettings)).isTrue()
     assertThat(user1.isInComponentTree(treeSettings)).isTrue()
+    assertThat(user2.isInComponentTree(treeSettings)).isTrue()
   }
 
   @Test
   fun testClosestUnfilteredNode() {
     val model = model {
-      view(ROOT, layout = null) {
+      view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
         view(VIEW1, layout = LAYOUT_MAIN) {
           view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
             view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {

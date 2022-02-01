@@ -34,6 +34,8 @@ import kotlin.concurrent.write
 @VisibleForTesting
 const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
 
+private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.", "com.google.android.")
+
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
  *
@@ -75,7 +77,7 @@ open class ViewNode(
   /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
   open val isSystemNode: Boolean
     get() =
-      layout == null ||
+      (layout == null && systemPackagePrefixes.any { qualifiedName.startsWith(it) }) ||
       layout?.namespace == ResourceNamespace.ANDROID ||
       layout?.name?.startsWith("abc_") == true
 

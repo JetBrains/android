@@ -58,7 +58,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
-  val root = ViewNode("root - hide")
+  val root = ViewNode("android.root - hide")
 
   enum class Posture { HALF_OPEN, FLAT }
   enum class FoldOrientation { VERTICAL, HORIZONTAL }
