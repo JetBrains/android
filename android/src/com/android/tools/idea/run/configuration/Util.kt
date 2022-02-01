@@ -16,12 +16,18 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.SdkConstants
+import com.android.SdkConstants.VALUE_COMPLICATION_SUPPORTED_TYPES
+import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.model.MergedManifestSnapshot
+import com.android.utils.forEach
 import com.intellij.execution.Executor
+import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.android.util.AndroidBundle
 
 object WearBaseClasses {
   val WATCH_FACES = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
@@ -38,4 +44,29 @@ internal fun PsiElement?.getPsiClass(): PsiClass? {
     is PsiClass -> parent
     else -> null
   }
+}
+
+internal fun extractComplicationSupportedTypes(snapshot: MergedManifestSnapshot, complicationServiceName: String?):
+  List<Complication.ComplicationType> {
+  val complicationTag = snapshot.services.find {
+    complicationServiceName == it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
+  } ?: return emptyList()
+  val supportedTypesStr = mutableListOf<String>()
+  val metaDataTags = complicationTag.getElementsByTagName(SdkConstants.TAG_META_DATA)
+  metaDataTags.forEach {
+    val metaDataType = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.nodeValue
+    if (metaDataType == VALUE_COMPLICATION_SUPPORTED_TYPES) {
+      val rawTypes = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_VALUE)?.nodeValue ?: ""
+      supportedTypesStr.addAll(rawTypes.split(","))
+    }
+  }
+  val supportedTypes = mutableListOf<Complication.ComplicationType>()
+  for (typeStr in supportedTypesStr) {
+    try {
+      supportedTypes.add(Complication.ComplicationType.valueOf(typeStr))
+    } catch (e: IllegalArgumentException) {
+      throw RuntimeConfigurationException(AndroidBundle.message("provider.type.invalid.error", typeStr));
+    }
+  }
+  return supportedTypes
 }
