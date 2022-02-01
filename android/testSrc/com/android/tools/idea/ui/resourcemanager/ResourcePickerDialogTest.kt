@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceDetailView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -50,6 +51,7 @@ class ResourcePickerDialogTest {
     projectRule.fixture.testDataPath = getTestDataDirectory()
     projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    projectRule.fixture.loadNewFile("res/values/strings.xml", """<resources><string name="app_name">App</string></resources>""")
     projectRule.waitForResourceRepositoryUpdates()
     pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)
@@ -187,18 +189,20 @@ class ResourcePickerDialogTest {
   ): ResourcePickerDialog {
     var explorerDialog: ResourcePickerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourcePickerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
-                                            initialResourceUrl = initialResourceUrl,
-                                            supportedTypes = supportedTypes,
-                                            preferredType = preferredType,
-                                            showSampleData = showSampleData,
-                                            showThemeAttributes = true,
-                                            currentFile = null)
+      explorerDialog = ResourcePickerDialog(
+        facet = AndroidFacet.getInstance(projectRule.module)!!,
+        initialResourceUrl = initialResourceUrl,
+        supportedTypes = supportedTypes,
+        preferredType = preferredType,
+        showSampleData = showSampleData,
+        showThemeAttributes = true,
+        currentFile = null
+      )
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
       val explorerView = UIUtil.findComponentOfType(view.resourceExplorerPanel, ResourceExplorerView::class.java)!!
-      waitAndAssert<AssetListView>(explorerView) { it != null }
+      waitAndAssert<AssetListView>(explorerView) { it != null && it.model.size > 0 }
     }
     return explorerDialog!!
   }
