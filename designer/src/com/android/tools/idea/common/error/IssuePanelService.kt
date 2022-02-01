@@ -22,6 +22,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
+import com.intellij.util.ui.UIUtil
 
 /**
  * A service to help to show the issues of Design Tools in IJ's Problems panel.
@@ -41,7 +42,7 @@ class IssuePanelService(private val project: Project) {
     val problemsView = manager.getToolWindow(ProblemsView.ID)
     if (problemsView != null) {
       // ProblemsView has registered, init the tab.
-      initIssueTabs(problemsView)
+      UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsView) }
     }
     else {
       val connection = project.messageBus.connect()
