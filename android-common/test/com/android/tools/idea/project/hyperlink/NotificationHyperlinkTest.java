@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.hyperlink;
+package com.android.tools.idea.project.hyperlink;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
+import javax.swing.event.HyperlinkEvent;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.event.HyperlinkEvent;
-
-import static org.easymock.EasyMock.*;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link NotificationHyperlink}.
@@ -35,7 +32,7 @@ public class NotificationHyperlinkTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myProject = createMock(Project.class);
+    myProject = Mockito.mock(Project.class);
     myHyperlink = new NotificationHyperlink("openFile", "Open File") {
       @Override
       protected void execute(@NotNull Project project) {
@@ -45,26 +42,18 @@ public class NotificationHyperlinkTest extends TestCase {
   }
 
   public void testExecuteIfClickedWhenDescriptionMatchesUrl() {
-    HyperlinkEvent event = createMock(HyperlinkEvent.class);
-    expect(event.getDescription()).andReturn("openFile");
-    replay(event);
+    HyperlinkEvent event = Mockito.mock(HyperlinkEvent.class);
+    Mockito.when(event.getDescription()).thenReturn("openFile");
 
     assertTrue(myHyperlink.executeIfClicked(myProject, event));
-
-    verify(event);
-
     assertTrue(myExecuted);
   }
 
   public void testExecuteIfClickedWhenDescriptionDoesNotMatchUrl() {
-    HyperlinkEvent event = createMock(HyperlinkEvent.class);
-    expect(event.getDescription()).andReturn("browse");
-    replay(event);
+    HyperlinkEvent event = Mockito.mock(HyperlinkEvent.class);
+    Mockito.when(event.getDescription()).thenReturn("browse");
 
     assertFalse(myHyperlink.executeIfClicked(myProject, event));
-
-    verify(event);
-
     assertFalse(myExecuted);
   }
 

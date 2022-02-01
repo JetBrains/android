@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.HyperlinkEvent;
 
+/**
+ * Base hyperlink class for notification purposes.
+ */
 public abstract class NotificationHyperlink {
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
