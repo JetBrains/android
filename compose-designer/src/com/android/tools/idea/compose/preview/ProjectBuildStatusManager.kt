@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -111,7 +112,7 @@ interface ProjectBuildStatusManager {
     fun create(parentDisposable: Disposable,
                psiFile: PsiFile,
                psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-               scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)): ProjectBuildStatusManager =
+               scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)): ProjectBuildStatusManager =
       ProjectBuildStatusManagerImpl(parentDisposable, psiFile, psiFilter, scope)
   }
 }
@@ -119,7 +120,7 @@ interface ProjectBuildStatusManager {
 private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                                             psiFile: PsiFile,
                                             private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-                                            scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)) : ProjectBuildStatusManager {
+                                            scope: CoroutineScope) : ProjectBuildStatusManager {
   private val editorFile: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
