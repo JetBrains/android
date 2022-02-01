@@ -33,6 +33,11 @@ import kotlin.math.pow
 
 private val CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
 
+private data class CachedImage(val image: BufferedImage, val modificationStamp: Long) {
+  val size: Int
+    get() = image.raster.dataBuffer.size * Integer.BYTES
+}
+
 /**
  * Helper class that caches the result of a computation of [BufferedImage].
  *
@@ -41,7 +46,7 @@ private val CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<AssetKey, BufferedImage>
+                                     private val objectToImage: Cache<AssetKey, CachedImage>
 ) : Disposable {
   companion object {
     private val objectToImageCache by lazy {
@@ -114,13 +119,14 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
                     computationFutureProvider: (() -> CompletableFuture<out BufferedImage?>))
     : BufferedImage {
     val cachedImage = objectToImage.getIfPresent(asset.key)
-    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(asset)) {
+    if ((cachedImage == null || cachedImage.modificationStamp != asset.modificationStamp || forceComputation)
+        && !pendingFutures.containsKey(asset)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
       runOrQueue(asset, executeImmediately) {
         startComputation(computationFutureProvider, asset, onImageCached, executor)
       }
     }
-    return cachedImage ?: placeholder
+    return cachedImage?.image ?: placeholder
   }
 
   private fun startComputation(computationFutureProvider: () -> CompletableFuture<out BufferedImage?>,
@@ -133,8 +139,11 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
           pendingFutures.remove(asset)
         }
         if (image != null) {
-          objectToImage.put(asset.key, image)
+          objectToImage.put(asset.key, CachedImage(image, asset.modificationStamp))
           executor.execute(onImageCached)
+        }
+        else {
+          objectToImage.invalidate(asset.key)
         }
       }
     synchronized(pendingFutures) {
@@ -145,10 +154,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<AssetKey, BufferedImage> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<AssetKey, CachedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<AssetKey, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
+    .weigher<AssetKey, CachedImage> { _, image -> image.size }
     .maximumWeight(size)
-    .build<AssetKey, BufferedImage>()
+    .build<AssetKey, CachedImage>()

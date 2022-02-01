@@ -19,6 +19,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
@@ -27,6 +29,8 @@ import java.awt.image.IndexColorModel
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 private class DebugFakeImage(private val identifier: String) : BufferedImage(10, 10, IndexColorModel.OPAQUE) {
@@ -101,6 +105,47 @@ class ImageCacheTest {
     val asset1 = DesignAsset(MockVirtualFile("values.xml"), listOf(), ResourceType.COLOR, "my_asset")
     val asset2 = DesignAsset(MockVirtualFile("values.xml"), listOf(), ResourceType.DRAWABLE, "my_asset")
     testNoCollision(asset1, asset2)
+  }
+
+  @Test
+  fun cacheIsInvalidatedWhenFileChanges() {
+    val sourceFile = MockVirtualFile("values.xml")
+    val asset = DesignAsset(sourceFile, listOf(), ResourceType.DRAWABLE, "my_asset")
+
+    var computedImage: BufferedImage? = null
+    run {
+      val latch = CountDownLatch(1)
+      computedImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+        CompletableFuture.completedFuture(imageA).whenComplete { _, _ ->
+          latch.countDown()
+        }
+      }
+      assertEquals(placeholder, computedImage)
+      assertTrue(latch.await(1, TimeUnit.SECONDS))
+
+      computedImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+        throw IllegalStateException("Image should not be computed, it is already cached")
+      }
+      assertEquals(imageA, computedImage)
+    }
+    assertNotNull(computedImage)
+
+    // Modify file to ensure cache is re-calculated
+    sourceFile.modificationStamp = 123L
+    run {
+      val latch = CountDownLatch(1)
+      imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+        CompletableFuture.completedFuture(imageB).whenComplete { _, _ ->
+          latch.countDown()
+        }
+      }
+      assertTrue(latch.await(1, TimeUnit.SECONDS))
+
+      val newImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+        throw IllegalStateException("Image should not be computed, it is already cached")
+      }
+      assertNotEquals(computedImage, newImage)
+    }
   }
 
   private fun testNoCollision(asset1: DesignAsset, asset2:DesignAsset) {

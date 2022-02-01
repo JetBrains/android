@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
-import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
@@ -47,6 +46,11 @@ interface Asset {
   val type: ResourceType
   val name: String
   val resourceItem: ResourceItem
+
+  /**
+   * A modification counter that changes when the resource content has been updated. Can be used to guarantee cache freshness.
+   */
+  val modificationStamp: Long
 
   /**
    * The [ResourceUrl] for this [Asset]. Eg: @color/my_resource.
@@ -125,7 +129,9 @@ data class BaseAsset (
   override val type: ResourceType,
   override val name: String = "resource_name",
   override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
-) : Asset
+) : Asset {
+  override val modificationStamp = -1L
+}
 
 /**
  * A Design [Asset] on disk.
@@ -153,6 +159,9 @@ data class DesignAsset(
 
   override val key: AssetKey
     get() = AssetKey(name, type, file.path)
+
+  override val modificationStamp
+    get() = file.modificationStamp
 }
 
 fun getDesignAssets(
