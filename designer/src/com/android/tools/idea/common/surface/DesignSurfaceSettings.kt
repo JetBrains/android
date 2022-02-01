@@ -16,16 +16,16 @@
 package com.android.tools.idea.common.surface
 
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
-@State(name = "DesignSurface")
+@State(name = "DesignSurface", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE), Storage("misc.xml")])
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()
@@ -71,6 +71,7 @@ class SurfaceState {
 }
 
 private fun getRelativePathInProject(file: PsiFile): String? {
+  // TODO(b/217382996): Consider to use a custom path for the temp or fake files?
   val basePath = file.project.basePath ?: return null
   val filePath = file.virtualFile?.path ?: return null
   return FileUtilRt.getRelativePath(basePath, filePath, File.separatorChar, true)
