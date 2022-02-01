@@ -757,10 +757,14 @@ public class AndroidUtils extends CommonAndroidUtil {
     return false;
   }
 
+  /**
+   * Checks if the project contains a module with an Android, an Apk or a Gradle facet.
+   * See also {@link com.android.tools.idea.FacetUtils#hasAndroidOrApkFacet}.
+   */
   public static boolean hasAndroidFacets(@NotNull Project project) {
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.getFacetType().getId()) ||
-           facetManager.hasFacets(ApkFacet.getFacetTypeId()) ||
+    return facetManager.hasFacets(AndroidFacet.ID) ||
+           facetManager.hasFacets(ApkFacet.ID) ||
            facetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 

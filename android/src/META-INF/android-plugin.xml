@@ -847,8 +847,6 @@
     <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
 
-    <listener class="com.android.tools.idea.startup.ApkFacetCheckerInitializer"
-              topic="com.intellij.openapi.project.ProjectManagerListener"/>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
 

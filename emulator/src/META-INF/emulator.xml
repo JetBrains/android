@@ -22,14 +22,13 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
-    <facet.toolWindow id="Android Emulator"
-                      facetIdList="android,apk"
-                      anchor="right"
-                      secondary="true"
-                      canCloseContents="true"
-                      doNotActivateOnStart="true"
-                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
-                      factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
+    <toolWindow id="Android Emulator"
+                anchor="right"
+                secondary="true"
+                canCloseContents="true"
+                doNotActivateOnStart="true"
+                icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
     <notificationGroup id="Android Emulator Messages"
                        displayType="BALLOON"
                        toolWindowId="Android Emulator"

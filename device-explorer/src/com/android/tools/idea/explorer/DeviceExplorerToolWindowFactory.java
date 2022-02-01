@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer;
 
+import static com.android.tools.idea.AndroidEnvironmentUtils.isAndroidEnvironment;
+
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
@@ -34,7 +36,7 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true);
+    return SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true) && isAndroidEnvironment(project);
   }
 
   @Override
