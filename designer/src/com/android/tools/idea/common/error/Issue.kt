@@ -19,6 +19,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
@@ -90,7 +91,7 @@ abstract class Issue {
   abstract val category: String
 
   /** Allows the [Issue] to return an HyperlinkListener to handle embedded links */
-  open val hyperlinkListener: HyperlinkListener? = null
+  open val hyperlinkListener: HyperlinkListener? = createDefaultHyperLinkListener()
 
   /**
    * Returns a Steam of pair containing the description of the fix as the first element

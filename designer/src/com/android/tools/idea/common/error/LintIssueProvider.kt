@@ -101,7 +101,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val category: String = issue.issue.category.fullName
 
     override val hyperlinkListener: HyperlinkListener?
-      get() = if (issue.issue.moreInfo.isEmpty()) null else WebLinkListener
+      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else WebLinkListener
 
     private object WebLinkListener : HyperlinkListener {
       override fun hyperlinkUpdate(e: HyperlinkEvent?) {
