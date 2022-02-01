@@ -85,18 +85,6 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule)
     moduleDependencyModel: ModuleDependencyModel
   ): PsDeclaredModuleAndroidDependency =
     (existing ?: PsDeclaredModuleAndroidDependency(parent)).apply {init(moduleDependencyModel)}
-
-  private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
-    val artifactsByConfigurationNames = mutableMapOf<String, MutableList<PsAndroidArtifact>>()
-    parent.resolvedVariants.forEach { variant ->
-      variant.forEachArtifact { artifact ->
-        artifact.possibleConfigurationNames.forEach { possibleConfigurationName ->
-          artifactsByConfigurationNames.getOrPut(possibleConfigurationName, { mutableListOf() }).add(artifact)
-        }
-      }
-    }
-    return artifactsByConfigurationNames
-  }
 }
 
 /**
@@ -126,12 +114,10 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
 
     for (moduleLibrary in dependencies.moduleDependencies) {
       val gradlePath = moduleLibrary.projectPath
-      if (gradlePath != null) {
-        val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
-        // TODO(solodkyy): Support not yet resolved modules.
-        if (module != null) {
-          addModule(module, artifact, moduleLibrary.variant)
-        }
+      val module = artifact.parent.parent.parent.findModuleByGradlePath(gradlePath)
+      // TODO(solodkyy): Support not yet resolved modules.
+      if (module != null) {
+        addModule(module, artifact, moduleLibrary.variant)
       }
     }
     for (javaLibrary in dependencies.javaLibraries) {

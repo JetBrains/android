@@ -19,10 +19,8 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
-import com.android.tools.idea.gradle.model.IdeModuleDependency;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -113,27 +111,6 @@ public class ModuleFinder {
       }
     }
     return getBaseDirPath(module.getProject());
-  }
-
-  /**
-   * Find module based on a Library for module dependency.
-   *
-   * @param library the library for module dependency.
-   * @return the module for module dependency library.
-   */
-  @Nullable
-  public Module findModuleFromDependency(@NotNull IdeModuleDependency library) {
-    String gradlePath = library.getTarget().getProjectPath();
-    if (isNotEmpty(gradlePath)) {
-      Module module = null;
-      String projectFolderPath = library.getTarget().getBuildId();
-      if (isNotEmpty(projectFolderPath)) {
-        String moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
-        module = myModulesByModuleId.get(moduleId);
-      }
-      return module != null ? module : myModulesByGradlePath.get(gradlePath);
-    }
-    return null;
   }
 
   /**
