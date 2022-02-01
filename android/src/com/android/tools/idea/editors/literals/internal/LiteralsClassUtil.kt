@@ -36,6 +36,25 @@ private const val KEY_ATTRIBUTE = "key"
 private const val OFFSET_ATTRIBUTE = "offset"
 
 /**
+ * Java does not support unsigned types, and kotlin introduced them as experimental
+ * types in version 1.3. To be able to differentiate signed and unsigned types of
+ * integers in the JVM, kotlin adds a special suffix for every reference to variables
+ * of the following types: [UByte], [UInt], [ULong] and [UShort].
+ * [unsignedTypesSuffixes] is a list with those suffixes.
+ *
+ * These four types are no longer experimental since kotlin 1.5, and the current value
+ * of the suffixes were first introduced in v1.4.10
+ * (github.com/JetBrains/kotlin/blob/v1.4.10/libraries/tools/binary-compatibility-validator/reference-public-api/kotlin-stdlib-runtime-merged.txt).
+ *
+ * These suffixes hopefully won't change, but if they do, then errors like b/204986515 will happen again
+ *
+ * More info:
+ * - https://kotlinlang.org/docs/basic-types.html#unsigned-integers
+ * - https://kotlinlang.org/docs/inline-classes.html#mangling
+ */
+private val unsignedTypesSuffixes = listOf("-w2LRezQ", "-pVg5ArA", "-s-VKNKU", "-Mh2AYeg")
+
+/**
  * Visitor for the constructor of `$LiveLiterals` classes. This will record the literal initialization so we can know the initial values.
  *
  * @param callback callback when a new constant has been initialized. Called with the literal key and the value.
@@ -274,16 +293,24 @@ abstract class LiveLiteralsFinder @JvmOverloads constructor(
     // ConstantRemapper.
     methodsToRewrite
       .forEach { data ->
-        LOG.debug { "Rewriting LiveLiterals method ${data.name}" }
+        val name = removeUnsignedSuffix(data.name)
+        LOG.debug { "Rewriting LiveLiterals method $name" }
         val fileName = sourceFileName
-        val offset = keyOffsets[data.name]
-        val initialValue = constantInitializationValues[data.name]
+        val offset = keyOffsets[name]
+        val initialValue = constantInitializationValues[name]
         requireNotNull(fileName) { "The file name must have been initialized by a '$FILE_INFO_ANNOTATION' annotation" }
-        requireNotNull(offset) { "'${data.name}' key did not have an offset. Missing '$INFO_ANNOTATION'" }
-
+        requireNotNull(offset) { "'${name}' key did not have an offset. Missing '$INFO_ANNOTATION'" }
         onLiteralAccessor(fileName, offset, initialValue, data)
       }
 
     super.visitEnd()
+  }
+
+  /**
+   * See [unsignedTypesSuffixes].
+   */
+  private fun removeUnsignedSuffix(name: String): String {
+    val unsignedTypeSuffix = unsignedTypesSuffixes.firstOrNull { name.endsWith(it) }
+    return unsignedTypeSuffix?.let { name.removeSuffix(it) } ?: name
   }
 }

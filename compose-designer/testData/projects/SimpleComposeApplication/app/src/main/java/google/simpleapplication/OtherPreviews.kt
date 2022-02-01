@@ -29,6 +29,23 @@ fun EmptyPreview() {
 
 @Preview
 @Composable
+fun PreviewWithUnsignedTypes() {
+  var myInt: Int = -2147483648
+  var myUInt: UInt = 4294967295u
+  var myLong: Long = -9223372036854775807L
+  var myULong: ULong = 18446744073709551615uL
+  MaterialTheme {
+    Column {
+      Text("$myInt")
+      Text("$myUInt")
+      Text("$myLong")
+      Text("$myULong")
+    }
+  }
+}
+
+@Preview
+@Composable
 fun PreviewInOtherFile() {
   MaterialTheme {
     Column {

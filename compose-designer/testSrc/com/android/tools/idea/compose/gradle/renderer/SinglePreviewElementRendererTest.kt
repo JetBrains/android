@@ -100,6 +100,28 @@ class SinglePreviewElementRendererTest {
   }
 
   /**
+   * Check that rendering a Preview with unsigned types does not throw an exception.
+   * And also that limit values for signed and unsigned integers are correctly handled and rendered
+   * Regression test for b/204986515
+   */
+  @Test
+  fun testPreviewWithUnsignedTypes() {
+    val withUnsignedTypesRender = renderPreviewElement(
+      projectRule.androidFacet(":app"),
+      SinglePreviewElementInstance.forTesting(
+        "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
+        showBackground = true,
+      )
+    ).get()!!
+    assertImageSimilar(
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/withUnsignedTypesRender.png"),
+      withUnsignedTypesRender,
+      0.1,
+      1
+    )
+  }
+
+  /**
    * Checks the rendering that rendering an empty preview does not throw an exception.
    * Regression test for b/144722608.
    */
