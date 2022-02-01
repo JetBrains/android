@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-public class LiveEditUpdateException(val error: Error, val details: String = "") : RuntimeException() {
+class LiveEditUpdateException(val error: Error, val details: String = "") : RuntimeException() {
 
   /**
    * @param message Short description
@@ -40,7 +40,7 @@ public class LiveEditUpdateException(val error: Error, val details: String = "")
 
     fun internalError(details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR, details)
 
-    fun knownIssue(bugNumber: Int, details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR, "(b/$bugNumber) $details")
+    fun knownIssue(bugNumber: Int, details: String) = LiveEditUpdateException(Error.KNOWN_ISSUE, "(b/$bugNumber) $details")
   }
 }
 
