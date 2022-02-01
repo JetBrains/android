@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.ui.resourcemanager.widget
 
-import com.google.common.collect.HashBiMap
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ScrollingUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.awt.Color
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.Rectangle
-import java.awt.event.AdjustmentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -253,7 +251,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
         preferredSize = Dimension(scrollPrefSize.width, contentHeight)
         maximumSize = Dimension(Int.MAX_VALUE, contentHeight)
         // Trigger a layout in the parent for the new dimensions.
-        parent?.revalidate()
+        invokeLater { parent?.revalidate() }
         return
       }
     }
