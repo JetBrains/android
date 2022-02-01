@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.vfs.VirtualFile
@@ -88,7 +89,7 @@ object CompilerLiveLiteralsManager {
     return withContext(workerThread) {
       val packageName = runReadAction { sourceFile.packageName }
       val overlayLoader = if (FasterPreviewApplicationConfiguration.getInstance().isEnabled) {
-        sourceFile.module?.let { ModuleClassLoaderOverlays.getInstance(it) }
+        runReadAction { sourceFile.module }?.let { ModuleClassLoaderOverlays.getInstance(it) }
       } else null
       val liveLiteralClasses = runReadAction {
         classOwner.classes.mapNotNull { it.name }
