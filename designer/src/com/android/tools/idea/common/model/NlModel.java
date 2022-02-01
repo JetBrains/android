@@ -23,8 +23,11 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -34,6 +37,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -48,6 +52,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -61,6 +66,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.ArrayList;
@@ -117,6 +123,7 @@ public class NlModel implements Disposable, ModificationTracker {
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+  private boolean myDisposed;
 
   /**
    * {@link LayoutlibSceneManager} requires the file from model to be an {@link XmlFile} to be able to render it. This is true in case of
@@ -214,7 +221,7 @@ public class NlModel implements Disposable, ModificationTracker {
    * Notify model that it's active. A model is active by default.
    *
    * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
-   * @returns true if the model was not active before and was activated.
+   * @return true if the model was not active before and was activated.
    */
   public boolean activate(@NotNull Object source) {
     if (getFacet().isDisposed()) {
@@ -247,11 +254,32 @@ public class NlModel implements Disposable, ModificationTracker {
   public void updateTheme() {
     ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
     if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
-      ResourceResolver resolver = myConfiguration.getResourceResolver();
-      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
-        myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
-      }
+      ReadAction.nonBlocking(() -> updateTheme(themeUrl)).expireWith(this).submit(AppExecutorUtil.getAppExecutorService());
     }
+  }
+
+  @Slow
+  private void updateTheme(ResourceUrl themeUrl) {
+    ResourceResolver resolver = getResourceResolver();
+    if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
+      ApplicationManager.getApplication().invokeLater(
+          () -> myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration)),
+          a -> myDisposed);
+    }
+  }
+
+  @Slow
+  private @NotNull ResourceResolver getResourceResolver() {
+    String theme = myConfiguration.getTheme();
+    Device device = myConfiguration.getDevice();
+    ResourceResolverCache resolverCache = myConfiguration.getConfigurationManager().getResolverCache();
+    FolderConfiguration config = myConfiguration.getFullConfig();
+    if (device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId())) {
+      // Remove the old custom device configuration only if it's different from the new one
+      resolverCache.replaceCustomConfig(theme, config);
+    }
+    IAndroidTarget target = myConfiguration.getTarget();
+    return resolverCache.getResourceResolver(target, theme, config);
   }
 
   private void deactivate() {
@@ -263,7 +291,7 @@ public class NlModel implements Disposable, ModificationTracker {
    *
    * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
    *               deactivate(Object), the model will be really deactivated.
-   * @returns true if the model was active before and was deactivated.
+   * @return true if the model was active before and was deactivated.
    */
   public boolean deactivate(@NotNull Object source) {
     boolean shouldDeactivate;
@@ -897,6 +925,7 @@ public class NlModel implements Disposable, ModificationTracker {
 
   @Override
   public void dispose() {
+    myDisposed = true;
     boolean shouldDeactivate;
     myLintAnnotationsModel = null;
     synchronized (myActivations) {

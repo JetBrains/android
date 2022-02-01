@@ -25,6 +25,7 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
 import static com.google.common.truth.Truth.assertThat;
@@ -79,6 +80,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -629,7 +631,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testThemeSelection() {
+  public void testThemeSelection() throws Exception {
     myFixture.addFileToProject("res/values/styles.xml",
                                "<resources>" +
                                "  <style name=\"Theme.MyTheme\"></style>" +
@@ -662,10 +664,12 @@ public class NlModelTest extends LayoutTestCase {
     model.deactivate(this);
     configuration.setTheme("@style/InvalidTheme");
     model.activate(this);
+    waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
     model.deactivate(this);
     configuration.setTheme("@android:style/InvalidTheme");
     model.activate(this);
+    waitForCondition(2, TimeUnit.SECONDS, () -> !configuration.getTheme().equals("@android:style/InvalidTheme"));
     assertEquals(defaultTheme, configuration.getTheme());
   }
 

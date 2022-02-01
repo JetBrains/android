@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.sdk.CompatibilityRenderTarget;
@@ -53,9 +54,11 @@ import org.jetbrains.annotations.Nullable;
 public class ResourceResolverCache {
   /** The configuration manager this cache corresponds to. */
   private final ConfigurationManager myManager;
+  private final Object myLock = new Object();
 
   /** Map from theme and full configuration to the corresponding resource resolver. */
   @VisibleForTesting
+  @GuardedBy("myLock")
   final Map<String, ResourceResolver> myResolverMap = new HashMap<>();
 
   /**
@@ -65,6 +68,7 @@ public class ResourceResolverCache {
    * resolvers also includes the theme.
    */
   @VisibleForTesting
+  @GuardedBy("myLock")
   final Map<String, Table<ResourceNamespace, ResourceType, ResourceValueMap>> myAppResourceMap = new HashMap<>();
 
   /**
@@ -72,9 +76,11 @@ public class ResourceResolverCache {
    * resolver since they can be shared between different layouts that only vary by theme.
    */
   @VisibleForTesting
+  @GuardedBy("myLock")
   final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap = new HashMap<>();
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits. */
+  @GuardedBy("myLock")
   private long myCachedGeneration;
 
   /** Map from API level to framework resources */
@@ -84,7 +90,9 @@ public class ResourceResolverCache {
    * Store map keys for the latest custom configuration cached, so that they can be removed from the cache
    * when a new custom configuration is created. We only want to keep the latest one.
    */
+  @GuardedBy("myLock")
   private String myCustomConfigurationKey;
+  @GuardedBy("myLock")
   private String myCustomResolverKey;
 
   public ResourceResolverCache(ConfigurationManager manager) {
@@ -101,14 +109,16 @@ public class ResourceResolverCache {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
     LocalResourceRepository resources = repositoryManager.getAppResources();
-    if (myCachedGeneration != resources.getModificationCount()) {
-      myResolverMap.clear();
-      myAppResourceMap.clear();
-    }
+    synchronized (myLock) {
+      if (myCachedGeneration != resources.getModificationCount()) {
+        myResolverMap.clear();
+        myAppResourceMap.clear();
+      }
 
-    // Store the modification count as soon as possible. This ensures that if there is any modification of resources while the
-    // resolver is being created, it will be cleared subsequently.
-    myCachedGeneration = resources.getModificationCount();
+      // Store the modification count as soon as possible. This ensures that if there is any modification of resources while the
+      // resolver is being created, it will be cleared subsequently.
+      myCachedGeneration = resources.getModificationCount();
+    }
 
     // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
     // by the configuration qualifiers; for example, here's a sample key:
@@ -120,7 +130,7 @@ public class ResourceResolverCache {
     // @style/MyTheme-ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
     String qualifierString = fullConfiguration.getQualifierString();
     String resolverKey = getResolverKey(themeStyle, qualifierString);
-    ResourceResolver resolver = myResolverMap.get(resolverKey);
+    ResourceResolver resolver = getCachedResolver(resolverKey);
     if (resolver == null) {
       if (target == null) {
         target = myManager.getTarget();
@@ -131,11 +141,11 @@ public class ResourceResolverCache {
           target == null ? Collections.emptyMap() : getConfiguredFrameworkResources(target, fullConfiguration);
 
       // App resources
-      Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = myAppResourceMap.get(qualifierString);
+      Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = getCachedAppResources(qualifierString);
       if (configuredAppRes == null) {
         // Get the project resource values based on the current config.
         configuredAppRes = ReadAction.compute(() -> ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration));
-        myAppResourceMap.put(qualifierString, configuredAppRes);
+        cacheAppResources(qualifierString, configuredAppRes);
       }
 
       // Resource Resolver
@@ -165,7 +175,7 @@ public class ResourceResolverCache {
         }
       }
 
-      myResolverMap.put(resolverKey, resolver);
+      cacheResourceResolver(resolverKey, resolver);
     }
 
     return resolver;
@@ -182,10 +192,10 @@ public class ResourceResolverCache {
 
     String qualifierString = fullConfiguration.getQualifierString();
     // Get the framework resource values based on the current config.
-    Map<ResourceType, ResourceValueMap> frameworkResources = myFrameworkResourceMap.get(qualifierString);
+    Map<ResourceType, ResourceValueMap> frameworkResources = getCachedFrameworkResources(qualifierString);
     if (frameworkResources == null) {
       frameworkResources = ResourceRepositoryUtil.getConfiguredResources(resourceRepository, fullConfiguration).row(ResourceNamespace.ANDROID);
-      myFrameworkResourceMap.put(qualifierString, frameworkResources);
+      cacheFrameworkResources(qualifierString, frameworkResources);
     }
     return frameworkResources;
   }
@@ -205,14 +215,14 @@ public class ResourceResolverCache {
   public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
     int apiLevel = target.getVersion().getFeatureLevel();
 
-    AndroidTargetData targetData = myFrameworkResources.get(apiLevel);
+    AndroidTargetData targetData = getCachedTargetData(apiLevel);
     if (targetData == null) {
       AndroidPlatform platform = AndroidPlatform.getInstance(myManager.getModule());
       if (platform == null) {
         return null;
       }
       targetData = platform.getSdkData().getTargetData(target); // Uses soft reference.
-      myFrameworkResources.put(apiLevel, targetData);
+      cacheTargetData(apiLevel, targetData);
     }
 
     LocaleQualifier locale = configuration.getLocaleQualifier();
@@ -225,9 +235,11 @@ public class ResourceResolverCache {
   }
 
   public void reset() {
-    myCachedGeneration = 0;
-    myAppResourceMap.clear();
-    myResolverMap.clear();
+    synchronized (myLock) {
+      myCachedGeneration = 0;
+      myAppResourceMap.clear();
+      myResolverMap.clear();
+    }
   }
 
   /**
@@ -241,19 +253,70 @@ public class ResourceResolverCache {
     String qualifierString = fullConfiguration.getQualifierString();
     String newCustomResolverKey = getResolverKey(themeStyle, qualifierString);
 
-    if (newCustomResolverKey.equals(myCustomResolverKey)) {
-      // The new key is the same as this one, no need to remove it
-      return;
-    }
+    synchronized (myLock) {
+      if (newCustomResolverKey.equals(myCustomResolverKey)) {
+        // The new key is the same as this one, no need to remove it
+        return;
+      }
 
-    if (myCustomConfigurationKey != null) {
-      myFrameworkResourceMap.remove(myCustomConfigurationKey);
-      myAppResourceMap.remove(myCustomConfigurationKey);
+      if (myCustomConfigurationKey != null) {
+        myFrameworkResourceMap.remove(myCustomConfigurationKey);
+        myAppResourceMap.remove(myCustomConfigurationKey);
+      }
+      if (myCustomResolverKey != null) {
+        myResolverMap.remove(myCustomResolverKey);
+      }
+      myCustomConfigurationKey = qualifierString;
+      myCustomResolverKey = newCustomResolverKey;
     }
-    if (myCustomResolverKey != null) {
-      myResolverMap.remove(myCustomResolverKey);
+  }
+
+  private void cacheTargetData(int apiLevel, @NotNull AndroidTargetData targetData) {
+    synchronized (myLock) {
+      myFrameworkResources.put(apiLevel, targetData);
     }
-    myCustomConfigurationKey = qualifierString;
-    myCustomResolverKey = newCustomResolverKey;
+  }
+
+  private @Nullable AndroidTargetData getCachedTargetData(int apiLevel) {
+    synchronized (myLock) {
+      return myFrameworkResources.get(apiLevel);
+    }
+  }
+
+  private void cacheFrameworkResources(@NotNull String qualifierString, @NotNull Map<ResourceType, ResourceValueMap> frameworkResources) {
+    synchronized (myLock) {
+      myFrameworkResourceMap.put(qualifierString, frameworkResources);
+    }
+  }
+
+  private @Nullable Map<ResourceType, ResourceValueMap> getCachedFrameworkResources(@NotNull String qualifierString) {
+    synchronized (myLock) {
+      return myFrameworkResourceMap.get(qualifierString);
+    }
+  }
+
+  private void cacheAppResources(
+      @NotNull String qualifierString, @NotNull Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppResources) {
+    synchronized (myLock) {
+      myAppResourceMap.put(qualifierString, configuredAppResources);
+    }
+  }
+
+  private @Nullable Table<ResourceNamespace, ResourceType, ResourceValueMap> getCachedAppResources(@NotNull String qualifierString) {
+    synchronized (myLock) {
+      return myAppResourceMap.get(qualifierString);
+    }
+  }
+
+  private void cacheResourceResolver(@NotNull String resolverKey, @NotNull ResourceResolver resolver) {
+    synchronized (myLock) {
+      myResolverMap.put(resolverKey, resolver);
+    }
+  }
+
+  private @Nullable ResourceResolver getCachedResolver(@NotNull String resolverKey) {
+    synchronized (myLock) {
+      return myResolverMap.get(resolverKey);
+    }
   }
 }
