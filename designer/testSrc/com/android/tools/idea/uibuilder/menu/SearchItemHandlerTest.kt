@@ -95,4 +95,9 @@ class SearchItemHandlerTest(private val projectMinSdk: Int,
     handler.onCreate(null, newChild, InsertType.CREATE)
     verify(newChild).setAttribute(expectedNameSpace, "actionViewClass", expectedValue)
   }
+
+  @Test
+  fun testNoExceptionWhenInsertingChild() {
+    handler.onChildInserted(mock(NlComponent::class.java), newChild, mock(InsertType::class.java))
+  }
 }

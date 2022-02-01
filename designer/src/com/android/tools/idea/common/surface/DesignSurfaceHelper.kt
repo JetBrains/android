@@ -22,13 +22,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.io.CharStreams
-import com.intellij.ide.plugins.PluginManagerConfigurable
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -48,10 +45,17 @@ fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {
-  val path = MaterialDesignIcons.getPathForBasename(asset)
+  val path = MaterialDesignIcons.getPathForBasename(asset) ?: run {
+    logger.warn("Cannot find the material icon path for $asset")
+    return@copyVectorAssetToMainModuleSourceSet
+  }
 
   try {
-    InputStreamReader(IconGenerator::class.java.classLoader.getResourceAsStream(path), Charsets.UTF_8).use {
+    val inputStream = IconGenerator::class.java.classLoader.getResourceAsStream(path) ?: run {
+      logger.warn("Cannot load the material icon for $asset")
+      return@copyVectorAssetToMainModuleSourceSet
+    }
+    InputStreamReader(inputStream, Charsets.UTF_8).use {
       reader -> createResourceFile(project, facet, FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader))
     }
   }
