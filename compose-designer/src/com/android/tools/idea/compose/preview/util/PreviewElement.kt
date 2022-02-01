@@ -64,6 +64,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.isAccessible
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -554,23 +555,31 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
     val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader,
                                                                 moduleRenderContext, this)
     try {
-      return parameterProviders.map {
+      return parameterProviders.map { previewParameter ->
         try {
-          val parameterProviderClass = classLoader.loadClass(it.providerClassFqn).kotlin
-          val parameterProviderSizeMethod = parameterProviderClass.functions.single { "getCount" == it.name }
-          val parameterProvider = parameterProviderClass.createInstance()
-          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
+          val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn).kotlin
+          val parameterProviderSizeMethod = parameterProviderClass
+            .functions
+            .single { "getCount" == it.name }
+            .also { it.isAccessible = true }
+          val parameterProvider = parameterProviderClass.constructors
+            .single { it.parameters.isEmpty() } // Find the default constructor
+            .also { it.isAccessible = true }
+            .call()
+          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), previewParameter.limit)
 
           return (0 until providerCount).map { index ->
             ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
-                                               parameterName = it.name,
+                                               parameterName = previewParameter.name,
                                                index = index,
-                                               providerClassFqn = it.providerClassFqn)
+                                               providerClassFqn = previewParameter.providerClassFqn)
           }.asSequence()
         }
         catch (e: Throwable) {
           Logger.getInstance(
-            ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
+            ParametrizedPreviewElementTemplate::class.java).debug {
+            "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider"
+          }
         }
 
         return sequenceOf()

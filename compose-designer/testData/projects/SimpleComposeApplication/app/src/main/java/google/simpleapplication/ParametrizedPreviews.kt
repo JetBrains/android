@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
  * Simple provider to test instantiation and default parameters.
  */
 class TestProvider(defaultPrefix: String): PreviewParameterProvider<String> {
-  constructor(): this("prefix")
+  private constructor(): this("prefix")
 
   override val values: Sequence<String> = sequenceOf(
     "${defaultPrefix}A",
