@@ -310,7 +310,7 @@ class AndroidLiveEditCodeGenerator {
                                                  "For now work around this by moving function $name inside the class.")
       }
     }
-    throw LiveEditUpdateException.compilationError(e.message?:"No error message")
+    throw LiveEditUpdateException.compilationError(e.message?:"No error message", e)
   }
 
   fun remapFunctionSignatureIfNeeded(function : KtFunction, context: BindingContext, mapper: KotlinTypeMapper) : String {

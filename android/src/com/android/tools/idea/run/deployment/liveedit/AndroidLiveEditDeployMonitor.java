@@ -254,6 +254,7 @@ public class AndroidLiveEditDeployMonitor {
       // We need to do this because currently error reporting requires an AdbClient object, which we don't create until we push.
       // Once compilation error reporting does *not* require device knowledge, this should be removed.
       exception = e;
+      LOGGER.error(e, "Error while compiling");
     } finally {
       compileFinish = System.nanoTime();
     }
