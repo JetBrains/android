@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
-import com.android.testutils.ignore.OnWindows
-import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -31,11 +29,11 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class LambdaResolverTest {
-  private val projectRule = AndroidProjectRule.inMemory()
-  private val ignoreTestsRule = IgnoreTestRule.allTestsMatching(OnWindows::class.java)
+  // TODO: Investigate why inMemory() fails on Windows...
+  private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
-  val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(ignoreTestsRule)
+  val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Before
   fun before() {
@@ -93,9 +91,9 @@ class LambdaResolverTest {
         }
       }
       """.trimIndent())
-    checkLambda("lambda-10\$1\$1", 80, 80, 80) // { it + 1 }
-    checkLambda("lambda-7\$1", 80, 80, 80)     // { Element() }
-    checkLambda("lambda-10\$1\$2", 80, 80, 80) // { it + 2 }
+    checkLambda("lambda-10\$1\$1", 80, 80, 80, "{ it + 1 }")
+    checkLambda("lambda-10\$1\$2", 80, 80, 80, "{ Element() }")
+    checkLambda("lambda-10\$1\$3", 80, 80, 80, "{ it + 2 }")
     checkLambda("lambda-9\$1", 81, 85, 80, """
       {
         Element(l1 = { it + 3 }, l3 = { it + 4 }) {
