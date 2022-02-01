@@ -69,7 +69,7 @@ class IssuePanelService(private val project: Project) {
     val problemsView = manager.getToolWindow(ProblemsView.ID)
     if (problemsView != null && !problemsView.isDisposed) {
       // ProblemsView has registered, init the tab.
-      initIssueTabs(problemsView)
+      UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsView) }
     }
     else {
       val connection = project.messageBus.connect()
