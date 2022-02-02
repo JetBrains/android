@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -35,6 +36,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
 import java.io.File
+import java.nio.file.Paths
 
 class NavEditorRule(
   private val projectRule: AndroidProjectRule? = null,
@@ -106,4 +108,9 @@ class NavEditorRule(
     }
     TestableThumbnailManager.register(myProjectRule.module.androidFacet!!)
   }
+}
+
+fun findVirtualProjectFile(project: Project, relativePath: String): VirtualFile? {
+  val path = Paths.get(project.basePath!!, relativePath).normalize()
+  return VfsUtil.findFileByIoFile(File(path.toString()), true)
 }

@@ -17,13 +17,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.includeFile
 import com.android.tools.idea.naveditor.model.isInclude
+import com.android.tools.idea.naveditor.model.parentSequence
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.LIST_MOUSEOVER
@@ -31,6 +31,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
@@ -90,12 +91,13 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.util.TreeSet
+import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.ListModel
 import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
@@ -157,8 +159,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
-      val parent = surface.currentNavigation
-      val existingClasses = parent.children.mapNotNull { it.className }.toSortedSet()
+      val parent = surface.currentNavigation.parentSequence().last()
+      val existingClasses = parent.flatten().map { it?.className }.filter { it != null }.collect(Collectors.toCollection { TreeSet() })
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
@@ -315,8 +317,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.iconWidth }.maxOrNull() ?: 0
-          val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
+          maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
+          val listModel = FilteringListModel(CollectionListModel(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(
             object : DocumentAdapter() {
@@ -328,7 +330,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
           application.invokeLater {
             @Suppress("UNCHECKED_CAST")
-            destinationsList.model = listModel as ListModel<Destination>
+            destinationsList.model = listModel
 
             destinationsList.setPaintBusy(false)
             destinationsList.emptyText.text = "No existing destinations"

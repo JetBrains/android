@@ -292,7 +292,7 @@ public class ComponentDescriptor {
   public ComponentDescriptor findById(@NotNull String id) {
     assertThat(id).startsWith("@");
     for (Pair<String, String> pair : myAttributes) {
-      if (ATTR_ID.equals(pair.getFirst())) {
+      if ((ANDROID_NS_NAME_PREFIX + ATTR_ID).equals(pair.getFirst())) {
         if (id.equals(pair.getSecond())) {
           return this;
         }
