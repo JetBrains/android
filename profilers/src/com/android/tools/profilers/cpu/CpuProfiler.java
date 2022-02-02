@@ -68,14 +68,17 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   private void onImportSessionSelected() {
-    Common.Session session = myProfilers.getSession();
-    CpuCaptureStage captureStage = CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), session.getStartTimestamp());
-    if (captureStage != null) {
-      myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
-    }
-    else {
-      myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-    }
+    myProfilers.getIdeServices().runAsync(
+      () -> CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), myProfilers.getSession().getStartTimestamp()),
+      captureStage -> {
+        if (captureStage != null) {
+          myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
+        }
+        else {
+          myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+        }
+      }
+    );
   }
 
   private static Logger getLogger() {

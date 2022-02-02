@@ -25,9 +25,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +45,15 @@ public interface IdeProfilerServices {
    */
   @NotNull
   Executor getPoolExecutor();
+
+  /**
+   * Compute expensive intermediate value on "pool", then resume it on "main"
+   */
+  default<R> void runAsync(@NotNull Supplier<R> supplier, @NotNull Consumer<R> consumer) {
+    CompletableFuture
+      .supplyAsync(supplier, getPoolExecutor())
+      .whenComplete((result, action) -> getMainExecutor().execute(() -> consumer.accept(result)));
+  }
 
   /**
    * @return all classes that belong to the current project (excluding dependent libraries).

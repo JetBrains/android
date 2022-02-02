@@ -46,6 +46,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,6 +196,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public Executor getPoolExecutor() {
     return (runnable) -> runnable.run();
+  }
+
+  @Override
+  public <R> void runAsync(@NotNull Supplier<R> supplier, @NotNull Consumer<R> consumer) {
+    consumer.accept(supplier.get());
   }
 
   @Override

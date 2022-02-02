@@ -44,6 +44,7 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -1583,6 +1584,19 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
+  }
+
+  @Test
+  public void runAsyncResumesWithIntermediateValue() throws InterruptedException {
+    int[] box = {0};
+    CountDownLatch latch = new CountDownLatch(1);
+    myIdeProfilerServices.runAsync(() -> 1 + 2,
+                                   n -> {
+                                     box[0] = n;
+                                     latch.countDown();
+                                   });
+    assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+    assertThat(box[0]).isEqualTo(3);
   }
 
   private static Common.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Common.Device.State state) {

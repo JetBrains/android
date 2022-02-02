@@ -38,12 +38,17 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
   protected var pendingCaptureStartTime = INVALID_START_TIME
   protected var updateCaptureOnSelection = true
   val isPendingCapture get() = pendingCaptureStartTime != INVALID_START_TIME
+  private var hasExited = false
 
   companion object {
     const val INVALID_START_TIME = -1L
 
     private val logger
       get() = Logger.getInstance(BaseMemoryProfilerStage::class.java)
+  }
+
+  override fun exit() {
+    hasExited = true
   }
 
   override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_STAGE
@@ -87,6 +92,8 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
 
     val queryRange = timeline.selectionRange
     val load = Runnable {
+      // This might be scheduled to run later when this stage has been exited, so need to check
+      if (hasExited) return@Runnable
 
       // TODO: (revisit) - do we want to pass in data range to loadCapture as well?
       val future = loader.loadCapture(captureObject, queryRange, joiner)
@@ -120,22 +127,14 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       profilerMode = ProfilerMode.EXPANDED
     }
 
-    CompletableFuture
-      .supplyAsync(captureObject::canSafelyLoad, studioProfilers.ideServices.poolExecutor)
-      .whenComplete { canSafelyLoad, _ ->
-        if (canSafelyLoad) {
-          load.run()
-        }
-        else {
-          ApplicationManager.getApplication().invokeAndWait {
-            studioProfilers.ideServices
-              .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
-                               "it parses the data and afterwards. Do you want to continue?",
-                               "Heap Dump File Too Large",
-                               load, clear)
-          }
-        }
-      }
+    studioProfilers.ideServices.runAsync(captureObject::canSafelyLoad) { canLoad -> when {
+      canLoad -> load.run()
+      else -> studioProfilers.ideServices.openYesNoDialog(
+        "The hprof file is large, and Android Studio may become unresponsive while " +
+        "it parses the data and afterwards. Do you want to continue?",
+        "Heap Dump File Too Large",
+        load, clear)
+    } }
   }
 }
 
