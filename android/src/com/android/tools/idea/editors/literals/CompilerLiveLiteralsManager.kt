@@ -76,8 +76,8 @@ object CompilerLiveLiteralsManager {
     return if (result.isEmpty()) emptyList() else result
   }
 
-  private fun findClassFileForSourceFileAndClassName(sourceFile: PsiFile, className: String): VirtualFile? =
-    sourceFile.module?.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
+  private suspend fun findClassFileForSourceFileAndClassName(sourceFile: PsiFile, className: String): VirtualFile? =
+    runReadAction{ sourceFile.module }?.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
   /**
    * Finds the literals declared by the compiler for the given [sourceFile] and returns a [Finder] object with the result.
