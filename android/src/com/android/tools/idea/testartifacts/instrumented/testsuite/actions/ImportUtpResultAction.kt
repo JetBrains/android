@@ -92,9 +92,13 @@ class ImportUtpResultAction(icon: Icon? = null,
     RunContentManager.getInstance(project)
     try {
       val testAdapter = UtpTestResultAdapter(file)
-      val packageName = testAdapter.getPackageName()
-      val module = ModuleManager.getInstance(project).modules.find {
-        it.getModuleSystem().getPackageName() == packageName
+      val packageName = testAdapter.packageName
+      val module = if (packageName != null) {
+        ModuleManager.getInstance(project).modules.find {
+          it.getModuleSystem().getPackageName() == packageName
+        }
+      } else {
+        null
       }
       if (module == null) {
         NOTIFICATION_GROUP.createNotification("Cannot find corresponding module. Some features might not be available. Did you "
@@ -114,7 +118,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       toolWindow.activate(null)
     }
     catch (exception: InvalidProtocolBufferException) {
-      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: " + exception.toString(),
+      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: $exception",
                                             NotificationType.ERROR)
         .notify(project)
       throw exception
