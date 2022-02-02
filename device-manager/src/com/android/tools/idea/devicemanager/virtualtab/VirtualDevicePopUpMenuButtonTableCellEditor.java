@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu.Separator;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +72,8 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     newColdBootNowItem().ifPresent(items::add);
     items.add(newShowOnDiskItem());
     items.add(MenuItems.newViewDetailsItem(myPanel));
+    items.add(new Separator());
+    items.add(new DeleteItem(this));
 
     return items;
   }
