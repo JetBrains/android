@@ -87,6 +87,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
       toolbarComponent?.isVisible = !isShowFloatingToolbar && !value
       if (value) {
         setPureTextEditorVisibility()
+        setEditorLayout(Layout.SHOW_EDITOR)
       }
       else {
         // Restore the visibility of the components depending on the current layout.

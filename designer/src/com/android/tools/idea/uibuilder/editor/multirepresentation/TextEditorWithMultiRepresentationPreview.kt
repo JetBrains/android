@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.setEditorLayout
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
@@ -54,6 +55,20 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     : SplitEditorAction(delegate.name, delegate.icon, delegate.delegate, delegate.showDefaultGutterPopup) {
     override fun onUserSelectedAction() {
       layoutSetExplicitly = true
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
+      if (isPureTextEditor && userExplicitlySelected) {
+        return
+      }
+      super.setSelected(e, state, userExplicitlySelected)
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (isPureTextEditor) {
+        return
+      }
+      super.setSelected(e, state)
     }
   }
 
