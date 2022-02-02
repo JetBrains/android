@@ -157,7 +157,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = true
 
-  override fun getPlaceholders(component: SceneComponent) =
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) =
     component.children
       .filterNot { component.scene.selection.contains(it.nlComponent) }
       .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }

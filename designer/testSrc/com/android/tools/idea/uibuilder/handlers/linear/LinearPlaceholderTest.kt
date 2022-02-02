@@ -165,7 +165,7 @@ class LinearPlaceholderTest : SceneTest() {
 
   fun testAddComponentWithoutSnappingToSeparator() {
     val linearLayout = myScene.getSceneComponent("linear")!!
-    val placeholders = linearLayout.nlComponent.viewGroupHandler!!.getPlaceholders(linearLayout)
+    val placeholders = linearLayout.nlComponent.viewGroupHandler!!.getPlaceholders(linearLayout, emptyList())
 
     val left = 50
     val top = 50

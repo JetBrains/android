@@ -112,7 +112,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
 
   fun testAddComponentWithoutSnappingToAnchor() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
-    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout)
+    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout, emptyList())
 
     val left = 100
     val top = 120

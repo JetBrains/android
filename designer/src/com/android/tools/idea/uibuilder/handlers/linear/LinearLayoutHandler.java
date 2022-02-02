@@ -521,7 +521,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     boolean vertical = isVertical(component.getNlComponent());
     List<Placeholder> list = new ArrayList<>();
 

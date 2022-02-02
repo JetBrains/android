@@ -112,7 +112,8 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     actions.add(ToggleAutoConnectAction())
   }
 
-  override fun getPlaceholders(sceneComponent: SceneComponent) = listOf(RelativePlaceholder(sceneComponent))
+  override fun getPlaceholders(sceneComponent: SceneComponent, draggedComponents: List<SceneComponent>) =
+    listOf(RelativePlaceholder(sceneComponent))
 }
 
 private val RESIZE_TARGETS = listOf(

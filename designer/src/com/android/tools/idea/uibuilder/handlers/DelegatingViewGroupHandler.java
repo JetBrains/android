@@ -257,8 +257,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return myHandler.getPlaceholders(component);
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
+    return myHandler.getPlaceholders(component, draggedComponents);
   }
 
   @NotNull

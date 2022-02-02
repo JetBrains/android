@@ -281,7 +281,7 @@ public class ViewGroupHandler extends ViewHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new ViewGroupPlaceholder(component));
   }
 

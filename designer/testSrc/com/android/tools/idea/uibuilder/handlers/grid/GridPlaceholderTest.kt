@@ -32,7 +32,7 @@ class GridPlaceholderTest : SceneTest() {
     val gridLayout = myScene.getSceneComponent("grid")!!
 
     val handler = GridLayoutHandler()
-    val placeholders = handler.getPlaceholders(gridLayout)
+    val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
     val expected = arrayOf(
       // Row 0
@@ -96,7 +96,7 @@ class GridPlaceholderTest : SceneTest() {
     val gridLayout = myScene.getSceneComponent("grid")!!
 
     val handler = GridLayoutHandler()
-    val placeholders = handler.getPlaceholders(gridLayout)
+    val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
     val button2 = myScene.getSceneComponent("button2")!!
 
@@ -121,7 +121,7 @@ class GridPlaceholderTest : SceneTest() {
     val gridLayout = myScene.getSceneComponent("grid")!!
 
     val handler = GridLayoutHandler()
-    val placeholders = handler.getPlaceholders(gridLayout)
+    val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
     val gapPlaceholders = placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
     assertEquals(1, gapPlaceholders.size)

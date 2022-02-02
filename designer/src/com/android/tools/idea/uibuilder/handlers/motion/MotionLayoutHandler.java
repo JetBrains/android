@@ -164,7 +164,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new MotionLayoutPlaceholder(component));
   }
 

@@ -1615,7 +1615,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new ConstraintPlaceholder(component));
   }
 

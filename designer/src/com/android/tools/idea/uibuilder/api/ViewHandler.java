@@ -169,9 +169,10 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   /**
    * Get the associated {@link Placeholder}s of the given {@link SceneComponent}.
    *
-   * @param component The {@link SceneComponent} which associates to this ViewGroupHandler
+   * @param component        The {@link SceneComponent} which associates to this ViewGroupHandler
+   * @param draggedComponents The {@link SceneComponent}s which are dragging.
    */
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of();
   }
 

@@ -73,7 +73,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
     ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }
   }
 
-  override fun getPlaceholders(component: SceneComponent): List<Placeholder> {
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>): List<Placeholder> {
     val listBuilder = ImmutableList.builder<Placeholder>()
     val barrier = getGridBarriers(component)
     for (row in barrier.rowIndices) {

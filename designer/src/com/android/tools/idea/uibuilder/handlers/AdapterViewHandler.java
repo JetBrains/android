@@ -68,7 +68,7 @@ public class AdapterViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     // AdapterView should use Java code to add content, returns empty placeholder to disallow dragging widget into it.
     return Collections.emptyList();
   }

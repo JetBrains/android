@@ -1228,12 +1228,13 @@ public class Scene implements SelectionListener, Disposable {
   /**
    * Get the {@link Placeholder}s in the Scene without the ones belong to the {@param requester} and its children.
    *
-   * @param requester the component which request {@link Placeholder}s
+   * @param requester         the component which request {@link Placeholder}s. This is the component which mouse is dragging on.
+   * @param draggedComponents the components which are being dragged. The request is included.
    * @return list of the {@link Placeholder}s for requester
    */
-  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester) {
+  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester, @NotNull List<SceneComponent> draggedComponents) {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
-    doGetPlaceholders(builder, myRoot, requester);
+    doGetPlaceholders(builder, myRoot, requester, draggedComponents);
     return builder.build();
   }
 
@@ -1247,17 +1248,18 @@ public class Scene implements SelectionListener, Disposable {
 
   private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,
                                         @NotNull SceneComponent component,
-                                        @Nullable SceneComponent requester) {
+                                        @Nullable SceneComponent requester,
+                                        @NotNull List<SceneComponent> draggedComponents) {
     if (component == requester) {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();
     ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
     if (handler != null) {
-      builder.addAll(handler.getPlaceholders(component));
+      builder.addAll(handler.getPlaceholders(component, draggedComponents));
     }
     for (SceneComponent child : component.getChildren()) {
-      doGetPlaceholders(builder, child, requester);
+      doGetPlaceholders(builder, child, requester, draggedComponents);
     }
   }
 

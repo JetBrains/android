@@ -202,7 +202,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     firstMouse.x = x
     firstMouse.y = y
 
-    placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
+    val scene = component.scene
+    val selection = scene.selection
+    val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
+    draggedComponents = if (myComponent !in selectedSceneComponents) {
+      // In case the dragging is started without selecting first. This happens when dragging an unselected component.
+      listOf(component)
+    }
+    else {
+      // Make sure myComponent is the first one which is interacted with user.
+      // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
+      sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
+    }
+
+    placeholders = component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
 
     val dominateBuilder = ImmutableList.builder<Placeholder>()
     val recessiveBuilder = ImmutableList.builder<Placeholder>()
@@ -212,18 +225,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     placeholderHosts = placeholders.asSequence().map { it.host }.toSet()
 
-    val scene = component.scene
-    val selection = scene.selection
-    val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
-    if (myComponent !in selectedSceneComponents) {
-      // In case the dragging is started without selecting first.
-      draggedComponents = listOf(component)
-    }
-    else {
-      // Make sure myComponent is the first one which is interacted with user.
-      // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
-      draggedComponents = sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
-    }
     initialPositions = draggedComponents.map { Point(it.drawX, it.drawY) }
     offsets = draggedComponents.map { Point(-1, -1) }
 

@@ -28,7 +28,7 @@ class LayoutHandlerTest : SceneTest() {
 
   fun testRegion() {
     val layoutComponent = myScene.root!!
-    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
+    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent, emptyList())[0]
 
     val sceneView = myScreen.screen
     val size = sceneView.scaledContentSize
@@ -39,7 +39,7 @@ class LayoutHandlerTest : SceneTest() {
 
   fun testSnapSucceed() {
     val layoutComponent = myScene.root!!
-    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
+    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent, emptyList())[0]
     val p = Point()
     mySceneManager.update()
     assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), p))
@@ -49,7 +49,7 @@ class LayoutHandlerTest : SceneTest() {
 
   fun testSnapFailed() {
     val layoutComponent = myScene.root!!
-    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
+    val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent, emptyList())[0]
     val p = Point()
     assertFalse(ph.snap(SnappingInfo(600, 600, 700, 700), p))
   }

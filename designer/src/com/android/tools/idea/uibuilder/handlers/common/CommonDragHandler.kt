@@ -127,7 +127,6 @@ internal class CommonDragHandler(editor: ViewEditor,
       MenuHandler::class,
       PreferenceCategoryHandler::class,
       PreferenceScreenHandler::class,
-      TabLayoutHandler::class
     )
 
     @JvmStatic
