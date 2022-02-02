@@ -155,10 +155,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         override fun selectionChanged(event: FileEditorManagerEvent) {
           if ((event.oldEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
             // pause the animation when this editor loses the focus.
-            toolbar.pause()
+            if (toolbar.getPlayStatus() == PlayStatus.PLAY) {
+              toolbar.pause()
+            }
           }
           else if ((event.newEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
-            // Needs to reinflate when grabbing the focus back.  This makes sure the elapsed frame time is correct when animation resuming.
+            // Needs to reinflate when grabbing the focus back. This makes sure the elapsed frame time is correct when animation resuming.
             toolbar.forceElapsedReset = true
           }
         }
