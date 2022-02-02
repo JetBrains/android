@@ -62,6 +62,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
+    test_jvm_flags = ["-Dcom.google.testing.junit.runner.shouldInstallTestSecurityManager=false"],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     test_tags = [
