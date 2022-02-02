@@ -16,26 +16,41 @@
 package com.android.tools.idea.tests.gui.resourceexplorer
 
 import com.android.tools.adtui.ui.ClickableLabel
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceValueDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
+import com.android.tools.idea.tests.gui.framework.fixture.properties.SectionFixture
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.impl.table.EditorPanel
+import com.android.tools.property.ptable.impl.PTableImpl
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.runInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.Component
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 
 /**
@@ -102,7 +117,7 @@ class ResourceExplorerTest {
     // 4. Invoke the Resource Picker to set SampleData for the previously created ImageView.
     layoutEditor.findView("ImageView", 0).sceneComponent!!.rightClick()
     // Open the 'Set Sample Data' panel, then click 'Browse' to open the Resource Picker.
-    ide.invokeMenuPath("Set Sample Data")
+    ide.invokeContextualMenuPath("Set Sample Data")
     val finder = ide.robot().finder()
     finder.findByType(AssistantPopupPanel::class.java).also { assistantPopupPanel ->
       JButtonFixture(ide.robot(), finder.findByType(assistantPopupPanel.content as JPanel, ClickableLabel::class.java)).click()
@@ -122,7 +137,52 @@ class ResourceExplorerTest {
       .dragResourceToXmlEditor("app_name", "android:text=\"Hello", " World!\"")
     val textViewContents = ide.editor.currentFileContents.substringAfter("<TextView").substringBefore("/>")
     require(textViewContents.contains("android:text=\"@string/app_name\""))
+
+    // 6. Switch to Design mode, add and select a new resource through the ResourcePicker
+    ide.closeResourceManager().editor.selectEditorTab(EditorFixture.Tab.DESIGN)
+    layoutEditor.findView("TextView", 0).sceneComponent!!.click()
+    layoutEditor.attributesPanel.waitForId("text").findSectionByName("Declared Attributes")!!.apply {
+      title!!.expand()
+      invokeButtonInAttribute("text")
+    }
+
+    ResourcePickerDialogFixture.find(guiTest.robot()).apply {
+      val previousCount = resourceExplorer.resourcesCount
+      resourceExplorer.clickAddButton()
+      ide.openFromContextualMenu( { CreateResourceValueDialogFixture.find(guiTest.robot()) }, "String Value" )
+        .setResourceName("new_text")
+        .setResourceValue("my value")
+        .clickOk()
+
+      waitForCondition(5L, TimeUnit.SECONDS) {
+        // Wait for new resource in picker
+        resourceExplorer.resourcesCount > previousCount
+      }
+      // Select resource
+      clickOk()
+    }
+
+    ide.editor.selectEditorTab(EditorFixture.Tab.EDITOR)
+    val updatedTextView = ide.editor.currentFileContents.substringAfter("<TextView").substringBefore("/>")
+    require(updatedTextView.contains("android:text=\"@string/new_text\""))
   }
 }
 
 private fun NlEditorFixture.findResourceExplorer(): ResourceExplorerFixture = ResourceExplorerFixture.find(robot())
+
+private fun SectionFixture.invokeButtonInAttribute(attributeName: String) {
+  val table = components.firstIsInstanceOrNull<PTableFixture>()!!
+  val tableComp = table.target() as PTableImpl
+  val row = table.findRowOf(attributeName)
+  val item = table.item(row) as NlPropertyItem
+  val component = runInEdtAndGet { (tableComp.getCellEditor(row, 1).editor.editorComponent!! as EditorPanel).editor }
+  invokeAction(item.browseButton?.action!!, component)
+}
+
+private fun invokeAction(anAction: AnAction, component: Component) {
+  runInEdt {
+    val context = DataManager.getInstance().getDataContext(component)
+    val event = AnActionEvent.createFromAnAction(anAction, null, "menu", context)
+    anAction.actionPerformed(event)
+  }
+}

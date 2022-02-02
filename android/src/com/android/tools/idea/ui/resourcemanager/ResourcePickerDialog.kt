@@ -20,13 +20,26 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.editors.theme.ResolutionUtils
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.util.WaitFor
+import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import java.awt.Window
+import java.awt.event.WindowEvent
+import java.awt.event.WindowFocusListener
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
 
 /**
@@ -48,7 +61,7 @@ class ResourcePickerDialog(
   showSampleData: Boolean,
   showThemeAttributes: Boolean,
   currentFile: VirtualFile?
-): DialogWrapper(facet.module.project) {
+) : DialogWrapper(facet.module.project) {
 
   @TestOnly // TODO: consider getting this for tests in a better way.
   val resourceExplorerPanel = kotlin.run {
@@ -72,10 +85,15 @@ class ResourcePickerDialog(
 
   private var pickedResourceName: String? = null
 
+  private val explorerUpdater = ModalExplorerUpdater(facet) {
+    resourceExplorerPanel.refreshIfOutdated()
+  }
+
   init {
     ResourceManagerTracking.logDialogOpens(facet)
     init()
     doValidate()
+    onWindowIfNotNull { it.addWindowFocusListener(explorerUpdater) }
   }
 
   override fun createCenterPanel() = resourceExplorerPanel.apply {
@@ -83,6 +101,7 @@ class ResourcePickerDialog(
   }
 
   override fun dispose() {
+    onWindowIfNotNull { it.removeWindowFocusListener(explorerUpdater) }
     super.dispose()
     Disposer.dispose(resourceExplorerPanel)
   }
@@ -98,6 +117,16 @@ class ResourcePickerDialog(
   private fun doSelectResource(resource: ResourceItem) {
     updateSelectedResource(resource)
     doOKAction()
+  }
+
+  private fun onWindowIfNotNull(runnable: (Window) -> Unit) {
+    val windowInstance: Window? = window
+    if (windowInstance != null) {
+      runnable(windowInstance)
+    }
+    else if (!ApplicationManager.getApplication().isUnitTestMode) {
+      thisLogger().warn("Window instance is null")
+    }
   }
 }
 
@@ -129,4 +158,49 @@ private fun ResourceItem.getReferenceString(): String {
     qualifiedName = resourceReference.namespace.toString() + ":" + qualifiedName
   }
   return ResolutionUtils.getResourceUrlFromQualifiedName(qualifiedName, type.getName())
+}
+
+/**
+ * Decides when the Resource Explorer should refresh based on window focus and resource repository changes.
+ *
+ * Calls [doRefreshCallback] when the Resource Explorer should attempt to refresh. Invoked in EDT.
+ */
+private class ModalExplorerUpdater(private val facet: AndroidFacet, private val doRefreshCallback: () -> Unit) : WindowFocusListener {
+  private var mayRefresh: Boolean = false
+
+  private val waitForResourcesTask = object : Task.Modal(facet.module.project, "Updating Resources", false) {
+    override fun run(indicator: ProgressIndicator) {
+      assert(!ApplicationManager.getApplication().isDispatchThread)
+      indicator.text = "Updating resources..."
+      indicator.isIndeterminate = true
+      val repoUpdated = AtomicBoolean(false)
+
+      // Commit any pending document changes
+      PsiDocumentManager.getInstance(facet.module.project).commitAllDocumentsUnderProgress()
+
+      ResourceRepositoryManager.getInstance(facet).appResources.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
+        // Wait for Resource repository to update
+        repoUpdated.set(true)
+      }
+      object : WaitFor(3000) {
+        override fun condition(): Boolean {
+          return repoUpdated.get()
+        }
+      }.assertCompleted()
+    }
+  }
+
+  override fun windowGainedFocus(e: WindowEvent?) {
+    if (mayRefresh) {
+      // Resources changes may have happened while focus was lost, attempt to update the explorer
+      ProgressManager.getInstance().run(waitForResourcesTask)
+      doRefreshCallback()
+      mayRefresh = false
+    }
+  }
+
+  override fun windowLostFocus(e: WindowEvent?) {
+    // Only attempt to refresh if focus was ever lost
+    mayRefresh = true
+  }
 }

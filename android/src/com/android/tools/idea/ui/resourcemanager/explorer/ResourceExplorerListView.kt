@@ -613,8 +613,12 @@ class ResourceExplorerListView(
       resourceToSelect = resourceName
     }
     if (!updatePending) {
-      doSelectAsset { assetSet ->
-        (assetSet.name == resourceName).also { if (it) resourceToSelect = null }
+      doSelectAsset isAsset@{ assetSet ->
+        val found = assetSet.name == resourceName
+        if (found) {
+          resourceToSelect = null
+        }
+        return@isAsset found
       }
     }
   }

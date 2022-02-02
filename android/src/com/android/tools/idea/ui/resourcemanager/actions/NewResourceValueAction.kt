@@ -16,14 +16,17 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.createValueResource
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import com.android.tools.idea.res.createValueResource
 
 /**
  * [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project.
@@ -32,7 +35,7 @@ class NewResourceValueAction(
   private val type: ResourceType,
   private val facet: AndroidFacet,
   private val createdResourceCallback: (String, ResourceType) -> Unit
-): AnAction("${type.displayName} Value", "Create a new ${type.displayName} resource value", null) {
+) : AnAction("${type.displayName} Value", "Create a new ${type.displayName} resource value", null) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = CreateXmlResourceDialog(facet.module,
@@ -55,10 +58,19 @@ class NewResourceValueAction(
     val dirNames = dialog.dirNames
     val resValue = dialog.value
     val resName = dialog.resourceName
+
+    // Attempt to create resource in file
     if (!createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {
       return
     }
-    PsiDocumentManager.getInstance(module.project).commitAllDocuments()
+
+    // Update modified files into the system
+    ProgressManager.getInstance().run(object : Task.Modal(facet.module.project, "Refreshing Modified Files", false) {
+      override fun run(indicator: ProgressIndicator) {
+        // Avoid hogging the EDT without feedback, this will show a modal dialog if it takes long enough
+        PsiDocumentManager.getInstance(module.project).commitAllDocumentsUnderProgress()
+      }
+    })
 
     // Show/open/select created resource.
     createdResourceCallback(resName, type)

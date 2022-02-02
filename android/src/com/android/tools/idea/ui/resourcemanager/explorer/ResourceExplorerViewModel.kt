@@ -36,6 +36,7 @@ import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -51,6 +52,7 @@ import java.util.function.Supplier
 import kotlin.properties.Delegates
 
 private const val RES_MANAGER_PREF_KEY = "ResourceManagerPrefKey"
+private val LOG = Logger.getInstance(ResourceExplorerViewModel::class.java)
 
 /**
  * The View Model for the [ResourceExplorerView].
@@ -102,7 +104,9 @@ class ResourceExplorerViewModel private constructor(
 
   private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
 
-  private val resourceNotificationManager = ResourceNotificationManager.getInstance(defaultFacet.module.project)
+  private val resourceNotificationManager = ResourceNotificationManager.getInstance(defaultFacet.module.project).apply {
+    resourceVersion = getCurrentVersion(defaultFacet, null, null)
+  }
 
   private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
     if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
@@ -110,12 +114,7 @@ class ResourceExplorerViewModel private constructor(
       // TODO cache the resources, notify the view to only update the rendering of the edited resource.
       return@ResourceChangeListener
     }
-    val currentVersion = resourceNotificationManager.getCurrentVersion(defaultFacet, null, null)
-    if (resourceVersion == currentVersion) {
-      return@ResourceChangeListener
-    }
-    resourceVersion = currentVersion
-    refreshListModel()
+    refreshOnResourcesChange()
   }
 
   /**
@@ -168,6 +167,21 @@ class ResourceExplorerViewModel private constructor(
    */
   fun refreshPreviews() {
     listViewModel?.clearCacheForCurrentResources()
+  }
+
+
+  /**
+   * Refreshes the current [listViewModel] if the list of resources is outdated.
+   */
+  internal fun refreshOnResourcesChange() {
+    val currentVersion = resourceNotificationManager.getCurrentVersion(facet, null, null)
+    if (resourceVersion != currentVersion) {
+      resourceVersion = currentVersion
+      refreshListModel()
+    }
+    else {
+      LOG.debug("Resource update not needed")
+    }
   }
 
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {

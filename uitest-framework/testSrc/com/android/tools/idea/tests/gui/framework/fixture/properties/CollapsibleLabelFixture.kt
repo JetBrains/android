@@ -16,8 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
 import org.fest.swing.core.Robot
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 
 /**
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
@@ -37,4 +39,12 @@ class CollapsibleLabelPanelFixture(
   val name: String
     get() = label.model.name
 
+  fun expand() {
+    if (label.model.expandable) {
+      invokeLater {
+        label.model.expanded = true
+      }
+      waitForIdle()
+    }
+  }
 }
