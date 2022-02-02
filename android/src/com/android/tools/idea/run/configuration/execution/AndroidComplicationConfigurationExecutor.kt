@@ -21,7 +21,6 @@ import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
-import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.intellij.execution.ExecutionException
@@ -76,8 +75,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
                               receiver)
       }
       appWatchFace.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
-      console.printShellCommand(SHOW_WATCH_FACE)
-      device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
+      showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
     return createRunContentDescriptor(devices, processHandler, console)
