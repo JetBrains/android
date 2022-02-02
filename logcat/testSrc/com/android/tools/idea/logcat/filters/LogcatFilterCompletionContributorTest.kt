@@ -34,17 +34,11 @@ import org.junit.rules.RuleChain
 private val STRING_KEYS = listOf(
   "line",
   "message",
-  PACKAGE_KEY,
-  TAG_KEY,
+  "package",
+  "tag",
 ).map(String::getKeyVariants).flatten()
 
-private val LEVEL_KEYS = listOf(
-  "fromLevel:",
-  "level:",
-  "toLevel:",
-)
-
-private val KEYS = STRING_KEYS + LEVEL_KEYS + AGE_KEY + MY_PACKAGE
+private val KEYS = STRING_KEYS + "level:" + "age:" + "package:mine "
 
 /**
  * Tests for [LogcatFilterCompletionContributor]
@@ -68,7 +62,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withoutWhitespace() {
-    for (key in STRING_KEYS + AGE_KEY) {
+    for (key in STRING_KEYS + "age:") {
       fixture.configure("$key$caret")
 
       fixture.completeBasic()
@@ -85,7 +79,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withWhitespace() {
-    for (key in STRING_KEYS + AGE_KEY) {
+    for (key in STRING_KEYS + "age:") {
       fixture.configure("$key  $caret")
 
       fixture.completeBasic()
@@ -103,30 +97,26 @@ class LogcatFilterCompletionContributorTest {
   @Test
   fun complete_levels_withoutWhitespace() {
     val levels = LogLevel.values().map { "${it.name} " }
-    for (key in LEVEL_KEYS) {
-      fixture.configure("$key$caret")
+    fixture.configure("level:$caret")
 
-      fixture.completeBasic()
+    fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings).named("$key with no whitespace").containsExactlyElementsIn(levels)
-    }
+    assertThat(fixture.lookupElementStrings).named("level with no whitespace").containsExactlyElementsIn(levels)
   }
 
   @Test
   fun complete_levels_withWhitespace() {
     val levels = LogLevel.values().map { "${it.name} " }
-    for (key in LEVEL_KEYS) {
-      fixture.configure("$key  $caret")
+    fixture.configure("level:  $caret")
 
-      fixture.completeBasic()
+    fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(levels)
-    }
+    assertThat(fixture.lookupElementStrings).named("level with whitespace").containsExactlyElementsIn(levels)
   }
 
   @Test
   fun complete_tags_withoutWhiteSpace() {
-    for (key in TAG_KEY.getKeyVariants()) {
+    for (key in "tag".getKeyVariants()) {
       fixture.configure("$key$caret", tags = setOf("Tag1", "Tag2"))
 
       fixture.completeBasic()
@@ -137,7 +127,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_tags_withWhiteSpace() {
-    for (key in TAG_KEY.getKeyVariants()) {
+    for (key in "tag".getKeyVariants()) {
       fixture.configure("$key $caret", tags = setOf("Tag1", "Tag2"))
 
       fixture.completeBasic()
@@ -148,7 +138,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_tags_removesBankTags() {
-    for (key in TAG_KEY.getKeyVariants()) {
+    for (key in "tag".getKeyVariants()) {
       fixture.configure("$key $caret", tags = setOf("Tag1", "Tag2", "  "))
 
       fixture.completeBasic()
@@ -159,7 +149,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_packages_withoutWhiteSpace() {
-    for (key in PACKAGE_KEY.getKeyVariants()) {
+    for (key in "package".getKeyVariants()) {
       fixture.configure("$key$caret", packages = setOf("package1", "package2"))
 
       fixture.completeBasic()
@@ -177,7 +167,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_packages_withWhiteSpace() {
-    for (key in PACKAGE_KEY.getKeyVariants()) {
+    for (key in "package".getKeyVariants()) {
       fixture.configure("$key $caret", packages = setOf("package1", "package2"))
 
       fixture.completeBasic()
@@ -238,7 +228,7 @@ class LogcatFilterCompletionContributorTest {
   }
 }
 
-private fun String.isPackageKey() = equals("$PACKAGE_KEY:")
+private fun String.isPackageKey() = equals("package:")
 
 /**
  * Configure fixture with given text and set up its editor.

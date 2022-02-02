@@ -35,19 +35,15 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-internal const val MY_PACKAGE_VALUE = "mine"
+private const val MY_PACKAGE_VALUE = "mine"
 
-@VisibleForTesting
-internal const val PACKAGE_KEY = "package"
+private const val PACKAGE_KEY = "package"
 
-@VisibleForTesting
-internal val MY_PACKAGE = "$PACKAGE_KEY:$MY_PACKAGE_VALUE "
+private const val MY_PACKAGE = "$PACKAGE_KEY:$MY_PACKAGE_VALUE "
 
 private val PACKAGE_KEYS = PACKAGE_KEY.getKeyVariants().toSet()
 
-@VisibleForTesting
-internal const val TAG_KEY = "tag"
+private const val TAG_KEY = "tag"
 private val TAG_KEYS = TAG_KEY.getKeyVariants().toSet()
 
 private val STRING_KEYS = listOf(
@@ -57,16 +53,11 @@ private val STRING_KEYS = listOf(
   TAG_KEY,
 )
 
-private val LEVEL_KEYS = listOf(
-  "fromLevel:",
-  "level:",
-  "toLevel:",
-)
+private const val LEVEL_KEY = "level:"
 
-@VisibleForTesting
-internal const val AGE_KEY = "age:"
+private const val AGE_KEY = "age:"
 
-private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEYS + AGE_KEY + MY_PACKAGE
+private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + MY_PACKAGE
 
 private val KEYS_LOOKUP_BUILDERS = KEYS.map(String::toLookupElement)
 
@@ -110,7 +101,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.KVALUE),
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-               if (parameters.findPreviousText() in LEVEL_KEYS) {
+               if (parameters.findPreviousText() == LEVEL_KEY) {
                  result.addAllElements(LEVEL_LOOKUPS)
                }
              }

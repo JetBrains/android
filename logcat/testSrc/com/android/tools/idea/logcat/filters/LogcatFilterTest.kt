@@ -164,23 +164,7 @@ class LogcatFilterTest {
   fun levelFilter() {
     val levelFilter = LevelFilter(INFO)
     for (logLevel in LogLevel.values()) {
-      assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel == INFO)
-    }
-  }
-
-  @Test
-  fun fromLevelFilter() {
-    val levelFilter = FromLevelFilter(INFO)
-    for (logLevel in LogLevel.values()) {
       assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel.ordinal >= INFO.ordinal)
-    }
-  }
-
-  @Test
-  fun toLevelFilter() {
-    val levelFilter = ToLevelFilter(INFO)
-    for (logLevel in LogLevel.values()) {
-      assertThat(levelFilter.matches(logCatMessage(logLevel))).named(logLevel.name).isEqualTo(logLevel.ordinal <= INFO.ordinal)
     }
   }
 

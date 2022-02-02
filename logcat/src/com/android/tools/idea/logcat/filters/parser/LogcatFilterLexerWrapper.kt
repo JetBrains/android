@@ -40,9 +40,7 @@ private val STRING_KEYS_REGEX = listOf(
 ).joinToString("|")
 val KEYS = listOf(
   "age",
-  "fromLevel",
   "level",
-  "toLevel",
 )
 private val KEYS_REGEX = KEYS.joinToString("|")
 private val KEY_VALUE_REGEX = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()

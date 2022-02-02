@@ -46,11 +46,6 @@ private val KEYS = mapOf(
   "line" to LINE,
 )
 
-private val LEVEL_KEYS = mapOf<String, (Log.LogLevel) -> LogcatFilter>(
-  "level" to ::LevelFilter,
-  "fromLevel" to ::FromLevelFilter,
-  "toLevel" to ::ToLevelFilter)
-
 private val AGE_VALUES = mapOf(
   "10s" to Duration.ofSeconds(10),
   "10m" to Duration.ofSeconds(TimeUnit.MINUTES.toSeconds(10)),
@@ -122,23 +117,17 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_levelKeys() {
-    for ((key, expectedFilter) in LEVEL_KEYS) {
-      for (logLevel in Log.LogLevel.values()) {
-        assertThat(logcatFilterParser().parse("${key}: $logLevel")).isEqualTo(expectedFilter(logLevel))
-        assertThat(logcatFilterParser().parse("${key}:$logLevel")).isEqualTo(expectedFilter(logLevel))
-      }
+    for (logLevel in Log.LogLevel.values()) {
+      assertThat(logcatFilterParser().parse("level: $logLevel")).isEqualTo(LevelFilter(logLevel))
+      assertThat(logcatFilterParser().parse("level:$logLevel")).isEqualTo(LevelFilter(logLevel))
     }
   }
 
   @Test
   fun parse_levelKeys_invalidLevel() {
-    for ((key, _) in LEVEL_KEYS) {
-      for (logLevel in Log.LogLevel.values()) {
-        val query = "${key}: Invalid"
+    val query = "level: Invalid"
 
-        assertThat(logcatFilterParser().parse(query) as StringFilter).isEqualTo(StringFilter(query, IMPLICIT_LINE))
-      }
-    }
+    assertThat(logcatFilterParser().parse(query) as StringFilter).isEqualTo(StringFilter(query, IMPLICIT_LINE))
   }
 
   @Test
@@ -193,7 +182,7 @@ class LogcatFilterParserTest {
   fun parse_topLevelExpressions_sameKey_or() {
     val parser = logcatFilterParser(topLevelSameKeyTreatment = OR)
 
-    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 level:I bar fromLevel:W tag~:tag2")).isEqualTo(
+    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:W tag~:tag2")).isEqualTo(
       AndLogcatFilter(
         NegatedStringFilter("ignore1", TAG),
         StringFilter("foo", IMPLICIT_LINE),
@@ -202,11 +191,8 @@ class LogcatFilterParserTest {
           RegexFilter("tag2", TAG),
         ),
         NegatedRegexFilter("ignore2", TAG),
-        OrLogcatFilter(
-          LevelFilter(INFO),
-          FromLevelFilter(WARN),
-        ),
         StringFilter("bar", IMPLICIT_LINE),
+        LevelFilter(WARN),
       )
     )
   }

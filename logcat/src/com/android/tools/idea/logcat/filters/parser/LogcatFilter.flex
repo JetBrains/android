@@ -90,9 +90,7 @@ TEXT_KEY
 // Keys that accept unquoted, non-whitespace values
 KEY
   = "age"
-  | "fromLevel"
   | "level"
-  | "toLevel"
 
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE

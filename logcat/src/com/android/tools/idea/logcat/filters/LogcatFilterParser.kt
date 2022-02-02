@@ -108,6 +108,7 @@ internal class LogcatFilterParser(
   }
 
   private fun createComplexTopLevelFilter(filters: List<LogcatFilter>): LogcatFilter {
+    @Suppress("ConvertLambdaToReference") // IJ wants to convert "it.value" to "IndexedValue<LogcatFilter>::value"
     val groups = filters.withIndex().groupBy({ it.value.getFieldForImplicitOr(it.index) }, { it.value }).values
     return AndLogcatFilter(groups.map { if (it.size == 1) it[0] else OrLogcatFilter(it.toList()) })
   }
@@ -158,8 +159,6 @@ internal class LogcatFilterParser(
 private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock, packageNamesProvider: PackageNamesProvider): LogcatFilter {
   return when (val key = firstChild.text.trim(':', '-', '~')) {
     "level" -> LevelFilter(lastChild.asLogLevel())
-    "fromLevel" -> FromLevelFilter(lastChild.asLogLevel())
-    "toLevel" -> ToLevelFilter(lastChild.asLogLevel())
     "age" -> AgeFilter(lastChild.asDuration(), clock)
     else -> {
       val value = lastChild.toText()
@@ -189,8 +188,8 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock, packageNames
 }
 
 private fun PsiElement.asLogLevel(): LogLevel =
-  if (text.length == 1) LogLevel.getByLetter(text[0].toUpperCase())
-  else LogLevel.getByString(text.toLowerCase(Locale.ROOT))
+  if (text.length == 1) LogLevel.getByLetter(text[0].uppercaseChar())
+  else LogLevel.getByString(text.lowercase(Locale.ROOT))
        ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid Log Level: $text"))
 
 private fun PsiElement.asDuration(): Duration {
@@ -246,7 +245,7 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
   return when {
     this is StringFilter && field != IMPLICIT_LINE -> FilterType(field)
     this is RegexFilter -> FilterType(field)
-    this is LevelFilter || this is FromLevelFilter || this is ToLevelFilter -> FilterType("level")
+    this is LevelFilter -> FilterType("level")
     this is AgeFilter -> FilterType("age")
     else -> FilterType(index)
   }

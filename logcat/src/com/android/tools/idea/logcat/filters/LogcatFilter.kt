@@ -126,15 +126,7 @@ internal data class NegatedRegexFilter(val string: String, val field: LogcatFilt
 }
 
 internal data class LevelFilter(val level: Log.LogLevel) : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel == level
-}
-
-internal data class FromLevelFilter(val level: Log.LogLevel) : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel.ordinal >= level.ordinal
-}
-
-internal data class ToLevelFilter(val level: Log.LogLevel) : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel.ordinal <= level.ordinal
+  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel >= level
 }
 
 internal data class AgeFilter(val age: Duration, private val clock: Clock) : LogcatFilter {
