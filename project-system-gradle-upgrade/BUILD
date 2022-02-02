@@ -225,7 +225,7 @@ old_agp_test(
 old_agp_test(
     name = "ProjectUpgradeTests_From",
     timeout = "long",
-    agp_version = "7.1.0-beta01",
+    agp_version = "7.1.0",
     data = [
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -238,7 +238,7 @@ old_agp_test(
     maven_deps = [
         ":test_deps",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/build-system/previous-versions:7.1.0-beta01",
+        "//tools/base/build-system/previous-versions:7.1.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     tags = [
