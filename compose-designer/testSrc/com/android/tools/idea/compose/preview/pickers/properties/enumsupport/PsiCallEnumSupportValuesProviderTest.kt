@@ -111,16 +111,16 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[6].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
-    assertEquals(15, deviceValues.size) // 4 headers + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
+    assertEquals(18, deviceValues.size) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Phone", deviceValues[1].display)
     assertEquals("Foldable", deviceValues[2].display)
     assertEquals("Tablet", deviceValues[3].display)
     assertEquals("Desktop", deviceValues[4].display)
-    assertEquals("Wear", (deviceValues[5] as HeaderEnumValue).header)
-    assertEquals("Tv", (deviceValues[9] as HeaderEnumValue).header)
-    assertEquals("Auto", (deviceValues[13] as HeaderEnumValue).header)
+    assertEquals("Wear", (deviceValues[6] as HeaderEnumValue).header)
+    assertEquals("Tv", (deviceValues[11] as HeaderEnumValue).header)
+    assertEquals("Auto", (deviceValues[16] as HeaderEnumValue).header)
 
     // Verify reference values
     assertEquals(ReferencePhoneConfig.deviceSpec(), deviceValues[1].value)
@@ -129,13 +129,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals(ReferenceDesktopConfig.deviceSpec(), deviceValues[4].value)
 
     // Verify Wear, Tv and Auto are custom devices (start with "spec:")
-    assertTrue(deviceValues[6].value!!.startsWith("spec:"))
     assertTrue(deviceValues[7].value!!.startsWith("spec:"))
     assertTrue(deviceValues[8].value!!.startsWith("spec:"))
-    assertTrue(deviceValues[10].value!!.startsWith("spec:"))
-    assertTrue(deviceValues[11].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[9].value!!.startsWith("spec:"))
     assertTrue(deviceValues[12].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[13].value!!.startsWith("spec:"))
     assertTrue(deviceValues[14].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[17].value!!.startsWith("spec:"))
 
     val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
     assertEquals(4, localeValues.size)

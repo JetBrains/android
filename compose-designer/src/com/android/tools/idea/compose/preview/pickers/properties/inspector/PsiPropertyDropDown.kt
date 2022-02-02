@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.inspector
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -69,7 +70,7 @@ private class WrappedComboBox(
     @Suppress("UnstableApiUsage")
     putClientProperty(USE_LIVE_UPDATE_MODEL, true) // Ask Intellij's popup list model to update automatically
     setRenderer(renderer)
-    background = UIUtil.getListBackground()
+    background = secondaryPanelBackground
     isSwingPopup = false // Use Intellij's popup component
     preferredSize = preferredSize // Make sure the size cannot be modified by layout managers, otherwise the popup may close unexpectedly
     isOpaque = false

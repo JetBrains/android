@@ -163,6 +163,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues.keys.forEach { type ->
       val values = deviceEnumValues[type]
       if (values?.isNotEmpty() == true) {
+        if(enumValues.isNotEmpty()) enumValues.add(EnumValue.SEPARATOR)
         enumValues.add(EnumValue.header(type.display, type.icon))
         values.forEach(enumValues::add)
       }
