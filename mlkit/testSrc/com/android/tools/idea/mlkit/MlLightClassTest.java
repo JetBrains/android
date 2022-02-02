@@ -62,9 +62,8 @@ public class MlLightClassTest extends AndroidTestCase {
     super.setUp();
     StudioFlags.ML_MODEL_BINDING.override(true);
 
-    // b/214269405
-    // larger file size limit for FilenameIndex
-    PersistentFSConstants.setMaxIntellisenseFileSize(100_0000_000);
+    // ML model size is over default 2.5 MiB
+    PersistentFSConstants.setMaxIntellisenseFileSize(100_000_000);
 
     ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
 
