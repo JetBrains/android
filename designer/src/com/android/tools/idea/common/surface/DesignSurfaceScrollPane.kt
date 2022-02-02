@@ -43,7 +43,7 @@ class DesignSurfaceScrollPane private constructor() : JBScrollPane(0) {
       isOpaque = false
     }
 
-    override fun getUnitIncrement(direction: Int): Int = 5
+    override fun getUnitIncrement(direction: Int): Int = 20
     override fun getBlockIncrement(direction: Int): Int = 1
 
     init {
