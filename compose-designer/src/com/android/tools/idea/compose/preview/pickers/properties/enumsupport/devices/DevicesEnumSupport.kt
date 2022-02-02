@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport.de
 
 import com.android.resources.Density
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
@@ -54,8 +55,10 @@ internal fun createDeviceEnumSupport(
       return@EnumSupportWithConstantData EnumValue.item(stringValue, "Custom")
     }
     else {
+      val displayName = enumSupportValuesProvider.getValuesProvider(PARAMETER_HARDWARE_DEVICE)?.invoke()
+        ?.first { enum -> enum.value.equals(it) }?.display
       // Show an item with the initial value and make it better to read
-      val readableValue = it.substringAfter(':', it).replace('_', ' ')
+      val readableValue = displayName ?: it.substringAfter(':', it).replace('_', ' ')
       return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
     }
   }
