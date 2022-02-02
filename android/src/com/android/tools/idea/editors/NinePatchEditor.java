@@ -25,12 +25,18 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ModalityUiUtil;
+import java.awt.Color;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +75,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
     myFile = file;
     try {
       myBufferedImage = loadImage(file);
-      myImageEditorPanel = new ImageEditorPanel(null, myBufferedImage, myFile.getName());
+      Supplier<Color> helpBackgroundColor = () -> {
+        EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
+        return globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND);
+      };
+
+      myImageEditorPanel = new ImageEditorPanel(null, myBufferedImage, myFile.getName(), helpBackgroundColor, JBColor::border);
       myImageEditorPanel.getViewer().addPatchUpdateListener(this);
     } catch (IOException e) {
       LOG.error("Unexpected exception while reading 9-patch file", e);
