@@ -111,9 +111,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   @Override
   protected void processNewLines(@NotNull List<@NotNull String> newLines) {
     // Since we are eventually bound by the UI thread, we need to block in order to throttle the caller.
-    CountDownLatch latch = new CountDownLatch(1);
-
-    mySequentialExecutor.execute(() -> {
+    executeAndWait(mySequentialExecutor, () -> {
       // New batch arrived so effectively cancel the pending request by resetting myPendingMessage
       myPendingMessage = null;
 
@@ -133,7 +131,18 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
         myPendingMessage = new LogCatMessage(myPreviousHeader, joinLines(myPreviousLines));
         myAlarm.addRequest(this::processPendingMessage, DELAY_MILLIS);
       }
-      latch.countDown();
+    });
+  }
+
+  private static void executeAndWait(Executor executor, Runnable action) {
+    CountDownLatch latch = new CountDownLatch(1);
+    executor.execute(() -> {
+      try {
+        action.run();
+      }
+      finally {
+        latch.countDown();
+      }
     });
     try {
       latch.await();
