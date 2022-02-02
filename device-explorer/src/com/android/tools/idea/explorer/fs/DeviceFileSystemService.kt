@@ -33,7 +33,7 @@ interface DeviceFileSystemService<S : DeviceFileSystem> {
   /**
    * Starts the service, usually after registering one or more [DeviceFileSystemServiceListener].
    */
-  suspend fun start(adbSupplier: Supplier<File?>)
+  suspend fun start()
 
   /**
    * Returns the list of currently known devices.

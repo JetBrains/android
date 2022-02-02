@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -31,11 +32,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.FileNotFoundException
@@ -47,7 +48,10 @@ import java.util.function.Supplier
  * long running operations either raise events or return a Future.
  */
 @UiThread
-class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
+class AdbDeviceFileSystemService @NonInjectable constructor (val adbSupplier: Supplier<File?>)
+    : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
+
+  constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })
 
   companion object {
     @JvmStatic
@@ -94,7 +98,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
    * If this method is called when the service is starting or is already started, it returns immediately.
    */
   @UiThread
-  override suspend fun start(adbSupplier: Supplier<File?>) {
+  override suspend fun start() {
     if (state == State.SetupRunning || state == State.SetupDone) {
       return
     }

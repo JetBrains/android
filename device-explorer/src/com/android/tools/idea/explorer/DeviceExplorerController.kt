@@ -135,7 +135,7 @@ class DeviceExplorerController(
       view.setup()
       view.startRefresh("Initializing ADB")
       try {
-        service.start { getAdbFile() }
+        service.start()
         setupJob.complete(Unit)
         refreshDeviceList(null)
       } catch (t: Throwable) {
@@ -145,11 +145,6 @@ class DeviceExplorerController(
         view.stopRefresh()
       }
     }
-  }
-
-  private fun getAdbFile(): File? {
-    val provider = fromProject(project)
-    return provider?.adbFile
   }
 
   fun reportErrorFindingDevice(message: String) {

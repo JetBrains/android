@@ -17,12 +17,11 @@ package com.android.tools.idea.explorer.adbimpl
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
-import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.UsefulTestCase.assertThrows
@@ -30,12 +29,11 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.io.FileNotFoundException
-import java.util.function.Supplier
 
 class AdbDeviceFileSystemServiceTest {
 
@@ -45,7 +43,10 @@ class AdbDeviceFileSystemServiceTest {
   private val project: Project
     get() = androidProjectRule.project
 
-  private val adbSupplier = Supplier { AndroidSdkUtils.getAdb(project) }
+  @Before
+  fun setUp() {
+    AdbFileProvider { AndroidSdkUtils.getAdb(project) }.storeInProject(project)
+  }
 
   @Test
   fun startService() = runBlocking {
@@ -53,7 +54,7 @@ class AdbDeviceFileSystemServiceTest {
     val service = getInstance(project)
 
     // Act
-    service.start(adbSupplier)
+    service.start()
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
@@ -65,7 +66,7 @@ class AdbDeviceFileSystemServiceTest {
   fun debugBridgeListenersRemovedOnDispose() = runBlocking {
     // Prepare
     val service = getInstance(project)
-    service.start(adbSupplier)
+    service.start()
     assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
     assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
 
@@ -83,8 +84,8 @@ class AdbDeviceFileSystemServiceTest {
     val service = getInstance(project)
 
     // Act
-    service.start(adbSupplier)
-    service.start(adbSupplier)
+    service.start()
+    service.start()
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
@@ -95,12 +96,13 @@ class AdbDeviceFileSystemServiceTest {
   @Test
   fun startServiceFailsIfAdbIsNull() {
     // Prepare
+    AdbFileProvider { null }.storeInProject(project)
     val service = getInstance(project)
 
     // Act
     assertThrows(FileNotFoundException::class.java, "Android Debug Bridge not found.") {
       runBlocking {
-        service.start { null }
+        service.start()
       }
     }
   }
@@ -113,7 +115,7 @@ class AdbDeviceFileSystemServiceTest {
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
 
     assertThrows(RuntimeException::class.java, "test fail") {
-      runBlocking { service.start(adbSupplier) }
+      runBlocking { service.start() }
     }
   }
 
@@ -126,7 +128,7 @@ class AdbDeviceFileSystemServiceTest {
 
     // Act
     assertThrows(RuntimeException::class.java) {
-      runBlocking { service.start(adbSupplier) }
+      runBlocking { service.start() }
     }
   }
 }

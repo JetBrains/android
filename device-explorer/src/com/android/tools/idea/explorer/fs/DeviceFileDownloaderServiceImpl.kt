@@ -55,7 +55,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     if (onDevicePaths.isEmpty()) {
       return emptyMap()
     }
-    deviceFileSystemService.start { AdbFileProvider.fromProject(project)?.adbFile }
+    deviceFileSystemService.start()
     try {
       val devices = deviceFileSystemService.devices
       val deviceFileSystem = devices.find { it.deviceSerialNumber == deviceSerialNumber }

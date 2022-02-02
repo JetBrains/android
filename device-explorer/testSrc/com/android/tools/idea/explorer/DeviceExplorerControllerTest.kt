@@ -234,7 +234,7 @@ class DeviceExplorerControllerTest {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start(any())).thenThrow(RuntimeException(setupErrorMessage))
+    `when`(service.start()).thenThrow(RuntimeException(setupErrorMessage))
     val controller = createController(service = service)
 
     // Act
@@ -250,7 +250,7 @@ class DeviceExplorerControllerTest {
   fun startControllerUnexpectedFailure() = runBlocking {
     // Prepare
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start(any())).thenThrow(RuntimeException())
+    `when`(service.start()).thenThrow(RuntimeException())
     val controller = createController(service = service)
 
     // Act
