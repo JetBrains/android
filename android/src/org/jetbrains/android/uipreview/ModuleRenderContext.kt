@@ -36,6 +36,9 @@ class ModuleRenderContext private constructor(val module: Module, val fileProvid
   val project: Project
     get() = module.project
 
+  val isDisposed: Boolean
+    get() = module.isDisposed
+
   companion object {
     @JvmStatic
     fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)

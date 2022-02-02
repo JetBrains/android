@@ -323,7 +323,7 @@ class ModuleClassLoaderManager {
     // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
     // recreate a new one for faster load next time
     moduleClassLoader.module?.let { module ->
-      if (module.isDisposed()) {
+      if (module.isDisposed) {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {
@@ -332,8 +332,8 @@ class ModuleClassLoaderManager {
         }
       }
       else {
+        module.removeUserData(PRELOADER)?.cancel()
         val newClassLoader = createCopy(moduleClassLoader) ?: return@let
-        module.removeUserData(PRELOADER)?.let { it.cancel() }
         // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
         val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
         module.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))

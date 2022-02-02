@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
@@ -135,6 +136,8 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
    * the parent compatibility in {@link #isCompatibleParentClassLoader(ClassLoader).}
    */
   private final ClassLoader myParentAtConstruction;
+
+  private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
                     @NotNull ClassTransform projectTransformations,
@@ -403,13 +406,18 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   @Nullable
   ModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     ModuleRenderContext renderContext = getModuleContext();
-    if (renderContext == null) return null;
+    if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
     return new ModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
                                  diagnostics);
   }
 
+  public boolean isDisposed() {
+    return isDisposed.get();
+  }
+
   @Override
   public void dispose() {
+    isDisposed.set(true);
     myImpl.dispose();
     ourDisposeService.submit(() -> {
       waitForCoroutineThreadToStop();

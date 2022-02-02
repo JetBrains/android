@@ -46,6 +46,7 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -394,6 +395,20 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertFalse(loader.areDependenciesUpToDate());
 
     ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  public void testModuleClassLoaderCopy() {
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(
+      Objects.requireNonNull(myFixture.getModule())), this);
+
+    ModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
+    assertNotNull(copy);
+    Disposer.dispose(copy);
+
+    ModuleClassLoaderManager.get().release(loader, this);
+
+    copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
+    assertNull("Disposed ModuleClassLoaders can not be copied", copy);
   }
 
   private static IdeAndroidLibraryDependencyImpl ideAndroidLibrary(File gradleCacheRoot,
