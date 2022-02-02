@@ -642,6 +642,7 @@ class ContentManager(val project: Project) {
     }
       .apply {
         addActionListener { url?.let { BrowserUtil.browse(it) } }
+        setExternalLinkIcon()
         fun update(uiState: ToolWindowModel.UIState) {
           url = uiState.statusMessage?.url
           isVisible = url != null
