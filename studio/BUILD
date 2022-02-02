@@ -257,6 +257,7 @@ studio_plugin(
         ],
         "resources": [
             "//tools/adt/idea/android/lib:sample-data-bundle",
+            "//tools/adt/idea/android/lib:apks-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/adt/idea/emulator/native:native_lib",

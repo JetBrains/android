@@ -218,6 +218,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",

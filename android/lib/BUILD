@@ -18,10 +18,25 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "apks",
+    srcs = glob(["apks/*.apk"]),
+    visibility = ["//visibility:public"],
+)
+
 # Data that gets bundled in studio
 studio_data(
     name = "sample-data-bundle",
     files = glob(["sampleData/**"]),
+    mappings = {
+        "tools/adt/idea/android/lib/": "",
+    },
+    visibility = ["//visibility:public"],
+)
+
+studio_data(
+    name = "apks-bundle",
+    files = glob(["apks/*.apk"]),
     mappings = {
         "tools/adt/idea/android/lib/": "",
     },

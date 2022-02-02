@@ -16,6 +16,30 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication.ComplicationType
+import com.android.tools.idea.util.StudioPathManager
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.io.FileUtil
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
+/**
+ * Returns the base directory for the Sample Data directory contents
+ */
+private fun getApksBaseDir(): Path? {
+  val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
+  var apksPath = Paths.get(homePath, "plugins/android/resources/apks")
+  if (StudioPathManager.isRunningFromSources()) {
+    apksPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/lib/apks")
+  }
+  if (Files.exists(apksPath)) {
+    return apksPath
+  }
+
+  Logger.getInstance(DefaultComplicationWatchFaceInfo::class.java).error("Unable to find apks dir at $apksPath")
+  return null
+}
 
 /**
  * Includes metadata required to work with the ComplicationWatchFaceApk
@@ -71,7 +95,7 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
     )
   )
   override val apk: String
-    get() = javaClass.classLoader.getResource("apks/ComplicationWatchFace.apk")!!.path
+    get() = getApksBaseDir()!!.resolve("ComplicationWatchFace.apk").toString()
   override val appId = "androidx.wear.watchface.samples.app"
   override val watchFaceFQName = "androidx.wear.watchface.samples.ExampleCanvasDigitalWatchFaceService"
 }

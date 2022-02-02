@@ -29,6 +29,8 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.ActionLink
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.swing.JPanel
 
 
@@ -164,4 +166,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyComplication")
   }
 
+  fun testApkFound() {
+    assertTrue(Files.isRegularFile(Paths.get(runConfiguration.watchFaceInfo.apk)))
+  }
 }
