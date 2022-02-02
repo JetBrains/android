@@ -21,17 +21,22 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.Uninterruptibles
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowId
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 /**
- * Returns client with appId in [appIds] and DebuggerStatus.WAITING, otherwise throws [ExecutionException].
+ * Returns client with appId in [appIds] and [ClientData.DebuggerStatus.WAITING], otherwise throws [ExecutionException].
  */
 @WorkerThread
-fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, pollTimeoutSeconds: Int = 15): Client {
+internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, pollTimeoutSeconds: Int = 15): Client {
   val timeUnit = TimeUnit.SECONDS
 
   for (i in 0 until pollTimeoutSeconds) {
@@ -70,4 +75,13 @@ fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, poll
     }
   }
   throw ExecutionException("Processes ${appIds.joinToString()} are not found. Aborting session.")
+}
+
+/**
+ * Shows [ExecutionException] in Debug Tool Window.
+ */
+internal fun showError(project: Project, e: ExecutionException, sessionName: String) {
+  ExecutionUtil.handleExecutionError(project, ToolWindowId.DEBUG, e,
+                                     ExecutionBundle.message("error.running.configuration.message", sessionName),
+                                     e.message, Function.identity(), null)
 }

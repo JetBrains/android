@@ -57,7 +57,7 @@ import java.io.OutputStream
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
-  private val project: Project,
+  val project: Project,
   val targetApplicationId: String,
   val captureLogcat: Boolean = true,
   val autoTerminate: Boolean = true,
