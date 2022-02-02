@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.util.Disposer
 import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertArrayEquals
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -76,6 +77,7 @@ class ComposePreviewRepresentationTest {
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
+  @Ignore("b/161091273")
   @Test
   fun testPreviewInitialization() {
     val composeTest = fixture.addFileToProjectAndInvalidate(
