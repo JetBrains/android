@@ -106,54 +106,6 @@ class AdbDeviceFileSystemServiceTest {
   }
 
   @Test
-  fun restartService() = runBlocking {
-    // Prepare
-    val service = getInstance(project)
-    service.start(adbSupplier)
-
-    // Act
-    service.restart(adbSupplier)
-
-    // Assert
-    // Note: There is not much we can assert on, other than implicitly the fact we
-    // reached this statement.
-    assertNotNull(service.devices)
-  }
-
-  @Test
-  fun restartNonStartedService() = runBlocking {
-    // Prepare
-    val service = getInstance(project)
-
-    // Act
-    service.restart(adbSupplier)
-
-    // Assert
-    // Note: There is not much we can assert on, other than implicitly the fact we
-    // reached this statement.
-    assertNotNull(service.devices)
-  }
-
-  @Test
-  fun restartServiceCantTerminateDdmlib() = runBlocking {
-    // Prepare
-    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
-    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mock()))
-
-    Mockito.doThrow(RuntimeException()).`when`(mockAdbService).terminateDdmlib()
-    val service = getInstance(project)
-    service.start(adbSupplier)
-
-    // Act
-    try {
-      service.restart(adbSupplier)
-    } catch(e: RuntimeException) {
-      // expected
-    }
-    Mockito.doNothing().`when`(mockAdbService).terminateDdmlib()
-  }
-
-  @Test
   fun getDebugBridgeFailure() {
     // Prepare
     val service = getInstance(project)

@@ -263,41 +263,6 @@ class DeviceExplorerControllerTest {
   }
 
   @Test
-  fun restartController() {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
-    checkMockViewInitialState(controller, myDevice1)
-
-    // Act
-    controller.restartService()
-    pumpEventsAndWaitForFuture(myMockView.allDevicesRemovedTracker.consume())
-
-    // Assert
-    checkMockViewInitialState(controller, myDevice1)
-  }
-
-  @Test
-  fun restartControllerFailure() = runBlocking  {
-    // Prepare
-    val setupErrorMessage = "<Unique error message>"
-    val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.restart(any())).thenThrow(RuntimeException(setupErrorMessage))
-    `when`(service.devices).thenReturn(ArrayList())
-    val controller = createController(service = service)
-
-    // Act
-    controller.setup()
-    controller.restartService()
-    val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToServiceTracker.consume())
-
-    // Assert
-    checkNotNull(errorMessage)
-    assertTrue(errorMessage.contains(setupErrorMessage))
-  }
-
-  @Test
   fun getDevicesFailure() = runBlocking {
     // Prepare
     val setupErrorMessage = "<Unique error message>"

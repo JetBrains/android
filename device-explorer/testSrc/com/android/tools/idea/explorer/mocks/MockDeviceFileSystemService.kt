@@ -52,15 +52,6 @@ class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, t
     delay(OPERATION_TIMEOUT_MILLIS)
   }
 
-  override suspend fun restart(adbSupplier: Supplier<File?>) {
-    coroutineScope {
-      delay(OPERATION_TIMEOUT_MILLIS)
-      launch(uiThread) {
-        myListeners.forEach { it.serviceRestarted() }
-      }
-    }
-  }
-
   override val devices: List<DeviceFileSystem>
     get() = ArrayList<DeviceFileSystem>(myDevices)
 

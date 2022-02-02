@@ -91,10 +91,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
   /**
    * Starts the service using an ADB File.
    *
-   *
    * If this method is called when the service is starting or is already started, it returns immediately.
-   *
-   * To restart the service using a different ADB file, call [AdbDeviceFileSystemService.restart]
    */
   @UiThread
   override suspend fun start(adbSupplier: Supplier<File?>) {
@@ -133,20 +130,6 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
         throw RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), t)
       }
     }
-  }
-
-  @UiThread
-  override suspend fun restart(adbSupplier: Supplier<File?>) {
-    if (state == State.Initial) {
-      return start(adbSupplier)
-    }
-    checkState(State.SetupDone)
-
-    withContext(coroutineScope.coroutineContext) {
-      AdbService.getInstance().terminateDdmlib()
-    }
-
-    startDebugBridge()
   }
 
   override val devices: List<AdbDeviceFileSystem>

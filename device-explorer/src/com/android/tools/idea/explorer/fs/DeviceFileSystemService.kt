@@ -36,12 +36,6 @@ interface DeviceFileSystemService<S : DeviceFileSystem> {
   suspend fun start(adbSupplier: Supplier<File?>)
 
   /**
-   * Restarts the service, usually as the result of a user action when/if the service has become
-   * unreliable.
-   */
-  suspend fun restart(adbSupplier: Supplier<File?>)
-
-  /**
    * Returns the list of currently known devices.
    */
   val devices: List<S>
