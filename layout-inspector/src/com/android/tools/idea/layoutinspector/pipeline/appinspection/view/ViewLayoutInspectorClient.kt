@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
+import com.google.protobuf.InvalidProtocolBufferException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationInfo
@@ -41,7 +42,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
@@ -165,7 +166,18 @@ class ViewLayoutInspectorClient(
       // Layout events are very expensive to process and we may get a bunch of intermediate layouts while still processing an older one.
       // We skip over rendering these obsolete frames, which makes the UX feel much more responsive.
       messenger.eventFlow
-        .map { eventBytes -> Event.parseFrom(eventBytes) }
+        .mapNotNull { eventBytes ->
+          try {
+            Event.parseFrom(eventBytes)
+          } catch (e: InvalidProtocolBufferException) {
+            // Catch and swallow protocol exceptions thrown when debugging the application.
+            // The above bytes are stitched together from separate messages. However, messages
+            // sent during break point suspension can get duplicated in the transport layer,
+            // resulting in a larger than expected payload.
+            // See b/181908873 for context.
+            null
+          }
+        }
         .onEach { event ->
           if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) {
             recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
