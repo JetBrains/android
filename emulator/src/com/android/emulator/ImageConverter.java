@@ -118,8 +118,11 @@ public class ImageConverter {
       if (Files.exists(libFile)) {
         return libFile;
       }
+      throw new UnsatisfiedLinkError("Unable to find " + libFile);
     }
-    throw new UnsatisfiedLinkError("Unable to find " + homePath.resolve("plugins/android/native").resolve(libName));
+    else {
+      throw new UnsatisfiedLinkError("Unable to find " + libName + ". Possibly corrupted Studio installation");
+    }
   }
 
   private static @NotNull String getLibName() {
