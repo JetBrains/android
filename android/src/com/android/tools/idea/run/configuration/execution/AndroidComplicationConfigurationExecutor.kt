@@ -34,7 +34,6 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
-import java.util.concurrent.TimeUnit
 
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
@@ -96,15 +95,13 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 class ComplicationProcessHandler(private val complicationComponentName: String,
                                  private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = CommandResultReceiver()
-
+    val removeReceiver = CommandResultReceiver()
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
-    console.printShellCommand(removeComplicationCommand)
-    device.executeShellCommand(removeComplicationCommand, receiver, 5, TimeUnit.SECONDS)
+    device.executeShellCommand(removeComplicationCommand, console, removeReceiver)
 
-    console.printShellCommand(UNSET_WATCH_FACE)
-    device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
-    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    val unsetReceiver = CommandResultReceiver()
+    device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver)
+    if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       console.printError("Warning: Complication was not stopped.")
     }
   }

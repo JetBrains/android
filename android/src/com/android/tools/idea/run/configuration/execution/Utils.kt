@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.MultiReceiver
+import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.util.concurrent.TimeUnit
 
@@ -36,6 +40,15 @@ internal fun ConsoleView.print(text: String) {
 
 internal fun ConsoleView.printError(error: String) {
   print(error + "\n", ConsoleViewContentType.ERROR_OUTPUT)
+}
+
+@WorkerThread
+internal fun IDevice.executeShellCommand(command: String, console: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
+                                         timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS) {
+  ApplicationManager.getApplication().assertIsNonDispatchThread()
+  console.printShellCommand(command)
+  val consoleReceiver = ConsoleOutputReceiver({ ProgressIndicatorProvider.getGlobalProgressIndicator()?.isCanceled == true }, console)
+  executeShellCommand(command, MultiReceiver(receiver, consoleReceiver), timeOut, timeOutUnits)
 }
 
 internal fun IDevice.getWearDebugSurfaceVersion(): Int {

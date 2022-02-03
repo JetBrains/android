@@ -18,7 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.AndroidProjectTypes
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -101,8 +100,6 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
 
 class ActivityProcessHandler(private val appId: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val command = "am force-stop $appId"
-    console.printShellCommand(command)
-    device.executeShellCommand(command, NullOutputReceiver())
+    device.executeShellCommand("am force-stop $appId", console)
   }
 }

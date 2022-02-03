@@ -35,9 +35,8 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import org.jetbrains.concurrency.Promise
 import org.jetbrains.android.util.AndroidBundle
-import java.util.concurrent.TimeUnit
+import org.jetbrains.concurrency.Promise
 
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
@@ -72,9 +71,8 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       }
       val tileIndex = setWatchTile(app, mode, indicator, console)
       val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
-      console.printShellCommand(showTileCommand)
       val showTileReceiver = CommandResultReceiver()
-      device.executeShellCommand(showTileCommand, showTileReceiver, 5, TimeUnit.SECONDS)
+      device.executeShellCommand(showTileCommand, console, showTileReceiver)
       verifyResponse(showTileReceiver, console)
     }
     ProgressManager.checkCanceled()
@@ -121,8 +119,7 @@ class TileProcessHandler(private val tileName: String, private val console: Cons
   override fun destroyProcessOnDevice(device: IDevice) {
     val receiver = CommandResultReceiver()
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
-    console.printShellCommand(removeTileCommand)
-    device.executeShellCommand(removeTileCommand, receiver, 5, TimeUnit.SECONDS)
+    device.executeShellCommand(removeTileCommand, console, receiver)
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       console.printError("Warning: Tile was not stopped.")
     }
