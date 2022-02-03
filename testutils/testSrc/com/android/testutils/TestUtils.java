@@ -17,7 +17,6 @@
 package com.android.testutils;
 
 import static com.android.SdkConstants.FD_PLATFORMS;
-import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 import static org.junit.Assume.assumeFalse;
 
 import com.android.SdkConstants;
@@ -46,6 +45,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 
 /**
  * Utility methods to deal with loading the test data.
@@ -66,12 +66,12 @@ public class TestUtils {
   /**
    * Returns the Kotlin version to be used in new project templates and integration tests.
    *
-   * If you are looking for the version of the Kotlin IDE plugin,
-   * prefer using KotlinCompilerVersion.getVersion() instead.
+   * If you are looking for the version of the Kotli compiler used during code highlighting
+   * in the IDE, use KotlinPluginLayout.getInstance().getAnalyzerCompilerVersion() instead.
    */
   @NonNull
   public static String getKotlinVersionForTests() {
-    String version = bundledRuntimeVersion();
+    String version = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion();
     if (version.contains("-release-")) {
       version = version.substring(0, version.indexOf("-release-"));
     }
