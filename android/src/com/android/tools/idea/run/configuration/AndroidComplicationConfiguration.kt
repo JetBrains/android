@@ -53,7 +53,7 @@ class AndroidComplicationConfigurationType :
 
 
 class AndroidComplicationConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
-  data class ChosenSlot(var id: Int, var type: Complication.ComplicationType) {
+  data class ChosenSlot(var id: Int, var type: Complication.ComplicationType?) {
     // We need parameterless constructor for correct work of XmlSerializer. See [AndroidWearConfiguration.readExternal]
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
@@ -63,22 +63,27 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
       throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"))
     }
     for (slot in chosenSlots) {
-      if (!supportedTypes.contains(slot.type)) {
-        throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slot.type))
+      val slotType = slot.type ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.type.empty"))
+      if (!supportedTypes.contains(slotType)) {
+        throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slotType))
       }
     }
   }
 
+  internal fun getTypesFromManifest(): List<Complication.ComplicationType>{
+    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(this.module!!).get()
+    if (snapshotFuture.isDone) {
+      return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName)
+    }
+    return emptyList()
+  }
+
   override fun checkConfiguration() {
     super.checkConfiguration()
-    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(configurationModule.module!!).get()
-    if (!snapshotFuture.isDone) {
-      return
-    }
     if (chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
-    verifyProviderTypes(extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName))
+    verifyProviderTypes(getTypesFromManifest())
   }
 
   var chosenSlots: List<ChosenSlot> = listOf()

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -29,6 +30,8 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.ActionLink
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.mockito.Mockito
+import org.mockito.Mockito.doReturn
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.swing.JPanel
@@ -47,8 +50,10 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val runConfigurationFactory = AndroidComplicationConfigurationType().configurationFactories[0]
-    runConfiguration = AndroidComplicationConfiguration(project, runConfigurationFactory)
+    runConfiguration = Mockito.spy(AndroidComplicationConfiguration(project, runConfigurationFactory))
     settingsEditor = runConfiguration.configurationEditor
+    doReturn(listOf(ComplicationType.RANGED_VALUE, ComplicationType.SHORT_TEXT, ComplicationType.MONOCHROMATIC_IMAGE))
+      .`when`(runConfiguration).getTypesFromManifest()
   }
 
   fun testResetFromAndApplyTo() {

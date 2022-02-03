@@ -16,9 +16,11 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
+import com.android.tools.idea.run.configuration.extractComplicationSupportedTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
@@ -42,6 +44,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   private var originalChosenSlots: List<AndroidComplicationConfiguration.ChosenSlot> = listOf()
   private val currentChosenSlots: ObservableList<AndroidComplicationConfiguration.ChosenSlot> = ObservableList()
   private var notChosenSlotIds: List<Int> = emptyList()
+  private var sourceTypes: List<Complication.ComplicationType> = emptyList()
   private lateinit var addSlotLink: JComponent
   private lateinit var slotsComponent: JPanel
 
@@ -55,11 +58,11 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     addSlotLink.isEnabled = currentChosenSlots.size < allAvailableSlots.size
   }
 
-
   override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {
     super.resetEditorFrom(runConfiguration)
     allAvailableSlots = runConfiguration.watchFaceInfo.complicationSlots
     originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
+    sourceTypes = runConfiguration.getTypesFromManifest()
     currentChosenSlots.apply {
       beginUpdate()
       clear()
@@ -73,6 +76,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     super.applyEditorTo(runConfiguration)
     runConfiguration.chosenSlots = currentChosenSlots.map { it.copy() }
     originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
+    sourceTypes = runConfiguration.getTypesFromManifest()
   }
 
   override fun createEditor() =
@@ -142,13 +146,23 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   }
 
   private fun getSlotTypeCompoBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<Complication.ComplicationType> {
-    return ComboBox(supportedTypes(chosenSlot.id)).apply {
+    val options = filterTypes(supportedTypes(chosenSlot.id), sourceTypes)
+    val comboBox = ComboBox(options).apply {
       preferredSize = Dimension(250, preferredSize.height)
       item = chosenSlot.type
       addActionListener {
         chosenSlot.type = this.item
       }
     }
+    if (options.isEmpty()) {
+      chosenSlot.type = null
+      comboBox.isEnabled = false
+    }
+    return comboBox
+  }
+
+  private fun filterTypes(types: Array<Complication.ComplicationType>, supported: List<Complication.ComplicationType>) : Array<Complication.ComplicationType> {
+    return types.filter {type -> supported.any { it == type }}.toTypedArray()
   }
 
   private fun getSlotIdComboBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<Int> {
