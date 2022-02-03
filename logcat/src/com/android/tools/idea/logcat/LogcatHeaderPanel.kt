@@ -42,9 +42,9 @@ internal class LogcatHeaderPanel(
   filter: String,
 ) : JPanel() {
   private val deviceComboBox: Component
-  private val filterTextField = FilterTextField(project, logcatPresenter, filter)
-
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
+
+  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter)
 
   init {
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we

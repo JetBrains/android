@@ -31,6 +31,9 @@ import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -276,6 +279,47 @@ class LogcatFilterParserTest {
   fun parse_psiError() {
     val query = "key: 'foo"
     assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
+  }
+
+  @Test
+  fun getUsageTrackingEvent_terms() {
+    val query = "tag:foo tag:bar -package:foo line~:foo -message~:bar age:2m level:INFO package:mine foo"
+
+    assertThat(logcatFilterParser().getUsageTrackingEvent(query)).isEqualTo(
+      LogcatFilterEvent.newBuilder()
+        .setTagTerms(TermVariants.newBuilder().setCount(2))
+        .setPackageTerms(TermVariants.newBuilder().setCountNegated(1))
+        .setMessageTerms(TermVariants.newBuilder().setCountNegatedRegex(1))
+        .setLineTerms(TermVariants.newBuilder().setCountRegex(1))
+        .setImplicitLineTerms(1)
+        .setLevelTerms(1)
+        .setAgeTerms(1)
+        .setPackageProjectTerms(1)
+        .build())
+  }
+
+  @Test
+  fun getUsageTrackingEvent_operators() {
+    assertThat(logcatFilterParser().getUsageTrackingEvent("(foo | bar) & (for | boo)")).isEqualTo(
+      LogcatFilterEvent.newBuilder()
+        .setImplicitLineTerms(4)
+        .setAndOperators(1)
+        .setOrOperators(2)
+        .setParentheses(2)
+        .build())
+  }
+
+  @Test
+  fun getUsageTrackingEvent_error() {
+    assertThat(logcatFilterParser().getUsageTrackingEvent("level:foo")).isEqualTo(
+      LogcatFilterEvent.newBuilder()
+        .setContainsErrors(true)
+        .build())
+  }
+
+  @Test
+  fun getUsageTrackingEvent_emptyFilter() {
+    assertThat(logcatFilterParser().getUsageTrackingEvent("")).isEqualTo(LogcatFilterEvent.getDefaultInstance())
   }
 
   private fun logcatFilterParser(

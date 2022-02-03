@@ -18,11 +18,15 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.ReschedulableTask
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -56,6 +60,7 @@ private const val APPLY_FILTER_DELAY_MS = 100L
 internal class FilterTextField(
   project: Project,
   logcatPresenter: LogcatPresenter,
+  private val filterParser: LogcatFilterParser,
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   maxHistorySize: Int = MAX_HISTORY_SIZE,
@@ -134,6 +139,11 @@ internal class FilterTextField(
       history.add(text)
       setHistory()
       propertiesComponent.setValues(HISTORY_PROPERTY_NAME, history.toTypedArray())
+      LogcatUsageTracker.log(
+        LogcatUsageEvent.newBuilder()
+          .setType(FILTER_ADDED_TO_HISTORY)
+          .setLogcatFilter(filterParser.getUsageTrackingEvent(text))
+      )
     }
   }
 

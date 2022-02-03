@@ -36,6 +36,8 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.filters.parser.isTopLevelValue
 import com.android.tools.idea.logcat.filters.parser.toText
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.intellij.openapi.project.Project
@@ -100,15 +102,79 @@ internal class LogcatFilterParser(
     }
   }
 
+  /**
+   * Parse a filter provided by a string in the Logcat filter language ([com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage])
+   * and return a usage tracking event representing it.
+   *
+   * @param filterString a string in the Logcat filter language
+   * @return A [LogcatFilterEvent] representing the provided string.
+   */
+  fun getUsageTrackingEvent(filterString: String): LogcatFilterEvent {
+    val builder = LogcatFilterEvent.newBuilder()
+    try {
+      val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
+      if (PsiTreeUtil.hasErrorElements(psi)) {
+        builder.containsErrors = true
+      }
+      else {
+        // We should not be getting a null here because we don't call this method if filterString is empty
+        val logcatFilter = psi.toFilter() ?: return builder.build()
+        processFilters(logcatFilter) { filter ->
+          when {
+            filter is StringFilter && filter.field == IMPLICIT_LINE -> builder.implicitLineTerms++
+            filter is StringFilter -> builder.updateTermVariants(filter.field) { it.count++ }
+            filter is NegatedStringFilter -> builder.updateTermVariants(filter.field) { it.countNegated++ }
+            filter is RegexFilter -> builder.updateTermVariants(filter.field) { it.countRegex++ }
+            filter is NegatedRegexFilter -> builder.updateTermVariants(filter.field) { it.countNegatedRegex++ }
+            filter is ProjectAppFilter -> builder.packageProjectTerms++
+            filter is LevelFilter -> builder.levelTerms++
+            filter is AgeFilter -> builder.ageTerms++
+          }
+        }
+
+        PsiTreeUtil.processElements(psi) {
+          when (it) {
+            is LogcatFilterParenExpression -> builder.parentheses++
+            is LogcatFilterAndExpression -> builder.andOperators++
+            is LogcatFilterOrExpression -> builder.orOperators++
+          }
+          true
+        }
+      }
+    }
+    catch (e: LogcatFilterParseException) {
+      builder.containsErrors = true
+    }
+    return builder.build()
+  }
+
+  private fun processFilters(filter: LogcatFilter, process: (LogcatFilter) -> Unit) {
+    when (filter) {
+      is AndLogcatFilter -> filter.filters.forEach { processFilters(it, process) }
+      is OrLogcatFilter -> filter.filters.forEach { processFilters(it, process) }
+      else -> process(filter)
+    }
+  }
+
+  private fun LogcatFilterEvent.Builder.updateTermVariants(
+    field: LogcatFilterField, updater: (TermVariants.Builder) -> Unit) {
+    val terms = when (field) {
+      TAG -> tagTermsBuilder
+      APP -> packageTermsBuilder
+      MESSAGE -> messageTermsBuilder
+      LINE -> lineTermsBuilder
+      IMPLICIT_LINE -> return
+    }
+    updater(terms)
+  }
+
   private fun PsiFile.toFilter(): LogcatFilter? {
     val expressions = PsiTreeUtil.getChildrenOfType(this, LogcatFilterExpression::class.java)
 
     return when {
       expressions == null -> null
       expressions.size == 1 -> expressions[0].toFilter()
-      else -> {
-        createTopLevelFilter(expressions)
-      }
+      else -> createTopLevelFilter(expressions)
     }
   }
 
