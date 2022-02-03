@@ -163,7 +163,7 @@ open class NlPropertiesModel(
   open fun getPropertyTag(property: NlPropertyItem): XmlTag? = property.firstTag
 
   open fun getPropertyValue(property: NlPropertyItem): String? {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertReadAccessAllowed()
     var prev: String? = null
     for (component in property.components) {
       val value = component.getLiveAttribute(property.namespace, property.name) ?: return null

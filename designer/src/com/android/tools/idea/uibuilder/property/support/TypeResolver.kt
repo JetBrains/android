@@ -16,11 +16,15 @@
 package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.property.NlPropertyType
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.SdkConstants.PreferenceAndroidX
+import com.android.SdkConstants.PreferenceAttributes
+import com.android.SdkConstants.PreferenceClasses
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
@@ -31,8 +35,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
  */
 object TypeResolver {
 
-  fun resolveType(name: String, attribute: AttributeDefinition?): NlPropertyType {
-    return lookupByName(name)
+  fun resolveType(name: String, attribute: AttributeDefinition?, componentClass: PsiClass?): NlPropertyType {
+    return lookupByName(name, componentClass)
            ?: bySpecialType(name)
            ?: fromAttributeDefinition(attribute)
            ?: fallbackByName(name)
@@ -71,7 +75,7 @@ object TypeResolver {
     return subType
   }
 
-  private fun lookupByName(name: String) =
+  private fun lookupByName(name: String, componentClass: PsiClass?) =
     when (name) {
       SdkConstants.ATTR_ITEM_SHAPE_APPEARANCE,
       SdkConstants.ATTR_ITEM_SHAPE_APPEARANCE_OVERLAY,
@@ -245,7 +249,8 @@ object TypeResolver {
       SdkConstants.ATTR_INTERPOLATOR,
       SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NlPropertyType.INTERPOLATOR
 
-      SdkConstants.ATTR_ENTRIES -> NlPropertyType.STRING_ARRAY
+      PreferenceAttributes.ATTR_ENTRY_VALUES,
+      PreferenceAttributes.ATTR_ENTRIES -> NlPropertyType.STRING_ARRAY
 
       SdkConstants.ATTR_IGNORE_GRAVITY -> NlPropertyType.THREE_STATE_BOOLEAN
 
@@ -294,8 +299,49 @@ object TypeResolver {
 
       SdkConstants.ATTR_MOTION_WAVE_OFFSET -> NlPropertyType.DIMENSION_UNIT_LESS
 
+      PreferenceAttributes.ATTR_DEFAULT_VALUE -> defaultValueType(componentClass)
+
       else -> null
     }
+
+  /**
+   * Find the type of the "defaultValue" attribute.
+   *
+   * The attribute "defaultValue" defined on the "Preference" tag is known to have multiple types.
+   * Classes derived from "android.preference.Preference" or "androidx.preference.Preference" override the method "onGetDefaultValue"
+   * to read the value expected for this attribute. It can be either a boolean, string, integer, or a string array depending on the
+   * [componentClass].
+   *
+   * Some derived classes do not read the value at all e.g. "PreferenceCategory".
+   * For these components we simply return [NlPropertyType.UNKNOWN] indicating that we should hide this attribute in the properties panel.
+   */
+  private fun defaultValueType(componentClass: PsiClass?): NlPropertyType = when (componentClass?.qualifiedName) {
+    null -> NlPropertyType.UNKNOWN
+    PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
+    PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
+    PreferenceClasses.CLASS_MULTI_CHECK_PREFERENCE  -> NlPropertyType.STRING
+    PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE -> NlPropertyType.STRING_ARRAY
+    PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
+    PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
+    PreferenceClasses.CLASS_TWO_STATE_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
+
+    PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING_ARRAY
+    PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING_ARRAY
+    PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+    PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.INTEGER
+    PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.INTEGER
+    PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.THREE_STATE_BOOLEAN
+    PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.THREE_STATE_BOOLEAN
+
+    else -> defaultValueType(componentClass.superClass)
+  }
 
   private fun fallbackByName(name: String): NlPropertyType {
     val parts = split(name)

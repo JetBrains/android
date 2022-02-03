@@ -29,18 +29,27 @@ import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
+import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.PreferenceAttributes.ATTR_ENTRIES
+import com.android.SdkConstants.PreferenceAttributes.ATTR_ENTRY_VALUES
+import com.android.SdkConstants.PreferenceAttributes.ATTR_ICON
+import com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE
+import com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY
+import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
+import com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 
 private const val CUSTOM_TAG = "com.example.PieChart"
@@ -167,6 +176,52 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
+  }
+
+  fun testPreferenceListForMinApi26() {
+    val provider = NlPropertiesProvider(myFacet)
+    val model = NlPropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(
+      model, null, createComponents(component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
+                                    parentTag = PREFERENCE_SCREEN, resourceFolder = FD_RES_XML))
+
+    // From ListPreference: (2)
+    properties.check(ATTR_ENTRIES, NlPropertyType.STRING_ARRAY)
+    properties.check(ATTR_ENTRY_VALUES, NlPropertyType.STRING_ARRAY)
+
+    // From DialogPreference: (6)
+    properties.check("dialogTitle", NlPropertyType.STRING)
+    properties.check("dialogMessage", NlPropertyType.STRING)
+    properties.check("dialogIcon", NlPropertyType.DRAWABLE)
+    properties.check("positiveButtonText", NlPropertyType.STRING)
+    properties.check("negativeButtonText", NlPropertyType.STRING)
+    properties.check("dialogLayout", NlPropertyType.LAYOUT)
+
+    // From Preference: (17)
+    properties.check(ATTR_ICON, NlPropertyType.DRAWABLE)
+    properties.check("key", NlPropertyType.STRING)
+    properties.check("title", NlPropertyType.STRING)
+    properties.check("summary", NlPropertyType.STRING)
+    properties.check("order", NlPropertyType.INTEGER)
+    properties.check("fragment", NlPropertyType.STRING)
+    properties.check("layout", NlPropertyType.LAYOUT)
+    properties.check("widgetLayout", NlPropertyType.LAYOUT)
+    properties.check("enabled", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("selectable", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("dependency", NlPropertyType.STRING)
+    properties.check("persistent", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("defaultValue", NlPropertyType.STRING)
+    properties.check("shouldDisableView", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("recycleEnabled", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("singleLineTitle", NlPropertyType.THREE_STATE_BOOLEAN)
+    properties.check("iconSpaceReserved", NlPropertyType.THREE_STATE_BOOLEAN)
+
+    assertThat(properties.size).isEqualTo(25)
+  }
+
+  private fun PropertiesTable<NlPropertyItem>.check(name: String, type: NlPropertyType) {
+    assertThat(contains(ANDROID_URI, name))
+    assertThat(get(ANDROID_URI, name).type).isEqualTo(type)
   }
 
   private fun setUpAppCompat() {

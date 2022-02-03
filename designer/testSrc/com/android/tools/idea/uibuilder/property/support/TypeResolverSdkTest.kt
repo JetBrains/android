@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
@@ -28,6 +29,8 @@ import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.SdkConstants.MATERIAL2_PKG
+import com.android.SdkConstants.PreferenceAttributes.ATTR_DEFAULT_VALUE
+import com.android.SdkConstants.PreferenceClasses
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -35,6 +38,7 @@ import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.AndroidAttributeFact
+import com.android.tools.idea.uibuilder.property.testutils.PsiLookupRule
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -48,6 +52,7 @@ import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val ANDROID_VIEWS_HEADER = "Android Views"
 private const val ANDROID_PREFERENCES_HEADER = "Android Preferences"
@@ -68,11 +73,11 @@ private const val DEBUG_DUMP = false
 
 @RunsInEdt
 class TypeResolverSdkTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val lookupRule = PsiLookupRule { projectRule.module.androidFacet }
 
   @get:Rule
-  val edtRule = EdtRule()
+  val ruleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(lookupRule)!!
 
   @Test
   fun testAndroidViewAttributeTypes() {
@@ -93,7 +98,7 @@ class TypeResolverSdkTest {
     val psiPreferenceClass = psiFacade.findClass(CLASS_PREFERENCE, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(PREFERENCE_PACKAGE)!!
     val report = Report(ANDROID_PREFERENCES_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
+    psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkPreferencesAttributes(it.name!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -199,6 +204,16 @@ class TypeResolverSdkTest {
     checkAttributes(tag, report)
   }
 
+  private fun checkPreferencesAttributes(tagName: String, report: Report) {
+    val util = SupportTestUtil(projectRule, tagName,
+                               parentTag = SdkConstants.PreferenceTags.PREFERENCE_SCREEN,
+                               resourceFolder = SdkConstants.FD_RES_XML,
+                               fileName = "${tagName.substringAfter('.')}$DOT_XML")
+    waitUntilLastSelectionUpdateCompleted(util.model)
+    val tag = util.components.first().backend.tag!!
+    checkAttributes(tag, report)
+  }
+
   private fun checkViewLayoutAttributes(tagName: String, report: Report) {
     val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName.substringAfter('.')}$DOT_XML")
     val tag = util.components.first().parent!!.backend.tag!!
@@ -214,6 +229,7 @@ class TypeResolverSdkTest {
     val localResourceManager = resourceManagers.localResourceManager
     val localAttrDefs = localResourceManager.attributeDefinitions
     val systemAttrDefs = frameworkResourceManager.attributeDefinitions!!
+    val componentClass = lookupRule.classOf(tag.name)
     attrDescriptors.forEach {
       val name = it.name
       val namespaceUri = (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: ANDROID_URI
@@ -221,15 +237,26 @@ class TypeResolverSdkTest {
       if (namespace != null) {
         val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
         val attrDefinition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name))
-        val type = TypeResolver.resolveType(it.name, attrDefinition)
-        val lookupType = AndroidAttributeFact.lookup(it.name)
+        val type = TypeResolver.resolveType(name, attrDefinition, componentClass)
+        val className = componentClass?.qualifiedName
+        val lookupType = when {
+          name != ATTR_DEFAULT_VALUE -> AndroidAttributeFact.lookup(name)
+          className == PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
+          className == PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
+          className == PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
+          className == PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE -> NlPropertyType.STRING_ARRAY
+          className == PreferenceClasses.CLASS_CHECK_BOX_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
+          className == PreferenceClasses.CLASS_SWITCH_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
+          className == PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
+          else -> NlPropertyType.UNKNOWN
+        }
 
         // Remove this when we have a library in prebuilts with this bug fixed: b/119883920
         if (tag.name == FLOATING_ACTION_BUTTON.oldName() && it.name == ATTR_BACKGROUND_TINT_MODE) {
           // ignore for now...
         }
         else if (type != lookupType) {
-          report.logMismatch(Mismatch(tag.localName, it.name, type, lookupType))
+          report.logMismatch(Mismatch(tag.localName, name, type, lookupType))
         }
         report.logAttribute(tag.localName)
       }

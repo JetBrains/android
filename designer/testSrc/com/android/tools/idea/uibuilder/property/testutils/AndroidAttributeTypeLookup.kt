@@ -688,7 +688,7 @@ object AndroidAttributeFact {
       "defaultHeight" -> return NlPropertyType.DIMENSION
       "defaultQueryHint" -> return NlPropertyType.STRING
       "defaultToDeviceProtectedStorage" -> return NlPropertyType.THREE_STATE_BOOLEAN
-      "defaultValue" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "defaultValue" -> return NlPropertyType.LAYOUT
       "defaultWidth" -> return NlPropertyType.DIMENSION
       "dependency" -> return NlPropertyType.STRING
       "detachWallpaper" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -696,7 +696,7 @@ object AndroidAttributeFact {
       "dialTint" -> return NlPropertyType.COLOR_STATE_LIST
       "dialTintMode" -> return NlPropertyType.ENUM
       "dialogIcon" -> return NlPropertyType.DRAWABLE
-      "dialogLayout" -> return NlPropertyType.ID
+      "dialogLayout" -> return NlPropertyType.LAYOUT
       "dialogMessage" -> return NlPropertyType.STRING
       "dialogMode" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "dialogTitle" -> return NlPropertyType.STRING
@@ -1105,7 +1105,7 @@ object AndroidAttributeFact {
       "restrictionType" -> return NlPropertyType.INTEGER
       "resumeWhilePausing" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "revisionCode" -> return NlPropertyType.INTEGER
-      "ringtoneType" -> return NlPropertyType.INTEGER
+      "ringtoneType" -> return NlPropertyType.FLAGS
       "rotation" -> return NlPropertyType.FLOAT
       "rotationAnimation" -> return NlPropertyType.INTEGER
       "rotationX" -> return NlPropertyType.FLOAT
@@ -1333,7 +1333,7 @@ object AndroidAttributeFact {
       "weekNumberColor" -> return NlPropertyType.COLOR
       "weekSeparatorLineColor" -> return NlPropertyType.COLOR
       "weightSum" -> return NlPropertyType.FLOAT
-      "widgetLayout" -> return NlPropertyType.ID
+      "widgetLayout" -> return NlPropertyType.LAYOUT
       "width" -> return NlPropertyType.DIMENSION
       "windowAnimationStyle" -> return NlPropertyType.ID
       "windowIsFloating" -> return NlPropertyType.THREE_STATE_BOOLEAN

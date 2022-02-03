@@ -34,11 +34,11 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property.support.TypeResolver
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
@@ -48,7 +48,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
@@ -59,7 +58,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
-import java.util.ArrayList
 
 private const val EXPECTED_ROWS = 3
 private const val EXPECTED_CELLS_PER_ROW = 10
@@ -121,6 +119,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
     private val apiLookup = LintIdeClient.getApiLookup(project)
     private val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
     private val psiFacade = JavaPsiFacade.getInstance(project)
+    private val classLookup = NlPsiLookup(facet)
     private val descriptorProvider = AndroidDomElementDescriptorProvider()
     private var properties: Table<String, String, NlPropertyItem> = ImmutableTable.of()
     private val emptyTable = ImmutableTable.of<String, String, NlPropertyItem>()
@@ -129,15 +128,16 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       var combinedProperties: Table<String, String, NlPropertyItem>? = null
       for (component in components) {
         val tag = component.tag ?: return emptyTable
+        val componentClass = findPsiClassOfComponent(component)
 
         val elementDescriptor = descriptorProvider.getDescriptor(tag) ?: return emptyTable
         val descriptors = elementDescriptor.getAttributesDescriptors(tag)
         properties = HashBasedTable.create(EXPECTED_ROWS, descriptors.size)
 
-        loadPropertiesFromDescriptors(tag, descriptors)
+        loadPropertiesFromDescriptors(tag, descriptors, componentClass)
 
         if (component.hasNlComponentInfo) {
-          loadPropertiesFromStyleable(component)
+          loadPropertiesFromStyleable(componentClass)
           loadPropertiesFromLayoutStyleable(component)
         }
 
@@ -152,24 +152,36 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
           // An AutoCompleteTextView has a popup that is created at runtime.
           // Properties for this popup can be added to the AutoCompleteTextView tag.
           val attr = systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND)
-          val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, FQCN_AUTO_COMPLETE_TEXT_VIEW, model, components)
-          properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
+          val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, null, FQCN_AUTO_COMPLETE_TEXT_VIEW, model, components)
+          property?.let { properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, it) }
         }
 
         combinedProperties = combine(properties, combinedProperties)
       }
 
-      // The following properties are deprecated in the support library and can be ignored by tools:
-      combinedProperties?.let {
-        it.remove(AUTO_URI, ATTR_PADDING_START)
-        it.remove(AUTO_URI, ATTR_PADDING_END)
-        it.remove(AUTO_URI, ATTR_THEME)
+      if (combinedProperties == null) {
+        return emptyTable
       }
+
+      // The following properties are deprecated in the support library and can be ignored by tools:
+      combinedProperties.remove(AUTO_URI, ATTR_PADDING_START)
+      combinedProperties.remove(AUTO_URI, ATTR_PADDING_END)
+      combinedProperties.remove(AUTO_URI, ATTR_THEME)
+
+      // Remove all duplicated android/app attributes:
+      val common = combinedProperties.row(ANDROID_URI).keys.intersect(combinedProperties.row(AUTO_URI).keys)
+      val commonJustAndroidValue = common.filter {
+        combinedProperties[ANDROID_URI, it]?.value != null &&
+        combinedProperties[AUTO_URI, it]?.value == null
+      }.toSet()
+
+      combinedProperties.row(AUTO_URI).keys.removeAll(commonJustAndroidValue)
+      combinedProperties.row(ANDROID_URI).keys.removeAll(common.minus(commonJustAndroidValue))
 
       return combinedProperties ?: emptyTable
     }
 
-    private fun loadPropertiesFromDescriptors(tag: XmlTag, descriptors: Array<XmlAttributeDescriptor>) {
+    private fun loadPropertiesFromDescriptors(tag: XmlTag, descriptors: Array<XmlAttributeDescriptor>, componentClass: PsiClass?) {
       for (desc in descriptors) {
         val name = desc.name
         val namespaceUri = getNamespace(desc, tag)
@@ -182,16 +194,16 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
         if (!properties.contains(namespaceUri, name)) {
           val attrDef = namespace?.let { attrDefs.getAttrDefinition(ResourceReference.attr(it, name)) }
-          val property = createProperty(namespaceUri, name, attrDef, "", model, components)
-          properties.put(namespaceUri, name, property)
+          val property = createProperty(namespaceUri, name, attrDef, componentClass, "", model, components)
+          property?.let { properties.put(namespaceUri, name, it) }
         }
       }
     }
 
-    private fun loadPropertiesFromStyleable(component: NlComponent) {
-      var psiClass: PsiClass? = findPsiClassOfComponent(component)
+    private fun loadPropertiesFromStyleable(componentClass: PsiClass?) {
+      var psiClass: PsiClass? = componentClass
       while (psiClass != null) {
-        loadFromStyleableName(psiClass, psiClass.name)
+        loadFromStyleableName(psiClass, psiClass.name, componentClass)
         psiClass = psiClass.superClass
       }
     }
@@ -200,13 +212,21 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       val parent = component.parent ?: return
       var psiClass: PsiClass? = findPsiClassOfComponent(parent)
       while (psiClass != null) {
-        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass))
-        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass))
+        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass), psiClass)
+        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass), psiClass)
         psiClass = psiClass.superClass
       }
     }
 
-    private fun loadFromStyleableName(psiClass: PsiClass, styleableName: String?) {
+    /**
+     * Load all attributes for [psiClass]
+     *
+     * @param psiClass the class to load all attributes for using the styleable for this class
+     * @param styleableName the styleable name
+     * @param componentClass the top level class we are loading attributes for. This method may be called multiple times with
+     *        once for each of the super classes of this component.
+     */
+    private fun loadFromStyleableName(psiClass: PsiClass, styleableName: String?, componentClass: PsiClass?) {
       if (styleableName == null) {
         return
       }
@@ -214,15 +234,23 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       val reference = ResourceReference(namespace, ResourceType.STYLEABLE, styleableName)
       val attrDefs = if (namespace.xmlNamespaceUri == ANDROID_URI) systemAttrDefs else localAttrDefs
       val styleable = attrDefs.getStyleableDefinition(reference) ?: return
-      styleable.attributes.forEach { addPropertyFromAttribute(it, psiClass) }
+      styleable.attributes.forEach { addPropertyFromAttribute(it, psiClass, componentClass) }
     }
 
     private fun findPsiClassOfComponent(component: NlComponent): PsiClass? {
-      val tag = component.tag ?: return null
-      val psiClass = PsiTreeUtil.getParentOfType(tag, PsiClass::class.java)
+      val psiClass = classLookup.classOf(component.tagName) ?: return null
       val viewClassName = component.viewInfo?.className
-      if (viewClassName != null && viewClassName != psiClass?.qualifiedName) {
-        return psiFacade.findClass(viewClassName, GlobalSearchScope.allScope(project))
+      if (viewClassName != null && viewClassName != psiClass.qualifiedName) {
+
+        // Use the inflated class from layoutlib instead of the actual specified class for the tag.
+        // This allows us to see attributes from e.g. AppCompatTextView instead of just TextView.
+        //
+        // But layoutlib will use special unrelated classes for display purposes, example: LinearLayout for ListPreference,
+        // ignore the classes that are not derived from the component class.
+        val viewInfoPsiClass = psiFacade.findClass(viewClassName, GlobalSearchScope.allScope(project))
+        if (viewInfoPsiClass != null && generateSequence(viewInfoPsiClass) { it.superClass }.contains(psiClass)) {
+          return viewInfoPsiClass
+        }
       }
       return psiClass
     }
@@ -236,9 +264,10 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       return ResourceNamespace.fromNamespaceUri(namespaceUri)
     }
 
-    private fun addPropertyFromAttribute(attribute: AttributeDefinition, psiClass: PsiClass) {
+    private fun addPropertyFromAttribute(attribute: AttributeDefinition, psiClass: PsiClass, componentClass: PsiClass?) {
       val namespace = attribute.resourceReference.namespace.xmlNamespaceUri
-      val property = createProperty(namespace, attribute.name, attribute, psiClass.qualifiedName ?: "", model, components)
+      val property = createProperty(namespace, attribute.name, attribute, componentClass, psiClass.qualifiedName ?: "", model, components)
+                     ?: return
       if (ANDROID_URI == namespace && apiLookup != null &&
           apiLookup.getFieldVersion("android/R\$attr", attribute.name) > minApi) {
         // Exclude the framework attributes that were added after the current min API level.
@@ -251,13 +280,19 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       properties.put(property.namespace, property.name, property)
     }
 
-    private fun createProperty(namespace: String,
-                               name: String,
-                               attr: AttributeDefinition?,
-                               componentName: String,
-                               model: NlPropertiesModel,
-                               components: List<NlComponent>): NlPropertyItem {
-      val type = TypeResolver.resolveType(name, attr)
+    private fun createProperty(
+      namespace: String,
+      name: String,
+      attr: AttributeDefinition?,
+      componentClass: PsiClass?,
+      componentName: String,
+      model: NlPropertiesModel,
+      components: List<NlComponent>
+    ): NlPropertyItem? {
+      val type = TypeResolver.resolveType(name, attr, componentClass)
+      if (type == NlPropertyType.UNKNOWN) {
+        return null // Ignore these...
+      }
       val libraryName = attr?.libraryName ?: ""
       if (namespace == ANDROID_URI && name == ATTR_ID) {
         return NlIdPropertyItem(model, attr, componentName, components)
