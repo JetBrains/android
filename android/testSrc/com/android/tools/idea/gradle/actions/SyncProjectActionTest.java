@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
+import java.awt.event.KeyEvent;
 
 /**
  * Tests for {@link SyncProjectAction}.
@@ -57,7 +58,7 @@ public class SyncProjectActionTest extends PlatformTestCase {
   public void testTitleTextAndMnemonic() {
     SyncProjectAction action = new SyncProjectAction();
     assertThat(action.getTemplateText()).isEqualTo("Sync Project with Gradle Files");
-    assertThat(action.getTemplatePresentation().getMnemonic()).isEqualTo((int)'G');
+    assertThat(action.getTemplatePresentation().getMnemonic()).isEqualTo(KeyEvent.VK_G);
   }
 
   public void testDoPerform() {
