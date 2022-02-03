@@ -17,12 +17,12 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
-import com.intellij.util.io.exists
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
@@ -33,15 +33,14 @@ class HttpArtifactResolver(
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
   private val tmpDir = fileService.getOrCreateTempDir("http-tmp")
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
     return withContext(AndroidDispatchers.ioThread) {
       try {
         downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
                                             ConsoleProgressIndicator())
-        artifactCoordinate.getTmpFile().takeIf { it.exists() }
-      }
-      catch (e: IOException) {
-        null
+        artifactCoordinate.getTmpFile()
+      } catch (e: IOException) {
+        throw throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be resolved on maven.google.com.", e)
       }
     }
   }

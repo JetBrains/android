@@ -24,7 +24,7 @@ import java.nio.file.Path
 interface ArtifactResolver {
   /**
    * Attempts to resolve the requested artifact and returns the path of the resolved jar.
-   * Null if artifact can't be resolved for some reason.
+   * Throws an AppInspectionArtifactNotFoundException when the artifact can't be resolved.
    */
-  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path?
+  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path
 }

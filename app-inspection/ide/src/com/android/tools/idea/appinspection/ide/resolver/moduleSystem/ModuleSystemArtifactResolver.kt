@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.moduleSystem
 
-import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.api.toGradleCoordinate
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -35,11 +35,11 @@ import java.nio.file.Path
  * third_party repository.
  */
 class ModuleSystemArtifactResolver(private val project: Project) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
     val projectSystem = project.getProjectSystem()
     return project.allModules().asSequence()
       .map { module -> projectSystem.getModuleSystem(module) }
       .mapNotNull { moduleSystem -> moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
-      .firstOrNull()
+      .firstOrNull() ?: throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be found in module system.")
   }
 }

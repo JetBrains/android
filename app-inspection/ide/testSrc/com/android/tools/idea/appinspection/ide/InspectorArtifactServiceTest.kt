@@ -43,7 +43,7 @@ class InspectorArtifactServiceTest {
     val artifactResolverFactory = object : ArtifactResolverFactory {
       override fun getArtifactResolver(project: Project): ArtifactResolver {
         return object : ArtifactResolver {
-          override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+          override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
             return libraryPath
           }
         }
@@ -61,6 +61,6 @@ class InspectorArtifactServiceTest {
     )
 
     assertThat(resolvedArtifactPath).isNotNull()
-    assertThat(resolvedArtifactPath!!.fileName.toString()).isEqualTo("androidx.work-work-runtime-2.5.0-beta01-inspector.jar")
+    assertThat(resolvedArtifactPath.fileName.toString()).isEqualTo("androidx.work-work-runtime-2.5.0-beta01-inspector.jar")
   }
 }

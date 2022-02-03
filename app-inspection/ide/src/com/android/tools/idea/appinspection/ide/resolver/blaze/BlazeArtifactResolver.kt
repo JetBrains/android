@@ -19,13 +19,13 @@ import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.io.FileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.exists
-import java.io.File
 import java.nio.file.Path
 
 /**
@@ -58,11 +58,20 @@ class BlazeArtifactResolver @VisibleForTesting constructor(
     project: Project
   ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
 
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
-    return moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)?.let { artifactDir ->
-      artifactDir.resolve(INSPECTOR_JAR).takeIf { it.exists() } ?:
-      artifactDir.resolve(artifactCoordinate.blazeFileName).takeIf { it.exists() } ?:
-      httpArtifactResolver.resolveArtifact(artifactCoordinate)
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+    return try {
+      val artifactDir = moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
+      artifactDir.resolve(INSPECTOR_JAR).takeIf { it.exists() } ?: artifactDir.resolve(
+        artifactCoordinate.blazeFileName).takeIf { it.exists() } ?: throw AppInspectionArtifactNotFoundException(
+        "Artifact not found in blaze module system.")
+    }
+    catch (e: AppInspectionArtifactNotFoundException) {
+      try {
+        httpArtifactResolver.resolveArtifact(artifactCoordinate)
+      }
+      catch (e: AppInspectionArtifactNotFoundException) {
+        throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate not found in blaze module system and on maven.")
+      }
     }
   }
 }

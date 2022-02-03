@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.findVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
@@ -66,6 +67,13 @@ val INCOMPATIBLE_LIBRARY_MESSAGE =
 @VisibleForTesting
 const val PROGUARDED_LIBRARY_MESSAGE = "Inspecting Compose layouts might not work properly with code shrinking enabled."
 
+@VisibleForTesting
+const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT = "Could not resolve inspector on maven.google.com. " +
+                                             "Please set use.snapshot.jar flag to use snapshot jars."
+
+@VisibleForTesting
+const val COMPOSE_INSPECTION_NOT_AVAILABLE = "Compose inspection is not available."
+
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
 /**
@@ -104,14 +112,17 @@ class ComposeLayoutInspectorClient(
           apiServices.findVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId, MINIMUM_COMPOSE_COORDINATE.artifactId)
           ?: return null
 
-        val resolved =
+        try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(model.project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
-        if (resolved == null) {
-          // If here, app is using a version of compose old enough that it was before we embedded inspectors into it
-          InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
+        }
+        catch (e: AppInspectionArtifactNotFoundException) {
+          if (version.endsWith("-SNAPSHOT")) {
+            InspectorBannerService.getInstance(model.project).setNotification(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
+          } else {
+            InspectorBannerService.getInstance(model.project).setNotification(COMPOSE_INSPECTION_NOT_AVAILABLE)
+          }
           return null
         }
-        resolved
       }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was

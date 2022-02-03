@@ -69,3 +69,8 @@ class AppInspectionLibraryMissingException(message: String) : AppInspectionServi
  * Thrown when target app was proguarded.
  */
 class AppInspectionAppProguardedException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when an inspector artifact can't be resolved.
+ */
+class AppInspectionArtifactNotFoundException(message: String, cause: Throwable? = null) : AppInspectionServiceException(message, cause)

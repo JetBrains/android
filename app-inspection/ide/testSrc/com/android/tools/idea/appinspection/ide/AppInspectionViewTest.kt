@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.ide.ui.TAB_KEY
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
@@ -849,9 +850,9 @@ class AppInspectionViewTest {
         appInspectionServiceRule.scope,
         uiDispatcher,
         object : InspectorArtifactService {
-          override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+          override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
             return if (artifactCoordinate.groupId == "unresolvable") {
-              null
+              throw AppInspectionArtifactNotFoundException("not resolved")
             }
             else {
               Paths.get("path/to/inspector.jar")
