@@ -15,6 +15,8 @@
  */
 package com.android.emulator;
 
+import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
+
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
 import com.android.tools.idea.util.StudioPathManager;
@@ -109,13 +111,15 @@ public class ImageConverter {
       return libFile;
     }
 
-    // Dev environment.
-    libFile = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/emulator/native")
-      .resolve(getPlatformName()).resolve(libName);
-    if (Files.exists(libFile)) {
-      return libFile;
+    if (isRunningFromSources()) {
+      // Dev environment.
+      libFile = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/emulator/native")
+          .resolve(getPlatformName()).resolve(libName);
+      if (Files.exists(libFile)) {
+        return libFile;
+      }
     }
-    throw new UnsatisfiedLinkError("Unable to find " + libName);
+    throw new UnsatisfiedLinkError("Unable to find " + homePath.resolve("plugins/android/native").resolve(libName));
   }
 
   private static @NotNull String getLibName() {
