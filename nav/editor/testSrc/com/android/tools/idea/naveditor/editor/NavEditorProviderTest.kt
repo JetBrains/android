@@ -16,38 +16,50 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.gradle.project.sync.setup.Facets
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.naveditor.NavEditorRule
+import com.android.tools.idea.naveditor.scene.updateHierarchy
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertFalse
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import java.util.concurrent.TimeUnit
 
-class NavEditorProviderTest : AndroidTestCase() {
+class NavEditorProviderTest {
 
-  private lateinit var provider : NavEditorProvider
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
-  override fun setUp() {
-    super.setUp()
-    provider = NavEditorProvider()
-  }
+  private val provider = NavEditorProvider()
 
-  override fun tearDown() {
-    super.tearDown()
+  @After
+  fun tearDown() {
     DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
+  @Test
   fun testDoNotAcceptNonLayoutFile() {
-    val file = myFixture.addFileToProject("src/SomeFile.kt", "")
-    assertFalse(provider.accept(project, file.virtualFile))
+    val file = projectRule.fixture.addFileToProject("src/SomeFile.kt", "")
+    assertFalse(provider.accept(projectRule.project, file.virtualFile))
   }
 
+  @Test
   fun testDoNotAcceptLayoutFile() {
-    val file = myFixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
-    assertFalse(provider.accept(project, file.virtualFile))
+    val file = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
+    assertFalse(provider.accept(projectRule.project, file.virtualFile))
   }
 
   @Language("XML")
@@ -60,11 +72,61 @@ class NavEditorProviderTest : AndroidTestCase() {
     layout.appendXml(sb, 0)
     return sb.toString()
   }
+}
 
-  @Language("XML")
-  private fun navigationContent(): String {
-    val sb = StringBuilder()
-    NavModelBuilderUtil.navigation("mynav").appendXml(sb, 0)
-    return sb.toString()
+class NavEditorProviderWithNavEditorTest {
+  @get:Rule
+  val edtRule = EdtRule()
+  private val disposableRule = DisposableRule()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val navEditorRule = NavEditorRule(projectRule)
+
+
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule).around(disposableRule)
+
+  @RunsInEdt
+  @Test
+  fun testCaretNotification() = runBlocking {
+    @Language("XML") val fileContents = """
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          app:startDestination="@id/donutList">
+          <fragment android:id="@+id/donutList">
+              <action
+                  android:id="@+id/action_donutList_to_donutEntryDialogFragment"
+                  app:destination="@id/donutEntryDialogFragment" />
+          </fragment>
+          <activity android:id="@+id/donutEntryDialogFragment">
+              <deepLink app:uri="myapp://navdonutcreator.com/donutcreator" />
+              <argument android:name="itemId" app:argType="long"/>
+          </activity>
+      </navigation>
+    """
+    val sampleFile = projectRule.fixture.addFileToProject("src/nav.xml", fileContents.trimIndent())
+
+    projectRule.fixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+    waitForResourceRepositoryUpdates(projectRule.module)
+
+    val editor = NavEditorProvider().createEditor(projectRule.project, sampleFile.virtualFile)
+    Disposer.register(disposableRule.disposable, editor)
+    waitForCondition(10, TimeUnit.SECONDS) {
+      (editor as DesignToolsSplitEditor).designerEditor.component.surface.models.isNotEmpty()
+    }
+    val surface = (editor as DesignToolsSplitEditor).designerEditor.component.surface
+    val model = surface.models.first()
+    updateHierarchy(model, model)
+    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(model.components)
+    editor.editor.caretModel.moveCaretRelatively(10, 2, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.find("donutList")))
+    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.find("action_donutList_to_donutEntryDialogFragment")))
+    editor.editor.caretModel.moveCaretRelatively(0, 4, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.find("donutEntryDialogFragment")))
+    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.find("donutEntryDialogFragment")))
+    editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
+    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.find("donutEntryDialogFragment")))
   }
 }

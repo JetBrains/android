@@ -21,7 +21,6 @@ import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
@@ -86,7 +85,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     return splitEditor;
   }
 
-  private static void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
+  private void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
     CaretModel caretModel = editor.getEditor().getCaretModel();
     MergingUpdateQueue updateQueue = new MergingUpdateQueue("split.editor.preview.edit", DELAY_AFTER_TYPING_MS,
                                                             true, null, designEditor, null, SWING_THREAD);
@@ -106,9 +105,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
         if (views.isEmpty()) {
           views = model.getComponents();
         }
-        // TODO: handle preference screen intent special case if needed.
-        SelectionModel selectionModel = sceneView.getSelectionModel();
-        selectionModel.setSelection(views);
+        handleCaretChanged(sceneView, views);
         updateQueue.queue(new Update("Design editor update") {
           @Override
           public void run() {
@@ -123,6 +120,9 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
       }
     });
   }
+
+  protected abstract void handleCaretChanged(@NotNull SceneView sceneView,
+                                             @NotNull ImmutableList<NlComponent> views);
 
   @NotNull
   public abstract DesignerEditor createDesignEditor(@NotNull Project project, @NotNull VirtualFile file);

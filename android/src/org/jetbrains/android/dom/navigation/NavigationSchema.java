@@ -625,7 +625,7 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
-   * A Navigator can have a specific destination class defined by a annotation on its NavDestination type parameter, which can be inherited
+   * A Navigator can have a specific destination class defined by an annotation on its NavDestination type parameter, which can be inherited
    * from the parent NavDestination type if not defined.
    * This method updates navigatorToDestinationClassCollector with the mapping for the given navClass.
    */
