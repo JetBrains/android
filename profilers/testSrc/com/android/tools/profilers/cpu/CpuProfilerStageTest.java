@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -751,15 +750,12 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/209673164")
-  public void stopCapturingFailureShowsErrorBalloon() throws ExecutionException, InterruptedException {
-    myStage.setAndSelectCapture(CpuProfilerTestUtils.getValidCapture().getTraceId());
-    // Try to parse a simpleperf trace with ART config. Parsing should fail.
-    ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
-    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-
+  public void stopCapturingFailureShowsErrorBalloon() throws InterruptedException {
+    myStage.getProfilerConfigModel().setProfilingConfiguration(new SimpleperfConfiguration("My Config"));
+    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myServices.getNotification()).isEqualTo(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
+    assertThat(myServices.getNotification()).isNotNull();
+    assertThat(myServices.getNotification().getTitle()).contains("Recording failed to stop");
   }
 
   @Test

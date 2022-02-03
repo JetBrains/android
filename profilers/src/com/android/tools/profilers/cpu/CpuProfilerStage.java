@@ -459,7 +459,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     getLogger().warn("Unable to stop tracing: " + status.getStatus());
     getLogger().warn(status.getErrorMessage());
-    getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
+    getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.getCaptureStopFailure(status.getStatus().toString()));
   }
 
   private void goToCaptureStage(long traceId) {

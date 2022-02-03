@@ -29,10 +29,10 @@ final class CpuProfilerNotifications {
   );
 
   @NotNull
-  static final Notification CAPTURE_STOP_FAILURE = createError(
-    "Recording failed to stop",
-    "Try recording another method trace, or "
-  );
+  static Notification getCaptureStopFailure(String errorMessage) {
+    return createError("Recording failed to stop (" + errorMessage + ")",
+                       "Try recording another trace, or ");
+  }
 
   @NotNull
   static final Notification PARSING_FAILURE = createError(
