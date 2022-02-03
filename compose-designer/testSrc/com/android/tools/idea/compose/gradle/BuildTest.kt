@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle
 
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.preview.COMPOSITE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -25,7 +24,6 @@ import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
 import com.intellij.openapi.application.ApplicationManager
@@ -44,33 +42,18 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.io.File
 
-@Ignore("b/213342293")
-@RunWith(Parameterized::class)
-class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "onlyKotlinBuildFlag = {0}")
-    val flagValues = listOf(true, false)
-  }
-
+class BuildTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
 
   @get:Rule
-  val onlyKotlinBuildFlagRule = SetFlagRule(StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD, onlyKotlinBuildFlag)
-
-  @get:Rule
   val edtRule = EdtRule()
 
-  private fun doTestHasBeenBuiltSuccessfully(project: Project, filePaths: List<String>, expectedBuildsTriggered: Int) {
+  private fun doTestHasBeenBuiltSuccessfully(project: Project, filePaths: List<String>) {
     val activityFiles = filePaths.map { VfsUtil.findRelativeFile(it, ProjectRootManager.getInstance(project).contentRoots[0])!! }
     val psiFiles = activityFiles.map { runReadAction { PsiUtil.getPsiFile(project, it) } }
     val psiFilePointers = psiFiles.map { runReadAction { SmartPointerManager.createPointer(it) } }
@@ -82,7 +65,7 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
       val files = activityFiles + activityFiles + activityFiles
       requestBuild(project, files, false)
     }
-    assertEquals(expectedBuildsTriggered, buildsTriggered)
+    assertEquals(1, buildsTriggered)
     assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.all { hasExistingClassFile(it) })
 
@@ -102,22 +85,20 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
   @Test
   fun testHasBeenBuiltSuccessfully_main() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
-    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path), expectedBuildsTriggered = 1)
+    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path))
   }
 
   @Test
   fun testHasBeenBuiltSuccessfully_androidTest() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
-    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path),
-                                   expectedBuildsTriggered = 1)
+    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
   }
 
   @Test
   fun testHasBeenBuiltSuccessfully_both() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-                                                               SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path),
-                                   expectedBuildsTriggered = if (onlyKotlinBuildFlag) 2 else 1)
+                                                               SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
   }
 
   @Test
@@ -128,7 +109,7 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
       val simpleComposableAppPath = projectRule.resolveTestDataPath(SIMPLE_COMPOSE_PROJECT_PATH)
       val destination = File(projectRoot, "SimpleComposeApplication")
       FileUtil.copyDir(simpleComposableAppPath, destination)
-      defaultPatchPreparedProject(File(projectRule.project.basePath), null, null, DEFAULT_KOTLIN_VERSION, *listOf<File>().toTypedArray())
+      defaultPatchPreparedProject(File(projectRule.project.basePath!!), null, null, DEFAULT_KOTLIN_VERSION, *listOf<File>().toTypedArray())
     })
     val project = projectRule.project
     val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/${SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path}",

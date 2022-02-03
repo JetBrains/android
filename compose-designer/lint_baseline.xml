@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/compose/preview/util/Build.kt"
-            line="48"/>
-    </issue>
+<issues format="5" by="lint 7.3.0-dev">
 
     <issue
         id="VisibleForTests"
@@ -22,7 +14,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="180"/>
+            line="181"/>
     </issue>
 
     <issue
@@ -30,7 +22,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="182"/>
+            line="183"/>
     </issue>
 
     <issue
@@ -38,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="188"/>
+            line="189"/>
     </issue>
 
     <issue
@@ -46,7 +38,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="190"/>
+            line="191"/>
     </issue>
 
     <issue

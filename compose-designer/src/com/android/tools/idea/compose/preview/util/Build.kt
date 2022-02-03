@@ -15,81 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.build.invoker.getArtifacts
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-
-/**
- * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
- * Each of these [modules] has an associated flag to indicate if it is necessary to execute
- * the build using the android test artifact.
- */
-private fun requestKotlinBuild(project: Project, modules: Set<Pair<Module, Boolean>>, requestedByUser: Boolean) {
-  fun createBuildTasks(module: Module, fromAndroidTestFile: Boolean): List<String>? {
-    if (module.isDisposed) return null
-    val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
-    val currentVariant = GradleAndroidModel.get(module)?.selectedVariant ?: return null
-
-    if (fromAndroidTestFile) {
-      return TestCompileType.ANDROID_TESTS.getArtifacts(currentVariant)
-        .mapNotNull { it.compileTaskName }
-        .filter { it.isNotEmpty() }
-        .map { GradleProjectSystemUtil.createFullTaskName(gradlePath, it) }
-        .toList()
-    }
-    // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
-    // we just build it ourselves.
-    // TODO(b/145199867): Replace this with the right API call to obtain compileVariantKotlin after the bug is fixed.
-    return listOf("${gradlePath}${SdkConstants.GRADLE_PATH_SEPARATOR}compile${currentVariant.name.capitalize()}Kotlin")
-  }
-
-  fun createBuildTasks(modules: Collection<Pair<Module, Boolean>>): Map<Module, List<String>> =
-    modules
-      .mapNotNull {
-        Pair(it.first, createBuildTasks(it.first, it.second) ?: return@mapNotNull null)
-      }
-      .filter { it.second.isNotEmpty() }
-      .toMap()
-
-  if (project.isDisposed) return
-  val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
-
-  createBuildTasks(modules).forEach {
-    val rootProjectPath = moduleFinder.getRootProjectPath(it.key)
-    val request = GradleBuildInvoker.Request.Builder(
-      project = project,
-      rootProjectPath = rootProjectPath.toFile(),
-      gradleTasks = it.value
-    )
-      // If this was not requested by a user action, then do not automatically pop-up the build output panel on error.
-      .setDoNotShowBuildOutputOnFailure(!requestedByUser)
-    GradleBuildInvoker.getInstance(project).executeTasks(request.build())
-  }
-}
 
 internal fun requestBuild(project: Project, file: VirtualFile, requestByUser: Boolean) {
   requestBuild(project, listOf(file), requestByUser)
@@ -100,27 +38,7 @@ internal fun requestBuild(project: Project, files: Collection<VirtualFile>, requ
     return
   }
 
-  // We build using the ProjectSystem interface if the project is not Gradle OR if it is gradle, and the Kotlin only build is disabled.
-  val buildWithProjectSystem = !GradleProjectInfo.getInstance(project).isBuildWithGradle
-                               || !StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()
-  if (buildWithProjectSystem) {
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
-    return
-  }
-
-  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
-  // a few extra tasks that are not required for the preview to refresh
-
-  // TODO: Move gradle compose builds to AndroidProjectSystem
-  // For Gradle projects, build modules associated with files instead
-  files.mapNotNull { it.getSourceFile() }.mapNotNull {
-      val module = ModuleUtil.findModuleForFile(it, project) ?: return@mapNotNull null
-      Pair(module, isAndroidTestFile(project, it))
-    }
-    .toSet()
-    .ifNotEmpty {
-      requestKotlinBuild(project, this, requestByUser)
-    }
+  ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
 }
 
 fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
