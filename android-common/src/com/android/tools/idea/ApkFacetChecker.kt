@@ -41,4 +41,3 @@ interface ApkFacetCheckerInternal {
 }
 
 private val APK_FACET_CHECKER_KEY: Key<ApkFacetCheckerInternal> = Key.create(ApkFacetCheckerInternal::class.java.name)
-
