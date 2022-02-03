@@ -166,8 +166,7 @@ class ResourceExplorerListView(
       }
     }
 
-  private var gridMode: Boolean by Delegates.observable(
-    DEFAULT_GRID_MODE) { _, _, newValue ->
+  private var gridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, newValue ->
     val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     centerPanel.background = backgroundColor
     sectionList.background = backgroundColor
@@ -225,9 +224,9 @@ class ResourceExplorerListView(
   private val footerPanel = JPanel(BorderLayout()).apply {
     border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
 
-    add(ActionManager.getInstance().createActionToolbar(
-      "resourceExplorer",
-      createBottomActions(), true).component, BorderLayout.EAST)
+    val bottomToolbar = ActionManager.getInstance().createActionToolbar("resourceExplorer", createBottomActions(), true)
+    bottomToolbar.targetComponent = this@ResourceExplorerListView
+    add(bottomToolbar.component, BorderLayout.EAST)
   }
 
   private val contentPanel: JPanel =
@@ -434,7 +433,7 @@ class ResourceExplorerListView(
     val actionManager = ActionManager.getInstance()
     viewModel.externalActions.forEach {
       actionManager.createActionToolbar("resourceExplorer", it, true).let { actionToolbar ->
-        actionToolbar.setTargetComponent(this@ResourceExplorerListView)
+        actionToolbar.targetComponent = this@ResourceExplorerListView
         topActionsPanel.add(actionToolbar.component.apply { border = TOOLBAR_BORDER })
       }
     }
@@ -726,8 +725,7 @@ class ResourceExplorerListView(
    * Button to enable the list view
    */
   private inner class ListModeButton
-    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW),
-      DumbAware {
+    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = !gridMode
 
