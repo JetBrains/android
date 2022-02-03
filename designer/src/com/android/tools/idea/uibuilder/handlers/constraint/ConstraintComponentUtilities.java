@@ -970,6 +970,29 @@ public final class ConstraintComponentUtilities {
     return hasAttributes(transaction, SHERPA_URI, ourEndAttributes);
   }
 
+  // check if the component is added into a Flow helper.
+  private static boolean isInFlow(@NotNull NlComponent component) {
+    NlComponent parent = component.getParent();
+    if (parent == null) {
+      return false;
+    }
+
+    String componentId = component.getId();
+    for (NlComponent child: parent.getChildren()) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_FLOW)) {
+        String attr = child.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
+        if (attr != null) {
+          for(String id: attr.split(",")) {
+            if (id.equals(componentId)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * This clean up any left over attributes (margins, chain style, bias..) when
    * they are not applicable anymore.
@@ -985,6 +1008,7 @@ public final class ConstraintComponentUtilities {
     boolean hasBaseline = transaction.getAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
     boolean hasStart = hasStart(transaction);
     boolean hasEnd = hasEnd(transaction);
+    boolean inFlow = isInFlow(component);
     String margin;
     // Horizontal attributes
     // cleanup needs to be sdk range specific
@@ -1034,7 +1058,7 @@ public final class ConstraintComponentUtilities {
     }
 
     if (!hasLeft && !hasRight && !hasStart && !hasEnd) {
-      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null && !inFlow) {
         setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, pixelToDP(component, getXfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, null);
       }
@@ -1066,7 +1090,7 @@ public final class ConstraintComponentUtilities {
       }
     }
     if (!hasTop && !hasBottom && !hasBaseline) {
-      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null && !inFlow) {
         setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, pixelToDP(component, getYfromParent(component)));
         transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, null);
       }

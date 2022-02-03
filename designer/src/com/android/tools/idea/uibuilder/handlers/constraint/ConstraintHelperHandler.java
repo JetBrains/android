@@ -18,10 +18,12 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TAG;
+import static com.android.SdkConstants.TOOLS_URI;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -84,6 +86,18 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         }
         else {
           addComponentsIds(receiver, dragged);
+
+          if (NlComponentHelperKt.isOrHasSuperclass(receiver, CLASS_CONSTRAINT_LAYOUT_FLOW)) {
+            for (NlComponent toDrag : dragged) {
+              // if a widget is dropped into a Flow helper, we want to remove the absolute position attributes.
+              if (insertType == InsertType.MOVE && toDrag.getParent() != receiver) {
+                AttributesTransaction transaction = toDrag.startAttributeTransaction();
+                transaction.setAttribute(TOOLS_URI, "layout_editor_absoluteX", null);
+                transaction.setAttribute(TOOLS_URI, "layout_editor_absoluteY", null);
+                NlWriteCommandActionUtil.run(toDrag, "", transaction::commit);
+              }
+            }
+          }
         }
         event.accept(insertType);
         event.complete();
