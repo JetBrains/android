@@ -15,17 +15,37 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.devicemanager.physicaltab.Key;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
+import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import java.util.List;
+import java.util.Optional;
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
-  protected PopUpMenuButtonTableCellEditor() {
+  private final @NotNull WearPairingManager myManager;
+  protected final @NotNull DevicePanel myPanel;
+
+  protected PopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel) {
     super(AllIcons.Actions.More, PopUpMenuValue.INSTANCE);
+
+    myManager = WearPairingManager.INSTANCE;
+    myPanel = panel;
 
     myButton.addActionListener(event -> {
       JPopupMenu menu = new JBPopupMenu();
@@ -37,4 +57,42 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
   @VisibleForTesting
   public abstract @NotNull List<@NotNull JComponent> newItems();
+
+  protected final @NotNull Optional<@NotNull JComponent> newUnpairDeviceItem(@NotNull Key key, @NotNull EventKind kind) {
+    String string = key.toString();
+    List<PhoneWearPair> pairs = myManager.getPairsForDevice(string);
+
+    if (pairs.isEmpty()) {
+      return Optional.empty();
+    }
+
+    AbstractButton item = new JBMenuItem("Unpair Device");
+
+    item.addActionListener(actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(kind)
+        .build();
+
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
+
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+        myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
+      }
+      else {
+        Object name = pairs.get(0).getPeerDevice(string).getDisplayName();
+        item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", name));
+
+        try {
+          CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
+          BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removeAllPairedDevices(string, true, continuation));
+        }
+        catch (InterruptedException exception) {
+          Thread.currentThread().interrupt();
+          Logger.getInstance(PopUpMenuButtonTableCellEditor.class).warn(exception);
+        }
+      }
+    });
+
+    return Optional.of(item);
+  }
 }

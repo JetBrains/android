@@ -17,11 +17,15 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,10 +34,16 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
-  private final @NotNull Emulator myEmulator = Mockito.mock(Emulator.class);
+  private final @NotNull Emulator myEmulator;
+  private final @NotNull PopUpMenuButtonTableCellEditor myEditor;
 
-  private final PopUpMenuButtonTableCellEditor myEditor =
-    new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), myEmulator);
+  public VirtualDevicePopUpMenuButtonTableCellEditorTest() {
+    myEmulator = Mockito.mock(Emulator.class);
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
+
+    myEditor = new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), myEmulator);
+    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
+  }
 
   @Test
   public void newColdBootNowItemEmulatorDoesntSupportColdBooting() {

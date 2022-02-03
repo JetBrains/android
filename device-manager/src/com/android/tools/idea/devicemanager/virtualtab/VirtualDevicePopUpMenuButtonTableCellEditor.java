@@ -40,9 +40,7 @@ import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull Emulator myEmulator;
-
   private VirtualDevice myDevice;
 
   VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull VirtualDevicePanel panel) {
@@ -51,12 +49,12 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
   @VisibleForTesting
   VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull VirtualDevicePanel panel, @NotNull Emulator emulator) {
-    myPanel = panel;
+    super(panel);
     myEmulator = emulator;
   }
 
   @NotNull VirtualDevicePanel getPanel() {
-    return myPanel;
+    return (VirtualDevicePanel)myPanel;
   }
 
   @NotNull VirtualDevice getDevice() {
@@ -73,6 +71,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     items.add(newShowOnDiskItem());
     items.add(MenuItems.newViewDetailsItem(myPanel));
     items.add(new Separator());
+    newUnpairDeviceItem(myDevice.getKey(), EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
     items.add(new DeleteItem(this));
 
     return items;
@@ -88,7 +87,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
-      VirtualDeviceTable table = myPanel.getTable();
+      VirtualDeviceTable table = getPanel().getTable();
 
       if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), myDevice.getAvdInfo()).showAndGet()) {
         table.refreshAvds();

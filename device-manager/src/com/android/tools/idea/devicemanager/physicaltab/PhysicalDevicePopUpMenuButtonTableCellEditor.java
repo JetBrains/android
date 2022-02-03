@@ -15,50 +15,37 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
-import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
-import com.android.tools.idea.wearpairing.WearPairingManager;
-import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.ui.JBMenuItem;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu.Separator;
 import javax.swing.JTable;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.BuildersKt;
-import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  private final @NotNull PhysicalDevicePanel myPanel;
-  private final @NotNull WearPairingManager myManager;
-
   private Device myDevice;
 
   PhysicalDevicePopUpMenuButtonTableCellEditor(@NotNull PhysicalDevicePanel panel) {
-    myPanel = panel;
-    myManager = WearPairingManager.INSTANCE;
+    super(panel);
   }
 
   @Override
   public @NotNull List<@NotNull JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
-    Optional<JComponent> optionalItem = newUnpairDeviceItem();
+    Optional<JComponent> optionalItem = newUnpairDeviceItem(myDevice.getKey(), EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION);
 
     items.add(MenuItems.newViewDetailsItem(myPanel));
     optionalItem.ifPresent(item -> items.add(new Separator()));
@@ -88,7 +75,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.PHYSICAL_PAIR_DEVICE_ACTION)
+        .setKind(EventKind.PHYSICAL_PAIR_DEVICE_ACTION)
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
@@ -96,46 +83,6 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     });
 
     return item;
-  }
-
-  @SuppressWarnings("unused")
-  private @NotNull Optional<@NotNull JComponent> newUnpairDeviceItem() {
-    String key = myDevice.getKey().toString();
-    List<PhoneWearPair> pairList = myManager.getPairsForDevice(key);
-
-    if (pairList.isEmpty()) {
-      return Optional.empty();
-    }
-
-    AbstractButton item = new JBMenuItem("Unpair Device");
-    item.addActionListener(actionEvent -> {
-      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
-        .build();
-
-      DeviceManagerUsageTracker.log(deviceManagerEvent);
-
-      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-        myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
-      }
-      else {
-        PhoneWearPair pair = pairList.get(0);
-        PairingDevice otherDevice = pair.getPeerDevice(key);
-        item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
-        try {
-          CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-          BuildersKt.runBlocking(context, (scope, continuation) ->
-            myManager.removeAllPairedDevices(key, true, continuation)
-          );
-        }
-        catch (InterruptedException exception) {
-          Thread.currentThread().interrupt();
-          Logger.getInstance(PhysicalDevicePopUpMenuButtonTableCellEditor.class).warn(exception);
-        }
-      }
-    });
-
-    return Optional.of(item);
   }
 
   @Override

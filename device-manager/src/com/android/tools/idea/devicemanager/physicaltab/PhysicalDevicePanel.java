@@ -52,7 +52,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevicePanel extends DevicePanel {
-  private final @Nullable Project myProject;
   private final @NotNull Disposable myParent;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
   private final @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> myNewPhysicalDeviceTable;
@@ -107,7 +106,8 @@ public final class PhysicalDevicePanel extends DevicePanel {
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices,
                       @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> newPhysicalDeviceDetailsPanel) {
-    myProject = project;
+    super(project);
+
     myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
     myNewPhysicalDeviceTable = newPhysicalDeviceTable;
@@ -189,10 +189,6 @@ public final class PhysicalDevicePanel extends DevicePanel {
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
     return myNewPhysicalDeviceDetailsPanel.apply(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
-  }
-
-  @Nullable Project getProject() {
-    return myProject;
   }
 
   @VisibleForTesting

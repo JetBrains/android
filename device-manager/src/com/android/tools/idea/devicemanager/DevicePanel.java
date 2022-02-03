@@ -16,19 +16,24 @@
 package com.android.tools.idea.devicemanager;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class DevicePanel extends JBPanel<DevicePanel> implements Disposable {
+  protected final @Nullable Project myProject;
+
   protected JTable myTable;
   protected JComponent myScrollPane;
   protected DetailsPanelPanel myDetailsPanelPanel;
 
-  protected DevicePanel() {
+  protected DevicePanel(@Nullable Project project) {
     super(null);
+    myProject = project;
   }
 
   protected final void initTable() {
@@ -45,6 +50,10 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
 
   @Override
   public final void dispose() {
+  }
+
+  public final @Nullable Project getProject() {
+    return myProject;
   }
 
   public final boolean hasDetails() {
