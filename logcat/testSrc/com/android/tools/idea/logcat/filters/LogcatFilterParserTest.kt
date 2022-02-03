@@ -74,6 +74,16 @@ class LogcatFilterParserTest {
   val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
 
   @Test
+  fun parse_emptyFilter() {
+    assertThat(logcatFilterParser().parse("")).isNull()
+  }
+
+  @Test
+  fun parse_blankFilter() {
+    assertThat(logcatFilterParser().parse(" \t")).isEqualTo(StringFilter(" \t", IMPLICIT_LINE))
+  }
+
+  @Test
   fun parse_stringKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("$key: Foo")).isEqualTo(StringFilter("Foo", field))

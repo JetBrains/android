@@ -70,18 +70,30 @@ internal class LogcatFilterParser(
 
   private val psiFileFactory = PsiFileFactory.getInstance(project)
 
-  fun parse(string: String): LogcatFilter? {
-    return try {
-      val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, string)
-      if (PsiTreeUtil.hasErrorElements(psi)) {
-        val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
-        throw LogcatFilterParseException(errorElement)
+  /**
+   * Parse a filter provided by a string in the [com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage]
+   *
+   * @param filterString a string in the Logcat filter language
+   * @return A [LogcatFilter] representing the provided string or null if the filter is empty.
+   */
+  fun parse(filterString: String): LogcatFilter? {
+    return when {
+      filterString.isEmpty() -> null
+      filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE)
+      else -> {
+        try {
+          val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
+          if (PsiTreeUtil.hasErrorElements(psi)) {
+            val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
+            throw LogcatFilterParseException(errorElement)
+          }
+          psi.toFilter()
+        }
+        catch (e: LogcatFilterParseException) {
+          // Any error in parsing results in a filter that matches the raw string with the entire line.
+          StringFilter(filterString, IMPLICIT_LINE)
+        }
       }
-      psi.toFilter()
-    }
-    catch (e: LogcatFilterParseException) {
-      // Any error in parsing results in a filter that matches the raw string with the entire line.
-      StringFilter(string, IMPLICIT_LINE)
     }
   }
 
