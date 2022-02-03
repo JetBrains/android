@@ -718,6 +718,13 @@
     <option name="run" hit="Show application logcat messages in Run Console" />
     <option name="show" hit="Show application logcat messages in Run Console" />
   </configurable>
+  <configurable id="project.propDebugger" configurable_name="Debugger">
+    <option name="coroutine" hit="Coroutine Debugger" />
+    <option name="debugger" hit="Coroutine Debugger" />
+    <option name="coroutine" hit="Enable coroutine debugger" />
+    <option name="debugger" hit="Enable coroutine debugger" />
+    <option name="enable" hit="Enable coroutine debugger" />
+  </configurable>
   <configurable id="emulator" configurable_name="Emulator">
     <option name="" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />
     <option name="a" hit=" Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application." />

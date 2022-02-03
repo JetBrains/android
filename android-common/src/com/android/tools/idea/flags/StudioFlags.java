@@ -652,7 +652,7 @@ public final class StudioFlags {
     "coroutine.debugger.enable",
     "Enable Coroutine Debugger",
     "Enables the Coroutine Debugger, that shows up as a panel in the debugger when debugging an app that uses coroutines",
-    false
+    true
   );
 
   public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
