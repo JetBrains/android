@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.IdeAndroidNativeVariantsModelsWrapper;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,8 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  * <li>{@link GradleModuleModelDataService}</li>
  * <li>{@link NdkModuleModelDataService}</li>
- * <li>{@link AndroidModuleDataService}</li>
- * <li>{@link JavaModuleModelDataService}</li>
+ * <li>{@link AndroidModuleDataService} or {@link JavaModuleModelDataService} (mutually exclusive)</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
  * <br/>
