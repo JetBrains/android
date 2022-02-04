@@ -19,8 +19,8 @@ import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.tools.idea.model.AndroidManifestRawText
 import com.android.tools.idea.model.IntentFilterRawText
 import com.android.tools.idea.projectsystem.ManifestOverrides
-
-private fun AndroidManifestRawText.resolvePackageName(overrides: ManifestOverrides) = packageName?.let { overrides.resolvePlaceholders(it) }
+import com.android.tools.idea.projectsystem.getModuleSystem
+import org.jetbrains.android.facet.AndroidFacet
 
 data class IndexedActivityWrapper(
   private val enabled: String?,
@@ -34,16 +34,18 @@ data class IndexedActivityWrapper(
 
   companion object {
     @JvmStatic
-    fun getActivities(manifest: AndroidManifestRawText, overrides: ManifestOverrides): List<IndexedActivityWrapper> {
-      val resolvedPackage = manifest.resolvePackageName(overrides)
+    fun getActivities(facet: AndroidFacet, manifest: AndroidManifestRawText, overrides: ManifestOverrides): List<IndexedActivityWrapper> {
+      val resolvedPackage = facet.getModuleSystem().getPackageName()
       return manifest.activities.map {
         IndexedActivityWrapper(it.enabled, it.exported, it.theme, it.intentFilters, it.name, overrides, resolvedPackage)
       }
     }
 
     @JvmStatic
-    fun getActivityAliases(manifest: AndroidManifestRawText, overrides: ManifestOverrides): List<IndexedActivityWrapper> {
-      val resolvedPackage = manifest.resolvePackageName(overrides)
+    fun getActivityAliases(facet: AndroidFacet,
+                           manifest: AndroidManifestRawText,
+                           overrides: ManifestOverrides): List<IndexedActivityWrapper> {
+      val resolvedPackage = facet.getModuleSystem().getPackageName()
       return manifest.activityAliases.map {
         IndexedActivityWrapper(it.enabled, it.exported, null, it.intentFilters, it.name, overrides, resolvedPackage)
       }
