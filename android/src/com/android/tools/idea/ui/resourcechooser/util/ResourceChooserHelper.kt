@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcechooser.util
 
-import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
@@ -87,6 +86,7 @@ fun createResourcePickerDialog(
  * @param initialColorResource The initial resource reference for the ResourcePicker, when not null, the popup dialog will open in the
  * ResourcePicker tab
  * @param configuration The [Configuration] of the current file, required to have a ResourcePicker in the popup dialog
+ * @param resourcePickerSources List of the different places the color resources will be pulled from, empty list will default to all sources
  * @param restoreFocusComponent When closing the popup dialog, this component will regain focus
  * @param locationToShow Preferred location in the screen to show the popup dialog, if null, the current location of the mouse will be used
  * @param colorPickedCallback The callback for whenever a new [Color] is picked in the ColorPicker

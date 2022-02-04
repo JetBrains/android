@@ -23,13 +23,21 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.ComponentUtil
 import com.intellij.util.ui.JBUI
+import java.awt.AWTEvent
+import java.awt.Component
 import java.awt.Point
+import java.awt.Toolkit
+import java.awt.Window
+import java.awt.event.AWTEventListener
+import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -45,16 +53,26 @@ internal object PsiPickerManager {
   fun show(location: Point, model: PsiPropertyModel, valuesProvider: EnumSupportValuesProvider) {
     val tracker = model.tracker
     val disposable = Disposer.newDisposable()
+    var popup: LightCalloutPopup? = null
+    val closeHandler = PopupCloseHandler(ComponentUtil.getActiveWindow()) { popup?.close() }
+    Toolkit.getDefaultToolkit().addAWTEventListener(closeHandler, AWTEvent.MOUSE_EVENT_MASK)
     val onClosedOrCancelled: () -> Unit = {
+      Toolkit.getDefaultToolkit().removeAWTEventListener(closeHandler)
       Disposer.dispose(disposable)
       tracker.pickerClosed()
       ApplicationManager.getApplication().executeOnPooledThread(tracker::logUsageData)
     }
-    val popup = LightCalloutPopup(closedCallback = onClosedOrCancelled, cancelCallBack = onClosedOrCancelled)
+    popup = LightCalloutPopup(closedCallback = onClosedOrCancelled, cancelCallBack = onClosedOrCancelled)
     val previewPickerPanel = createPreviewPickerPanel(disposable, popup::close, model, valuesProvider)
 
     tracker.pickerShown()
-    popup.show(previewPickerPanel, null, location)
+    popup.show(
+      content = previewPickerPanel,
+      parentComponent = null,
+      location = location,
+      position = Balloon.Position.below,
+      hideOnOutsideClick = false
+    )
   }
 }
 
@@ -82,5 +100,37 @@ private fun createPreviewPickerPanel(
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
     registerActionKey(closePopupCallBack, KeyStrokes.ESCAPE, name = "close", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+  }
+}
+
+/**
+ * [AWTEventListener] that makes it so that the [LightCalloutPopup] is only closed when a click happened outside of ANY popup.
+ */
+private class PopupCloseHandler(private val ownerWindow: Window, private val closePopupCallback: () -> Unit) : AWTEventListener {
+  override fun eventDispatched(event: AWTEvent?) {
+    if (event is MouseEvent) {
+      if (event.id != MouseEvent.MOUSE_PRESSED) return
+
+      val inBalloon = JBPopupFactory.getInstance().getParentBalloonFor(event.component) != null
+      if (!inBalloon) {
+        if (!isWithinOriginalWindow(event)) {
+          closePopupCallback()
+        }
+      }
+    }
+  }
+
+  private fun isWithinOriginalWindow(event: MouseEvent): Boolean {
+    val owner: Component = ownerWindow
+    var child: Component? = ComponentUtil.getWindow(event.component)
+    if (child !== owner) {
+      while (child != null) {
+        if (child === owner) {
+          return true
+        }
+        child = child.parent
+      }
+    }
+    return false
   }
 }

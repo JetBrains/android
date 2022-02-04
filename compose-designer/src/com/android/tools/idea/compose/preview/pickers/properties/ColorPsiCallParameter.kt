@@ -49,16 +49,16 @@ internal class ColorPsiCallParameter(
     override val action = object : AnAction(message("picker.preview.color.action.title")) {
       override fun actionPerformed(e: AnActionEvent) {
         createAndShowColorPickerPopup(
-          value?.substringAfter("0x")?.let { parseColor("#$it") },
-          null,
-          null,
-          listOf(),
-          e.componentToRestoreFocusTo(),
-          e.locationFromEvent(),
-          {
+          initialColor = value?.substringAfter("0x")?.let { parseColor("#$it") },
+          initialColorResource = null,
+          configuration = null,
+          resourcePickerSources = listOf(),
+          restoreFocusComponent = e.componentToRestoreFocusTo(),
+          locationToShow = e.locationFromEvent(),
+          colorPickedCallback = {
             value = colorToStringWithAlpha(it)
           },
-          {
+          colorResourcePickedCallback = {
             // Do nothing.
           }
         )

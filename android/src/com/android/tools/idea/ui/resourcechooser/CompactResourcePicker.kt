@@ -37,7 +37,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
@@ -100,7 +100,7 @@ class CompactResourcePicker(
 ) : JPanel(BorderLayout()) {
   private val sources: List<ResourcePickerSources> = if (selectedPickerSources.isEmpty()) {
     // Make sure that the sources parameter does not return an empty list, otherwise default to all sources
-    Logger.getInstance(javaClass).warn("Parameter selectedPickerSources is empty, daulting to using all sources")
+    thisLogger().warn("Parameter selectedPickerSources is empty, will use all sources")
     ResourcePickerSources.allSources()
   }
   else {
