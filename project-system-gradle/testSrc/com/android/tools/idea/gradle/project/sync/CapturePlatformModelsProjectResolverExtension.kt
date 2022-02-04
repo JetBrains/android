@@ -19,6 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerExtension
@@ -34,9 +35,14 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
     private val kaptModels = mutableMapOf<String, KaptGradleModel>()
     private val externalProjectModels = mutableMapOf<String, ExternalProject>()
 
-    fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[module.name]
-    fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[module.name]
-    fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[module.name]
+    fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[getGradleProjectPath(module)]
+    fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[getGradleProjectPath(module)]
+    fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[getGradleProjectPath(module)]
+
+    private fun getGradleProjectPath(module: Module): String? {
+      return ExternalSystemApiUtil.getExternalProjectPath(module)
+        .takeIf { ExternalSystemApiUtil.getExternalModuleType(module) == null } // Return models for holder modules only.
+    }
 
     fun reset() {
       kotlinModels.clear()
@@ -58,19 +64,20 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
   }
 
   override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
-    resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)?.let {kotlinModels[ideModule.data.internalName] = it}
+    val gradleProjectPath = ideModule.data.linkedExternalProjectPath
+    resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)?.let { kotlinModels[gradleProjectPath] = it }
     // The KaptGradleModel is present for Java modules
     resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let {
-      kaptModels[ideModule.data.internalName] = it
+      kaptModels[gradleProjectPath] = it
     }
     // For Android modules it is contained within the IdeAndroidModels class
     resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)?.let {
       it.kaptGradleModel?.let { kaptModel ->
-        kaptModels[ideModule.data.internalName] = kaptModel
+        kaptModels[gradleProjectPath] = kaptModel
       }
     }
     resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)?.let {
-      externalProjectModels[ideModule.data.internalName] = it
+      externalProjectModels[gradleProjectPath] = it
     }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }

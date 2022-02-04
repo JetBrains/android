@@ -8630,6 +8630,74 @@ MODULE                        : TestCompositeLib3.lib.androidTest
 MODULE                        : TestCompositeLib3.lib.main
 MODULE                        : TestCompositeLib3.lib.unitTest
 MODULE                        : com.test.compositeNest3.compositeNest
+    externalProject               : project-TestCompositeLibNested_3 (DefaultExternalProject)
+        name                          : compositeNest
+        qName                         : compositeNest
+        group                         : com.test.compositeNest3
+        version                       : 1.0
+        sourceCompatibility           : 11
+        targetCompatibility           : 11
+        projectDir                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
+        buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
+        buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
+        sourceSets
+            main                          : main (DefaultExternalSourceSet)
+                sources
+                    RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
+                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/production/resources [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
+                        patterns                      : FilePatternSetImpl
+                    SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
+                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/production/classes [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
+                        patterns                      : FilePatternSetImpl
+                - dependencies                : DefaultFileCollectionDependency
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
+                - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+            test                          : test (DefaultExternalSourceSet)
+                sources
+                    TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
+                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/test/classes [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
+                        patterns                      : FilePatternSetImpl
+                    TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/resources [-]
+                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/test/resources [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
+                        patterns                      : FilePatternSetImpl
+                - dependencies                : DefaultFileCollectionDependency
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
+                - dependencies                : DefaultFileCollectionDependency
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
+                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+        externalSystemId              : GRADLE
+        - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+        artifactsByConfiguration
+            annotationProcessor           : <empty>
+            - apiElements                 : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+            - archives                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+            compileClasspath              : <empty>
+            compileOnly                   : <empty>
+            default                       : <empty>
+            implementation                : <empty>
+            runtimeClasspath              : <empty>
+            - runtimeElements             : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+            runtimeOnly                   : <empty>
+            testAnnotationProcessor       : <empty>
+            testCompileClasspath          : <empty>
+            testCompileOnly               : <empty>
+            testImplementation            : <empty>
+            testRuntimeClasspath          : <empty>
+            testRuntimeOnly               : <empty>
 MODULE                        : com.test.compositeNest3.compositeNest.main
 MODULE                        : com.test.compositeNest3.compositeNest.test
 MODULE                        : composite2
@@ -8775,67 +8843,67 @@ MODULE                        : composite4
 MODULE                        : composite4.main
 MODULE                        : composite4.test
 MODULE                        : compositeNest
-    externalProject               : project-TestCompositeLibNested_3 (DefaultExternalProject)
+    externalProject               : project-TestCompositeLibNested_1 (DefaultExternalProject)
         name                          : compositeNest
         qName                         : compositeNest
-        group                         : com.test.compositeNest3
+        group                         : com.test.compositeNest1
         version                       : 1.0
         sourceCompatibility           : 11
         targetCompatibility           : 11
-        projectDir                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
-        buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
-        buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
+        projectDir                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+        buildDir                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build
+        buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
         sourceSets
             main                          : main (DefaultExternalSourceSet)
                 sources
                     RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
-                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/production/resources [-]
-                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
+                        - srcDirs                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/resources [-]
+                        outputDir                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/out/production/resources [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/main [-]
                         patterns                      : FilePatternSetImpl
                     SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
-                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/production/classes [-]
-                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
+                        - srcDirs                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
+                        outputDir                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/out/production/classes [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
                         patterns                      : FilePatternSetImpl
                 - dependencies                : DefaultFileCollectionDependency
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
-                - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/main [-]
+                - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 sourceCompatibility           : 11
                 targetCompatibility           : 11
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
-                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/test/classes [-]
-                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
+                        - srcDirs                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/java [-]
+                        outputDir                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/out/test/classes [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/test [-]
                         patterns                      : FilePatternSetImpl
                     TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                        - srcDirs                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/resources [-]
-                        outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/test/resources [-]
-                        - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
+                        - srcDirs                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/resources [-]
+                        outputDir                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/out/test/resources [-]
+                        - gradleOutputDirs            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/test [-]
                         patterns                      : FilePatternSetImpl
                 - dependencies                : DefaultFileCollectionDependency
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/main [-]
                 - dependencies                : DefaultFileCollectionDependency
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
-                    - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/test [-]
+                    - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/test [-]
                 sourceCompatibility           : 11
                 targetCompatibility           : 11
         externalSystemId              : GRADLE
-        - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+        - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
         artifactsByConfiguration
             annotationProcessor           : <empty>
-            - apiElements                 : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
-            - archives                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+            - apiElements                 : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
+            - archives                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             compileClasspath              : <empty>
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
             runtimeClasspath              : <empty>
-            - runtimeElements             : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
+            - runtimeElements             : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             runtimeOnly                   : <empty>
             testAnnotationProcessor       : <empty>
             testCompileClasspath          : <empty>
