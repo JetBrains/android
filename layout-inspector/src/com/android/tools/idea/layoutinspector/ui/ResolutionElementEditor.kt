@@ -26,6 +26,7 @@ import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.ptable.PTableGroupItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -66,6 +67,7 @@ class ResolutionElementEditor(
     add(linkPanel, BorderLayout.SOUTH)
     linkPanel.layout = BoxLayout(linkPanel, BoxLayout.Y_AXIS)
     linkPanel.isVisible = false
+    linkPanel.isOpaque = false
     linkPanel.background = UIUtil.TRANSPARENT_COLOR
     editorModel.addListener { updateFromModel() }
     editor.addMouseListener(object : MouseAdapter() {
@@ -87,12 +89,13 @@ class ResolutionElementEditor(
     val locations = view?.let { resourceLookup.findFileLocations(property, it) } ?: listOf()
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
+    val isSelected = editorModel.isUsedInRendererWithSelection
     linkPanel.isVisible = !hideLinkPanel
     editorModel.isCustomHeight = !hideLinkPanel
-    background = if (editorModel.isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else UIUtil.TRANSPARENT_COLOR
+    isOpaque = isSelected
+    background = if (isSelected) UIUtil.getTableBackground(true, true) else UIUtil.TRANSPARENT_COLOR
     if (!hideLinkPanel) {
       linkPanel.removeAll()
-      val isSelected = editorModel.isUsedInRendererWithSelection
       val isOverridden = property is ResolutionStackItem
       classLocation?.let { linkPanel.add(SourceLocationLink(it, isSelected, false)) }
       when (locations.size) {
@@ -128,10 +131,12 @@ class ResolutionElementEditor(
     init {
       val mainPanel = JPanel()
       mainPanel.layout = BoxLayout(mainPanel, BoxLayout.X_AXIS)
+      mainPanel.isOpaque = false
       mainPanel.background = UIUtil.TRANSPARENT_COLOR
       mainPanel.border = JBUI.Borders.emptyLeft(8)
       val isExtraPanelVisible = model.isExpanded(property)
       extraPanel.layout = BoxLayout(extraPanel, BoxLayout.Y_AXIS)
+      extraPanel.isOpaque = false
       extraPanel.background = UIUtil.TRANSPARENT_COLOR
       extraPanel.isVisible = isExtraPanelVisible
       extraPanel.border = JBUI.Borders.emptyLeft(24)
@@ -158,6 +163,7 @@ class ResolutionElementEditor(
       }
       add(mainPanel, BorderLayout.CENTER)
       add(extraPanel, BorderLayout.SOUTH)
+      isOpaque = false
       background = UIUtil.TRANSPARENT_COLOR
       alignmentX = Component.LEFT_ALIGNMENT
     }
