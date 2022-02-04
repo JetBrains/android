@@ -18,10 +18,10 @@ package org.jetbrains.android.dom.xml;
 
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
-import static com.android.SdkConstants.CLASS_PREFERENCE;
-import static com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX;
-import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP;
-import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP_ANDROIDX;
+import static com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX;
+import static com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_GROUP_ANDROIDX;
+import static com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE;
+import static com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE_GROUP;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.dom.xml.PathsDomFileDescription;

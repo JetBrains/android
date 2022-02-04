@@ -21,7 +21,6 @@ import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE
 import com.android.SdkConstants.BUTTON
-import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
@@ -31,6 +30,7 @@ import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.SdkConstants.MATERIAL2_PKG
 import com.android.SdkConstants.PreferenceAttributes.ATTR_DEFAULT_VALUE
 import com.android.SdkConstants.PreferenceClasses
+import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule

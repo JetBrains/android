@@ -33,13 +33,13 @@ import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
 import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_DRAWABLE
 import com.android.SdkConstants.ATTR_ID
-import com.android.SdkConstants.CLASS_PREFERENCE
-import com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
+import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
+import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR

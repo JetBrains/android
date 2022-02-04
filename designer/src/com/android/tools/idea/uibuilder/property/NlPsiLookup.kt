@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX
+import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.tools.idea.psi.TagToClassMapper
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -29,10 +32,10 @@ class NlPsiLookup(facet: AndroidFacet) {
   private val psiFacade = JavaPsiFacade.getInstance(facet.module.project)
   private val allScope = GlobalSearchScope.allScope(facet.module.project)
   private val tagMapper = TagToClassMapper.getInstance(facet.module)
-  private val viewMap = tagMapper.getClassMap(SdkConstants.CLASS_VIEW)
-  private val preferenceMap = tagMapper.getClassMap(SdkConstants.CLASS_PREFERENCE)
-  private val appcompatPreferenceMap = tagMapper.getClassMap(SdkConstants.CLASS_PREFERENCE_ANDROIDX.oldName())
-  private val androidxPreferenceMap = tagMapper.getClassMap(SdkConstants.CLASS_PREFERENCE_ANDROIDX.newName())
+  private val viewMap = tagMapper.getClassMap(CLASS_VIEW)
+  private val preferenceMap = tagMapper.getClassMap(CLASS_PREFERENCE)
+  private val appcompatPreferenceMap = tagMapper.getClassMap(CLASS_PREFERENCE_ANDROIDX.oldName())
+  private val androidxPreferenceMap = tagMapper.getClassMap(CLASS_PREFERENCE_ANDROIDX.newName())
 
   fun classOf(tagName: String): PsiClass? {
     viewMap[tagName]?.let { return it }

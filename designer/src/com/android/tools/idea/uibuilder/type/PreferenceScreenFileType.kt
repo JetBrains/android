@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-import com.android.SdkConstants
-import com.android.SdkConstants.CLASS_SUPPORT_PREFERENCE_SCREEN
+import com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX
+import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.resources.ResourceFolderType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.psi.PsiFile
@@ -29,7 +29,7 @@ object PreferenceScreenFileType : LayoutEditorFileType("preference_screen") {
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
                                                                         ResourceFolderType.XML,
-                                                                        listOf(SdkConstants.TAG_PREFERENCE_SCREEN,
-                                                                               CLASS_SUPPORT_PREFERENCE_SCREEN.oldName(),
-                                                                               CLASS_SUPPORT_PREFERENCE_SCREEN.newName()))
+                                                                        listOf(PREFERENCE_SCREEN,
+                                                                               CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
+                                                                               CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()))
 }

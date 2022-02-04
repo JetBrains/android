@@ -30,16 +30,16 @@ import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TEXT_SIZE;
 import static com.android.SdkConstants.ATTR_TEXT_STYLE;
-import static com.android.SdkConstants.CLASS_SUPPORT_PREFERENCE_SCREEN;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX;
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
 import static com.android.SdkConstants.TAG_ADAPTIVE_ICON;
 import static com.android.SdkConstants.TAG_APPWIDGET_PROVIDER;
 import static com.android.SdkConstants.TAG_FONT_FAMILY;
 import static com.android.SdkConstants.TAG_MASKABLE_ICON;
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FILL_PARENT;
@@ -100,9 +100,9 @@ public class LayoutPullParsers {
 
   private static final String[] VALID_XML_TAGS = {
     TAG_APPWIDGET_PROVIDER,
-    TAG_PREFERENCE_SCREEN,
-    CLASS_SUPPORT_PREFERENCE_SCREEN.oldName(),
-    CLASS_SUPPORT_PREFERENCE_SCREEN.newName()
+    PREFERENCE_SCREEN,
+    CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
+    CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
   };
   private static final String[] ADAPTIVE_ICON_TAGS = {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
   private static final String[] FONT_FAMILY_TAGS = {TAG_FONT_FAMILY};
@@ -201,8 +201,8 @@ public class LayoutPullParsers {
             renderTask.setDecorations(false);
             return createWidgetParser(rootTag);
           }
-          else if (tag.equals(TAG_PREFERENCE_SCREEN) ||
-                   CLASS_SUPPORT_PREFERENCE_SCREEN.isEquals(tag)) {
+          else if (tag.equals(PREFERENCE_SCREEN) ||
+                   CLASS_PREFERENCE_SCREEN_ANDROIDX.isEquals(tag)) {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();

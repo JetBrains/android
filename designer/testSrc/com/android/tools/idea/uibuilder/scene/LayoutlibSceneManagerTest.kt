@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
-import com.android.SdkConstants
+import com.android.SdkConstants.FD_RES_XML
+import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -81,8 +82,8 @@ class LayoutlibSceneManagerTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model(SdkConstants.FD_RES_XML, "preference.xml",
-                 component(SdkConstants.TAG_PREFERENCE_SCREEN)
+    return model(FD_RES_XML, "preference.xml",
+                 component(PREFERENCE_SCREEN)
                    .withBounds(0, 0, 1000, 1000)
                    .matchParentWidth()
                    .matchParentHeight()
