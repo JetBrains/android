@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
+import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -27,6 +28,7 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -265,14 +267,22 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_appFilter_nonAndroidProject() {
+    assertThat(logcatFilterParser(androidProjectDetector = FakeAndroidProjectDetector(false)).parse("package:mine"))
+      .isEqualTo(StringFilter("mine", APP))
+  }
+
+  @Test
   fun parse_psiError() {
     val query = "key: 'foo"
     assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
   }
 
   private fun logcatFilterParser(
+    androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     joinConsecutiveTopLevelValue: Boolean = true,
     topLevelSameKeyTreatment: CombineWith = AND,
     clock: Clock = Clock.systemUTC(),
-  ) = LogcatFilterParser(project, fakePackageNamesProvider, joinConsecutiveTopLevelValue, topLevelSameKeyTreatment, clock)
+  ) = LogcatFilterParser(project, fakePackageNamesProvider, androidProjectDetector, joinConsecutiveTopLevelValue, topLevelSameKeyTreatment,
+                         clock)
 }

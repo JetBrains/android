@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
+import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
@@ -38,11 +39,11 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
-import com.google.gson.Gson
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -94,7 +95,6 @@ class LogcatMainPanelTest {
 
   private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
-  private val gson = Gson()
 
   @RunsInEdt
   @Test
@@ -390,6 +390,15 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("package:mine")
   }
 
+  @RunsInEdt
+  @Test
+  fun appliesState_noState_nonAndroidProject() {
+    val logcatMainPanel = logcatMainPanel(state = null, androidProjectDetector = FakeAndroidProjectDetector(false))
+
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isNull()
+    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("")
+  }
+
   @Test
   fun reloadMessages() {
     val logcatMainPanel = runInEdtAndGet {
@@ -489,6 +498,7 @@ class LogcatMainPanelTest {
     logcatColors: LogcatColors = LogcatColors(),
     state: LogcatPanelConfig? = null,
     logcatSettings: LogcatSettings = LogcatSettings(),
+    androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
@@ -500,6 +510,7 @@ class LogcatMainPanelTest {
       logcatColors,
       state,
       logcatSettings,
+      androidProjectDetector,
       hyperlinkDetector,
       foldingDetector,
       packageNamesProvider,

@@ -43,6 +43,8 @@ import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
+import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
@@ -99,6 +101,7 @@ internal class LogcatMainPanel(
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   private var logcatSettings: LogcatSettings = LogcatSettings.getInstance(),
+  androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
@@ -123,20 +126,19 @@ internal class LogcatMainPanel(
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
-
   @VisibleForTesting
   val headerPanel = LogcatHeaderPanel(
     project,
     logcatPresenter = this,
     deviceContext, packageNamesProvider,
-    state?.filter ?: DEFAULT_FILTER,
+    state?.filter ?: if (androidProjectDetector.isAndroidProject(project)) DEFAULT_FILTER else "",
   )
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(
     this,
     ::formatMessages,
-    LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()))
+    LogcatFilterParser(project, packageNamesProvider, androidProjectDetector).parse(headerPanel.getFilterText()))
   private var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)

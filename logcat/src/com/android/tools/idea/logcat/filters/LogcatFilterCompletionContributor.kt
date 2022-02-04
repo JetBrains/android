@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -28,6 +29,7 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.TokenType.ERROR_ELEMENT
@@ -57,7 +59,7 @@ private const val LEVEL_KEY = "level:"
 
 private const val AGE_KEY = "age:"
 
-private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + MY_PACKAGE
+private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
 
 private val KEYS_LOOKUP_BUILDERS = KEYS.map(String::toLookupElement)
 
@@ -96,6 +98,9 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                  }
                }
                result.addAllElements(KEYS_LOOKUP_BUILDERS)
+               if (hasAndroidProject(parameters.editor)) {
+                 result.addElement(MY_PACKAGE.toLookupElement())
+               }
              }
            })
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.KVALUE),
@@ -110,8 +115,12 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                when (parameters.findPreviousText()) {
-                 "$PACKAGE_KEY:" ->
-                   result.addAllElements((parameters.getPackageNames() + MY_PACKAGE_VALUE).map { it.toLookupElement(suffix = " ") })
+                 "$PACKAGE_KEY:" -> {
+                   result.addAllElements((parameters.getPackageNames()).map { it.toLookupElement(suffix = " ") })
+                   if (hasAndroidProject(parameters.editor)) {
+                     result.addElement(MY_PACKAGE_VALUE.toLookupElement(suffix = " "))
+                   }
+                 }
                  in PACKAGE_KEYS ->
                    result.addAllElements((parameters.getPackageNames()).map { it.toLookupElement(suffix = " ") })
                  in TAG_KEYS ->
@@ -139,4 +148,9 @@ private fun CompletionParameters.getRealTextLength(): Int {
   val text = position.text
   val len = text.indexOf(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
   return if (len < 0) text.length else len
+}
+
+private fun hasAndroidProject(editor: Editor): Boolean {
+  val project = editor.project ?: return false
+  return editor.getUserData(AndroidProjectDetector.KEY)?.isAndroidProject(project) ?: false
 }

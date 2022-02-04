@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -40,7 +41,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   private val logcatColors: LogcatColors = LogcatColors()
 
-  override fun shouldBeAvailable(project: Project) = isLogcatV2Enabled()
+  override fun isApplicable(project: Project) = isAndroidEnvironment(project) && isLogcatV2Enabled()
 
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }

@@ -16,11 +16,13 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log.LogLevel
+import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.TagsProvider
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -226,6 +228,24 @@ class LogcatFilterCompletionContributorTest {
       assertThat(fixture.lookupElementStrings).named(it).containsExactlyElementsIn(KEYS)
     }
   }
+
+  @Test
+  fun nonAndroidProject_doesNotProvideProjectPackageKey() {
+    fixture.configure("package$caret",androidProjectDetector = FakeAndroidProjectDetector(false))
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly("package:", "package~:", "-package:", "-package~:")
+  }
+
+  @Test
+  fun nonAndroidProject_doesNotProvideProjectPackageValue() {
+    fixture.configure("package:$caret", packages = setOf("foo"), androidProjectDetector = FakeAndroidProjectDetector(false))
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).containsExactly("foo ")
+  }
 }
 
 private fun String.isPackageKey() = equals("package:")
@@ -233,13 +253,21 @@ private fun String.isPackageKey() = equals("package:")
 /**
  * Configure fixture with given text and set up its editor.
  */
-private fun CodeInsightTestFixture.configure(text: String, tags: Set<String> = emptySet(), packages: Set<String> = emptySet()) {
+private fun CodeInsightTestFixture.configure(
+  text: String,
+  tags: Set<String> = emptySet(),
+  packages: Set<String> = emptySet(),
+  androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true)
+) {
   configureByText(LogcatFilterFileType, text)
   // This can't be done in the setUp() method because the editor is only created when the fixture is configured.
-  editor.putUserData(TAGS_PROVIDER_KEY, object : TagsProvider {
-    override fun getTags(): Set<String> = tags
-  })
-  editor.putUserData(PACKAGE_NAMES_PROVIDER_KEY, object : PackageNamesProvider {
-    override fun getPackageNames(): Set<String> = packages
-  })
+  editor.apply {
+    putUserData(TAGS_PROVIDER_KEY, object : TagsProvider {
+      override fun getTags(): Set<String> = tags
+    })
+    putUserData(PACKAGE_NAMES_PROVIDER_KEY, object : PackageNamesProvider {
+      override fun getPackageNames(): Set<String> = packages
+    })
+    putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
+  }
 }

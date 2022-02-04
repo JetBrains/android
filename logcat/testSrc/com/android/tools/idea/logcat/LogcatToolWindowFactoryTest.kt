@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
@@ -36,7 +37,9 @@ import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
 @RunsInEdt
@@ -52,20 +55,30 @@ class LogcatToolWindowFactoryTest {
   }
 
   @Test
-  fun shouldBeAvailable_isFalse() {
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isFalse()
+  fun isApplicable_default() {
+    assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
 
   @Test
-  fun shouldBeAvailable_obeysFlag_true() {
+  fun isApplicable_obeysFlag_true() {
     StudioFlags.LOGCAT_V2_ENABLE.override(true)
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isTrue()
+    assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isTrue()
   }
 
   @Test
-  fun shouldBeAvailable_obeysFlag_false() {
+  fun isApplicable_obeysFlag_false() {
     StudioFlags.LOGCAT_V2_ENABLE.override(false)
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isFalse()
+    assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
+  }
+
+  @Test
+  fun isApplicable_nonAndroidEnvironment() {
+    StudioFlags.LOGCAT_V2_ENABLE.override(true)
+    val mockIdeInfo = spy(IdeInfo.getInstance())
+    `when`(mockIdeInfo.isAndroidStudio).thenReturn(false)
+    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, projectRule.project);
+
+    assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
 
   @Test

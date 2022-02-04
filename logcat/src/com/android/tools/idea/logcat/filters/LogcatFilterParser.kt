@@ -36,6 +36,8 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.filters.parser.isTopLevelValue
 import com.android.tools.idea.logcat.filters.parser.toText
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
+import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
@@ -59,6 +61,7 @@ private val DURATION_RE = "\\d+[smhd]".toRegex()
 internal class LogcatFilterParser(
   project: Project,
   private val packageNamesProvider: PackageNamesProvider,
+  private val androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   private val joinConsecutiveTopLevelValue: Boolean = false,
   private val topLevelSameKeyTreatment: CombineWith = OR,
   private val clock: Clock = Clock.systemDefaultZone(),
@@ -163,12 +166,16 @@ internal class LogcatFilterParser(
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
       VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE)
-      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider)
+      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider, androidProjectDetector)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
 }
 
-private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock, packageNamesProvider: PackageNamesProvider): LogcatFilter {
+private fun LogcatFilterLiteralExpression.toKeyFilter(
+  clock: Clock,
+  packageNamesProvider: PackageNamesProvider,
+  androidProjectDetector: AndroidProjectDetector,
+): LogcatFilter {
   return when (val key = firstChild.text.trim(':', '-', '~')) {
     "level" -> LevelFilter(lastChild.asLogLevel())
     "age" -> AgeFilter(lastChild.asDuration(), clock)
@@ -192,7 +199,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock, packageNames
         isNegated -> NegatedStringFilter(value, field)
         isRegex -> RegexFilter(value, field)
         // TODO(aalbert): Consider adding a NegatedProjectAppFilter for "-package:mine"
-        key == "package" && value == "mine" -> ProjectAppFilter(packageNamesProvider)
+        key == "package" && value == "mine" && androidProjectDetector.isAndroidProject(project) -> ProjectAppFilter(packageNamesProvider)
         else -> StringFilter(value, field)
       }
     }

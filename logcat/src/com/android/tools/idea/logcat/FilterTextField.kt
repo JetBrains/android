@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.util.AndroidProjectDetector
+import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.intellij.icons.AllIcons
@@ -55,10 +57,11 @@ internal class FilterTextField(
   project: Project,
   logcatPresenter: LogcatPresenter,
   initialText: String,
+  androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   maxHistorySize: Int = MAX_HISTORY_SIZE,
 ) : ComboBox<String>() {
 
-  private val textField = FilterEditorTextField(project, logcatPresenter, initialText)
+  private val textField = FilterEditorTextField(project, logcatPresenter, initialText, androidProjectDetector)
   private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
   private val history = MostRecentlyAddedSet<String>(maxHistorySize).apply {
     addAll(propertiesComponent.getValues(HISTORY_PROPERTY_NAME) ?: emptyArray())
@@ -144,12 +147,17 @@ internal class FilterTextField(
   }
 }
 
-private class FilterEditorTextField(project: Project, val logcatPresenter: LogcatPresenter, text: String)
+private class FilterEditorTextField(
+  project: Project,
+  private val logcatPresenter: LogcatPresenter,
+  text: String,
+  private val androidProjectDetector: AndroidProjectDetector)
   : EditorTextField(project, LogcatFilterFileType) {
   public override fun createEditor(): EditorEx {
     return super.createEditor().apply {
       putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
       putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
+      putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
     }
   }
 

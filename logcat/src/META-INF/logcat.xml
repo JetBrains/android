@@ -16,9 +16,8 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <facet.toolWindow
+    <toolWindow
         id="Logcat V2"
-        facetIdList="android,apk"
         anchor="bottom"
         icon="StudioIcons.Shell.ToolWindows.LOGCAT"
         canCloseContents="true"
