@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.aidl.lexer;
 
 import com.android.tools.idea.lang.aidl.AidlLanguage;
 import com.intellij.psi.tree.IElementType;
+import java.lang.reflect.Field;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +28,18 @@ public class AidlTokenType extends IElementType {
 
   @Override
   public String toString() {
-    return "AidlTokenType." + super.toString();
+    String s = super.toString();
+    for (Field field : AidlTokenTypes.class.getDeclaredFields()) {
+      try {
+        if (field.get(null) == this) {
+          return "AidlTokenTypes." + field.getName();
+        }
+      }
+      catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return "AidlTokenType." + s;
   }
 }

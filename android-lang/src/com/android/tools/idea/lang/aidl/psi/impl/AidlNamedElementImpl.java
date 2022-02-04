@@ -21,7 +21,6 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +45,17 @@ public abstract class AidlNamedElementImpl extends AidlPsiCompositeElementImpl i
 
   @NotNull
   private LeafPsiElement getLeaf() {
-    return PsiTreeUtil.getChildOfType(this, LeafPsiElement.class);
+    PsiElement leaf = this;
+    while (true) {
+      PsiElement last = leaf.getLastChild();
+      if (last == null) {
+        break;
+      }
+      leaf = last;
+    }
+    //noinspection ConstantConditions
+    return (LeafPsiElement)leaf;
   }
-
 
   @Nullable
   @Override
@@ -58,6 +65,11 @@ public abstract class AidlNamedElementImpl extends AidlPsiCompositeElementImpl i
       return ((NavigationItem)parent).getPresentation();
     }
     return null;
+  }
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + "(\"" + this.getText() + "\")";
   }
 
   // TODO provide a better icon for

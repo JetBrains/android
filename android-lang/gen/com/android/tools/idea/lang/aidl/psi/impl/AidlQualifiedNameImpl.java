@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.aidl.lexer.AidlTokenTypes.*;
 import com.android.tools.idea.lang.aidl.psi.*;
+import com.intellij.psi.PsiReference;
 
-public class AidlQualifiedNameImpl extends AidlPsiCompositeElementImpl implements AidlQualifiedName {
+public class AidlQualifiedNameImpl extends AidlNamedElementImpl implements AidlQualifiedName {
 
   public AidlQualifiedNameImpl(@NotNull ASTNode node) {
     super(node);
@@ -37,6 +38,7 @@ public class AidlQualifiedNameImpl extends AidlPsiCompositeElementImpl implement
     visitor.visitQualifiedName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AidlVisitor) accept((AidlVisitor)visitor);
     else super.accept(visitor);
@@ -46,6 +48,30 @@ public class AidlQualifiedNameImpl extends AidlPsiCompositeElementImpl implement
   @NotNull
   public List<AidlNameComponent> getNameComponentList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlNameComponent.class);
+  }
+
+  @Override
+  @NotNull
+  public PsiElement getNameIdentifier() {
+    return AidlPsiUtil.getNameIdentifier(this);
+  }
+
+  @Override
+  @NotNull
+  public String getQualifiedName() {
+    return AidlPsiUtil.getQualifiedName(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement resolve() {
+    return AidlPsiUtil.resolve(this);
+  }
+
+  @Override
+  @NotNull
+  public PsiReference getReference() {
+    return AidlPsiUtil.getReference(this);
   }
 
 }

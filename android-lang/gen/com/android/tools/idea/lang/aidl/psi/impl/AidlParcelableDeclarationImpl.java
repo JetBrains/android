@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,70 @@ public class AidlParcelableDeclarationImpl extends AbstractAidlDeclarationImpl i
     visitor.visitParcelableDeclaration(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AidlVisitor) accept((AidlVisitor)visitor);
     else super.accept(visitor);
   }
 
   @Override
+  @NotNull
+  public List<AidlAnnotationElement> getAnnotationElementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlAnnotationElement.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlConstantDeclaration> getConstantDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlConstantDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public AidlDottedName getDottedName() {
+    return findNotNullChildByClass(AidlDottedName.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlEnumDeclaration> getEnumDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlEnumDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlInterfaceDeclaration> getInterfaceDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlInterfaceDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlNameComponent> getNameComponentList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlNameComponent.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlParcelableDeclaration> getParcelableDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlParcelableDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlUnionDeclaration> getUnionDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlUnionDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<AidlVariableDeclaration> getVariableDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlVariableDeclaration.class);
+  }
+
+  @Override
   @Nullable
-  public AidlDeclarationName getDeclarationName() {
-    return findChildByClass(AidlDeclarationName.class);
+  public PsiElement getCStr() {
+    return findChildByType(C_STR);
   }
 
 }

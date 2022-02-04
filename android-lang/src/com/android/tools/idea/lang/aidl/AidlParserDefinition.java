@@ -68,7 +68,7 @@ public class AidlParserDefinition implements ParserDefinition {
   @Override
   @NotNull
   public TokenSet getStringLiteralElements() {
-    return TokenSet.EMPTY;
+    return AidlTokenTypeSets.LITERALS;
   }
 
   @Override

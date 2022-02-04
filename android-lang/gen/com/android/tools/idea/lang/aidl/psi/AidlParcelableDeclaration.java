@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,34 @@ import com.intellij.psi.PsiElement;
 
 public interface AidlParcelableDeclaration extends AidlDeclaration {
 
+  @NotNull
+  List<AidlAnnotationElement> getAnnotationElementList();
+
+  @NotNull
+  List<AidlConstantDeclaration> getConstantDeclarationList();
+
+  @NotNull
+  AidlDottedName getDottedName();
+
+  @NotNull
+  List<AidlEnumDeclaration> getEnumDeclarationList();
+
+  @NotNull
+  List<AidlInterfaceDeclaration> getInterfaceDeclarationList();
+
+  @NotNull
+  List<AidlNameComponent> getNameComponentList();
+
+  @NotNull
+  List<AidlParcelableDeclaration> getParcelableDeclarationList();
+
+  @NotNull
+  List<AidlUnionDeclaration> getUnionDeclarationList();
+
+  @NotNull
+  List<AidlVariableDeclaration> getVariableDeclarationList();
+
   @Nullable
-  AidlDeclarationName getDeclarationName();
+  PsiElement getCStr();
 
 }

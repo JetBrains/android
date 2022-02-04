@@ -32,10 +32,13 @@
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighter language="AIDL"
                             implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
-    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
+    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     <lang.findUsagesProvider language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageProvider"/>
     <findUsagesHandlerFactory implementation="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageHandlerFactory"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.aidl.psi.AidlQualifiedName"
+                             implementationClass="com.android.tools.idea.lang.aidl.psi.AidlQualifiedNameElementManipulator"/>
+    <lang.braceMatcher language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlPairedBraceMatcher"/>
 
     <!-- Proguard support -->
     <fileType name="Shrinker Config File"

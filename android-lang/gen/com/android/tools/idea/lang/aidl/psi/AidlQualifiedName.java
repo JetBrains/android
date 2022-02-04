@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,23 @@ package com.android.tools.idea.lang.aidl.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 
-public interface AidlQualifiedName extends AidlPsiCompositeElement {
+public interface AidlQualifiedName extends AidlNamedElement {
 
   @NotNull
   List<AidlNameComponent> getNameComponentList();
+
+  @NotNull
+  PsiElement getNameIdentifier();
+
+  @NotNull
+  String getQualifiedName();
+
+  @Nullable
+  PsiElement resolve();
+
+  @NotNull
+  PsiReference getReference();
 
 }

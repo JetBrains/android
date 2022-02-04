@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,22 @@ public class AidlMethodDeclarationImpl extends AbstractAidlDeclarationImpl imple
     visitor.visitMethodDeclaration(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AidlVisitor) accept((AidlVisitor)visitor);
     else super.accept(visitor);
   }
 
   @Override
-  @Nullable
-  public AidlDeclarationName getDeclarationName() {
-    return findChildByClass(AidlDeclarationName.class);
+  @NotNull
+  public List<AidlAnnotationElement> getAnnotationElementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlAnnotationElement.class);
+  }
+
+  @Override
+  @NotNull
+  public AidlNameComponent getNameComponent() {
+    return findNotNullChildByClass(AidlNameComponent.class);
   }
 
   @Override
@@ -56,14 +63,14 @@ public class AidlMethodDeclarationImpl extends AbstractAidlDeclarationImpl imple
 
   @Override
   @NotNull
-  public AidlType getType() {
-    return findNotNullChildByClass(AidlType.class);
+  public AidlTypeElement getTypeElement() {
+    return findNotNullChildByClass(AidlTypeElement.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getIdvalue() {
-    return findChildByType(IDVALUE);
+  public PsiElement getIntvalue() {
+    return findChildByType(INTVALUE);
   }
 
 }
