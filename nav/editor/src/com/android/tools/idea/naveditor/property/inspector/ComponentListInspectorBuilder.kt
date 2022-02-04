@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.common.editor.SPLIT_TEXT_EDITOR_KEY
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.ui.ComponentList
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -24,11 +25,18 @@ import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
+import org.jetbrains.kotlin.idea.util.application.invokeLater
+import java.awt.event.HierarchyEvent
+import java.awt.event.HierarchyListener
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -94,7 +102,60 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     })
 
     val lineModel = inspector.addComponent(componentList, titleModel)
-    lineModel.addValueChangedListener(ValueChangedListener { refresh(component, model) })
+    lineModel.addValueChangedListener { refresh(component, model) }
+
+    val caretListener = object : CaretListener {
+      override fun caretAdded(event: CaretEvent) {
+        caretPositionChanged(event)
+      }
+
+      override fun caretPositionChanged(event: CaretEvent) {
+        val nlModel = component.model
+        val offset = event.caret?.offset ?: return
+        val view = nlModel.findByOffset(offset).firstOrNull() ?: nlModel.components.firstOrNull() ?: return
+        list.setSelectedValue(view, true)
+        if (list.selectedIndex >= 0 && !titleModel.expanded) {
+          // If the section is collapsed we need to try again once it's open.
+          lateinit var listener: ValueChangedListener
+          listener = ValueChangedListener {
+            titleModel.removeValueChangedListener(listener)
+            invokeLater { caretPositionChanged(event) }
+          }
+          titleModel.addValueChangedListener(listener)
+          titleModel.expanded = true
+        }
+      }
+    }
+
+    val initCaret = { editor: TextEditor ->
+      editor.editor.caretModel.addCaretListener(caretListener)
+      val currentCaret = editor.editor.caretModel.currentCaret
+      caretListener.caretAdded(CaretEvent(currentCaret, currentCaret.logicalPosition, currentCaret.logicalPosition))
+    }
+
+    val textEditor = DataManager.getInstance().getDataContext(componentList).getData(SPLIT_TEXT_EDITOR_KEY)
+    if (textEditor != null) {
+      initCaret(textEditor)
+    }
+    else {
+      // We won't be able to get the text editor if the nav editor is just being opened. Wait until it's hooked up to try.
+      lateinit var hierarchyListener: HierarchyListener
+      hierarchyListener = HierarchyListener { event ->
+        if (event.changeFlags and HierarchyEvent.PARENT_CHANGED.toLong() > 0) {
+          list.removeHierarchyListener(hierarchyListener)
+          DataManager.getInstance().getDataContext(componentList).getData(SPLIT_TEXT_EDITOR_KEY)?.let { initCaret(it) }
+        }
+      }
+      list.addHierarchyListener(hierarchyListener)
+    }
+    // Remove the CaretListener when this component is removed.
+    list.addHierarchyListener {
+      if (it.changeFlags and HierarchyEvent.PARENT_CHANGED.toLong() > 0 &&
+          componentList.parent == it.changed &&
+          !it.changedParent.components.contains(it.changed)) {
+        textEditor?.editor?.caretModel?.removeCaretListener(caretListener)
+      }
+    }
   }
 
   protected abstract fun onAdd(parent: NlComponent)

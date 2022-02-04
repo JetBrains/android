@@ -22,6 +22,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerTypeRegistrar;
@@ -45,6 +46,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provider that accepts {@link XmlFile}s whose type belongs to {@link #myAcceptedTypes}.Subclasses are responsible for specifying the types
@@ -90,7 +92,12 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     MergingUpdateQueue updateQueue = new MergingUpdateQueue("split.editor.preview.edit", DELAY_AFTER_TYPING_MS,
                                                             true, null, designEditor, null, SWING_THREAD);
     updateQueue.setRestartTimerOnAdd(true);
-    caretModel.addCaretListener(new CaretListener() {
+    CaretListener caretListener = new CaretListener() {
+      @Override
+      public void caretAdded(@NotNull CaretEvent event) {
+        caretPositionChanged(event);
+      }
+
       @Override
       public void caretPositionChanged(@NotNull CaretEvent event) {
         DesignSurface surface = designEditor.getComponent().getSurface();
@@ -117,6 +124,18 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
             return true;
           }
         });
+      }
+    };
+    caretModel.addCaretListener(caretListener);
+    // If the editor is just opening the SceneView may not be set yet. Register a listener so we get updated once we can get the model.
+    designEditor.getComponent().getSurface().addListener(new DesignSurfaceListener() {
+      @Override
+      public void modelChanged(@NotNull DesignSurface surface,
+                               @Nullable NlModel model) {
+        surface.removeListener(this);
+        CaretModel caretModel = editor.getEditor().getCaretModel();
+        caretListener.caretPositionChanged(
+          new CaretEvent(caretModel.getCurrentCaret(), caretModel.getLogicalPosition(), caretModel.getLogicalPosition()));
       }
     });
   }

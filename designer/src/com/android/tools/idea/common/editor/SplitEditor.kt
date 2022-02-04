@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -37,6 +38,8 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
 import javax.swing.Icon
 import javax.swing.JComponent
+
+val SPLIT_TEXT_EDITOR_KEY = DataKey.create<TextEditor>(TextEditor::class.java.name)
 
 /**
  * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
@@ -97,6 +100,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
       val project = editor.project ?: return null
       return FileEditorManagerEx.getInstanceEx(project).getData(dataId, editor, editor.caretModel.currentCaret)
     }
+    if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
+      return textEditor
+    }
     return null
   }
 
@@ -139,7 +145,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
    *
    * @param name the name of the mode.
    * @param icon icon for the mode.
-   * @param delegate a [ToggleAction] that will received the [setSelected] call then it is triggered in this action.
+   * @param delegate a [ToggleAction] that will receive the [setSelected] call then it is triggered in this action.
    * @param showDefaultGutterPopup when this action is triggered, if true, the text editor will use the default gutter popup.
    */
   protected open inner class SplitEditorAction internal constructor(val name: String,

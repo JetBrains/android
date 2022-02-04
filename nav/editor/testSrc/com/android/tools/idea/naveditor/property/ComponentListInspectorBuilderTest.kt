@@ -179,7 +179,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       val property = model.getElementAt(i).getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY)
 
       if (expected) {
-        assertEquals(property, true)
+        assertEquals(true, property)
       }
       else {
         assertNull(property)
