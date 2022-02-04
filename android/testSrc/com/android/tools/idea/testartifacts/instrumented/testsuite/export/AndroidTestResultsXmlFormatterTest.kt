@@ -79,6 +79,7 @@ class AndroidTestResultsXmlFormatterTest {
       `when`(className).thenReturn("testclass")
       `when`(packageName).thenReturn("testpackage")
       `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      `when`(getStartTime(eq(device))).thenReturn(10000L)
       `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
     }
     val caseResults = mock<AndroidTestResults>().apply {
@@ -86,6 +87,7 @@ class AndroidTestResultsXmlFormatterTest {
       `when`(className).thenReturn("testclass")
       `when`(packageName).thenReturn("testpackage")
       `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      `when`(getStartTime(eq(device))).thenReturn(10000L)
       `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
       `when`(getLogcat(eq(device))).thenReturn("testLogcat")
       `when`(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
@@ -125,7 +127,7 @@ class AndroidTestResultsXmlFormatterTest {
                   <additionalInfo key="processorName" value="testProcessorName"/>
               </device>
               <testsuite deviceId="testDeviceId" testCount="1" result="PASSED">
-                  <testcase id="testpackage.testclass.testmethod" methodName="testmethod" className="testclass" packageName="testpackage" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="0" endTimestampMillis="1234" benchmark="testBenchmark"/>
+                  <testcase id="testpackage.testclass.testmethod" methodName="testmethod" className="testclass" packageName="testpackage" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234" benchmark="testBenchmark"/>
               </testsuite>
           </androidTestMatrix>
       </testrun>

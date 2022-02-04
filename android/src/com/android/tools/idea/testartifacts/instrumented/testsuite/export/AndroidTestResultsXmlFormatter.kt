@@ -231,6 +231,8 @@ class AndroidTestResultsXmlFormatter(
                      "result" to testSuiteResult.toString())) {
           testCasesForDevice.forEach { testCase ->
             val result = testCase.getTestCaseResult(device) ?: return@forEach
+            val startTime = testCase.getStartTime(device) ?: 0L
+            val endTime = startTime + (testCase.getDuration(device)?.toMillis() ?: 0L)
             addElement(
               "testcase",
               mapOf(
@@ -241,8 +243,8 @@ class AndroidTestResultsXmlFormatter(
                 "result" to result.toString(),
                 "logcat" to testCase.getLogcat(device),
                 "errorStackTrace" to testCase.getErrorStackTrace(device),
-                "startTimestampMillis" to "0",
-                "endTimestampMillis" to (testCase.getDuration(device)?.toMillis()?.toString() ?: "0"),
+                "startTimestampMillis" to startTime.toString(),
+                "endTimestampMillis" to endTime.toString(),
                 "benchmark" to testCase.getBenchmark(device).lines.joinToString("\n") { "${it.rawText}" }
               ))
           }
