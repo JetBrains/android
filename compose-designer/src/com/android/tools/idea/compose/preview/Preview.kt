@@ -745,7 +745,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, {
-      requestRefresh()
+      when (projectBuildStatusManager.status) {
+        // Do not refresh if we still need to build the project. Instead, only update the empty panel and editor notifications if needed.
+        ProjectStatus.NotReady, ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
+        else -> requestRefresh()
+      }
     })
 
     PreviewLiveEditManager.getInstance(project).addCompileListener(this, object: PreviewLiveEditManager.Companion.CompileListener {
@@ -819,7 +823,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             }
           } else emptyFlow(),
         ).collectLatest {
-          requestRefresh()
+          when (projectBuildStatusManager.status) {
+            // Do not refresh if we still need to build the project. Instead, only update the empty panel and editor notifications if needed.
+            ProjectStatus.NotReady, ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
+            else -> requestRefresh()
+          }
         }
       }
 

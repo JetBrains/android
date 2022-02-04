@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -25,14 +24,12 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertArrayEquals
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -40,7 +37,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurface,
-                                     override val mainSurface: NlDesignSurface): ComposePreviewView {
+                                      override val mainSurface: NlDesignSurface) : ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
   override var bottomPanel: JComponent? = null
@@ -77,9 +74,9 @@ class ComposePreviewRepresentationTest {
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
-  @Ignore("b/161091273")
   @Test
-  fun testPreviewInitialization() {
+  fun testPreviewInitialization() = invokeLaterIfNeeded {
+
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "Test.kt",
       // language=kotlin
@@ -107,21 +104,17 @@ class ComposePreviewRepresentationTest {
       .build()
     val modelRenderedLatch = CountDownLatch(2)
 
-    mainSurface.addListener(object: DesignSurfaceListener {
+    mainSurface.addListener(object : DesignSurfaceListener {
       override fun modelChanged(surface: DesignSurface, model: NlModel?) {
-        (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener(object: RenderListener {
-          override fun onRenderCompleted() {
-            modelRenderedLatch.countDown()
-          }
-        })
+        (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener { modelRenderedLatch.countDown() }
       }
     })
 
     val composeView = TestComposePreviewView(pinnedSurface, mainSurface)
     val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
-        override suspend fun previewElements(): Sequence<PreviewElement> =
-          AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
-      }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> composeView }
+      override suspend fun previewElements(): Sequence<PreviewElement> =
+        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
+    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> composeView }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
 
