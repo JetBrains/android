@@ -8803,6 +8803,8 @@ MODULE                        : com.test.compositeNest3.compositeNest
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
+            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
+            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
             runtimeClasspath              : <empty>
             - runtimeElements             : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
             runtimeOnly                   : <empty>
@@ -8810,6 +8812,7 @@ MODULE                        : com.test.compositeNest3.compositeNest
             testCompileClasspath          : <empty>
             testCompileOnly               : <empty>
             testImplementation            : <empty>
+            - testResultsElementsForTest  : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/test-results/test/binary [-]
             testRuntimeClasspath          : <empty>
             testRuntimeOnly               : <empty>
 MODULE                        : com.test.compositeNest3.compositeNest.main
@@ -9079,8 +9082,8 @@ MODULE                        : compositeNest
             compileOnly                   : <empty>
             default                       : <empty>
             implementation                : <empty>
-            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
-            - mainSourceElements          : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
+            - mainSourceElements          : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
+            - mainSourceElements          : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/resources [-]
             runtimeClasspath              : <empty>
             - runtimeElements             : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
             runtimeOnly                   : <empty>
@@ -9088,7 +9091,7 @@ MODULE                        : compositeNest
             testCompileClasspath          : <empty>
             testCompileOnly               : <empty>
             testImplementation            : <empty>
-            - testResultsElementsForTest  : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/test-results/test/binary [-]
+            - testResultsElementsForTest  : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/test-results/test/binary [-]
             testRuntimeClasspath          : <empty>
             testRuntimeOnly               : <empty>
 MODULE                        : compositeNest.main
