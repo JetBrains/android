@@ -58,7 +58,7 @@ fun getOutputFilesFromListingFile(listingFile: String): List<File> {
       items
     }
   }
-  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
+  // Couldn't read from build output listings file, this could be because a build hasn't yet been completed
   return emptyList()
 }
 
@@ -88,7 +88,7 @@ fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
     return builtArtifacts
   }
 
-  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
+  // Couldn't read from build output listings file, this could be because a build hasn't yet been completed
   return null
 }
 
