@@ -39,7 +39,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
 
   private val pipetteButton by lazy {
     val colorPipetteButton = ColorPipetteButton(model, pipetteProvider.createPipette(this@ColorAdjustPanel))
-    with (colorPipetteButton) {
+    with(colorPipetteButton) {
       border = JBUI.Borders.empty()
       background = PICKER_BACKGROUND_COLOR
 
@@ -148,8 +148,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
 }
 
 private fun canPickupColorFromDisplay(): Boolean {
-  val alphaModeSupported = WindowManager.getInstance()?.isAlphaModeSupported ?: false
-  if (!alphaModeSupported) {
+  if (!ColorPipette.isAvailable()) {
     return false
   }
 
