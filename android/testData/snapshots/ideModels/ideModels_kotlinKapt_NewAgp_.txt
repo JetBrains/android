@@ -625,6 +625,30 @@ MODULE                        : MainActivity
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : MainActivity.app
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -1698,6 +1722,29 @@ MODULE                        : MainActivity.app.androidTest
 MODULE                        : MainActivity.app.main
 MODULE                        : MainActivity.app.unitTest
 MODULE                        : MainActivity.javaLib
+    GradleModuleModel
+        gradlePath                    : :javaLib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/javaLib/build.gradle
+        buildFilePath                 : <ROOT>/javaLib/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
     kotlinGradleModel             : kotlin-platform-jvm (KotlinGradleModelImpl)
         additionalVisibleSourceSets
             main                          : <empty>
@@ -1811,6 +1858,29 @@ MODULE                        : MainActivity.javaLib
 MODULE                        : MainActivity.javaLib.main
 MODULE                        : MainActivity.javaLib.test
 MODULE                        : MainActivity.lib
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :lib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/lib/build.gradle
+        buildFilePath                 : <ROOT>/lib/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

@@ -48,7 +48,9 @@ import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.variant
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -82,6 +84,12 @@ fun ProjectDumper.dumpAndroidIdeModel(
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
+          GradleFacet.getInstance(module)?.gradleModuleModel?.let {
+            // Skip all but holders to prevent needless spam in the snapshots. All modules
+            // point to the same facet.
+            if (!module.isHolderModule()) return@let
+            dump(it)
+          }
           GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
@@ -691,6 +699,20 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("Type") { modelSyncFile.modelSyncType.toString() }
         prop("TaskName") { modelSyncFile.taskName }
         prop("File") { modelSyncFile.syncFile.path.toPrintablePath() }
+      }
+    }
+
+    fun dump(model: GradleModuleModel) {
+      head("GradleModuleModel")
+      nest {
+        prop("agpVersion") { model.agpVersion?.replaceAgpVersion() }
+        prop("gradlePath") { model.gradlePath }
+        prop("gradleVersion") { model.gradleVersion?.replaceGradleVersion() }
+        prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
+        prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
+        prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
+        model.gradlePlugins.forEach { prop("- gradlePlugins") { it }}
+        model.taskNames.forEach { prop("- taskNames") { it }}
       }
     }
 

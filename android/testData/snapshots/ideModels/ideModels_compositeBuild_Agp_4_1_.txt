@@ -439,6 +439,30 @@ MODULE                        : TestCompositeLib1
         buildFile                     : <ROOT>/TestCompositeLib1/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib1.app
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib1/app/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib1
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -2477,6 +2501,30 @@ MODULE                        : TestCompositeLib1.app.androidTest
 MODULE                        : TestCompositeLib1.app.main
 MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :lib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib1/lib/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib1
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -4754,6 +4802,30 @@ MODULE                        : TestCompositeLib3
         buildFile                     : <ROOT>/TestCompositeLib3/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib3.app
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib3/app/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib3
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -6768,6 +6840,29 @@ MODULE                        : TestCompositeLib3.app.androidTest
 MODULE                        : TestCompositeLib3.app.main
 MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :lib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib3/lib/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib3
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        - gradlePlugins               : org.gradle.api.publish.plugins.PublishingPlugin
+        - gradlePlugins               : org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -8609,6 +8704,25 @@ MODULE                        : TestCompositeLib3.lib.androidTest
 MODULE                        : TestCompositeLib3.lib.main
 MODULE                        : TestCompositeLib3.lib.unitTest
 MODULE                        : com.test.compositeNest3.compositeNest
+    GradleModuleModel
+        gradlePath                    : :
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     externalProject               : project-TestCompositeLibNested_3 (DefaultExternalProject)
         name                          : compositeNest
         qName                         : compositeNest
@@ -8680,6 +8794,25 @@ MODULE                        : com.test.compositeNest3.compositeNest
 MODULE                        : com.test.compositeNest3.compositeNest.main
 MODULE                        : com.test.compositeNest3.compositeNest.test
 MODULE                        : composite2
+    GradleModuleModel
+        gradlePath                    : :
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib2/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib2/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib2
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     externalProject               : composite2 (DefaultExternalProject)
         name                          : composite2
         qName                         : composite2
@@ -8751,6 +8884,25 @@ MODULE                        : composite2
 MODULE                        : composite2.main
 MODULE                        : composite2.test
 MODULE                        : composite4
+    GradleModuleModel
+        gradlePath                    : :
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib4/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib4/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib4
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     externalProject               : composite4 (DefaultExternalProject)
         name                          : composite4
         qName                         : composite4
@@ -8822,6 +8974,25 @@ MODULE                        : composite4
 MODULE                        : composite4.main
 MODULE                        : composite4.test
 MODULE                        : compositeNest
+    GradleModuleModel
+        gradlePath                    : :
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
+        buildFilePath                 : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
+        rootFolderPath                : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
     externalProject               : project-TestCompositeLibNested_1 (DefaultExternalProject)
         name                          : compositeNest
         qName                         : compositeNest
@@ -9337,6 +9508,29 @@ MODULE                        : project
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : project.app
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -11610,6 +11804,29 @@ MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :lib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/lib/build.gradle
+        buildFilePath                 : <ROOT>/lib/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.internal.AndroidExtensionsSubpluginIndicator
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

@@ -199,6 +199,26 @@ MODULE                        : project
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : project.app
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -517,6 +537,26 @@ MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.test
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :test
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/test/build.gradle
+        buildFilePath                 : <ROOT>/test/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.TestPlugin
+        - gradlePlugins               : com.android.build.gradle.TestPlugin
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>
@@ -1289,6 +1329,26 @@ MODULE                        : project.test
     externalProject               : :test (DefaultExternalProject) (*seen*)
 MODULE                        : project.test.main
 MODULE                        : project.test2
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :test2
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/test2/build.gradle
+        buildFilePath                 : <ROOT>/test2/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.TestPlugin
+        - gradlePlugins               : com.android.build.gradle.TestPlugin
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>

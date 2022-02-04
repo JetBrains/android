@@ -1904,6 +1904,26 @@ MODULE                        : project
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
 MODULE                        : project.app
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
@@ -4463,6 +4483,26 @@ MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :dyn_feature
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/dyn_feature/build.gradle
+        buildFilePath                 : <ROOT>/dyn_feature/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.DynamicFeaturePlugin
+        - gradlePlugins               : com.android.build.gradle.DynamicFeaturePlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-<SDK_VERSION>
@@ -4742,10 +4782,49 @@ MODULE                        : project.dyn_feature.androidTest
 MODULE                        : project.dyn_feature.main
 MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
+    GradleModuleModel
+        gradlePath                    : :jav
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/jav/build.gradle
+        buildFilePath                 : <ROOT>/jav/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
     externalProject               : :jav (DefaultExternalProject) (*seen*)
 MODULE                        : project.jav.main
 MODULE                        : project.jav.test
 MODULE                        : project.lib
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :lib
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/lib/build.gradle
+        buildFilePath                 : <ROOT>/lib/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -6585,6 +6664,26 @@ MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :nested1
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/nested1/build.gradle
+        buildFilePath                 : <ROOT>/nested1/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -6863,6 +6962,26 @@ MODULE                        : project.nested1
     externalProject               : :nested1 (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :nested1:deep
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/nested1/deep/build.gradle
+        buildFilePath                 : <ROOT>/nested1/deep/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -7151,6 +7270,26 @@ MODULE                        : project.nested1.deep.unitTest
 MODULE                        : project.nested1.main
 MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :nested2
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/nested2/build.gradle
+        buildFilePath                 : <ROOT>/nested2/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -7560,6 +7699,26 @@ MODULE                        : project.nested2
     externalProject               : :nested2 (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :nested2:deep
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/nested2/deep/build.gradle
+        buildFilePath                 : <ROOT>/nested2/deep/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
@@ -7841,8 +8000,37 @@ MODULE                        : project.nested2.deep.main
 MODULE                        : project.nested2.deep.unitTest
 MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
+    GradleModuleModel
+        gradlePath                    : :nested2:trans
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFilePath                 : <ROOT>/nested2/trans/build.gradle [-]
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
+    GradleModuleModel
+        agpVersion                    : 4.2.0
+        gradlePath                    : :nested2:trans:deep2
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
+        buildFilePath                 : <ROOT>/nested2/trans/deep2/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>

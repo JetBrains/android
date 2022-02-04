@@ -194,14 +194,14 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
-          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+          it.replaceGradleVersion()
         }
         else it
       }
       .replace(gradleLongHashPattern, gradleLongHashStub)
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
-      .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replaceAgpVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
       .let {
@@ -210,6 +210,10 @@ class ProjectDumper(
         } ?: it
       }
       .removeAndroidVersionsFromPath()
+
+  fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+
+  fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
 
   fun replaceToolsVersion(id: String, version: String?): String? {
     if (id.startsWith("com.android.tools")) {
