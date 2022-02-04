@@ -18,6 +18,8 @@ package com.android.tools.compose.intentions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -51,9 +53,45 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     super.tearDown()
   }
 
+  private fun invokeActionAndAssertResult(
+    actionProvider: () -> IntentionAction,
+    inputFileContent: String,
+    expectedResult: String
+  ) {
+    myFixture.loadNewFile("src/com/example/Test.kt", inputFileContent)
+    val action = actionProvider()
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
+      // In our case wrap in Box will be selected.
+      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
+    myFixture.checkResult(expectedResult)
+  }
+
+  private fun invokeActionAndAssertResult(
+    actionName: String,
+    inputFileContent: String,
+    expectedResult: String
+  ) {
+    invokeActionAndAssertResult({
+                                  val action = myFixture.availableIntentions.find { it.text == actionName }
+                                  assertThat(action).isNotNull()
+                                  action!!
+                                }, inputFileContent, expectedResult)
+  }
+
+  private fun invokeActionAndAssertResult(
+    action: IntentionAction,
+    inputFileContent: String,
+    expectedResult: String
+  ) {
+    invokeActionAndAssertResult({ action }, inputFileContent, expectedResult)
+  }
+
   fun testSurroundWithAction() {
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
+    invokeActionAndAssertResult(
+      "Surround with widget",
       // language=kotlin
       """
       package com.example
@@ -62,23 +100,173 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
 
       @Composable
       fun NewsStory() {
-          <selection>Text("A day in Shark Fin Cove")
+          <selection>
+
+          Text("A day in Shark Fin Cove")
           Text("Davenport, California")
-          Text("December 2018")</selection><caret>
+          Text("December 2018")
+
+          </selection><caret>
       }
-      """.trimIndent()
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+
+
+          Box {
+              Text("A day in Shark Fin Cove")
+              Text("Davenport, California")
+              Text("December 2018")
+          }
+
+          
+      }
+    """.trimIndent()
     )
+  }
 
-    val action = myFixture.availableIntentions.find { it.text == "Surround with widget" }
-    assertThat(action).isNotNull()
+  fun testSurroundWithWidgetWithoutSelection() {
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
-      // In our case wrap in Box will be selected.
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
+      import androidx.compose.Composable
 
-    myFixture.checkResult(
+      @Composable
+      fun NewsStory() {
+          Text("A day <caret>in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Box {
+              Text("A day in Shark Fin Cove")
+          }
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+    """.trimIndent())
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          <caret>Text("Davenport, California")
+          Text("December 2018")
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Box {
+              Text("Davenport, California")
+          }
+          Text("December 2018")
+      }
+    """.trimIndent())
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")<caret>
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Box {
+              Text("December 2018")
+          }
+      }
+    """.trimIndent())
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          Button(onClick = {}) {<caret>
+              Text("Davenport, California")
+          }
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Box {
+              Button(onClick = {}) {
+                  Text("Davenport, California")
+              }
+          }
+      }
+    """.trimIndent())
+  }
+
+  /**
+   * Checks the cases where the intention should not be available.
+   */
+  fun testSurroundWithWidgetWithoutSelectionNotAvailable() {
+    val cases = listOf(
       // language=kotlin
       """
       package com.example
@@ -94,14 +282,322 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    @Composable
+    fun NewsStory<caret>() {
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    @Composable
+    fun NewsStory() {
+        // A <caret>comment
+
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    @Composable
+    fun NewsStory() {<caret>
+        Text("A day in Shark Fin Cove")
+    }
     """.trimIndent()
+    )
+
+    cases.forEachIndexed { index, content ->
+      myFixture.loadNewFile("src/com/example/Test${index}.kt", content)
+      assertThat(myFixture.availableIntentions.map { intention -> intention.text }.toList())
+        .doesNotContain("Surround with widget")
+    }
+  }
+
+  /**
+   * Checks surround with widget when the selection starts and/or stops in the middle or an element and not
+   * in empty space.
+   */
+  fun testSurroundWithWidgetWithPartialSelection() {
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text("A day <selection>in Shark Fin Cove")
+          Text("Davenport, Cali</selection>fornia")
+          Text("December 2018")
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Box {
+              Text("A day in Shark Fin Cove")
+              Text("Davenport, California")
+          }
+          Text("December 2018")
+      }
+    """.trimIndent())
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text("A day <selection>in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+          // A comment
+          </selection>
+      }
+      """.trimIndent(),
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+      import androidx.compose.foundation.layout.Box
+
+      @Composable
+      fun NewsStory() {
+          Box {
+              Text("A day in Shark Fin Cove")
+              Text("Davenport, California")
+              Text("December 2018")
+              // A comment 
+          }
+          
+      }
+    """.trimIndent())
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+    import androidx.compose.foundation.layout.Column
+
+    @Composable
+    fun NewsStory() {
+        Column {
+            <selection>Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")</selection>
+        }
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+        package com.example
+
+        import androidx.compose.Composable
+        import androidx.compose.foundation.layout.Box
+        import androidx.compose.foundation.layout.Column
+
+        @Composable
+        fun NewsStory() {
+            Column {
+                Box {
+                    Text("A day in Shark Fin Cove")
+                    Text("Davenport, California")
+                    Text("December 2018")
+                }
+            }
+        }
+      """.trimIndent()
+    )
+
+    invokeActionAndAssertResult(
+      "Surround with widget",
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+    import androidx.compose.foundation.layout.Column
+
+    @Composable
+    fun NewsStory() {
+        <selection>// A comment
+        Column {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }</selection>
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+        package com.example
+
+        import androidx.compose.Composable
+        import androidx.compose.foundation.layout.Box
+        import androidx.compose.foundation.layout.Column
+
+        @Composable
+        fun NewsStory() {
+            Box {
+                // A comment
+                Column {
+                    Text("A day in Shark Fin Cove")
+                    Text("Davenport, California")
+                    Text("December 2018")
+                }
+            }
+        }
+      """.trimIndent()
     )
   }
 
-  fun testSurroundWithBox() {
+  /**
+   * Checks the cases where the intention should not be available.
+   */
+  fun testSurroundWithWidgetWithPartialSelectionNotAvailable() {
+    val cases = listOf(
+      // language=kotlin
+      """
+    package com.example
 
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    @Composable
+    fun NewsStory<selection>() {
+        Box {
+            Text("A day in</selection> Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    @Composable
+    fun NewsStory1() {
+        Box {
+            <selection>Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+
+    @Composable
+    fun NewsStory2() {
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")</selection>
+            Text("December 2018")
+        }
+    }
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+    <selection>
+    @Composable
+    fun NewsStory1() {
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+
+    @Composable
+    fun NewsStory2() {
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")
+            Text("December 2018")
+        }
+    }
+    </selection>
+    """.trimIndent(),
+      // language=kotlin
+      """
+    package com.example
+
+    import androidx.compose.Composable
+    import androidx.compose.foundation.layout.Box
+
+
+    @Composable
+    fun NewsStory() {
+        // A comment<selection>
+        Box {
+            Text("A day in Shark Fin Cove")
+            Text("Davenport, California")</selection>
+            Text("December 2018")
+        }
+    }
+    """.trimIndent()
+    )
+
+    cases.forEachIndexed { index, content ->
+      myFixture.loadNewFile("src/com/example/Test${index}.kt", content)
+      assertWithMessage("'Surround with widget' intention not expected for:\n$content")
+        .that(myFixture.availableIntentions.map { intention -> intention.text }.toList())
+        .doesNotContain("Surround with widget")
+    }
+  }
+
+  fun testSurroundWithBox() {
+    invokeActionAndAssertResult(
+      ComposeSurroundWithBoxAction(),
       // language=kotlin
       """
       package com.example
@@ -114,14 +610,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent()
-    )
-
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      ComposeSurroundWithBoxAction().invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
-
-    myFixture.checkResult(
+      """.trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -142,9 +631,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testSurroundWithRow() {
-
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
+    invokeActionAndAssertResult(
+      ComposeSurroundWithRowAction(),
       // language=kotlin
       """
       package com.example
@@ -157,13 +645,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent()
-    )
-
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      ComposeSurroundWithRowAction().invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
-    myFixture.checkResult(
+      """.trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -184,9 +666,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testSurroundWithColumn() {
-
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
+    invokeActionAndAssertResult(
+      ComposeSurroundWithColumnAction(),
       // language=kotlin
       """
       package com.example
@@ -199,14 +680,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent()
-    )
-
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      ComposeSurroundWithColumnAction().invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
-
-    myFixture.checkResult(
+      """.trimIndent(),
       // language=kotlin
       """
       package com.example
