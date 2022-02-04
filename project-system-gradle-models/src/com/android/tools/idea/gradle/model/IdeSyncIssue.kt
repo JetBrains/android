@@ -266,8 +266,10 @@ interface IdeSyncIssue {
          * The data is the maximum supported compile SDK version for this version
          * of the Android Gradle Plugin.
          */
-
         const val TYPE_COMPILE_SDK_VERSION_TOO_HIGH = 47
+
+        /** compileSdk is lower than required for an AGP build. */
+        const val TYPE_COMPILE_SDK_VERSION_TOO_LOW = 48
 
         // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
         // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
