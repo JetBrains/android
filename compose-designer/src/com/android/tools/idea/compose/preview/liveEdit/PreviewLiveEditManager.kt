@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.liveEdit
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
@@ -416,7 +417,7 @@ class PreviewLiveEditManager private constructor(
 
   private val log = Logger.getInstance(PreviewLiveEditManager::class.java)
 
-  private val scope = AndroidCoroutineScope(this, ioThread)
+  private val scope = AndroidCoroutineScope(this, workerThread)
   private val daemonFactory = alternativeDaemonFactory ?: {
     defaultDaemonFactory(it, log, scope)
   }

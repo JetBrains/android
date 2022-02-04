@@ -194,6 +194,7 @@ class ComposePreviewRepresentationTest {
     assertTrue(!composePreviewRepresentation.status().hasErrors)
     assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
     assertTrue(!composePreviewRepresentation.status().isOutOfDate)
+
     validate()
   }
 
@@ -245,7 +246,7 @@ class ComposePreviewRepresentationTest {
    */
   private fun buildAndRefresh() {
     runAndWaitForRefresh {
-      assertTrue("Build was not successful", projectRule.build().isBuildSuccessful)
+      projectRule.buildAndAssertIsSuccessful()
     }
     validate()
   }
@@ -377,7 +378,7 @@ class ComposePreviewRepresentationTest {
     }
     assertTrue(composePreviewRepresentation.buildWillTriggerRefresh())
     runBlocking {
-      projectRule.build()
+      projectRule.buildAndAssertIsSuccessful()
     }
     assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
   }

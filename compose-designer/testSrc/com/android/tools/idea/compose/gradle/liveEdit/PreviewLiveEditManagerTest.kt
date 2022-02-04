@@ -68,7 +68,7 @@ class PreviewLiveEditManagerTest {
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     liveEditManager = PreviewLiveEditManager.getInstance(projectRule.project)
     invokeAndWaitIfNeeded {
-      assertTrue(projectRule.build().isBuildSuccessful)
+      projectRule.buildAndAssertIsSuccessful()
     }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)

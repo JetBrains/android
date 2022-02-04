@@ -81,7 +81,7 @@ class ProjectBuildStatusManagerTest {
       newFile,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
     assertEquals(ProjectStatus.NeedsBuild, newStatusManager.status)
-    assertTrue(projectRule.build().isBuildSuccessful)
+    projectRule.buildAndAssertIsSuccessful()
     assertEquals(ProjectStatus.Ready, newStatusManager.status)
 
     // Status should change to OutOfDate when introducing a change, only for the manager of the modified file
@@ -135,7 +135,7 @@ class ProjectBuildStatusManagerTest {
     FileDocumentManager.getInstance().saveAllDocuments()
 
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
-    assertTrue(projectRule.build().isBuildSuccessful)
+    projectRule.buildAndAssertIsSuccessful()
     assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
   }
 
@@ -164,7 +164,7 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.file,
       fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
-    assertTrue(projectRule.build().isBuildSuccessful)
+    projectRule.buildAndAssertIsSuccessful()
     assertEquals("Builds status is not Ready after successful build", ProjectStatus.Ready, statusManager.status)
 
     var filterWasInvoked = false

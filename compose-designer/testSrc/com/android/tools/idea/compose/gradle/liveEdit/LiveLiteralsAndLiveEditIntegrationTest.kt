@@ -28,9 +28,9 @@ import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.guessProjectDir
@@ -45,6 +45,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -76,9 +77,6 @@ class LiveLiteralsAndLiveEditIntegrationTest {
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     liveEditManager = PreviewLiveEditManager.getInstance(projectRule.project)
-    invokeAndWaitIfNeeded {
-      assertTrue(projectRule.build().isBuildSuccessful)
-    }
   }
 
   @After
@@ -110,7 +108,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     }
   }
 
-  private suspend fun compileAndListOutputFiles() = withContext(AndroidDispatchers.ioThread) {
+  private suspend fun compileAndListOutputFiles() = withContext(AndroidDispatchers.workerThread) {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     liveEditManager.compileRequest(psiMainFile, module).let { (result, outputPath) ->
       assertEquals(CompilationResult.Success, result)
@@ -129,6 +127,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     }
   }
 
+  @Ignore("b/161091273") // This test is flaky
   @Test
   fun `verify literals in overlay file`() = runBlocking {
     withContext(uiThread) {
@@ -142,6 +141,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
+    Logger.getInstance(LiveLiteralsAndLiveEditIntegrationTest::class.java).warn("After update")
     assertTrue(liveLiteralsService.isAvailable)
     assertEquals(6, liveLiteralsService.allConstants().size)
 

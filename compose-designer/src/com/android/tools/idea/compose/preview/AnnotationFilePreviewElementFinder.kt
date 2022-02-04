@@ -23,6 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -156,7 +157,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     // This method will try to obtain the result MAX_NON_BLOCKING_ACTION_RETRIES, waiting 10 milliseconds more on every retry.
     // findPreviewMethodsCachedValue uses a non blocking read action so this allows for the action to be cancelled. The action will be
     // retried again. If MAX_NON_BLOCKING_ACTION_RETRIES retries are done, this method will return an empty list of elements.
-    return withContext(ioThread) {
+    return withContext(workerThread) {
       var retries = MAX_NON_BLOCKING_ACTION_RETRIES
       var result: Collection<PreviewElement>? = null
       while (result == null && retries > 0) {
