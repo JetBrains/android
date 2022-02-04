@@ -22,7 +22,6 @@ import com.google.gson.Gson
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.jetbrains.rd.util.concurrentMapOf
-import java.io.InputStreamReader
 
 /**
  * The logcat-tags-palette.json file is
@@ -39,15 +38,13 @@ private const val PALETTE_JSON_FILENAME = "/palette/logcat-tags-palette.json"
  *
  * [Log.LogLevel] colors are provided with an extension method.
  *
- * Tag colors colors are assigned dynamically from a small pool and stored in a map.
- *
- * TODO(b/197762564): Get proper colors from UX
+ * Tag colors are assigned dynamically from a small pool and stored in a map.
  */
 internal class LogcatColors {
 
   private val colorPaletteManager by lazy {
     javaClass.getResourceAsStream(PALETTE_JSON_FILENAME)?.let {
-      ColorPaletteManager(Gson().fromJson(InputStreamReader(it), Array<ColorPaletteManager.ColorPalette>::class.java))
+      ColorPaletteManager(Gson().fromJson(it.reader(), Array<ColorPaletteManager.ColorPalette>::class.java))
     } ?: throw IllegalStateException("Resource not found")
 
   }
