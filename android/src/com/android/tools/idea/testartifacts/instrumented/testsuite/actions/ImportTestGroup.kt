@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.AnAction
@@ -29,10 +30,10 @@ import java.io.File
 class ImportTestGroup : com.intellij.execution.testframework.sm.runner.history.actions.ImportTestsGroup() {
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
     val project = e?.project ?: return EMPTY_ARRAY
-    return (getUtpTestHistoryActions(project) + getIntelliJStandardTestHistoryActions(project))
-      .sortedByDescending { it.first }
-      .map { it.second }
-      .toList().toTypedArray()
+    val actions: MutableMap<Long, AnAction> = sortedMapOf( compareByDescending { it } )
+    getUtpTestHistoryActions(project).associateTo(actions) { it }
+    getIntelliJStandardTestHistoryActions(project).associateTo(actions) { it }
+    return actions.values.toTypedArray()
   }
 
   private fun getIntelliJStandardTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {
@@ -40,7 +41,9 @@ class ImportTestGroup : com.intellij.execution.testframework.sm.runner.history.a
     return TestHistoryConfiguration.getInstance(project).files.asSequence()
       .map { fileName: String? -> File(testHistoryRoot, fileName) }
       .filter { file: File -> file.exists() }
-      .map { Pair(it.lastModified(), ImportTestsFromHistoryAction(project, it)) }
+      .map {
+        Pair(getTestStartTime(it), ImportTestsFromHistoryAction(project, it))
+      }
   }
 
   private fun getUtpTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {

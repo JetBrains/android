@@ -32,6 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.TaskOutputProcessorListener
+import com.google.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
@@ -107,8 +108,8 @@ class GradleTestResultAdapter(
     listener.onTestSuiteStarted(device, myTestSuite)
   }
 
-  override fun onTestCaseStarted(testCase: TestCaseProto.TestCase) {
-    val testId = testCase.toTestIdentifier()
+  override fun onTestCaseStarted(testCaseProto: TestCaseProto.TestCase) {
+    val testId = testCaseProto.toTestIdentifier()
     val fullyQualifiedTestMethodName = "${testId.className}#${testId.testName}"
     val testCaseRunCount = myTestCaseRunCount.compute(fullyQualifiedTestMethodName) { _, currentValue ->
       currentValue?.plus(1) ?: 0
@@ -127,7 +128,13 @@ class GradleTestResultAdapter(
     val testId = testCaseResult.testCase.toTestIdentifier()
     val testCase = myTestCases.getValue(testId)
     testCase.result = testCaseResult.testStatus.toAndroidTestCaseResult()
-    testCase.endTimestampMillis = System.currentTimeMillis()
+
+    if (testCaseResult.testCase.startTime.getTimestamp() != 0L && testCaseResult.testCase.endTime.getTimestamp() != 0L) {
+      testCase.startTimestampMillis = testCaseResult.testCase.startTime.getTimestamp()
+      testCase.endTimestampMillis = testCaseResult.testCase.endTime.getTimestamp()
+    } else {
+      testCase.endTimestampMillis = System.currentTimeMillis()
+    }
 
     if (testCaseResult.error.errorMessage.isNotBlank()) {
       testCase.errorStackTrace = testCaseResult.error.errorMessage
@@ -150,6 +157,10 @@ class GradleTestResultAdapter(
     }
 
     listener.onTestCaseFinished(device, myTestSuite, testCase)
+  }
+
+  private fun Timestamp.getTimestamp(): Long {
+    return seconds * 1000L + nanos / 1000000L
   }
 
   override fun onTestSuiteFinished(testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
