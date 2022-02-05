@@ -143,15 +143,27 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     defaultValue: Any? = null,
     mapEntry: Boolean = false
   ) {
+    fun ModelClassDumperDescriptor.getNamePropertyValue(v: Any): String? {
+      val nameProperty = nameProperty
+      return nameProperty?.getter?.invoke(v)?.toString()?.replaceKnownPaths()
+    }
+
+    fun Any.getSortPropertyValue(): String {
+      if (this::class.memberProperties.isNotEmpty()) {
+        val classDumperDescriptor = getClassDumperDescriptorFor(this)
+        return classDumperDescriptor.getNamePropertyValue(this) ?: toString()
+      }
+      return toString()
+    }
+
     fun processObject(v: Any) {
       val seen = !seen.add(v)
       val classDumperDescriptor = getClassDumperDescriptorFor(v)
 
-      val nameProperty = classDumperDescriptor.nameProperty
-      val name = nameProperty?.getter?.invoke(v)?.let { "${it.toString().replaceKnownPaths()} (${v.printableClassName})" }
-        ?: v.printableClassName
+      val name = classDumperDescriptor.getNamePropertyValue(v)
+      val displayName = name?.let { "$it (${v.printableClassName})" } ?: v.printableClassName
 
-      head(propertyName) { name + (if (seen) " (*seen*)" else "") }
+      head(propertyName) { displayName + (if (seen) " (*seen*)" else "") }
       if (!seen) {
         nest {
           outProperties(v, defaultValue, classDumperDescriptor)
@@ -176,7 +188,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     }
 
     fun processUnorderedCollection(v: Collection<*>) {
-      doDump(propertyName, v.sortedBy { it.toString() }.toSet())
+      doDump(propertyName, v.sortedBy { it?.getSortPropertyValue() ?: "" }.toSet())
     }
 
     fun processOrderedMap(v: Map<*, *>) {
@@ -187,7 +199,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     }
 
     fun processUnorderedMap(v: HashMap<*, *>) {
-      doDump(propertyName, v.entries.sortedBy { it.key.toString() }.associate { it.key to it.value })
+      doDump(propertyName, v.entries.sortedBy { it.key.getSortPropertyValue() }.associate { it.key to it.value })
     }
 
     fun processArray(v: Array<*>) {
