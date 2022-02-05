@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -21,10 +21,10 @@ import java.util.Collection;
 import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 
-final class MergedTableColumn extends TableColumn implements PropertyChangeListener {
+public final class MergedTableColumn extends TableColumn implements PropertyChangeListener {
   private final @NotNull Collection<@NotNull TableColumn> myColumns;
 
-  MergedTableColumn(@NotNull Collection<@NotNull TableColumn> columns) {
+  public MergedTableColumn(@NotNull Collection<@NotNull TableColumn> columns) {
     myColumns = columns;
     columns.forEach(column -> column.addPropertyChangeListener(this));
   }

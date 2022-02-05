@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
+import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
@@ -46,6 +47,8 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Point;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -57,6 +60,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
@@ -155,9 +162,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
       .appendLine("applications without owning a physical device.")
       .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, new CreateAvdAction(this));
 
-    tableHeader.setReorderingAllowed(false);
-    tableHeader.setResizingAllowed(false);
-
     refreshAvds();
   }
 
@@ -245,6 +249,35 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     }
 
     return Optional.of(getDeviceAt(viewRowIndex));
+  }
+
+  @Override
+  protected @NotNull JTableHeader createDefaultTableHeader() {
+    JTableHeader header = super.createDefaultTableHeader();
+
+    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      TableColumnModel model = new DefaultTableColumnModel();
+
+      model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
+      model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
+      model.addColumn(columnModel.getColumn(sizeOnDiskViewColumnIndex()));
+
+      Collection<TableColumn> columns = Arrays.asList(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
+                                                      columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                                                      columnModel.getColumn(editViewColumnIndex()),
+                                                      columnModel.getColumn(popUpMenuViewColumnIndex()));
+
+      TableColumn column = new MergedTableColumn(columns);
+      column.setHeaderValue("Actions");
+
+      model.addColumn(column);
+      header.setColumnModel(model);
+    }
+
+    header.setReorderingAllowed(false);
+    header.setResizingAllowed(false);
+
+    return header;
   }
 
   private int apiViewColumnIndex() {
