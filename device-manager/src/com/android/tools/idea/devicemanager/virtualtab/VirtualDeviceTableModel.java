@@ -34,10 +34,10 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
   static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
-  private static final int LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX = 3;
-  private static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
-  private static final int EDIT_MODEL_COLUMN_INDEX = 5;
-  private static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
+  static final int LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX = 3;
+  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
+  static final int EDIT_MODEL_COLUMN_INDEX = 5;
+  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull VirtualDevice> myDevices;
 

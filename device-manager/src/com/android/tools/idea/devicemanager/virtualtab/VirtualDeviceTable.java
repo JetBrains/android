@@ -173,8 +173,22 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      Tables.getPreferredColumnWidth(this, sizeOnDiskViewColumnIndex(), JBUIScale.scale(65)),
                      JBUIScale.scale(20));
 
-    Tables.setWidths(columnModel.getColumn(actionsViewColumnIndex()),
-                     Tables.getPreferredColumnWidth(this, actionsViewColumnIndex(), JBUIScale.scale(65)));
+    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      Tables.setWidths(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
+                       Tables.getPreferredColumnWidth(this, launchInEmulatorViewColumnIndex(), 0));
+
+      Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                       Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+
+      Tables.setWidths(columnModel.getColumn(editViewColumnIndex()), Tables.getPreferredColumnWidth(this, editViewColumnIndex(), 0));
+
+      Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
+                       Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
+    }
+    else {
+      Tables.setWidths(columnModel.getColumn(actionsViewColumnIndex()),
+                       Tables.getPreferredColumnWidth(this, actionsViewColumnIndex(), JBUIScale.scale(65)));
+    }
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
@@ -243,6 +257,22 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   int actionsViewColumnIndex() {
     return convertColumnIndexToView(VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX);
+  }
+
+  private int launchInEmulatorViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX);
+  }
+
+  private int activateDeviceFileExplorerWindowViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+  }
+
+  private int editViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.EDIT_MODEL_COLUMN_INDEX);
+  }
+
+  private int popUpMenuViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX);
   }
 
   @Override
