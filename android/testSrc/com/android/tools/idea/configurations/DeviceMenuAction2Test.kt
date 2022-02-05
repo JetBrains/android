@@ -80,6 +80,7 @@ class DeviceMenuAction2Test {
     Tablet (1280 × 800 dp, xxhdpi)
     Desktop (1920 × 1080 dp, xxhdpi)
     Phones and Tablets
+        Pixel 6 (411 × 914 dp, xxhdpi)
         Pixel 5 (393 × 851 dp, xxhdpi)
         Pixel 4 (393 × 829 dp, xxhdpi)
         Pixel 4 XL (411 × 869 dp, xxxhdpi)
