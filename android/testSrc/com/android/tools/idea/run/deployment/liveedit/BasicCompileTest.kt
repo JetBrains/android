@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.literals.MethodReference
+import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
 import org.junit.Rule
@@ -70,9 +73,31 @@ class BasicCompileTest {
 
   @Test
   fun simpleChange() {
-    var output = compile(files["A.kt"], "foo").singleOutput()
+    var state = FunctionState()
+
+    // Compile A.kt
+    var output = compile(files["A.kt"], "foo", state).singleOutput()
     var returnedValue = invokeStatic("foo", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
+    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals(39, output.offSet.end)
+
+    // Replace the return value of foo.
+    var foo = findFunction(files["A.kt"], "foo")
+    WriteCommandAction.runWriteCommandAction(myProject) {
+      var expresion = ((foo.bodyBlockExpression!!.firstStatement as KtReturnExpression).returnedExpression as KtStringTemplateExpression)
+      Assert.assertEquals("\"I am foo\"", expresion.text)
+      expresion.updateText("I am not foo")
+      Assert.assertEquals(39 + "not ".length, foo.textRange.endOffset)
+    }
+
+    // Re-compile A.kt like how live edit work.
+    var leOutput = compile(files["A.kt"], "foo", state).singleOutput()
+    var leReturnedValue = invokeStatic("foo", loadClass(leOutput))
+    Assert.assertEquals("I am not foo", leReturnedValue)
+    Assert.assertEquals(0, leOutput.offSet.start)
+    // The offset remains unchanged as we use this to invalidate the previous state.
+    Assert.assertEquals(39, leOutput.offSet.end)
   }
 
   @Test
@@ -81,6 +106,8 @@ class BasicCompileTest {
     Assert.assertEquals(1, output.supportClasses.size)
     var returnedValue = invokeStatic("hasLambda", loadClass(output))
     Assert.assertEquals("y", returnedValue)
+    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals(104, output.offSet.end)
   }
 
   @Test
@@ -89,6 +116,8 @@ class BasicCompileTest {
     // We can't really invoke any composable without the runtime libraries. At least we can check
     // to make sure the output isn't empty.
     Assert.assertTrue(output.classData.isNotEmpty())
+    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals(81, output.offSet.end)
   }
 
   @Test
@@ -96,6 +125,8 @@ class BasicCompileTest {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
     Assert.assertEquals("composableNested", output.methodName)
     Assert.assertEquals("(Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function3;", output.methodDesc)
+    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals(126, output.offSet.end)
   }
 
   @Test
@@ -103,13 +134,16 @@ class BasicCompileTest {
     compile(files["CallA.kt"], "callA")
   }
 
-  private fun compile(file: PsiFile?, functionName: String): List<AndroidLiveEditCodeGenerator.GeneratedCode> {
-    return compile(file!!, findFunction(file, functionName))
+  private fun compile(file: PsiFile?, functionName: String, state: FunctionState = FunctionState()) : List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
+    return compile(file!!, findFunction(file, functionName), state)
   }
 
-  private fun compile(file: PsiFile, function: KtNamedFunction) : List<AndroidLiveEditCodeGenerator.GeneratedCode> {
-    val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
-    AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file, function)), output)
+  private fun compile(file: PsiFile, function: KtNamedFunction, state: FunctionState = FunctionState()) : List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
+    val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
+    runReadAction {
+      state.updateFunction(EditEvent(file, function))
+    }
+    AndroidLiveEditCodeGenerator(myProject).compile(listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function, state)), output)
     return output
   }
 
@@ -127,7 +161,7 @@ class BasicCompileTest {
    *
    * Support classes will also be loaded in the SAME classloader.
    */
-  private fun loadClass(output: AndroidLiveEditCodeGenerator.GeneratedCode) : Class<*> {
+  private fun loadClass(output: AndroidLiveEditCodeGenerator.CodeGeneratorOutput) : Class<*> {
     // We use a temp classloader so we can have the same class name across different classes without conflict.
     val tempLoader = object : ClassLoader() {
       override fun findClass(name: String): Class<*>? {
@@ -151,7 +185,7 @@ class BasicCompileTest {
   }
 }
 
-private fun List<AndroidLiveEditCodeGenerator.GeneratedCode>.singleOutput() : AndroidLiveEditCodeGenerator.GeneratedCode{
+private fun List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>.singleOutput() : AndroidLiveEditCodeGenerator.CodeGeneratorOutput{
   Assert.assertEquals(1, this.size)
   return this[0]
 }

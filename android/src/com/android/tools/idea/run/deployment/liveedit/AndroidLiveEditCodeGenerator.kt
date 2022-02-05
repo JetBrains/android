@@ -16,13 +16,13 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.literals.MethodReference
 import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
@@ -63,13 +63,21 @@ import java.lang.Math.ceil
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
 
-class AndroidLiveEditCodeGenerator {
+class AndroidLiveEditCodeGenerator(val project: Project){
 
-  data class GeneratedCode(val className: String,
-                           val methodName: String,
-                           val methodDesc: String,
-                           val classData: ByteArray,
-                           val supportClasses: Map<String, ByteArray>)
+  data class CodeGeneratorInput(val file: PsiFile, var function: KtNamedFunction, val state: FunctionState)
+
+  enum class FunctionType {
+    KOTLIN, COMPOSABLE
+  }
+
+  data class CodeGeneratorOutput(val className: String,
+                                 val methodName: String,
+                                 val methodDesc: String,
+                                 val classData: ByteArray,
+                                 val functionType: FunctionType,
+                                 val offSet: FunctionState.Offset,
+                                 val supportClasses: Map<String, ByteArray>)
 
   /**
    * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
@@ -80,15 +88,15 @@ class AndroidLiveEditCodeGenerator {
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(project: Project, changes: List<MethodReference>, output: MutableList<GeneratedCode>) : Boolean {
-    output.clear()
+  fun compile(inputs: List<CodeGeneratorInput>, outputs: MutableList<CodeGeneratorOutput>) : Boolean {
+    outputs.clear()
 
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
-    val changedFiles = HashMultimap.create<KtFile, KtNamedFunction>()
-    for ((file, function) in changes) {
-      if (file is KtFile) {
-        changedFiles.put(file, function)
+    val changedFiles = HashMultimap.create<KtFile, CodeGeneratorInput>()
+    for (input in inputs) {
+      if (input.file is KtFile) {
+        changedFiles.put(input.file, input)
       }
     }
 
@@ -97,42 +105,42 @@ class AndroidLiveEditCodeGenerator {
     val progressManager = ProgressManager.getInstance()
     return progressManager.runInReadActionWithWriteActionPriority(
       {
-        for ((file, methods) in changedFiles.asMap()) {
-          output.addAll(compileKtFile(project, file, methods))
+        for ((file, input) in changedFiles.asMap()) {
+          outputs.addAll(compileKtFile(file, input))
         }
       }, progressManager.progressIndicator)
   }
 
-  private fun compileKtFile(project: Project, file: KtFile, methods: Collection<KtNamedFunction>) : List<GeneratedCode> {
+  private fun compileKtFile(file: KtFile, inputs: Collection<CodeGeneratorInput>) : List<CodeGeneratorOutput> {
     val tracker = PerformanceTracker()
-    val inputs = listOf(file)
+    val inputFiles = listOf(file)
 
     // This is a three-step process:
     // 1) Compute binding context based on any previous cached analysis results.
     //    On small edits of previous analyzed project, this operation should be below 30ms or so.
     ProgressManager.checkCanceled()
-    val resolution = tracker.record({fetchResolution(project, inputs)}, "resolution_fetch")
+    val resolution = tracker.record({fetchResolution(inputFiles)}, "resolution_fetch")
 
     ProgressManager.checkCanceled()
-    val bindingContext = tracker.record({analyze(inputs, resolution)}, "analysis")
+    val bindingContext = tracker.record({analyze(inputFiles, resolution)}, "analysis")
 
     // 2) Invoke the backend with the inputs and the binding context computed from step 1.
     //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
     //    the complexity of the input .kt file.
     ProgressManager.checkCanceled()
-    val generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
+    val generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
                                  AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))}, "codegen")
 
     // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
     //    decide which classes we want to send to the device along with what extra meta-information the
     //    agent need.
-    return methods.map { getGeneratedCode(it, generationState)}
+    return inputs.map { getGeneratedCode(it, generationState)}
   }
 
   /**
    * Fetch the resolution based on the cached service.
    */
-  fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
+  fun fetchResolution(input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
     return kotlinCacheService.getResolutionFacade(input)
   }
@@ -224,7 +232,8 @@ class AndroidLiveEditCodeGenerator {
   /**
    * Pick out what classes we need from the generated list of .class files.
    */
-  private fun getGeneratedCode(targetFunction: KtNamedFunction, generationState: GenerationState): GeneratedCode {
+  private fun getGeneratedCode(input: CodeGeneratorInput, generationState: GenerationState): CodeGeneratorOutput {
+    var targetFunction = input.function
     val compilerOutput = generationState.factory.asList()
     var bindingContext = generationState.bindingContext
     val methodSignature = remapFunctionSignatureIfNeeded(targetFunction, bindingContext, generationState.typeMapper)
@@ -293,7 +302,10 @@ class AndroidLiveEditCodeGenerator {
     val idx = methodSignature.indexOf('(')
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
-    return GeneratedCode(internalClassName, methodName, methodDesc, primaryClass, supportClasses)
+
+    // TODO: Check if function is composable.
+    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, FunctionType.KOTLIN,
+                               input.state.initialOffsetOf(function)!!, supportClasses)
   }
 
   fun handleCompilerErrors(e : Throwable) {

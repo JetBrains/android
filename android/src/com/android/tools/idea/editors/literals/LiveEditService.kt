@@ -24,11 +24,21 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.refactoring.suggested.endOffset
+import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Executor
 
-data class MethodReference(val file: PsiFile, val function: KtNamedFunction)
+data class EditEvent(val file: PsiFile, val function: KtNamedFunction?) {
+  // start and end offset can be changed by the editor so we need to record these
+  // information on the first read event available. That's why it needs to be
+  // done here.
+  var functionStartOffSet = function?.let {it.startOffset}
+  var functionEndOffSet = function?.let {it.endOffset}
+  fun isWithinFunction() = function != null
+}
 
 /**
  * Allows any component to listen to all method body edits of a project.
@@ -41,7 +51,7 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
                                          "Document changed listeners executor", 1))
 
   fun interface EditListener {
-    operator fun invoke(method: MethodReference)
+    operator fun invoke(method: EditEvent)
   }
 
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
@@ -62,9 +72,9 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
   }
 
   @com.android.annotations.Trace
-  private fun onMethodBodyUpdated(method: MethodReference) {
+  private fun onMethodBodyUpdated(event: EditEvent) {
     onEditListeners.forEach {
-      it(method)
+      it(event)
     }
   }
 
@@ -85,12 +95,12 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
       while (parent != null) {
         when (parent) {
           is KtNamedFunction -> {
-            val ref = MethodReference(event.file!!, parent)
-            editListener(ref)
+            val event = EditEvent(event.file!!, parent)
+            editListener(event)
             break;
           }
         }
-        parent = parent.parent;
+        parent = parent.parent
       }
     }
 
