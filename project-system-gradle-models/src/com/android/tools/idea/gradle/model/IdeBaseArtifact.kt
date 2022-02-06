@@ -79,5 +79,5 @@ interface IdeBaseArtifact : Serializable {
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
   val level2Dependencies: IdeDependencies
-  val unresolvedDependencies: List<IdeUnresolvedDependencies>
+  val unresolvedDependencies: List<IdeUnresolvedDependency>
 }

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import java.io.File
 
 data class IdeJavaArtifactImpl(
@@ -33,6 +33,6 @@ data class IdeJavaArtifactImpl(
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
-  override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
+  override val unresolvedDependencies: List<IdeUnresolvedDependency>,
   override val mockablePlatformJar: File?
 ) : IdeJavaArtifact

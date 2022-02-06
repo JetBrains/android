@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import java.io.Serializable
 
-data class IdeUnresolvedDependenciesImpl(
+data class IdeUnresolvedDependencyImpl(
   override val name: String,
   override val cause: String?
-) : IdeUnresolvedDependencies, Serializable
+) : IdeUnresolvedDependency, Serializable

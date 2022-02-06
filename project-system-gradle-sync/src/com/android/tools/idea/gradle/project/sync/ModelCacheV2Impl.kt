@@ -88,7 +88,7 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -120,7 +120,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -692,8 +692,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return createFromDependencies(artifactDependencies, libraries, getVariantNameResolver, buildNameMap)
   }
 
-  fun List<UnresolvedDependency>.unresolvedDependenciesFrom(): List<IdeUnresolvedDependencies> {
-    return map { IdeUnresolvedDependenciesImpl(it.name, it.cause) }
+  fun List<UnresolvedDependency>.unresolvedDependenciesFrom(): List<IdeUnresolvedDependency> {
+    return map { IdeUnresolvedDependencyImpl(it.name, it.cause) }
   }
 
   fun convertV2Execution(execution: TestInfo.Execution?): IdeTestOptions.Execution? {

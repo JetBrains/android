@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeUnresolvedDependencies {
+interface IdeUnresolvedDependency {
   val name: String
   val cause: String?
 }

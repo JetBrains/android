@@ -23,7 +23,7 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
@@ -132,7 +132,7 @@ class AndroidModule constructor(
   var kotlinGradleModel: KotlinGradleModel? = null
   var kaptGradleModel: KaptGradleModel? = null
 
-  var unresolvedDependencies: List<IdeUnresolvedDependencies> = emptyList()
+  var unresolvedDependencies: List<IdeUnresolvedDependency> = emptyList()
 
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
    * libraries other variants depend on).
