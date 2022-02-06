@@ -76,7 +76,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -123,6 +125,9 @@ public class NlModel implements Disposable, ModificationTracker {
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+  /** Executor used for asynchronous updates. */
+  private final @NotNull ExecutorService myUpdateExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModel", 1);
+  private final @NotNull AtomicReference<Disposable> myThemeUpdateComputation = new AtomicReference<>();
   private boolean myDisposed;
 
   /**
@@ -254,17 +259,35 @@ public class NlModel implements Disposable, ModificationTracker {
   public void updateTheme() {
     ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
     if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
-      ReadAction.nonBlocking(() -> updateTheme(themeUrl)).expireWith(this).submit(AppExecutorUtil.getAppExecutorService());
+      Disposable computationToken = Disposer.newDisposable();
+      Disposer.register(this, computationToken);
+      Disposable oldComputation = myThemeUpdateComputation.getAndSet(computationToken);
+      if (oldComputation != null) {
+        Disposer.dispose(oldComputation);
+      }
+      ReadAction.nonBlocking(() -> updateTheme(themeUrl, computationToken)).expireWith(computationToken).submit(myUpdateExecutor);
     }
   }
 
   @Slow
-  private void updateTheme(ResourceUrl themeUrl) {
-    ResourceResolver resolver = getResourceResolver();
-    if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
-      ApplicationManager.getApplication().invokeLater(
-          () -> myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration)),
-          a -> myDisposed);
+  private void updateTheme(@NotNull ResourceUrl themeUrl, @NotNull Disposable computationToken) {
+    if (myThemeUpdateComputation.get() != computationToken) {
+      return; // A new update has already been scheduled.
+    }
+    try {
+      ResourceResolver resolver = getResourceResolver();
+      if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
+        String theme = myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration);
+        if (myThemeUpdateComputation.get() != computationToken) {
+          return; // A new update has already been scheduled.
+        }
+        ApplicationManager.getApplication().invokeLater(() -> myConfiguration.setTheme(theme), a -> myDisposed);
+      }
+    }
+    finally {
+      if (myThemeUpdateComputation.compareAndSet(computationToken, null)) {
+        Disposer.dispose(computationToken);
+      }
     }
   }
 
