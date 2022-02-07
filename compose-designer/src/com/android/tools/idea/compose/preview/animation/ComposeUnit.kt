@@ -23,7 +23,7 @@ import java.lang.reflect.Method
  */
 object ComposeUnit {
 
-  class TimelineUnit(val property: ComposeAnimatedProperty, val unit: Unit<*>?)
+  class TimelineUnit(val propertyLabel: String, val unit: Unit<*>?)
 
   /** Multi-dimensional property with each dimension of the type [A]. */
   interface Unit<A> where A : Number, A : Comparable<A> {

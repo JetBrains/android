@@ -36,6 +36,8 @@ import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.Point
+import java.awt.Polygon
 import java.awt.RenderingHints
 import java.awt.Stroke
 import java.awt.event.ActionListener
@@ -131,8 +133,8 @@ object InspectorPainter {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g.fill(curveInfo.curve)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
-    Diamond.paintDiamond(g, curveInfo.minX, curveInfo.y, colorIndex)
-    Diamond.paintDiamond(g, curveInfo.maxX, curveInfo.y, colorIndex)
+    Diamond(curveInfo.minX, curveInfo.y, colorIndex).paint(g, hover = false)
+    Diamond(curveInfo.maxX, curveInfo.y, colorIndex).paint(g, hover = false)
   }
 
   /** Label displayed below each animation curve. */
@@ -148,6 +150,11 @@ object InspectorPainter {
     private val COLOR_OUTLINE = Gray._194
     private val LABEL_COLOR = UIUtil.getContextHelpForeground()
     private val VALUE_COLOR = UIUtil.getLabelDisabledForeground()
+
+    /** Paint a label with a box on background. */
+    fun paintBoxedLabel(g: Graphics2D, timelineUnit: ComposeUnit.TimelineUnit, componentId: Int, grouped: Boolean, point: Point) =
+      paintBoxedLabel(g, timelineUnit, componentId, grouped, point.x, point.y)
+
 
     /** Paint a label with a box on background. */
     fun paintBoxedLabel(g: Graphics2D, timelineUnit: ComposeUnit.TimelineUnit, componentId: Int, grouped: Boolean, x: Int, y: Int) {
@@ -173,7 +180,7 @@ object InspectorPainter {
       //   |  Rect property : ( 1 , 2 , 3 , 4)     |
       //   \______________________________________/
 
-      val label = "${timelineUnit.property.label} :  "
+      val label = "${timelineUnit.propertyLabel} :  "
       val value = if (grouped) timelineUnit.unit?.toString() else timelineUnit.unit?.toString(componentId)
       val color = if (timelineUnit.unit is ComposeUnit.Color) timelineUnit.unit.color else null
       g.font = UIUtil.getFont(UIUtil.FontSize.NORMAL, null)
@@ -271,35 +278,49 @@ object InspectorPainter {
     }
   }
 
-  /** Diamond shape displayed at the start and the end of an animation for each animation curve. */
-  private object Diamond {
+  /**
+   * Diamond shape displayed at the start and the end of an animation for each animation curve.
+   * @param x coordinate of the center of the diamond
+   * @param y coordinate of the center of the diamond
+   * @param colorIndex index of the color from [GRAPH_COLORS]
+   * */
+  class Diamond(val x: Int, val y: Int, private val colorIndex: Int) {
+    // The diamond should have the following shape:
+    //         /\
+    //         \/
+    // We add 4 points with the following coordinates:
+    // (x, y - size): top point
+    // (x + size, y): right point
+    // (x, y + size): bottom point
+    // (x - size, y): left point
+    // where (x, y) is the center of the diamond
+    private fun xArray(size: Int) = intArrayOf(x, x + size, x, x - size)
+    private fun yArray(size: Int) = intArrayOf(y - size, y, y + size, y)
+    private val diamond = Polygon(xArray(DIAMOND_SIZE), yArray(DIAMOND_SIZE), 4)
+    private val diamondOutline = Polygon(xArray(DIAMOND_SIZE + 1), yArray(DIAMOND_SIZE + 1), 4)
 
-    /** Size of the diamond shape used as the graph size limiter. */
-    const val DIAMOND_SIZE = 6
+    companion object {
+      /** Size of the diamond shape used as the graph size limiter. */
+      const val DIAMOND_SIZE = 6
+    }
 
     /**
      * Paint diamond shape.
-     * @param x coordinate of the center of the diamond
-     * @param y coordinate of the center of the diamond
-     * @param colorIndex index of the color from [GRAPH_COLORS]
      */
-    fun paintDiamond(g: Graphics2D, x: Int, y: Int, colorIndex: Int) {
-      // The diamond should have the following shape:
-      //         /\
-      //         \/
-      // We add 4 points with the following coordinates:
-      // (x, y - size): top point
-      // (x + size, y): right point
-      // (x, y + size): bottom point
-      // (x - size, y): left point
-      // where (x, y) is the center of the diamond
-      fun xArray(size: Int) = intArrayOf(x, x + size, x, x - size)
-      fun yArray(size: Int) = intArrayOf(y - size, y, y + size, y)
-      g.color = JBColor(Color.white, JBColor.border().darker())
-      g.fillPolygon(xArray(DIAMOND_SIZE + 1), yArray(DIAMOND_SIZE + 1), 4)
-      g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
-      g.fillPolygon(xArray(DIAMOND_SIZE), yArray(DIAMOND_SIZE), 4)
+    fun paint(g: Graphics2D, hover: Boolean) {
+      g.color = if (hover) InspectorColors.LINE_OUTLINE_COLOR_ACTIVE else JBColor(Color.white, JBColor.border().darker())
+      g.fillPolygon(diamondOutline)
+      g.color = InspectorColors.GRAPH_COLORS[colorIndex % InspectorColors.GRAPH_COLORS.size]
+      g.fillPolygon(diamond)
     }
+
+    fun paintOutline(g: Graphics2D) {
+      g.color = InspectorColors.GRAPH_COLORS[colorIndex % InspectorColors.GRAPH_COLORS.size]
+      g.stroke = InspectorLayout.SIMPLE_STROKE
+      g.drawPolygon(diamondOutline)
+    }
+
+    fun contains(x: Int, y: Int) = diamondOutline.contains(x, y)
   }
 
   /** UI Component to display transition state. */

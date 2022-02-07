@@ -565,7 +565,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
       try {
         val properties = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
-        timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it, ComposeUnit.parse(it)) })
+        timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it)) })
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
