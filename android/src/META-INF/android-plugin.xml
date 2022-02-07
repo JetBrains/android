@@ -512,8 +512,7 @@
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
-    <facet.toolWindow id="Logcat"
-                      facetIdList="android,apk"
+    <toolWindow id="Logcat"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>

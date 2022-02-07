@@ -17,6 +17,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.google.common.util.concurrent.FutureCallback;
@@ -44,19 +45,22 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
+
+  @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return AndroidEnvironmentUtils.isAndroidEnvironment(project);
+  }
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
@@ -173,8 +177,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
 
     if (facets.isEmpty()) {
-      console.clear();
-      console.print(AndroidBundle.message("android.logcat.no.android.facets.error"), ConsoleViewContentType.ERROR_OUTPUT);
+      // No necessarily an issue, for example, a Flutter project.
       return;
     }
 
