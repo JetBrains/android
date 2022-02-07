@@ -25,6 +25,9 @@ import java.awt.Stroke
  */
 object InspectorLayout {
 
+  /** Size of the outline padding. */
+  const val OUTLINE_PADDING = 1
+
   /** Height of the line. */
   const val LINE_HEIGHT = 8
 
