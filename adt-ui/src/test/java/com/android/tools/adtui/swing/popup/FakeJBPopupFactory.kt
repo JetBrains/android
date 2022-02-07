@@ -91,6 +91,9 @@ class FakeJBPopupFactory : JBPopupFactory() {
     return popup
   }
 
+  override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
+    FakeComponentPopupBuilder()
+
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
   override fun createConfirmation(title: String?, onYes: Runnable?, defaultOptionIndex: Int): ListPopup {
@@ -166,10 +169,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun createTree(step: TreePopupStep<*>): TreePopup {
-    TODO("Not yet implemented")
-  }
-
-  override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder {
     TODO("Not yet implemented")
   }
 

@@ -20,10 +20,9 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
-import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
-import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
+import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
@@ -33,23 +32,22 @@ import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.EditorTextField
-import com.intellij.ui.PopupMenuListenerAdapter
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.ComboBoxEditor
-import javax.swing.DefaultComboBoxModel
+import javax.swing.BorderFactory
+import javax.swing.Icon
 import javax.swing.JLabel
-import javax.swing.KeyStroke
-import javax.swing.event.PopupMenuEvent
 
 private const val MAX_HISTORY_SIZE = 20
 private const val APPLY_FILTER_DELAY_MS = 100L
@@ -63,21 +61,15 @@ internal class FilterTextField(
   private val filterParser: LogcatFilterParser,
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
-  maxHistorySize: Int = MAX_HISTORY_SIZE,
-) : ComboBox<String>() {
-
-  private val textField = FilterEditorTextField(project, logcatPresenter, initialText, androidProjectDetector)
-  private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
-  private val history = MostRecentlyAddedSet<String>(maxHistorySize).apply {
-    addAll(propertiesComponent.getValues(HISTORY_PROPERTY_NAME) ?: emptyArray())
-    if (initialText.isNotEmpty()) {
-      add(initialText)
-    }
-  }
-  private val documentChangedListeners = mutableListOf<DocumentListener>()
-
+  private val maxHistorySize: Int = MAX_HISTORY_SIZE,
+) : BorderLayoutPanel() {
   @TestOnly
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
+  private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
+  private val documentChangedListeners = mutableListOf<DocumentListener>()
+  private val textField = FilterEditorTextField(project, logcatPresenter, initialText, androidProjectDetector)
+  private val historyButton = InlineButton(AllIcons.Actions.SearchWithHistory)
+  private val clearButton = InlineButton(AllIcons.Actions.Close)
 
   var text: String
     get() = textField.text
@@ -86,18 +78,22 @@ internal class FilterTextField(
     }
 
   init {
-    setEditable(true)
-    setEditor(FilterComboBoxEditor(textField))
+    addToLeft(historyButton)
+    addToCenter(textField)
+    addToRight(clearButton)
 
-    setHistory()
-    if (initialText.isEmpty()) {
-      selectedItem = null
+    // Set a border around the text field and buttons. See EditorTextField#setBorder()
+    border = BorderFactory.createCompoundBorder(UIUtil.getTextFieldBorder(),  JBUI.Borders.empty(2, 2, 2, 2))
+
+    historyButton.apply {
+      addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent?) {
+          showPopup()
+        }
+      })
+      // The history icon needs a margin. These values make it look the same as the "Find in files" dialog for example.
+      border = JBUI.Borders.empty(0, 5, 0, 4)
     }
-    addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
-        addHistoryItem()
-      }
-    })
 
     textField.apply {
       addDocumentListener(object : DocumentListener {
@@ -109,9 +105,34 @@ internal class FilterTextField(
           }
         }
       })
+      addKeyListener(object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          if (e.keyCode == KeyEvent.VK_ENTER) {
+            e.consume()
+            addToHistory()
+          }
+        }
+      })
+
       addFocusListener(object : FocusAdapter() {
         override fun focusLost(e: FocusEvent?) {
-          addHistoryItem()
+          addToHistory()
+        }
+      })
+    }
+
+    clearButton.apply {
+      addMouseListener(object : MouseAdapter() {
+        override fun mouseEntered(e: MouseEvent) {
+          clearButton.icon = AllIcons.Actions.CloseHovered
+        }
+
+        override fun mouseExited(e: MouseEvent) {
+          clearButton.icon = AllIcons.Actions.Close
+        }
+
+        override fun mouseClicked(e: MouseEvent) {
+          textField.text = ""
         }
       })
     }
@@ -122,101 +143,68 @@ internal class FilterTextField(
     documentChangedListeners.add(listener)
   }
 
-  // Registering a KeyListener doesn't seem to work.
-  @VisibleForTesting
-  public override fun processKeyBinding(ks: KeyStroke, e: KeyEvent, condition: Int, pressed: Boolean): Boolean {
-    if (e.keyCode == KeyEvent.VK_ENTER && pressed) {
-      addHistoryItem()
-    }
-
-    return super.processKeyBinding(ks, e, condition, pressed)
-  }
-
+  @TestOnly
   internal fun getEditorEx() = textField.editor as EditorEx
 
-  private fun addHistoryItem() {
-    if (text.isNotEmpty()) {
-      history.add(text)
-      setHistory()
-      propertiesComponent.setValues(HISTORY_PROPERTY_NAME, history.toTypedArray())
-      LogcatUsageTracker.log(
-        LogcatUsageEvent.newBuilder()
-          .setType(FILTER_ADDED_TO_HISTORY)
-          .setLogcatFilter(filterParser.getUsageTrackingEvent(text))
-      )
+  @UiThread
+  private fun showPopup() {
+    addToHistory()
+    JBPopupFactory.getInstance().createPopupChooserBuilder(propertiesComponent.getValues(HISTORY_PROPERTY_NAME)?.asList() ?: emptyList())
+      .setMovable(false)
+      .setRequestFocus(true)
+      .setItemChosenCallback { textField.text = it }
+      .createPopup()
+      .showUnderneathOf(this)
+  }
+
+  private fun addToHistory() {
+    val text = textField.text
+    if (text.isEmpty()) {
+      return
+    }
+    val history = propertiesComponent.getValues(HISTORY_PROPERTY_NAME)?.asList()?.toMutableList() ?: mutableListOf()
+    history.remove(text)
+    history.add(0, text)
+    if (history.size > maxHistorySize) {
+      history.removeLast()
+    }
+    propertiesComponent.setValues(HISTORY_PROPERTY_NAME, history.toTypedArray())
+    LogcatUsageTracker.log(
+      LogcatUsageEvent.newBuilder()
+        .setType(FILTER_ADDED_TO_HISTORY)
+        .setLogcatFilter(filterParser.getUsageTrackingEvent(text)))
+  }
+
+  private inner class FilterEditorTextField(
+    project: Project,
+    private val logcatPresenter: LogcatPresenter,
+    text: String,
+    private val androidProjectDetector: AndroidProjectDetector,
+  ) : EditorTextField(project, LogcatFilterFileType) {
+    public override fun createEditor(): EditorEx {
+      return super.createEditor().apply {
+        putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
+        putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
+        putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
+        // Remove the line border but preserve the inner margins. See EditorTextField#setBorder()
+        setBorder(JBUI.Borders.empty(2, 2, 2, 2))
+      }
+    }
+
+    init {
+      this.text = text
     }
   }
 
-  private fun setHistory() {
-    model = DefaultComboBoxModel(history.reversed().toTypedArray())
+  private inner class InlineButton(icon: Icon) : JLabel(icon) {
+    init {
+      isOpaque = true
+      background = textField.background
+    }
   }
 
   companion object {
     @VisibleForTesting
     internal const val HISTORY_PROPERTY_NAME = "logcatFilterHistory"
-  }
-}
-
-private class FilterEditorTextField(
-  project: Project,
-  private val logcatPresenter: LogcatPresenter,
-  text: String,
-  private val androidProjectDetector: AndroidProjectDetector)
-  : EditorTextField(project, LogcatFilterFileType) {
-  public override fun createEditor(): EditorEx {
-    return super.createEditor().apply {
-      putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
-      putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
-      putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
-    }
-  }
-
-  init {
-    this.text = text
-  }
-}
-
-private class FilterComboBoxEditor(private val textField: EditorTextField) : ComboBoxEditor {
-  private val panel = object : BorderLayoutPanel() {
-    override fun getBackground() = textField.background
-  }
-
-  private val clearButton = JLabel(AllIcons.Actions.Close)
-
-  init {
-    panel.addToCenter(textField)
-    panel.addToRight(clearButton)
-
-    clearButton.addMouseListener(object : MouseAdapter() {
-      override fun mouseEntered(e: MouseEvent) {
-        clearButton.icon = AllIcons.Actions.CloseHovered
-      }
-
-      override fun mouseExited(e: MouseEvent) {
-        clearButton.icon = AllIcons.Actions.Close
-      }
-
-      override fun mouseClicked(e: MouseEvent) {
-        item = ""
-      }
-    })
-  }
-
-  override fun getEditorComponent() = panel
-
-  override fun setItem(item: Any?) {
-    textField.text = item as? String ?: ""
-  }
-
-  override fun getItem() = textField.text
-
-  override fun selectAll() {
-    textField.selectAll()
-  }
-
-  override fun addActionListener(listener: ActionListener?) {
-  }
-
-  override fun removeActionListener(listener: ActionListener?) {
   }
 }
