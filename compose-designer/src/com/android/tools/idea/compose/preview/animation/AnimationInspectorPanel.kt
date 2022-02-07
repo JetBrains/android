@@ -42,7 +42,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
@@ -53,15 +52,9 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
 import java.awt.geom.Path2D
 import java.time.Duration
-import java.util.Dictionary
-import java.util.Hashtable
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JSlider
@@ -103,6 +96,9 @@ private const val LABEL_OFFSET = 10
 //TODO(b/161344747) This value could be dynamic depending on the curve type.
 /** Number of points for one curve. */
 private const val DEFAULT_CURVE_POINTS_NUMBER = 200
+
+//TODO Change to a tracker class.
+typealias ComposeAnimationEventTracker = (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
@@ -796,45 +792,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
 
 
-    private val slider = object : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
-      private var cachedSliderWidth = 0
-      private var cachedMax = 0
-      override fun updateUI() {
-        setUI(TimelineSliderUI(this))
-        updateLabelUIs()
-      }
-
-      override fun setMaximum(maximum: Int) {
-        super.setMaximum(maximum)
-        updateMajorTicks()
-      }
-
-      fun updateMajorTicks() {
-        if (width == cachedSliderWidth && maximum == cachedMax) return
-        cachedSliderWidth = width
-        cachedMax = maximum
-        val tickIncrement = InspectorPainter.Slider.getTickIncrement(this)
-        // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
-        // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
-        setMajorTickSpacing(tickIncrement)
-        // Now, add the "ms" suffix to each label.
-        labelTable = if (tickIncrement == 0) {
-          // Handle the special case where maximum == 0 and we only have the "0ms" label.
-          createMsLabelTable(labelTable)
-        }
-        else {
-          createMsLabelTable(createStandardLabels(tickIncrement))
-        }
-      }
-
+    private val slider = object : TimelinePanel(logger) {
+      override fun createSliderUI() = TimelineSlider(this)
     }.apply {
-      paintTicks = false
-      paintLabels = true
-      updateMajorTicks()
-      setUI(TimelineSliderUI(this))
-      addComponentListener(object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) = updateMajorTicks()
-      })
+      setUI(TimelineSlider(this))
     }
 
     init {
@@ -908,22 +869,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     fun isAtEnd() = slider.value == slider.maximum
 
-    /**
-     * Rewrite the labels by adding a `ms` suffix indicating the values are in milliseconds.
-     */
-    private fun createMsLabelTable(table: Dictionary<*, *>): Hashtable<Any, JBLabel> {
-      val keys = table.keys()
-      val labelTable = Hashtable<Any, JBLabel>()
-      while (keys.hasMoreElements()) {
-        val key = keys.nextElement()
-        labelTable[key] = object : JBLabel("$key ms") {
-          // Setting the enabled property to false is not enough because BasicSliderUI will check if the slider itself is enabled when
-          // painting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
-          override fun getForeground() = UIUtil.getLabelDisabledForeground()
-        }
-      }
-      return labelTable
-    }
 
     /**
      * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following modifications are made:
@@ -931,7 +876,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      *   * The vertical thumb is a vertical line that matches the parent height
      *   * The tick lines also match the parent height
      */
-    private inner class TimelineSliderUI(slider: JSlider) : TimelinePanel(slider) {
+    private inner class TimelineSlider(slider: JSlider) : TimelineSliderUI(slider, logger) {
       fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo? =
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()
@@ -959,9 +904,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           return InspectorPainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
         }
 
-      override fun paintTrack(g: Graphics) {
-        super.paintTrack(g)
-        g as Graphics2D
+      override fun paintElements(g: Graphics2D) {
         // Leave the track empty if feature is not enabled
         if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
         if (selectedProperties.isEmpty()) return
@@ -984,47 +927,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           }
         }
         return
-      }
-
-      override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
-
-      /**
-       * [Tracklistener] to allow setting [slider] value when clicking and scrubbing the timeline.
-       */
-      private inner class TimelineTrackListener : TrackListener() {
-
-        private var isDragging = false
-
-        override fun mousePressed(e: MouseEvent) {
-          // We override the parent class behavior completely because it executes more operations than we need, being less performant than
-          // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
-          currentMouseX = e.getX()
-          updateThumbLocationAndSliderValue()
-          timeline.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
-        }
-
-        override fun mouseDragged(e: MouseEvent) {
-          super.mouseDragged(e)
-          updateThumbLocationAndSliderValue()
-          isDragging = true
-        }
-
-        override fun mouseReleased(e: MouseEvent?) {
-          super.mouseReleased(e)
-          logAnimationInspectorEvent(
-            if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
-            else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
-          )
-          isDragging = false
-        }
-
-        fun updateThumbLocationAndSliderValue() {
-          val halfWidth = thumbRect.width / 2
-          // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of the width so the center is aligned.
-          val thumbX = Math.min(Math.max(currentMouseX, xPositionForValue(slider.minimum)), xPositionForValue(slider.maximum)) - halfWidth
-          setThumbLocation(thumbX, thumbRect.y)
-          slider.value = valueForXPosition(currentMouseX)
-        }
       }
     }
   }
