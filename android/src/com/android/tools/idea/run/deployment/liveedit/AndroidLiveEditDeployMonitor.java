@@ -54,6 +54,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -235,6 +236,22 @@ public class AndroidLiveEditDeployMonitor {
     };
   }
 
+
+  private static void checkJetpackCompose(@NotNull Project project) {
+    final List<IrGenerationExtension> pluginExtensions = IrGenerationExtension.Companion.getInstances(project);
+    boolean found = false;
+    for (IrGenerationExtension extension : pluginExtensions) {
+      if (extension.getClass().getName().equals("com.android.tools.compose.ComposePluginIrGenerationExtension")) {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      throw LiveEditUpdateException.compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null);
+    }
+  }
+
   @Trace
   private static boolean handleChangedMethods(Project project,
                                               String packageName,
@@ -247,6 +264,10 @@ public class AndroidLiveEditDeployMonitor {
     ArrayList<AndroidLiveEditCodeGenerator.GeneratedCode> compiled = new ArrayList<>();
     LiveEditUpdateException exception = null;
     try {
+      // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
+      // unclear BackendException
+      checkJetpackCompose(project);
+
       if (!new AndroidLiveEditCodeGenerator().compile(project, changes, compiled)) {
         return false;
       }

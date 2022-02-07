@@ -36,6 +36,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", cause 
 
     fun analysisError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.ANALYSIS_ERROR, details, cause)
 
+    @JvmStatic
     fun compilationError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.COMPILATION_ERROR, details, cause)
 
     fun internalError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.INTERNAL_ERROR, details, cause)
