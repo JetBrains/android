@@ -93,16 +93,34 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertTrue(scopes.isAndroidTestSource(module4Source));
   }
 
-  public void testNotExcludeLibrariesInMainArtifact() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+  public void testIncludeLibrariesInUnitTestFromMainModule() throws Exception {
+    loadMultiProjectAndGetTestScopesForModule("module1");
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
 
     Library gson = libraryTable.getLibraryByName(GSON);
-    // In the beginning only unit test exclude gson
+
+    Module module1holderModule = gradleModule(getProject(), ":module1");
+    assert module1holderModule != null;
+    Module unitTestModule = ModuleSystemUtil.getUnitTestModule(module1holderModule);
+    assert unitTestModule != null;
+
+    // In the beginning only androidTest includes the GSON dependency
+    Module androidTestModule = ModuleSystemUtil.getAndroidTestModule(module1holderModule);
+    assert androidTestModule != null;
+
+    Module mainModule = ModuleSystemUtil.getMainModule(module1holderModule);
+    GlobalSearchScope mainModuleModuleWithDependenciesScope = mainModule.getModuleWithLibrariesScope();
+    assertScopeContainsLibrary(mainModuleModuleWithDependenciesScope, gson, false);
+
+    GlobalSearchScope androidTestModuleModuleWithDependenciesScope = androidTestModule.getModuleWithLibrariesScope();
+    assertScopeContainsLibrary(androidTestModuleModuleWithDependenciesScope, gson, true);
+
+    GlobalSearchScope unitTestModuleModuleWithDependenciesScope = unitTestModule.getModuleWithLibrariesScope();
+    assertScopeContainsLibrary(unitTestModuleModuleWithDependenciesScope, gson, false);
+
 
     // Now add gson to unit test dependencies as well
-    Module module1holderModule = gradleModule(getProject(), ":module1");
     VirtualFile buildFile = getGradleBuildFile(module1holderModule);
     assertNotNull(buildFile);
     appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { api 'com.google.code.gson:gson:2.8.0' }\n");
@@ -128,10 +146,14 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     latch.await();
 
-    // Now both test should not exclude gson
-    scopes = TestArtifactSearchScopes.getInstance(module1holderModule);
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module1holderModule);
     assertNotNull(scopes);
+
+    // Now all modules should include GSON as a library dependency
     gson = libraryTable.getLibraryByName(GSON);
+    assertScopeContainsLibrary(mainModule.getModuleWithLibrariesScope(), gson, true);
+    assertScopeContainsLibrary(androidTestModule.getModuleWithLibrariesScope(), gson, true);
+    assertScopeContainsLibrary(unitTestModule.getModuleWithLibrariesScope(), gson, true);
   }
 
   public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
