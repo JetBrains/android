@@ -83,20 +83,10 @@ class BuildTest {
   }
 
   @Test
-  fun testHasBeenBuiltSuccessfully_main() {
+  fun testHasBeenBuiltSuccessfully() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path))
-  }
-
-  @Test
-  fun testHasBeenBuiltSuccessfully_androidTest() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
-  }
-
-  @Test
-  fun testHasBeenBuiltSuccessfully_both() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
                                                                SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
   }
