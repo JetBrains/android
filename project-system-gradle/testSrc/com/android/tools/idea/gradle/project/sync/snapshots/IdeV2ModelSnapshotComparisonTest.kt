@@ -81,7 +81,16 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS),
       TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, skipV1toV2Comparison = true),
       // Ignore comparing the variant name for module dependencies because this is not always provided by V1 models.
-      TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
+      TestProject(
+        TestProjectToSnapshotPaths.TEST_ONLY_MODULE,
+        v1toV2PropertiesToSkip =
+        setOf(
+          "moduleDependencies/target",
+          "moduleDependencies/target/buildId",
+          "moduleDependencies/target/projectPath",
+          "moduleDependencies/target/sourceSet"
+        )
+      ),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM),
       TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR),
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984. more info b/111168382.
@@ -151,7 +160,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     val context = mutableListOf<Pair<Int, String>>()
     var previousIndentation = -1
     for (line in this@nameProperties) {
-      val propertyName = line.trimStart().substringBefore(' ', line).trim()
+      val propertyName = line.trimStart().removePrefix("- ").substringBefore(' ', line).trim()
       val indentation = line.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) line.length else it }
       when {
         indentation > previousIndentation -> context.add(indentation to propertyName)
@@ -189,7 +198,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
  *
  */
 private val PROPERTIES_TO_SKIP = setOf(
-  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/LintJars",
+  "/Level2Dependencies/dependencies/androidLibraries/target/lintJar",
   "/ModelSyncFile",
   "/ModelSyncFile/Type",
   "/ModelSyncFile/TaskName",
@@ -204,6 +213,7 @@ private val PROPERTIES_TO_SKIP = setOf(
  * AndroidLibrary.ArtifactAddress: the same rules from above apply to ArtifactAddress as well, plus the distinction of local aars paths.
  */
 private val VALUES_TO_SUPPRESS = mapOf(
-  "/Level2Dependencies/AndroidLibraries/AndroidLibrary" to listOf("__wrapped_aars__", "artifacts"),
-  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/ArtifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
+  "/Level2Dependencies/dependencies/androidLibraries" to listOf("__wrapped_aars__", "artifacts"),
+  "/Level2Dependencies/dependencies/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
+  "/Level2Dependencies/dependencies/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )

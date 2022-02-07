@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.Serializable
 
@@ -47,4 +48,7 @@ data class IdeModuleLibraryImpl(
     lintJar = null,
     sourceSet = IdeModuleSourceSet.MAIN
   )
+
+  @get:TestOnly
+  val displayName: String get() = "$buildId:$projectPath@$variant"
 }

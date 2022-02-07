@@ -656,17 +656,21 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :lib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                                projectPath                   : :lib
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                                projectPath                   : :otherlib
+                                sourceSet                     : MAIN
+                                variant                       : debug
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -690,21 +694,27 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            ProjectPath                   : :app
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
-                            ProjectPath                   : :lib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :app
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                projectPath                   : :lib
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/otherlib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                                projectPath                   : :otherlib
+                                sourceSet                     : MAIN
+                                variant                       : debug
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -725,21 +735,13 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            ProjectPath                   : :app
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :lib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -999,12 +1001,9 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1025,17 +1024,11 @@ MODULE                        : project.lib
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :lib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1056,17 +1049,11 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :lib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
@@ -1326,6 +1313,7 @@ MODULE                        : project.otherlib
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
+                    dependencies                  : IdeDependenciesImpl
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1346,12 +1334,9 @@ MODULE                        : project.otherlib
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1372,12 +1357,9 @@ MODULE                        : project.otherlib
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
-                    ModuleDependencies
-                        ModuleDependency
-                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :otherlib
-                            Variant                       : debug
-                            BuildId                       : <ROOT>
+                    dependencies                  : IdeDependenciesImpl
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest

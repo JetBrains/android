@@ -24,7 +24,7 @@ import java.io.Serializable
  * The implementation of IdeLibrary for Android libraries.
  **/
 data class IdeAndroidLibraryImpl(
-  val core: IdeAndroidLibraryCore,
+  private val core: IdeAndroidLibraryCore,
   override val name: String
 ) : IdeAndroidLibrary by core, Serializable {
   @VisibleForTesting

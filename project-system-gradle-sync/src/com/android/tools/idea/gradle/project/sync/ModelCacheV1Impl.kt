@@ -148,6 +148,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
   val javaLibraryCores: MutableMap<IdeJavaLibraryCore, IdeJavaLibraryCore> = HashMap()
   val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
 
+  val androidLibraries: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
+  val javaLibraries: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
+
   fun deduplicateString(s: String): String = strings.putIfAbsent(s, s) ?: s
   fun String.deduplicate() = deduplicateString(this)
   fun deduplicateFile(f: File): File = File(f.path.deduplicate())
@@ -448,10 +451,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
         deduplicate = { strings.getOrPut(this) { this } }
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
+
       IdeAndroidLibraryDependencyImpl(
-        IdeAndroidLibraryImpl(
-          core = androidLibraryCores.internCore(core),
-          name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+        androidLibraries.internCore(
+          IdeAndroidLibraryImpl(
+            core = androidLibraryCores.internCore(core),
+            name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+          )
         ),
         isProvided = isProvided
       )
@@ -474,10 +480,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
         artifact = javaLibrary.jarFile
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
+
       IdeJavaLibraryDependencyImpl(
-        IdeJavaLibraryImpl(
-          core = javaLibraryCores.internCore(core),
-          name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+        javaLibraries.internCore(
+          IdeJavaLibraryImpl(
+            core = javaLibraryCores.internCore(core),
+            name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+          )
         ),
         isProvided = isProvided
       )

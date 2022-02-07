@@ -22,4 +22,6 @@ import java.io.Serializable
 data class IdeJavaLibraryDependencyImpl(
   override val target: IdeJavaLibrary,
   override val isProvided: Boolean
-): IdeJavaLibraryDependency, Serializable
+) : IdeJavaLibraryDependency, Serializable {
+  val displayName: String get() = target.name
+}

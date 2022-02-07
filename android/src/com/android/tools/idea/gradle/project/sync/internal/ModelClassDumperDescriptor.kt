@@ -58,16 +58,17 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
   /**
    * Return a property which is can be used to name instances of the class described by this object.
    */
-  val nameProperty: Property? =
-    allNamedProperties.singleOrNull { it.name == "id" }
+  val displayNameProperty: Property? =
+    allNamedProperties.singleOrNull { it.name == "displayName" }
+      ?: allNamedProperties.singleOrNull { it.name == "id" }
       ?: allNamedProperties.singleOrNull { it.name == "name" }
       ?: allNamedProperties.singleOrNull { it.name.endsWith("Id") }
       ?: allNamedProperties.singleOrNull { it.name.endsWith("Name") }
 
   /**
-   * The list of all properties that should be included in model dumps except [nameProperty].
+   * The list of all properties that should be included in model dumps except [displayNameProperty].
    */
-  val namedProperties: List<Property> = allNamedProperties.filter { it.name != nameProperty?.name }
+  val namedProperties: List<Property> = allNamedProperties.filter { it.name != displayNameProperty?.name }
 
   companion object {
     private fun String.toCamelCase(): String = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, this)

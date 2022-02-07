@@ -18,23 +18,18 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
-import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -142,7 +137,7 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
   }
 }
 
-private val jbModelDumpers = listOf<SpecializedDumper>(
+private val jbModelDumpers = listOf(
   SpecializedDumper<CompilerArgumentsCacheAware> { Unit },
   SpecializedDumper<EntityArgsInfo> {
     head(propertyName)
@@ -158,6 +153,18 @@ private val jbModelDumpers = listOf<SpecializedDumper>(
     )
   },
   SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  },
+  SpecializedDumper(property = IdeDependencies::androidLibraries) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = IdeDependencies::javaLibraries) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = IdeDependencies::moduleDependencies) {
+    prop(propertyName, it.asUnordered())
+  },
+  SpecializedDumper(property = IdeDependencies::runtimeOnlyClasses) {
+    prop(propertyName, it.asUnordered())
   }
 )
 
@@ -306,56 +313,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
     }
 
-    private fun dump(androidLibraryDependency: IdeAndroidLibraryDependency) {
-      dump(androidLibraryDependency as IdeDependency<*>)
-      val androidLibrary = androidLibraryDependency.target
-      prop("Folder") { androidLibrary.folder?.path?.toPrintablePath() }
-      prop("Manifest") { androidLibrary.manifest.toPrintablePath() }
-      androidLibrary.compileJarFiles.forEach { prop("CompileJarFiles") { it.toPrintablePath() } }
-      androidLibrary.runtimeJarFiles.forEach { prop("RuntimeJarFiles") { it.toPrintablePath() } }
-      prop("ResFolder") { androidLibrary.resFolder.toPrintablePath() }
-      prop("ResStaticLibrary") { androidLibrary.resStaticLibrary?.path?.toPrintablePath() }
-      prop("AssetFolder") { androidLibrary.assetsFolder.toPrintablePath() }
-      prop("JniFolder") { androidLibrary.jniFolder.toPrintablePath() }
-      prop("AidlFolder") { androidLibrary.aidlFolder.toPrintablePath() }
-      prop("RenderscriptFolder") { androidLibrary.renderscriptFolder.toPrintablePath() }
-      prop("ProguardRules") { androidLibrary.proguardRules.toPrintablePath() }
-      prop("ExternalAnnotations") { androidLibrary.externalAnnotations.toPrintablePath() }
-      prop("PublicResources") { androidLibrary.publicResources.toPrintablePath() }
-      prop("SymbolFile") { androidLibrary.symbolFile.toPrintablePath() }
-    }
-
-    private fun dump(ideDependency: IdeDependency<*>) {
-      if (ideDependency is IdeArtifactDependency<*>) {
-        prop("ArtifactAddress") {
-          ideDependency.target.artifactAddress
-            .toPrintablePath()
-            .let { if (it.endsWith(" [-]")) it.substring(0, it.indexOf(" [-]")) else it }
-            .replaceKnownPatterns()
-        }
-      }
-      prop("LintJars") { ideDependency.target.lintJar?.toPrintablePath() }
-      when (ideDependency) {
-        is IdeAndroidLibraryDependency -> prop("IsProvided") { ideDependency.isProvided.toString() }
-        is IdeJavaLibraryDependency -> prop("IsProvided") { ideDependency.isProvided.toString() }
-      }
-      when (ideDependency) {
-        is IdeAndroidLibraryDependency -> prop("Artifact") { ideDependency.target.artifact.path.toPrintablePath() }
-        is IdeJavaLibraryDependency -> prop("Artifact") { ideDependency.target.artifact.path.toPrintablePath() }
-      }
-    }
-
-    private fun dump(javaLibrary: IdeJavaLibraryDependency) {
-      dump(javaLibrary as IdeDependency<*>)
-    }
-
-    private fun dump(moduleLibrary: IdeModuleDependency) {
-      dump(moduleLibrary as IdeDependency<*>)
-      prop("ProjectPath") { moduleLibrary.projectPath }
-      prop("Variant") { moduleLibrary.variant }
-      prop("BuildId") { moduleLibrary.buildId?.toPrintablePath() }
-    }
-
     private fun dump(ideBaseArtifact: IdeBaseArtifact) {
       prop("Name") { ideBaseArtifact.name.toString() }
       prop("CompileTaskName") { ideBaseArtifact.compileTaskName }
@@ -378,7 +335,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       head("Level2Dependencies")
       nest {
-        dump(ideBaseArtifact.level2Dependencies)
+        modelDumper.dumpModel(this@with, "dependencies", ideBaseArtifact.level2Dependencies)
       }
     }
 
@@ -390,44 +347,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     private fun dump(ideTestedTargetVariant: IdeTestedTargetVariant) {
       prop("TargetProjectPath") { ideTestedTargetVariant.targetProjectPath }
       prop("TargetVariant") { ideTestedTargetVariant.targetVariant }
-    }
-
-    private fun dump(ideDependencies: IdeDependencies) {
-      if (ideDependencies.androidLibraries.isNotEmpty()) {
-        head("AndroidLibraries")
-        nest {
-          ideDependencies.androidLibraries.sortedBy { it.target.name }.forEach {
-            head("AndroidLibrary") { it.target.name }
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      if (ideDependencies.javaLibraries.isNotEmpty()) {
-        head("JavaLibraries")
-        nest {
-          ideDependencies.javaLibraries.sortedBy { it.target.name }.forEach {
-            head("JavaLibrary") { it.target.name.replaceKnownPatterns() }
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      if (ideDependencies.moduleDependencies.isNotEmpty()) {
-        head("ModuleDependencies")
-        nest {
-          ideDependencies.moduleDependencies.sortedWith(compareBy<IdeModuleDependency> { it.projectPath }.thenBy { it.buildId }).forEach {
-            head("ModuleDependency")
-            nest {
-              dump(it)
-            }
-          }
-        }
-      }
-      ideDependencies.runtimeOnlyClasses.forEach { prop("RuntimeOnlyClasses") { it.path.toPrintablePath() } }
-
     }
 
     private fun dump(ideProductFlavorContainer: IdeProductFlavorContainer) {
