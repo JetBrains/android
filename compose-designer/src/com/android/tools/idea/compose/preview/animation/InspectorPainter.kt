@@ -20,6 +20,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -44,6 +45,15 @@ import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
+
+/** [ActionToolbarImpl] with enabled navigation. */
+class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnAction) : ActionToolbarImpl(place, DefaultActionGroup(action),
+                                                                                                      true) {
+  init {
+    targetComponent = surface
+    ActionToolbarUtil.makeToolbarNavigable(this)
+  }
+}
 
 /**
  * Graphics elements corresponding to painting the inspector in [AnimationInspectorPanel].
@@ -376,9 +386,9 @@ object InspectorPainter {
    * @params callback when state has changed
    */
   class StartEndComboBox
-  ( private val surface : DesignSurface,
-    private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
-    private val callback: (stateComboBox: StateComboBox) -> Unit) :
+  (private val surface: DesignSurface,
+   private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
+   private val callback: (stateComboBox: StateComboBox) -> Unit) :
     StateComboBox, JPanel(TabularLayout("Fit,Fit,Fit,Fit")) {
     //  StartEndComboBox component displays:
     //
