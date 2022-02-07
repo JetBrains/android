@@ -31,13 +31,13 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.util.ArrayList
 
 /**
- * Recommended wear device configs.
+ * We predefined some pixel devices for now.
  */
 @VisibleForTesting
-val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Small Round", "Wear OS Square","Wear OS Large Round", "Wear OS Rectangular")
+val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Square", "Wear OS Round", "Wear OS Round Chin")
 
 /**
- * This class provides the [NlModel]s with predefined Wear devices for [VisualizationForm].
+ * This class provides the [NlModel]s with predefined pixel devices for [VisualizationForm].
  */
 object WearDeviceModelsProvider: VisualizationModelsProvider {
 
