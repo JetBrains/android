@@ -15,8 +15,69 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimatedProperty
+import androidx.compose.animation.tooling.ComposeAnimation
 import org.jetbrains.annotations.VisibleForTesting
 import java.lang.reflect.Method
+
+/**
+ * Returns a list of the given [ComposeAnimation]'s animated properties. The properties are
+ * wrapped into a [ComposeAnimatedProperty] object containing the property label and the
+ * corresponding value at the current time.
+ */
+internal fun AnimationClock.getAnimatedProperties(animation: ComposeAnimation) =
+  getAnimatedPropertiesFunction.invoke(clock, animation) as List<ComposeAnimatedProperty>
+
+/**
+ * Returns the duration (ms) of the longest animation being tracked.
+ */
+internal fun AnimationClock.getMaxDurationMs(): Long = getMaxDurationFunction.invoke(clock) as Long
+
+/**
+ * Returns the longest duration (ms) per iteration among the animations being tracked. This
+ * can be different from [getMaxDurationMs], for instance, when there is one or more repeatable
+ * animations with multiple iterations.
+ */
+internal fun AnimationClock.getMaxDurationMsPerIteration(): Long {
+  return getMaxDurationPerIteration.invoke(clock) as Long
+}
+
+/**
+ * Seeks each animation being tracked to the given [clockTimeMillis].
+ */
+internal fun AnimationClock.setClockTime(clockTimeMillis: Long) {
+  setClockTimeFunction.invoke(clock, clockTimeMillis)
+}
+
+/**
+ * Seeks each animation being tracked to the given [clockTimeMillis].
+ */
+internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {
+  setClockTimesFunction?.invoke(clock, clockTimeMillis)
+}
+
+/**
+ * Updates the TransitionState corresponding to the given [ComposeAnimation] in the
+ * transitionStates map, creating a TransitionState with the given [fromState] and [toState].
+ */
+internal fun AnimationClock.updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {
+  updateFromAndToStatesFunction.invoke(clock, animation, fromState, toState)
+}
+
+/**
+ * Updates the given [ComposeAnimation]'s cached AnimatedVisibilityState with the given [state].
+ */
+internal fun AnimationClock.updateAnimatedVisibilityState(animation: ComposeAnimation, state: Any) {
+  updateAnimatedVisibilityStateFunction.invoke(clock, animation, state)
+}
+
+/**
+ * Returns the cached AnimatedVisibilityState corresponding to the given
+ * [ComposeAnimation] object. Falls back to AnimatedVisibilityState.Enter
+ * if there is no state currently mapped to the [ComposeAnimation].
+ */
+internal fun AnimationClock.getAnimatedVisibilityState(animation: ComposeAnimation): Any =
+  getAnimatedVisibilityStateFunction.invoke(clock, animation)
 
 /**
  * Wraps a `PreviewAnimationClock` and adds APIs to make it easier to call the clock's functions via reflection.
@@ -50,6 +111,11 @@ internal class AnimationClock(val clock: Any) {
    * Function `setClockTime` of [clock].
    */
   val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
+
+  /**
+   * Function `setClockTimes` of [clock].
+   */
+  val setClockTimesFunction by lazy { findClockFunctionIfExists("setClockTimes") }
 
   /**
    * Function `updateFromAndToStates` of [clock].

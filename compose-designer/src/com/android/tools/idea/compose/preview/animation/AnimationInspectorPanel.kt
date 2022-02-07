@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
@@ -247,7 +246,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore, calling `getAnimatedVisibilityState`
           // via reflection will return a String rather than an AnimatedVisibilityState. To work around that, we select the initial combo
           // box item by checking the display value.
-          state = clock.getAnimatedVisibilityStateFunction.invoke(clock.clock, animation)
+          state = clock.getAnimatedVisibilityState(animation)
         }
         tab.stateComboBox.setStartState(state)
 
@@ -273,12 +272,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val clock = animationClock ?: return
 
     if (!executeOnRenderThread(longTimeout) {
-        maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
+        maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
       }) return
     timeline.updateMaxDuration(maxDurationPerIteration)
 
     var maxDuration = DEFAULT_MAX_DURATION_MS
-    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
+    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationMs()}) return
 
     timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
       // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
@@ -431,7 +430,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val toState = stateComboBox.getState(1)
 
       if (!executeOnRenderThread(longTimeout) {
-          clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState)
+          clock.updateFromAndToStates(animation, startState, toState)
         }) return
       resetTimelineAndUpdateWindowSize(longTimeout)
     }
@@ -442,7 +441,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     fun updateAnimatedVisibility(longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       if (!executeOnRenderThread(longTimeout) {
-          clock.updateAnimatedVisibilityStateFunction.invoke(clock.clock, animation, stateComboBox.getState())
+          clock.updateAnimatedVisibilityState(animation, stateComboBox.getState())
         }) return
       resetTimelineAndUpdateWindowSize(longTimeout)
     }
@@ -504,8 +503,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
       fun getAnimatedProperties() {
         for (clockTimeMs in 0..maxDurationPerIteration step clockTimeMsStep) {
-          clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
-          val properties = clock.getAnimatedPropertiesFunction.invoke(clock.clock, animation) as List<ComposeAnimatedProperty>
+          clock.setClockTime(clockTimeMs)
+          val properties = clock.getAnimatedProperties(animation)
           for ((index, property) in properties.withIndex()) {
             ComposeUnit.parse(property)?.let { unit ->
               builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
@@ -564,7 +563,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val animClock = animationClock ?: return
       if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
       try {
-        val properties = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        val properties = animClock.getAnimatedProperties(animation)
         timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it.label, ComposeUnit.parse(it)) })
       }
       catch (e: Exception) {
@@ -846,7 +845,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      if (!executeOnRenderThread(longTimeout) { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
+      if (!executeOnRenderThread(longTimeout) { clock.setClockTime(clockTimeMs) }) return
       tab.updateProperties()
     }
 
