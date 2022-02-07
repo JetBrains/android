@@ -406,6 +406,9 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"
                               order="first"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
+    <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.AndroidWatchFaceRunMarkerContributor"/>
+    <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.AndroidWatchFaceRunMarkerContributor"/>
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
