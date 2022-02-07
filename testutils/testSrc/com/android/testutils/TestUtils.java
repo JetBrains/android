@@ -71,7 +71,7 @@ public class TestUtils {
    */
   @NonNull
   public static String getKotlinVersionForTests() {
-    String version = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion();
+    String version = KotlinPluginLayout.getInstance().getLastStableKnownCompilerVersion();
     if (version.contains("-release-")) {
       version = version.substring(0, version.indexOf("-release-"));
     }
