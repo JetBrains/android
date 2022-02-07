@@ -32,6 +32,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
 class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
@@ -170,12 +172,20 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   fun testTileProcessHandler() {
     val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
                                             Mockito.mock(ConsoleView::class.java))
-    val device = getMockDevice()
+    val countDownLatch = CountDownLatch(1)
+    val device = getMockDevice { request ->
+      if (request.contains("operation remove-tile")) {
+        countDownLatch.countDown()
+      }
+      "Mock reply: $request"
+    }
     processHandler.addDevice(device)
 
     processHandler.startNotify()
 
     processHandler.destroyProcess()
+
+    assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue()
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)

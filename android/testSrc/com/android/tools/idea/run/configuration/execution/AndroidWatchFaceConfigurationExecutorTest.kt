@@ -29,6 +29,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
@@ -135,12 +137,20 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
   fun testWatchFaceProcessHandler() {
     val processHandler = WatchFaceProcessHandler(Mockito.mock(ConsoleView::class.java))
-    val device = getMockDevice()
+    val countDownLatch = CountDownLatch(1)
+    val device = getMockDevice { request ->
+      if (request.contains("operation unset-watchface")) {
+        countDownLatch.countDown()
+      }
+      "Mock reply: $request"
+    }
     processHandler.addDevice(device)
 
     processHandler.startNotify()
 
     processHandler.destroyProcess()
+
+    assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue()
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)

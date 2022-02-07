@@ -17,9 +17,10 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.util.concurrency.AppExecutorUtil
 
 /**
- * Subclasses should implement [destroyProcessOnDevices]
+ * Subclasses should implement [destroyProcessOnDevice]
  */
 abstract class AndroidProcessHandlerForDevices : ProcessHandler() {
   val devices = mutableListOf<IDevice>()
@@ -29,8 +30,10 @@ abstract class AndroidProcessHandlerForDevices : ProcessHandler() {
   }
 
   final override fun destroyProcessImpl() {
-    devices.forEach { destroyProcessOnDevice(it) }
-    notifyProcessTerminated(0)
+    AppExecutorUtil.getAppExecutorService().submit {
+      devices.forEach { destroyProcessOnDevice(it) }
+      notifyProcessTerminated(0)
+    }
   }
 
   abstract fun destroyProcessOnDevice(device: IDevice)
