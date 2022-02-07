@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -31,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Triggers the creation of the Developer Services side panel.
  */
 public class OpenAssistSidePanelAction extends AnAction {
-
-  public static final String TOOL_WINDOW_TITLE = "Assistant";
+  public static final String TOOL_WINDOW_TITLE = "Assistant:";
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
