@@ -214,7 +214,6 @@ class SkinDefinitionTest {
       "wearos_large_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_small_round", // TODO: Remove exclusion when the skin is fixed.
       "wearos_square",
-      "wearos_rect",
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()

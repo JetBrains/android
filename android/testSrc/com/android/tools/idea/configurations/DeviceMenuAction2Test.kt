@@ -103,7 +103,6 @@ class DeviceMenuAction2Test {
     ------------------------------------------------------
     Wear
     Wear OS Small Round (192 × 192 dp, xhdpi)
-    Wear OS Rectangular (201 × 238 dp, xhdpi)
     Wear OS Square (180 × 180 dp, xhdpi)
     Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------

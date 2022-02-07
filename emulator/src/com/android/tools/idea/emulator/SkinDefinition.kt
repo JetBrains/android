@@ -431,7 +431,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
     @JvmStatic
     private fun BufferedImage.cropped(cropBounds: Rectangle): BufferedImage {
-        return getCroppedImage(this, cropBounds, -1)
+      return getCroppedImage(this, cropBounds, -1)
     }
 
     @JvmStatic
