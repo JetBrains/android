@@ -54,6 +54,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -103,24 +105,24 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    assert(!::project.isInitialized)
-    val projectName = applicationName.get()
-    val projectLocation = projectLocation.get()
-    val projectBaseDirectory = File(projectLocation)
-    project = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
-    AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
-      logger.info("Rendering a new project.")
-      NonProjectFileWritingAccessProvider.disableChecksDuring {
-        renderer(project)
-      }
-    }
+    object : Task.Modal(null, message("android.compile.messages.generating.r.java.content.name"), false) {
+      override fun run(indicator: ProgressIndicator) {
+        val projectName = applicationName.get()
+        val projectBaseDirectory = File(projectLocation.get())
+        val newProject = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+        this@NewProjectModel.project = newProject
 
-    val openProjectTask = OpenProjectTask(
-      project = project,
-      isNewProject = false,  // We have already created a new project.
-      forceOpenInNewFrame = true
-    )
-    ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
+        AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
+          logger.info("Rendering a new project.")
+          NonProjectFileWritingAccessProvider.disableChecksDuring {
+            renderer(newProject)
+          }
+        }
+
+        val openProjectTask = OpenProjectTask(project = newProject, isNewProject = false, forceOpenInNewFrame = true)
+        ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
+      }
+    }.queue()
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
@@ -172,7 +174,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       return
     }
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
-    ProjectUtil.updateLastProjectLocation(projectLocation)
+    ProjectUtil.updateLastProjectLocation(Paths.get(projectLocation))
 
     saveWizardState()
   }
