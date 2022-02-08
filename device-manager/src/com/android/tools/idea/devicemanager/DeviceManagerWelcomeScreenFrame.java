@@ -20,8 +20,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceManagerWelcomeScreenFrame extends FrameWrapper {
-  DeviceManagerWelcomeScreenFrame(@Nullable Project project) {
+public final class DeviceManagerWelcomeScreenFrame extends FrameWrapper {
+  public DeviceManagerWelcomeScreenFrame(@Nullable Project project) {
     super(project, "com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenFrame", false, "Device Manager");
     closeOnEsc();
 
