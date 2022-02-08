@@ -88,6 +88,8 @@ private const val CURSOR_NAME = "GraphicalColorPicker"
 private val COLOR_VALUE_TEXT_COLOR = Color.WHITE
 private const val COLOR_VALUE_FONT_SIZE = 9.2f
 private val COLOR_VALUE_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
+// Windows cannot handle a fully transparent color, so use the smallest non-zero alpha value
+private val COLOR_TRANSPARENT_BACKGROUND = Color(0, 0, 0, 1)
 
 /**
  * Duration of updating the color of current hovered pixel. The unit is millisecond.
@@ -160,7 +162,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
     pickerDialog.isAlwaysOnTop = alwaysOnTop
     // Don't use JBDimension here since we want to use Pixel as unit.
     pickerDialog.size = Dimension(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + COLOR_CODE_RECTANGLE_HEIGHT)
-    pickerDialog.background = UIUtil.TRANSPARENT_COLOR
+    pickerDialog.background = COLOR_TRANSPARENT_BACKGROUND
     pickerDialog.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
     val rootPane = pickerDialog.rootPane
