@@ -24,56 +24,8 @@ import java.io.Serializable
  * The implementation of IdeLibrary for Android libraries.
  **/
 data class IdeAndroidLibraryImpl(
-  private val core: IdeAndroidLibraryCore,
-  override val name: String
-) : IdeAndroidLibrary by core, Serializable {
-  @VisibleForTesting
-  constructor(
-    artifactAddress: String,
-    name: String,
-    folder: File,
-    manifest: String,
-    compileJarFiles: List<String>,
-    runtimeJarFiles: List<String>,
-    resFolder: String,
-    resStaticLibrary: File?,
-    assetsFolder: String,
-    jniFolder: String,
-    aidlFolder: String,
-    renderscriptFolder: String,
-    proguardRules: String,
-    lintJar: String,
-    externalAnnotations: String,
-    publicResources: String,
-    artifact: File,
-    symbolFile: String
-  ) : this(
-    IdeAndroidLibraryCore.create(
-      artifactAddress,
-      folder,
-      manifest,
-      compileJarFiles,
-      runtimeJarFiles,
-      resFolder,
-      resStaticLibrary,
-      assetsFolder,
-      jniFolder,
-      aidlFolder,
-      renderscriptFolder,
-      proguardRules,
-      lintJar,
-      externalAnnotations,
-      publicResources,
-      artifact,
-      symbolFile,
-      deduplicate = { this }
-    ),
-    name
-  )
-}
-
-data class IdeAndroidLibraryCore(
   override val artifactAddress: String,
+  override val name: String,
   override val folder: File,
   private val _manifest: String,
   private val _compileJarFiles: List<String>,
@@ -93,8 +45,10 @@ data class IdeAndroidLibraryCore(
 ) : IdeAndroidLibrary, Serializable {
 
   // Used for serialization by the IDE.
-  internal constructor() : this(
+  @VisibleForTesting
+  constructor() : this(
     artifactAddress = "",
+    name = "",
     folder = File(""),
     _manifest = "",
     _compileJarFiles = mutableListOf(),
@@ -131,12 +85,10 @@ data class IdeAndroidLibraryCore(
   override val artifact: File get() = _artifact.translate()
   override val symbolFile: File get() = _symbolFile.translate()
 
-  override val name: String
-    get() = ""
-
   companion object {
     fun create(
       artifactAddress: String,
+      name: String,
       folder: File,
       manifest: String,
       compileJarFiles: List<String>,
@@ -154,12 +106,13 @@ data class IdeAndroidLibraryCore(
       artifact: File,
       symbolFile: String,
       deduplicate: String.() -> String
-    ): IdeAndroidLibraryCore {
+    ): IdeAndroidLibraryImpl {
       fun String.makeRelative(): String = File(this).relativeToOrSelf(folder).path.deduplicate()
       fun File.makeRelative(): String = this.relativeToOrSelf(folder).path.deduplicate()
 
-      return IdeAndroidLibraryCore(
+      return IdeAndroidLibraryImpl(
         artifactAddress = artifactAddress,
+        name = name,
         folder = folder,
         _manifest = manifest.makeRelative(),
         _compileJarFiles = compileJarFiles.map { it.makeRelative() },

@@ -57,7 +57,7 @@ class GradleModelConverterUtilTest {
 
   @Test
   fun testConvertAndroidLibrary() {
-    val original = IdeAndroidLibraryImpl(
+    val original = IdeAndroidLibraryImpl.create(
       artifactAddress = "artifact:address:1.0",
       name = "artifact:address:1.0",
       folder = File("libraryFolder"),
@@ -76,6 +76,7 @@ class GradleModelConverterUtilTest {
       publicResources = "publicResources",
       artifact = File("artifactFile"),
       symbolFile = "symbolFile",
+      deduplicate = { this }
     )
     val result = convertLibraryToExternalLibrary(original)
 

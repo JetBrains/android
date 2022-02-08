@@ -24,30 +24,17 @@ import java.io.Serializable
  * The implementation of IdeLibrary for Java libraries.
  **/
 data class IdeJavaLibraryImpl(
-  private val core: IdeJavaLibraryCore,
-  override val name: String
-) : IdeJavaLibrary by core, Serializable {
-  @VisibleForTesting
-  constructor(
-    artifactAddress: String,
-    name: String,
-    artifact: File
-  ) : this(IdeJavaLibraryCore(artifactAddress, artifact), name)
-}
-
-data class IdeJavaLibraryCore(
   override val artifactAddress: String,
+  override val name: String,
   override val artifact: File
 ) : IdeJavaLibrary, Serializable {
   // Used for serialization by the IDE.
   internal constructor() : this(
     artifactAddress = "",
+    name = "",
     artifact = File("")
   )
 
   override val lintJar: File?
     get() = null
-
-  override val name: String
-    get() = ""
 }

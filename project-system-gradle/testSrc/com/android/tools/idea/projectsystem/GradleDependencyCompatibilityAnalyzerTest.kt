@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
@@ -494,26 +493,24 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 private fun ideAndroidLibrary(artifactAddress: String) =
   IdeAndroidLibraryDependencyImpl(
     IdeAndroidLibraryImpl(
+      artifactAddress = artifactAddress,
       name = artifactAddress,
-      core = IdeAndroidLibraryCore(
-        artifactAddress = artifactAddress,
-        folder = File("libraryFolder").resolve(artifactAddress.replace(':', '-')),
-        _manifest = "manifest.xml",
-        _compileJarFiles = listOf("file.jar"),
-        _runtimeJarFiles = listOf("api.jar"),
-        _resFolder = "res",
-        _resStaticLibrary = "libraryFolder/res.apk",
-        _assetsFolder = "assets",
-        _jniFolder = "jni",
-        _aidlFolder = "aidl",
-        _renderscriptFolder = "renderscriptFolder",
-        _proguardRules = "proguardRules",
-        _lintJar = "lint.jar",
-        _externalAnnotations = "externalAnnotations",
-        _publicResources = "publicResources",
-        _artifact = "artifactFile",
-        _symbolFile = "symbolFile"
-      )
+      folder = File("libraryFolder").resolve(artifactAddress.replace(':', '-')),
+      _manifest = "manifest.xml",
+      _compileJarFiles = listOf("file.jar"),
+      _runtimeJarFiles = listOf("api.jar"),
+      _resFolder = "res",
+      _resStaticLibrary = "libraryFolder/res.apk",
+      _assetsFolder = "assets",
+      _jniFolder = "jni",
+      _aidlFolder = "aidl",
+      _renderscriptFolder = "renderscriptFolder",
+      _proguardRules = "proguardRules",
+      _lintJar = "lint.jar",
+      _externalAnnotations = "externalAnnotations",
+      _publicResources = "publicResources",
+      _artifact = "artifactFile",
+      _symbolFile = "symbolFile"
     ),
     isProvided = false
   )

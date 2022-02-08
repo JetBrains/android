@@ -416,7 +416,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
                                                                    String folder,
                                                                    String libJar) {
     return new IdeAndroidLibraryDependencyImpl(
-      new IdeAndroidLibraryImpl(
+      IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
         artifactAddress,
         gradleCacheRoot.toPath().resolve(folder).toFile(),
@@ -434,7 +434,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
         "externalAnnotations",
         "publicResources",
         gradleCacheRoot.toPath().resolve("artifactFile").toFile(),
-        "symbolFile"),
+        "symbolFile",
+        it -> it
+      ),
       false);
   }
 }

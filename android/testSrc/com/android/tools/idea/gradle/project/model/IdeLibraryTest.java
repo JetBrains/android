@@ -28,9 +28,7 @@ import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeLibrary;
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths;
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.model.stubs.AndroidLibraryStub;
@@ -49,135 +47,7 @@ import org.junit.Test;
 /** Tests for {@link IdeLibrary}. */
 public class IdeLibraryTest {
 
-    @Test
-    public void createModuleAndJavaLibraries() {
-        JavaLibrary javaLibraryA = new JavaLibraryStub() {
-                    @Override
-                    @Nullable
-                    public String getProject() {
-                        return null;
-                    }
-
-                    @Override
-                    @NonNull
-                    public MavenCoordinates getResolvedCoordinates() {
-                        return new MavenCoordinatesStub("com", "java", "A", "jar");
-                    }
-                };
-        JavaLibrary javaLibraryB = new JavaLibraryStub() {
-                    @Override
-                    @Nullable
-                    public String getProject() {
-                        return null;
-                    }
-
-                    @Override
-                    @NonNull
-                    public List<? extends JavaLibrary> getDependencies() {
-                        return singletonList(javaLibraryA);
-                    }
-
-                    @Override
-                    @NonNull
-                    public MavenCoordinates getResolvedCoordinates() {
-                        return new MavenCoordinatesStub("com", "java", "B", "jar");
-                    }
-                };
-
-        ProjectIdentifier identifier1 =
-                new ProjectIdentifier() {
-                    @NonNull
-                    @Override
-                    public String getBuildId() {
-                        return "/root/project1";
-                    }
-
-                    @NonNull
-                    @Override
-                    public String getProjectPath() {
-                        return ":";
-                    }
-                };
-
-        ProjectIdentifier identifier2 =
-                new ProjectIdentifier() {
-                    @NonNull
-                    @Override
-                    public String getBuildId() {
-                        return "/root/project2";
-                    }
-
-                    @NonNull
-                    @Override
-                    public String getProjectPath() {
-                        return ":";
-                    }
-                };
-
-        String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
-        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates);
-
-        String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
-        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates);
-
-        IdeModuleLibraryImpl ideLibrary1 = new IdeModuleLibraryImpl(
-          identifier1.getProjectPath(),
-          identifier1.getBuildId()
-        );
-
-        IdeModuleLibraryImpl ideLibrary2 = new IdeModuleLibraryImpl(
-          identifier2.getProjectPath(),
-          identifier2.getBuildId()
-        );
-
-        assertThat(
-                        ImmutableList.of(ideJavaLibraryA, ideJavaLibraryB).stream()
-                                .map(IdeArtifactLibrary::getArtifactAddress)
-                                .collect(Collectors.toList()))
-                .containsExactly("com:java:A@jar", "com:java:B@jar");
-
-        assertThat(
-          ImmutableList.of(ideLibrary1, ideLibrary2).stream()
-                                .map(library -> library.getBuildId() + "@@" + library.getProjectPath())
-                                .collect(Collectors.toList()))
-                .containsExactly("/root/project1@@:", "/root/project2@@:");
-    }
-
-    @Test
-    public void createLibrariesKeepInsertionOrder() {
-        JavaLibrary javaLibraryA = createJavaLibrary("A");
-        JavaLibrary javaLibraryB = createJavaLibrary("B");
-        JavaLibrary javaLibraryC = createJavaLibrary("C");
-        JavaLibrary javaLibraryD = createJavaLibrary("D");
-
-        String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
-        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates);
-
-        String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
-        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates);
-
-        String cCoordinates = computeCoordinates(javaLibraryC.getResolvedCoordinates());
-        IdeJavaLibraryCore coreC = new IdeJavaLibraryCore(cCoordinates, javaLibraryC.getJarFile());
-        IdeJavaLibrary ideJavaLibraryC = new IdeJavaLibraryImpl(coreC, cCoordinates);
-
-        String dCoordinates = computeCoordinates(javaLibraryD.getResolvedCoordinates());
-        IdeJavaLibraryCore coreD = new IdeJavaLibraryCore(dCoordinates, javaLibraryD.getJarFile());
-        IdeJavaLibrary ideJavaLibraryD = new IdeJavaLibraryImpl(coreD, dCoordinates);
-
-        assertThat(
-          ImmutableList.of(ideJavaLibraryD, ideJavaLibraryB, ideJavaLibraryC, ideJavaLibraryA).stream()
-                                .map(IdeArtifactLibrary::getArtifactAddress)
-                                .collect(Collectors.toList()))
-                .containsExactly(
-                        "com:java:D@jar", "com:java:B@jar", "com:java:C@jar", "com:java:A@jar")
-                .inOrder();
-    }
-
-    @Test
+  @Test
     public void computeMavenAddress() {
       Library library = new LibraryStub() {
         @Override
@@ -352,24 +222,7 @@ public class IdeLibraryTest {
     Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, externalLibrary));
   }
 
-    @NonNull
-    private static JavaLibrary createJavaLibrary(@NonNull String version) {
-        return new com.android.tools.idea.gradle.model.stubs.JavaLibraryStub() {
-            @Override
-            @Nullable
-            public String getProject() {
-                return null;
-            }
-
-            @Override
-            @NonNull
-            public MavenCoordinates getResolvedCoordinates() {
-                return new MavenCoordinatesStub("com", "java", version, "jar");
-            }
-        };
-    }
-
-    private String computeCoordinates(MavenCoordinates coordinate) {
+  private String computeCoordinates(MavenCoordinates coordinate) {
       String artifactId = coordinate.getArtifactId();
       if (artifactId.startsWith(":")) {
         artifactId = artifactId.substring(1);

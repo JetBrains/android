@@ -174,7 +174,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
 
   @Test
   fun testLevel2AndroidLibrary() = assertSerializable {
-    IdeAndroidLibraryImpl(
+    IdeAndroidLibraryImpl.create(
       "artifactAddress",
       "name",
       File("folder"),
@@ -193,13 +193,14 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       "publicResources",
       File("artifactFile"),
       "symbolFile",
+      deduplicate = { this }
     )
   }
 
   @Test
   fun testLevel2AndroidLibraryDependency() = assertSerializable {
     IdeAndroidLibraryDependencyImpl(
-      IdeAndroidLibraryImpl(
+      IdeAndroidLibraryImpl.create(
         "artifactAddress",
         "name",
         File("folder"),
@@ -218,6 +219,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
         "publicResources",
         File("artifactFile"),
         "symbolFile",
+        deduplicate = { this }
       ),
       true
     )

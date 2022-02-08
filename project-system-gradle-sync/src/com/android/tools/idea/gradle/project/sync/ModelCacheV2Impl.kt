@@ -93,10 +93,9 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryCore
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
@@ -107,10 +106,9 @@ import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl
@@ -155,8 +153,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   // One is when the library is used as a regular dependency and one when it is used as a "provided" dependency. This is going to change
   // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
-  val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, IdeAndroidLibrary> = HashMap()
-  val javaLibraryCores: MutableMap<IdeJavaLibraryCore, IdeJavaLibrary> = HashMap()
+  val androidLibraryCores: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
+  val javaLibraryCores: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
   val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
 
 
@@ -167,12 +165,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  fun <TCore : IdeArtifactLibrary, TLibrary : IdeArtifactLibrary> MutableMap<TCore, TLibrary>.createOrGetNamedLibrary(
+  fun <TCore : IdeArtifactLibrary> MutableMap<TCore, TCore>.createOrGetNamedLibrary(
     core: TCore,
-    factory: (core: TCore, name: String) -> TLibrary
-  ): TLibrary {
+    factory: (core: TCore, name: String) -> TCore
+  ): TCore {
     return computeIfAbsent(core) {
-      val libraryName = allocatedLibraryNames.generateLibraryName(core, projectBasePath = buildRootDirectory!!)
+      val libraryName = allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory!!, artifactAddress = core.artifactAddress)
       factory(core, libraryName)
     }
   }
@@ -440,8 +438,10 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     val androidLibraryData = androidLibrary.androidLibraryData ?: error("androidLibraryData missing for ${androidLibrary.key}")
 
-    val core = IdeAndroidLibraryCore.create(
-      artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar",
+    val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar"
+    val core = IdeAndroidLibraryImpl.create(
+      artifactAddress = artifactAddress,
+      name = "",
       folder = androidLibraryData.resFolder.parentFile.deduplicateFile() ?: File(""), // TODO: verify this always true
 
       artifact = androidLibrary.artifact ?: File(""),
@@ -462,7 +462,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       symbolFile = androidLibraryData.symbolFile.path,
       deduplicate = { strings.getOrPut(this) { this } }
     )
-    return androidLibraryCores.createOrGetNamedLibrary(core, ::IdeAndroidLibraryImpl)
+    return androidLibraryCores.createOrGetNamedLibrary(core) { unnamed, name -> unnamed.copy(name = name) }
   }
 
   /**
@@ -471,11 +471,13 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    */
   fun javaLibraryFrom(javaLibrary: Library): IdeJavaLibrary {
     val libraryInfo = javaLibrary.libraryInfo ?: error("libraryInfo missing for ${javaLibrary.key}")
-    val core = IdeJavaLibraryCore(
-      artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@jar",
+    val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@jar"
+    val unnamed = IdeJavaLibraryImpl(
+      artifactAddress = artifactAddress,
+      name = "",
       artifact = javaLibrary.artifact!!
     )
-    return javaLibraryCores.createOrGetNamedLibrary(core, ::IdeJavaLibraryImpl)
+    return javaLibraryCores.createOrGetNamedLibrary(unnamed) { core, name -> core.copy(name = name) }
   }
 
   fun libraryFrom(
@@ -1170,8 +1172,8 @@ private inline fun <K, R, V> zip(original1: Collection<K>, original2: Collection
 
 private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
 
-private fun MutableSet<String>.generateLibraryName(core: IdeArtifactLibrary, projectBasePath: File): String {
-  val baseLibraryName = convertToLibraryName(core.artifactAddress, projectBasePath)
+private fun MutableSet<String>.generateLibraryName(projectBasePath: File, artifactAddress: String): String {
+  val baseLibraryName = convertToLibraryName(artifactAddress, projectBasePath)
   var candidateLibraryName = baseLibraryName
   var suffix = 0
   while (!this.add(candidateLibraryName)) {

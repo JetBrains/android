@@ -91,7 +91,6 @@ import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
@@ -105,7 +104,6 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
@@ -144,8 +142,8 @@ import kotlin.concurrent.withLock
 internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
   val strings: MutableMap<String, String> = HashMap()
-  val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, IdeAndroidLibraryCore> = HashMap()
-  val javaLibraryCores: MutableMap<IdeJavaLibraryCore, IdeJavaLibraryCore> = HashMap()
+  val androidLibraryCores: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
+  val javaLibraryCores: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
   val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
 
   val androidLibraries: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
@@ -429,8 +427,10 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       IdeModuleDependencyImpl(createIdeModuleLibrary(androidLibrary, projectPath))
     }
     else {
-      val core = IdeAndroidLibraryCore.create(
-        artifactAddress = computeAddress(androidLibrary),
+      val artifactAddress = computeAddress(androidLibrary)
+      val core = IdeAndroidLibraryImpl.create(
+        artifactAddress = artifactAddress,
+        name = convertToLibraryName(artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
         folder = androidLibrary.folder,
         manifest = androidLibrary.manifest.path,
         compileJarFiles = listOfNotNull(
@@ -453,12 +453,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
       IdeAndroidLibraryDependencyImpl(
-        androidLibraries.internCore(
-          IdeAndroidLibraryImpl(
-            core = androidLibraryCores.internCore(core),
-            name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
-          )
-        ),
+        androidLibraries.internCore(androidLibraryCores.internCore(core)),
         isProvided = isProvided
       )
     }
@@ -475,19 +470,16 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       IdeModuleDependencyImpl(createIdeModuleLibrary(javaLibrary, project))
     }
     else {
-      val core = IdeJavaLibraryCore(
-        artifactAddress = computeAddress(javaLibrary),
+      val artifactAddress = computeAddress(javaLibrary)
+      val core = IdeJavaLibraryImpl(
+        artifactAddress = artifactAddress,
+        name = convertToLibraryName(artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
         artifact = javaLibrary.jarFile
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
       IdeJavaLibraryDependencyImpl(
-        javaLibraries.internCore(
-          IdeJavaLibraryImpl(
-            core = javaLibraryCores.internCore(core),
-            name = convertToLibraryName(core.artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
-          )
-        ),
+        javaLibraries.internCore(javaLibraryCores.internCore(core)),
         isProvided = isProvided
       )
     }

@@ -218,7 +218,7 @@ private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
 
 private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
   IdeAndroidLibraryDependencyImpl(
-    IdeAndroidLibraryImpl(
+    IdeAndroidLibraryImpl.create(
       artifactAddress = artifactAddress,
       name = artifactAddress,
       folder = gradleCacheRoot.resolve(File("libraryFolder")),
@@ -236,7 +236,8 @@ private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
       externalAnnotations = "externalAnnotations",
       publicResources = "publicResources",
       artifact = gradleCacheRoot.resolve(File("artifactFile")),
-      symbolFile = "symbolFile"
+      symbolFile = "symbolFile",
+      deduplicate = { this }
     ),
     isProvided = false
   )
