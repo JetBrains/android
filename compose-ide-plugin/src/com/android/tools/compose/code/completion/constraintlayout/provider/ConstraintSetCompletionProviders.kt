@@ -155,6 +155,30 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
   }
 }
 
+/**
+ * Provides IDs when autocompleting a constraint array.
+ *
+ * The ID may be either 'parent' or any of the declared IDs in all ConstraintSets, except the ID of the constraints block from which this
+ * provider was invoked.
+ */
+internal object ConstraintIdsProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    val possibleIds = constraintSetsPropertyModel.constraintSets.flatMap { it.declaredIds }.toCollection(HashSet())
+    // Parent ID should always be present
+    possibleIds.add(KeyWords.ParentId)
+    // Remove the current ID
+    getJsonPropertyParent(parameters)?.name?.let(possibleIds::remove)
+
+    possibleIds.forEach { id ->
+      result.addLookupElement(id)
+    }
+  }
+}
+
 private fun CompletionResultSet.addLookupElement(name: String, tailText: String? = null, format: InsertionFormat? = null) {
   var lookupBuilder = if (format == null) {
     LookupElementBuilder.create(name)

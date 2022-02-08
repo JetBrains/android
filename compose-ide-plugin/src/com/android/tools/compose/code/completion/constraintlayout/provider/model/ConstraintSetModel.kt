@@ -26,6 +26,11 @@ import com.intellij.json.psi.JsonStringLiteral
  */
 internal class ConstraintSetModel(jsonProperty: JsonProperty) : BaseJsonPropertyModel(jsonProperty) {
   /**
+   * List of properties that have a constraint block assigned to it.
+   */
+  private val propertiesWithConstraints = innerProperties.filter { it.name != KeyWords.Extends }
+
+  /**
    * Name of the ConstraintSet.
    */
   val name: String? = elementPointer.element?.name
@@ -36,12 +41,17 @@ internal class ConstraintSetModel(jsonProperty: JsonProperty) : BaseJsonProperty
   val extendsFrom: String? = (findProperty(KeyWords.Extends)?.value as? JsonStringLiteral)?.value
 
   /**
+   * List of IDs declared in this ConstraintSet.
+   */
+  val declaredIds = propertiesWithConstraints.map { it.name }
+
+  /**
    * The constraints (by widget ID) explicitly declared in this ConstraintSet.
    *
    * Note that it does not resolve constraints inherited from [extendsFrom].
    */
   val constraintsById: Map<String, ConstraintsModel> =
-    innerProperties.associate { property ->
+    propertiesWithConstraints.associate { property ->
       property.name to ConstraintsModel(property)
     }
 

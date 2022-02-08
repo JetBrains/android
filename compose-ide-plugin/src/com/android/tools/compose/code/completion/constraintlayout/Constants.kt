@@ -18,6 +18,7 @@ package com.android.tools.compose.code.completion.constraintlayout
 internal object KeyWords {
   const val ConstraintSets = "ConstraintSets"
   const val Extends = "Extends"
+  const val ParentId = "parent"
 }
 
 /**
