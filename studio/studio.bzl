@@ -1,3 +1,4 @@
+load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo")
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
@@ -77,12 +78,10 @@ def _module_deps(ctx, jar_names, modules):
         jar_file = ctx.actions.declare_file(j)
         modules_jars = []
         for m in ms:
-            if not hasattr(m, "module"):
-                fail("Only iml_modules are allowed in modules")
-            if m.module.plugin:
+            if m[ImlModuleInfo].plugin:
                 plugin_jar = j
-                plugin_xml = m.module.plugin
-            modules_jars += [m.module.module_jars]
+                plugin_xml = m[ImlModuleInfo].plugin
+            modules_jars += [m[ImlModuleInfo].module_jars]
 
         run_singlejar(ctx, modules_jars, jar_file)
         res_files += [(j, jar_file)]
@@ -192,9 +191,9 @@ def _studio_plugin_impl(ctx):
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
     need = depset(transitive =
-                      [m.module.module_deps for m in ctx.attr.modules] +
-                      [m.module.plugin_deps for m in ctx.attr.modules] +
-                      [m.module.external_deps for m in ctx.attr.modules])
+                      [m[ImlModuleInfo].module_deps for m in ctx.attr.modules] +
+                      [m[ImlModuleInfo].plugin_deps for m in ctx.attr.modules] +
+                      [m[ImlModuleInfo].external_deps for m in ctx.attr.modules])
     have = depset(
         direct = ctx.attr.modules + ctx.attr.libs,
         transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
@@ -223,7 +222,7 @@ def _studio_plugin_impl(ctx):
 
 _studio_plugin = rule(
     attrs = {
-        "modules": attr.label_list(allow_empty = False),
+        "modules": attr.label_list(providers = [ImlModuleInfo], allow_empty = False),
         "libs": attr.label_list(allow_files = True),
         "licenses": attr.label_list(allow_files = True),
         "jars": attr.string_list(),

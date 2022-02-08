@@ -103,9 +103,9 @@ iml_module(
     ],
 )
 
-filegroup(
+alias(
     name = "native_artifacts",
-    srcs = ["//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so"],
+    actual = "//tools/adt/idea/android-uitests/native/testing:layout_inspector_test_support",
 )
 
 # TODO (b/191383051): Trim artifacts down to what is actually used.
