@@ -4,6 +4,22 @@ load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
+PluginInfo = provider(
+    doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
+    fields = {
+        "directory": "where to place this plugin within the plugins directory",
+        "plugin_metadata": "metadata produced by the check_plugin tool",
+        "module_deps": "ImlModuleInfo for modules included in this plugin",
+        "lib_deps": "libraries to be included in this plugin",
+        "licenses": "",
+        "files": "zipped files to copy into the plugin directory",
+        "files_linux": "",
+        "files_mac": "",
+        "files_mac_arm": "",
+        "files_win": "",
+    },
+)
+
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
     zipper_files = [r + "=" + (f.path if f else "") + "\n" for r, f in map]
@@ -135,11 +151,11 @@ def _resource_deps(res_dirs, res, platform):
 def _check_plugin(ctx, files, external_xmls = [], verify_id = None, verify_deps = None):
     deps = None
     if verify_deps != None:
-        deps = [dep.plugin_info for dep in verify_deps if hasattr(dep, "plugin_info")]
+        deps = [dep[PluginInfo].plugin_metadata for dep in verify_deps]
 
-    plugin_info = ctx.actions.declare_file(ctx.attr.name + ".info")
+    plugin_metadata = ctx.actions.declare_file(ctx.attr.name + ".info")
     check_args = ctx.actions.args()
-    check_args.add("--out", plugin_info)
+    check_args.add("--out", plugin_metadata)
     check_args.add_all("--files", files)
     if verify_id:
         check_args.add("--plugin_id", verify_id)
@@ -149,22 +165,22 @@ def _check_plugin(ctx, files, external_xmls = [], verify_id = None, verify_deps 
 
     ctx.actions.run(
         inputs = files + (deps if deps else []),
-        outputs = [plugin_info],
+        outputs = [plugin_metadata],
         executable = ctx.executable._check_plugin,
         arguments = [check_args],
         progress_message = "Analyzing %s plugin..." % ctx.attr.name,
         mnemonic = "chkplugin",
     )
-    return plugin_info
+    return plugin_metadata
 
-def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_info, out):
+def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_metadata, out):
     spec = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     spec += [(plugin_dir + "/" + d, f) for (d, f) in res]
 
     files = [f for (p, f) in spec]
-    _zipper(ctx, "%s plugin" % platform.name, spec, out, [plugin_info])
+    _zipper(ctx, "%s plugin" % platform.name, spec, out, [plugin_metadata])
 
 def _depset_subtract(depset1, depset2):
     dict1 = {e1: None for e1 in depset1.to_list()}
@@ -174,11 +190,11 @@ def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
-    plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
-    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
-    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
-    _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac_arm)
-    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_win)
+    plugin_metadata = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
+    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_linux)
+    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_mac)
+    _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_mac_arm)
+    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_win)
 
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
@@ -188,27 +204,29 @@ def _studio_plugin_impl(ctx):
                       [m[ImlModuleInfo].external_deps for m in ctx.attr.modules])
     have = depset(
         direct = ctx.attr.modules + ctx.attr.libs,
-        transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
-                     [d.lib_deps for d in ctx.attr.deps if hasattr(d, "lib_deps")] +
-                     [depset([p for p in ctx.attr.deps if hasattr(p, "plugin_info")])],
+        transitive = [d[PluginInfo].module_deps for d in ctx.attr.deps] +
+                     [d[PluginInfo].lib_deps for d in ctx.attr.deps] +
+                     [depset(ctx.attr.deps)],
     )
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
         fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
-    return struct(
-        directory = ctx.attr.directory,
-        files = depset(),
-        files_linux = depset([ctx.outputs.plugin_linux]),
-        files_mac = depset([ctx.outputs.plugin_mac]),
-        files_mac_arm = depset([ctx.outputs.plugin_mac_arm]),
-        files_win = depset([ctx.outputs.plugin_win]),
-        plugin_info = plugin_info,
-        module_deps = depset(ctx.attr.modules),
-        lib_deps = depset(ctx.attr.libs),
-        licenses = depset(ctx.files.licenses),
-    )
+    return [
+        PluginInfo(
+            directory = ctx.attr.directory,
+            files = depset(),
+            files_linux = depset([ctx.outputs.plugin_linux]),
+            files_mac = depset([ctx.outputs.plugin_mac]),
+            files_mac_arm = depset([ctx.outputs.plugin_mac_arm]),
+            files_win = depset([ctx.outputs.plugin_win]),
+            plugin_metadata = plugin_metadata,
+            module_deps = depset(ctx.attr.modules),
+            lib_deps = depset(ctx.attr.libs),
+            licenses = depset(ctx.files.licenses),
+        ),
+    ]
 
 _studio_plugin = rule(
     attrs = {
@@ -220,7 +238,7 @@ _studio_plugin = rule(
         "resources_dirs": attr.string_list(),
         "directory": attr.string(),
         "compress": attr.bool(),
-        "deps": attr.label_list(),
+        "deps": attr.label_list(providers = [PluginInfo]),
         "external_xmls": attr.string_list(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
@@ -523,12 +541,12 @@ def _android_studio_os(ctx, platform, out):
 
     licenses = []
     for p in ctx.attr.plugins:
-        plugin_zip = platform.get(p)[0]
+        plugin_zip = platform.get(p[PluginInfo])[0]
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin_zip.basename)
         _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
         overrides += [(platform_prefix + platform.base_path, stamp)]
         zips += [(platform_prefix + platform.base_path, plugin_zip)]
-        licenses += [p.licenses]
+        licenses += [p[PluginInfo].licenses]
 
     files += [(platform.base_path + "license/" + f.basename, f) for f in depset([], transitive = licenses).to_list()]
 
@@ -557,7 +575,7 @@ script_template = """\
 """
 
 def _android_studio_impl(ctx):
-    plugins = [plugin.directory for plugin in ctx.attr.plugins]
+    plugins = [plugin[PluginInfo].directory for plugin in ctx.attr.plugins]
     ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
 
     _android_studio_os(ctx, LINUX, ctx.outputs.linux)
@@ -587,7 +605,7 @@ _android_studio = rule(
     attrs = {
         "platform": attr.label(),
         "jre": attr.label(),
-        "plugins": attr.label_list(),
+        "plugins": attr.label_list(providers = [PluginInfo]),
         "searchable_options": attr.label(),
         "version_micro": attr.int(),
         "version_patch": attr.int(),
@@ -658,11 +676,22 @@ def _intellij_plugin_impl(ctx):
     infos = [export[JavaInfo] for export in ctx.attr.exports]
     java_info = java_common.merge(infos)
     jar_files = java_info.runtime_output_jars
-    plugin_info = _check_plugin(ctx, jar_files)
-    return struct(
-        providers = [java_info],
-        plugin_info = plugin_info,
-    )
+    plugin_metadata = _check_plugin(ctx, jar_files)
+    return [
+        java_info,
+        PluginInfo(
+            directory = None,  # This plugin is already part of intellij-sdk.
+            files = depset(),
+            files_linux = depset(),
+            files_mac = depset(),
+            files_mac_arm = depset(),
+            files_win = depset(),
+            plugin_metadata = plugin_metadata,
+            module_deps = depset(),
+            lib_deps = depset(),
+            licenses = depset(),
+        ),
+    ]
 
 _intellij_plugin = rule(
     attrs = {
