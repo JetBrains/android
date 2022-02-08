@@ -21,11 +21,19 @@ internal object KeyWords {
 }
 
 /**
- * The basic supported anchors used to constrain a widget.
+ * Common interface to simplify handling multiple enum Classes.
  *
- * @param keyWord The case-sensitive string used in the syntax
+ * [keyWord] is the case-sensitive string used in the syntax.
  */
-internal enum class StandardAnchor(val keyWord: String) {
+internal interface ConstraintLayoutKeyWord {
+  val keyWord: String
+}
+
+//region Constrain KeyWords
+/**
+ * The classic anchors used to constrain a widget.
+ */
+internal enum class StandardAnchor(override val keyWord: String): ConstraintLayoutKeyWord {
   Start("start"),
   Left("left"),
   End("end"),
@@ -34,3 +42,38 @@ internal enum class StandardAnchor(val keyWord: String) {
   Bottom("bottom"),
   Baseline("baseline")
 }
+
+/**
+ * Non-typical anchors.
+ *
+ * These implicitly apply multiple [StandardAnchor]s.
+ */
+internal enum class SpecialAnchor(override val keyWord: String): ConstraintLayoutKeyWord {
+  Center("center"),
+  CenterH("centerHorizontally"),
+  CenterV("centerVertically")
+}
+
+/**
+ * Supported keywords to define the dimension of a widget.
+ */
+internal enum class Dimension(override val keyWord: String): ConstraintLayoutKeyWord {
+  Width("width"),
+  Height("height")
+}
+
+/**
+ * Keywords to apply rendering time transformations to a widget.
+ */
+internal enum class RenderTransform(override val keyWord: String): ConstraintLayoutKeyWord {
+  Alpha("alpha"),
+  ScaleX("scaleX"),
+  ScaleY("scaleY"),
+  RotationX("rotationX"),
+  RotationY("rotationY"),
+  RotationZ("rotationZ"),
+  TranslationX("translationX"),
+  TranslationY("translationY"),
+  TranslationZ("translationZ"),
+}
+//endregion

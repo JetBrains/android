@@ -51,6 +51,8 @@ internal class LiveTemplateFormat(templateFormat: String) : InsertionFormat(temp
 
 internal val JsonStringValueTemplate = LiteralWithCaretFormat(": '|',")
 
+internal val JsonNumericValueTemplate = LiteralWithCaretFormat(": |,")
+
 internal val JsonNewObjectTemplate = LiteralNewLineFormat(": {\n}")
 
 internal val ConstrainAnchorTemplate = LiveTemplateFormat(": ['<>', '<>', <0>],")

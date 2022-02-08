@@ -97,7 +97,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
   }
 
   @Test
-  fun completeConstraintAnchors() {
+  fun completeConstraintBlockFields() {
     @Language("JSON5")
     val content =
       """
@@ -115,8 +115,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     myFixture.configureByText("myscene.json", content)
     myFixture.completeBasic()
     val lookupElements = myFixture.lookupElementStrings!!
-    assertThat(lookupElements).hasSize(4)
-    assertThat(lookupElements).containsExactly("baseline", "bottom", "end", "top")
+    assertThat(lookupElements).hasSize(18)
+    assertThat(lookupElements).containsNoDuplicates()
+
+    assertThat(lookupElements).doesNotContain("start")
+    assertThat(lookupElements).doesNotContain("left")
+    assertThat(lookupElements).doesNotContain("right")
   }
 
   @Test

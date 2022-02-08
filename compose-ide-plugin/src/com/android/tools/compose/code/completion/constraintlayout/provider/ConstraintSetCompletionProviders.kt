@@ -16,13 +16,18 @@
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
+import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
+import com.android.tools.compose.code.completion.constraintlayout.Dimension
 import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
+import com.android.tools.compose.code.completion.constraintlayout.JsonNumericValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
 import com.android.tools.compose.code.completion.constraintlayout.LiteralNewLineFormat
 import com.android.tools.compose.code.completion.constraintlayout.LiteralWithCaretFormat
 import com.android.tools.compose.code.completion.constraintlayout.LiveTemplateFormat
+import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
+import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithCaretInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithLiveTemplateInsertHandler
@@ -144,7 +149,9 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
         result.addLookupElement(name = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
       }
     }
-    // TODO(b/207030860): Add all other supported fields
+    result.addStringValueCompletions<SpecialAnchor>(existingFields)
+    result.addNumericValueCompletions<Dimension>(existingFields)
+    result.addNumericValueCompletions<RenderTransform>(existingFields)
   }
 }
 
@@ -165,4 +172,37 @@ private fun CompletionResultSet.addLookupElement(name: String, tailText: String?
     lookupBuilder = lookupBuilder.withTailText(tailText, true)
   }
   addElement(lookupBuilder)
+}
+
+/**
+ * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a string for its value.
+ */
+private inline fun <reified E> CompletionResultSet.addStringValueCompletions(
+  existing: Set<String>
+) where E : Enum<E>, E : ConstraintLayoutKeyWord {
+  addCompletions<E>(this, existing, JsonStringValueTemplate)
+}
+
+/**
+ * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a number for its value.
+ */
+private inline fun <reified E> CompletionResultSet.addNumericValueCompletions(
+  existing: Set<String>
+) where E : Enum<E>, E : ConstraintLayoutKeyWord {
+  addCompletions<E>(this, existing, JsonNumericValueTemplate)
+}
+
+/**
+ * Helper function to simplify adding enum constant members to the completion result.
+ */
+private inline fun <reified E> addCompletions(
+  result: CompletionResultSet,
+  existing: Set<String>,
+  format: InsertionFormat
+) where E : Enum<E>, E : ConstraintLayoutKeyWord {
+  E::class.java.enumConstants.forEach { constant ->
+    if (!existing.contains(constant.keyWord)) {
+      result.addLookupElement(name = constant.keyWord, format = format)
+    }
+  }
 }
