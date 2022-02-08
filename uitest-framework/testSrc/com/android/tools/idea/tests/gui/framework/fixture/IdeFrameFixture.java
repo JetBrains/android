@@ -68,7 +68,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.toolWindow.StripeButton;
-import com.intellij.openapi.wm.impl.ToolWindowsPane;
+import com.intellij.toolWindow.ToolWindowPane;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
 import java.awt.Container;
@@ -183,8 +183,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ThreeComponentsSplitterFixture findToolWindowSplitter() {
-    ToolWindowsPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowsPane.class));
-    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getLayeredPane().getComponent(0);
+    ToolWindowPane toolWindowPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowPane.class));
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowPane.getLayeredPane().getComponent(0);
     return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
 
