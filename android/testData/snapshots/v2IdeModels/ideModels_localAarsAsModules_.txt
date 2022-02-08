@@ -522,11 +522,11 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
-                        - androidLibraries            : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryImpl)
+                        - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/aidl [-]
                                 artifact                      : <ROOT>/library-debug/library-debug.aar
-                                artifactAddress               : __wrapped_aars__::|:library-debug:unspecified@aar
+                                artifactAddress               : __wrapped_aars__::library-debug:unspecified@aar
                                 assetsFolder                  : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/assets
                                 - compileJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/jars/classes.jar
                                 externalAnnotations           : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/annotations.zip [-]
@@ -570,9 +570,9 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
-                        - androidLibraries            : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
+                        - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             isProvided                    : true
-                            target                        : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
+                            target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
@@ -601,8 +601,8 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
-                        - androidLibraries            : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : __wrapped_aars__::|:library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
