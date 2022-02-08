@@ -56,5 +56,7 @@
     <additionalTextAttributes scheme="Default" file="colorSchemes/LogcatColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/LogcatColorSchemeDarcula.xml"/>
 
+    <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
+
   </extensions>
 </idea-plugin>

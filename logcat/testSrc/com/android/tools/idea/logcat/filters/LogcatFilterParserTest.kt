@@ -31,7 +31,6 @@ import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.intellij.testFramework.EdtRule
@@ -164,9 +163,27 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun isValidLogAge() {
+    for (age in AGE_VALUES.keys) {
+      assertThat(age.isValidLogAge()).named(age).isTrue()
+    }
+    for (age in INVALID_AGES) {
+      assertThat(age.isValidLogAge()).named(age).isFalse()
+    }
+  }
+
+  @Test
+  fun isValidLogLevel() {
+    for (logLevel in Log.LogLevel.values()) {
+      assertThat(logLevel.name.isValidLogLevel()).named(logLevel.name).isTrue()
+    }
+    assertThat("foo".isValidLogLevel()).isFalse()
+  }
+
+  @Test
   fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_true() {
 
-    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:I foo    bar   tag:bar foo  package:foobar")).isEqualTo(
+    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:INFO foo    bar   tag:bar foo  package:foobar")).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO),
         StringFilter("foo    bar", IMPLICIT_LINE),
@@ -180,7 +197,7 @@ class LogcatFilterParserTest {
   @Test
   fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_false() {
 
-    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = false).parse("level:I foo    bar   tag:bar foo  package:foobar"))
+    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = false).parse("level:INFO foo    bar   tag:bar foo  package:foobar"))
       .isEqualTo(
         AndLogcatFilter(
           LevelFilter(INFO),
@@ -197,7 +214,7 @@ class LogcatFilterParserTest {
   fun parse_topLevelExpressions_sameKey_or() {
     val parser = logcatFilterParser(topLevelSameKeyTreatment = OR)
 
-    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:W tag~:tag2")).isEqualTo(
+    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:WARN tag~:tag2")).isEqualTo(
       AndLogcatFilter(
         NegatedStringFilter("ignore1", TAG),
         StringFilter("foo", IMPLICIT_LINE),

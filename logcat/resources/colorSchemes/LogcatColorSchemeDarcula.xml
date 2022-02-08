@@ -91,4 +91,35 @@
       <option name="FOREGROUND" value="ff6b68"/>
     </value>
   </option>
+
+  <!-- TODO(aalbert): Update the filter colors to UX spec when provided -->
+  <option name="LOGCAT_FILTER_KEY">
+    <value>
+      <option name="BACKGROUND" value="32593D"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_FILTER_KVALUE">
+    <value>
+      <option name="BACKGROUND" value="32593D"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_FILTER_STRING_KVALUE">
+    <value>
+      <option name="BACKGROUND" value="32593D"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_FILTER_REGEX_KVALUE">
+    <value>
+      <option name="BACKGROUND" value="32593D"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_FILTER_VALUE">
+    <value>
+      <option name="BACKGROUND" value="32593D"/>
+    </value>
+  </option>
 </list>

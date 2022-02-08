@@ -36,10 +36,10 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.filters.parser.isTopLevelValue
 import com.android.tools.idea.logcat.filters.parser.toText
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
@@ -52,7 +52,6 @@ import com.intellij.psi.util.elementType
 import java.text.ParseException
 import java.time.Clock
 import java.time.Duration
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private val DURATION_RE = "\\d+[smhd]".toRegex()
@@ -273,9 +272,10 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
 }
 
 private fun PsiElement.asLogLevel(): LogLevel =
-  if (text.length == 1) LogLevel.getByLetter(text[0].uppercaseChar())
-  else LogLevel.getByString(text.lowercase(Locale.ROOT))
-       ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid Log Level: $text"))
+  LogLevel.getByString(text.lowercase())
+  ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid Log Level: $text"))
+
+internal fun String.isValidLogLevel(): Boolean = LogLevel.getByString(lowercase()) != null
 
 private fun PsiElement.asDuration(): Duration {
   DURATION_RE.matchEntire(text) ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
@@ -293,6 +293,17 @@ private fun PsiElement.asDuration(): Duration {
     else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text")) // should not happen
   }
   return Duration.ofSeconds(l)
+}
+
+internal fun String.isValidLogAge(): Boolean {
+  DURATION_RE.matchEntire(this) ?: return false
+  try {
+    substring(0, length - 1).toLong()
+  }
+  catch (e: NumberFormatException) {
+    return false
+  }
+  return true
 }
 
 private fun flattenOrExpression(expression: LogcatFilterExpression): List<LogcatFilterExpression> =

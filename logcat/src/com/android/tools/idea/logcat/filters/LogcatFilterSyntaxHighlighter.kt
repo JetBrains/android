@@ -24,7 +24,6 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.lexer.Lexer
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.colors.TextAttributesKey.EMPTY_ARRAY
@@ -36,13 +35,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 
-// TODO(aalbert): Tweak colors further using `additionalTextAttributes` in logcat.xml
-internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey) {
-  KEY(DefaultLanguageHighlighterColors.KEYWORD),
-  KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
-  STRING_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
-  REGEX_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
-  VALUE(HighlighterColors.TEXT),
+internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = null) {
+  KEY,
+  KVALUE,
+  STRING_KVALUE,
+  REGEX_KVALUE,
+  VALUE,
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   ;
 
