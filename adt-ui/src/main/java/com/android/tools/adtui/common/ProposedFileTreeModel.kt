@@ -16,18 +16,24 @@
 package com.android.tools.adtui.common
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
+import com.android.utils.SdkUtils
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.io.FileUtil.filesEqual
+import com.intellij.openapi.util.io.FileUtil.pathsEqual
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.PlatformIcons
 import com.intellij.util.SmartList
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
+import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
+import kotlin.io.path.name
 import kotlin.streams.toList
 
 /**
@@ -230,7 +236,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
       fun makeTree(rootDir: File, proposedFiles: Set<File>, getIconForFile: (File) -> Icon?): Node {
         val root = getCommonAncestor(rootDir, proposedFiles)
         val rootNode = Node(root, emptyList(), DIR_ICON)
-        val conflictChecker = ConflictChecker(root)
+        val conflictChecker = ConflictChecker(root.toPath())
 
         for (file in proposedFiles) {
           val icon = getIconForFile(file)
@@ -256,29 +262,34 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
     }
   }
 
-  private class ConflictChecker(private val rootDir: File) {
-    private val subdirectoryCache = mutableMapOf<File, List<File>>()
+  private class ConflictChecker(private val rootDir: Path) {
+    private val directoryContentsCache = mutableMapOf<Path, List<TypedFile>>()
 
     fun findConflictingFiles(file: File): List<File> {
       val conflicts = SmartList<File>()
-      if (file.isFile) {
+      val thisFile = file.toPath()
+      if (Files.isRegularFile(thisFile)) {
         conflicts.add(file)
       }
-      val parent = file.parentFile
-      if (parent != null) {
-        val grandParent = parent.parentFile
-        if (filesEqual(grandParent?.parentFile, rootDir)) {
-          val fileName = file.name
-          val thisConfig = FolderConfiguration.getConfigForFolder(parent.name)
-          if (thisConfig != null) {
-            for (dir in getSubdirectories(grandParent)) {
-              if (!filesEqual(dir, parent)) {
-                val config = FolderConfiguration.getConfigForFolder(dir.name) ?: continue
-                if (thisConfig.isMatchFor(config)) {
-                  val potentialConflict = dir.resolve(fileName)
-                  if (potentialConflict.isFile) {
-                    conflicts.add(potentialConflict)
-                  }
+      val parent = thisFile.parent ?: return conflicts
+      val grandParent = parent.parent
+      if (!filesEqual(grandParent?.parent, rootDir)) return conflicts
+      val thisFolderType = ResourceFolderType.getFolderType(parent.name) ?: return conflicts
+      if (ResourceType.fromFolderName(thisFolderType.getName()) == null) return conflicts
+      val thisConfig = FolderConfiguration.getConfigForFolder(parent.name) ?: return conflicts
+      val thisResourceName = SdkUtils.fileNameToResourceName(file.name)
+      for (child in grandParent.getChildren()) {
+        if (child.isDirectory) {
+          val folder = child.file
+          val folderName = folder.name
+          val folderType = ResourceFolderType.getFolderType(folderName) ?: continue
+          val config = FolderConfiguration.getConfigForFolder(folderName) ?: continue
+          if (folderType == thisFolderType && thisConfig.isMatchFor(config)) {
+            for (peer in folder.getChildren()) {
+              if (!peer.isDirectory) {
+                val peerFile = peer.file
+                if (SdkUtils.fileNameToResourceName(peerFile.name) == thisResourceName && !filesEqual(peerFile, thisFile)) {
+                  conflicts.add(peerFile.toFile())
                 }
               }
             }
@@ -288,13 +299,12 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
       return conflicts
     }
 
-    fun getSubdirectories(dir: File): List<File> {
-      return subdirectoryCache.computeIfAbsent(dir) {
+    private fun Path.getChildren(): List<TypedFile> {
+      return directoryContentsCache.computeIfAbsent(this) {
         try {
-          return@computeIfAbsent Files.list(dir.toPath()).use { stream ->
+          return@computeIfAbsent Files.list(this).use { stream ->
             stream
-              .filter { Files.isDirectory(it) }
-              .map { it.toFile() }
+              .map { TypedFile(it, Files.isDirectory(it)) }
               .toList()
           }
         }
@@ -303,5 +313,11 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
         }
       }
     }
+
+    private fun filesEqual(file1: Path?, file2: Path?): Boolean =
+      pathsEqual(file1?.toString(), file2?.toString())
+
+
+    private data class TypedFile(val file: Path, val isDirectory: Boolean)
   }
 }
