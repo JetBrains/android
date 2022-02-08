@@ -179,6 +179,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
@@ -2247,7 +2248,7 @@ private fun <T> openPreparedProject(
         runInEdtAndWait {
           if (!project.isDisposed) {
             PlatformTestUtil.saveProject(project, true)
-            ProjectUtil.closeAndDispose(project)
+            ProjectManager.getInstance().closeAndDispose(project)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           }
         }
