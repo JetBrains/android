@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
 import com.google.common.annotations.VisibleForTesting;
@@ -104,8 +105,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "target", nameAttribute = "")
     private final @Nullable String target;
 
-    @OptionTag(tag = "api", nameAttribute = "")
-    private final @Nullable String api;
+    @OptionTag(tag = "api", nameAttribute = "", converter = AndroidVersionConverter.class)
+    private final @NotNull AndroidVersion androidVersion;
 
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
@@ -114,7 +115,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       name = null;
       nameOverride = "";
       target = null;
-      api = null;
+      androidVersion = AndroidVersion.DEFAULT;
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
@@ -123,12 +124,12 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       name = device.getName();
       nameOverride = "";
       target = device.getTarget();
-      api = device.getApi();
+      androidVersion = device.getAndroidVersion();
     }
 
     private @Nullable PhysicalDevice asPhysicalDevice() {
-      if (key == null || name == null || target == null || api == null) {
-        Logger.getInstance(PhysicalTabPersistentStateComponent.class).warn("key, name, target, or api are null");
+      if (key == null || name == null || target == null) {
+        Logger.getInstance(PhysicalTabPersistentStateComponent.class).warn("key, name, or target are null");
         return null;
       }
 
@@ -145,7 +146,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         .setName(name)
         .setNameOverride(nameOverride)
         .setTarget(target)
-        .setApi(api)
+        .setAndroidVersion(androidVersion)
         .build();
     }
 
@@ -157,7 +158,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + Objects.hashCode(name);
       hashCode = 31 * hashCode + nameOverride.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(target);
-      hashCode = 31 * hashCode + Objects.hashCode(api);
+      hashCode = 31 * hashCode + androidVersion.hashCode();
 
       return hashCode;
     }
@@ -175,7 +176,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              Objects.equals(name, device.name) &&
              nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&
-             Objects.equals(api, device.api);
+             androidVersion.equals(device.androidVersion);
     }
   }
 

@@ -89,7 +89,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private void initSummarySection() {
     mySummarySection = new SummarySection();
 
-    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getApi());
+    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
     InfoSection.setText(mySummarySection.myResolutionLabel, myDevice.getResolution());
     InfoSection.setText(mySummarySection.myDpLabel, myDevice.getDp());
 

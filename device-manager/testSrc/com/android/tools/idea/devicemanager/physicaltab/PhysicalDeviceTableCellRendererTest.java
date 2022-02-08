@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
 import com.intellij.ui.table.JBTable;
 import javax.swing.JTable;
@@ -38,7 +39,7 @@ public final class PhysicalDeviceTableCellRendererTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     // Act

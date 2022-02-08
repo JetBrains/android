@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -53,7 +54,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setName("Pixel 3 API 30")
       .setTarget("Android 11.0 Google APIs")
       .setCpuArchitecture("x86_64")
-      .setApi("30")
+      .setAndroidVersion(new AndroidVersion(30))
       .setResolution(new Resolution(1080, 2160))
       .setDensity(440)
       .setAvdInfo(avdInfo)
@@ -89,7 +90,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setName("Pixel 3 API 30")
       .setTarget("Android 11.0 Google APIs")
       .setCpuArchitecture("x86_64")
-      .setApi("30")
+      .setAndroidVersion(new AndroidVersion(30))
       .setResolution(new Resolution(1080, 2160))
       .setDensity(440)
       .setAvdInfo(avdInfo)

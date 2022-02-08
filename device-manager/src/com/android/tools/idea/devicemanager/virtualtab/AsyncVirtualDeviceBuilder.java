@@ -77,7 +77,7 @@ final class AsyncVirtualDeviceBuilder {
       .setName(myDevice.getDisplayName())
       .setTarget(Targets.toString(version, tag))
       .setCpuArchitecture(myDevice.getCpuArch())
-      .setApi(Integer.toString(version.getApiLevel()))
+      .setAndroidVersion(version)
       .setSizeOnDisk(DeviceManagerFutures.getDoneOrElse(mySizeOnDiskFuture, 0L))
       // TODO(http://b/216559215) Set the resolution and density in an AsyncVirtualDeviceDetailsBuilder
       .setResolution(getResolution(myDevice))

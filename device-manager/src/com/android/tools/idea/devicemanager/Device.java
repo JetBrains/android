@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.resources.Density;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public abstract class Device {
   protected final @NotNull DeviceType myType;
   protected final @NotNull String myName;
   protected final @NotNull String myTarget;
-  protected final @NotNull String myApi;
+  protected final @NotNull AndroidVersion myAndroidVersion;
   protected final @Nullable Resolution myResolution;
   protected final int myDensity;
 
@@ -35,7 +36,7 @@ public abstract class Device {
     protected @NotNull DeviceType myType = DeviceType.PHONE;
     protected @Nullable String myName;
     protected @Nullable String myTarget;
-    protected @Nullable String myApi;
+    protected @NotNull AndroidVersion myAndroidVersion = AndroidVersion.DEFAULT;
     protected @Nullable Resolution myResolution;
     protected int myDensity = -1;
 
@@ -54,9 +55,7 @@ public abstract class Device {
     assert builder.myTarget != null;
     myTarget = builder.myTarget;
 
-    assert builder.myApi != null;
-    myApi = builder.myApi;
-
+    myAndroidVersion = builder.myAndroidVersion;
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
   }
@@ -81,8 +80,8 @@ public abstract class Device {
     return myTarget;
   }
 
-  public final @NotNull String getApi() {
-    return myApi;
+  public final @NotNull AndroidVersion getAndroidVersion() {
+    return myAndroidVersion;
   }
 
   public final @Nullable Resolution getResolution() {

@@ -79,7 +79,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     public void onSuccess(@Nullable PhysicalDevice device) {
       assert device != null;
 
-      InfoSection.setText(mySection.myApiLevelLabel, device.getApi());
+      InfoSection.setText(mySection.myApiLevelLabel, device.getAndroidVersion().getApiString());
       InfoSection.setText(mySection.myPowerLabel, device.getPower());
       InfoSection.setText(mySection.myResolutionLabel, device.getResolution());
       InfoSection.setText(mySection.myDpLabel, device.getDp());
@@ -133,7 +133,9 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future, boolean addPairedDevices) {
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
+                             @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
+                             boolean addPairedDevices) {
     this(device, future, SummarySectionCallback::new, DeviceSectionCallback::new, WearPairingManager.INSTANCE, addPairedDevices);
   }
 

@@ -19,9 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.android.flags.junit.SetFlagRule;
-import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
-import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
@@ -49,22 +46,14 @@ public final class DeviceTableCellRendererTest {
     // Arrange
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
-    Device device = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("86UX00F4R"))
-      .setName("Google Pixel 3")
-      .setTarget("Android 12.0")
-      .setApi("S")
-      .addConnectionType(ConnectionType.USB)
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
-    assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
-    assertEquals(device.getName(), renderer.getNameLabel().getText());
+    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
+    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
     assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getOnlineLabel().getIcon());
-    assertEquals(device.getTarget(), renderer.getLine2Label().getText());
+    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
   }
 
   @Test

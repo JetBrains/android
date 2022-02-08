@@ -43,7 +43,7 @@ final class Pairing {
       .setName(device.getDisplayName())
       .setOnline(device.isOnline())
       .setTarget(Targets.toString(version))
-      .setApi(version.getApiString())
+      .setAndroidVersion(version)
       .build();
   }
 

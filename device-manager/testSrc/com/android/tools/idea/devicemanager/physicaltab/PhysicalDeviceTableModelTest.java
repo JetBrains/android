@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
@@ -116,7 +117,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(domainName)
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     TableModelListener listener = Mockito.mock(TableModelListener.class);
@@ -138,7 +139,7 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     Object expectedDevice2 = new PhysicalDevice.Builder()
@@ -146,7 +147,7 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
@@ -182,7 +183,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, domainNameGooglePixel3);
@@ -201,7 +202,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .build();
 
     List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, domainNameGooglePixel3);

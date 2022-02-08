@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.DeviceTables;
@@ -46,7 +47,7 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0")
       .setCpuArchitecture("arm")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .setAvdInfo(myAvd)
       .build();
 

@@ -196,7 +196,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case DEVICE_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex);
         case API_MODEL_COLUMN_INDEX:
-          return myDevices.get(modelRowIndex).getApi();
+          return myDevices.get(modelRowIndex).getAndroidVersion().getApiString();
         case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex).getSizeOnDisk();
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
@@ -216,7 +216,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getApi();
+        return myDevices.get(modelRowIndex).getAndroidVersion().getApiString();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getSizeOnDisk();
       case ACTIONS_MODEL_COLUMN_INDEX:

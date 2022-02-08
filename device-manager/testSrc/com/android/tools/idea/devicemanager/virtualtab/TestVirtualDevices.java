@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import java.util.function.Supplier;
@@ -35,7 +36,7 @@ public final class TestVirtualDevices {
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .setGetDefaultAvdManagerConnection(getDefaultAvdManagerConnection)
       .setAvdInfo(avd)
       .build();

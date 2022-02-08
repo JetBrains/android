@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.Resolution;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +42,7 @@ public final class PhysicalDeviceTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .setDensity(440)
       .build();
 
@@ -59,7 +60,7 @@ public final class PhysicalDeviceTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .setResolution(new Resolution(1080, 2160))
       .setDensity(440)
       .build();

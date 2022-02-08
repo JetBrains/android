@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
@@ -66,8 +67,8 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setApi(@NotNull String api) {
-      myApi = api;
+    @NotNull Builder setAndroidVersion(@NotNull AndroidVersion androidVersion) {
+      myAndroidVersion = androidVersion;
       return this;
     }
 

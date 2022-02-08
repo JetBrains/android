@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.sdklib.AndroidVersion;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestPhysicalDevices {
@@ -24,14 +25,14 @@ public final class TestPhysicalDevices {
     .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
-    .setApi("31")
+    .setAndroidVersion(new AndroidVersion(31))
     .build();
 
   public static final @NotNull PhysicalDevice ONLINE_GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
     .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
-    .setApi("31")
+    .setAndroidVersion(new AndroidVersion(31))
     .addConnectionType(ConnectionType.USB)
     .build();
 
@@ -41,14 +42,14 @@ public final class TestPhysicalDevices {
     .setKey(GOOGLE_PIXEL_5_KEY)
     .setName("Google Pixel 5")
     .setTarget("Android 11.0")
-    .setApi("30")
+    .setAndroidVersion(new AndroidVersion(30))
     .build();
 
   static final @NotNull PhysicalDevice ONLINE_GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
     .setKey(GOOGLE_PIXEL_5_KEY)
     .setName("Google Pixel 5")
     .setTarget("Android 11.0")
-    .setApi("30")
+    .setAndroidVersion(new AndroidVersion(30))
     .addConnectionType(ConnectionType.USB)
     .build();
 

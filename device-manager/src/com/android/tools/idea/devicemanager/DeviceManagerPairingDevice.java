@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +59,8 @@ final class DeviceManagerPairingDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setApi(@NotNull String api) {
-      myApi = api;
+    @NotNull Builder setAndroidVersion(@NotNull AndroidVersion androidVersion) {
+      myAndroidVersion = androidVersion;
       return this;
     }
 

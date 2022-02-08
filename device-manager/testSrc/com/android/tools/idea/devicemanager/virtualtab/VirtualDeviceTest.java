@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.DeviceType;
 import icons.StudioIcons;
@@ -31,11 +32,11 @@ public final class VirtualDeviceTest {
   public void buildPhone() {
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Pixel_3_API_30"))
-      .setCpuArchitecture("x86")
       .setType(DeviceType.PHONE)
       .setName("Google Pixel 3")
       .setTarget("Android 11.0")
-      .setApi("30")
+      .setCpuArchitecture("x86")
+      .setAndroidVersion(new AndroidVersion(30))
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
@@ -48,11 +49,11 @@ public final class VirtualDeviceTest {
   public void buildWearOs() {
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Wear_OS_Round_API_30"))
-      .setCpuArchitecture("x86")
       .setType(DeviceType.WEAR_OS)
       .setName("Wear OS Round")
       .setTarget("Android 11.0")
-      .setApi("30")
+      .setCpuArchitecture("x86")
+      .setAndroidVersion(new AndroidVersion(30))
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
@@ -65,11 +66,11 @@ public final class VirtualDeviceTest {
   public void buildTv() {
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Android_TV_1080p_API_30"))
-      .setCpuArchitecture("x86")
       .setType(DeviceType.TV)
       .setName("Android TV (1080p)")
       .setTarget("Android 11.0")
-      .setApi("30")
+      .setCpuArchitecture("x86")
+      .setAndroidVersion(new AndroidVersion(30))
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
@@ -82,11 +83,11 @@ public final class VirtualDeviceTest {
   public void buildAutomotive() {
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Automotive_1024p_landscape_API_30"))
-      .setCpuArchitecture("x86")
       .setType(DeviceType.AUTOMOTIVE)
       .setName("Automotive (1024p landscape)")
       .setTarget("Android 11.0")
-      .setApi("30")
+      .setCpuArchitecture("x86")
+      .setAndroidVersion(new AndroidVersion(30))
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 

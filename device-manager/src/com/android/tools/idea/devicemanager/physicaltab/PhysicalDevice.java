@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
@@ -68,8 +69,8 @@ public final class PhysicalDevice extends Device {
       return this;
     }
 
-    public @NotNull Builder setApi(@NotNull String api) {
-      myApi = api;
+    public @NotNull Builder setAndroidVersion(@NotNull AndroidVersion androidVersion) {
+      myAndroidVersion = androidVersion;
       return this;
     }
 
@@ -162,7 +163,7 @@ public final class PhysicalDevice extends Device {
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + myNameOverride.hashCode();
     hashCode = 31 * hashCode + myTarget.hashCode();
-    hashCode = 31 * hashCode + myApi.hashCode();
+    hashCode = 31 * hashCode + myAndroidVersion.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myPower);
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
@@ -186,7 +187,7 @@ public final class PhysicalDevice extends Device {
            myName.equals(device.myName) &&
            myNameOverride.equals(device.myNameOverride) &&
            myTarget.equals(device.myTarget) &&
-           myApi.equals(device.myApi) &&
+           myAndroidVersion.equals(device.myAndroidVersion) &&
            myConnectionTypes.equals(device.myConnectionTypes) &&
            Objects.equals(myPower, device.myPower) &&
            Objects.equals(myResolution, device.myResolution) &&

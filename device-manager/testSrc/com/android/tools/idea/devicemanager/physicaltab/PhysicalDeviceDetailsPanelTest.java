@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
@@ -40,23 +41,6 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceDetailsPanelTest {
-  /**
-   * PhysicalDeviceDetailsPanel accepts two devices; one of them is in a future
-   *
-   * <p>This device represents an instance built by AsyncPhysicalDeviceBuilder and contained in the table. They do not have all their
-   * details filled in.
-   *
-   * <p>The devices in the test methods represent instances built by AsyncDetailsBuilder. When the details panel is shown the rest of the
-   * details are filled in asynchronously.
-   */
-  private static final @NotNull PhysicalDevice DEVICE = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("86UX00F4R"))
-    .setName("Google Pixel 3")
-    .setTarget("Android 12.0")
-    .setApi("S")
-    .addConnectionType(ConnectionType.USB)
-    .build();
-
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
@@ -64,7 +48,7 @@ public final class PhysicalDeviceDetailsPanelTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setAndroidVersion(new AndroidVersion(31))
       .setResolution(new Resolution(1080, 2160))
       .setDensity(440)
       .addAllAbis(Arrays.asList("arm64-v8a", "armeabi-v7a", "armeabi"))
@@ -74,7 +58,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(DEVICE,
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       future,
                                                                       section -> newSummarySectionCallback(section, latch),
                                                                       DeviceSectionCallback::new,
@@ -86,7 +70,7 @@ public final class PhysicalDeviceDetailsPanelTest {
 
     SummarySection section = panel.getSummarySection();
 
-    assertEquals("S", section.myApiLevelLabel.getText());
+    assertEquals("31", section.myApiLevelLabel.getText());
     assertEquals("1080 × 2160", section.myResolutionLabel.getText());
     assertEquals("393 × 786", section.myDpLabel.getText());
     assertEquals("arm64-v8a, armeabi-v7a, armeabi", section.myAbiListLabel.getText());
@@ -105,7 +89,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(DEVICE,
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       future,
                                                                       SummarySectionCallback::new,
                                                                       section -> newDeviceSectionCallback(section, latch),

@@ -101,7 +101,7 @@ final class AsyncPhysicalDeviceBuilder {
       .setType(DeviceManagerFutures.getDoneOrElse(myTypeFuture, DeviceType.PHONE))
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(myModelFuture), FutureUtils.getDoneOrNull(myManufacturerFuture)))
       .setTarget(Targets.toString(version))
-      .setApi(version.getApiString());
+      .setAndroidVersion(version);
 
     if (myDevice.isOnline()) {
       builder.addConnectionType(myKey.getConnectionType());

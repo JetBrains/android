@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
@@ -64,7 +65,7 @@ public final class AsyncDetailsBuilderTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("31")
+      .setAndroidVersion(new AndroidVersion(31))
       .setResolution(new Resolution(1080, 2160))
       .build();
 

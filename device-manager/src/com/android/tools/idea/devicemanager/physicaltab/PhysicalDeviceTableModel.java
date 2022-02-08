@@ -101,7 +101,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         .setName(device.getName())
         .setNameOverride(nameOverride)
         .setTarget(device.getTarget())
-        .setApi(device.getApi())
+        .setAndroidVersion(device.getAndroidVersion())
         .addAllConnectionTypes(device.getConnectionTypes())
         .build();
 
@@ -165,7 +165,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .setName(serialNumberDevice.getName())
       .setNameOverride(serialNumberDevice.getNameOverride())
       .setTarget(serialNumberDevice.getTarget())
-      .setApi(serialNumberDevice.getApi())
+      .setAndroidVersion(serialNumberDevice.getAndroidVersion())
       .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
       .addAllConnectionTypes(serialNumberDevice.getConnectionTypes())
       .build();
@@ -245,7 +245,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return myCombinedDevices.get(modelRowIndex).getApi();
+        return myCombinedDevices.get(modelRowIndex).getAndroidVersion().getApiString();
       case TYPE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex).getConnectionTypes();
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
