@@ -36,6 +36,8 @@ import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.Icon
+import javax.swing.event.PopupMenuEvent
+import javax.swing.event.PopupMenuListener
 import kotlin.math.roundToInt
 
 private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
@@ -83,15 +85,25 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     updateActions(e.dataContext)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
-    JBPopupMenu.showBelow(button, toolbar.component)
+    val popupMenu = toolbar.component
+    JBPopupMenu.showBelow(button, popupMenu)
     // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
     // So we install the tooltips after showing.
     getChildren(null).forEachIndexed { index, action ->
       val deviceId = (action as? DeviceMenuAction.SetDeviceAction)?.device?.id ?: return@forEachIndexed
       DEVICE_ID_TO_TOOLTIPS[deviceId]?.let {
-        (toolbar.component.components[index] as? ActionMenuItem)?.let { menuItem -> HelpTooltip().setDescription(it).installOn(menuItem) }
+        (popupMenu.components[index] as? ActionMenuItem)?.let { menuItem -> HelpTooltip().setDescription(it).installOn(menuItem) }
       }
     }
+    popupMenu.addPopupMenuListener(object : PopupMenuListener {
+      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) = Unit
+
+      override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent) = hideAllTooltips()
+
+      override fun popupMenuCanceled(e: PopupMenuEvent) = hideAllTooltips()
+
+      private fun hideAllTooltips() = popupMenu.components.forEach { HelpTooltip.hide(it) }
+    })
   }
 
   override fun displayTextInToolbar(): Boolean = true
