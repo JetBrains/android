@@ -220,6 +220,7 @@ class ModuleClassLoaderManager {
     var oldClassLoader: ModuleClassLoader? = null
     if (moduleClassLoader != null) {
       val invalidate =
+        moduleClassLoader.isDisposed ||
         !moduleClassLoader.isCompatible(parent, combinedProjectTransformations, combinedNonProjectTransformations) ||
         !moduleClassLoader.isUserCodeUpToDate
 
@@ -310,7 +311,6 @@ class ModuleClassLoaderManager {
       it.remove(holder)
       if (it.isEmpty()) {
         holders.remove(moduleClassLoader)
-        Disposer.dispose(moduleClassLoader)
       }
     }
   }

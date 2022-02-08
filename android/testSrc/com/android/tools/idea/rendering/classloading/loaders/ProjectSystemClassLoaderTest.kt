@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import org.junit.Assert.assertEquals
@@ -26,6 +28,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.FileNotFoundException
+import java.nio.file.Files
 
 /**
  * [FakeVirtualFile] that supports [VirtualFile.contentsToByteArray].
@@ -163,5 +166,34 @@ class ProjectSystemClassLoaderTest {
     assertNull(loader.loadClass("test.package.B"))
     classes["test.package.B"] = virtualFile2
     assertNotNull(loader.loadClass("test.package.B"))
+  }
+
+  /**
+   * Regression test for b/218453131 where we need to check that we get the latest version of the class file and not the
+   * VFS cached version.
+   */
+  @Test
+  fun `ensure latest version of the class file is accessed`() {
+    val tempDirectory = VfsUtil.findFileByIoFile(Files.createTempDirectory("out").toFile(), true)!!
+
+    val classFile = runWriteActionAndWait {
+      val classFile = tempDirectory.createChildData(this, "A.class")
+      val classFileContents = "Initial content"
+      classFile.setBinaryContent(classFileContents.toByteArray())
+      classFile
+    }
+
+    val classes = mutableMapOf(
+      "test.package.A" to classFile
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertEquals("Initial content", String(loader.loadClass("test.package.A")!!))
+
+    // Write the file externally (not using VFS) and check the contents
+    Files.writeString(classFile.toNioPath(), "Updated content")
+    assertEquals("Updated content", String(loader.loadClass("test.package.A")!!))
   }
 }
