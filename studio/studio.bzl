@@ -666,10 +666,11 @@ def android_studio(
 
 def _intellij_plugin_impl(ctx):
     infos = [export[JavaInfo] for export in ctx.attr.exports]
-    jar_files = _jars_from_java_infos(infos)
+    java_info = java_common.merge(infos)
+    jar_files = java_info.runtime_output_jars
     plugin_info = _check_plugin(ctx, jar_files)
     return struct(
-        providers = [java_common.merge(infos)],
+        providers = [java_info],
         plugin_info = plugin_info,
     )
 
@@ -876,10 +877,3 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
             "//conditions:default": jars_linux,
         }),
     )
-
-def _jars_from_java_infos(java_infos):
-    """Returns a list of the direct output jars from JavaInfo."""
-    jars = []
-    for info in java_infos:
-        jars.extend([java_out.class_jar for java_out in info.outputs.jars])
-    return jars
