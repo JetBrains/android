@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -26,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredD
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +34,10 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaToKotlinConversionTest {
@@ -64,8 +68,7 @@ public class JavaToKotlinConversionTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
-    IdeFrameFixture ideFrameFixture =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     openJavaAndPressConvertToKotlin(ideFrameFixture);
 
@@ -82,6 +85,15 @@ public class JavaToKotlinConversionTest {
 
     // Doing it twice because after the first time we have only added Kotlin support to the project
     openJavaAndPressConvertToKotlin(ideFrameFixture);
+
+    //Click 'Yes' on Convert Java to Kotlin dialog box
+    /*
+     * Content of dialog box:  'Some code in the rest of your project may require corrections after performing
+     *  this conversion. Do you want to find such code and correct it too?'
+     */
+    DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
+      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+    convertCodeFromJavaDialog.button(withText("Yes")).click();
 
     EditorFixture editor = ideFrameFixture.getEditor();
 

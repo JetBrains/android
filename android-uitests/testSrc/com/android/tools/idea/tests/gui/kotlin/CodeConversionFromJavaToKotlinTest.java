@@ -42,6 +42,13 @@ public class CodeConversionFromJavaToKotlinTest {
   private final static String END_LINE = "// --- END COPY HERE ---";
   private final static String JAVA_CODE =
     String.format("(\n\n%s(?:.*\n)*%s)", START_LINE, END_LINE);
+  private final static String JAVA_METHOD =
+    "// --- START COPY HERE ---\n" +
+    "public int dummyFun(int a, int b) {\n" +
+    "   int p = a - b;\n" +
+    "   return p;\n" +
+    "}\n" +
+    "// --- END COPY HERE ---";
   private final static String KOTLIN_FUN =
     "    fun dummyFun(a: Int, b: Int): Int {\n" +
     "        val p = a - b\n" +
@@ -59,8 +66,11 @@ public class CodeConversionFromJavaToKotlinTest {
    *   <pre>
    *   Test Steps:
    *   1. Import JavaToKotlinCode project and wait for project sync to finish.
-   *   2. Open Java file, select and copy the predefined Java dummy function in Java Activity.
-   *   3. Open Kotlin file, and paste the copied Java dummy function.
+   *   2. Open Java file, select and copy the predefined Java placeholder function in Java Activity.
+   *   NOTE: Don't need above step with predefined Java placeholder function
+   *   3. Open Kotlin file, and paste the predefined Java placeholder function.
+   *   NOTE: Predefined Java placeholder function is used in kotlin file as after clicking on menu "Edit > Paste > Paste"
+   *   menuItem.requestFocus() in MenuFixture.java is failing with NPE as there are multiple Paste available.
    *   Verify:
    *   1. A confirmation dialog should show to convert Java code to kotlin
    *   2. Click on Yes.
@@ -74,17 +84,20 @@ public class CodeConversionFromJavaToKotlinTest {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("JavaToKotlinCode");
 
+    /*
     ideFrameFixture.getEditor()
       .open("app/src/main/java/com/android/javatokotlincode/Main2Activity.java",
             EditorFixture.Tab.EDITOR)
       .select(JAVA_CODE);
     ideFrameFixture.invokeMenuPath("Edit", "Copy");
+    */
 
     EditorFixture kotlinEditor = ideFrameFixture.getEditor()
       .open("app/src/main/java/com/android/javatokotlincode/MainActivity.kt",
             EditorFixture.Tab.EDITOR)
       .moveBetween("setContentView(R.layout.activity_main)\n    }", "");
-    ideFrameFixture.invokeMenuPath("Edit", "Paste");
+
+    kotlinEditor.pasteText(JAVA_METHOD);
 
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Code From Java"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
