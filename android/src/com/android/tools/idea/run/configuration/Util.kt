@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.SdkConstants
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
 
-internal val Executor.isDebug:Boolean
+object WearBaseClasses {
+  val WATCH_FACES = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
+  val COMPLICATIONS = arrayOf(SdkConstants.CLASS_COMPLICATION_SERVICE_ANDROIDX, SdkConstants.CLASS_COMPLICATION_SERVICE_WSL)
+  val TILES = arrayOf(SdkConstants.CLASS_TILE_SERVICE)
+}
+
+internal val Executor.isDebug: Boolean
   get() = DefaultDebugExecutor.EXECUTOR_ID == this.id

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.SdkConstants
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
@@ -65,8 +64,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.complication")
 
   @Transient
-  override val componentBaseClassesFqNames = arrayOf(SdkConstants.CLASS_COMPLICATION_SERVICE_ANDROIDX,
-                                                     SdkConstants.CLASS_COMPLICATION_SERVICE_WSL)
+  override val componentBaseClassesFqNames = WearBaseClasses.COMPLICATIONS
 
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
