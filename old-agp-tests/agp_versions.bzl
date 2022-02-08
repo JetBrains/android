@@ -25,10 +25,8 @@ COMMON_DATA = [
 
 COMMON_MAVEN_DEPS = [
     ":test_deps",
-    "//tools/base/build-system:studio_repo",
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     "//tools/base/third_party/kotlin:kotlin-m2repository",
-    "//tools/data-binding:data_binding_runtime.zip",
 ]
 
 AGP_3_1_4 = "3.1.4"
