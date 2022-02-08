@@ -109,7 +109,7 @@ class AppInspectionLaunchTaskContributorTest {
     // Assert that the recent process is still p2.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     `when`(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
-    val debugHandler2 = AndroidRemoteDebugProcessHandler(project)
+    val debugHandler2 = AndroidRemoteDebugProcessHandler(project, mock(), false)
     debugHandler2.startNotify()
     status2.processHandler = debugHandler2
     handler2.killProcess()

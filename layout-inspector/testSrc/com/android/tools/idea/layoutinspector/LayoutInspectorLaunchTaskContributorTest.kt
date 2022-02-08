@@ -165,7 +165,7 @@ class LayoutInspectorLaunchTaskContributorTest {
     // The ProcessHandler will be switched See ConnectJavaDebuggerTask.launchDebugger.
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     `when`(debugManager.getDebugProcess(any(ProcessHandler::class.java))).thenReturn(mock())
-    val debugHandler = AndroidRemoteDebugProcessHandler(project)
+    val debugHandler = AndroidRemoteDebugProcessHandler(project, mock(), false)
     debugHandler.startNotify()
     status.processHandler = debugHandler
     handler.killProcess()
