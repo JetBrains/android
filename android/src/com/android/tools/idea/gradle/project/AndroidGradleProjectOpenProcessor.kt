@@ -73,7 +73,7 @@ internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val exitCode = confirmOpenNewProject(false)
       if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
         val toClose = if (project != null && !project.isDefault) project else openProjects[openProjects.size - 1]
-        if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
+        if (!ProjectManager.getInstance().closeAndDispose(toClose)) {
           success = false
         }
       }
