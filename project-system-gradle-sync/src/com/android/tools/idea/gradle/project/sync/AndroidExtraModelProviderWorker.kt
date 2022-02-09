@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl

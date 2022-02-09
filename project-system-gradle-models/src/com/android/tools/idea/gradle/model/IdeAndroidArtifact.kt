@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
+interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   @Deprecated("Deprecated as of 4.2. Application ID is now only provided post-build")
   val applicationId: String
 
@@ -75,3 +75,5 @@ interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
    */
   val modelSyncFiles: Collection<IdeModelSyncFile>
 }
+
+interface IdeAndroidArtifact: IdeAndroidArtifactCore, IdeBaseArtifact

@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-interface IdeBaseArtifact : Serializable {
+interface IdeBaseArtifactCore : Serializable {
   /** Name of the artifact. This should match [ArtifactMetaData.getName].  */
   val name: IdeArtifactName
 
@@ -78,6 +78,9 @@ interface IdeBaseArtifact : Serializable {
    */
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
-  val level2Dependencies: IdeDependencies
   val unresolvedDependencies: List<IdeUnresolvedDependency>
+}
+
+interface IdeBaseArtifact: IdeBaseArtifactCore {
+  val level2Dependencies: IdeDependencies
 }

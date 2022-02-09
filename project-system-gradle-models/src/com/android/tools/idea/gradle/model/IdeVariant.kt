@@ -24,11 +24,11 @@ interface IdeVariantHeader {
   val displayName: String
 }
 
-interface IdeVariant: IdeVariantHeader {
-  val mainArtifact: IdeAndroidArtifact
-  val androidTestArtifact: IdeAndroidArtifact?
-  val testFixturesArtifact: IdeAndroidArtifact?
-  val unitTestArtifact: IdeJavaArtifact?
+interface IdeVariantCore: IdeVariantHeader {
+  val mainArtifact: IdeAndroidArtifactCore
+  val androidTestArtifact: IdeAndroidArtifactCore?
+  val testFixturesArtifact: IdeAndroidArtifactCore?
+  val unitTestArtifact: IdeJavaArtifactCore?
 
   val minSdkVersion: IdeApiVersion
 
@@ -88,4 +88,11 @@ interface IdeVariant: IdeVariantHeader {
 
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   val deprecatedPreMergedApplicationId: String?
+}
+
+interface IdeVariant: IdeVariantCore {
+  override val mainArtifact: IdeAndroidArtifact
+  override val androidTestArtifact: IdeAndroidArtifact?
+  override val testFixturesArtifact: IdeAndroidArtifact?
+  override val unitTestArtifact: IdeJavaArtifact?
 }
