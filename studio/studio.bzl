@@ -72,20 +72,12 @@ def _module_deps(ctx, jar_names, modules):
     jars = _lists_to_dict(jar_names, modules)
     bundled = {}
     res_files = []
-    plugin_jar = None
-    plugin_xml = None
     for j, ms in jars.items():
         jar_file = ctx.actions.declare_file(j)
-        modules_jars = []
-        for m in ms:
-            if m[ImlModuleInfo].plugin:
-                plugin_jar = j
-                plugin_xml = m[ImlModuleInfo].plugin
-            modules_jars += [m[ImlModuleInfo].module_jars]
-
+        modules_jars = [m[ImlModuleInfo].module_jars for m in ms]
         run_singlejar(ctx, modules_jars, jar_file)
         res_files += [(j, jar_file)]
-    return res_files, plugin_jar, plugin_xml
+    return res_files
 
 def _get_linux(dep):
     return dep.files.to_list() + dep.files_linux.to_list()
@@ -180,7 +172,7 @@ def _depset_subtract(depset1, depset2):
 
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
-    module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
     plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
@@ -207,8 +199,6 @@ def _studio_plugin_impl(ctx):
 
     return struct(
         directory = ctx.attr.directory,
-        xml = plugin_xml,
-        xml_jar = plugin_dir + "/lib/" + plugin_jar,
         files = depset(),
         files_linux = depset([ctx.outputs.plugin_linux]),
         files_mac = depset([ctx.outputs.plugin_mac]),
