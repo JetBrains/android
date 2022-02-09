@@ -55,12 +55,19 @@ internal inline fun <reified T : PsiElement> psiElement(): PsiElementPattern<T, 
 internal inline fun <reified T : PsiElement> PsiElementPattern<*, *>.withParent() = this.withParent(T::class.java)
 
 /**
+ * Pattern such that when traversing up the tree from the current element, the element at [level] is a [JsonProperty]. And its name matches
+ * the given [name].
+ */
+internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, name: String) =
+  withPropertyParentAtLevel(level, listOf(name))
+
+/**
  * Pattern such that when traversing up the tree from the current element, the element at [level] is a [JsonProperty]. Which name matches
  * one of the given [names].
  */
-internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, vararg names: String) =
+internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, names: Collection<String>) =
   this.withSuperParent(level, psiElement<JsonProperty>().withChild(
-    psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(*names)))
+    psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(names)))
   )
 
 /**

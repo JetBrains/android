@@ -64,8 +64,15 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Complete ConstraintSet names in Extends keyword
       jsonStringValue()
-        .withPropertyParentAtLevel(2, KeyWords.Extends),
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Extends),
       ConstraintSetNamesProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete IDs on special anchors, they take a single string value
+      jsonStringValue()
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, SpecialAnchor.values().map { it.keyWord }),
+      ConstraintIdsProvider
     )
     extend(
       CompletionType.BASIC,
