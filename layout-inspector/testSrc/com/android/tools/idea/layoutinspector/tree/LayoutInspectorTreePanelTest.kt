@@ -673,6 +673,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
+    runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
     assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isEqualTo(0)
     val treeModel = tree.componentTreeModel as TreeModel
     var columnDataChangeCount = 0
