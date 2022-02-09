@@ -565,7 +565,7 @@ class AppInspectionInspectorClientTest {
 
       // Also verify that the ComposeView do not contain the MaterialTextView nor the RippleContainer in its children:
       val composeView = inspectorRule.inspectorModel[6]!!
-      assertThat(composeView.qualifiedName).isEqualTo("android.view.ComposeView")
+      assertThat(composeView.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
       val surface = composeView.children.single() as ComposeViewNode
       assertThat(surface.qualifiedName).isEqualTo("Surface")
       assertThat(surface.recomposeCount).isEqualTo(7)

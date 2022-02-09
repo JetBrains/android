@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A layout matching the data from FakeInspectorState -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/relativeLayout">
+
+  <androidx.fragment.app.FragmentContainerView>
+    <TextView
+        android:id = "@+id/topText"
+        android:text = "Next"
+        android:clickable = "true"
+        android:alpha = "1.0"
+    />
+    <Button
+        android:minWidth = "200dp"
+        android:background = "#C8FF4D"
+        android:gravity = "top|start"
+        android:orientation = "horizontal"
+    />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id = "@+id/fab"
+        android:src = "@drawable/vd.xml"
+    />
+  </androidx.fragment.app.FragmentContainerView>
+  <androidx.compose.ui.platform.ComposeView>
+    <androidx.compose.ui.platform.AndroidViewsHandler>
+      <TextView
+          android:id = "@+id/blueText"
+          android:backgroundTint = "@color/textBlue"
+          app:backgroundTint = "@color/textBlue"
+      />
+    </androidx.compose.ui.platform.AndroidViewsHandler>
+  </androidx.compose.ui.platform.ComposeView>
+</androidx.constraintlayout.widget.ConstraintLayout>

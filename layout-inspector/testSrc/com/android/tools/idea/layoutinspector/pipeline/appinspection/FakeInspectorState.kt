@@ -112,7 +112,19 @@ class FakeInspectorState(
     ViewString(219, "Widget.Material.Button"),
     ViewString(220, "vertical"),
     ViewString(221, "color"),
-    ViewString(222, "blue"),
+    ViewString(222, "textBlue"),
+    ViewString(223, "Theme.Example.NoActionBar"),
+    ViewString(224, "topText"),
+    ViewString(225, "blueText"),
+    ViewString(226, "Widget.MaterialComponents.TextView"),
+    ViewString(227, "Base.Widget.MaterialComponents.TextView"),
+    ViewString(228, "Widget.AppCompat.TextView"),
+    ViewString(229, "Base.Widget.AppCompat.TextView"),
+    ViewString(230, "Widget.Material.TextView"),
+
+    // class names
+    ViewString(301, "android.graphics.drawable.VectorDrawable"),
+    ViewString(302, "android.animation.StateListAnimator"),
   )
 
   private val layoutTrees = listOf(
@@ -128,6 +140,7 @@ class FakeInspectorState(
           id = 3
           packageName = 5
           className = 6
+          resource = ViewResource(206, 209, 224)
         }
         ViewNode {
           id = 4
@@ -138,11 +151,12 @@ class FakeInspectorState(
           id = 5
           packageName = 9
           className = 10
+          resource = ViewResource(206, 209, 211)
         }
       }
       ViewNode {
         id = 6
-        packageName = 11
+        packageName = 17
         className = 13
         ViewNode {
           id = 7
@@ -152,6 +166,7 @@ class FakeInspectorState(
             id = 8
             packageName = 5
             className = 6
+            resource = ViewResource(206, 209, 225)
           }
         }
         ViewNode {
@@ -177,6 +192,12 @@ class FakeInspectorState(
     this[layoutTrees[0].id] = listOf(
       PropertyGroup {
         viewId = 3
+        Property {
+          name = 115
+          namespace = 100
+          type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
+          resourceValue = ViewResource(206, 210, 224)
+        }
         Property {
           name = 101
           namespace = 100
@@ -235,7 +256,7 @@ class FakeInspectorState(
           name = 115
           namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
-          source = ViewResource(207, 206, 212)
+          source = ViewResource(207, 210, 212)
           addAllResolutionStack(listOf(
             ViewResource(207, 210, 212),
             ViewResource(208, 210, 214),
@@ -247,29 +268,29 @@ class FakeInspectorState(
           name = 116
           namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.DRAWABLE
-          source = ViewResource(208, 210, 216)
+          source = ViewResource(207, 210, 212)
           addAllResolutionStack(listOf(
-            ViewResource(207, 210, 213),
+            ViewResource(207, 210, 212),
             ViewResource(208, 210, 216),
             ViewResource(208, 210, 217),
             ViewResource(208, 210, 218),
             ViewResource(208, 209, 219),
           ))
-          int32Value = 141
+          int32Value = 301
         }
         Property {
           name = 118
           namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.ANIMATOR
-          source = ViewResource(208, 210, 216)
+          source = ViewResource(207, 210, 212)
           addAllResolutionStack(listOf(
-            ViewResource(207, 210, 213),
+            ViewResource(207, 210, 212),
             ViewResource(208, 210, 216),
             ViewResource(208, 210, 217),
             ViewResource(208, 210, 218),
             ViewResource(208, 209, 219),
           ))
-          int32Value = 146
+          int32Value = 302
         }
       },
       PropertyGroup {
@@ -287,6 +308,11 @@ class FakeInspectorState(
           int32Value = 0x4422FF00
           addAllResolutionStack(listOf(
             ViewResource(221, 210, 222),
+            ViewResource(208, 210, 226),
+            ViewResource(208, 210, 227),
+            ViewResource(208, 210, 228),
+            ViewResource(208, 210, 229),
+            ViewResource(208, 100, 230),
           ))
         }
       })
@@ -829,6 +855,9 @@ class FakeInspectorState(
           configurationBuilder.apply {
             density = Density.HIGH.dpiValue
             fontScale = 1.5f
+          }
+          appContextBuilder.apply {
+            theme = ViewResource(208, 210, 223)
           }
         }
       }

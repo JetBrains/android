@@ -17,8 +17,12 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.URI_PREFIX
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -33,12 +37,15 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable.PTable
@@ -48,7 +55,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.psi.PsiClass
 import com.intellij.testFramework.DisposableRule
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -88,6 +97,11 @@ class AppInspectionPropertiesProviderTest {
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
     inspectorRule.attachDevice(MODERN_DEVICE)
+
+    val fixture = projectRule.fixture
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    fixture.copyFileToProject("res/layout/activity_main.xml")
+    fixture.copyFileToProject("res/values/styles.xml")
   }
 
   @Test
@@ -137,9 +151,12 @@ class AppInspectionPropertiesProviderTest {
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
-        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab")
-        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?")
-        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?")
+        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab", source = layout("activity_main"))
+        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?", source = layout("activity_main"),
+                       classLocation = "android.graphics.drawable.VectorDrawable")
+        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?", source = layout("activity_main"),
+                       resolutionStack = listOf(ResStackItem(style("Widget.Material.Button"), null)),
+                       classLocation = "android.animation.StateListAnimator")
       }
     }
 
@@ -180,11 +197,11 @@ class AppInspectionPropertiesProviderTest {
       // Technically the view with ID #1 has no properties, but synthetic properties are always added
       result.table.run {
         assertProperty("name", PropertyType.STRING, "androidx.constraintlayout.widget.ConstraintLayout",
-                       PropertySection.VIEW, NAMESPACE_INTERNAL)
-        assertProperty("x", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("y", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("width", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
-        assertProperty("height", PropertyType.DIMENSION, "0px", PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+                       group = PropertySection.VIEW, namespace = NAMESPACE_INTERNAL)
+        assertProperty("x", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("y", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("width", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
+        assertProperty("height", PropertyType.DIMENSION, "0px", group = PropertySection.DIMENSION, namespace = NAMESPACE_INTERNAL)
       }
     }
   }
@@ -534,21 +551,30 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
+  private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =
+    ResourceReference(ResourceNamespace.fromNamespaceUri(namespace)!!, ResourceType.LAYOUT, name)
+
+  private fun style(name: String, namespace: String = ANDROID_URI): ResourceReference =
+    ResourceReference.style(ResourceNamespace.fromNamespaceUri(namespace)!!, name)
+
   private fun PropertiesTable<InspectorPropertyItem>.assertParameter(
     name: String,
     type: PropertyType,
     value: String,
     group: PropertySection = PropertySection.PARAMETERS,
     namespace: String = parameterNamespaceOf(group),
-  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+  ) = assertProperty(this[namespace, name], name, type, value, null, group, namespace)
 
   private fun PropertiesTable<InspectorPropertyItem>.assertProperty(
     name: String,
     type: PropertyType,
     value: String,
+    source: ResourceReference? = null,
     group: PropertySection = PropertySection.DEFAULT,
     namespace: String = ANDROID_URI,
-  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+    classLocation: String? = null,
+    resolutionStack: List<ResStackItem> = emptyList(),
+  ) = assertProperty(this[namespace, name], name, type, value, source, group, namespace, classLocation, resolutionStack)
 
   private fun assertParameter(
     property: InspectorPropertyItem,
@@ -557,23 +583,48 @@ class AppInspectionPropertiesProviderTest {
     value: String,
     group: PropertySection = PropertySection.PARAMETERS,
     namespace: String = parameterNamespaceOf(group),
-  ) = assertProperty(property, name, type, value, group, namespace)
+  ) = assertProperty(property, name, type, value, null, group, namespace)
 
   private fun assertProperty(
     property: InspectorPropertyItem,
     name: String,
     type: PropertyType,
     value: String,
+    source: ResourceReference? = null,
     group: PropertySection = PropertySection.DEFAULT,
     namespace: String = ANDROID_URI,
+    classLocation: String? = null,
+    resolutionStack: List<ResStackItem> = emptyList(),
   ) {
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo(namespace)
     assertThat(property.type).isEqualTo(type)
     assertThat(property.value).isEqualTo(value)
+    assertThat(property.source).isEqualTo(source)
     assertThat(property.section).isEqualTo(group)
+    if (property !is InspectorGroupPropertyItem) {
+      assertThat(resolutionStack).isEmpty()
+      assertThat(classLocation).isNull()
+    }
+    else {
+      assertThat(property.classLocation?.source).isEqualTo(classLocation?.substringAfterLast('.'))
+      assertThat((property.classLocation?.navigatable as? PsiClass)?.qualifiedName).isEqualTo(classLocation)
+      property.children.zip(resolutionStack).forEach { (actual, expected) ->
+        assertThat(actual.source).isEqualTo(expected.source)
+        expected.value?.let { assertThat(actual.value).isEqualTo(it) }
+      }
+      assertThat(property.children.size).isEqualTo(resolutionStack.size)
+    }
   }
+
+  /**
+   * A ResolutionStackItem holder without a reference to the base property.
+   */
+  private class ResStackItem(
+    val source: ResourceReference,
+    val value: String?
+  )
 
   /**
    * Helper class to receive a properties provider result.
