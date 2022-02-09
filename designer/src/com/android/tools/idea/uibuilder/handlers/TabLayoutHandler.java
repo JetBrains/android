@@ -55,11 +55,13 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameDragTarget;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
@@ -163,6 +165,12 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new FrameDragHandler(editor, this, layout, components, type);
+  }
+
+  @Override
+  public @NotNull List<Target> createChildTargets(@NotNull SceneComponent parentComponent,
+                                                  @NotNull SceneComponent childComponent) {
+    return ImmutableList.of(new FrameDragTarget());
   }
 
   @Override
