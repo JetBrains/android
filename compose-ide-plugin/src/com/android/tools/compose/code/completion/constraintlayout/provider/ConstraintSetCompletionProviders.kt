@@ -179,6 +179,28 @@ internal object ConstraintIdsProvider : BaseConstraintSetsCompletionProvider() {
   }
 }
 
+/**
+ * Provides the appropriate anchors when completing a constraint array.
+ *
+ * [StandardAnchor.verticalAnchors] can only be constrained to other vertical anchors. Same logic for [StandardAnchor.horizontalAnchors].
+ */
+internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    val currentAnchorKeyWord = parameters.position.parentOfType<JsonProperty>(withSelf = true)?.name ?: return
+
+    val possibleAnchors = when {
+      StandardAnchor.isVertical(currentAnchorKeyWord) -> StandardAnchor.verticalAnchors
+      StandardAnchor.isHorizontal(currentAnchorKeyWord) -> StandardAnchor.horizontalAnchors
+      else -> emptyList()
+    }
+    possibleAnchors.forEach { result.addLookupElement(name = it.keyWord) }
+  }
+}
+
 private fun CompletionResultSet.addLookupElement(name: String, tailText: String? = null, format: InsertionFormat? = null) {
   var lookupBuilder = if (format == null) {
     LookupElementBuilder.create(name)

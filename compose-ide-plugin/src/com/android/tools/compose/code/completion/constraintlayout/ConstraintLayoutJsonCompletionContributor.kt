@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout
 
+import com.android.tools.compose.code.completion.constraintlayout.provider.AnchorablesProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintIdsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
@@ -74,6 +75,15 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(0))
         .insideConstraintArray(),
       ConstraintIdsProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete anchors in the constraint array (second position)
+      jsonStringValue()
+        // Second element in the array, ie: there is one PsiElement preceding the desired one at this level
+        .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(1))
+        .insideConstraintArray(),
+      AnchorablesProvider
     )
   }
 

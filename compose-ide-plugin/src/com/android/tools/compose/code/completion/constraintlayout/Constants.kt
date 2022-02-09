@@ -34,14 +34,24 @@ internal interface ConstraintLayoutKeyWord {
 /**
  * The classic anchors used to constrain a widget.
  */
-internal enum class StandardAnchor(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class StandardAnchor(override val keyWord: String) : ConstraintLayoutKeyWord {
   Start("start"),
   Left("left"),
   End("end"),
   Right("right"),
   Top("top"),
   Bottom("bottom"),
-  Baseline("baseline")
+  Baseline("baseline");
+
+  companion object {
+    fun isVertical(keyWord: String) = verticalAnchors.any { it.keyWord == keyWord }
+
+    fun isHorizontal(keyWord: String) = horizontalAnchors.any { it.keyWord == keyWord }
+
+    val horizontalAnchors: List<StandardAnchor> = listOf(Start, End, Left, Right)
+
+    val verticalAnchors: List<StandardAnchor> = listOf(Top, Bottom, Baseline)
+  }
 }
 
 /**
@@ -49,7 +59,7 @@ internal enum class StandardAnchor(override val keyWord: String): ConstraintLayo
  *
  * These implicitly apply multiple [StandardAnchor]s.
  */
-internal enum class SpecialAnchor(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class SpecialAnchor(override val keyWord: String) : ConstraintLayoutKeyWord {
   Center("center"),
   CenterH("centerHorizontally"),
   CenterV("centerVertically")
@@ -58,7 +68,7 @@ internal enum class SpecialAnchor(override val keyWord: String): ConstraintLayou
 /**
  * Supported keywords to define the dimension of a widget.
  */
-internal enum class Dimension(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class Dimension(override val keyWord: String) : ConstraintLayoutKeyWord {
   Width("width"),
   Height("height")
 }
@@ -66,7 +76,7 @@ internal enum class Dimension(override val keyWord: String): ConstraintLayoutKey
 /**
  * Keywords to apply rendering time transformations to a widget.
  */
-internal enum class RenderTransform(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class RenderTransform(override val keyWord: String) : ConstraintLayoutKeyWord {
   Alpha("alpha"),
   ScaleX("scaleX"),
   ScaleY("scaleY"),

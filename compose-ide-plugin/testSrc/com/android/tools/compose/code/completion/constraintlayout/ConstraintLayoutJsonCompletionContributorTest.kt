@@ -149,6 +149,47 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
   }
 
   @Test
+  fun completeAnchorsInConstraintArray() {
+    @Language("JSON5")
+    var content: String =
+      """
+      {
+        ConstraintSets: {
+          start: {
+            id1: {
+              start: ['parent', '$caret', 0]
+            }
+          }
+        }
+      }
+    """.trimIndent()
+    myFixture.configureByText("myscene.json", content)
+    myFixture.completeBasic()
+    val lookupElements1 = myFixture.lookupElementStrings!!
+    assertThat(lookupElements1).hasSize(4)
+    assertThat(lookupElements1).containsExactly("end", "left", "right", "start")
+
+    content =
+      //language=json5
+      """
+      {
+        ConstraintSets: {
+          start: {
+            id1: {
+              top: ['parent', '$caret', 0]
+            }
+          }
+        }
+      }
+    """.trimIndent()
+    myFixture.configureByText("myscene2.json", content)
+    myFixture.completeBasic()
+    val lookupElements2 = myFixture.lookupElementStrings!!
+    assertThat(lookupElements2).hasSize(3)
+    assertThat(lookupElements2).containsExactly("top", "bottom", "baseline")
+  }
+
+  @Test
   fun constraintAnchorHandlerResult() {
     @Language("JSON5")
     val content =
