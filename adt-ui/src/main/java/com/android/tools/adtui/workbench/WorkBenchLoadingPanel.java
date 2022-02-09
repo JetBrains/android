@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.stdui.Chunk;
 import com.android.tools.adtui.stdui.EmptyStatePanel;
@@ -29,6 +30,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
@@ -43,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WorkBenchLoadingPanel extends JPanel {
   private final JBLoadingPanel myLoadingPanel;
+  private Color myMessagePanelTextColor = StudioColorsKt.getHelpText();
   @Nullable private EmptyStatePanel myMessagePanel = null;
 
   public WorkBenchLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent,
@@ -141,7 +144,7 @@ public class WorkBenchLoadingPanel extends JPanel {
       chunks.add(new TextChunk(line));
     }
 
-    myMessagePanel = new EmptyStatePanel(new LabelData(chunks.toArray(new Chunk[0])), helpUrlData, actionData);
+    myMessagePanel = new EmptyStatePanel(new LabelData(chunks.toArray(new Chunk[0])), helpUrlData, actionData, myMessagePanelTextColor);
     super.remove(myLoadingPanel);
     super.add(myMessagePanel);
   }
@@ -152,5 +155,9 @@ public class WorkBenchLoadingPanel extends JPanel {
       super.add(myLoadingPanel);
       myMessagePanel = null;
     }
+  }
+
+  public void setMessagePanelTextColor(@NotNull Color color) {
+    myMessagePanelTextColor = color;
   }
 }

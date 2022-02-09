@@ -27,6 +27,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtilities
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
+import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -56,10 +57,11 @@ object NewLineChunk : Chunk()
 class EmptyStatePanel @JvmOverloads constructor(
   private val reason: LabelData,
   helpUrlData: UrlData? = null,
-  actionData: ActionData? = null
+  actionData: ActionData? = null,
+  textColor: Color = UIUtil.getInactiveTextColor()
 ): JPanel(BorderLayout()) {
   init {
-    add(createInstructionsPanel(this, reason, helpUrlData, actionData))
+    add(createInstructionsPanel(this, reason, helpUrlData, actionData, textColor))
   }
 
   @JvmOverloads
@@ -82,7 +84,8 @@ private fun createInstructionsPanel(
   parent: JComponent,
   reason: LabelData,
   helpUrlData: UrlData?,
-  actionData: ActionData?
+  actionData: ActionData?,
+  textColor: Color
 ): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
   val textMetrics = UIUtilities.getFontMetrics(parent, TEXT_FONT)
@@ -108,7 +111,7 @@ private fun createInstructionsPanel(
 
   return InstructionsPanel.Builder(*instructions.toTypedArray())
     .setMode(InstructionsPanel.Mode.FILL_PANEL)
-    .setColors(UIUtil.getInactiveTextColor(), null)
+    .setColors(textColor, null)
     .build()
 }
 
