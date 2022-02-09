@@ -45,21 +45,13 @@ public final class PhysicalDeviceTableModelTest {
   @Test
   public void newPhysicalDeviceTableModelDevicesIsntEmpty() {
     // Arrange
-    PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("0A071FDD4003ZG"))
-      .setName("Google Pixel 5")
-      .setTarget("Android 11.0")
-      .setApi("30")
-      .addConnectionType(ConnectionType.USB)
-      .build();
-
-    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5);
+    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5);
 
     // Act
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
     // Assert
-    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
   }
 
   @Test
@@ -90,19 +82,11 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     model.addTableModelListener(listener);
 
-    PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("0A071FDD4003ZG"))
-      .setName("Google Pixel 5")
-      .setTarget("Android 11.0")
-      .setApi("30")
-      .addConnectionType(ConnectionType.USB)
-      .build();
-
     // Act
-    model.addOrSet(onlinePixel5);
+    model.addOrSet(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5);
 
     // Assert
-    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -115,19 +99,11 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
     model.addTableModelListener(listener);
 
-    PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("0A071FDD4003ZG"))
-      .setName("Google Pixel 5")
-      .setTarget("Android 11.0")
-      .setApi("30")
-      .addConnectionType(ConnectionType.USB)
-      .build();
-
     // Act
-    model.addOrSet(onlinePixel5);
+    model.addOrSet(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5);
 
     // Assert
-    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 

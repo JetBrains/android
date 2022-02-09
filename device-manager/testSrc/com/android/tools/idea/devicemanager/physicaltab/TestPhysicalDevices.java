@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import org.jetbrains.annotations.NotNull;
+
 public final class TestPhysicalDevices {
   static final Key GOOGLE_PIXEL_3_KEY = new SerialNumber("86UX00F4R");
 
-  public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
+  public static final @NotNull PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
     .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
     .setApi("31")
     .build();
 
-  public static final PhysicalDevice ONLINE_GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
+  public static final @NotNull PhysicalDevice ONLINE_GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
     .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
@@ -33,11 +35,21 @@ public final class TestPhysicalDevices {
     .addConnectionType(ConnectionType.USB)
     .build();
 
-  public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("0A071FDD4003ZG"))
+  private static final Key GOOGLE_PIXEL_5_KEY = new SerialNumber("0A071FDD4003ZG");
+
+  static final @NotNull PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
+    .setKey(GOOGLE_PIXEL_5_KEY)
     .setName("Google Pixel 5")
     .setTarget("Android 11.0")
     .setApi("30")
+    .build();
+
+  static final @NotNull PhysicalDevice ONLINE_GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
+    .setKey(GOOGLE_PIXEL_5_KEY)
+    .setName("Google Pixel 5")
+    .setTarget("Android 11.0")
+    .setApi("30")
+    .addConnectionType(ConnectionType.USB)
     .build();
 
   private TestPhysicalDevices() {
