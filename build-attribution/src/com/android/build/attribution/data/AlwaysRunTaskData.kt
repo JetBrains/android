@@ -20,8 +20,8 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode
 data class AlwaysRunTaskData(val taskData: TaskData, val rerunReason: Reason) {
 
   enum class Reason(val message: String) {
-    NO_OUTPUTS_WITHOUT_ACTIONS(TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get()),
-    NO_OUTPUTS_WITH_ACTIONS(TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()),
+    NO_OUTPUTS_WITHOUT_ACTIONS("Task has not declared any outputs nor actions."),
+    NO_OUTPUTS_WITH_ACTIONS(TaskExecutionMode.NO_OUTPUTS.rebuildReason.get()),
     UP_TO_DATE_WHEN_FALSE((TaskExecutionMode.UP_TO_DATE_WHEN_FALSE.rebuildReason.get())),
   }
 }
