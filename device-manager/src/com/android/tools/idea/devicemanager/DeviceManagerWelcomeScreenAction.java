@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -29,24 +28,19 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
-  private final @NotNull BooleanSupplier myEnableNewDeviceManagerPanelGet;
   private final @NotNull BooleanSupplier myIsChromeOSAndIsNotHWAccelerated;
   private final @NotNull BooleanSupplier myIsAndroidSdkAvailable;
   private @Nullable DeviceManagerWelcomeScreenFrame myDeviceManagerWelcomeScreenFrame;
 
   @SuppressWarnings("unused")
   private DeviceManagerWelcomeScreenAction() {
-    this(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL::get,
-         HardwareAccelerationCheck::isChromeOSAndIsNotHWAccelerated,
-         AndroidSdkUtils::isAndroidSdkAvailable);
+    this(HardwareAccelerationCheck::isChromeOSAndIsNotHWAccelerated, AndroidSdkUtils::isAndroidSdkAvailable);
   }
 
   @VisibleForTesting
   @NonInjectable
-  DeviceManagerWelcomeScreenAction(@NotNull BooleanSupplier enableNewDeviceManagerPanelGet,
-                                   @NotNull BooleanSupplier isChromeOSAndIsNotHWAccelerated,
+  DeviceManagerWelcomeScreenAction(@NotNull BooleanSupplier isChromeOSAndIsNotHWAccelerated,
                                    @NotNull BooleanSupplier isAndroidSdkAvailable) {
-    myEnableNewDeviceManagerPanelGet = enableNewDeviceManagerPanelGet;
     myIsChromeOSAndIsNotHWAccelerated = isChromeOSAndIsNotHWAccelerated;
     myIsAndroidSdkAvailable = isAndroidSdkAvailable;
   }
@@ -55,7 +49,7 @@ final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
-    if (myIsChromeOSAndIsNotHWAccelerated.getAsBoolean() || !myEnableNewDeviceManagerPanelGet.getAsBoolean()) {
+    if (myIsChromeOSAndIsNotHWAccelerated.getAsBoolean()) {
       presentation.setVisible(false);
       return;
     }

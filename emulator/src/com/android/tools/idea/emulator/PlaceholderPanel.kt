@@ -25,7 +25,6 @@ import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.Disposable
@@ -134,7 +133,7 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
     val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
     val html = if (emulatorLaunchesInToolWindow) {
       if (emulatorVersionIsSufficient) {
-        val linkTitle = if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) "Device&nbsp;Manager" else "AVD&nbsp;Manager"
+        val linkTitle = "Device&nbsp;Manager"
         """
         <center>
         No emulators are currently running.

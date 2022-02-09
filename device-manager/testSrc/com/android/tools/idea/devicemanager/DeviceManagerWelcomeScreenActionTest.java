@@ -41,7 +41,7 @@ public final class DeviceManagerWelcomeScreenActionTest {
 
   @Test
   public void deviceManagerEnabled() {
-    myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> false, () -> true);
+    myAction = new DeviceManagerWelcomeScreenAction(() -> false, () -> true);
 
     myAction.update(myEvent);
 
@@ -50,18 +50,8 @@ public final class DeviceManagerWelcomeScreenActionTest {
   }
 
   @Test
-  public void deviceManagerDisabled() {
-    myAction = new DeviceManagerWelcomeScreenAction(() -> false, () -> false, () -> true);
-
-    myAction.update(myEvent);
-
-    assertFalse(myEvent.getPresentation().isVisible());
-    assertTrue(myEvent.getPresentation().isEnabled());
-  }
-
-  @Test
   public void isChromeOsAndNotHWAccelerated() {
-    myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> true, () -> true);
+    myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> true);
 
     myAction.update(myEvent);
 
@@ -70,7 +60,7 @@ public final class DeviceManagerWelcomeScreenActionTest {
 
   @Test
   public void androidSdkNotAvailable() {
-    myAction = new DeviceManagerWelcomeScreenAction(() -> true, () -> false, () -> false);
+    myAction = new DeviceManagerWelcomeScreenAction(() -> false, () -> false);
 
     myAction.update(myEvent);
 

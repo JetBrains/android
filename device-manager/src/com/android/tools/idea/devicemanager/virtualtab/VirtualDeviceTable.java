@@ -29,7 +29,6 @@ import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
@@ -65,8 +64,8 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO Stop implementing AvdRefreshProvider and AvdInfoProvider
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements AvdRefreshProvider, AvdInfoProvider {
+// TODO Stop implementing AvdInfoProvider
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
@@ -282,11 +281,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   public @NotNull JComponent getAvdProviderComponent() {
-    return this;
-  }
-
-  @Override
-  public @NotNull JComponent getComponent() {
     return this;
   }
 }

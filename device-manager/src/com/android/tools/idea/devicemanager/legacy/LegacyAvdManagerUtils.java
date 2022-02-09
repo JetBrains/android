@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 public final class LegacyAvdManagerUtils {
   public static @NotNull FutureCallback<@NotNull IDevice> newCallback(@Nullable Project project) {
-    String name = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? "Device Manager" : "AVD Manager";
-    return new ShowErrorDialogCallback<>(name,
-                                         "There was an unspecified error in the " + name +
-                                         ". Please consult idea.log for more information.",
+    return new ShowErrorDialogCallback<>("Device Manager",
+                                         "There was an unspecified error in the device manager. Please consult idea.log for more " +
+                                         "information.",
                                          project);
   }
 }
