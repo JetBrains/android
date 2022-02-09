@@ -181,6 +181,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       facet -> false,
       this,
       true,
+      false,
       moduleSelector -> new ApplicationRunParameters<>(getProject(), moduleSelector));
   }
 

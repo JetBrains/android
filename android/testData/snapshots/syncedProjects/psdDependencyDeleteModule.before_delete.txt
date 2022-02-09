@@ -3265,8 +3265,8 @@ PROJECT                       : testPsdDependencyDeleteModule
         ORDER_ENTRY                   : testPsdDependencyDeleteModule.modulePlus.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testPsdDependencyDeleteModule.app
-        Module                        : testPsdDependencyDeleteModule.app
+        ModuleName                    : testPsdDependencyDeleteModule.app.main
+        Module                        : testPsdDependencyDeleteModule.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./lib/libsam1-1.1.jar
             *CLASSES                      : jar://<PROJECT>/lib/libsam1-1.1.jar!/

@@ -396,8 +396,8 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         ORDER_ENTRY                   : testWithEmptyGradleSettingsFileInSingleModuleProject.main
     RUN_CONFIGURATION             : testWithEmptyGradleSettingsFileInSingleModuleProject
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testWithEmptyGradleSettingsFileInSingleModuleProject
-        Module                        : testWithEmptyGradleSettingsFileInSingleModuleProject
+        ModuleName                    : testWithEmptyGradleSettingsFileInSingleModuleProject.main
+        Module                        : testWithEmptyGradleSettingsFileInSingleModuleProject.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

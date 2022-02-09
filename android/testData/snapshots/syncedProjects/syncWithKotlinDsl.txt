@@ -821,8 +821,8 @@ PROJECT                       : testSyncWithKotlinDsl
         ORDER_ENTRY                   : testSyncWithKotlinDsl.lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testSyncWithKotlinDsl.app
-        Module                        : testSyncWithKotlinDsl.app
+        ModuleName                    : testSyncWithKotlinDsl.app.main
+        Module                        : testSyncWithKotlinDsl.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

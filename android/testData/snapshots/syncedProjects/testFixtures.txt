@@ -902,8 +902,8 @@ PROJECT                       : testTestFixtures
             -                             : file://<PROJECT>/build/classes/test/testTestFixtures.lib.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTestFixtures.app
-        Module                        : testTestFixtures.app
+        ModuleName                    : testTestFixtures.app.main
+        Module                        : testTestFixtures.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

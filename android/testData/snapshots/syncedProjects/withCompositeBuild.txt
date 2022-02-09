@@ -3207,16 +3207,16 @@ PROJECT                       : testWithCompositeBuild
             -                             : file://<PROJECT>/build/classes/test/testWithCompositeBuild.lib.unitTest
     RUN_CONFIGURATION             : TestCompositeLib1.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : TestCompositeLib1.app
-        Module                        : TestCompositeLib1.app
+        ModuleName                    : TestCompositeLib1.app.main
+        Module                        : TestCompositeLib1.app.main
     RUN_CONFIGURATION             : TestCompositeLib3.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : TestCompositeLib3.app
-        Module                        : TestCompositeLib3.app
+        ModuleName                    : TestCompositeLib3.app.main
+        Module                        : TestCompositeLib3.app.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testWithCompositeBuild.app
-        Module                        : testWithCompositeBuild.app
+        ModuleName                    : testWithCompositeBuild.app.main
+        Module                        : testWithCompositeBuild.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

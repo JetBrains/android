@@ -1301,8 +1301,8 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : MainActivity.lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : MainActivity.app
-        Module                        : MainActivity.app
+        ModuleName                    : MainActivity.app.main
+        Module                        : MainActivity.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

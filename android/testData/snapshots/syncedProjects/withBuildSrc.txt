@@ -868,8 +868,8 @@ PROJECT                       : testWithBuildSrc
         ORDER_ENTRY                   : testWithBuildSrc.buildSrc.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testWithBuildSrc.app
-        Module                        : testWithBuildSrc.app
+        ModuleName                    : testWithBuildSrc.app.main
+        Module                        : testWithBuildSrc.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

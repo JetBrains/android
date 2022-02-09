@@ -509,8 +509,8 @@ PROJECT                       : testNestedModule
         ORDER_ENTRY                   : testNestedModule.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testNestedModule.app
-        Module                        : testNestedModule.app
+        ModuleName                    : testNestedModule.app.main
+        Module                        : testNestedModule.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

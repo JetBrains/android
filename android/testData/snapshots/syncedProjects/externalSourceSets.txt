@@ -465,8 +465,8 @@ PROJECT                       : application
             -                             : file://<PROJECT>/build/classes/test/application.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : application.app
-        Module                        : application.app
+        ModuleName                    : application.app.main
+        Module                        : application.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

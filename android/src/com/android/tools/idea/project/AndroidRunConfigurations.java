@@ -45,7 +45,8 @@ public class AndroidRunConfigurations {
   }
 
   public void createRunConfiguration(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
+    // Android run configuration should always be created with the main module
+    Module module = facet.getMainModule();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     List<RunConfiguration> configurations =
       RunManager.getInstance(module.getProject()).getConfigurationsList(configurationFactory.getType());
@@ -60,7 +61,7 @@ public class AndroidRunConfigurations {
   }
 
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
-    Module module = facet.getModule();
+    Module module = facet.getMainModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
     String projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.getProject().getName(), true, false);
     String moduleName = ModuleSystemUtil.getHolderModule(module).getName();

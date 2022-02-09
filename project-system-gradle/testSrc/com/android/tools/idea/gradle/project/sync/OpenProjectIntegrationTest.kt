@@ -169,10 +169,14 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
       assertThat(androidTestRunConfiguration?.name).isEqualTo("All Tests Sub 36")
 
       val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      // Existing run configuration will not be able to find the modules since we enabled qualified module names and module per source set
+      // As such these existing configuration will be mapped to null and a new configuration for the app module created.
+      // We don't remove this configuration to avoid losing importing config the user has set up.
       assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
-        "app" to "My36.app",
-        "sub36" to "My36.app.sub36",
-        "All Tests Sub 36" to "My36.app.sub36"
+        "app" to "My36.app.main",
+        "app.sub36" to "My36.app.sub36.main",
+        "sub36" to null,
+        "All Tests Sub 36" to null
       ))
     }
   }
@@ -191,10 +195,14 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject("project") { project ->
       val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      // Existing run configuration will not be able to find the modules since we enabled qualified module names and module per source set
+      // As such these existing configuration will be mapped to null and a new configuration for the app module created.
+      // We don't remove this configuration to avoid losing importing config the user has set up.
       assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
-        "app" to "My36.app",
-        "sub36" to "My36.app.sub36",
-        "All Tests Sub 36" to "My36.app.sub36"
+        "app" to "My36.app.main",
+        "app.sub36" to "My36.app.sub36.main",
+        "sub36" to null,
+        "All Tests Sub 36" to null
       ))
     }
   }

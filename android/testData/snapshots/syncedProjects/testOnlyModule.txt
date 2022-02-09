@@ -599,8 +599,8 @@ PROJECT                       : testTestOnlyModule
             -                             : file://<PROJECT>/build/classes/production/testTestOnlyModule.test2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTestOnlyModule.app
-        Module                        : testTestOnlyModule.app
+        ModuleName                    : testTestOnlyModule.app.main
+        Module                        : testTestOnlyModule.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

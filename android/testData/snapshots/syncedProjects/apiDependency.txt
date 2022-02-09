@@ -1009,8 +1009,8 @@ PROJECT                       : testApiDependency
         ORDER_ENTRY                   : testApiDependency.lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testApiDependency.app
-        Module                        : testApiDependency.app
+        ModuleName                    : testApiDependency.app.main
+        Module                        : testApiDependency.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

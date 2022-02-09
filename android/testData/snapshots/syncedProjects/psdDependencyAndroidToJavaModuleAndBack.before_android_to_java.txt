@@ -3265,8 +3265,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testPsdDependencyAndroidToJavaModuleAndBack.app
-        Module                        : testPsdDependencyAndroidToJavaModuleAndBack.app
+        ModuleName                    : testPsdDependencyAndroidToJavaModuleAndBack.app.main
+        Module                        : testPsdDependencyAndroidToJavaModuleAndBack.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./lib/libsam1-1.1.jar
             *CLASSES                      : jar://<PROJECT>/lib/libsam1-1.1.jar!/

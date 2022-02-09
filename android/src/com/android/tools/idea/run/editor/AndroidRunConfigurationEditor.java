@@ -83,6 +83,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
                                        Predicate<AndroidFacet> libraryProjectValidator,
                                        T config,
                                        boolean showLogcatCheckbox,
+                                       boolean isAndroidTest,
                                        Function<ConfigurationModuleSelector, ConfigurationSpecificEditor<T>> configurationSpecificEditorFactory) {
     Disposer.register(project, this);
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
@@ -97,7 +98,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
 
-        if (!ModuleSystemUtil.isHolderModule(module)) {
+        if (!ModuleSystemUtil.isMainModule(module) && !isAndroidTest) {
+          return false;
+        }
+
+        if (!ModuleSystemUtil.isAndroidTestModule(module) && isAndroidTest) {
           return false;
         }
 

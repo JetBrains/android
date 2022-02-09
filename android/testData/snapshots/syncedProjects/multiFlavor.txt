@@ -551,8 +551,8 @@ PROJECT                       : MultiFlavor
             -                             : file://<PROJECT>/build/classes/test/MultiFlavor.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : MultiFlavor.app
-        Module                        : MultiFlavor.app
+        ModuleName                    : MultiFlavor.app.main
+        Module                        : MultiFlavor.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml

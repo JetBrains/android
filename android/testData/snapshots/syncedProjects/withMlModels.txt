@@ -470,8 +470,8 @@ PROJECT                       : testWithMlModels
             -                             : file://<PROJECT>/build/classes/test/testWithMlModels.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testWithMlModels.app
-        Module                        : testWithMlModels.app
+        ModuleName                    : testWithMlModels.app.main
+        Module                        : testWithMlModels.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

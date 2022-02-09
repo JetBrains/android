@@ -1513,8 +1513,8 @@ PROJECT                       : AS36
         ORDER_ENTRY                   : AS36.libs.java_lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : AS36.app
-        Module                        : AS36.app
+        ModuleName                    : AS36.app.main
+        Module                        : AS36.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

@@ -1470,8 +1470,8 @@ PROJECT                       : testTransitiveDependencies
             -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTransitiveDependencies.app
-        Module                        : testTransitiveDependencies.app
+        ModuleName                    : testTransitiveDependencies.app.main
+        Module                        : testTransitiveDependencies.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./library2/libs/fakelib.jar
             *CLASSES                      : jar://<PROJECT>/library2/libs/fakelib.jar!/

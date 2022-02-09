@@ -268,5 +268,5 @@ PROJECT                       : testWithCentralBuildDirectoryInRootModuleDeleted
         ORDER_ENTRY                   : testWithCentralBuildDirectoryInRootModuleDeleted.app.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testWithCentralBuildDirectoryInRootModuleDeleted.app
-        Module                        : testWithCentralBuildDirectoryInRootModuleDeleted.app
+        ModuleName                    : testWithCentralBuildDirectoryInRootModuleDeleted.app.main
+        Module                        : testWithCentralBuildDirectoryInRootModuleDeleted.app.main

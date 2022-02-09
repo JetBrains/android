@@ -300,8 +300,8 @@ PROJECT                       : withGradleMetadata
         ORDER_ENTRY                   : withGradleMetadata.app.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : withGradleMetadata.app
-        Module                        : withGradleMetadata.app
+        ModuleName                    : withGradleMetadata.app.main
+        Module                        : withGradleMetadata.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/

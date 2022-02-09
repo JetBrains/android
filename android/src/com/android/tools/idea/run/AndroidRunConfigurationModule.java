@@ -58,13 +58,6 @@ public class AndroidRunConfigurationModule extends JavaRunConfigurationModule {
     return GlobalSearchScope.projectScope(getProject());
   }
 
-  @Override
-  public void setModule(@Nullable Module module) {
-    // We want to keep configurations reference holder modules only.
-    // Switch to holder module in case any source set module is coming from the action context.
-    super.setModule(module == null ? null : ModuleSystemUtil.getHolderModule(module));
-  }
-
   public @Nullable Module getAndroidTestModule() {
     return getModule() == null ? null : ModuleSystemUtil.getAndroidTestModule(getModule());
   }

@@ -456,8 +456,8 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
             -                             : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testSimpleApplicationWithAgp3_3_2.app
-        Module                        : testSimpleApplicationWithAgp3_3_2.app
+        ModuleName                    : testSimpleApplicationWithAgp3_3_2.app.main
+        Module                        : testSimpleApplicationWithAgp3_3_2.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

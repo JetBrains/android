@@ -302,6 +302,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(),
       this,
       false,
+      true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
   }
 

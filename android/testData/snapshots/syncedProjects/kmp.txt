@@ -1183,8 +1183,8 @@ PROJECT                       : kotlinMultiPlatform
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : kotlinMultiPlatform.app
-        Module                        : kotlinMultiPlatform.app
+        ModuleName                    : kotlinMultiPlatform.app.main
+        Module                        : kotlinMultiPlatform.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

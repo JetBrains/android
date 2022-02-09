@@ -89,6 +89,6 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     errors = androidTestRunConfiguration.validate(null);
     assertThat(errors).isNotEmpty();
     assertThat(errors.stream().map(ValidationError::getMessage).collect(Collectors.toList()))
-      .contains("Active build variant \"release\" does not have a test artifact.");
+      .contains("Module 'testCannotRunLibTestsInReleaseBuild.lib.androidTest' doesn't exist in project");
  }
 }

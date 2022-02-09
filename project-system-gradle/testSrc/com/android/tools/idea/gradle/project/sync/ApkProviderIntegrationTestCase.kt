@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
@@ -43,7 +44,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.COMPOSITE_BUILD,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app"),
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       expectApks =
       """
@@ -71,7 +72,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         testProject = TestProjectPaths.COMPOSITE_BUILD,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app"),
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app:main"),
       ),
       expectApks =
       """
@@ -109,10 +110,10 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
         AGP_40 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
             """,
         AGP_35 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
             """
       )
     ),

@@ -349,8 +349,8 @@ PROJECT                       : My Application
         ORDER_ENTRY                   : My_Application.main
     RUN_CONFIGURATION             : My_Application
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : My_Application
-        Module                        : My_Application
+        ModuleName                    : My_Application.main
+        Module                        : My_Application.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./lib1/liba.jar
             *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
