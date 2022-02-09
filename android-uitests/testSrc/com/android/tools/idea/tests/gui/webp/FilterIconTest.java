@@ -72,7 +72,7 @@ public class FilterIconTest {
       .clickNext()
       .clickFinish()
       .getEditor()
-      .open("app/src/main/res/drawable/ic_baseline_call_24.xml")
+      .open("app/src/main/res/drawable/ic_baseline_add_ic_call_24.xml")
       .getCurrentFileContents();
     assertThat(fileContents).containsMatch(REG_EXP);
   }

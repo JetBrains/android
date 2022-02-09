@@ -90,9 +90,8 @@ public class SurroundWithShortcutTest {
       .enterText("\n" + HELLO_STR)
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    JListFixture listFixture = clickCodeSurroundWith(ideFrame);
-    listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
-    listFixture.clickItem(Pattern.compile(".*try / catch.*", Pattern.DOTALL));
+    clickCodeSurroundWith(ideFrame);
+    guiTest.robot().enterText("6"); // Shortcut: "4" for try / catch
     Wait.seconds(5).expecting("Try/Catch block to be added.")
       .until(() -> editorFixture.getCurrentFileContents().contains(TRY_CATCH_BLOCK));
 

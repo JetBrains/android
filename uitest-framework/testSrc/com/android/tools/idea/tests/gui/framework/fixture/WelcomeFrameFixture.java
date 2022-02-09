@@ -123,6 +123,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
       .clickPath("Appearance & Behavior/System Settings/Android SDK");
   }
 
+  public void openSdkManagerFromMoreOptions() {
+    clickMoreOptionsItem("SDK Manager");
+  }
+
+
   private void findAndClickButton(@NotNull String text) {
     JComponent buttonLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
       @Override

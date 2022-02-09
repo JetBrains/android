@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,7 +81,7 @@ public class AndroidVectorDrawableToolTest {
       .clickNext()
       .clickFinish()
       .getEditor()
-      .open("app/src/main/res/drawable/ic_android_black_24dp.xml")
+      .open("app/src/main/res/drawable/ic_baseline_10k_24.xml")
       .getCurrentFileContents();
     assertThat(contents).contains("android:width=\"48dp\"");
     assertThat(contents).contains("android:height=\"48dp\"");

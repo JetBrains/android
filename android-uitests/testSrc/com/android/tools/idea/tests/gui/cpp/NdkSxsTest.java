@@ -64,7 +64,7 @@ public class NdkSxsTest {
   @RunIn(TestGroup.FAST_BAZEL)
   public void checkMultiNdkVersions() {
     guiTest.welcomeFrame()
-      .openSdkManager();
+      .openSdkManagerFromMoreOptions();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = IdeSettingsDialogFixture.find(guiTest.robot());
     findAndClickLabel(ideSettingsDialogFixture, "SDK Tools");
