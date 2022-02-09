@@ -68,7 +68,8 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("20")
         expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
         expect.that(overrides[ManifestSystemProperty.SHELL]).isNull()
-        expect.that(ManifestSystemProperty.values().size).isEqualTo(12)
+        expect.that(overrides[ManifestSystemProperty.ENABLED]).isNull()
+        expect.that(ManifestSystemProperty.values().size).isEqualTo(13)
       }
       run {
         switchVariant(project, ":app", "firstXyzSecondXyzRelease")
@@ -85,7 +86,8 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("31")
         expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
         expect.that(overrides[ManifestSystemProperty.SHELL]).isNull()
-        expect.that(ManifestSystemProperty.values().size).isEqualTo(12)
+        expect.that(overrides[ManifestSystemProperty.ENABLED]).isNull()
+        expect.that(ManifestSystemProperty.values().size).isEqualTo(13)
       }
     }
   }
