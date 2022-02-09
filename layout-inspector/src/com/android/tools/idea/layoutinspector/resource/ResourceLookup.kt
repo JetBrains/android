@@ -57,6 +57,9 @@ class ResourceLookup(private val project: Project) {
   var resolver: ResourceLookupResolver? = null
     private set
 
+  val hasResolver: Boolean
+    get() = resolver != null
+
   /**
    * The dpi of the device we are currently inspecting or -1 if unknown.
    */

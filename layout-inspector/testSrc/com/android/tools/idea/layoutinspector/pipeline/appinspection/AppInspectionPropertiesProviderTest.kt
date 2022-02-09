@@ -105,7 +105,7 @@ class AppInspectionPropertiesProviderTest {
   }
 
   @Test
-  fun canQueryPropertiesForViews() {
+  fun canQueryPropertiesForViewsWithResourceResolver() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -169,6 +169,41 @@ class AppInspectionPropertiesProviderTest {
       }
       // Assert that "android:backgroundTint" is omitted
       assertThat(result.table.getByNamespace(ANDROID_URI)).isEmpty()
+    }
+  }
+
+  @Test
+  fun canQueryPropertiesForViewsWithoutResourceResolver() {
+    val facet = AndroidFacet.getInstance(inspectorRule.projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
+
+    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    val provider = inspectorRule.inspectorClient.provider
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
+    provider.resultListeners.add { _, view, table ->
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
+    }
+
+    // The properties should be simple non-expanding properties
+    inspectorRule.inspectorModel[5]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
+        assertProperty("id", PropertyType.RESOURCE, "@com.example:id/fab", source = layout("activity_main"))
+        assertProperty("src", PropertyType.DRAWABLE, "@drawable/?", source = layout("activity_main"))
+        assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?", source = layout("activity_main"))
+      }
     }
   }
 
@@ -615,6 +650,7 @@ class AppInspectionPropertiesProviderTest {
         expected.value?.let { assertThat(actual.value).isEqualTo(it) }
       }
       assertThat(property.children.size).isEqualTo(resolutionStack.size)
+      assertThat(property.lookup.resourceLookup.hasResolver).isTrue()
     }
   }
 

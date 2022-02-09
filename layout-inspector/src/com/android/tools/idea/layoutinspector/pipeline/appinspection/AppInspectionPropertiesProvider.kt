@@ -95,13 +95,15 @@ class AppInspectionPropertiesProvider(
 
     properties.values.forEach { it.resolveDimensionType(view) }
 
-    runReadAction {
-      propertiesData.classNames.cellSet().mapNotNull { cell ->
-        properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
-      }.forEach { properties.put(it) }
-      propertiesData.resolutionStacks.cellSet().mapNotNull { cell ->
-        properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
-      }.forEach { properties.put(it) }
+    if (model.resourceLookup.hasResolver) {
+      runReadAction {
+        propertiesData.classNames.cellSet().mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
+        }.forEach { properties.put(it) }
+        propertiesData.resolutionStacks.cellSet().mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
+        }.forEach { properties.put(it) }
+      }
     }
     addInternalProperties(properties, view, properties.getOrNull(ANDROID_URI, ATTR_ID)?.value ,model)
   }
