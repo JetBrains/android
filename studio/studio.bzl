@@ -675,39 +675,77 @@ def android_studio(
         **kwargs
     )
 
-def _intellij_plugin_impl(ctx):
-    infos = [export[JavaInfo] for export in ctx.attr.exports]
-    java_info = java_common.merge(infos)
-    jar_files = java_info.runtime_output_jars
-    plugin_metadata = _check_plugin(ctx, jar_files)
+def _intellij_plugin_import_impl(ctx):
+    plugin_zips = []
+
+    # Note: platform plugins will have no files because they are already in intellij-sdk.
+    if ctx.attr.files:
+        plugin_dir = "plugins/" + ctx.attr.target_dir
+        zip_spec = []
+        for f in ctx.files.files:
+            if not f.short_path.startswith(ctx.attr.strip_prefix):
+                fail("File " + f.short_path + " does not start with prefix " + ctx.attr.strip_prefix)
+            relpath = f.short_path[len(ctx.attr.strip_prefix):]
+            zip_spec.append((plugin_dir + "/" + relpath, f))
+        plugin_zip = ctx.actions.declare_file(ctx.label.name + ".zip")
+        _zipper(ctx, ctx.attr.name, zip_spec, plugin_zip)
+        plugin_zips.append(plugin_zip)
+
+    java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
+    jars = java_info.runtime_output_jars
+    plugin_metadata = _check_plugin(ctx, jars)
+
     return [
         java_info,
+        DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.files)),
         PluginInfo(
-            directory = None,  # This plugin is already part of intellij-sdk.
-            files = depset(),
+            directory = ctx.attr.target_dir,
+            files = depset(plugin_zips),
             files_linux = depset(),
             files_mac = depset(),
             files_mac_arm = depset(),
             files_win = depset(),
             plugin_metadata = plugin_metadata,
             module_deps = depset(),
-            lib_deps = depset(),
+            lib_deps = depset(ctx.attr.exports),
             licenses = depset(),
             overwrite_plugin_version = False,
         ),
     ]
 
-_intellij_plugin = rule(
+_intellij_plugin_import = rule(
     attrs = {
-        "exports": attr.label_list(providers = [JavaInfo]),
+        # Note: platform plugins will have no files because they are already in intellij-sdk.
+        "files": attr.label_list(allow_files = True),
+        "strip_prefix": attr.string(),
+        "target_dir": attr.string(),
+        "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
+        "compress": attr.bool(),
         "_check_plugin": attr.label(
             default = Label("//tools/adt/idea/studio:check_plugin"),
             cfg = "host",
             executable = True,
         ),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "host",
+            executable = True,
+        ),
     },
-    implementation = _intellij_plugin_impl,
+    implementation = _intellij_plugin_import_impl,
 )
+
+def intellij_plugin_import(name, files_root_dir, target_dir, exports, **kwargs):
+    """This macro is for prebuilt IntelliJ plugins that are not already part of intellij-sdk."""
+    _intellij_plugin_import(
+        name = name,
+        files = native.glob([files_root_dir + "/**"]),
+        strip_prefix = native.package_name() + "/" + files_root_dir + "/",
+        target_dir = target_dir,
+        exports = exports,
+        compress = is_release(),
+        **kwargs
+    )
 
 def _intellij_platform_impl_os(ctx, platform, data):
     files = platform.get(data)
@@ -871,7 +909,7 @@ def intellij_platform(
     for plugin, jars in spec.plugin_jars.items():
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
         _gen_plugin_jars_import_target(jars_target_name, src, spec, plugin, jars)
-        _intellij_plugin(
+        _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
             exports = [":" + jars_target_name],
             visibility = ["//visibility:public"],
