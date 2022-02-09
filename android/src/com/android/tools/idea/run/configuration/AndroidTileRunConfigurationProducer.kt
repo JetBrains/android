@@ -19,15 +19,14 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.util.InheritanceUtil
 
 /**
- * Producer of [AndroidWatchFaceConfiguration] for classes that extend `android.support.wearable.watchface.WatchFaceService` or
- * `androidx.wear.watchface.WatchFaceService`.
+ * Producer of [AndroidTileConfiguration] for classes that extend `androidx.wear.tiles.TileService`.
  */
-class AndroidWatchFaceRunConfigurationProducer :
-  AndroidWearRunConfigurationProducer<AndroidWatchFaceConfiguration>(AndroidWatchFaceConfigurationType::class.java) {
+class AndroidTileRunConfigurationProducer :
+  AndroidWearRunConfigurationProducer<AndroidTileConfiguration>(AndroidTileConfigurationType::class.java) {
 
-  override fun isValidService(psiClass: PsiClass): Boolean = psiClass.isValidWatchFaceService()
+  override fun isValidService(psiClass: PsiClass): Boolean = psiClass.isValidTileService()
 }
 
-internal fun PsiClass.isValidWatchFaceService(): Boolean {
-  return WearBaseClasses.WATCH_FACES.any { wearBase -> InheritanceUtil.isInheritor(this, wearBase) }
+internal fun PsiClass.isValidTileService(): Boolean {
+  return WearBaseClasses.TILES.any { wearBase -> InheritanceUtil.isInheritor(this, wearBase) }
 }

@@ -18,6 +18,10 @@ package com.android.tools.idea.run.configuration
 import com.android.SdkConstants
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.psi.KtClass
 
 object WearBaseClasses {
   val WATCH_FACES = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
@@ -27,3 +31,11 @@ object WearBaseClasses {
 
 internal val Executor.isDebug: Boolean
   get() = DefaultDebugExecutor.EXECUTOR_ID == this.id
+
+internal fun PsiElement?.getPsiClass(): PsiClass? {
+  return when (val parent = this?.parent) {
+    is KtClass -> parent.toLightClass()
+    is PsiClass -> parent
+    else -> null
+  }
+}

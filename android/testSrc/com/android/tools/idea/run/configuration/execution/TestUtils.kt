@@ -22,6 +22,10 @@ import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
 import com.android.utils.NullLogger
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 
 internal fun createApp(device: IDevice, appId: String, servicesName: List<String>, activitiesName: List<String>): App {
@@ -72,3 +76,32 @@ internal class TestApplicationInstaller : ApplicationInstaller {
     return appIdToApp[appId]!!
   }
 }
+
+internal fun JavaCodeInsightTestFixture.addWearDependenciesToProject() {
+  // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
+  addFileToProject(
+    "src/android/support/wearable/watchface/WatchFaceService.kt",
+    """
+      package android.support.wearable.watchface
+
+      open class WatchFaceService
+      """.trimIndent())
+
+  addFileToProject(
+    "src/androidx/wear/tiles/TileService.kt",
+    """
+      package androidx.wear.tiles
+
+      open class TileService
+      """.trimIndent())
+
+  addFileToProject(
+    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
+    """
+      package androidx.wear.watchface.complications.datasource
+
+      open class ComplicationDataSourceService
+      """.trimIndent())
+}
+
+internal fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!

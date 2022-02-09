@@ -26,10 +26,11 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
- * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to classes that extend WatchFaceService.
- * The icon can be used to create new [AndroidWatchFaceConfiguration] or run an existing configuration.
+ * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to classes that extend
+ * Wear Services (Watch Face, Tiles and Complications).
+ * The icon can be used to create new [AndroidWearConfiguration] or run an existing configuration.
  */
-class AndroidWatchFaceRunMarkerContributor : RunLineMarkerContributor() {
+class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(e: PsiElement): Info? {
     if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
       return null
@@ -38,8 +39,8 @@ class AndroidWatchFaceRunMarkerContributor : RunLineMarkerContributor() {
       return null
     }
 
-    val psiClass = e.getPsiClass()
-    if (psiClass != null && psiClass.isValidWatchFaceService()) {
+    val psiClass = e.getPsiClass() ?: return null
+    if (psiClass.isValidWatchFaceService() || psiClass.isValidTileService() || psiClass.isValidComplicationService()) {
       val serviceName = psiClass.name ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
         AndroidBundle.message("android.run.configuration.run", JavaExecutionUtil.getPresentableClassName(serviceName)!!)

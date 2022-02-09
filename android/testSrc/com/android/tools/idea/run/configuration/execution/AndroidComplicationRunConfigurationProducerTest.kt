@@ -16,15 +16,15 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
+import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
+import com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
 
-class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
+class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
@@ -38,53 +38,50 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
-      "src/com/example/myapplication/MyTestWatchFace.kt",
+    val complicationFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyComplicationService.kt",
       """
       package com.example.myapplication
 
-      import android.support.wearable.watchface.WatchFaceService
+      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-      /**
-       * Some comment
-       */
-      class MyTestWatchFace : WatchFaceService() {
+      class MyTestComplication : ComplicationDataSourceService() {
       }
       """.trimIndent())
 
-    val classElement = watchFaceFile.findElementByText("class")
+    val classElement = complicationFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
 
-    assertEquals("MyTestWatchFace", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTestWatchFace", configurationFromClass.componentName)
+    assertEquals("MyTestComplication", configurationFromClass.name)
+    assertEquals("com.example.myapplication.MyTestComplication", configurationFromClass.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
   fun testJavaSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
-      "src/com/example/myapplication/MyWatchFaceService.java",
+    val complicationFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyComplicationService.java",
       """
       package com.example.myapplication;
 
-      import android.support.wearable.watchface.WatchFaceService;
+      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService;
         
-      public class MyWatchFaceService extends WatchFaceService {
+      public class MyComplicationService extends ComplicationDataSourceService {
       }
       """.trimIndent())
 
-    val classElement = watchFaceFile.findElementByText("class")
+    val classElement = complicationFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
 
-    assertEquals("MyWatchFaceService", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyWatchFaceService", configurationFromClass.componentName)
+    assertEquals("MyComplicationService", configurationFromClass.name)
+    assertEquals("com.example.myapplication.MyComplicationService", configurationFromClass.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
-  private fun createConfigurationFromElement(element: PsiElement): AndroidWatchFaceConfiguration {
+  private fun createConfigurationFromElement(element: PsiElement): AndroidComplicationConfiguration {
     val context = ConfigurationContext(element)
-    val runConfiguration =
-      AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidWatchFaceConfiguration
-    val producer = AndroidWatchFaceRunConfigurationProducer()
+    val runConfiguration = AndroidComplicationConfigurationType().configurationFactories[0]
+      .createTemplateConfiguration(project) as AndroidComplicationConfiguration
+    val producer = AndroidComplicationRunConfigurationProducer()
     producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
 
     return runConfiguration

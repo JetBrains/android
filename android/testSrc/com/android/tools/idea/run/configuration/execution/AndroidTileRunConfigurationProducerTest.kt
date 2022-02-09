@@ -16,15 +16,15 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidTileConfiguration
+import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
+import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
 
-class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
+class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
@@ -38,53 +38,50 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
-      "src/com/example/myapplication/MyTestWatchFace.kt",
+    val tileFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyTileService.kt",
       """
       package com.example.myapplication
 
-      import android.support.wearable.watchface.WatchFaceService
+      import androidx.wear.tiles.TileService
 
-      /**
-       * Some comment
-       */
-      class MyTestWatchFace : WatchFaceService() {
+      class MyTestTile : TileService() {
       }
       """.trimIndent())
 
-    val classElement = watchFaceFile.findElementByText("class")
+    val classElement = tileFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
 
-    assertEquals("MyTestWatchFace", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyTestWatchFace", configurationFromClass.componentName)
+    assertEquals("MyTestTile", configurationFromClass.name)
+    assertEquals("com.example.myapplication.MyTestTile", configurationFromClass.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
   fun testJavaSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
-      "src/com/example/myapplication/MyWatchFaceService.java",
+    val tileFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyTileService.java",
       """
       package com.example.myapplication;
 
-      import android.support.wearable.watchface.WatchFaceService;
+      import androidx.wear.tiles.TileService;
         
-      public class MyWatchFaceService extends WatchFaceService {
+      public class MyTileService extends TileService {
       }
       """.trimIndent())
 
-    val classElement = watchFaceFile.findElementByText("class")
+    val classElement = tileFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
 
-    assertEquals("MyWatchFaceService", configurationFromClass.name)
-    assertEquals("com.example.myapplication.MyWatchFaceService", configurationFromClass.componentName)
+    assertEquals("MyTileService", configurationFromClass.name)
+    assertEquals("com.example.myapplication.MyTileService", configurationFromClass.componentName)
     assertEquals(myModule, configurationFromClass.module)
   }
 
-  private fun createConfigurationFromElement(element: PsiElement): AndroidWatchFaceConfiguration {
+  private fun createConfigurationFromElement(element: PsiElement): AndroidTileConfiguration {
     val context = ConfigurationContext(element)
     val runConfiguration =
-      AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidWatchFaceConfiguration
-    val producer = AndroidWatchFaceRunConfigurationProducer()
+      AndroidTileConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidTileConfiguration
+    val producer = AndroidTileRunConfigurationProducer()
     producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
 
     return runConfiguration
