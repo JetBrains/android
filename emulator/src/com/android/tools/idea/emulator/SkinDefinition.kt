@@ -235,9 +235,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     }
 
     @JvmStatic
-    private fun isTransparentNearCenterOfDisplay(image: BufferedImage, displaySize: Dimension, frameRectangle: Rectangle): Boolean {
-      return isTransparentPixel(image, displaySize.width / 2 - frameRectangle.x, displaySize.height / 2 - frameRectangle.y)
-    }
+    private fun isTransparentNearCenterOfDisplay(image: BufferedImage, displaySize: Dimension, frameRectangle: Rectangle): Boolean =
+      isTransparentPixel(image, displaySize.width / 2 - frameRectangle.x, displaySize.height / 2 - frameRectangle.y)
 
     /**
      * Crops the background image and breaks it into 8 pieces, 4 for sides and 4 for corners of the frame.
@@ -387,9 +386,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     }
 
     @JvmStatic
-    private fun isTransparentPixel(image: BufferedImage, x: Int, y: Int): Boolean {
-      return image.getRGB(x, y) and ALPHA_MASK == 0
-    }
+    private fun isTransparentPixel(image: BufferedImage, x: Int, y: Int): Boolean =
+      image.getRGB(x, y) and ALPHA_MASK == 0
 
     @JvmStatic
     private fun createAnchoredImage(mask: BufferedImage, cropBounds: Rectangle, displaySize: Dimension): AnchoredImage {
@@ -430,14 +428,12 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     }
 
     @JvmStatic
-    private fun BufferedImage.cropped(cropBounds: Rectangle): BufferedImage {
-        return getCroppedImage(this, cropBounds, -1)
-    }
+    private fun BufferedImage.cropped(cropBounds: Rectangle): BufferedImage =
+      getCroppedImage(this, cropBounds, -1)
 
     @JvmStatic
-    private fun getCropBounds(image: BufferedImage, initialCrop: Rectangle?): Rectangle? {
-      return getCropBounds(image, TRANSPARENCY_FILTER, initialCrop)
-    }
+    private fun getCropBounds(image: BufferedImage, initialCrop: Rectangle?): Rectangle? =
+      getCropBounds(image, TRANSPARENCY_FILTER, initialCrop)
 
     @JvmStatic
     private val Rectangle.right
