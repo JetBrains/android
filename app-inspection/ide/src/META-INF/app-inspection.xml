@@ -19,8 +19,7 @@
     <applicationService
         serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
         serviceImplementation="com.android.tools.idea.appinspection.ide.InspectorArtifactServiceImpl"/>
-    <facet.toolWindow id="App Inspection"
-                      facetIdList="android,apk"
+    <toolWindow id="App Inspection"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.INSPECTION"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
