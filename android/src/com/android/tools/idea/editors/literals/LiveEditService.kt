@@ -71,6 +71,13 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
   private class MyPsiListener(private val editListener: EditListener) : PsiTreeChangeListener {
     @com.android.annotations.Trace
     private fun handleChangeEvent(event: PsiTreeChangeEvent) {
+      // THIS CODE IS EXTREMELY FRAGILE AT THE MOMENT.
+      // According to the PSI listener doc, there is no guarantee what events we get.
+      // Changing a single variable name can result with a "replace" of the whole file.
+      //
+      // While this works "ok" for the most part, we need to figure out a better way to detect
+      // the change is actually a function change somehow.
+
       var parent = event.parent;
 
       // The code might not be valid at this point, so we should not be making any
@@ -111,13 +118,29 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
       handleChangeEvent(event);
     }
 
-    // We don't need to generate two events for every PSI change.
-    override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
-    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
-    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
-    override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
-    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
-    override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
+    override fun beforeChildAddition(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
+
+    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
+
+    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
+
+    override fun beforeChildMovement(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
+
+    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
+
+    override fun beforePropertyChange(event: PsiTreeChangeEvent) {
+      handleChangeEvent(event);
+    }
   }
 
   override fun dispose() {
