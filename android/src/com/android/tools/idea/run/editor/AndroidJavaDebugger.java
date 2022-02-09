@@ -22,6 +22,7 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.debug.VMExitedNotifier;
@@ -96,6 +97,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIdProvider, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
+    if (env.getRunProfile() instanceof AndroidRunConfiguration) {
+      return baseConnector;
+    }
     TestExecutionOption executionType = Optional.ofNullable(AndroidModel.get(facet))
       .map(AndroidModel::getTestExecutionOption)
       .orElse(TestExecutionOption.HOST);
