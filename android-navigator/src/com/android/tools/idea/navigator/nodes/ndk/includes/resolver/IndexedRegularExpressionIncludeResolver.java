@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.utils.NdkVersionUtilsKt.getNdkVersionName;
+
 import com.android.repository.Revision;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
@@ -72,15 +74,7 @@ public class IndexedRegularExpressionIncludeResolver extends RegularExpressionIn
       String description = myKind.myDescription;
       String version = groupOrNull(match, "ndk");
       if (version != null) {
-        // Convert NDK revision like 19.2.5345600 to standard NDK release name like r19c
-        Revision revision = Revision.parseRevision(version);
-        if (revision.getMinor() == 0) {
-          // Don't show 'a' in the NDK version. It should be r20 not r20a
-          description += String.format(" r%s", revision.getMajor());
-        } else {
-          char minor = (char)((int)'a' + revision.getMinor());
-          description += String.format(" r%s%s", revision.getMajor(), minor);
-        }
+          description += getNdkVersionName(version);
       }
       return new SimpleIncludeValue(myKind, description, libraryName, relativeFolder, includeFolder, new File(homeFolder));
     } catch (IllegalArgumentException e) {
