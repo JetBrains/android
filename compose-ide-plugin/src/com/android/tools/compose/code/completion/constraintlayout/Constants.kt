@@ -88,3 +88,10 @@ internal enum class RenderTransform(override val keyWord: String) : ConstraintLa
   TranslationZ("translationZ"),
 }
 //endregion
+
+internal enum class DimBehavior(override val keyWord: String) : ConstraintLayoutKeyWord {
+  Spread("spread"),
+  Wrap("wrap"),
+  PreferWrap("preferWrap"),
+  MatchParent("parent")
+}

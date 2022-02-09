@@ -20,6 +20,7 @@ import com.android.tools.compose.code.completion.constraintlayout.provider.Const
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintsProvider
+import com.android.tools.compose.code.completion.constraintlayout.provider.DimensionBehaviorProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -91,6 +92,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(1))
         .insideConstraintArray(),
       AnchorablesProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete non-numeric dimension values for width & height
+      jsonStringValue()
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, Dimension.values().map { it.keyWord }),
+      DimensionBehaviorProvider
     )
   }
 

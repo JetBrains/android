@@ -17,6 +17,7 @@ package com.android.tools.compose.code.completion.constraintlayout.provider
 
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
+import com.android.tools.compose.code.completion.constraintlayout.DimBehavior
 import com.android.tools.compose.code.completion.constraintlayout.Dimension
 import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
@@ -198,6 +199,21 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
       else -> emptyList()
     }
     possibleAnchors.forEach { result.addLookupElement(name = it.keyWord) }
+  }
+}
+
+/**
+ * Provides non-numeric dimension values.
+ *
+ * These are not a fixed dimension value, but instead, change the behavior of the dimension assigned of the widget.
+ */
+internal object DimensionBehaviorProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    DimBehavior.values().forEach { result.addLookupElement(name = it.keyWord) }
   }
 }
 

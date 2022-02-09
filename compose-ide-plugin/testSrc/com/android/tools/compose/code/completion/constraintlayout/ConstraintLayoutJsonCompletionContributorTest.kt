@@ -124,6 +124,29 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
   }
 
   @Test
+  fun completeDimensionBehaviors() {
+    @Language("JSON5")
+    val content =
+      """
+      {
+        ConstraintSets: {
+          start: {
+            id1: {
+              width: '$caret'
+            }
+          }
+        }
+      }
+    """.trimIndent()
+    myFixture.configureByText("myscene.json", content)
+    myFixture.completeBasic()
+    val lookupElements = myFixture.lookupElementStrings!!
+
+    assertThat(lookupElements).hasSize(4)
+    assertThat(lookupElements).containsExactly("spread", "wrap", "preferWrap", "parent")
+  }
+
+  @Test
   fun completeConstraintIdsInArray() {
     @Language("JSON5")
     val content =
