@@ -25,11 +25,13 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import java.awt.Dimension;
@@ -38,6 +40,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 public class MockupTest extends MockupTestCase {
@@ -253,9 +256,8 @@ public class MockupTest extends MockupTestCase {
 
     NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager(((SyncNlModel)m).getSurface(), m) {
-        @NotNull
         @Override
-        public CompletableFuture<Void> requestRenderAsync() {
+        protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }
@@ -286,9 +288,8 @@ public class MockupTest extends MockupTestCase {
 
     NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager(((SyncNlModel)m).getSurface(), m) {
-        @NotNull
         @Override
-        public CompletableFuture<Void> requestRenderAsync() {
+        protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }

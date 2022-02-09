@@ -74,7 +74,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @NotNull
   @Override
-  public CompletableFuture<Void> requestRenderAsync() {
+  final public CompletableFuture<Void> requestRenderAsync() {
     return CompletableFuture.completedFuture(super.requestRenderAsync().join());
   }
 

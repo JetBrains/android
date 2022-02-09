@@ -21,9 +21,11 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -70,9 +72,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     myDisposable = Disposer.newDisposable();
     mySurface = NlDesignSurface.builder(getProject(), myDisposable)
       .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager(surface, (SyncNlModel) model) {
-        @NotNull
-        @Override
-        public CompletableFuture<Void> requestRenderAsync() {
+        protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }
