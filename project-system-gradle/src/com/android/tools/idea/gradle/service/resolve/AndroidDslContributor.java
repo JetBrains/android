@@ -75,7 +75,7 @@ import org.jetbrains.plugins.groovy.lang.resolve.ResolveUtilKt;
  */
 public class AndroidDslContributor implements GradleMethodContextContributor {
   @NonNls private static final String DSL_ANDROID = "android";
-  @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.AppExtension";
+  @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.internal.dsl.BaseAppModuleExtension";
   @NonNls private static final String ANDROID_LIB_FQCN = "com.android.build.gradle.LibraryExtension";
 
   private static final Key<PsiElement> CONTRIBUTOR_KEY = Key.create("AndroidDslContributor.key");
