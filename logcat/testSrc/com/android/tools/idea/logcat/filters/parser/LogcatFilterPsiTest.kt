@@ -280,6 +280,11 @@ class LogcatFilterPsiTest {
           KeyFilter("tag", "foo")))
   }
 
+  @Test
+  fun singleChar() {
+    assertThat(parse("a").toFilter()).isEqualTo(TopLevelFilter("a"))
+  }
+
   private fun parse(text: String): PsiFile {
     val psi = PsiFileFactory.getInstance(project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
     if (PsiTreeUtil.hasErrorElements(psi)) {
