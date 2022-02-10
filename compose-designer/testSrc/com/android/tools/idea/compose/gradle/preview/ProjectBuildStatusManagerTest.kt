@@ -143,7 +143,7 @@ class ProjectBuildStatusManagerTest {
    * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
    * [incModificationCount] should be called.
    */
-  private class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
+  internal class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
     var filter: (PsiElement) -> Boolean = { true }
 
     override fun accepts(element: PsiElement): Boolean = filter(element)

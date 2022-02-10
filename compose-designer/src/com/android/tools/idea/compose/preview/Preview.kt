@@ -21,12 +21,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
-import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
@@ -54,11 +52,8 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.setupChangeListener
-import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW
-import com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
@@ -214,7 +209,7 @@ fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
         )
       )
     }
-    setQuality(if (isInPowerSaveMode) 0.5f else 0.7f)
+    setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.5f else 0.7f)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene Manager to not
     // report it via the regular log.
@@ -233,12 +228,6 @@ private const val SELECTED_GROUP_KEY = "selectedGroup"
  * Key for persisting the selected layout manager.
  */
 private const val LAYOUT_KEY = "previewLayout"
-
-/**
- * Same as [PowerSaveMode] but obeys to the [DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
- */
-private val isInPowerSaveMode: Boolean
-  get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && PowerSaveMode.isEnabled()
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
@@ -276,7 +265,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   init {
     val project = psiFile.project
     project.messageBus.connect(this).subscribe(PowerSaveMode.TOPIC, PowerSaveMode.Listener {
-      fpsLimit = if (isInPowerSaveMode) {
+      fpsLimit = if (PreviewPowerSaveManager.isInPowerSaveMode) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
       }
       else {
@@ -285,7 +274,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       fpsCounter.resetAndStart()
 
       // When getting out of power save mode, request a refresh
-      if (!isInPowerSaveMode) requestRefresh()
+      if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
     })
   }
 
@@ -652,11 +641,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildSucceeded() {
         LOG.debug("buildSucceeded")
-        if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-          module?.let {
-            // When the build completes successfully, we do not need the overlay until a modifications has happened.
-            ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
-          }
+        module?.let {
+          // When the build completes successfully, we do not need the overlay until a modifications has happened.
+          ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
         }
 
         var needsRefresh = false
@@ -687,7 +674,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         // If Live Edit is enabled, prefetch the daemon for the current configuration.
         if (module != null
-            && COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+            && PreviewLiveEditManager.getInstance(project).isEnabled) {
           PreviewLiveEditManager.getInstance(project).preStartDaemon(module)
         }
 
@@ -754,13 +741,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     PreviewLiveEditManager.getInstance(project).addCompileListener(this, object: PreviewLiveEditManager.Companion.CompileListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {
-        psiFilePointer?.element?.let { editorFile ->
+        psiFilePointer.element?.let { editorFile ->
           if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
         }
       }
 
       override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-        psiFilePointer?.element?.let { editorFile ->
+        psiFilePointer.element?.let { editorFile ->
           if (files.any { it.isEquivalentTo(editorFile) }) afterBuildComplete(result == CompilationResult.Success)
         }
       }
@@ -771,6 +758,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (isSuccessful && hasLiveLiterals) {
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
+
     EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
     // Force updating toolbar icons after build
     ActivityTracker.getInstance().inc()
@@ -862,29 +850,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         disposableCallbackFlow<Unit>("ChangeListenerFlow", LOG, this@ComposePreviewRepresentation) {
           setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
         }.collectLatest {
-          if (!isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
-        }
-      }
-
-      // Flow handling save requests.
-      if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-        launch(workerThread) {
-          val psiFile = psiFilePointer.element ?: return@launch
-          disposableCallbackFlow<Unit>("OnSaveListenerFlow", LOG, this@ComposePreviewRepresentation) {
-            setupOnSaveListener(project, psiFile, { trySend(Unit) }, disposable)
-          }.collectLatest {
-            if (isBuildOnSaveEnabled && !hasSyntaxErrors()) {
-              if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-                psiFilePointer.element?.let {
-                  fastCompileAsync(this@ComposePreviewRepresentation, it)
+          if (PreviewLiveEditManager.getInstance(project).isAvailable) {
+            val currentStatus = status()
+            if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
+              psiFilePointer.element?.let {
+                fastCompileAsync(this@ComposePreviewRepresentation, it) {
+                  forceRefresh()
                 }
-              }
-              else {
-                requestBuildForSurface(surface, false)
+                return@collectLatest
               }
             }
           }
 
+          if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
         }
       }
     }
@@ -893,6 +871,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onActivate() {
     activationLock.withLock {
       LOG.debug("onActivate")
+
+      // Reset overlay every time we come back to the preview
+      module?.let { ModuleClassLoaderOverlays.getInstance(it).overlayPath = null }
 
       initializeFlows()
 
@@ -933,7 +914,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       isActive.set(false)
 
-      if  (isInPowerSaveMode) {
+      if  (PreviewPowerSaveManager.isInPowerSaveMode) {
         // When on power saving mode, deactivate immediately to free resources.
         onDeactivationTimeout()
       }
@@ -945,7 +926,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (isInPowerSaveMode) return
+    if (PreviewPowerSaveManager.isInPowerSaveMode) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (!isActive.get() || interactiveMode.isStartingOrReady()) return
@@ -979,9 +960,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     animationInspectionPreviewElementInstance = null
   }
-
-  override val isBuildOnSaveEnabled: Boolean
-    get() = COMPOSE_LIVE_EDIT_PREVIEW.get() && ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled
 
   private var lastPinsModificationCount = -1L
 

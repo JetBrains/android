@@ -31,7 +31,6 @@ class TestComposePreviewManager(var interactiveMode: ComposePreviewManager.Inter
     // do nothing
   }
 
-  override var isBuildOnSaveEnabled: Boolean = false
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
   override var interactivePreviewElementInstance: PreviewElementInstance? = null

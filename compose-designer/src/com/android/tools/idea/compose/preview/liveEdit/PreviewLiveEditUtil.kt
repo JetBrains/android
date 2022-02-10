@@ -19,10 +19,12 @@ import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.google.common.base.Stopwatch
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiFile
@@ -39,6 +41,16 @@ import java.time.Duration
  */
 private val LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("preview.live.edit.daemon.compile.seconds.timeout", 20)
 
+private suspend fun PsiFile.saveIfNeeded() {
+  val vFile = virtualFile ?: return
+  val fileManager = FileDocumentManager.getInstance()
+  val document = fileManager.getCachedDocument(vFile) ?: return
+  if (!fileManager.isDocumentUnsaved(document)) return
+  runWriteActionAndWait {
+    fileManager.saveDocument(document)
+  }
+}
+
 /**
  * Starts a new fast compilation for the current file in the Preview. [onSuccessCallback] will be invoked after the build
  * finishes successfully.
@@ -50,6 +62,8 @@ fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile, onSuccessCallb
   object : Task.Backgroundable(project, message("notification.compiling"), false) {
     override fun run(indicator: ProgressIndicator) {
       AndroidCoroutineScope(parentDisposable).async {
+        file.saveIfNeeded()
+
         val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
           PreviewLiveEditManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
         }
