@@ -199,6 +199,7 @@
     <lang.parserDefinition language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslParserDefinition"/>
     <lang.syntaxHighlighter language="AGSL"
                             implementationClass="com.android.tools.idea.lang.agsl.AgslSyntaxHighlighter"/>
+    <annotator language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslAnnotator" order="first"/>
     <lang.braceMatcher language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslPairMatcher"/>
   </extensions>
 
