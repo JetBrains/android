@@ -20,7 +20,7 @@ import junit.framework.TestCase;
 public class ParametrizedTypeExtractorTest extends TestCase {
   public void testParametersWildcardNdo() {
     AndroidDslContributor.ParametrizedTypeExtractor extractor = new AndroidDslContributor.ParametrizedTypeExtractor(
-      "org.gradle.api.Action<? super org.gradle.api.NamedDomainObjectContainer<BuildType>>>");
+      "org.gradle.api.Action<? super org.gradle.api.NamedDomainObjectContainer<BuildType>>");
 
     assertTrue(extractor.isClosure());
     assertEquals("org.gradle.api.NamedDomainObjectContainer<BuildType>", extractor.getClosureType());
@@ -31,7 +31,7 @@ public class ParametrizedTypeExtractorTest extends TestCase {
 
   public void testParametersNdo() {
     AndroidDslContributor.ParametrizedTypeExtractor extractor =
-      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<org.gradle.api.NamedDomainObjectContainer<Flavor>>>");
+      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<org.gradle.api.NamedDomainObjectContainer<Flavor>>");
 
     assertTrue(extractor.isClosure());
     assertEquals("org.gradle.api.NamedDomainObjectContainer<Flavor>", extractor.getClosureType());
