@@ -17,14 +17,11 @@ package com.android.tools.idea.gradle.service.resolve;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -52,6 +49,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -454,11 +453,13 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
    */
   @VisibleForTesting
   static class ParametrizedTypeExtractor {
-    private static final String GRADLE_ACTION_FQCN = "org.gradle.api.Action";
+    private static final String GRADLE_ACTION = "org.gradle.api.Action";
+    private static final Pattern GRADLE_ACTION_PATTERN = Pattern.compile(Pattern.quote(GRADLE_ACTION) + "<([^<>]+)(?:<([^<>]+)>)?>");
+    private static final String KOTLIN_FUNCTION1 = "kotlin.jvm.functions.Function1";
+    private static final Pattern KOTLIN_FUNCTION1_PATTERN = Pattern.compile(Pattern.quote(KOTLIN_FUNCTION1) + "<([^<>]+)(?:<([^<>]+)>)?,kotlin.Unit>");
     private static final String GRADLE_NAMED_DOMAIN_OBJECT_CONTAINER_FQCN = "org.gradle.api.NamedDomainObjectContainer";
 
-    private static final Splitter SPLITTER = Splitter.onPattern("[<>]").trimResults().omitEmptyStrings();
-    private final ArrayList<String> myParameterTypes;
+    private final List<String> myParameterTypes;
     private final String myCanonicalType;
 
     public ParametrizedTypeExtractor(String canonicalType) {
@@ -467,7 +468,30 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     }
 
     private ArrayList<String> parseCanonicalType(String canonicalType) {
-      return Lists.newArrayList(SPLITTER.split(canonicalType));
+      ArrayList<String> result = new ArrayList<>();
+      Pattern pattern;
+      if (canonicalType.startsWith(GRADLE_ACTION)) {
+        result.add(GRADLE_ACTION);
+        pattern = GRADLE_ACTION_PATTERN;
+      }
+      else if (canonicalType.startsWith(KOTLIN_FUNCTION1)) {
+        result.add(KOTLIN_FUNCTION1);
+        pattern = KOTLIN_FUNCTION1_PATTERN;
+      }
+      else {
+        result.add(canonicalType);
+        // no further parsing needed.
+        return result;
+      }
+
+      Matcher matcher = pattern.matcher(canonicalType);
+      if (matcher.matches()) {
+        result.add(matcher.group(1));
+        if (matcher.group(2) != null) {
+          result.add(matcher.group(2));
+        }
+      }
+      return result;
     }
 
     public String getCanonicalType() {
@@ -475,7 +499,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     }
 
     public boolean isClosure() {
-      return myParameterTypes.contains(GRADLE_ACTION_FQCN);
+      return myParameterTypes.contains(GRADLE_ACTION) || myParameterTypes.contains(KOTLIN_FUNCTION1);
     }
 
     @Nullable
