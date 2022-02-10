@@ -27,12 +27,12 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.AGLS_LANGUAGE_SUPPORT.override(true)
+    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(true)
   }
 
   override fun tearDown() {
     try {
-      StudioFlags.AGLS_LANGUAGE_SUPPORT.clearOverride()
+      StudioFlags.AGSL_LANGUAGE_SUPPORT.clearOverride()
     }
     finally {
       super.tearDown()
@@ -62,7 +62,7 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
   }
 
   fun testLanguageOff() {
-    StudioFlags.AGLS_LANGUAGE_SUPPORT.override(false)
+    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(false)
     check("struct 123 1.0 abc")
   }
 

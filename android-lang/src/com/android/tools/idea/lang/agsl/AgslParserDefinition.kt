@@ -36,9 +36,9 @@ import com.intellij.psi.tree.TokenSet
  * enabled.
  */
 class AgslParserDefinition :
-  ParserDefinition by if (StudioFlags.AGLS_LANGUAGE_SUPPORT.get()) ActualAgslParserDefinition() else PlainTextParserDefinition() {
+  ParserDefinition by if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) ActualAgslParserDefinition() else PlainTextParserDefinition() {
   fun createLexer(): Lexer =
-    if (StudioFlags.AGLS_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
+    if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
 }
 
 private class ActualAgslParserDefinition : ParserDefinition {

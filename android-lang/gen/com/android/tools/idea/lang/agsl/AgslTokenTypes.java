@@ -20,9 +20,15 @@ package com.android.tools.idea.lang.agsl;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
+import com.android.tools.idea.lang.agsl.psi.AgslElementType;
+import com.android.tools.idea.lang.agsl.psi.impl.*;
 
 public interface AgslTokenTypes {
 
+  IElementType GLSL_IDENTIFIER = new AgslElementType("GLSL_IDENTIFIER");
+  IElementType RESERVED_KEYWORD = new AgslElementType("RESERVED_KEYWORD");
+  IElementType TOKEN = new AgslElementType("TOKEN");
+  IElementType UNSUPPORTED_KEYWORD = new AgslElementType("UNSUPPORTED_KEYWORD");
 
   IElementType ADD_ASSIGN = new AgslTokenType("+=");
   IElementType AMPERSAND = new AgslTokenType("&");
@@ -189,5 +195,21 @@ public interface AgslTokenTypes {
   IElementType XOR_OP = new AgslTokenType("^^");
 
   class Factory {
+    public static PsiElement createElement(ASTNode node) {
+      IElementType type = node.getElementType();
+      if (type == GLSL_IDENTIFIER) {
+        return new AgslGlslIdentifierImpl(node);
+      }
+      else if (type == RESERVED_KEYWORD) {
+        return new AgslReservedKeywordImpl(node);
+      }
+      else if (type == TOKEN) {
+        return new AgslTokenImpl(node);
+      }
+      else if (type == UNSUPPORTED_KEYWORD) {
+        return new AgslUnsupportedKeywordImpl(node);
+      }
+      throw new AssertionError("Unknown element type: " + type);
+    }
   }
 }
