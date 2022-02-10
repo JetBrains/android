@@ -49,7 +49,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.*
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.ColumnInfo
@@ -67,7 +67,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.StringJoiner
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.AbstractAction
 import javax.swing.BoxLayout
@@ -426,10 +426,10 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
       var thisClassPair: HighlightableIconPair?
       if (id.contains("android-")) {
         // TODO(qumeric): replace icons
-        val path = "/studio/icons/avd/${id.replaceFirst("android", "device")}-large.svg"
+        val path = "studio/icons/avd/${id.replaceFirst("android", "device")}-large.svg"
         thisClassPair = deviceClassIcons[path]
         if (thisClassPair == null) {
-          thisClassPair = HighlightableIconPair(IconLoader.getIcon(path, VirtualDisplayList::class.java))
+          thisClassPair = HighlightableIconPair(IconLoader.getIcon(path, VirtualDisplayList::class.java.classLoader))
           deviceClassIcons[path] = thisClassPair
         }
       }

@@ -320,7 +320,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         add(body, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (imagePath.isNotEmpty()) {
-        add(JBLabel(IconLoader.getIcon(imagePath, DevicesConnectionStep::class.java)).apply {
+        add(JBLabel(IconLoader.getIcon(imagePath, DevicesConnectionStep::class.java.classLoader)).apply {
           verticalAlignment = JLabel.BOTTOM
         }, gridConstraint(x = 2, y = RELATIVE, fill = VERTICAL, weighty = 1.0).apply { gridheight = REMAINDER })
       }
