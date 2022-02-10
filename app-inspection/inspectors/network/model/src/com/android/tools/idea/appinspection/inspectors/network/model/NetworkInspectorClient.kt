@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.protobuf.ByteString
 import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.Response
@@ -45,8 +46,22 @@ class NetworkInspectorClientImpl(
           ruleId = ruleCount
           ruleCount += 1
           ruleBuilder.apply {
-            this.url = url
-            this.responseBody = body
+            criteriaBuilder.apply {
+              urlBuilder.apply {
+                type = NetworkInspectorProtocol.MatchingText.Type.PLAIN
+                text = url
+              }
+              methodBuilder.apply {
+                type = NetworkInspectorProtocol.MatchingText.Type.PLAIN
+                text = ""
+              }
+            }
+            addTransformation(
+              NetworkInspectorProtocol.Transformation.newBuilder().apply {
+                bodyReplacedBuilder.apply {
+                  this.body = ByteString.copyFrom(body.toByteArray())
+                }
+              })
           }
         }
 
