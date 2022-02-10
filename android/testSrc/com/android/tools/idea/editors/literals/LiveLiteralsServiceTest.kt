@@ -15,6 +15,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ui.UIUtil
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -75,6 +76,11 @@ internal class LiveLiteralsServiceTest {
         val a = 3.0
       }
     """.trimIndent())
+  }
+
+  @After
+  fun tearDown() {
+    LiveLiteralsApplicationConfiguration.getInstance().resetDefault()
   }
 
   /**

@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.liveEdit
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
@@ -441,11 +441,11 @@ class PreviewLiveEditManager private constructor(
     get() = FasterPreviewApplicationConfiguration.getInstance().isEnabled
 
   /**
-   * Returns true when the feature is available. The feature will not be available if it's currently building or if an unsupported change
-   * is doing.
+   * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building
+   * or fast preview is disabled.
    */
   val isAvailable: Boolean
-    get() = isEnabled && !compilingMutex.isLocked
+    get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode && !compilingMutex.isLocked
 
   /**
    * Stops all the daemons managed by this [PreviewLiveEditManager].

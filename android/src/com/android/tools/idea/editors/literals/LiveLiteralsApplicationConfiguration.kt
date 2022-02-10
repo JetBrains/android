@@ -23,6 +23,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
+import org.jetbrains.annotations.TestOnly
 
 @com.intellij.openapi.components.State(name = "LiveLiteralsConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
@@ -44,6 +45,11 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value)
       }
     }
+
+  @TestOnly
+  fun resetDefault() {
+    state.isEnabled = true
+  }
 
   companion object {
     fun getInstance(): LiveLiteralsApplicationConfiguration = ApplicationManager.getApplication().getService(LiveLiteralsApplicationConfiguration::class.java)

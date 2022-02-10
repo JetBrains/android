@@ -84,6 +84,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     runBlocking {
       liveEditManager.stopAllDaemons().join()
     }
+    LiveLiteralsApplicationConfiguration.getInstance().resetDefault()
   }
 
   /**
