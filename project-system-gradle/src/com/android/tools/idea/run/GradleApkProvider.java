@@ -172,6 +172,7 @@ public final class GradleApkProvider implements ApkProvider {
     List<ApkInfo> apkList = new ArrayList<>();
 
     IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    Logger logger = getLogger();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_APP ||
         projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST ||
@@ -180,7 +181,7 @@ public final class GradleApkProvider implements ApkProvider {
                        ? myApplicationIdProvider.getTestPackageName()
                        : myApplicationIdProvider.getPackageName();
       if (pkgName == null) {
-        getLogger().warn("Package name is null. Sync might have failed");
+        logger.warn("Package name is null. Sync might have failed");
         return Collections.emptyList();
       }
 
@@ -237,6 +238,14 @@ public final class GradleApkProvider implements ApkProvider {
         }
       }
     }
+    logger.info(String.format("APKs for %s:", this.myFacet.getModule()));
+    for (ApkInfo info : apkList) {
+      logger.info(String.format("  %s =>", info.getApplicationId()));
+      for (ApkFileUnit file : info.getFiles()) {
+        logger.info(String.format("    %s : %s", file.getModuleName(), file.getApkFile()));
+      }
+    }
+
     return apkList;
   }
 
