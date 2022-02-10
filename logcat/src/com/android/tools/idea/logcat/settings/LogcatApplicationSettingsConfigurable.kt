@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.settings
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.intellij.openapi.options.Configurable
@@ -28,6 +29,7 @@ import java.awt.GridBagConstraints.NORTHWEST
 import java.awt.GridBagConstraints.WEST
 import java.awt.GridBagLayout
 import javax.swing.Box
+import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -45,6 +47,10 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   @VisibleForTesting
   internal val cyclicBufferSizeWarningLabel = JLabel()
 
+  @VisibleForTesting
+  internal val enableNamedFiltersCheckbox =
+    JCheckBox(LogcatBundle.message("logcat.settings.enable.saved.filters"), logcatSettings.namedFiltersEnabled)
+
   private val component = JPanel(GridBagLayout()).apply {
     cyclicBufferSizeWarningLabel.foreground = JBColor.red
     cycleBufferSizeTextField.document.addDocumentListener(object : DocumentAdapter() {
@@ -57,7 +63,11 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
     add(cycleBufferSizeTextField, gridBag.next())
     add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
-    add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().weighty(1.0).anchor(NORTHWEST))
+    add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
+
+    if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get()) {
+      add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().weighty(1.0).anchor(NORTHWEST))
+    }
   }
 
   override fun createComponent() = component
@@ -72,9 +82,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     }
   }
 
-  override fun getDisplayName(): String {
-    return LogcatBundle.message("logcat.settings.title")
-  }
+  override fun getDisplayName(): String = LogcatBundle.message("logcat.settings.title")
 
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
@@ -83,6 +91,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
   override fun apply() {
     logcatSettings.bufferSize = getBufferSizeKb()?.times(1024) ?: return
+    logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
 
     LogcatToolWindowFactory.logcatPresenters.forEach {
       it.applyLogcatSettings(logcatSettings)

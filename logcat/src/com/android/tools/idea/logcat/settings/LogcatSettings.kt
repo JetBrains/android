@@ -22,11 +22,12 @@ import com.intellij.openapi.components.Storage
 private const val DEFAULT_BUFFER_SIZE = 1024 * 1024
 
 @State(name = "LogcatSettings", storages = [Storage("logcatSettings.xml")])
-internal data class LogcatSettings(var bufferSize: Int = DEFAULT_BUFFER_SIZE) {
+internal data class LogcatSettings(
+  var bufferSize: Int = DEFAULT_BUFFER_SIZE,
+  var namedFiltersEnabled: Boolean = false,
+) {
 
   companion object {
-    fun getInstance(): LogcatSettings {
-      return ApplicationManager.getApplication().getService(LogcatSettings::class.java)
-    }
+    fun getInstance(): LogcatSettings = ApplicationManager.getApplication().getService(LogcatSettings::class.java)
   }
 }
