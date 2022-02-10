@@ -18,20 +18,36 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
+import com.android.tools.idea.gradle.model.IdeDependenciesCore
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
 import java.io.File
 import java.io.Serializable
 
-data class IdeDependenciesImpl(
-  override val androidLibraries: Collection<IdeAndroidLibraryDependency>,
-  override val javaLibraries: Collection<IdeJavaLibraryDependency>,
+data class IdeDependenciesCoreImpl(
+  override val androidLibraries: Collection<IdeAndroidLibraryDependencyCore>,
+  override val javaLibraries: Collection<IdeJavaLibraryDependencyCore>,
   override val moduleDependencies: Collection<IdeModuleDependency>,
   override val runtimeOnlyClasses: Collection<File>
-) : IdeDependencies, Serializable
+) : IdeDependenciesCore, Serializable
 
-class ThrowingIdeDependencies : IdeDependencies, Serializable {
-  override val androidLibraries: Collection<IdeAndroidLibraryDependency> get() = throw NotImplementedError()
-  override val javaLibraries: Collection<IdeJavaLibraryDependency> get() = throw NotImplementedError()
-  override val moduleDependencies: Collection<IdeModuleDependency> get() = throw NotImplementedError()
-  override val runtimeOnlyClasses: Collection<File> get() = throw NotImplementedError()
+data class IdeDependenciesImpl(
+  private val dependencyCores: IdeDependenciesCore,
+  private val resolver: IdeLibraryModelResolver
+) : IdeDependencies {
+  override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
+    dependencyCores.androidLibraries.map(resolver::resolveAndroidLibrary)
+  override val javaLibraries: Collection<IdeJavaLibraryDependency> =
+    dependencyCores.javaLibraries.map(resolver::resolveJavaLibrary)
+  override val moduleDependencies: Collection<IdeModuleDependency> = dependencyCores.moduleDependencies
+  override val runtimeOnlyClasses: Collection<File> = dependencyCores.runtimeOnlyClasses
+}
+
+class ThrowingIdeDependencies : IdeDependenciesCore, Serializable {
+  override val androidLibraries: Nothing get() = throw NotImplementedError()
+  override val javaLibraries: Nothing get() = throw NotImplementedError()
+  override val moduleDependencies: Nothing get() = throw NotImplementedError()
+  override val runtimeOnlyClasses: Nothing get() = throw NotImplementedError()
 }

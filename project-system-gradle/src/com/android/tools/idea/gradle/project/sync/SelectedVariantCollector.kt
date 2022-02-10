@@ -49,7 +49,7 @@ class SelectedVariantCollector(project: Project) {
 
 fun getSelectedVariantDetails(androidModel: GradleAndroidModel, ndkModel: NdkModuleModel?): VariantDetails? {
   val selectedVariant = try {
-    androidModel.selectedVariant
+    androidModel.selectedVariantCore
   }
   catch (e: Exception) {
     Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)

@@ -29,6 +29,14 @@ sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T>
 interface IdeAndroidLibraryDependency: IdeArtifactDependency<IdeAndroidLibrary>
 interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
 
+interface IdeAndroidLibraryDependencyCore: IdeArtifactDependency<IdeAndroidLibrary>
+interface IdeJavaLibraryDependencyCore: IdeArtifactDependency<IdeJavaLibrary>
+
+interface IdeLibraryModelResolver {
+  fun resolveAndroidLibrary(unresolved: IdeAndroidLibraryDependencyCore): IdeAndroidLibraryDependency
+  fun resolveJavaLibrary(unresolved: IdeJavaLibraryDependencyCore): IdeJavaLibraryDependency
+}
+
 interface IdeModuleDependency: IdeDependency<IdeModuleLibrary> {
   val target: IdeModuleLibrary
 }

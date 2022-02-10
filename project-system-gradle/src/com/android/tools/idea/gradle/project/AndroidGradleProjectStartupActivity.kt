@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -263,6 +264,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         }
     }
 
+  val libraryResolver = IdeLibraryModelResolverImpl()
   val attachModelActions = holderModuleToDataNodePairs.flatMap { (module, moduleDataNode) ->
 
     fun GradleAndroidModel.validate() =
@@ -299,8 +301,14 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     // module per source set we should replace this code with were we know the model will be living.
     fun <T> getModelForMaybeSourceSetDataNode() : (DataNode<*>, Key<T>) -> T? = { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
     listOf(
-      prepare(ANDROID_MODEL, getModelForMaybeSourceSetDataNode(), AndroidFacet::getInstance, AndroidModel::set, GradleAndroidModel::setModule,
-              validate = GradleAndroidModel::validate) ?: return,
+      prepare(
+        ANDROID_MODEL,
+        getModelForMaybeSourceSetDataNode(),
+        AndroidFacet::getInstance,
+        AndroidModel::set,
+        configure = { setModuleAndResolver(it, libraryResolver) },
+        validate = GradleAndroidModel::validate
+      ) ?: return,
       prepare(JAVA_MODULE_MODEL, ::getModelFromDataNode, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return

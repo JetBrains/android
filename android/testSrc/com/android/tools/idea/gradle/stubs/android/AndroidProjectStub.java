@@ -36,15 +36,11 @@ import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.builder.model.VariantBuildInformation;
 import com.android.builder.model.ViewBindingOptions;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.tools.idea.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.tools.idea.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModuleId;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -395,13 +391,5 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
     return ((ModelCache.V1)(ModelCache.create(false))).androidProjectFrom(androidProject);
-  }
-
-  @NotNull
-  public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
-    ModelCache.V1 modelCache = (ModelCache.V1)ModelCache.create(false);
-    GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
-    IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
-    return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, new ModuleId("", "")));
   }
 }

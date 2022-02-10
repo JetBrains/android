@@ -64,7 +64,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBuildType
@@ -73,7 +72,6 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeFilterData
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleDependency
@@ -83,15 +81,15 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
@@ -99,12 +97,9 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformatio
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
-import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
@@ -117,8 +112,13 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -452,7 +452,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
-      IdeAndroidLibraryDependencyImpl(
+      IdeAndroidLibraryDependencyCoreImpl(
         androidLibraries.internCore(androidLibraryCores.internCore(core)),
         isProvided = isProvided
       )
@@ -478,7 +478,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
-      IdeJavaLibraryDependencyImpl(
+      IdeJavaLibraryDependencyCoreImpl(
         javaLibraries.internCore(javaLibraryCores.internCore(core)),
         isProvided = isProvided
       )
@@ -501,7 +501,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     dependencies: Dependencies,
     variantName: String?,
     androidModuleId: ModuleId?
-  ): IdeDependencies {
+  ): IdeDependenciesCoreImpl {
     // Map from unique artifact address to level2 library instance. The library instances are
     // supposed to be shared by all artifacts. When creating IdeLevel2Dependencies, check if current library is available in this map,
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
@@ -577,28 +577,28 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     fun createInstance(
       artifactAddresses: Collection<String>,
       runtimeOnlyJars: Collection<File>
-    ): IdeDependencies {
-      val androidLibraries = ImmutableList.builder<IdeAndroidLibraryDependency>()
-      val javaLibraries = ImmutableList.builder<IdeJavaLibraryDependency>()
+    ): IdeDependenciesCoreImpl {
+      val androidLibraries = ImmutableList.builder<IdeAndroidLibraryDependencyCore>()
+      val javaLibraries = ImmutableList.builder<IdeJavaLibraryDependencyCore>()
       val moduleDependencies = ImmutableList.builder<IdeModuleDependency>()
       for (address in artifactAddresses) {
         val library = dependenciesById[address]!!
         // TODO(solodkyy): Build typed collections directly in populate methods.
         when (library) {
-          is IdeAndroidLibraryDependency -> androidLibraries.add(library)
-          is IdeJavaLibraryDependency -> javaLibraries.add(library)
+          is IdeAndroidLibraryDependencyCore -> androidLibraries.add(library)
+          is IdeJavaLibraryDependencyCore -> javaLibraries.add(library)
           is IdeModuleDependency -> moduleDependencies.add(library)
           else -> throw UnsupportedOperationException("Unknown library type " + library::class.java)
         }
       }
-      return IdeDependenciesImpl(
+      return IdeDependenciesCoreImpl(
         androidLibraries = androidLibraries.build(),
         javaLibraries = javaLibraries.build(),
         moduleDependencies = moduleDependencies.build(),
         runtimeOnlyClasses = ImmutableList.copyOf(runtimeOnlyJars))
     }
 
-    fun createInstance(): IdeDependencies {
+    fun createInstance(): IdeDependenciesCoreImpl {
       val visited = mutableSetOf<String>()
       populateAndroidLibraries(dependencies.libraries, visited)
       populateJavaLibraries(dependencies.javaLibraries, visited)
@@ -619,7 +619,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
   /**
    * Create [IdeDependencies] from [BaseArtifact].
    */
-  fun dependenciesFrom(artifact: BaseArtifact, variantName: String?, androidModuleId: ModuleId?): IdeDependencies {
+  fun dependenciesFrom(artifact: BaseArtifact, variantName: String?, androidModuleId: ModuleId?): IdeDependenciesCoreImpl {
     return createFromDependencies(artifact.dependencies, variantName, androidModuleId)
   }
 
@@ -681,11 +681,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     androidModuleId: ModuleId?,
     mlModelBindingEnabled: Boolean,
     projectType: IdeAndroidProjectType
-  ): IdeAndroidArtifactImpl {
+  ): IdeAndroidArtifactCoreImpl {
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
     val isAppMainArtifact = artifact.name == AndroidProject.ARTIFACT_MAIN && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP
 
-    return IdeAndroidArtifactImpl(
+    return IdeAndroidArtifactCoreImpl(
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
@@ -698,7 +698,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       ).distinct(), // The source model can contain duplicates.
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      dependencyCores = dependenciesFrom(artifact, variantName, androidModuleId),
       unresolvedDependencies = emptyList(),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
@@ -730,10 +730,10 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     variantName: String?,
     androidModuleId: ModuleId,
     mlModelBindingEnabled: Boolean
-  ): IdeJavaArtifactImpl {
+  ): IdeJavaArtifactCoreImpl {
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
 
-    return IdeJavaArtifactImpl(
+    return IdeJavaArtifactCoreImpl(
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
@@ -742,7 +742,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       generatedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      ideDependenciesCore = dependenciesFrom(artifact, variantName, androidModuleId),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
@@ -768,7 +768,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     variant: Variant,
     modelVersion: GradleVersion?,
     androidModuleId: ModuleId
-  ): IdeVariantImpl {
+  ): IdeVariantCoreImpl {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
     val buildType = androidProject.buildTypes.find { it.buildType.name == variant.buildType }?.buildType
 
@@ -782,7 +782,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     val versionNameSuffix =
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
-    return IdeVariantImpl(
+    return IdeVariantCoreImpl(
       name = variant.name,
       displayName = variant.displayName,
       mainArtifact = copyModel(variant.mainArtifact) {
@@ -1156,7 +1156,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       variant: Variant,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantImpl = lock.withLock { variantFrom(androidProject, variant, modelVersion, androidModuleId) }
+    ): IdeVariantCoreImpl = lock.withLock { variantFrom(androidProject, variant, modelVersion, androidModuleId) }
 
     override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(project) }
 

@@ -21,12 +21,11 @@ import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
@@ -46,7 +45,7 @@ typealias IdeVariantFetcher = (
   variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
   module: AndroidModule,
   configuration: ModuleConfiguration
-) -> IdeVariantImpl?
+) -> IdeVariantCoreImpl?
 
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
@@ -123,10 +122,10 @@ class AndroidModule constructor(
     else -> NativeModelVersion.None
   }
 
-  var syncedVariant: IdeVariantImpl? = null
+  var syncedVariant: IdeVariantCoreImpl? = null
   var syncedNativeVariantAbiName: String? = null
   var syncedNativeVariant: IdeNativeVariantAbi? = null
-  var allVariants: List<IdeVariantImpl>? = null
+  var allVariants: List<IdeVariantCoreImpl>? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
   var kotlinGradleModel: KotlinGradleModel? = null
@@ -171,7 +170,7 @@ class AndroidModule constructor(
 
 private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
 
-private fun List<IdeVariantImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantImpl> {
+private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): List<IdeVariantCoreImpl> {
   if (kaptModel == null) return this
   val sourceSets = kaptModel.sourceSets.associateBy { it.sourceSetName }
   return map { variant ->
@@ -181,7 +180,7 @@ private fun List<IdeVariantImpl>.patchForKapt(kaptModel: KaptGradleModel?): List
       return code(kaptSourceSet)
     }
 
-    fun IdeBaseArtifact.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<File> {
+    fun IdeBaseArtifactCore.generatedSourceFoldersPatchedForKapt(kaptSourceSet: KaptSourceSetModel): List<File> {
       return (generatedSourceFolders.toSet() + listOfNotNull(kaptSourceSet.generatedKotlinSourcesDirFile)).toList()
     }
 
@@ -225,10 +224,18 @@ fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minByOrNull { it }
 
 @UsedInBuildAction
-private fun collectIdentifiers(variants: Collection<IdeVariant>): List<ArtifactIdentifier> {
+private fun collectIdentifiers(variants: Collection<IdeVariantCoreImpl>): List<ArtifactIdentifier> {
   return variants.asSequence()
-    .flatMap { sequenceOf(it.mainArtifact, it.androidTestArtifact, it.unitTestArtifact, it.testFixturesArtifact).filterNotNull() }
-    .flatMap { it.level2Dependencies.androidLibraries.asSequence() + it.level2Dependencies.javaLibraries.asSequence() }
+    .flatMap {
+      sequenceOf(
+        it.mainArtifact.dependencyCores,
+        it.androidTestArtifact?.dependencyCores,
+        it.unitTestArtifact?.ideDependenciesCore,
+        it.testFixturesArtifact?.dependencyCores
+      )
+        .filterNotNull()
+    }
+    .flatMap { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
     .mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
     .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }
     .distinct()

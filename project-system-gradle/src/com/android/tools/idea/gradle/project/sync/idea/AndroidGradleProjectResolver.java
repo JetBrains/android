@@ -60,12 +60,13 @@ import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
@@ -131,6 +132,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -180,6 +182,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY");
+
+  private static final Key<IdeLibraryModelResolver> SYNC_TIME_LIBRARY_RESOLVER_KEY =
+    Key.create("SYNC_TIME_LIBRARY_RESOLVER_KEY");
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
@@ -342,7 +347,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<IdeSyncIssue> issueData = null;
 
     if (androidModels != null) {
-      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels);
+      androidModel =
+        createGradleAndroidModel(moduleName, rootModulePath, androidModels,
+                                 Objects.requireNonNull(resolverCtx.getUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY)));
       issueData = androidModels.getSyncIssues();
       String ndkModuleName = moduleName + ((isModulePerSourceSetEnabled()) ? "." + ModuleUtil.getModuleName(androidModel.getMainArtifact()) : "");
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
@@ -479,12 +486,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull
   private static GradleAndroidModel createGradleAndroidModel(String moduleName,
                                                              File rootModulePath,
-                                                             @NotNull IdeAndroidModels ideModels) {
+                                                             @NotNull IdeAndroidModels ideModels,
+                                                             @NotNull IdeLibraryModelResolver ideLibraryModelResolver) {
 
     return GradleAndroidModel.create(moduleName,
                                      rootModulePath,
                                      ideModels.getAndroidProject(),
                                      ideModels.getFetchedVariants(),
+                                     ideLibraryModelResolver,
                                      ideModels.getSelectedVariantName());
   }
 
@@ -789,6 +798,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
+    resolverCtx.putUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY, new IdeLibraryModelResolverImpl());
     Project project = getProject();
     if (project != null) {
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode);

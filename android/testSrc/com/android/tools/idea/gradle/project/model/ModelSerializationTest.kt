@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.model
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
@@ -28,9 +28,9 @@ import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
-import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -232,7 +232,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testLevel2ModuleLibrary() = Truth.assertThat(IdeModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testLevel2Dependencies() = Truth.assertThat(IdeDependenciesImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testDependencyCores() = Truth.assertThat(IdeDependenciesCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   /*
    * END LEVEL2 DEPENDENCY MODELS
@@ -243,7 +243,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testAaptOptions() = Truth.assertThat(IdeAaptOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testAndroidArtifact() = Truth.assertThat(IdeAndroidArtifactImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testAndroidArtifactCore() = Truth.assertThat(IdeAndroidArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testAndroidArtifactOutput() = Truth.assertThat(IdeAndroidArtifactOutputImpl::class.java).isAssignableTo(Serializable::class.java)
@@ -261,7 +261,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testFilterData() = Truth.assertThat(IdeFilterDataImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testJavaArtifact() = Truth.assertThat(IdeJavaArtifactImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testJavaArtifactCore() = Truth.assertThat(IdeJavaArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testJavaCompileOptions() = Truth.assertThat(IdeJavaCompileOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
@@ -312,7 +312,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testTestOptions() = Truth.assertThat(IdeTestOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testVariant() = Truth.assertThat(IdeVariantImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testVariantCore() = Truth.assertThat(IdeVariantCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testVectorDrawablesOptions() = Truth.assertThat(IdeVectorDrawablesOptionsImpl::class.java).isAssignableTo(Serializable::class.java)

@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
@@ -52,7 +52,7 @@ interface ModelCache {
       variant: Variant,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantImpl
+    ): IdeVariantCoreImpl
 
     fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
 
@@ -69,17 +69,17 @@ interface ModelCache {
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
       modelVersion: GradleVersion?
-    ): IdeVariantImpl
+    ): IdeVariantCoreImpl
 
     /**
      * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
      */
     fun variantFrom(
-      variant: IdeVariantImpl,
+      variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
       variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
       buildNameMap: Map<String, File>
-    ): IdeVariantImpl
+    ): IdeVariantCoreImpl
 
     fun androidProjectFrom(
       basicProject: com.android.builder.model.v2.models.BasicAndroidProject,

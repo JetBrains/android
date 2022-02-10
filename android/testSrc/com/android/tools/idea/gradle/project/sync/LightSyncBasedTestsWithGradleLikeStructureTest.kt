@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -217,7 +218,7 @@ private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
   )
 
 private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
-  IdeAndroidLibraryDependencyImpl(
+  IdeAndroidLibraryDependencyCoreImpl(
     IdeAndroidLibraryImpl.create(
       artifactAddress = artifactAddress,
       name = artifactAddress,

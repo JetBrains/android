@@ -19,18 +19,20 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.IdeVariant
 import java.io.File
 import java.io.Serializable
 
-data class IdeVariantImpl(
+data class IdeVariantCoreImpl(
   override val name: String,
   override val displayName: String,
-  override val mainArtifact: IdeAndroidArtifactImpl,
-  override val unitTestArtifact: IdeJavaArtifactImpl?,
-  override val androidTestArtifact: IdeAndroidArtifactImpl?,
-  override val testFixturesArtifact: IdeAndroidArtifactImpl?,
+  override val mainArtifact: IdeAndroidArtifactCoreImpl,
+  override val unitTestArtifact: IdeJavaArtifactCoreImpl?,
+  override val androidTestArtifact: IdeAndroidArtifactCoreImpl?,
+  override val testFixturesArtifact: IdeAndroidArtifactCoreImpl?,
   override val buildType: String,
   override val productFlavors: List<String>,
   override val minSdkVersion: IdeApiVersion,
@@ -52,4 +54,14 @@ data class IdeVariantImpl(
   override val testedTargetVariants: List<IdeTestedTargetVariant>,
     // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
-) : IdeVariant, Serializable
+) : IdeVariantCore, Serializable
+
+data class IdeVariantImpl(
+  private val core: IdeVariantCoreImpl,
+  private val resolver: IdeLibraryModelResolver
+): IdeVariant, IdeVariantCore by core {
+  override val mainArtifact: IdeAndroidArtifact = IdeAndroidArtifactImpl(core.mainArtifact, resolver)
+  override val androidTestArtifact: IdeAndroidArtifact? = core.androidTestArtifact?.let {IdeAndroidArtifactImpl(it, resolver)}
+  override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let {IdeAndroidArtifactImpl(it, resolver)}
+  override val unitTestArtifact: IdeJavaArtifact?= core.unitTestArtifact?.let {IdeJavaArtifactImpl(it, resolver)}
+}

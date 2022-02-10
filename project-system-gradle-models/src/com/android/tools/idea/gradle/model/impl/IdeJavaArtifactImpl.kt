@@ -18,11 +18,14 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import java.io.File
 
-data class IdeJavaArtifactImpl(
+data class IdeJavaArtifactCoreImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String,
   override val assembleTaskName: String,
@@ -32,7 +35,14 @@ data class IdeJavaArtifactImpl(
   override val ideSetupTaskNames: Collection<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  override val level2Dependencies: IdeDependencies,
+  val ideDependenciesCore: IdeDependenciesCore,
   override val unresolvedDependencies: List<IdeUnresolvedDependency>,
   override val mockablePlatformJar: File?
-) : IdeJavaArtifact
+) : IdeJavaArtifactCore
+
+data class IdeJavaArtifactImpl(
+  private val core: IdeJavaArtifactCoreImpl,
+  private val resolver: IdeLibraryModelResolver
+): IdeJavaArtifact, IdeJavaArtifactCore by core {
+  override val level2Dependencies: IdeDependencies = IdeDependenciesImpl(core.ideDependenciesCore, resolver)
+}

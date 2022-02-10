@@ -17,11 +17,17 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
 import java.io.Serializable
 
 data class IdeJavaLibraryDependencyImpl(
   override val target: IdeJavaLibrary,
   override val isProvided: Boolean
-) : IdeJavaLibraryDependency, Serializable {
+) : IdeJavaLibraryDependency {
   val displayName: String get() = target.name
 }
+
+data class IdeJavaLibraryDependencyCoreImpl(
+  override val target: IdeJavaLibrary,
+  override val isProvided: Boolean
+): IdeJavaLibraryDependencyCore, Serializable

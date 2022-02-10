@@ -40,10 +40,14 @@ import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation;
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions;
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeVariantCore;
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl;
+import com.android.tools.idea.gradle.model.impl.IdeVariantImpl;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
@@ -72,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import kotlin.collections.MapsKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,13 +91,15 @@ public class GradleAndroidModel implements AndroidModuleModel {
 
   @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
+  @Nullable private transient IdeLibraryModelResolver myIdeLibraryModelResolver;
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myAndroidSyncVersion;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private final IdeAndroidProject myAndroidProject;
-  @NotNull private final Map<String, IdeVariant> myCachedVariantsByName;
+  @NotNull private final Map<String, IdeVariantCoreImpl> myCachedVariantsByName;
+  @Nullable private transient Map<String, IdeVariant> myCachedResolvedVariantsByName;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @NotNull private transient GradleVersion myAgpVersion;
@@ -139,14 +146,30 @@ public class GradleAndroidModel implements AndroidModuleModel {
   public static GradleAndroidModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull IdeAndroidProject androidProject,
-                                          @NotNull Collection<IdeVariant> cachedVariants,
+                                          @NotNull Collection<IdeVariantCoreImpl> cachedVariants,
+                                          @NotNull IdeLibraryModelResolver libraryModelResolver,
                                           @NotNull String variantName) {
     return new GradleAndroidModel(ourAndroidSyncVersion,
                                   moduleName,
                                   rootDirPath,
                                   androidProject,
-                                  cachedVariants.stream().collect(toMap(it -> it.getName(), it -> it)),
+                                  cachedVariants.stream().collect(toMap(IdeVariantCoreImpl::getName, it -> it)),
+                                  libraryModelResolver,
                                   variantName);
+  }
+
+  @VisibleForTesting
+  GradleAndroidModel(@NotNull String androidSyncVersion,
+                     @NotNull String moduleName,
+                     @NotNull File rootDirPath,
+                     @NotNull IdeAndroidProject androidProject,
+                     @NotNull Map<String, IdeVariantCoreImpl> cachedVariantsByName,
+                     @NotNull IdeLibraryModelResolver ideLibraryModelResolver,
+                     @NotNull String variantName) {
+    this(androidSyncVersion, moduleName, rootDirPath, androidProject, cachedVariantsByName, variantName);
+    myIdeLibraryModelResolver = ideLibraryModelResolver;
+    updateResolvedVariants();
+    setSelectedVariantName(variantName);
   }
 
   @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "myCachedVariantsByName",
@@ -156,7 +179,7 @@ public class GradleAndroidModel implements AndroidModuleModel {
                      @NotNull String moduleName,
                      @NotNull File rootDirPath,
                      @NotNull IdeAndroidProject androidProject,
-                     @NotNull Map<String, IdeVariant> cachedVariantsByName,
+                     @NotNull Map<String, IdeVariantCoreImpl> cachedVariantsByName,
                      @NotNull String variantName) {
     if (!androidSyncVersion.equals(ourAndroidSyncVersion)) {
       throw new IllegalArgumentException(
@@ -168,7 +191,8 @@ public class GradleAndroidModel implements AndroidModuleModel {
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
     myCachedVariantsByName = cachedVariantsByName;
-    setSelectedVariantName(variantName);
+    mySelectedVariantName = variantName;
+
 
     myAgpVersion = GradleVersion.parseAndroidGradlePluginVersion(myAndroidProject.getAgpVersion()); // Fail sync if the reported version cannot be parsed.
     myFeatures = new AndroidModelFeatures(myAgpVersion);
@@ -182,9 +206,15 @@ public class GradleAndroidModel implements AndroidModuleModel {
    * Sets the IDE module this model is for, this should always be set on creation or re-attachement of the module to the project.
    * @param module
    */
-   public void setModule(@NotNull Module module) {
+  public void setModuleAndResolver(@NotNull Module module, @NotNull IdeLibraryModelResolver resolver) {
     myModule = module;
-   }
+    myIdeLibraryModelResolver = resolver;
+    updateResolvedVariants();
+  }
+
+  private void updateResolvedVariants() {
+    myCachedResolvedVariantsByName = MapsKt.mapValues(myCachedVariantsByName, it -> new IdeVariantImpl(it.getValue(), myIdeLibraryModelResolver));
+  }
 
   /**
    * @return Instance of {@link IdeDependencies} from main artifact.
@@ -437,7 +467,17 @@ public class GradleAndroidModel implements AndroidModuleModel {
    */
   @NotNull
   public IdeVariant getSelectedVariant() {
-    IdeVariant selected = myCachedVariantsByName.get(mySelectedVariantName);
+    IdeVariant selected = myCachedResolvedVariantsByName.get(mySelectedVariantName);
+    assert selected != null;
+    return selected;
+  }
+
+  /**
+   * @return the selected build variant.
+   */
+  @NotNull
+  public IdeVariantCore getSelectedVariantCore() {
+    IdeVariantCore selected = myCachedVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }
@@ -454,12 +494,12 @@ public class GradleAndroidModel implements AndroidModuleModel {
    */
   @NotNull
   public ImmutableList<IdeVariant> getVariants() {
-    return ImmutableList.copyOf(myCachedVariantsByName.values());
+    return ImmutableList.copyOf(myCachedResolvedVariantsByName.values());
   }
 
   @Nullable
   public IdeVariant findVariantByName(@NotNull String variantName) {
-    return myCachedVariantsByName.get(variantName);
+    return myCachedResolvedVariantsByName.get(variantName);
   }
 
   /**

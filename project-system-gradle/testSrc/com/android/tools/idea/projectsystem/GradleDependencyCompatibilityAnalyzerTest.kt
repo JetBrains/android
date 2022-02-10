@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -402,9 +403,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   private fun setupProject(
     appDependOnLibrary: Boolean = false,
     additionalAppDeclaredDependencies: String? = null,
-    additionalAppResolvedDependencies: List<IdeAndroidLibraryDependencyImpl> = emptyList(),
+    additionalAppResolvedDependencies: List<IdeAndroidLibraryDependencyCoreImpl> = emptyList(),
     additionalLibrary1DeclaredDependencies: String? = null,
-    additionalLibrary1ResolvedDependencies: List<IdeAndroidLibraryDependencyImpl> = emptyList(),
+    additionalLibrary1ResolvedDependencies: List<IdeAndroidLibraryDependencyCoreImpl> = emptyList(),
   ) {
 
     fun config(declaredDependencies: String?): String =
@@ -491,7 +492,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 }
 
 private fun ideAndroidLibrary(artifactAddress: String) =
-  IdeAndroidLibraryDependencyImpl(
+  IdeAndroidLibraryDependencyCoreImpl(
     IdeAndroidLibraryImpl(
       artifactAddress = artifactAddress,
       name = artifactAddress,

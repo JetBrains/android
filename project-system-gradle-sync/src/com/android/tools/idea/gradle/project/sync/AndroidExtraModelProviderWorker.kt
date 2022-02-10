@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.variant
@@ -143,7 +143,7 @@ internal class AndroidExtraModelProviderWorker(
       override val ideAndroidProject: IdeAndroidProjectImpl =
         modelCache.androidProjectFrom(basicAndroidProject, androidProject, modelVersions, androidDsl)
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
-      val v2Variants: List<IdeVariantImpl> = let {
+      val v2Variants: List<IdeVariantCoreImpl> = let {
         val v2Variants: List<V2Variant> = androidProject.variants.toList()
         val basicVariantMap = basicVariants.associateBy { it.name }
 
@@ -658,7 +658,7 @@ internal class AndroidExtraModelProviderWorker(
   private class SyncVariantResultCore(
     val moduleConfiguration: ModuleConfiguration,
     val module: AndroidModule,
-    val ideVariant: IdeVariantImpl,
+    val ideVariant: IdeVariantCoreImpl,
     val nativeVariantAbi: NativeVariantAbiResult,
     val unresolvedDependencies: List<IdeUnresolvedDependency>
   )
@@ -669,7 +669,7 @@ internal class AndroidExtraModelProviderWorker(
   ) {
     val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
     val module: AndroidModule get() = core.module
-    val ideVariant: IdeVariantImpl get() = core.ideVariant
+    val ideVariant: IdeVariantCoreImpl get() = core.ideVariant
     val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
     val unresolvedDependencies: List<IdeUnresolvedDependency> get() = core.unresolvedDependencies
   }
@@ -703,10 +703,10 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
-      return (ideVariant.mainArtifact.level2Dependencies.moduleDependencies
-              + ideVariant.unitTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
-              + ideVariant.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
-              + ideVariant.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+      return (ideVariant.mainArtifact.dependencyCores.moduleDependencies
+              + ideVariant.unitTestArtifact?.ideDependenciesCore?.moduleDependencies.orEmpty()
+              + ideVariant.androidTestArtifact?.dependencyCores?.moduleDependencies.orEmpty()
+              + ideVariant.testFixturesArtifact?.dependencyCores?.moduleDependencies.orEmpty()
              )
         .mapNotNull { moduleDependency ->
           val dependencyProject = moduleDependency.projectPath
@@ -764,7 +764,7 @@ internal class AndroidExtraModelProviderWorker(
     return fun(controller: BuildController): SyncVariantResultCore {
       val abiToRequest: String?
       val nativeVariantAbi: NativeVariantAbiResult?
-      val ideVariant: IdeVariantImpl = module.variantFetcher(controller, variantNameResolvers, module, moduleConfiguration)
+      val ideVariant: IdeVariantCoreImpl = module.variantFetcher(controller, variantNameResolvers, module, moduleConfiguration)
         ?: error("Resolved variant '${moduleConfiguration.variant}' does not exist.")
       val variantName = ideVariant.name
 
@@ -978,7 +978,7 @@ fun v1VariantFetcher(modelCache: ModelCache.V1): IdeVariantFetcher {
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
     module: AndroidModule,
     configuration: ModuleConfiguration
-  ): IdeVariantImpl? {
+  ): IdeVariantCoreImpl? {
     val androidModuleId = ModuleId(module.gradleProject.path, module.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
     val adjustedVariantName = module.adjustForTestFixturesSuffix(configuration.variant)
     val variant = controller.findVariantModel(module, adjustedVariantName) ?: return null
@@ -987,13 +987,13 @@ fun v1VariantFetcher(modelCache: ModelCache.V1): IdeVariantFetcher {
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantImpl>): IdeVariantFetcher {
+fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreImpl>): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
     module: AndroidModule,
     configuration: ModuleConfiguration
-  ): IdeVariantImpl? {
+  ): IdeVariantCoreImpl? {
     // In V2, we get the variants from AndroidModule.v2Variants.
     val variant = v2Variants?.firstOrNull { it.name == configuration.variant }
                   ?: error("Resolved variant '${configuration.variant}' does not exist.")

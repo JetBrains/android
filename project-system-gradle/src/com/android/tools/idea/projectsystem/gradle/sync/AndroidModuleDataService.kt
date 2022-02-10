@@ -20,6 +20,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
@@ -93,7 +94,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                                  modelsProvider: IdeModifiableModelsProvider,
                                  modelsByModuleName: Map<String, DataNode<GradleAndroidModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
-
+    val libraryResolver = IdeLibraryModelResolverImpl()
     for (nodeToImport in toImport) {
       val mainModuleDataNode = ExternalSystemApiUtil.findParent(
         nodeToImport,
@@ -103,7 +104,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
 
       val androidModel = nodeToImport.data
-      androidModel.setModule(mainIdeModule)
+      androidModel.setModuleAndResolver(mainIdeModule, libraryResolver)
 
       mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
 

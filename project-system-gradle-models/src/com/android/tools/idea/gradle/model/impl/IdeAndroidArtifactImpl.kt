@@ -21,13 +21,16 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
+import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import java.io.File
 
-data class IdeAndroidArtifactImpl(
+data class IdeAndroidArtifactCoreImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String,
   override val assembleTaskName: String,
@@ -37,7 +40,7 @@ data class IdeAndroidArtifactImpl(
   override val ideSetupTaskNames: Collection<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  override val level2Dependencies: IdeDependencies,
+  val dependencyCores: IdeDependenciesCore,
   override val unresolvedDependencies: List<IdeUnresolvedDependency>,
   override val applicationId: String,
   override val signingConfigName: String?,
@@ -49,6 +52,13 @@ data class IdeAndroidArtifactImpl(
   override val buildInformation: IdeBuildTasksAndOutputInformation,
   override val codeShrinker: CodeShrinker?,
   override val modelSyncFiles: Collection<IdeModelSyncFile>
-) : IdeAndroidArtifact {
+) : IdeAndroidArtifactCore {
   override val resValues: Map<String, IdeClassField> get() = emptyMap()
+}
+
+data class IdeAndroidArtifactImpl(
+  private val core: IdeAndroidArtifactCoreImpl,
+  private val resolver: IdeLibraryModelResolver
+): IdeAndroidArtifact, IdeAndroidArtifactCore by core {
+  override val level2Dependencies: IdeDependencies = IdeDependenciesImpl(core.dependencyCores, resolver)
 }

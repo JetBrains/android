@@ -27,8 +27,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -411,11 +411,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertNull("Disposed ModuleClassLoaders can not be copied", copy);
   }
 
-  private static IdeAndroidLibraryDependencyImpl ideAndroidLibrary(File gradleCacheRoot,
-                                                                   @SuppressWarnings("SameParameterValue") String artifactAddress,
-                                                                   String folder,
-                                                                   String libJar) {
-    return new IdeAndroidLibraryDependencyImpl(
+  private static IdeAndroidLibraryDependencyCoreImpl ideAndroidLibrary(File gradleCacheRoot,
+                                                                       @SuppressWarnings("SameParameterValue") String artifactAddress,
+                                                                       String folder,
+                                                                       String libJar) {
+    return new IdeAndroidLibraryDependencyCoreImpl(
       IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
         artifactAddress,
