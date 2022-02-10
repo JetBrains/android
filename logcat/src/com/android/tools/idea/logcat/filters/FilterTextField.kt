@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.util.ReschedulableTask
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -37,7 +38,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.EditorTextField
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -87,9 +87,9 @@ internal class FilterTextField(
     addToCenter(textField)
     addToRight(clearButton)
 
-    // TODO(aalbert): Fix issue with double border.
-    // Set a border around the text field and buttons. See EditorTextField#setBorder()
-    border = BorderFactory.createCompoundBorder(UIUtil.getTextFieldBorder(),  JBUI.Borders.empty(2, 2, 2, 2))
+    // Set a border around the text field and buttons.
+    // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work. It seems to need CompoundBorder.
+    border = BorderFactory.createCompoundBorder(FilterTextFieldBorder(), JBUI.Borders.empty(1, 1, 1, 1))
 
     historyButton.apply {
       addMouseListener(object : MouseAdapter() {
@@ -119,12 +119,13 @@ internal class FilterTextField(
           }
         }
       })
-
       addFocusListener(object : FocusAdapter() {
         override fun focusLost(e: FocusEvent?) {
           addToHistory()
         }
       })
+      // The text field needs to be move an extra pixel down to appear correctly.
+      border = JBUI.Borders.customLine(background, 1, 0, 0, 0)
     }
 
     clearButton.apply {
@@ -179,6 +180,10 @@ internal class FilterTextField(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
         .setLogcatFilter(filterParser.getUsageTrackingEvent(text)))
+  }
+
+  private inner class FilterTextFieldBorder : DarculaTextBorder() {
+    override fun isFocused(c: Component?): Boolean = textField.editor?.contentComponent?.hasFocus() == true
   }
 
   private inner class FilterEditorTextField(
