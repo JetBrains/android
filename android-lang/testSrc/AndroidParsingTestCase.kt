@@ -28,9 +28,9 @@ import com.intellij.testFramework.ParsingTestCase
 import junit.framework.TestCase
 
 abstract class AndroidParsingTestCase(
-  fileException: String,
+  fileExtension: String,
   parserDefinition: ParserDefinition
-) : ParsingTestCase("no_data_path_needed", fileException, parserDefinition) {
+) : ParsingTestCase("no_data_path_needed", fileExtension, parserDefinition) {
 
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
