@@ -1331,7 +1331,8 @@ class DeviceExplorerControllerTest {
       FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Give ourselves time to cancel
-    myDevice1.uploadChunkIntervalMillis = 30_000
+    myDevice1.uploadChunkIntervalMillis = 1_000
+    myDevice1.uploadChunkSize = 100
 
     // Start the upload verify that a long-running operation is present
     myMockView.startTreeBusyIndicatorTacker.clear()
