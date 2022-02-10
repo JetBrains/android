@@ -30,11 +30,14 @@ import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -69,6 +72,12 @@ import org.jetbrains.annotations.TestOnly;
  * events to find out when to start interactions and in order to update the interactions along the way.
  */
 public class InteractionManager implements Disposable {
+  /**
+   * The {@link Cursor} may need to be updated during the interaction. This {@link DataKey} is used to find the target {@link Component}
+   * which the {@link Cursor} should be set to.
+   */
+  public static final DataKey<Component> CURSOR_RECEIVER = DataKey.create(InteractionManager.class.getName() + ".cursorReceiver");
+
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
   private static final int SCROLL_END_TIME_MS = 500;
 
@@ -347,16 +356,18 @@ public class InteractionManager implements Disposable {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    {
-      Cursor cursor;
-      if (myCurrentInteraction == null) {
-        cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
-      }
-      else {
-        cursor = myCurrentInteraction.getCursor();
-      }
-      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    Component cursorReceiver = DataManager.getInstance().getDataContext(mySurface).getData(CURSOR_RECEIVER);
+    if (cursorReceiver == null) {
+      return;
     }
+    Cursor cursor;
+    if (myCurrentInteraction == null) {
+      cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
+    }
+    else {
+      cursor = myCurrentInteraction.getCursor();
+    }
+    cursorReceiver.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
   public boolean isInteractionInProgress() {

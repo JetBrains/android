@@ -59,6 +59,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.impl.HeadlessDataManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
@@ -368,6 +370,8 @@ public class InteractionManagerTest extends LayoutTestCase {
         )).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
+    ((HeadlessDataManager) DataManager.getInstance())
+      .setTestDataProvider(dataId -> InteractionManager.CURSOR_RECEIVER.is(dataId) ? surface : null);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return surface.getInteractionManager();
   }
@@ -546,6 +550,8 @@ public class InteractionManagerTest extends LayoutTestCase {
           .wrapContentHeight())).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
+    ((HeadlessDataManager) DataManager.getInstance())
+      .setTestDataProvider(dataId -> InteractionManager.CURSOR_RECEIVER.is(dataId) ? surface : null);
     when(surface.getScale()).thenReturn(1.0);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return surface.getInteractionManager();

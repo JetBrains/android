@@ -27,6 +27,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
+import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
@@ -271,7 +272,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val mainSurface = createPreviewDesignSurface(
     project, navigationHandler, delegateInteractionHandler, { key ->
-    if (PANNABLE_KEY.`is`(key)) {
+    if (PANNABLE_KEY.`is`(key) || InteractionManager.CURSOR_RECEIVER.`is`(key)) {
       this@ComposePreviewViewImpl
     } else dataProvider.getData(key)
   }, parentDisposable,

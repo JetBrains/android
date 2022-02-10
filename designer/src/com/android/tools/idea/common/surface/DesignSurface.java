@@ -1786,7 +1786,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
+    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || InteractionManager.CURSOR_RECEIVER.is(dataId)) {
       return this;
     }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
