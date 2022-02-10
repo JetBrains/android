@@ -395,7 +395,7 @@ class AgslLexerTest : LexerTestCase() {
   }
 
   override fun createLexer(): Lexer {
-    return if (StudioFlags.AGLS_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
+    return if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
   }
 
   override fun getDirPath(): String {
