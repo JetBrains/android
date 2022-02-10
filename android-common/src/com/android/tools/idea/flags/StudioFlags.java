@@ -876,6 +876,13 @@ public final class StudioFlags {
     "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
     "is used to offer just the namespace prefix.", true);
 
+  public static final Flag<Boolean> AGSL_LANGUAGE_SUPPORT = Flag.create(
+    EDITOR, "agsl.support.enabled",
+    "Enable editor support for AGSL (Android Graphics Shading Language)",
+    "If enabled, it offers basic editor support (syntax highlighting and basic validation) for AGSL",
+    true
+  );
+
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
     EDITOR, "advanced.jni.assistance",
     "Enable advanced JNI assistance",

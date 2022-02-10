@@ -1,0 +1,221 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// To code from this bnf file, install the grammar-kit plugin first.
+// To generate the parser, right click on file and click "Generate Parser Code".
+// To generate the lexer, first click "Generate JFlex Lexer", put the generated file in aidl/lexer folder,
+// then right click the flex file and click "Run JFlex Generator".
+// Also search the "gen" folder for the string "Warning:" to make sure that the
+// code generator has not failed to bind a method (it inserts Warning-comments
+// in the generated code.)
+
+// This grammar is based on the EGSL 1.0 spec here:
+// https://www.khronos.org/files/opengles_shading_language.pdf
+// and in particular, the grammar in chapter 9, plus
+// various changes for AGSL: no preprocessor support, some keywords
+// are not supported, some additional types like 'half' are added etc.
+
+{
+  elementTypeHolderClass="com.android.tools.idea.lang.agsl.AgslTokenTypes"
+  elementTypeClass="com.android.tools.idea.lang.agsl.psi.AgslElementType"
+  tokenTypeClass="com.android.tools.idea.lang.agsl.AgslTokenType"
+
+  tokens = [
+    Space='regexp:\s+' // this need to be commented out when generating the flex file
+    COMMENT='regexp://[^\r\n]*'
+    BLOCK_COMMENT='regexp:/[*][^*]*[*]+([^/*][^*]*[*]+)*/'
+    // See AgslLexerTest:
+    FLOATCONSTANT='regexp:(\d+\.\d*|\d*\.\d+)([eE][-+]?\d+)?|1[eE][-+]?\d+'
+    INTCONSTANT='regexp:0[xX][\da-fA-F]+|\d+'
+
+    ATTRIBUTE='attribute'
+    CONST='const'
+    UNIFORM='uniform'
+    VARYING='varying'
+    BREAK='break'
+    CONTINUE='continue'
+    DO='do'
+    FOR='for'
+    WHILE='while'
+    IF='if'
+    ELSE='else'
+    IN='in'
+    OUT='out'
+    INOUT='inout'
+    FLOAT='float'
+    INT='int'
+    VOID='void'
+    BOOL='bool'
+    TRUE='true'
+    FALSE='false'
+    LOW_PRECISION='lowp'
+    MEDIUM_PRECISION='mediump'
+    HIGH_PRECISION='highp'
+    PRECISION='precision'
+    INVARIANT='invariant'
+    RETURN='return'
+    MAT2='mat2'
+    MAT3='mat3'
+    MAT4='mat4'
+    VEC2='vec2'
+    VEC3='vec3'
+    VEC4='vec4'
+    IVEC2='ivec2'
+    IVEC3='ivec3'
+    IVEC4='ivec4'
+    BVEC2='bvec2'
+    BVEC3='bvec3'
+    BVEC4='bvec4'
+    SAMPLER2D='sampler2d'
+    SAMPLERCUBE='samplerCube'
+    STRUCT='struct'
+
+    // Keyword in EGSL 1.0 but not allowed in AGSL
+    DISCARD='discard'
+
+    // AGSL keywords
+    HALF='half'     // AGSL alias for mediump float
+    HALF2='half2'
+    HALF3='half3'
+    HALF4='half4'
+    FLOAT2='float2' // AGSL alias for vec2
+    FLOAT3='float3'
+    FLOAT4='float4'
+    BOOL2='bool2'   // AGSL alias for bvec2
+    BOOL3='bool3'
+    BOOL4='bool4'
+    INT2='int2'     // AGSL alias for ivec2
+    INT3='int3'
+    INT4='int4'
+    FLOAT2X2='float2x2' // AGSL alias for mat2
+    FLOAT3X3='float3x3'
+    FLOAT4X4='float4x4'
+    HALF2X2='half2x2'
+    HALF3X3='half3x3'
+    HALF4X4='half4x4'
+    SHADER='shader'
+    COLORFILTER='colorFilter'
+    BLENDER='blender'
+
+    // Reserved keywords (for future use)
+    ASM='asm'
+    CLASS='class'
+    UNION='union'
+    ENUM='enum'
+    TYPEDEF='typedef'
+    TEMPLATE='template'
+    THIS='this'
+    PACKED='packed'
+    GOTO='goto'
+    SWITCH='switch'
+    DEFAULT='default'
+    INLINE='inline'
+    NOINLINE='noinline'
+    VOLATILE='volatile'
+    PUBLIC='public'
+    STATIC='static'
+    EXTERN='extern'
+    EXTERNAL='external'
+    INTERFACE='interface'
+    FLAT='flat'
+    LONG='long'
+    SHORT='short'
+    DOUBLE='double'
+    HALF='half'
+    FIXED='fixed'
+    UNSIGNED='unsigned'
+    SUPERP='superp'
+    INPUT='input'
+    OUTPUT='output'
+    HVEC2='hvec2'
+    HVEC3='hvec3'
+    HVEC4='hvec4'
+    DVEC2='dvec2'
+    DVEC3='dvec3'
+    DVEC4='dvec4'
+    FVEC2='fvec2'
+    FVEC3='fvec3'
+    FVEC4='fvec4'
+    SAMPLER1D='sampler1D'
+    SAMPLER3D='sampler3D'
+    SAMPLER1DSHADOW='sampler1DShadow'
+    SAMPLER2DSHADOW='sampler2DShadow'
+    SAMPLER2DRECT='sampler2DRect'
+    SAMPLER3DRECT='sampler3DRect'
+    SAMPLER2DRECTSHADOW='sampler2DRectShadow'
+    SIZEOF='sizeof'
+    CAST='cast'
+    NAMESPACE='namespace'
+    USING='using'
+
+    LEFT_OP='<<'
+    RIGHT_OP='>>'
+    INC_OP='++'
+    DEC_OP='--'
+    LE_OP='<='
+    GE_OP='>='
+    EQ_OP='=='
+    NE_OP='!='
+
+    AND_OP='&&'
+    OR_OP='||'
+    XOR_OP='^^'
+    MUL_ASSIGN='*='
+    DIV_ASSIGN='/='
+    ADD_ASSIGN='+='
+    MOD_ASSIGN='%='
+    LEFT_ASSIGN='<<='
+    RIGHT_ASSIGN='>>='
+    AND_ASSIGN='&='
+    XOR_ASSIGN='^='
+    OR_ASSIGN='|='
+    SUB_ASSIGN='-='
+
+    LEFT_PAREN='('
+    RIGHT_PAREN=')'
+    LEFT_BRACKET='['
+    RIGHT_BRACKET=']'
+    LEFT_BRACE='{'
+    RIGHT_BRACE='}'
+    DOT='.'
+    COMMA=','
+    COLON=':'
+    EQUAL='='
+    SEMICOLON=';'
+    BANG='!'
+    DASH='-'
+    TILDE='~'
+    PLUS='+'
+    STAR='*'
+    SLASH='/'
+    PERCENT='%'
+    LEFT_ANGLE='<'
+    RIGHT_ANGLE='>'
+    VERTICAL_BAR='|'
+    CARET='^'
+    AMPERSAND='&'
+    QUESTION='?'
+
+    IDENTIFIER_GL_PREFIX='regexp:gl_\w*'
+    IDENTIFIER='regexp:[_a-zA-Z]\w*'
+  ]
+
+  classHeader='generatedFilesHeader.txt'
+}
+
+// We need to define at least one rule to trick the parser generator into creating the
+// AgslTokenTypes class needed for syntax highlighting etc
+document ::= IDENTIFIER | INTCONSTANT | FLOATCONSTANT
