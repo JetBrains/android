@@ -198,6 +198,7 @@
               extensions="agsl" language="AGSL" fieldName="INSTANCE"/>
     <lang.syntaxHighlighter language="AGSL"
                             implementationClass="com.android.tools.idea.lang.agsl.AgslSyntaxHighlighter"/>
+    <lang.braceMatcher language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslPairMatcher"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">
