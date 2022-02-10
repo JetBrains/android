@@ -201,6 +201,7 @@
                             implementationClass="com.android.tools.idea.lang.agsl.AgslSyntaxHighlighter"/>
     <annotator language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslAnnotator" order="first"/>
     <lang.braceMatcher language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslPairMatcher"/>
+    <lang.commenter language="AGSL" implementationClass="com.android.tools.idea.lang.agsl.AgslCommenter"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">
