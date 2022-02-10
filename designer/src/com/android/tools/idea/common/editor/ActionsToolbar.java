@@ -40,6 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.AdjustmentEvent;
 import java.util.Collections;
 import java.util.List;
@@ -139,6 +140,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
+    myNorthEastToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
     myCenterToolbar.setTargetComponent(mySurface);
