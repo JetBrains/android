@@ -159,6 +159,10 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
+    if lib == "studio_plugin_Kotlin.xml":
+      # Special case: the Kotlin plugin is part of IntelliJ Platform, but it is built and updated
+      # separately by prebuilts/tools/common/kotlin-plugin/build.py (see Change I788900228).
+      continue
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 

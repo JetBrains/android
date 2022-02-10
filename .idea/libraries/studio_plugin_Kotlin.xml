@@ -1,25 +1,25 @@
 <component name="libraryTable">
   <library name="studio-plugin-Kotlin">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/completion-ranking-kotlin-0.3.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/javaslang-2.0.6.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/javaslang-match-2.0.6.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/javax.inject-1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-jps-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc_kotlin-reflect.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc_kotlin-stdlib.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm-0.3.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-coroutines-core-jvm-1.5.2.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-coroutines-jdk8-1.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinx-coroutines-core-jvm-1.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javaslang-match-2.0.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-common.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-stdlib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-reflect.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/completion-ranking-kotlin-0.3.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinx-coroutines-jdk8-1.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-jps-common.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javaslang-2.0.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinx-collections-immutable-jvm-0.3.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javax.inject-1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/kotlin-plugin-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
