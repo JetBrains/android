@@ -1237,6 +1237,11 @@ public final class StudioFlags {
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
+
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON = Flag.create(
+    COMPOSE, "preview.fast.reload.in.process.enabled", "Enable the Compose fast-reload in-process compiler",
+    "If enabled, the preview will use the in-process compiler for compiling.",
+    false);
   //endregion
 
   // region App Inspection

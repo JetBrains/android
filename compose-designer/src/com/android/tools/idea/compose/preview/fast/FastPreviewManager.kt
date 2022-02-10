@@ -352,6 +352,15 @@ private fun defaultDaemonFactory(version: String, log: Logger, scope: CoroutineS
 }
 
 /**
+ * Same as [defaultDaemonFactory] but it returns a [CompilerDaemonClient] that uses the in-process compiler. This is the same
+ * compiler used by the Emulator Live Edit.
+ */
+private fun embeddedDaemonFactory(project: Project, log: Logger): CompilerDaemonClient {
+  log.warn("Using the experimental in-process compiler")
+  return EmbeddedCompilerClientImpl(project, log)
+}
+
+/**
  * Unique ID for a given compilation requests. The ID should be the same for the same input.
  */
 private typealias CompileRequestId = String
@@ -418,7 +427,10 @@ class FastPreviewManager private constructor(
 
   private val scope = AndroidCoroutineScope(this, workerThread)
   private val daemonFactory = alternativeDaemonFactory ?: {
-    defaultDaemonFactory(it, log, scope)
+    if (StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON.get())
+      embeddedDaemonFactory(project, log)
+    else
+      defaultDaemonFactory(it, log, scope)
   }
   private val daemonRegistry = DaemonRegistry(scope, daemonFactory).also {
     Disposer.register(this@FastPreviewManager, it)
