@@ -16,8 +16,7 @@
 package com.android.tools.idea.lang.agsl
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.lang.agsl.AgslLexer
-import com.intellij.lexer.EmptyLexer
+import com.android.tools.idea.lang.agsl.AgslParserDefinition
 import com.intellij.lexer.Lexer
 import com.intellij.testFramework.LexerTestCase
 
@@ -395,7 +394,7 @@ class AgslLexerTest : LexerTestCase() {
   }
 
   override fun createLexer(): Lexer {
-    return if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
+    return AgslParserDefinition().createLexer()
   }
 
   override fun getDirPath(): String {

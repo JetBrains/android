@@ -29,6 +29,17 @@
 // are not supported, some additional types like 'half' are added etc.
 
 {
+  parserClass="com.android.tools.idea.lang.agsl.parser.AgslParser"
+  parserUtilClass="com.intellij.lang.parser.GeneratedParserUtilBase"
+
+  implements="com.android.tools.idea.lang.agsl.psi.AgslPsiElement"
+  extends="com.android.tools.idea.lang.agsl.psi.impl.AgslPsiElementImpl"
+
+  psiClassPrefix="Agsl"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.agsl.psi"
+  psiImplPackage="com.android.tools.idea.lang.agsl.psi.impl"
+
   elementTypeHolderClass="com.android.tools.idea.lang.agsl.AgslTokenTypes"
   elementTypeClass="com.android.tools.idea.lang.agsl.psi.AgslElementType"
   tokenTypeClass="com.android.tools.idea.lang.agsl.AgslTokenType"
@@ -216,6 +227,195 @@
   classHeader='generatedFilesHeader.txt'
 }
 
-// We need to define at least one rule to trick the parser generator into creating the
-// AgslTokenTypes class needed for syntax highlighting etc
-document ::= IDENTIFIER | INTCONSTANT | FLOATCONSTANT
+document ::= token*
+
+// For now *only* doing syntax highlighting; we're not doing valid parsing. That's
+// going to be more tricky because the grammar is left recursive.
+token
+  ::= keyword
+  |   operator
+  |   other_symbol
+  |   INTCONSTANT
+  |   FLOATCONSTANT
+  |   IDENTIFIER
+  |   reserved_keyword
+  |   unsupported_keyword
+  |   glsl_identifier
+
+private keyword
+  ::= BREAK
+  |   CONTINUE
+  |   DO
+  |   FOR
+  |   WHILE
+  |   IF
+  |   ELSE
+  |   IN
+  |   OUT
+  |   INOUT
+  |   TRUE
+  |   FALSE
+  |   PRECISION
+  |   RETURN
+  |   STRUCT
+  |   type_specifier_no_prec
+  |   type_qualifier
+  |   precision_qualifier
+
+private type_specifier_no_prec
+  ::= VOID
+  |   FLOAT
+  |   INT
+  |   BOOL
+  |   VEC2
+  |   VEC3
+  |   VEC4
+  |   BVEC2
+  |   BVEC3
+  |   BVEC4
+  |   IVEC2
+  |   IVEC3
+  |   IVEC4
+  |   MAT2
+  |   MAT3
+  |   MAT4
+  // AGSL additional type keywords
+  |   HALF
+  |   HALF2
+  |   HALF3
+  |   HALF4
+  |   FLOAT2
+  |   FLOAT3
+  |   FLOAT4
+  |   BOOL2
+  |   BOOL3
+  |   BOOL4
+  |   INT2
+  |   INT3
+  |   INT4
+  |   FLOAT2X2
+  |   FLOAT3X3
+  |   FLOAT4X4
+  |   HALF2X2
+  |   HALF3X3
+  |   HALF4X4
+  |   SHADER
+  |   COLORFILTER
+  |   BLENDER
+
+
+private precision_qualifier ::= HIGH_PRECISION | MEDIUM_PRECISION | LOW_PRECISION
+
+private type_qualifier
+  ::= CONST
+  |   UNIFORM
+
+unsupported_keyword
+  ::= DISCARD
+  |   SAMPLER2D
+  |   SAMPLERCUBE
+  |   ATTRIBUTE
+  |   VARYING
+  |   INVARIANT
+
+glsl_identifier ::= IDENTIFIER_GL_PREFIX
+
+reserved_keyword
+  ::= ASM
+  |   CLASS
+  |   UNION
+  |   ENUM
+  |   TYPEDEF
+  |   TEMPLATE
+  |   THIS
+  |   PACKED
+  |   GOTO
+  |   SWITCH
+  |   DEFAULT
+  |   INLINE
+  |   NOINLINE
+  |   VOLATILE
+  |   PUBLIC
+  |   STATIC
+  |   EXTERN
+  |   EXTERNAL
+  |   INTERFACE
+  |   FLAT
+  |   LONG
+  |   SHORT
+  |   DOUBLE
+  |   FIXED
+  |   UNSIGNED
+  |   SUPERP
+  |   INPUT
+  |   OUTPUT
+  |   HVEC2
+  |   HVEC3
+  |   HVEC4
+  |   DVEC2
+  |   DVEC3
+  |   DVEC4
+  |   FVEC2
+  |   FVEC3
+  |   FVEC4
+  |   SAMPLER1D
+  |   SAMPLER3D
+  |   SAMPLER1DSHADOW
+  |   SAMPLER2DSHADOW
+  |   SAMPLER2DRECT
+  |   SAMPLER3DRECT
+  |   SAMPLER2DRECTSHADOW
+  |   SIZEOF
+  |   CAST
+  |   NAMESPACE
+  |   USING
+
+private operator
+  ::= LEFT_OP
+  |   RIGHT_OP
+  |   INC_OP
+  |   DEC_OP
+  |   LE_OP
+  |   GE_OP
+  |   EQ_OP
+  |   NE_OP
+  |   AND_OP
+  |   OR_OP
+  |   XOR_OP
+  |   MUL_ASSIGN
+  |   DIV_ASSIGN
+  |   ADD_ASSIGN
+  |   MOD_ASSIGN
+  |   LEFT_ASSIGN
+  |   RIGHT_ASSIGN
+  |   AND_ASSIGN
+  |   XOR_ASSIGN
+  |   OR_ASSIGN
+  |   SUB_ASSIGN
+
+private other_symbol
+  ::= LEFT_PAREN
+  |   RIGHT_PAREN
+  |   LEFT_BRACKET
+  |   RIGHT_BRACKET
+  |   LEFT_BRACE
+  |   RIGHT_BRACE
+  |   DOT
+  |   COMMA
+  |   COLON
+  |   EQUAL
+  |   SEMICOLON
+  |   BANG
+  |   DASH
+  |   TILDE
+  |   PLUS
+  |   STAR
+  |   SLASH
+  |   PERCENT
+  |   LEFT_ANGLE
+  |   RIGHT_ANGLE
+  |   VERTICAL_BAR
+  |   CARET
+  |   AMPERSAND
+  |   QUESTION
+

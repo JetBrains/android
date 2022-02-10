@@ -22,7 +22,7 @@ interface AgslTokenTypeSets {
   companion object {
     val WHITESPACES = TokenSet.create(TokenType.WHITE_SPACE)
     val COMMENTS = TokenSet.create(AgslTokenTypes.COMMENT, AgslTokenTypes.BLOCK_COMMENT)
-    val BAD_TOKENS = TokenSet.create(TokenType.BAD_CHARACTER)
+    val BAD_TOKENS = TokenSet.create(TokenType.BAD_CHARACTER, AgslTokenTypes.GLSL_IDENTIFIER)
     val IDENTIFIERS = TokenSet.create(AgslTokenTypes.IDENTIFIER)
     val NUMBERS = TokenSet.create(AgslTokenTypes.INTCONSTANT, AgslTokenTypes.FLOATCONSTANT)
     val KEYWORDS = TokenSet.create(
