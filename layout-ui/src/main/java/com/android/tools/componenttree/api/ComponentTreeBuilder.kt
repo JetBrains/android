@@ -33,6 +33,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
+import javax.swing.table.TableCellRenderer
 import javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
 import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 
@@ -50,6 +51,7 @@ typealias DoubleClickHandler = () -> Unit
  */
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
+  private var headerRenderer: TableCellRenderer? = null
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
@@ -71,6 +73,11 @@ class ComponentTreeBuilder {
    * Register a [NodeType].
    */
   fun <T> withNodeType(type: NodeType<T>) = apply { nodeTypeMap[type.clazz] = type }
+
+  /**
+   * Header renderer for the tree column.
+   */
+  fun withHeaderRenderer(renderer: TableCellRenderer) = apply { headerRenderer = renderer }
 
   /**
    * Allow multiple nodes to be selected in the tree (default is a single selection).
@@ -179,13 +186,13 @@ class ComponentTreeBuilder {
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel) { _, _ -> }
+    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel, NoOpTableVisibility())
   }
 
   private fun buildTreeTable(): ComponentTreeBuildResult {
     val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
-                              installTreeSearch)
+                              installTreeSearch, headerRenderer)
     table.name = componentName // For UI tests
     if (dndSupport && !GraphicsEnvironment.isHeadless()) {
       table.enableDnD()
@@ -198,9 +205,7 @@ class ComponentTreeBuilder {
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel) {
-      columnIndex, visible -> table.setColumnVisibility(columnIndex, visible)
-    }
+    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel, table)
   }
 }
 
@@ -240,9 +245,9 @@ class ComponentTreeBuildResult(
   val selectionModel: ComponentTreeSelectionModel,
 
   /**
-   * Callback for controlling the visibility of each column.
+   * An object that can be used to modify the tree.
    *
-   * (This only works for the TreeTable implementation.)
+   * The visibility of the header and the columns are supported.
    */
-  val setColumnVisibility: (columnIndex: Int, visible: Boolean) -> Unit
+  val interactions: TableVisibility
 )

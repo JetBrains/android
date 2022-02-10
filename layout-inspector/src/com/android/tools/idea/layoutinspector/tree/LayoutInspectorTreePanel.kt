@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.android.tools.componenttree.api.TableVisibility
 import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -71,7 +72,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val componentTreePanel: JComponent
   @VisibleForTesting
   val componentTreeModel: ComponentTreeModel
-  private val setColumnVisibility: (columnIndex: Int, visible: Boolean) -> Unit
+  private val interactions: TableVisibility
   private val nodeType = InspectorViewNodeType()
   // synthetic node to hold the root of the tree.
   private var root: TreeViewNode = ViewNode("root").treeNode
@@ -118,7 +119,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     focusComponent = result.focusComponent
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
-    setColumnVisibility = result.setColumnVisibility
+    interactions = result.interactions
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTreePanel, parentDisposable) }
     componentTreeSelectionModel.addSelectionListener {
@@ -178,8 +179,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   fun updateRecompositionColumnVisibility() {
     val show = layoutInspector?.treeSettings?.showRecompositions ?: false &&
                layoutInspector?.currentClient?.isConnected ?: false
-    setColumnVisibility(1, show)
-    setColumnVisibility(2, show)
+    interactions.setHeaderVisibility(show)
+    interactions.setColumnVisibility(1, show)
+    interactions.setColumnVisibility(2, show)
   }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?

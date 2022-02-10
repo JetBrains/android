@@ -47,8 +47,9 @@ inline fun <reified T> createIntColumn(
   noinline popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit = { _, _, _, _ -> },
   noinline tooltip: (item: T) -> String? = { _ -> null },
   leftDivider: Boolean = false,
-  foreground: Color? = null
-): ColumnInfo = SingleTypeIntColumn(name, T::class.java, getter, maxInt, action, popup, tooltip, leftDivider, foreground)
+  foreground: Color? = null,
+  headerRenderer: TableCellRenderer? = null
+): ColumnInfo = SingleTypeIntColumn(name, T::class.java, getter, maxInt, action, popup, tooltip, leftDivider, foreground, headerRenderer)
 
 /**
  * A [ColumnInfo] implementation with Int values.
@@ -64,7 +65,8 @@ class SingleTypeIntColumn<T>(
   private val popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit,
   private val tooltip: (item: T) -> String?,
   override val leftDivider: Boolean,
-  override val foreground: Color?
+  override val foreground: Color?,
+  override val headerRenderer: TableCellRenderer?
 ) : IntColumn(name) {
   override fun getInt(item: Any): Int =
     cast(item)?.let { getter(it) } ?: 0

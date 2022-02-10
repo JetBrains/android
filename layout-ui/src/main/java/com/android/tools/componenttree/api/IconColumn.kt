@@ -20,6 +20,7 @@ import com.intellij.util.ui.EmptyIcon
 import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.table.TableCellRenderer
 
 /**
  * Creates an [IconColumn]
@@ -48,8 +49,9 @@ inline fun <reified T> createIconColumn(
   noinline popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit = { _, _, _, _ -> },
   noinline tooltip: (item: T) -> String? = { _ -> null },
   leftDivider: Boolean = false,
-  emptyIcon: Icon = EmptyIcon.ICON_16
-): BadgeItem = SingleTypeIconColumn(name, T::class.java, getter, hoverIcon, action, popup, tooltip, leftDivider, emptyIcon)
+  emptyIcon: Icon = EmptyIcon.ICON_16,
+  headerRenderer: TableCellRenderer? = null
+): BadgeItem = SingleTypeIconColumn(name, T::class.java, getter, hoverIcon, action, popup, tooltip, leftDivider, emptyIcon, headerRenderer)
 
 /**
  * A [BadgeItem] implementation.
@@ -65,7 +67,8 @@ class SingleTypeIconColumn<T>(
   private val popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit,
   private val tooltip: (item: T) -> String?,
   override val leftDivider: Boolean,
-  emptyIcon: Icon
+  emptyIcon: Icon,
+  override val headerRenderer: TableCellRenderer?
 ) : IconColumn(name, emptyIcon) {
 
   override fun getIcon(item: Any): Icon? =

@@ -68,7 +68,8 @@ class ViewTreeCellRendererTest {
       installKeyboardActions = {},
       treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
       installTreeSearch = false,
-      autoScroll = false
+      autoScroll = false,
+      treeHeaderRenderer = null
     )
     tree = table!!.tree
   }

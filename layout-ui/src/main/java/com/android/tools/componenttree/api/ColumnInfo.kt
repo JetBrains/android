@@ -15,13 +15,11 @@
  */
 package com.android.tools.componenttree.api
 
-import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Insets
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JTable
-import javax.swing.border.Border
 import javax.swing.table.TableCellRenderer
 
 /**
@@ -53,6 +51,12 @@ interface ColumnInfo {
    * The column renderer.
    */
   val renderer: TableCellRenderer?
+
+  /**
+   * The header renderer.
+   */
+  val headerRenderer: TableCellRenderer?
+    get() = null
 
   /**
    * Return the tooltip text for the column of the specified [item].

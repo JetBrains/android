@@ -336,28 +336,48 @@ class TreeTableImplTest {
     assertThat(badgeBefore).isGreaterThan(0)
 
     // hide c1 column
-    result.setColumnVisibility(1, false)
+    result.interactions.setColumnVisibility(1, false)
     assertThat(table.cellWidth(1)).isEqualTo(0)
     assertThat(table.cellWidth(2)).isEqualTo(c2Before)
     assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
 
     // hide badge column
-    result.setColumnVisibility(3, false)
+    result.interactions.setColumnVisibility(3, false)
     assertThat(table.cellWidth(1)).isEqualTo(0)
     assertThat(table.cellWidth(2)).isEqualTo(c2Before)
     assertThat(table.cellWidth(3)).isEqualTo(0)
 
     // show c1 column
-    result.setColumnVisibility(1, true)
+    result.interactions.setColumnVisibility(1, true)
     assertThat(table.cellWidth(1)).isEqualTo(c1Before)
     assertThat(table.cellWidth(2)).isEqualTo(c2Before)
     assertThat(table.cellWidth(3)).isEqualTo(0)
 
     // show badge column
-    result.setColumnVisibility(3, true)
+    result.interactions.setColumnVisibility(3, true)
     assertThat(table.cellWidth(1)).isEqualTo(c1Before)
     assertThat(table.cellWidth(2)).isEqualTo(c2Before)
     assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testHideHeader() {
+    val result = createTree()
+    val table = result.focusComponent as TreeTableImpl
+    val scrollPane = getScrollPane(table)
+
+    // This will cause addNotify() to be called on the table:
+    FakeUi(scrollPane, createFakeWindow = true)
+    assertThat(table.tableHeader.isShowing).isFalse()
+
+    // show the header
+    result.interactions.setHeaderVisibility(true)
+    assertThat(table.tableHeader.isShowing).isTrue()
+
+    // hide the header
+    result.interactions.setHeaderVisibility(false)
+    assertThat(table.tableHeader.isShowing).isFalse()
   }
 
   @RunsInEdt
