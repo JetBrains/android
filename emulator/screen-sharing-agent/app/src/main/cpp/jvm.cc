@@ -65,22 +65,6 @@ JObject JObject::CallObjectMethod(JNIEnv* jni_env, jmethodID method, ...) const 
   return result;
 }
 
-int32_t JObject::GetIntField(JNIEnv* jni_env, jfieldID field) const {
-  return jni_env->GetIntField(ref_, field);
-}
-
-void JObject::SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const {
-  jni_env->SetIntField(ref_, field, value);
-}
-
-float JObject::GetFloatField(JNIEnv* jni_env, jfieldID field) const {
-  return jni_env->GetFloatField(ref_, field);
-}
-
-void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const {
-  jni_env->SetFloatField(ref_, field, value);
-}
-
 bool JObject::CallBooleanMethod(jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
@@ -125,6 +109,30 @@ void JObject::CallVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_start(args, method);
   jni_env->CallVoidMethodV(ref_, method, args);
   va_end(args);
+}
+
+JObject JObject::GetObjectField(JNIEnv* jni_env, jfieldID field) const {
+  return JObject(jni_env, jni_env->GetObjectField(ref_, field));
+}
+
+void JObject::SetObjectField(JNIEnv* jni_env, jfieldID field, jobject value) const {
+  jni_env->SetObjectField(ref_, field, value);
+}
+
+int32_t JObject::GetIntField(JNIEnv* jni_env, jfieldID field) const {
+  return jni_env->GetIntField(ref_, field);
+}
+
+void JObject::SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const {
+  jni_env->SetIntField(ref_, field, value);
+}
+
+float JObject::GetFloatField(JNIEnv* jni_env, jfieldID field) const {
+  return jni_env->GetFloatField(ref_, field);
+}
+
+void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const {
+  jni_env->SetFloatField(ref_, field, value);
 }
 
 string JObject::ToString() const {
@@ -202,11 +210,11 @@ JClass JClass::GetSuperclass() const {
 string JClass::GetName() const {
   JNIEnv* jni_env = GetJni();
   jclass clazz = ref();
-  jmethodID get_name_method = jni_env->GetMethodID(clazz, "getName", "()Ljava/lang/String;");
-  if (get_name_method == nullptr) {
-    return "<unknown>";
+  if (Jvm::class_get_name_method_ == nullptr) {
+    // class_get_name_method_ is not initialized yet. This means that GetName was called indirectly by Jvm::Initialize.
+    return "java.lang.Class";
   }
-  auto name = down_cast<jstring>(jni_env->CallObjectMethod(clazz, get_name_method));
+  auto name = down_cast<jstring>(jni_env->CallObjectMethod(clazz, Jvm::class_get_name_method_));
   return JString(jni_env, name).GetValue();
 }
 
@@ -262,6 +270,10 @@ JObjectArray JClass::NewObjectArray(JNIEnv* jni_env, int32_t length, jobject ini
   return JObjectArray(jni_env, jni_env->NewObjectArray(length, ref(), initialElement));
 }
 
+JString::JString(JNIEnv* jni_env, const char* value)
+    : JRef(jni_env, value == nullptr ? nullptr : jni_env->NewStringUTF(value)) {
+}
+
 string JString::GetValue() const {
   const char* localName = GetJni()->GetStringUTFChars(ref(), nullptr);
   std::string res(localName);
@@ -285,15 +297,11 @@ JClass Jni::GetClass(const char* name) const {
   return JClass(jni_env_, clazz);
 }
 
-JString Jni::NewStringUtf(const char* string) const {
-  return JString(jni_env_, jni_env_->NewStringUTF(string));
-}
-
 JCharArray Jni::NewCharArray(int32_t length) const {
   return JCharArray(jni_env_, jni_env_->NewCharArray(length));
 }
 
-bool Jni::ExceptionCheckAndClear() const {
+bool Jni::CheckAndClearException() const {
   jboolean exception_thrown = jni_env_->ExceptionCheck();
   if (exception_thrown) {
     jni_env_->ExceptionClear();
@@ -301,12 +309,23 @@ bool Jni::ExceptionCheckAndClear() const {
   return exception_thrown != JNI_FALSE;
 }
 
+JObject Jni::GetAndClearException() const {
+  jthrowable exception = jni_env_->ExceptionOccurred();
+  if (exception != nullptr) {
+    jni_env_->ExceptionClear();
+  }
+  return JObject(jni_env_, exception);
+}
+
 JavaVM* Jvm::jvm_ = nullptr;
 jint Jvm::jni_version_ = 0;
+jmethodID Jvm::class_get_name_method_ = nullptr;
 
 void Jvm::Initialize(JNIEnv* jni_env) {
   jni_env->GetJavaVM(&jvm_);
   jni_version_ = jni_env->GetVersion();
+  JClass class_class = Jni(jni_env).GetClass("java/lang/Class");
+  class_get_name_method_ = class_class.GetMethodId("getName", "()Ljava/lang/String;");
 }
 
 Jni Jvm::AttachCurrentThread(const char* thread_name) {

@@ -70,6 +70,9 @@ public:
 
   // Converts a local reference to a global one and deletes the local reference.
   JObject& MakeGlobal();
+  JObject&& ToGlobal()&& {
+    return std::move(MakeGlobal());
+  }
 
   JClass GetClass() const;
   JClass GetClass(JNIEnv* jni) const;
@@ -81,6 +84,14 @@ public:
   int32_t CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallVoidMethod(jmethodID method, ...) const;
   void CallVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
+  JObject GetObjectField(jfieldID field) const {
+    return GetObjectField(GetJni(), field);
+  }
+  JObject GetObjectField(JNIEnv* jni_env, jfieldID field) const;
+  void SetObjectField(jfieldID field, jobject value) const {
+    SetObjectField(GetJni(), field, value);
+  }
+  void SetObjectField(JNIEnv* jni_env, jfieldID field, jobject value) const;
   int32_t GetIntField(jfieldID field) const {
     return GetIntField(GetJni(), field);
   }
@@ -122,7 +133,7 @@ template <typename Wrapper, typename Base>
 class JRef : public JObject {
 public:
   using JObject::JObject;
-  JRef(JNIEnv* jni_env, Base ref)
+  JRef(JNIEnv* jni_env, Base&& ref)
     : JObject(jni_env, ref) {
   }
   explicit JRef(JObject&& other) noexcept
@@ -147,6 +158,9 @@ public:
 
   Wrapper& MakeGlobal() {
     return down_cast<Wrapper&>(JObject::MakeGlobal());
+  };
+  Wrapper&& ToGlobal()&& {
+    return std::move(MakeGlobal());
   };
 
   template <class U = Base>
@@ -200,6 +214,14 @@ public:
 class JString : public JRef<JString, jstring> {
 public:
   using JRef::JRef;
+  JString(JNIEnv* jni_env, const char* value);
+
+  JString& MakeGlobal() {
+    return down_cast<JString&>(JRef::MakeGlobal());
+  };
+  JString&& ToGlobal()&& {
+    return std::move(MakeGlobal());
+  };
 
   std::string GetValue() const;
 };
@@ -228,9 +250,9 @@ public:
 
   JClass GetClass(const char* name) const;
 
-  JString NewStringUtf(const char* string) const;
   JCharArray NewCharArray(int32_t length) const;
-  bool ExceptionCheckAndClear() const;
+  bool CheckAndClearException() const;
+  JObject GetAndClearException() const;
 
 private:
   JNIEnv* jni_env_;
@@ -250,8 +272,11 @@ public:
   }
 
 private:
+  friend class JClass;
+
   static JavaVM* jvm_;
   static jint jni_version_;
+  static jmethodID class_get_name_method_;  // The java.lang.Class.getName method.
 
   Jvm() = delete;
 };

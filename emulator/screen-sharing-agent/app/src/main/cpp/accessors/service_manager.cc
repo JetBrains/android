@@ -41,8 +41,7 @@ ServiceManager& ServiceManager::GetInstance(Jni jni) {
 
 JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type) {
   ServiceManager& manager = GetInstance(jni);
-  JString java_name = jni.NewStringUtf(name);
-  JObject binder = manager.service_manager_class_.CallStaticObjectMethod(jni, manager.get_service_method_, java_name.ref());
+  JObject binder = manager.service_manager_class_.CallStaticObjectMethod(jni, manager.get_service_method_, JString(jni, name).ref());
   if (binder.IsNull()) {
     Log::Fatal("Unable to find the \"%s\" service", name);
   }

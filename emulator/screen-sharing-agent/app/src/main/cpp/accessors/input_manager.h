@@ -19,7 +19,6 @@
 #include <android/input.h>
 
 #include "common.h"
-#include "display_info.h"
 #include "jvm.h"
 
 namespace screensharing {

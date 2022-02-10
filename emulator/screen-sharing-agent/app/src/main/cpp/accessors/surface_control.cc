@@ -53,8 +53,7 @@ void SurfaceControl::CloseTransaction() const {
 }
 
 JObject SurfaceControl::CreateDisplay(const char* name, bool secure) const {
-  JString java_name = jni_.NewStringUtf(name);
-  return surface_control_class_.CallStaticObjectMethod(jni_, create_display_method_, java_name.ref(), jboolean(secure));
+  return surface_control_class_.CallStaticObjectMethod(jni_, create_display_method_, JString(jni_, name).ref(), jboolean(secure));
 }
 
 void SurfaceControl::DestroyDisplay(jobject display_token) const {
