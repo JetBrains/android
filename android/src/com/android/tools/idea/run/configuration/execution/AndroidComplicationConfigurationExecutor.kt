@@ -23,12 +23,18 @@ import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
+import com.android.tools.idea.run.configuration.extractComplicationSupportedTypes
+import com.android.tools.idea.run.configuration.extractServiceFromXmlFileNode
+import com.android.tools.idea.run.configuration.extractXmlNodeFromApk
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
@@ -64,6 +70,12 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       }
       indicator?.checkCanceled()
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
+      val provider = project.getProjectSystem().getApkProvider(configuration)
+      if (provider == null) {
+        Logger.getInstance(this::class.java).warn("Apk could not be retrieved.")
+      } else {
+        configuration.verifyProviderTypes(getComplicationSourceTypes(provider.getApks(device)))
+      }
       indicator?.checkCanceled()
       val watchFaceApp = installWatchApp(device, console)
 
@@ -80,6 +92,17 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
     }
     return createRunContentDescriptor(processHandler, console, environment)
+  }
+
+  internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>): List<Complication.ComplicationType>{
+    return try {
+      val xmlFileNode = extractXmlNodeFromApk(apks)
+      val complicationService = extractServiceFromXmlFileNode(xmlFileNode, configuration.componentName!!)
+      extractComplicationSupportedTypes(complicationService)
+    } catch (exception: Exception) {
+      Logger.getInstance(this::class.java).warn(exception)
+      emptyList()
+    }
   }
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {

@@ -58,7 +58,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
-  private fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
+  internal fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
     if (supportedTypes.isEmpty()) {
       throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"))
     }
@@ -74,7 +74,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     val module = this.module ?: return emptyList()
     val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
     if (snapshotFuture.isDone) {
-      return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName)
+      return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName ?: "")
     }
     return emptyList()
   }

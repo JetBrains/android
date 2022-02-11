@@ -19,12 +19,15 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.tools.deployer.model.component.AppComponent
-import com.android.tools.deployer.model.component.Complication
+import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
+import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
+import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
+import com.android.tools.deployer.model.component.Complication
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -104,6 +107,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       )
     )
     doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    // Mock the binary xml extraction.
+    doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
 
@@ -195,6 +201,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     )
     doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
+    // Mock the binary xml extraction.
+    doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
+
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
@@ -270,6 +279,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       )
     )
     doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    // Mock the binary xml extraction.
+    doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
 
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
 
