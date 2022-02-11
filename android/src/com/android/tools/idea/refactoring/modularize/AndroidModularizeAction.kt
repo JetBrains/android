@@ -32,7 +32,9 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
   override fun isAvailableInEditorOnly() = false
 
   override fun isAvailableForFile(file: PsiFile?): Boolean {
-    return file != null && file.fileType == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.project)
+    return file != null && // file exists
+           file.fileType == JavaFileType.INSTANCE && // is Java
+           AndroidUtils.hasAndroidFacets(file.project) // and is Android
   }
 
   private val Project.isLastSyncSuccessful get() = getSyncManager().getLastSyncResult().isSuccessful
