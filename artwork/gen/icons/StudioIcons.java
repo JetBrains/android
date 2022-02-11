@@ -642,10 +642,13 @@ public class StudioIcons {
   }
 
   public static class Logcat {
-    public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
-    public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg"); // 16x16
-    public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.svg"); // 16x16
-    public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.svg"); // 16x16
+    public static class Toolbar {
+      public static final Icon FILTER_HISTORY = load("/studio/icons/logcat/toolbar/filter-history.svg"); // 16x16
+      public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
+      public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg"); // 16x16
+      public static final Icon VIDEO_CAPTURE = load("/studio/icons/logcat/toolbar/video-capture.svg"); // 16x16
+      public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.svg"); // 16x16
+    }
   }
 
   public static class Misc {

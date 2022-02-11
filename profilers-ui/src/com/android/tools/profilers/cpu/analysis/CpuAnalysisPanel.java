@@ -65,7 +65,7 @@ public class CpuAnalysisPanel extends AspectObserver {
                                                                 this::onSelectedTabChanged);
     // TODO (b/139295622): Add action items and actions to analysis panel.
     // Need proper icons for configure and minimize.
-    // myTabs.addAction(StudioIcons.Logcat.SETTINGS, (e) -> { });
+    // myTabs.addAction(StudioIcons.Logcat.Toolbar.SETTINGS, (e) -> { });
     myTabs.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 1, 0));
     myPanel.add(myTabs, BorderLayout.NORTH);
     myPanel.add(myTabView, BorderLayout.CENTER);
