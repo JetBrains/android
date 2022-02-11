@@ -66,8 +66,10 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
 
     if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get()) {
-      add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().weighty(1.0).anchor(NORTHWEST))
+      add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
     }
+    // Add an empty panel that consumes all vertical space bellow.
+    add(JPanel(), gridBag.nextLine().next().weighty(1.0))
   }
 
   override fun createComponent() = component
