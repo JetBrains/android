@@ -268,10 +268,10 @@ class GradleModuleSystem(
     val facet = AndroidFacet.getInstance(module)
     val androidModel = facet?.let(GradleAndroidModel::get) ?: return ManifestOverrides()
     val directOverrides = notNullMapOf(
-      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
-      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
-      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
-      ManifestSystemProperty.PACKAGE to
+      ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
+      ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
+      ManifestSystemProperty.Manifest.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
+      ManifestSystemProperty.Document.PACKAGE to
         (
           when (androidModel.androidProject.projectType) {
             IdeAndroidProjectType.PROJECT_TYPE_APP -> androidModel.applicationId
@@ -287,8 +287,8 @@ class GradleModuleSystem(
     val variant = androidModel.selectedVariant
     val placeholders = getManifestPlaceholders()
     val directOverridesFromGradle = notNullMapOf(
-      ManifestSystemProperty.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
-      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, androidModel)
+      ManifestSystemProperty.UsesSdk.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
+      ManifestSystemProperty.Manifest.VERSION_NAME to getVersionNameOverride(facet, androidModel)
     )
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
   }
