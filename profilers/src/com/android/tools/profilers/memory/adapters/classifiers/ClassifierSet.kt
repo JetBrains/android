@@ -271,6 +271,8 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     snapshotObjectCount = 0
     deltaAllocationCount = 0
     deltaDeallocationCount = 0
+    allocationSize = 0
+    deallocationSize = 0
     totalShallowSize = 0
     totalNativeSize = 0
     totalRetainedSize = 0
@@ -391,6 +393,8 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         snapshotObjectCount = 0
         deltaAllocationCount = 0
         deltaDeallocationCount = 0
+        allocationSize = 0
+        deallocationSize = 0
         totalShallowSize = 0
         totalNativeSize = 0
         totalRetainedSize = 0
@@ -405,6 +409,8 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
             snapshotObjectCount += classifierSet.snapshotObjectCount
             deltaAllocationCount += classifierSet.deltaAllocationCount
             deltaDeallocationCount += classifierSet.deltaDeallocationCount
+            allocationSize += classifierSet.allocationSize
+            deallocationSize += classifierSet.deallocationSize
             totalShallowSize += classifierSet.totalShallowSize
             totalNativeSize += classifierSet.totalNativeSize
             totalRetainedSize += classifierSet.totalRetainedSize
