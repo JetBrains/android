@@ -628,7 +628,7 @@ public final class StudioFlags {
     "adblib.migration.device.explorer",
     "Use adblib in Device Explorer",
     "Use adblib instead of ddmlib for Device Explorer",
-    false);
+    true);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_WIFI_PAIRING = Flag.create(
     RUNDEBUG,
