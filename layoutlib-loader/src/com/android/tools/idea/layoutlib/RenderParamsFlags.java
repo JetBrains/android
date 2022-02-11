@@ -76,18 +76,6 @@ public final class RenderParamsFlags {
       new Key<Boolean>("enableResultImageAutoScale", Boolean.class);
 
     /**
-     * Enables higher-quality shadows in layoutlib.
-     */
-    public static final Key<Boolean> FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW =
-      new Key<>("renderHighQualityShadow", Boolean.class);
-
-    /**
-     * Enables shadow rendering in layoutlib.
-     */
-    public static final Key<Boolean> FLAG_KEY_ENABLE_SHADOW =
-        new Key<>("enableShadow", Boolean.class);
-
-    /**
      * Enables layout validation calls within rendering.
      * Name differs as it used to be called layout validator.
      */

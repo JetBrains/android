@@ -368,8 +368,6 @@ public class RenderService implements Disposable {
     private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
-    private boolean isShadowEnabled = true;
-    private boolean useHighQualityShadows = true;
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
@@ -544,18 +542,6 @@ public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder disableShadow() {
-      this.isShadowEnabled = false;
-      return this;
-    }
-
-    @NotNull
-    public RenderTaskBuilder disableHighQualityShadow() {
-      this.useHighQualityShadows = false;
-      return this;
-    }
-
-    @NotNull
     public RenderTaskBuilder disableToolsVisibilityAndPosition() {
       this.showWithToolsVisibilityAndPosition = false;
       return this;
@@ -692,8 +678,6 @@ public class RenderService implements Disposable {
 
           task
             .setDecorations(showDecorations)
-            .setHighQualityShadows(useHighQualityShadows)
-            .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
             .setEnableLayoutScanner(enableLayoutScanner);
 

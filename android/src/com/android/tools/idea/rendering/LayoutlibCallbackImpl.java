@@ -37,9 +37,7 @@ import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -870,12 +868,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
     if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
       return (T)myAdaptiveIconMaskPath;
-    }
-    if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
-      return (T)Boolean.TRUE;
     }
     return null;
   }
