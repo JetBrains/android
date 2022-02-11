@@ -54,10 +54,12 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
     return file == null || isAvailableForFile(file)
   }
 
-  override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
-    val project = file.project
-    return project.isLastSyncSuccessful
-  }
+  override fun isAvailableOnElementInEditorAndFile(
+    element: PsiElement,
+    editor: Editor,
+    file: PsiFile,
+    context: DataContext,
+  ) = file.project.isLastSyncSuccessful
 
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = false
 
