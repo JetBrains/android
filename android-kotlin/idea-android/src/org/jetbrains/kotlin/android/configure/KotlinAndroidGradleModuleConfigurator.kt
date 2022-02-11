@@ -122,41 +122,41 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-  override fun changeGeneralFeatureConfiguration(
-    module: Module,
-    feature: LanguageFeature,
-    state: LanguageFeature.State,
-    forTests: Boolean
-  ) {
-    val (enabledString, disabledString) = when (feature) {
-      LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
-      else -> "-XXLanguage:+${feature.name}" to "-XXLanguage:-${feature.name}"
+    override fun changeGeneralFeatureConfiguration(
+      module: Module,
+      feature: LanguageFeature,
+      state: LanguageFeature.State,
+      forTests: Boolean
+    ) {
+        val (enabledString, disabledString) = when (feature) {
+            LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
+            else -> "-XXLanguage:+${feature.name}" to "-XXLanguage:-${feature.name}"
+        }
+        val project = module.project
+        val projectBuildModel = ProjectBuildModel.get(project)
+        val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
+        val freeCompilerArgs = moduleBuildModel.android().kotlinOptions().freeCompilerArgs()
+        when (state) {
+            LanguageFeature.State.ENABLED -> {
+                freeCompilerArgs.getListValue(disabledString)?.delete()
+                freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue().setValue(enabledString)
+            }
+            LanguageFeature.State.DISABLED -> {
+                freeCompilerArgs.getListValue(enabledString)?.delete()
+                freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue().setValue(disabledString)
+            }
+            else -> {
+                throw UnsupportedOperationException("Setting a Kotlin language feature to state $state is unsupported in android-kotlin")
+            }
+        }
+        projectBuildModel.applyChanges()
+        moduleBuildModel.reparse()
+        moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
+            OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
+        }
     }
-    val project = module.project
-    val projectBuildModel = ProjectBuildModel.get(project)
-    val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
-    val freeCompilerArgs = moduleBuildModel.android().kotlinOptions().freeCompilerArgs()
-    when (state) {
-      LanguageFeature.State.ENABLED -> {
-        freeCompilerArgs.getListValue(disabledString)?.delete()
-        freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue().setValue(enabledString)
-      }
-      LanguageFeature.State.DISABLED -> {
-        freeCompilerArgs.getListValue(enabledString)?.delete()
-        freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue().setValue(disabledString)
-      }
-      else -> {
-        throw UnsupportedOperationException("Setting a Kotlin language feature to state $state is unsupported in android-kotlin")
-      }
-    }
-    projectBuildModel.applyChanges()
-    moduleBuildModel.reparse()
-    moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
-      OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
-    }
-  }
 
-  companion object {
+    companion object {
         private const val NAME = "android-gradle"
 
         private const val KOTLIN_ANDROID = "kotlin-android"
