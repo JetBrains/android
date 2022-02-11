@@ -22,16 +22,13 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseJavaRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
 
 // open for testing
 open class AndroidModularizeAction : BaseJavaRefactoringAction() {
 
-  override fun isAvailableInEditorOnly(): Boolean {
-    return false
-  }
+  override fun isAvailableInEditorOnly() = false
 
   override fun isAvailableForFile(file: PsiFile?): Boolean {
     return file != null && file.fileType == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.project)
@@ -59,11 +56,7 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
     return project.getSyncManager().getLastSyncResult().isSuccessful
   }
 
-  override fun isEnabledOnElements(elements: Array<out PsiElement>): Boolean {
-    return false
-  }
+  override fun isEnabledOnElements(elements: Array<out PsiElement>) = false
 
-  override fun getHandler(dataContext: DataContext): RefactoringActionHandler {
-    return AndroidModularizeHandler()
-  }
+  override fun getHandler(dataContext: DataContext) = AndroidModularizeHandler()
 }
