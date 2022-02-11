@@ -22,6 +22,7 @@ import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 import static com.intellij.openapi.util.io.FileUtilRt.copy;
@@ -52,7 +53,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -76,7 +76,6 @@ import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
@@ -93,13 +92,13 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -1065,7 +1064,8 @@ public class AndroidJavaDocRenderer {
           renderTask.setOverrideRenderSize(width, height);
           BufferedImage image;
           try {
-            image = renderTask.renderDrawable(resolvedValue).get();
+            CompletableFuture<BufferedImage> future = renderTask.renderDrawable(resolvedValue);
+            image = waitInterruptibly(future);
           }
           catch (InterruptedException | ExecutionException e) {
             renderError(builder, e.toString());
