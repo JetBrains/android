@@ -194,7 +194,7 @@ public class FlagManager {
       @SuppressWarnings("UnnecessaryFullyQualifiedName")
       String flagFileName = StringUtil.toLowerCase(base) + ".png"; //$NON-NLS-1$
       try {
-        flagImage = IconLoader.findIcon("icons/flags/" + flagFileName, AndroidIcons.class.getClassLoader());
+        flagImage = IconLoader.findResolvedIcon("icons/flags/" + flagFileName, AndroidIcons.class.getClassLoader());
       } catch (Throwable t) {
         // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
         // when IconLoader.STRICT is set to true, which is the case when running unit tests
