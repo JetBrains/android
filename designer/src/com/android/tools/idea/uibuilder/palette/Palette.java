@@ -307,7 +307,7 @@ public class Palette {
     @NotNull
     public Icon getIcon() {
       if (myIconName != null) {
-        Icon icon = IconLoader.findIcon(myIconName, getClass());
+        Icon icon = IconLoader.findIcon(myIconName, getClass().getClassLoader());
         if (icon != null) {
           return icon;
         }

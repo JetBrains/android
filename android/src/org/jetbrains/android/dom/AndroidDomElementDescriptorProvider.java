@@ -31,6 +31,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
+import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.HashMap;
 import java.util.Map;
@@ -151,10 +152,10 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
       if (iconRef == null) {
         // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
-        Icon icon = IconLoader.findIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName));
+        Icon icon = IconLoader.getReflectiveIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName), StudioIcons.class.getClassLoader());
         // TODO: Eliminate AndroidIcons once all icons are provided by StudioIcons.LayoutEditor.Palette.
         if (icon == null) {
-          icon = IconLoader.findIcon("AndroidIcons.Views." + keyName);
+          icon = IconLoader.getReflectiveIcon("AndroidIcons.Views." + keyName, AndroidIcons.class.getClassLoader());
         }
         iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
