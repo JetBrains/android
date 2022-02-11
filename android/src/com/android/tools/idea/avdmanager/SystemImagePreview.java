@@ -137,7 +137,7 @@ public class SystemImagePreview {
       Icon icon = getIcon(codeName);
       if (icon == null) {
         try {
-          icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
+          icon = IconLoader.findIcon("icons/versions/Default.png", AndroidIcons.class.getClassLoader());
         } catch (RuntimeException ignored) {
           // Just leave 'icon' null
         }
@@ -199,14 +199,14 @@ public class SystemImagePreview {
     }
     Icon icon = null;
     try {
-      icon = IconLoader.findIcon(String.format("/icons/versions/%1$s.png", codename), AndroidIcons.class);
+      icon = IconLoader.findIcon(String.format("icons/versions/%1$s.png", codename), AndroidIcons.class.getClassLoader());
     } catch (RuntimeException ignored) {
     }
     if (icon != null) {
       return icon;
     }
     try {
-      icon = IconLoader.findIcon("/icons/versions/Default.png", AndroidIcons.class);
+      icon = IconLoader.findIcon("icons/versions/Default.png", AndroidIcons.class.getClassLoader());
     } catch (RuntimeException ignored) {
     }
     if (icon != null) {
