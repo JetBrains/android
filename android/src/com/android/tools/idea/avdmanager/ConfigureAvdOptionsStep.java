@@ -704,13 +704,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
       Icon icon = null;
       try {
-        icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
+        icon = IconLoader.findIcon(String.format("icons/versions/%s_32.png", codeName), AndroidIcons.class.getClassLoader());
       }
       catch (RuntimeException ignored) {
       }
       if (icon == null) {
         try {
-          icon = IconLoader.findIcon("/icons/versions/Default_32.png", AndroidIcons.class);
+          icon = IconLoader.findIcon("icons/versions/Default_32.png", AndroidIcons.class.getClassLoader());
         }
         catch (RuntimeException ignored) {
         }
