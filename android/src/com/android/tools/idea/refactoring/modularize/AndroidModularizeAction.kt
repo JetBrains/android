@@ -20,6 +20,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseJavaRefactoringAction
@@ -34,10 +35,12 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
     return file != null && file.fileType == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.project)
   }
 
+  private val Project.isLastSyncSuccessful get() = getSyncManager().getLastSyncResult().isSuccessful
+
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
     // Hide action if last Gradle sync was unsuccessful.
     val project = CommonDataKeys.PROJECT.getData(dataContext)
-    if (project != null && !project.getSyncManager().getLastSyncResult().isSuccessful) {
+    if (project != null && !project.isLastSyncSuccessful) {
       return false
     }
 
@@ -53,7 +56,7 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
 
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
     val project = file.project
-    return project.getSyncManager().getLastSyncResult().isSuccessful
+    return project.isLastSyncSuccessful
   }
 
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = false
