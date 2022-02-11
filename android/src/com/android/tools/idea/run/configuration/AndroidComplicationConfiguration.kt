@@ -23,6 +23,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidComplicationCon
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
+import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
@@ -58,11 +59,14 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   private fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
     if (supportedTypes.isEmpty()) {
-      throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"));
+      throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"))
+    }
+    if (chosenSlots.isEmpty()) {
+      throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
     for (slot in chosenSlots) {
       if (!supportedTypes.contains(slot.type)) {
-        throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slot.type));
+        throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slot.type))
       }
     }
   }
