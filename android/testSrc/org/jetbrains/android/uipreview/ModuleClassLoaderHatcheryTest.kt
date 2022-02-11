@@ -132,25 +132,4 @@ class ModuleClassLoaderHatcheryTest {
 
     ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }
-
-  @Test
-  fun `out of date class loaders can not be used as donors`() {
-    val hatchery = ModuleClassLoaderHatchery(1, 2)
-    val parent = FirewalledResourcesClassLoader(null)
-    val donor = ModuleClassLoaderManager.get().getPrivate(
-      parent, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
-    val cloner = ModuleClassLoaderManager.get()::createCopy
-
-    ModuleClassLoaderOverlays.getInstance(project.module).overlayPath = Files.createTempDirectory("overlay")
-    // Simulate a class being loaded from the overlay
-    donor.injectProjectOvelaryLoadedClass("com.overlay.Class")
-    ModuleClassLoaderOverlays.getInstance(project.module).overlayPath = Files.createTempDirectory("overlay")
-
-    // Create a request for a new class loader and incubate it
-    assertNull(hatchery.requestClassLoader(
-      parent, donor.projectClassesTransform, donor.nonProjectClassesTransform))
-    assertFalse(hatchery.incubateIfNeeded(donor, cloner))
-
-    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
-  }
 }
