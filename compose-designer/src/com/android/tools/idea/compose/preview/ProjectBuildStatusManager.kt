@@ -40,7 +40,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * This represents the build status of the project without taking into account any file modifications.
@@ -133,7 +132,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
     else
       NopPsiFileChangeDetector
-  private val _isBuilding = AtomicInteger(0)
+  private val _isBuilding = AtomicBoolean(false)
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
       if (field != value) {
@@ -159,7 +158,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       }
     }
 
-  override val isBuilding: Boolean get() = _isBuilding.get() > 0
+  override val isBuilding: Boolean get() = _isBuilding.get()
 
   private fun onSuccessfulBuild() {
     fileChangeDetector.markFileAsUpToDate(editorFile.element)
@@ -173,7 +172,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       .addBuildListener(parentDisposable,
                         object : ProjectSystemBuildManager.BuildListener {
                           override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-                            _isBuilding.incrementAndGet()
+                            _isBuilding.set(true)
                             LOG.debug("buildStarted $mode")
                             if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
                               projectBuildStatus = ProjectBuildStatus.NeedsBuild
@@ -181,9 +180,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                           }
 
                           override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-                            _isBuilding.updateAndGet {
-                              (it - 1).coerceAtLeast(0)
-                            }
+                            _isBuilding.set(false)
                             LOG.debug("buildFinished $result")
                             if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
                               onSuccessfulBuild()
@@ -221,16 +218,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       }
     })
 
-    if (PreviewLiveEditManager.getInstance(project).isAvailable) {
+    if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
       PreviewLiveEditManager.getInstance(project).addCompileListener(parentDisposable, object: PreviewLiveEditManager.Companion.CompileListener {
-        override fun onCompilationStarted(files: Collection<PsiFile>) {
-          _isBuilding.incrementAndGet()
-        }
+        override fun onCompilationStarted(files: Collection<PsiFile>) {}
 
         override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-          _isBuilding.updateAndGet {
-            (it - 1).coerceAtLeast(0)
-          }
           val file = editorFile.element ?: return
           if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
         }

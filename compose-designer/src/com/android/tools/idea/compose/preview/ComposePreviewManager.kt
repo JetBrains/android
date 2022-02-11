@@ -99,6 +99,11 @@ interface ComposePreviewManager: Disposable {
   fun invalidateSavedBuildStatus()
 
   /**
+   * When true, a build will automatically be triggered when the user makes a source code change.
+   */
+  val isBuildOnSaveEnabled: Boolean
+
+  /**
    * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
    */
   val availableGroups: Collection<PreviewGroup>

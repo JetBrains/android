@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -33,12 +34,36 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
   override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.Success
+  override fun dispose() {}
+}
+
+/*
+ * A CompilerDaemonClient that blocks until [complete] is called.
+ */
+private class BlockingDaemonClient : CompilerDaemonClient {
+  override val isRunning: Boolean = true
+  private val compilationRequestFuture = CompletableDeferred<Unit>()
+  private val _requestReceived = AtomicLong(0)
+  val requestReceived: Long
+    get() = _requestReceived.get()
+
+  override suspend fun compileRequest(args: List<String>): CompilationResult {
+    _requestReceived.incrementAndGet()
+    compilationRequestFuture.await()
+    return CompilationResult.Success
+  }
+
+  fun complete() {
+    compilationRequestFuture.complete(Unit)
+  }
+
   override fun dispose() {}
 }
 
