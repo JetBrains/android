@@ -73,8 +73,11 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   override fun checkConfiguration() {
     super.checkConfiguration()
-    val snapshot = MergedManifestManager.getMergedManifestSupplier(configurationModule.module!!).get().get()
-    verifyProviderTypes(extractComplicationSupportedTypes(snapshot, this.componentName))
+    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(configurationModule.module!!).get()
+    if (!snapshotFuture.isDone) {
+      return
+    }
+    verifyProviderTypes(extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName))
   }
 
   var chosenSlots: List<ChosenSlot> = listOf()
