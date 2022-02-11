@@ -32,8 +32,10 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.Disposable
@@ -47,21 +49,37 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
 import com.intellij.ui.TreeActions
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import java.awt.BorderLayout
+import java.awt.Cursor
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.JTree
+import javax.swing.table.TableCellRenderer
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
   ToolContent.getToolContent(this.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
+
+private const val ICON_BORDER = 2
+private const val ICON_HORIZONTAL_PADDING = 10
+private const val TEXT_HORIZONTAL_BORDER = 5
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
@@ -105,8 +123,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withToggleClickCount(3)
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
-      .withColumn(createIntColumn<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }, leftDivider = true))
-      .withColumn(createIntColumn<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }, foreground = JBColor.lightGray))
+      .withHeaderRenderer(createTreeHeaderRenderer())
+      .withColumn(createIntColumn<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }, leftDivider = true,
+                                                headerRenderer = createIconHeader(StudioIcons.Compose.Toolbar.RUN_CONFIGURATION)))
+      .withColumn(createIntColumn<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }, foreground = JBColor.lightGray,
+                                                headerRenderer = createIconHeader(AllIcons.RunConfigurations.ToolbarSkipped)))
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
@@ -120,6 +141,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
     interactions = result.interactions
+    createHeaderMouseListener()
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTreePanel, parentDisposable) }
     componentTreeSelectionModel.addSelectionListener {
@@ -149,6 +171,84 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       commonActionManager.createExpandAllAction(treeExpander, tree),
       commonActionManager.createCollapseAllAction(treeExpander, tree)
     )
+  }
+
+  private fun createTreeHeaderRenderer(): TableCellRenderer {
+    val panel = JPanel(BorderLayout())
+    val text = JBLabel("Composition counts")
+    val reset = JBLabel(AllIcons.Actions.Refresh)
+    text.border = JBUI.Borders.empty(ICON_BORDER, TEXT_HORIZONTAL_BORDER)
+    text.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    reset.border = JBUI.Borders.empty(ICON_BORDER)
+    panel.background = UIUtil.TRANSPARENT_COLOR
+    panel.isOpaque = false
+    panel.add(text, BorderLayout.CENTER)
+    panel.add(reset, BorderLayout.EAST)
+    return TableCellRenderer { _, _, _, _, _, _ -> panel }
+  }
+
+  private fun createIconHeader(icon: Icon) : TableCellRenderer {
+    val label = JBLabel(icon)
+    label.border = JBUI.Borders.empty(ICON_BORDER, ICON_HORIZONTAL_PADDING)
+    return TableCellRenderer { _, _, _, _, _, _ -> label }
+  }
+
+  private enum class HeaderLocation { NONE, TREE_HEADER, RESET_BUTTON, COUNTS, SKIPS}
+
+  private fun createHeaderMouseListener() {
+    val table = focusComponent as? JTable ?: return
+    val tableHeader = table.tableHeader
+    val handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+
+    val listener = object : MouseAdapter() {
+      private var lastLocation = HeaderLocation.NONE
+
+      override fun mouseExited(event: MouseEvent) {
+        update(HeaderLocation.NONE)
+      }
+
+      override fun mouseEntered(event: MouseEvent) {
+        update(event.location)
+      }
+
+      override fun mouseMoved(event: MouseEvent) {
+        update(event.location)
+      }
+
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.location == HeaderLocation.RESET_BUTTON) {
+          resetRecompositionCounts()
+        }
+      }
+
+      private fun update(location: HeaderLocation) {
+        if (location == lastLocation) {
+          return
+        }
+        lastLocation = location
+        tableHeader.cursor = if (location == HeaderLocation.RESET_BUTTON) handCursor else Cursor.getDefaultCursor()
+        tableHeader.toolTipText = when (location) {
+          HeaderLocation.RESET_BUTTON -> "Click to reset recomposition counts"
+          HeaderLocation.COUNTS -> "The number of times this composable has been recomposed"
+          HeaderLocation.SKIPS -> "The number of times recomposition for this component has been skipped"
+          else -> null
+        }
+      }
+
+      private val MouseEvent.location: HeaderLocation
+        get() {
+          val column = table.columnAtPoint(point)
+          return when {
+            column == 1 -> HeaderLocation.COUNTS
+            column == 2 -> HeaderLocation.SKIPS
+            column == 0 && x > table.columnModel.getColumn(0).width - EmptyIcon.ICON_16.iconWidth - 2 * ICON_BORDER
+            -> HeaderLocation.RESET_BUTTON
+            else -> HeaderLocation.TREE_HEADER
+          }
+        }
+    }
+    tableHeader.addMouseListener(listener)
+    tableHeader.addMouseMotionListener(listener)
   }
 
   private fun installKeyboardActions(focusedComponent: JComponent) {
@@ -182,6 +282,16 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     interactions.setHeaderVisibility(show)
     interactions.setColumnVisibility(1, show)
     interactions.setColumnVisibility(2, show)
+  }
+
+  fun resetRecompositionCounts() {
+    val inspector = layoutInspector ?: return
+    val client = inspector.currentClient as? AppInspectionInspectorClient
+    client?.updateRecompositionCountSettings()
+    val model = inspector.layoutInspectorModel
+    model.updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
+    model.updatePropertiesPanel()
+    componentTreeModel.columnDataChanged()
   }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?

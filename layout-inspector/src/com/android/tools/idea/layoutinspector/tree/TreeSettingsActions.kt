@@ -133,13 +133,10 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     val inspector = LayoutInspector.get(event) ?: return
-    val client = inspector.currentClient as? AppInspectionInspectorClient
     inspector.treeSettings.showRecompositions = state
-    client?.updateRecompositionCountSettings()
-    event.treePanel()?.updateRecompositionColumnVisibility()
-    val model = inspector.layoutInspectorModel
-    model.updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
-    model.updatePropertiesPanel()
+    val panel = event.treePanel()
+    panel?.updateRecompositionColumnVisibility()
+    panel?.resetRecompositionCounts()
   }
 
   override fun update(event: AnActionEvent) {

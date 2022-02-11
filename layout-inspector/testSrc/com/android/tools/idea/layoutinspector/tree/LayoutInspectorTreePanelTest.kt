@@ -40,6 +40,9 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -53,6 +56,9 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Root
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
@@ -61,6 +67,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -73,14 +80,18 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.verify
+import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
@@ -90,6 +101,8 @@ import javax.swing.tree.TreeModel
 
 private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
+private const val TIMEOUT = 20L
+private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
@@ -105,6 +118,9 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private val semanticsRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, useTreeTable)
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
+  private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
+  private var updateSettingsCommands = 0
+  private var updateSettingsLatch: ReportingCountDownLatch? = null
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(semanticsRule)
@@ -117,6 +133,8 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
+
+    inspectorRule.inspector.treeSettings.showRecompositions = true
 
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
@@ -186,10 +204,53 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
         LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
+    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { _ ->
+      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
+        getComposablesResponseBuilder.apply {
+          ComposableString(1, "com.example")
+          ComposableString(2, "File1.kt")
+          ComposableString(3, "Button")
+          ComposableString(3, "Text")
+
+          ComposableRoot {
+            viewId = VIEW4
+            ComposableNode {
+              id = COMPOSE1
+              packageHash = 1
+              filename = 2
+              name = 3
+              recomposeCount = 7
+              recomposeSkips = 14
+              ComposableNode {
+                id = COMPOSE2
+                packageHash = 1
+                filename = 2
+                name = 4
+                recomposeCount = 9
+                recomposeSkips = 33
+              }
+            }
+          }
+        }
+      }.build()
+    }
+
+    appInspectorRule.composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { command ->
+      lastUpdateSettingsCommand = command.updateSettingsCommand
+      updateSettingsCommands++
+      updateSettingsLatch?.countDown()
+      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
+        updateSettingsResponse = LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()
+      }.build()
+    }
+
+    updateSettingsLatch = ReportingCountDownLatch(1)
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(PROCESS)
     inspectorRule.processes.selectedProcess = PROCESS
-    waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { inspectorRule.inspectorModel.windows.isNotEmpty() }
+    updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
+    updateSettingsLatch = null
   }
 
   @Test
@@ -483,7 +544,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jTree).blockingGet(5, TimeUnit.SECONDS)
     jTree.addSelectionRow(0)
-    assertThat(jTree.rowCount).isEqualTo(5)
+    assertThat(jTree.rowCount).isEqualTo(7)
     assertThat(jTree.leadSelectionRow).isEqualTo(0)
 
     val ui = FakeUi(jTree)
@@ -674,7 +735,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
-    assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isGreaterThan(0)
     val treeModel = tree.componentTreeModel as TreeModel
     var columnDataChangeCount = 0
     var treeChangeCount = 0
@@ -722,6 +783,49 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     tree.updateRecompositionColumnVisibility()
     assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+  }
+
+  @Test
+  fun testResetRecompositionCounts() {
+    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      // This test is specific to the TreeTable implementation of the component tree
+      return
+    }
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    val model = inspector.layoutInspectorModel
+    val compose1 = model[COMPOSE1] as ComposeViewNode
+    val compose2 = model[COMPOSE2] as ComposeViewNode
+    var selectionUpdate = 0
+    model.selectionListeners.add { _, _, _ ->
+      selectionUpdate++
+    }
+
+    assertThat(compose1.recomposeCount).isEqualTo(7)
+    assertThat(compose1.recomposeSkips).isEqualTo(14)
+    assertThat(compose2.recomposeCount).isEqualTo(9)
+    assertThat(compose2.recomposeSkips).isEqualTo(33)
+
+    setToolContext(tree, inspector)
+    val table = tree.focusComponent as JTable
+    val scrollPane = tree.component as JBScrollPane
+    scrollPane.size = Dimension(800, 1000)
+    val ui = FakeUi(scrollPane, createFakeWindow = true)
+    val treeColumnWidth = table.columnModel.getColumn(0).width
+    updateSettingsLatch = ReportingCountDownLatch(1)
+
+    // Click on the reset recomposition counts button in the table header:
+    ui.mouse.click(treeColumnWidth - 8, 8)
+
+    updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
+
+    assertThat(compose1.recomposeCount).isEqualTo(0)
+    assertThat(compose1.recomposeSkips).isEqualTo(0)
+    assertThat(compose2.recomposeCount).isEqualTo(0)
+    assertThat(compose2.recomposeSkips).isEqualTo(0)
+    assertThat(selectionUpdate).isEqualTo(1)
+    assertThat(updateSettingsCommands).isEqualTo(2)
+    assertThat(lastUpdateSettingsCommand?.includeRecomposeCounts).isTrue()
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
