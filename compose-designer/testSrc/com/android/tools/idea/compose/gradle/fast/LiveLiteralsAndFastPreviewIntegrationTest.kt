@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle.liveEdit
+package com.android.tools.idea.compose.gradle.fast
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.CompilationResult
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
@@ -57,18 +57,18 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class LiveLiteralsAndLiveEditIntegrationTest {
+class LiveLiteralsAndFastPreviewIntegrationTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
   @get:Rule
   val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
 
   lateinit var psiMainFile: PsiFile
-  lateinit var liveEditManager: PreviewLiveEditManager
+  lateinit var fastPreviewManager: FastPreviewManager
 
   @Before
   fun setUp() {
@@ -76,13 +76,13 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
-    liveEditManager = PreviewLiveEditManager.getInstance(projectRule.project)
+    fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
   }
 
   @After
   fun tearDown() {
     runBlocking {
-      liveEditManager.stopAllDaemons().join()
+      fastPreviewManager.stopAllDaemons().join()
     }
     LiveLiteralsApplicationConfiguration.getInstance().resetDefault()
   }
@@ -111,7 +111,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
 
   private suspend fun compileAndListOutputFiles() = withContext(AndroidDispatchers.workerThread) {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    liveEditManager.compileRequest(psiMainFile, module).let { (result, outputPath) ->
+    fastPreviewManager.compileRequest(psiMainFile, module).let { (result, outputPath) ->
       assertEquals(CompilationResult.Success, result)
       ModuleClassLoaderOverlays.getInstance(module).overlayPath = File(outputPath).toPath()
 
@@ -142,7 +142,7 @@ class LiveLiteralsAndLiveEditIntegrationTest {
     runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    Logger.getInstance(LiveLiteralsAndLiveEditIntegrationTest::class.java).warn("After update")
+    Logger.getInstance(LiveLiteralsAndFastPreviewIntegrationTest::class.java).warn("After update")
     assertTrue(liveLiteralsService.isAvailable)
     assertEquals(6, liveLiteralsService.allConstants().size)
 

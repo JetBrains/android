@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.CompilationResult
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -39,7 +38,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.util.application.runReadAction
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -127,7 +125,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   }
   private val project: Project = editorFile.project
   private val fileChangeDetector =
-    // If Live Literals is disabled or Live Edit is enabled, disable the PsiFileChangeDetector since
+    // If Live Literals is disabled or Fast Preview is enabled, disable the PsiFileChangeDetector since
     // we are not looking for literal changes anymore.
     if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
       PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
@@ -221,8 +219,8 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       }
     })
 
-    if (PreviewLiveEditManager.getInstance(project).isAvailable) {
-      PreviewLiveEditManager.getInstance(project).addCompileListener(parentDisposable, object: PreviewLiveEditManager.Companion.CompileListener {
+    if (FastPreviewManager.getInstance(project).isAvailable) {
+      FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object: FastPreviewManager.Companion.CompileListener {
         override fun onCompilationStarted(files: Collection<PsiFile>) {
           _isBuilding.incrementAndGet()
         }

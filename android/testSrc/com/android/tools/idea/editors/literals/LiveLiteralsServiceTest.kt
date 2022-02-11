@@ -30,7 +30,7 @@ internal class LiveLiteralsServiceTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, false)
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
   @get:Rule
   val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
 

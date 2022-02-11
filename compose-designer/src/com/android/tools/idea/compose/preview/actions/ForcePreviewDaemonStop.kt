@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Internal action that forces the stopping of all the [PreviewLiveEditManager] daemons.
+ * Internal action that forces the stopping of all the [FastPreviewManager] daemons.
  */
 @Suppress("ComponentNotRegistered") // Registered in compose-designer.xml
 class ForcePreviewDaemonStop : AnAction("Force Preview Daemon Stop") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    PreviewLiveEditManager.getInstance(project).stopAllDaemons()
+    FastPreviewManager.getInstance(project).stopAllDaemons()
   }
 }

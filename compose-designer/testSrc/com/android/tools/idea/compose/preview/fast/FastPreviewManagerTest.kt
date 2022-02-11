@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.liveEdit
+package com.android.tools.idea.compose.preview.fast
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.flags.junit.SetFlagRule
@@ -49,14 +49,14 @@ fun nopCompileDaemonFactory(onCalled: (String) -> Unit): (String) -> CompilerDae
   }
 }
 
-internal class PreviewLiveEditManagerTest {
+internal class FastPreviewManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
   @get:Rule
   val restoreLiteralsFlagRule = RestoreFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS)
@@ -65,7 +65,7 @@ internal class PreviewLiveEditManagerTest {
   fun `pre-start daemon`() {
     val createdVersions = mutableListOf<String>()
     val latch = CountDownLatch(1)
-    val manager = PreviewLiveEditManager.getTestInstance(project, nopCompileDaemonFactory {
+    val manager = FastPreviewManager.getTestInstance(project, nopCompileDaemonFactory {
       createdVersions.add(it)
     }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
@@ -82,7 +82,7 @@ internal class PreviewLiveEditManagerTest {
       fun empty() {}
     """.trimIndent())
     val createdVersions = mutableListOf<String>()
-    val manager = PreviewLiveEditManager.getTestInstance(project, nopCompileDaemonFactory {
+    val manager = FastPreviewManager.getTestInstance(project, nopCompileDaemonFactory {
       createdVersions.add(it)
     }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
@@ -106,9 +106,9 @@ internal class PreviewLiveEditManagerTest {
     """.trimIndent())
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+    val manager = FastPreviewManager.getTestInstance(project,
+                                                     daemonFactory = { blockingDaemon },
+                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
 
@@ -133,10 +133,10 @@ internal class PreviewLiveEditManagerTest {
     """.trimIndent())
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION },
-                                                         maxCachedRequests = 0).also {
+    val manager = FastPreviewManager.getTestInstance(project,
+                                                     daemonFactory = { blockingDaemon },
+                                                     moduleRuntimeVersionLocator = { TEST_VERSION },
+                                                     maxCachedRequests = 0).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
 
@@ -166,9 +166,9 @@ internal class PreviewLiveEditManagerTest {
       override fun getModificationStamp(): Long = modificationCount
     }
     val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+    val manager = FastPreviewManager.getTestInstance(project,
+                                                     daemonFactory = { blockingDaemon },
+                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
@@ -196,7 +196,7 @@ internal class PreviewLiveEditManagerTest {
       fun empty() {}
     """.trimIndent())
     val compilationRequests = mutableListOf<List<String>>()
-    val manager = PreviewLiveEditManager.getTestInstance(project, {
+    val manager = FastPreviewManager.getTestInstance(project, {
       object : CompilerDaemonClient by NopCompilerDaemonClient {
         override suspend fun compileRequest(args: List<String>): CompilationResult {
           compilationRequests.add(args)
@@ -293,7 +293,7 @@ internal class PreviewLiveEditManagerTest {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
-    val manager = PreviewLiveEditManager.getTestInstance(project, {
+    val manager = FastPreviewManager.getTestInstance(project, {
       throw IllegalStateException("Unable to start compiler")
     }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
@@ -307,7 +307,7 @@ internal class PreviewLiveEditManagerTest {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
-    val manager = PreviewLiveEditManager.getTestInstance(project, {
+    val manager = FastPreviewManager.getTestInstance(project, {
       object : CompilerDaemonClient by NopCompilerDaemonClient {
         override suspend fun compileRequest(args: List<String>): CompilationResult {
           throw IllegalStateException("Unable to process request")

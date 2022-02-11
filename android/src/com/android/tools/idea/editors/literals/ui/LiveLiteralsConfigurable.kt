@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.literals.ui
 
-import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
@@ -36,7 +36,7 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
 ), Configurable.NoScroll {
   override fun createPanel(): DialogPanel {
     val literalsSettings = LiveLiteralsApplicationConfiguration.getInstance()
-    val fasterPreviewSettings = FasterPreviewApplicationConfiguration.getInstance()
+    val fasterPreviewSettings = FastPreviewApplicationConfiguration.getInstance()
 
     return panel {
       if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) {
@@ -49,7 +49,7 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
         }
       }
 
-      if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+      if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
         row {
           checkBox(
             message("faster.preview.configurable.enable"),
@@ -72,7 +72,7 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
           ProjectConstantRemapper.getInstance(it).clearConstants(null)
         }
     }
-    if (!FasterPreviewApplicationConfiguration.getInstance().isEnabled) {
+    if (!FastPreviewApplicationConfiguration.getInstance().isEnabled) {
       ProjectManager.getInstance().openProjects
         .flatMap { it.allModules() }
         .forEach {
@@ -89,5 +89,5 @@ class LiveLiteralsConfigurableProvider: ConfigurableProvider() {
   else
     null
 
-  override fun canCreateConfigurable(): Boolean = StudioFlags.COMPOSE_LIVE_LITERALS.get() || StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()
+  override fun canCreateConfigurable(): Boolean = StudioFlags.COMPOSE_LIVE_LITERALS.get() || StudioFlags.COMPOSE_FAST_PREVIEW.get()
 }

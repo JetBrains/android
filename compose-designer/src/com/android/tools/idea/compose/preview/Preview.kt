@@ -29,9 +29,9 @@ import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageT
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
-import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
-import com.android.tools.idea.compose.preview.liveEdit.fastCompileAsync
+import com.android.tools.idea.compose.preview.fast.CompilationResult
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.fastCompileAsync
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -672,10 +672,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
-        // If Live Edit is enabled, prefetch the daemon for the current configuration.
+        // If Fast Preview is enabled, prefetch the daemon for the current configuration.
         if (module != null
-            && PreviewLiveEditManager.getInstance(project).isEnabled) {
-          PreviewLiveEditManager.getInstance(project).preStartDaemon(module)
+            && FastPreviewManager.getInstance(project).isEnabled) {
+          FastPreviewManager.getInstance(project).preStartDaemon(module)
         }
 
         if (needsRefresh) {
@@ -739,7 +739,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     })
 
-    PreviewLiveEditManager.getInstance(project).addCompileListener(this, object: PreviewLiveEditManager.Companion.CompileListener {
+    FastPreviewManager.getInstance(project).addCompileListener(this, object: FastPreviewManager.Companion.CompileListener {
       override fun onCompilationStarted(files: Collection<PsiFile>) {
         psiFilePointer.element?.let { editorFile ->
           if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
@@ -850,7 +850,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         disposableCallbackFlow<Unit>("ChangeListenerFlow", LOG, this@ComposePreviewRepresentation) {
           setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
         }.collectLatest {
-          if (PreviewLiveEditManager.getInstance(project).isAvailable) {
+          if (FastPreviewManager.getInstance(project).isAvailable) {
             val currentStatus = status()
             if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
               psiFilePointer.element?.let {

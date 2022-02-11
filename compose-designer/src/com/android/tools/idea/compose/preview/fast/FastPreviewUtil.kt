@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.liveEdit
+package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
 import com.android.tools.idea.compose.preview.message
@@ -39,7 +39,7 @@ import java.time.Duration
 /**
  * Maximum amount of time to wait for a fast compilation to happen.
  */
-private val LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("preview.live.edit.daemon.compile.seconds.timeout", 20)
+private val FAST_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("fast.preview.daemon.compile.seconds.timeout", 20)
 
 private suspend fun PsiFile.saveIfNeeded() {
   val vFile = virtualFile ?: return
@@ -64,15 +64,15 @@ fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile, onSuccessCallb
       AndroidCoroutineScope(parentDisposable).async {
         file.saveIfNeeded()
 
-        val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
-          PreviewLiveEditManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
+        val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
+          FastPreviewManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
         }
         val durationString = stopWatch.elapsed().toDisplayString()
         val isSuccess = result == CompilationResult.Success
         val buildMessage = if (isSuccess)
-          message("event.log.live.edit.build.successful", durationString)
+          message("event.log.fast.preview.build.successful", durationString)
         else
-          message("event.log.live.edit.build.failed", durationString)
+          message("event.log.fast.preview.build.failed", durationString)
         Notification(PREVIEW_NOTIFICATION_GROUP_ID,
                      buildMessage,
                      NotificationType.INFORMATION)

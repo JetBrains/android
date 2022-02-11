@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.gradle.liveEdit
+package com.android.tools.idea.compose.gradle.fast
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
+import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
@@ -35,8 +35,6 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
@@ -53,20 +51,20 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
 
-class PreviewLiveEditManagerTest {
+class FastPreviewManagerTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
   lateinit var psiMainFile: PsiFile
-  lateinit var liveEditManager: PreviewLiveEditManager
+  lateinit var fastPreviewManager: FastPreviewManager
 
   @Before
   fun setUp() {
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
-    liveEditManager = PreviewLiveEditManager.getInstance(projectRule.project)
+    fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
     invokeAndWaitIfNeeded {
       projectRule.buildAndAssertIsSuccessful()
     }
@@ -80,7 +78,7 @@ class PreviewLiveEditManagerTest {
   @After
   fun tearDown() {
     runBlocking {
-      liveEditManager.stopAllDaemons().join()
+      fastPreviewManager.stopAllDaemons().join()
     }
   }
 
@@ -93,7 +91,7 @@ class PreviewLiveEditManagerTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
-      val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
@@ -107,18 +105,18 @@ class PreviewLiveEditManagerTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
-      val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      liveEditManager.stopAllDaemons().join()
+      fastPreviewManager.stopAllDaemons().join()
     }
     runBlocking {
-      val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
 
   @Test
-  fun testLiveEditChangeRender() {
+  fun testFastPreviewEditChangeRender() {
     val previewElement = SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
     val initialState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
 
@@ -129,7 +127,7 @@ class PreviewLiveEditManagerTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
-      val (result, outputPath) = liveEditManager.compileRequest(psiMainFile, module)
+      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       ModuleClassLoaderOverlays.getInstance(module).overlayPath = File(outputPath).toPath()
     }
@@ -149,7 +147,7 @@ class PreviewLiveEditManagerTest {
       PsiManager.getInstance(projectRule.project).findFile(vFile)!!
     }
     runBlocking {
-      val (result, outputPath) = liveEditManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
+      val (result, outputPath) = fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       val generatedFilesSet = mutableSetOf<String>()
       withContext(ioThread) {

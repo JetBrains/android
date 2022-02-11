@@ -1228,12 +1228,12 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_LIVE_EDIT_PREVIEW = Flag.create(
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
     COMPOSE, "preview.fast.reload.enabled", "Enable the Compose fast-reload preview",
     "If enabled, the preview enabled the fast-reload feature.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_LIVE_EDIT_DEBUG_DAEMON = Flag.create(
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_DAEMON_DEBUG = Flag.create(
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);

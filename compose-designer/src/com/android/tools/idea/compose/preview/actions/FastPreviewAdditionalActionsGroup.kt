@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -54,14 +54,14 @@ private class ToggleFastPreviewAction: AnAction() {
       presentation.isEnabled = true
     }
 
-    presentation.text = if (PreviewLiveEditManager.getInstance(project).isEnabled)
+    presentation.text = if (FastPreviewManager.getInstance(project).isEnabled)
       message("action.preview.fast.refresh.disable.title")
     else
       message("action.preview.fast.refresh.enable.title")
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    FasterPreviewApplicationConfiguration.getInstance().isEnabled = !FasterPreviewApplicationConfiguration.getInstance().isEnabled
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = !FastPreviewApplicationConfiguration.getInstance().isEnabled
   }
 }
 
@@ -86,6 +86,6 @@ class FastPreviewAdditionalActionsGroup: DefaultActionGroup(FastPreviewDropDownA
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.presentation.isEnabledAndVisible = StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()
+    e.presentation.isEnabledAndVisible = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 }

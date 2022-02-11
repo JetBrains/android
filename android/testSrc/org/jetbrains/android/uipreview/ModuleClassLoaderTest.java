@@ -71,7 +71,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.clearOverride();
+    StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride();
   }
 
   /**
@@ -247,7 +247,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.override(true);
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(true);
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),

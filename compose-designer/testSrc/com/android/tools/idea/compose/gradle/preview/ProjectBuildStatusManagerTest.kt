@@ -49,7 +49,7 @@ class ProjectBuildStatusManagerTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, false)
+  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
   @get:Rule
   val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
 

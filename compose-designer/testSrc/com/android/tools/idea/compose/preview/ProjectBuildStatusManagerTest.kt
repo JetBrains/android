@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.preview.ProjectBuildStatusManagerTest
-import com.android.tools.idea.compose.preview.liveEdit.BlockingDaemonClient
-import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.fast.BlockingDaemonClient
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
@@ -42,7 +42,7 @@ class ProjectBuildStatusManagerTest {
     get() = projectRule.project
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
+  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
   @Test
   fun testFastPreviewTriggersCompileState() {
@@ -56,7 +56,7 @@ class ProjectBuildStatusManagerTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     val blockingDaemon = BlockingDaemonClient()
-    val previewLiveEditManager = PreviewLiveEditManager.getTestInstance(project, { blockingDaemon }).also {
+    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { blockingDaemon }).also {
       Disposer.register(projectRule.fixture.testRootDisposable, it)
     }
 
@@ -65,7 +65,7 @@ class ProjectBuildStatusManagerTest {
       val asyncScope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
       val latch = CountDownLatch(11)
       asyncScope.launch(AndroidDispatchers.workerThread) {
-        previewLiveEditManager.compileRequest(psiFile, module)
+        fastPreviewManager.compileRequest(psiFile, module)
         latch.countDown()
       }
       blockingDaemon.firstRequestReceived.await()
@@ -74,7 +74,7 @@ class ProjectBuildStatusManagerTest {
       // Launch additional requests
       repeat(10) {
         asyncScope.launch(AndroidDispatchers.workerThread) {
-          previewLiveEditManager.compileRequest(psiFile, module)
+          fastPreviewManager.compileRequest(psiFile, module)
           latch.countDown()
         }
       }

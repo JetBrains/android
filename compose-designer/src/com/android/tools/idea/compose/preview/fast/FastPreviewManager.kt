@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.liveEdit
+package com.android.tools.idea.compose.preview.fast
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.literals.FasterPreviewApplicationConfiguration
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -88,7 +88,7 @@ private fun startDaemon(daemonPath: String): Process {
     listOfNotNull(
       javaCommand,
       // This flag can be used to start the daemon in debug mode and debug issues on the daemon JVM.
-      if (StudioFlags.COMPOSE_LIVE_EDIT_DEBUG_DAEMON.get()) DAEMON_DEBUG_SETTINGS else null,
+      if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
       "-jar",
       daemonPath
     )
@@ -391,7 +391,7 @@ private val FIXED_COMPILER_ARGS = listOf(
  * Arguments to pass to the compiler when we want Live Literals code generation to be enabled.
  */
 private val LIVE_LITERALS_ARGS = listOf("-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true")
-private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.live.edit.max.cached.requests", 5)
+private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.fast.max.cached.requests", 5)
 
 /**
  * Service that talks to the compiler daemon and manages the daemons and compilation requests.
@@ -405,7 +405,7 @@ private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.live.edit.
  * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
  */
 @Service
-class PreviewLiveEditManager private constructor(
+class FastPreviewManager private constructor(
   private val project: Project,
   alternativeDaemonFactory: ((String) -> CompilerDaemonClient)? = null,
   private val moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
@@ -415,14 +415,14 @@ class PreviewLiveEditManager private constructor(
   @Suppress("unused") // Needed for IntelliJ service constructor call
   constructor(project: Project) : this(project, null)
 
-  private val log = Logger.getInstance(PreviewLiveEditManager::class.java)
+  private val log = Logger.getInstance(FastPreviewManager::class.java)
 
   private val scope = AndroidCoroutineScope(this, workerThread)
   private val daemonFactory = alternativeDaemonFactory ?: {
     defaultDaemonFactory(it, log, scope)
   }
   private val daemonRegistry = DaemonRegistry(scope, daemonFactory).also {
-    Disposer.register(this@PreviewLiveEditManager, it)
+    Disposer.register(this@FastPreviewManager, it)
   }
 
   /**
@@ -438,7 +438,7 @@ class PreviewLiveEditManager private constructor(
    * Returns true when the feature is enabled
    */
   val isEnabled: Boolean
-    get() = FasterPreviewApplicationConfiguration.getInstance().isEnabled
+    get() = FastPreviewApplicationConfiguration.getInstance().isEnabled
 
   /**
    * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building
@@ -448,7 +448,7 @@ class PreviewLiveEditManager private constructor(
     get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode && !compilingMutex.isLocked
 
   /**
-   * Stops all the daemons managed by this [PreviewLiveEditManager].
+   * Stops all the daemons managed by this [FastPreviewManager].
    */
   fun stopAllDaemons() = daemonRegistry.stopAllDaemons()
 
@@ -517,7 +517,7 @@ class PreviewLiveEditManager private constructor(
       }
 
       try {
-        project.messageBus.syncPublisher(LIVE_EDIT_MANAGER_TOPIC).onCompilationStarted(files)
+        project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationStarted(files)
       }
       catch (_: Throwable) {
       }
@@ -534,7 +534,7 @@ class PreviewLiveEditManager private constructor(
           pendingRequest.complete(it)
         }
         try {
-          project.messageBus.syncPublisher(LIVE_EDIT_MANAGER_TOPIC).onCompilationComplete(result, files)
+          project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationComplete(result, files)
         }
         catch (_: Throwable) {
         }
@@ -542,7 +542,7 @@ class PreviewLiveEditManager private constructor(
   }
 
   /**
-   * Sends a compilation request for the a single [file]. See [PreviewLiveEditManager.compileRequest].
+   * Sends a compilation request for the a single [file]. See [FastPreviewManager.compileRequest].
    */
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(file: PsiFile,
@@ -556,33 +556,33 @@ class PreviewLiveEditManager private constructor(
   fun addCompileListener(parentDisposable: Disposable, listener: CompileListener) {
     val disposable = Disposer.newDisposable().also {
       Disposer.register(parentDisposable, this)
-      Disposer.register(this@PreviewLiveEditManager, it)
+      Disposer.register(this@FastPreviewManager, it)
     }
-    project.messageBus.connect(disposable).subscribe(LIVE_EDIT_MANAGER_TOPIC, listener)
+    project.messageBus.connect(disposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
   }
 
   override fun dispose() {}
 
   companion object {
-    fun getInstance(project: Project): PreviewLiveEditManager = project.getService(PreviewLiveEditManager::class.java)
+    fun getInstance(project: Project): FastPreviewManager = project.getService(FastPreviewManager::class.java)
 
     @TestOnly
     fun getTestInstance(project: Project,
                         daemonFactory: (String) -> CompilerDaemonClient,
                         moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
                         moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
-                        maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): PreviewLiveEditManager =
-      PreviewLiveEditManager(project = project,
-                             alternativeDaemonFactory = daemonFactory,
-                             moduleClassPathLocator = moduleClassPathLocator,
-                             moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
-                             maxCachedRequests = maxCachedRequests)
+                        maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): FastPreviewManager =
+      FastPreviewManager(project = project,
+                         alternativeDaemonFactory = daemonFactory,
+                         moduleClassPathLocator = moduleClassPathLocator,
+                         moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
+                         maxCachedRequests = maxCachedRequests)
 
     interface CompileListener {
       fun onCompilationStarted(files: Collection<PsiFile>)
       fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>)
     }
 
-    private val LIVE_EDIT_MANAGER_TOPIC = Topic("Live Edit Manager Topic", CompileListener::class.java)
+    private val FAST_PREVIEW_MANAGER_TOPIC = Topic("Fast Preview Manager Topic", CompileListener::class.java)
   }
 }

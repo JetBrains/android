@@ -23,9 +23,9 @@ import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 
-@com.intellij.openapi.components.State(name = "FasterPreviewConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
+@com.intellij.openapi.components.State(name = "FastPreviewConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
-class FasterPreviewApplicationConfiguration : SimplePersistentStateComponent<FasterPreviewApplicationConfiguration.State>(State()) {
+class FastPreviewApplicationConfiguration : SimplePersistentStateComponent<FastPreviewApplicationConfiguration.State>(State()) {
   class State : BaseState() {
     var isEnabled by property(true)
   }
@@ -35,14 +35,14 @@ class FasterPreviewApplicationConfiguration : SimplePersistentStateComponent<Fas
    * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable]
    */
   var isEnabled
-    get() = StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()
+    get() = StudioFlags.COMPOSE_FAST_PREVIEW.get()
             && state.isEnabled
     set(value) {
       state.isEnabled = value
     }
 
   companion object {
-    fun getInstance(): FasterPreviewApplicationConfiguration = ApplicationManager.getApplication().getService(
-      FasterPreviewApplicationConfiguration::class.java)
+    fun getInstance(): FastPreviewApplicationConfiguration = ApplicationManager.getApplication().getService(
+      FastPreviewApplicationConfiguration::class.java)
   }
 }
