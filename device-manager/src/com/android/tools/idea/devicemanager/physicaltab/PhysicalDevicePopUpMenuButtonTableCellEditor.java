@@ -15,29 +15,21 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
-import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
-import com.intellij.openapi.ui.JBMenuItem;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JComponent;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu.Separator;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  private Device myDevice;
-
   PhysicalDevicePopUpMenuButtonTableCellEditor(@NotNull PhysicalDevicePanel panel) {
     super(panel);
   }
@@ -45,7 +37,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   @Override
   public @NotNull List<@NotNull JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
-    Optional<JComponent> optionalItem = newUnpairDeviceItem(myDevice.getKey(), EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION);
+    Optional<JComponent> optionalItem = newUnpairDeviceItem(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION);
 
     items.add(MenuItems.newViewDetailsItem(myPanel));
     optionalItem.ifPresent(item -> items.add(new Separator()));
@@ -55,8 +47,8 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     return items;
   }
 
-  private @NotNull JMenuItem newPairDeviceItem() {
-    JMenuItem item = new JBMenuItem("Pair Device");
+  private @NotNull JComponent newPairDeviceItem() {
+    JComponent item = newPairDeviceItem(EventKind.PHYSICAL_PAIR_DEVICE_ACTION);
 
     boolean phone = myDevice.getType().equals(DeviceType.PHONE);
     boolean online = myDevice.isOnline();
@@ -72,15 +64,6 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     else {
       item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.unsupported"));
     }
-
-    item.addActionListener(actionEvent -> {
-      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(EventKind.PHYSICAL_PAIR_DEVICE_ACTION)
-        .build();
-
-      DeviceManagerUsageTracker.log(deviceManagerEvent);
-      new WearDevicePairingWizard().show(myPanel.getProject(), myDevice.getKey().toString());
-    });
 
     return item;
   }

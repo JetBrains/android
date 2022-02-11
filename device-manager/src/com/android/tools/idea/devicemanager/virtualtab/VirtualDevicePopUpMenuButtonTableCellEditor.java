@@ -41,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 
 final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
   private final @NotNull Emulator myEmulator;
-  private VirtualDevice myDevice;
 
   VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull VirtualDevicePanel panel) {
     this(panel, new Emulator());
@@ -58,7 +57,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   }
 
   @NotNull VirtualDevice getDevice() {
-    return myDevice;
+    return (VirtualDevice)myDevice;
   }
 
   @Override
@@ -71,7 +70,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     items.add(newShowOnDiskItem());
     items.add(MenuItems.newViewDetailsItem(myPanel));
     items.add(new Separator());
-    newUnpairDeviceItem(myDevice.getKey(), EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
+    newUnpairDeviceItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
     items.add(new DeleteItem(this));
 
     return items;
@@ -89,7 +88,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       DeviceManagerUsageTracker.log(deviceManagerEvent);
       VirtualDeviceTable table = getPanel().getTable();
 
-      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), myDevice.getAvdInfo()).showAndGet()) {
+      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), getDevice().getAvdInfo()).showAndGet()) {
         table.refreshAvds();
       }
     });
@@ -113,7 +112,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       DeviceManagerUsageTracker.log(deviceManagerEvent);
       Project project = myPanel.getProject();
 
-      Futures.addCallback(AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, myDevice.getAvdInfo()),
+      Futures.addCallback(AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo()),
                           LegacyAvdManagerUtils.newCallback(project),
                           EdtExecutorService.getInstance());
     });
@@ -131,7 +130,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
-      RevealFileAction.openDirectory(myDevice.getAvdInfo().getDataFolderPath());
+      RevealFileAction.openDirectory(getDevice().getAvdInfo().getDataFolderPath());
     });
 
     return item;
