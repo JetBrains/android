@@ -71,6 +71,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -117,7 +118,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -196,7 +196,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
-   * @param classLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
+   * @param moduleClassLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
    */
   public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -870,6 +870,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return (T)myAdaptiveIconMaskPath;
     }
     return null;
+  }
+
+  @Nullable
+  public String getResourcePackage() {
+    return ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
   }
 
   @Nullable
