@@ -13,69 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.refactoring.modularize;
+package com.android.tools.idea.refactoring.modularize
 
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.refactoring.RefactoringActionHandler;
-import com.intellij.refactoring.actions.BaseJavaRefactoringAction;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.refactoring.RefactoringActionHandler
+import com.intellij.refactoring.actions.BaseJavaRefactoringAction
+import org.jetbrains.android.util.AndroidUtils
 
-public class AndroidModularizeAction extends BaseJavaRefactoringAction {
+// open for testing
+open class AndroidModularizeAction : BaseJavaRefactoringAction() {
 
-  @Override
-  protected boolean isAvailableInEditorOnly() {
-    return false;
+  override fun isAvailableInEditorOnly(): Boolean {
+    return false
   }
 
-  @Override
-  protected boolean isAvailableForFile(PsiFile file) {
-    return file != null && file.getFileType() == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.getProject());
+  override fun isAvailableForFile(file: PsiFile?): Boolean {
+    return file != null && file.fileType == JavaFileType.INSTANCE && AndroidUtils.hasAndroidFacets(file.project)
   }
 
-  @Override
-  protected boolean isEnabledOnDataContext(@NotNull DataContext dataContext) {
+  override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
     // Hide action if last Gradle sync was unsuccessful.
-    Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    if (project != null && !ProjectSystemUtil.getSyncManager(project).getLastSyncResult().isSuccessful()) {
-      return false;
+    val project = CommonDataKeys.PROJECT.getData(dataContext)
+    if (project != null && !project.getSyncManager().getLastSyncResult().isSuccessful) {
+      return false
     }
 
-    for (PsiElement element : getPsiElementArray(dataContext)) {
-      if (!isAvailableForFile(element.getContainingFile())) {
-        return false;
+    for (element in getPsiElementArray(dataContext)) {
+      if (!isAvailableForFile(element.containingFile)) {
+        return false
       }
     }
 
-    PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
-    return file == null || isAvailableForFile(file);
+    val file = CommonDataKeys.PSI_FILE.getData(dataContext)
+    return file == null || isAvailableForFile(file)
   }
 
-  @Override
-  protected boolean isAvailableOnElementInEditorAndFile(@NotNull PsiElement element,
-                                                        @NotNull Editor editor,
-                                                        @NotNull PsiFile file,
-                                                        @NotNull DataContext context) {
-    Project project = file.getProject();
-    return ProjectSystemUtil.getSyncManager(project).getLastSyncResult().isSuccessful();
+  override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
+    val project = file.project
+    return project.getSyncManager().getLastSyncResult().isSuccessful
   }
 
-  @Override
-  protected boolean isEnabledOnElements(@NotNull PsiElement[] elements) {
-    return false;
+  override fun isEnabledOnElements(elements: Array<out PsiElement>): Boolean {
+    return false
   }
 
-  @Nullable
-  @Override
-  protected RefactoringActionHandler getHandler(@NotNull DataContext dataContext) {
-    return new AndroidModularizeHandler();
+  override fun getHandler(dataContext: DataContext): RefactoringActionHandler {
+    return AndroidModularizeHandler()
   }
 }
