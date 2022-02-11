@@ -16,9 +16,13 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.DeviceTables;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.Collection;
@@ -34,24 +38,22 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
-  private final @NotNull Emulator myEmulator;
-  private final @NotNull PopUpMenuButtonTableCellEditor myEditor;
+  private final @NotNull Emulator myEmulator = Mockito.mock(Emulator.class);
 
-  public VirtualDevicePopUpMenuButtonTableCellEditorTest() {
-    myEmulator = Mockito.mock(Emulator.class);
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
-
-    myEditor = new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), myEmulator);
-    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
-  }
+  private final PopUpMenuButtonTableCellEditor myEditor =
+    new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), myEmulator);
 
   @Test
   public void newColdBootNowItemEmulatorDoesntSupportColdBooting() {
+    // Arrange
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
+    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
+
     // Act
     Collection<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(6, items.size());
+    assertEquals(7, items.size());
   }
 
   @Test
@@ -59,15 +61,120 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     // Arrange
     Mockito.when(myEmulator.supportsColdBooting()).thenReturn(true);
 
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
+    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
+
+    // Act
+    List<JComponent> items = myEditor.newItems();
+
+    // Assert
+    assertEquals(8, items.size());
+
+    AbstractButton item = (AbstractButton)items.get(2);
+
+    assertEquals("Cold Boot Now", item.getText());
+    assertEquals("Force one cold boot", item.getToolTipText());
+  }
+
+  @Test
+  public void newPairDeviceItemWearOs() {
+    // Arrange
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_28"))
+      .setType(DeviceType.WEAR_OS)
+      .setName("Wear OS Small Round API 28")
+      .setTarget("Android 9.0 Wear OS")
+      .setCpuArchitecture("x86")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
+      .build();
+
+    myEditor.getTableCellEditorComponent(DeviceTables.mock(device), PopUpMenuValue.INSTANCE, false, 0, 6);
+
     // Act
     List<JComponent> items = myEditor.newItems();
 
     // Assert
     assertEquals(7, items.size());
 
-    AbstractButton item = (AbstractButton)items.get(2);
+    AbstractButton item = (AbstractButton)items.get(5);
 
-    assertEquals("Cold Boot Now", item.getText());
-    assertEquals("Force one cold boot", item.getToolTipText());
+    assertTrue(item.isEnabled());
+    assertEquals("Pair Device", item.getText());
+    assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
+  }
+
+  @Test
+  public void newPairDeviceItemApiLevelIsLessThan30() {
+    // Arrange
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_4_API_29"))
+      .setName("Pixel 4 API 29")
+      .setTarget("Android 10.0 Google Play")
+      .setCpuArchitecture("x86")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
+      .build();
+
+    myEditor.getTableCellEditorComponent(DeviceTables.mock(device), PopUpMenuValue.INSTANCE, false, 0, 6);
+
+    // Act
+    List<JComponent> items = myEditor.newItems();
+
+    // Assert
+    assertEquals(7, items.size());
+
+    AbstractButton item = (AbstractButton)items.get(5);
+
+    assertFalse(item.isEnabled());
+    assertEquals("Pair Device", item.getText());
+    assertEquals("Wear pairing requires API level >= 30", item.getToolTipText());
+  }
+
+  @Test
+  public void newPairDeviceItemAvdDoesntHavePlayStore() {
+    // Arrange
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
+    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
+
+    // Act
+    List<JComponent> items = myEditor.newItems();
+
+    // Assert
+    assertEquals(7, items.size());
+
+    AbstractButton item = (AbstractButton)items.get(5);
+
+    assertFalse(item.isEnabled());
+    assertEquals("Pair Device", item.getText());
+    assertEquals("Wear pairing requires Google Play", item.getToolTipText());
+  }
+
+  @Test
+  public void newPairDeviceItem() {
+    // Arrange
+    AvdInfo avd = Mockito.mock(AvdInfo.class);
+    Mockito.when(avd.hasPlayStore()).thenReturn(true);
+
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_4_API_31"))
+      .setName("Pixel 4 API 31")
+      .setTarget("Android 12.0 Google Play")
+      .setCpuArchitecture("x86_64")
+      .setAndroidVersion(new AndroidVersion(31))
+      .setAvdInfo(avd)
+      .build();
+
+    myEditor.getTableCellEditorComponent(DeviceTables.mock(device), PopUpMenuValue.INSTANCE, false, 0, 6);
+
+    // Act
+    List<JComponent> items = myEditor.newItems();
+
+    // Assert
+    assertEquals(7, items.size());
+
+    AbstractButton item = (AbstractButton)items.get(5);
+
+    assertTrue(item.isEnabled());
+    assertEquals("Pair Device", item.getText());
+    assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
   }
 }
