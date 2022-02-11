@@ -116,3 +116,9 @@ internal fun parseRawTypes(rawTypes: String): List<Complication.ComplicationType
   }
   return supportedTypes
 }
+
+internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>, componentName: String): List<Complication.ComplicationType>{
+  val xmlFileNode = extractXmlNodeFromApk(apks)
+  val complicationService = extractServiceFromXmlFileNode(xmlFileNode, componentName)
+  return extractComplicationSupportedTypes(complicationService)
+}

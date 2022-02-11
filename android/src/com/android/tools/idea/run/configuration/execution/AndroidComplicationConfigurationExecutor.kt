@@ -26,9 +26,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
-import com.android.tools.idea.run.configuration.extractComplicationSupportedTypes
-import com.android.tools.idea.run.configuration.extractServiceFromXmlFileNode
-import com.android.tools.idea.run.configuration.extractXmlNodeFromApk
+import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -96,9 +94,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 
   internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>): List<Complication.ComplicationType>{
     return try {
-      val xmlFileNode = extractXmlNodeFromApk(apks)
-      val complicationService = extractServiceFromXmlFileNode(xmlFileNode, configuration.componentName!!)
-      extractComplicationSupportedTypes(complicationService)
+      getComplicationSourceTypes(apks, configuration.componentName!!)
     } catch (exception: Exception) {
       Logger.getInstance(this::class.java).warn(exception)
       emptyList()

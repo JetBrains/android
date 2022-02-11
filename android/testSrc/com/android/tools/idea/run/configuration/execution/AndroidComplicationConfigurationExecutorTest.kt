@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
 import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
@@ -28,6 +29,8 @@ import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunne
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -325,5 +328,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[0]).isEqualTo(unsetComplication)
     // Unset debug watchFace
     assertThat(commands[1]).isEqualTo(unsetWatchFace)
+  }
+
+  fun testGetComplicationSourceTypes() {
+    val types = getComplicationSourceTypes(
+      listOf(ApkInfo(TestResources.getFile("/WearableTestApk.apk"), "com.example.android.wearable.watchface")),
+      "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
+    assertThat(types).isEqualTo(listOf(SHORT_TEXT, LONG_TEXT))
   }
 }
