@@ -28,6 +28,8 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
+import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
+import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
@@ -112,7 +114,9 @@ class LogcatMainPanelTest {
     assertThat(toolbar.actions[1]).isInstanceOf(ScrollToTheEndToolbarAction::class.java)
     assertThat(toolbar.actions[2]).isInstanceOf(ToggleUseSoftWrapsToolbarAction::class.java)
     assertThat(toolbar.actions[3]).isInstanceOf(LogcatFormatAction::class.java)
-    assertThat(toolbar.actions[4]).isInstanceOf(Separator::class.java)
+    assertThat(toolbar.actions[4]).isInstanceOf(PreviousOccurrenceToolbarAction::class.java)
+    assertThat(toolbar.actions[5]).isInstanceOf(NextOccurrenceToolbarAction::class.java)
+    assertThat(toolbar.actions[6]).isInstanceOf(Separator::class.java)
     toolbar.actions.forEach {
       assertThat(it).isInstanceOf(DumbAware::class.java)
     }

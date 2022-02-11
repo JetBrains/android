@@ -28,6 +28,8 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
+import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
+import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
@@ -126,6 +128,7 @@ internal class LogcatMainPanel(
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
+
   @VisibleForTesting
   val headerPanel = LogcatHeaderPanel(
     project,
@@ -298,6 +301,8 @@ internal class LogcatMainPanel(
         override fun getEditor(e: AnActionEvent) = this@LogcatMainPanel.editor
       })
       add(LogcatFormatAction(project, this@LogcatMainPanel))
+      add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
+      add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
     }
   }
 
