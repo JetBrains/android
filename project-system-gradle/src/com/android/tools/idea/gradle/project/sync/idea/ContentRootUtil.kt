@@ -39,7 +39,8 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.kotlin.idea.roots.NodeWithData
+import org.jetbrains.kotlin.idea.roots.findAll
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
@@ -173,32 +174,42 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(
   androidModel: GradleAndroidModel
 ) {
   val variant = androidModel.selectedVariant
-  // Go over all modules GradleSourceSetData nodes and set up the required content roots from the artifacts.
-  fun DataNode<GradleSourceSetData>.populateContentEntries(
+
+  fun populateContentEntries(
     artifactSelector: ArtifactSelector,
     sourceProviderSelector: SourceProviderSelector
-  ) {
+  ): List<DataNode<ContentRootData>> {
+    val sourceSetDataNode = findSourceSetDataForArtifact(artifactSelector(variant) ?: return emptyList())
     val contentRoots = collectContentRootDataForArtifact(artifactSelector, sourceProviderSelector, androidModel, variant)
+    return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
+  }
 
-    // Add the ContentRootData nodes to the module.
-    contentRoots.forEach { contentRootData ->
-      createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
+  val sourceSetContentRoots =
+    populateContentEntries(IdeVariant::mainArtifact, GradleAndroidModel::getActiveSourceProviders) +
+      populateContentEntries(IdeVariant::unitTestArtifact, GradleAndroidModel::getUnitTestSourceProviders) +
+      populateContentEntries(IdeVariant::androidTestArtifact, GradleAndroidModel::getAndroidTestSourceProviders) +
+      populateContentEntries(IdeVariant::testFixturesArtifact, GradleAndroidModel::getTestFixturesSourceProviders)
+
+  val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
+
+  maybeMoveDuplicateHolderContentRootsToSourceSets(holderModuleRoots, sourceSetContentRoots)
+}
+
+private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
+  holderModuleRoots: List<NodeWithData<ContentRootData>>,
+  sourceSetContentRoots: List<DataNode<ContentRootData>>
+) {
+  val sourceSetContentRootsByPath = sourceSetContentRoots.associateBy { it.data.rootPath }
+
+  for (root in holderModuleRoots) {
+    val replacement = sourceSetContentRootsByPath[root.data.rootPath] ?: continue
+    for (sourceType in ExternalSystemSourceType.values()) {
+      for (path in root.data.getPaths(sourceType)) {
+        replacement.data.storePath(sourceType, path.path, path.packagePrefix)
+      }
     }
-  }
-
-  findSourceSetDataForArtifact(variant.mainArtifact)
-    .populateContentEntries(IdeVariant::mainArtifact, GradleAndroidModel::getActiveSourceProviders)
-  variant.unitTestArtifact?.also {
-    findSourceSetDataForArtifact(it)
-      .populateContentEntries(IdeVariant::unitTestArtifact, GradleAndroidModel::getUnitTestSourceProviders)
-  }
-  variant.androidTestArtifact?.also {
-    findSourceSetDataForArtifact(it)
-      .populateContentEntries(IdeVariant::androidTestArtifact, GradleAndroidModel::getAndroidTestSourceProviders)
-  }
-  variant.testFixturesArtifact?.also {
-    findSourceSetDataForArtifact(it)
-      .populateContentEntries(IdeVariant::testFixturesArtifact, GradleAndroidModel::getTestFixturesSourceProviders)
+    // NOTE: `.clear(true)` means remove this node from its parent and also clear it.
+    root.node.clear(true)
   }
 }
 
