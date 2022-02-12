@@ -363,6 +363,8 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+      .isEqualTo("Failed to start fetching or whatever")
   }
 
   @Test

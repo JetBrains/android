@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
@@ -138,6 +139,7 @@ class LayoutInspector private constructor(
 
   private fun logError(error: String) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
+    InspectorBannerService.getInstance(layoutInspectorModel.project).setNotification(error)
 
     @Suppress("ConstantConditionIf")
     if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
