@@ -21,6 +21,8 @@ public final class TestProjectToSnapshotPaths {
   public static final String LINKED = "projects/linked";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
+  public static final String MAIN_IN_ROOT = "projects/mainInRoot";
+
   public static final String MULTI_FLAVOR = "projects/multiFlavor";
   public static final String NAMESPACES = "projects/namespaces";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";

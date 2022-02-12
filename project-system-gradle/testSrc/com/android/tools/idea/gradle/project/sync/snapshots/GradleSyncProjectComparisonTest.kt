@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MAIN_IN_ROOT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
@@ -126,6 +127,12 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     @Test
     fun testLoadPlainJavaProject() {
       val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
+      assertIsEqualToSnapshot(text)
+    }
+
+    @Test
+    fun testMainInRoot() {
+      val text = importSyncAndDumpProject(MAIN_IN_ROOT)
       assertIsEqualToSnapshot(text)
     }
 
