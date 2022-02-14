@@ -16,19 +16,19 @@
 package com.android.tools.idea.explorer.adbimpl
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,16 +40,21 @@ class AdbDeviceFileSystemServiceTest {
   @get:Rule
   val androidProjectRule = AndroidProjectRule.withSdk()
 
+  @get:Rule
+  val adb = FakeAdbRule()
+
   private val project: Project
     get() = androidProjectRule.project
 
   @Before
   fun setUp() {
-    AdbFileProvider { AndroidSdkUtils.getAdb(project) }.storeInProject(project)
+    adb.attachDevice(
+      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
   }
 
   @Test
-  fun startService() = runBlocking {
+  fun initialDeviceList() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
@@ -57,9 +62,9 @@ class AdbDeviceFileSystemServiceTest {
     service.start()
 
     // Assert
-    // Note: There is not much we can assert on, other than implicitly the fact we
-    // reached this statement.
-    assertNotNull(service.devices)
+    // We should see the connected device immediately after start returns.
+    // (FakeAdbRule waits for AndroidDebugBridge to be fully initialized.)
+    assertThat(service.devices).hasSize(1)
   }
 
   @Test
@@ -88,9 +93,7 @@ class AdbDeviceFileSystemServiceTest {
     service.start()
 
     // Assert
-    // Note: There is not much we can assert on, other than implicitly the fact we
-    // reached this statement.
-    assertNotNull(service.devices)
+    assertThat(service.devices).hasSize(1)
   }
 
   @Test
