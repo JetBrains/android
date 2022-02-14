@@ -1161,10 +1161,14 @@ public class LayoutlibSceneManager extends SceneManager {
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
-            // If the result is not valid, we do not need the task. Also if the project was already disposed
-            // while we were creating the task, avoid adding it.
-            if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess() || isDisposed.get()) {
+            // If the project was already disposed while we were creating the task, or the result is null, avoid adding it.
+            if (getModel().getModule().isDisposed() || result == null || isDisposed.get()) {
               newTask.dispose();
+            }
+            else if (!result.getRenderResult().isSuccess()) {
+              // Erase the previously cached result in case the render has finished, but was not a success. Otherwise, we might end up
+              // in a state where the user thinks the render was successful, but it actually failed.
+              updateRenderTask(null);
             }
             else {
               updateRenderTask(newTask);
