@@ -57,7 +57,6 @@ import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.resolveDependency
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -595,12 +594,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     else
       readTextFromDocument(project, file)
 
-  private fun readTextFile(vFile: VirtualFile): String? =
-    if (moduleTemplateData?.isNewModule != false)
-      readTextFromDisk(vFile.toIoFile())
-    else
-      readTextFromDocument(project, vFile)
-
   /**
    * Shorten all fully qualified Layout names that belong to the same package as the manifest's package attribute value.
    *
@@ -650,7 +643,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (fileType.isBinary)
       this.contentsToByteArray() contentEquals targetFile.readBytes()
     else
-      ComparisonManager.getInstance().isEquals(readTextFile(this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
+      ComparisonManager.getInstance().isEquals(readTextFromDocument(project, this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
 
   private infix fun File.contentEquals(content: String): Boolean =
     ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)
