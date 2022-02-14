@@ -22,12 +22,16 @@ import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
@@ -70,17 +74,24 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     Disposer.register(project, this)
 
     modulesComboBox.addActionListener {
-      val module = moduleSelector.module
-      val availableComponents = if (module == null || DumbService.isDumb(project)) {
-        emptyList()
-      }
-      else {
-        findAvailableComponents(module)
-      }
-      wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
-      if (availableComponents.isNotEmpty()) {
-        wearComponentFqNameComboBox.item = availableComponents.first()
-      }
+      object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
+        var availableComponents: List<String> = emptyList()
+
+        override fun run(indicator: ProgressIndicator) {
+          val module = moduleSelector.module
+          if (module == null || DumbService.isDumb(project)) {
+            return
+          }
+          availableComponents = ApplicationManager.getApplication().runReadAction(Computable {findAvailableComponents(module)})
+        }
+
+        override fun onFinished() {
+          wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
+          if (availableComponents.isNotEmpty()) {
+            wearComponentFqNameComboBox.item = availableComponents.first()
+          }
+        }
+      }.queue()
     }
   }
 
@@ -157,6 +168,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   }
 
   private fun findAvailableComponents(module: Module): List<String> {
+    ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
     val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
       facade.findClass(it, ProjectScope.getAllScope(project))
