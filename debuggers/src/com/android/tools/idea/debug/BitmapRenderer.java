@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,21 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
-public class BitmapDrawableRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
-  public static final String BITMAP_DRAWABLE_FQCN = "android.graphics.drawable.BitmapDrawable";
+final class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
+  private static final String BITMAP_FQCN = "android.graphics.Bitmap";
 
-  public BitmapDrawableRenderer() {
-    super("BitmapDrawable", null, null);
-    setClassName(BITMAP_DRAWABLE_FQCN);
+  BitmapRenderer() {
+    super("Bitmap", null, null);
+
+    setClassName(BITMAP_FQCN);
     setEnabled(true);
   }
 
-  @Nullable
+  @NotNull
   @Override
   public XFullValueEvaluator getFullValueEvaluator(EvaluationContextImpl evaluationContext, final ValueDescriptorImpl valueDescriptor) {
     return new BitmapPopupEvaluator(evaluationContext) {

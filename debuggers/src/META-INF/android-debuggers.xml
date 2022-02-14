@@ -20,10 +20,20 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <xdebugger.configurableProvider implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerConfigurableProvider" />
+    <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidTypedIntegerRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidxSupportArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
 
     <projectService
         serviceInterface="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
+    <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
+                    serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
   </extensions>
 
   <projectListeners>

@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
     ],
 )
 
@@ -25,6 +26,12 @@ iml_module(
     name = "intellij.android.debuggers.tests",
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.DebuggersTestSuite",
+    # keep sorted
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:sources",
+        "//tools/adt/idea/android/testData",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
