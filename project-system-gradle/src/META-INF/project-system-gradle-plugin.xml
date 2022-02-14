@@ -61,6 +61,7 @@
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
     <notificationGroup id="Android SDK Setup Issues" displayType="STICKY_BALLOON" />
+    <notificationGroup id="Android Gradle Sync Issues" displayType="STICKY_BALLOON" />
     <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
     <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />

@@ -39,16 +39,20 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -60,6 +64,8 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -95,6 +101,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildCancelledException;
@@ -378,8 +385,15 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
 
           buildState.buildFinished(SUCCESS);
           taskListener.onSuccess(id);
+          BasicBuildAttributionInfo buildInfo;
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildSuccess(myRequest);
+            buildInfo = buildAttributionManager.onBuildSuccess(myRequest);
+          }
+          else {
+            buildInfo = null;
+          }
+          if (buildInfo != null && buildInfo.getAgpVersion() != null) {
+            reportAgpVersionMismatch(project, buildInfo);
           }
         }
         catch (BuildException e) {
@@ -454,6 +468,37 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
         else {
           throw e;
         }
+      }
+    }
+
+    private void reportAgpVersionMismatch(Project project, BasicBuildAttributionInfo buildInfo) {
+      List<GradleVersion> syncedAgpVersions = ProjectStructure.getInstance(project).getAndroidPluginVersions().getAllVersions();
+      if (!syncedAgpVersions.contains(buildInfo.getAgpVersion())) {
+        String incompatibilityMessage =
+          String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
+                        buildInfo.getAgpVersion(),
+                        syncedAgpVersions.stream().map(GradleVersion::toString).collect(Collectors.joining(", "))
+          );
+        getLogger().error(incompatibilityMessage);
+        SyncProjectWithExtraCommandLineOptionsHyperlink quickFix =
+          new SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "");
+        NotificationGroupManager.getInstance()
+          .getNotificationGroup("Android Gradle Sync Issues")
+          .createNotification(
+            "Gradle sync needed",
+            incompatibilityMessage +
+            "\nPlease sync the project with Gradle Files.\n\n" +
+            quickFix.toHtml(),
+            NotificationType.ERROR
+          )
+          .setImportant(true)
+          .setListener((notification, event) -> {
+            quickFix.executeIfClicked(project, event);
+            notification.hideBalloon();
+          })
+          .notify(project);
+
+        throw new ProcessCanceledException();
       }
     }
 

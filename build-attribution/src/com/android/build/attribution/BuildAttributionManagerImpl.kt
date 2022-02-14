@@ -28,6 +28,8 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -53,19 +55,20 @@ class BuildAttributionManagerImpl(
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
-  override fun onBuildSuccess(request: GradleBuildInvoker.Request) {
+  override fun onBuildSuccess(request: GradleBuildInvoker.Request): BasicBuildAttributionInfo {
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
     val buildRequestHolder = BuildRequestHolder(request)
     val attributionFileDir = getAgpAttributionFileDir(request)
 
-    BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
-      analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
+    return BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
+      val agpVersion = analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder)
           analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
+          attributionData?.buildInfo?.agpVersion
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
@@ -78,6 +81,7 @@ class BuildAttributionManagerImpl(
         BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
         buildSessionId
       )
+      BasicBuildAttributionInfo(GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion))
     }
   }
 

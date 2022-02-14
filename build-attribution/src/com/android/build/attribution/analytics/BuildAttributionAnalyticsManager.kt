@@ -68,14 +68,15 @@ class BuildAttributionAnalyticsManager(
 
   private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
-  fun logBuildAttributionPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> Unit) {
+  fun <T> logBuildAttributionPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> T): T {
     val watch = Stopwatch.createStarted()
-    postBuildAnalysis()
-    attributionStatsBuilder.setBuildAttributionPerformanceStats(
-      BuildAttributionPerformanceStats.newBuilder()
-        .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
-        .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
-    )
+    return postBuildAnalysis().also {
+      attributionStatsBuilder.setBuildAttributionPerformanceStats(
+        BuildAttributionPerformanceStats.newBuilder()
+          .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
+          .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
+      )
+    }
   }
 
   fun logAnalyzersData(analysisResult: BuildEventsAnalysisResult) {
@@ -131,8 +132,10 @@ class BuildAttributionAnalyticsManager(
     .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
     .build()
 
-  private fun transformProjectConfigurationAnalyzerData(projectConfigurationData: List<ProjectConfigurationData>,
-                                                        totalConfigurationData: ProjectConfigurationData) =
+  private fun transformProjectConfigurationAnalyzerData(
+    projectConfigurationData: List<ProjectConfigurationData>,
+    totalConfigurationData: ProjectConfigurationData
+  ) =
     ProjectConfigurationAnalyzerData.newBuilder()
       .addAllProjectConfigurationData(projectConfigurationData.map(::transformProjectConfigurationData))
       .setOverallConfigurationData(transformProjectConfigurationData(totalConfigurationData))

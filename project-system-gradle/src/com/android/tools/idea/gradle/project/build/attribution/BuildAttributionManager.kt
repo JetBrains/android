@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.build.attribution
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.gradle.tooling.events.ProgressListener
+
+data class BasicBuildAttributionInfo(
+  val agpVersion: GradleVersion?
+)
 
 interface BuildAttributionManager : ProgressListener {
   fun onBuildStart()
 
-  fun onBuildSuccess(request: GradleBuildInvoker.Request)
+  fun onBuildSuccess(request: GradleBuildInvoker.Request): BasicBuildAttributionInfo
 
   fun onBuildFailure(request: GradleBuildInvoker.Request)
 
