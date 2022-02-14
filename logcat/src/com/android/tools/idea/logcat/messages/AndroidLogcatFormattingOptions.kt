@@ -23,12 +23,13 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.Converter
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.OptionTag
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Global formatting options.
  */
 @State(name = "AndroidLogcatFormattingOptions", storages = [Storage("androidLogcatFormattingOptions.xml")])
-internal class AndroidLogcatFormattingOptions private constructor() : PersistentStateComponent<AndroidLogcatFormattingOptions> {
+internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() : PersistentStateComponent<AndroidLogcatFormattingOptions> {
   @OptionTag(converter = FormattingOptionsStyleConverter::class)
   var defaultFormatting: FormattingOptions.Style = FormattingOptions.Style.STANDARD
 

@@ -23,6 +23,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
@@ -32,6 +33,7 @@ import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
+import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -40,14 +42,22 @@ import com.android.tools.idea.logcat.settings.LogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
+import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
@@ -55,11 +65,13 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -84,12 +96,22 @@ class LogcatMainPanelTest {
   private val executor = Executors.newCachedThreadPool()
   private val popupRule = PopupRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor)
+  private val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule, LogcatFilterLanguageRule())
+  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule, LogcatFilterLanguageRule(), usageTrackerRule)
 
   private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
+  private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().replaceService(
+      AndroidLogcatFormattingOptions::class.java,
+      androidLogcatFormattingOptions,
+      projectRule.project)
+  }
 
   @RunsInEdt
   @Test
@@ -491,6 +513,132 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text.trim()).isEqualTo("04:00:01.000  W  message1")
     }
+  }
+
+  @RunsInEdt
+  @Test
+  fun usageTracking_noState_standard() {
+    logcatMainPanel(state = null)
+
+    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
+      LogcatUsageEvent.newBuilder()
+        .setType(PANEL_ADDED)
+        .setPanelAdded(
+          LogcatPanelEvent.newBuilder()
+            .setIsRestored(false)
+            .setFormatConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setPreset(Preset.STANDARD)
+                .setIsShowTimestamp(true)
+                .setIsShowDate(true)
+                .setIsShowProcessId(true)
+                .setIsShowThreadId(true)
+                .setIsShowTags(true)
+                .setIsShowRepeatedTags(true)
+                .setTagWidth(23)
+                .setIsShowPackages(true)
+                .setIsShowRepeatedPackages(true)
+                .setPackageWidth(35))
+            .setFilter(
+              LogcatFilterEvent.newBuilder()
+                .setPackageProjectTerms(1)))
+        .build())
+  }
+
+  @RunsInEdt
+  @Test
+  fun usageTracking_noState_compact() {
+    androidLogcatFormattingOptions.defaultFormatting = COMPACT
+    logcatMainPanel(state = null)
+
+    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
+      LogcatUsageEvent.newBuilder()
+        .setType(PANEL_ADDED)
+        .setPanelAdded(
+          LogcatPanelEvent.newBuilder()
+            .setIsRestored(false)
+            .setFormatConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setPreset(Preset.COMPACT)
+                .setIsShowTimestamp(true)
+                .setIsShowDate(false)
+                .setIsShowProcessId(false)
+                .setIsShowThreadId(true)
+                .setIsShowTags(false)
+                .setIsShowRepeatedTags(true)
+                .setTagWidth(23)
+                .setIsShowPackages(false)
+                .setIsShowRepeatedPackages(true)
+                .setPackageWidth(35))
+            .setFilter(
+              LogcatFilterEvent.newBuilder()
+                .setPackageProjectTerms(1)))
+        .build())
+  }
+
+  @RunsInEdt
+  @Test
+  fun usageTracking_withState_preset() {
+    logcatMainPanel(state = LogcatPanelConfig(
+      "device-serial",
+      formattingConfig = FormattingConfig.Preset(COMPACT),
+      "foo"))
+
+    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
+      LogcatUsageEvent.newBuilder()
+        .setType(PANEL_ADDED)
+        .setPanelAdded(
+          LogcatPanelEvent.newBuilder()
+            .setIsRestored(true)
+            .setFormatConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setPreset(Preset.COMPACT)
+                .setIsShowTimestamp(true)
+                .setIsShowDate(false)
+                .setIsShowProcessId(false)
+                .setIsShowThreadId(true)
+                .setIsShowTags(false)
+                .setIsShowRepeatedTags(true)
+                .setTagWidth(23)
+                .setIsShowPackages(false)
+                .setIsShowRepeatedPackages(true)
+                .setPackageWidth(35))
+            .setFilter(
+              LogcatFilterEvent.newBuilder()
+                .setImplicitLineTerms(1)))
+        .build())
+  }
+
+  @RunsInEdt
+  @Test
+  fun usageTracking_withState_custom() {
+    logcatMainPanel(state = LogcatPanelConfig(
+      "device-serial",
+      formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(20, hideDuplicates = false, enabled = true))),
+      "foo"))
+
+    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
+      LogcatUsageEvent.newBuilder()
+        .setType(PANEL_ADDED)
+        .setPanelAdded(
+          LogcatPanelEvent.newBuilder()
+            .setIsRestored(true)
+            .setFormatConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setIsShowTimestamp(true)
+                .setIsShowDate(true)
+                .setIsShowProcessId(true)
+                .setIsShowThreadId(true)
+                .setIsShowTags(true)
+                .setIsShowRepeatedTags(true)
+                .setTagWidth(20)
+                .setIsShowPackages(true)
+                .setIsShowRepeatedPackages(true)
+                .setPackageWidth(35))
+            .setFilter(
+              LogcatFilterEvent.newBuilder()
+                .setImplicitLineTerms(1)))
+        .build())
   }
 
   private fun logcatMainPanel(
