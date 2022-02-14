@@ -34,6 +34,7 @@ import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
@@ -48,8 +49,8 @@ import kotlin.math.min
  */
 class DeviceScreenshotAction(private val myProject: Project,
                              context: DeviceContext
-) : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot"),
-                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.Toolbar.SNAPSHOT) {
+) : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot.title"),
+                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.Toolbar.SNAPSHOT), DumbAware {
 
   override fun performAction(event: AnActionEvent, device: IDevice) {
     val project = myProject

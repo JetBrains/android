@@ -24,6 +24,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.ddms.actions.DeviceScreenshotAction
+import com.android.tools.idea.ddms.actions.ScreenRecorderAction
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
@@ -303,6 +305,8 @@ internal class LogcatMainPanel(
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
+      add(DeviceScreenshotAction(project, deviceContext))
+      add(ScreenRecorderAction(project, deviceContext))
     }
   }
 

@@ -26,10 +26,6 @@ import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
-import com.android.tools.idea.logcat.actions.ClearLogcatAction
-import com.android.tools.idea.logcat.actions.LogcatFormatAction
-import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
-import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
@@ -51,10 +47,7 @@ import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
-import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
-import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
@@ -110,13 +103,16 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
-    assertThat(toolbar.actions[0]).isInstanceOf(ClearLogcatAction::class.java)
-    assertThat(toolbar.actions[1]).isInstanceOf(ScrollToTheEndToolbarAction::class.java)
-    assertThat(toolbar.actions[2]).isInstanceOf(ToggleUseSoftWrapsToolbarAction::class.java)
-    assertThat(toolbar.actions[3]).isInstanceOf(LogcatFormatAction::class.java)
-    assertThat(toolbar.actions[4]).isInstanceOf(PreviousOccurrenceToolbarAction::class.java)
-    assertThat(toolbar.actions[5]).isInstanceOf(NextOccurrenceToolbarAction::class.java)
-    assertThat(toolbar.actions[6]).isInstanceOf(Separator::class.java)
+    assertThat(toolbar.actions.mapNotNull { it.templatePresentation.text }).containsExactly(
+      "Clear Logcat",
+      "Scroll to the End (clicking on a particular line stops scrolling and keeps that line visible)",
+      "Soft-Wrap",
+      "Configure Logcat Formatting Options",
+      "Previous Occurrence",
+      "Next Occurrence",
+      "Screen Capture",
+      "Screen Record",
+    )
     toolbar.actions.forEach {
       assertThat(it).isInstanceOf(DumbAware::class.java)
     }
