@@ -58,6 +58,7 @@ internal fun IDevice.getWearDebugSurfaceVersion(): Int {
     // Example of output: Broadcast completed: result=1, data="3"
     private val versionPattern = "data=\"(\\d+)\"".toRegex()
     var version = -1
+      private set
 
     override fun isCancelled() = isCancelledCheck()
 
@@ -79,15 +80,20 @@ internal fun IDevice.getWearDebugSurfaceVersion(): Int {
   val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
   executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
 
-  if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    throw ExecutionException("Error while checking version, message: ${outputReceiver.getOutput()}")
+  var inferredVersion = versionReceiver.version
+  if (resultReceiver.resultCode == CommandResultReceiver.INVALID_ARGUMENT_CODE) {
+    // The version operation was not available initially.
+    inferredVersion = 0
+  } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      throw ExecutionException("Error while checking version, message: ${outputReceiver.getOutput()}")
   }
+
   // 2 is the minimum for all surfaces. 2 means the watch supports both start and stop commands
-  if (versionReceiver.version < 2) {
+  if (inferredVersion < 2) {
     throw ExecutionException("Device software is out of date, message: ${outputReceiver.getOutput()}")
   }
 
-  return versionReceiver.version
+  return inferredVersion
 }
 
 internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, console: ConsoleView) {
