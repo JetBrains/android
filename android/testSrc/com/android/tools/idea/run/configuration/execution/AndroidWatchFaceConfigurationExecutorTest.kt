@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
@@ -34,6 +33,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
+  // Expected commands
+  private val checkVersion = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
+  private val setWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component"
+  private val showWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
+  private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
+  private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(
@@ -51,17 +56,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
-    val device = getMockDevice { request: String ->
-      when {
-        request.contains("DEBUG_SURFACE --es operation version") ->
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\""
-        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
-        else -> "Unknown request: $request"
-      }
-    }
+    val device = getMockDevice(mapOf(
+      checkVersion to
+        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+        "Broadcast completed: result=1, data=\"3\"",
+      setWatchFace to
+        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+        "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+    ).toCommandHandlers())
+
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
@@ -73,19 +76,19 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
     Mockito.verify(device, Mockito.times(3)).executeShellCommand(
       commandsCaptor.capture(),
-      MockitoKt.any(IShellOutputReceiver::class.java),
-      MockitoKt.any(),
-      MockitoKt.any()
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
     )
     val commands = commandsCaptor.allValues
 
 
     // check WatchFace API version.
-    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
+    assertThat(commands[0]).isEqualTo(checkVersion)
     // Set WatchFace.
-    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
+    assertThat(commands[1]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+    assertThat(commands[2]).isEqualTo(showWatchFace)
   }
 
   fun testDebug() {
@@ -95,17 +98,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
-    val device = getMockDevice { request: String ->
-      when {
-        request.contains("DEBUG_SURFACE --es operation version") ->
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\""
-        request.contains("DEBUG_SURFACE --es operation set-watchface") ->
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
-        else -> "Unknown request: $request"
-      }
-    }
+    val device = getMockDevice(mapOf(
+      checkVersion to
+        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+        "Broadcast completed: result=1, data=\"3\"",
+      setWatchFace to
+        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+        "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+    ).toCommandHandlers())
+
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
@@ -119,32 +120,28 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
     Mockito.verify(device, Mockito.times(4)).executeShellCommand(
       commandsCaptor.capture(),
-      MockitoKt.any(IShellOutputReceiver::class.java),
-      MockitoKt.any(),
-      MockitoKt.any()
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
     )
     val commands = commandsCaptor.allValues
 
     // check WatchFace API version.
-    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version")
+    assertThat(commands[0]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(commands[1]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    assertThat(commands[1]).isEqualTo(setDebugAppAm)
     // Set WatchFace.
-    assertThat(commands[2]).isEqualTo(
-      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
+    assertThat(commands[2]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(commands[3]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+    assertThat(commands[3]).isEqualTo(showWatchFace)
   }
 
   fun testWatchFaceProcessHandler() {
     val processHandler = WatchFaceProcessHandler(Mockito.mock(ConsoleView::class.java))
     val countDownLatch = CountDownLatch(1)
-    val device = getMockDevice { request ->
-      if (request.contains("operation unset-watchface")) {
-        countDownLatch.countDown()
-      }
-      "Mock reply: $request"
-    }
+    val device = getMockDevice(mapOf(
+      unsetWatchFace to { _, _ -> countDownLatch.countDown() }
+    ))
     processHandler.addDevice(device)
 
     processHandler.startNotify()
@@ -157,13 +154,13 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
     Mockito.verify(device, Mockito.times(1)).executeShellCommand(
       commandsCaptor.capture(),
-      MockitoKt.any(IShellOutputReceiver::class.java),
-      MockitoKt.any(),
-      MockitoKt.any()
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
     )
     val commands = commandsCaptor.allValues
 
     // Unset watch face
-    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface")
+    assertThat(commands[0]).isEqualTo(unsetWatchFace)
   }
 }

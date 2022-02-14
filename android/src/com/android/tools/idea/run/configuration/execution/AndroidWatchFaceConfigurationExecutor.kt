@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -30,12 +29,10 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
@@ -60,7 +57,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
         throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version)
       }
-      val app = installWatchFace(device, applicationInstaller, console)
+      val app = installWatchFace(device, applicationInstaller)
       setWatchFace(app, mode)
       showWatchFace(device, console)
     }
@@ -68,7 +65,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     return createRunContentDescriptor(devices, processHandler, console)
   }
 
-  private fun installWatchFace(device: IDevice, applicationInstaller: ApplicationInstaller, console: ConsoleView): App {
+  private fun installWatchFace(device: IDevice, applicationInstaller: ApplicationInstaller): App {
     ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
       checkCanceled()
       text = "Installing the watch face"
@@ -86,7 +83,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, outputReceiver)
     }
     catch (ex: DeployerException) {
-      throw throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput()}", ex)
+      throw throw ExecutionException("Error while launching watch face, message: ${ex.details}", ex)
     }
   }
 

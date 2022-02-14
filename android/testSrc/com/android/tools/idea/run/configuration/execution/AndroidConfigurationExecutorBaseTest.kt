@@ -34,6 +34,14 @@ import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.io.File
 
+
+internal typealias Command = String
+internal typealias CommandHandler = (mockDevice: IDevice, receiver: AndroidConfigurationExecutorBaseTest.TestReceiver) -> Unit
+
+fun Map<Command, String>.toCommandHandlers(): Map<Command, CommandHandler> {
+  return entries.associate { it.key to { _, receiver -> receiver.addOutput(it.value) } }
+}
+
 abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
@@ -54,7 +62,7 @@ abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
     return projectSystemMock
   }
 
-  protected fun getMockDevice(replies: (request: String) -> String = { request -> "Mock reply: $request" }): IDevice {
+  protected fun getMockDevice(commandHandlers: Map<Command, CommandHandler> = emptyMap()): IDevice {
     val device = Mockito.mock(IDevice::class.java)
     Mockito.`when`(device.version).thenReturn(AndroidVersion(20, null))
     Mockito.`when`(device.density).thenReturn(640)
@@ -62,13 +70,19 @@ abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
     Mockito.`when`(
       device.executeShellCommand(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any())
     ).thenAnswer { invocation ->
-      val request = invocation.arguments[0] as String
-      val receiver = invocation.arguments[1] as IShellOutputReceiver
-      val reply = replies(request)
-      val byteArray = "$reply\n".toByteArray(Charsets.UTF_8)
-      receiver.addOutput(byteArray, 0, byteArray.size)
+      val command = invocation.arguments[0] as String
+      val receiver = TestReceiver(invocation.arguments[1] as? IShellOutputReceiver)
+      val handler = commandHandlers[command]
+      handler?.invoke(device, receiver)
     }
     return device
+  }
+
+  class TestReceiver(private val receiver: IShellOutputReceiver?) {
+    fun addOutput(commandOutput: String) {
+      val byteArray = "$commandOutput\n".toByteArray(Charsets.UTF_8)
+      receiver?.addOutput(byteArray, 0, byteArray.size)
+    }
   }
 
   private class TestApksProvider(private val appId: String) : ApkProvider {
