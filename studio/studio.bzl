@@ -541,8 +541,11 @@ def _android_studio_os(ctx, platform, out):
 
     licenses = []
     for p in ctx.attr.plugins:
-        plugin_zip = platform.get(p[PluginInfo])[0]
-        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin_zip.basename)
+        plugin_zips = platform.get(p[PluginInfo])
+        if len(plugin_zips) != 1:
+            fail("Expected exactly one plugin zip; instead found: " + str(plugin_zips))
+        plugin_zip = plugin_zips[0]
+        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s.zip" % (p[PluginInfo].directory, platform.name))
         _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
         overrides += [(platform_prefix + platform.base_path, stamp)]
         zips += [(platform_prefix + platform.base_path, plugin_zip)]
