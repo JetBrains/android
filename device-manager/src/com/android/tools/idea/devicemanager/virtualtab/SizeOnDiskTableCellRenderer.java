@@ -58,6 +58,7 @@ final class SizeOnDiskTableCellRenderer implements TableCellRenderer {
                                                           int viewColumnIndex) {
     myLabel.setBackground(Tables.getBackground(table, selected));
     myLabel.setBorder(Tables.getBorder(selected, focused));
+    myLabel.setForeground(Tables.getForeground(table, selected));
     myLabel.setText(toString((long)value));
 
     return myLabel;
