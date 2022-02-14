@@ -1318,8 +1318,6 @@ public class RenderTask {
                                              context.getMinSdkVersion().getApiLevel(),
                                              context.getTargetSdkVersion().getApiLevel(),
                                              myLogger);
-    //noinspection deprecation We want to measure while creating the session. RenderSession.measure would require a second call.
-    params.setLayoutOnly();
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
