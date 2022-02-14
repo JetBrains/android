@@ -627,8 +627,6 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
-    // TODO: Remove after ag/15997527
-    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_OPTIMIZATION, myEnableLayoutScanner);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

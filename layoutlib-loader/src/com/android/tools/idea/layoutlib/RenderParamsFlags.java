@@ -89,14 +89,6 @@ public final class RenderParamsFlags {
     public static final Key<Boolean> FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK =
       new Key<>("enableLayoutValidatorImageCheck", Boolean.class);
 
-    /**
-     * Enables layout validation to be optimized during render.
-     * It reduces stresses to studio render and offload burdens to issue display.
-     * {@link #FLAG_KEY_ENABLE_LAYOUT_SCANNER} must be enabled before this can be effective.
-     */
-    public static final Key<Boolean> FLAG_ENABLE_LAYOUT_SCANNER_OPTIMIZATION =
-      new Key<>("enableLayoutValidatorOptimization", Boolean.class);
-
     // Disallow instances.
     private RenderParamsFlags() {}
 }
