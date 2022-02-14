@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.EditorTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
+import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
@@ -71,7 +72,7 @@ internal class FilterTextField(
   private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
   private val documentChangedListeners = mutableListOf<DocumentListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, initialText, androidProjectDetector)
-  private val historyButton = InlineButton(AllIcons.Actions.SearchWithHistory)
+  private val historyButton = InlineButton(StudioIcons.Logcat.Toolbar.FILTER_HISTORY)
   private val clearButton = InlineButton(AllIcons.Actions.Close)
 
   override var text: String

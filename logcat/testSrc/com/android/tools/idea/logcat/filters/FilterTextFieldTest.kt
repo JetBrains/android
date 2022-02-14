@@ -48,6 +48,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
+import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -95,7 +96,7 @@ class FilterTextFieldTest {
 
     filterTextField.size = Dimension(100, 100)
     val fakeUi = FakeUi(filterTextField)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Actions.SearchWithHistory }
+    val historyButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Toolbar.FILTER_HISTORY }
     fakeUi.clickOn(historyButton)
 
     val popup = popupRule.fakePopupFactory.getPopup<String>(0)
@@ -114,7 +115,7 @@ class FilterTextFieldTest {
 
     filterTextField.size = Dimension(100, 100)
     val fakeUi = FakeUi(filterTextField)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Actions.SearchWithHistory }
+    val historyButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Toolbar.FILTER_HISTORY }
     fakeUi.clickOn(historyButton)
 
     val popup = popupRule.fakePopupFactory.getPopup<String>(0)
