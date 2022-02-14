@@ -23,15 +23,17 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.system.CpuArch;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.util.system.CpuArch;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class SimpleperfSampleReporter implements TracePreProcessor {
 
@@ -112,7 +114,7 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     } else {
       // Release build. For instance:
       // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
-      return Paths.get(PathManager.getHomePath(), "prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
+      return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
     }
   }
 
