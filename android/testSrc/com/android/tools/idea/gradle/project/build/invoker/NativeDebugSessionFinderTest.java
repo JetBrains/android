@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.debug.AndroidNativeDebugProcess;
+import com.android.tools.idea.run.AndroidNativeDebugProcess;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
