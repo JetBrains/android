@@ -19,7 +19,7 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent.Preset
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -146,10 +146,11 @@ internal class LogcatFormatPresetsDialog(
     override fun createActions(): Array<Action> = super.createActions() + applyButton
   }
 
-  override fun getLogcatFormatDialogEvent(): LogcatUsageEvent.LogcatFormatDialogEvent.Builder {
-    return super.getLogcatFormatDialogEvent()
-      .setPreset(if (styleComboBoxComponent.item == STANDARD) Preset.STANDARD else Preset.COMPACT)
-      .setIsDefaultPreset(setAsDefaultCheckBoxComponent.isSelected)
+  override fun getLogcatFormatDialogEvent(): LogcatUsageEvent.LogcatFormatDialog.Builder {
+    val event = super.getLogcatFormatDialogEvent()
+    event.configurationBuilder.preset = if (styleComboBoxComponent.item == STANDARD) Preset.STANDARD else Preset.COMPACT
+    event.isDefaultPreset = setAsDefaultCheckBoxComponent.isSelected
+    return event
   }
 
   private inner class ApplyButton : AbstractAction(CommonBundle.getApplyButtonText()) {

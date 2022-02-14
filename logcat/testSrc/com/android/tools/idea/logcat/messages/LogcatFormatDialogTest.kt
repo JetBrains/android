@@ -29,7 +29,8 @@ import com.android.tools.idea.logcat.util.getCheckBox
 import com.android.tools.idea.logcat.util.getLabel
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -416,21 +417,25 @@ class LogcatFormatDialogTest {
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { dialogWrapper ->
       dialogWrapper.getButton("OK").doClick()
 
-      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialogApplied })
         .containsExactly(
-          LogcatFormatDialogEvent.newBuilder()
+          LogcatUsageEvent.LogcatFormatDialog.newBuilder()
             .setIsApplyButtonUsed(false)
-            .setIsShowTimestamp(true)
-            .setIsShowDate(true)
-            .setIsShowProcessId(true)
-            .setIsShowThreadId(true)
-            .setIsShowTags(true)
-            .setIsShowRepeatedTags(false)
-            .setTagWidth(20)
-            .setIsShowPackages(true)
-            .setIsShowRepeatedPackages(false)
-            .setPackageWidth(20)
+            .setConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setIsShowTimestamp(true)
+                .setIsShowDate(true)
+                .setIsShowProcessId(true)
+                .setIsShowThreadId(true)
+                .setIsShowTags(true)
+                .setIsShowRepeatedTags(false)
+                .setTagWidth(20)
+                .setIsShowPackages(true)
+                .setIsShowRepeatedPackages(false)
+                .setPackageWidth(20)
+                .build())
             .build())
+
     }
   }
 
@@ -449,20 +454,23 @@ class LogcatFormatDialogTest {
       appNameWidthSpinner.number = 10
       dialogWrapper.getButton("OK").doClick()
 
-      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialog })
+      assertThat(usageTrackerRule.logcatEvents().map { it.formatDialogApplied })
         .containsExactly(
-          LogcatFormatDialogEvent.newBuilder()
+          LogcatUsageEvent.LogcatFormatDialog.newBuilder()
             .setIsApplyButtonUsed(false)
-            .setIsShowTimestamp(false)
-            .setIsShowDate(false)
-            .setIsShowProcessId(false)
-            .setIsShowThreadId(false)
-            .setIsShowTags(false)
-            .setIsShowRepeatedTags(true)
-            .setTagWidth(10)
-            .setIsShowPackages(false)
-            .setIsShowRepeatedPackages(true)
-            .setPackageWidth(10)
+            .setConfiguration(
+              LogcatFormatConfiguration.newBuilder()
+                .setIsShowTimestamp(false)
+                .setIsShowDate(false)
+                .setIsShowProcessId(false)
+                .setIsShowThreadId(false)
+                .setIsShowTags(false)
+                .setIsShowRepeatedTags(true)
+                .setTagWidth(10)
+                .setIsShowPackages(false)
+                .setIsShowRepeatedPackages(true)
+                .setPackageWidth(10)
+                .build())
             .build())
     }
   }

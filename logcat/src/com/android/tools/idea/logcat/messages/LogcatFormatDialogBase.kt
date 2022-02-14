@@ -23,7 +23,7 @@ import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
-import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatDialogEvent
+import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FORMAT_DIALOG
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
@@ -199,23 +199,24 @@ internal abstract class LogcatFormatDialogBase(
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FORMAT_DIALOG)
-        .setFormatDialog(getLogcatFormatDialogEvent().setIsApplyButtonUsed(isApplyButton))
+        .setFormatDialogApplied(getLogcatFormatDialogEvent().setIsApplyButtonUsed(isApplyButton))
     )
     applyAction.onApply(this)
   }
 
-  protected open fun getLogcatFormatDialogEvent(): LogcatFormatDialogEvent.Builder =
-    LogcatFormatDialogEvent.newBuilder()
-      .setIsShowTimestamp(showTimestampCheckbox.isSelected)
-      .setIsShowDate(timestampStyleComboBox.item == DATETIME)
-      .setIsShowProcessId(showPidCheckbox.isSelected)
-      .setIsShowThreadId(includeTidCheckbox.isSelected)
-      .setIsShowTags(showTagsCheckbox.isSelected)
-      .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
-      .setTagWidth(tagWidthSpinner.number)
-      .setIsShowPackages(showPackagesCheckbox.isSelected)
-      .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
-      .setPackageWidth(packageWidthSpinner.number)
+  protected open fun getLogcatFormatDialogEvent(): LogcatUsageEvent.LogcatFormatDialog.Builder =
+    LogcatUsageEvent.LogcatFormatDialog.newBuilder()
+      .setConfiguration(LogcatFormatConfiguration.newBuilder()
+        .setIsShowTimestamp(showTimestampCheckbox.isSelected)
+        .setIsShowDate(timestampStyleComboBox.item == DATETIME)
+        .setIsShowProcessId(showPidCheckbox.isSelected)
+        .setIsShowThreadId(includeTidCheckbox.isSelected)
+        .setIsShowTags(showTagsCheckbox.isSelected)
+        .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
+        .setTagWidth(tagWidthSpinner.number)
+        .setIsShowPackages(showPackagesCheckbox.isSelected)
+        .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
+        .setPackageWidth(packageWidthSpinner.number))
 
   private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
     titledRow(message("logcat.header.options.timestamp.title")) {
