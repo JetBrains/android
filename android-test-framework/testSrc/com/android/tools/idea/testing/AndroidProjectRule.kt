@@ -58,6 +58,7 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
+import java.time.Clock
 import java.util.concurrent.TimeoutException
 
 /**
@@ -186,6 +187,11 @@ class AndroidProjectRule private constructor(
     return this
   }
 
+  fun named(projectName: String?): AndroidProjectRule {
+    fixtureName = projectName
+    return this
+  }
+
   fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
       mocks.replaceProjectService(serviceType, newServiceInstance)
 
@@ -270,9 +276,12 @@ class AndroidProjectRule private constructor(
         AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
         AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
 
-    val name = fixtureName ?: description.className.substringAfterLast('.').substringAfterLast('$')
+    // Below "p" is just a short directory name for a project directory. We have some tests that need more than one project in a test,
+    // and they rely on ability to do "../another". This temporary directory test fixture will delete all of them at tear down.
+    val name = fixtureName ?: "p"
     val tempDirFixture = object: AndroidTempDirTestFixture(name) {
-      private val tempRoot: String = FileUtil.createTempDirectory(UsefulTestCase.TEMP_DIR_MARKER + name, "", false).path
+      private val tempRoot: String =
+        FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
       override fun getRootTempDirectory(): String = tempRoot
       override fun tearDown() {
         super.tearDown()  // Deletes the project directory.

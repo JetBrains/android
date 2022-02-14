@@ -69,6 +69,7 @@ import junit.framework.TestCase.assertTrue
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.jetbrains.android.AndroidTempDirTestFixture
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import java.io.ByteArrayOutputStream
@@ -155,7 +156,9 @@ internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName:
 }
 // TODO(qumeric) should it be removed in favor of AndroidGradleTestCase.setUpFixture?
 internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFixture {
-  val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(projectName)
+  val tempDirFixture = AndroidTempDirTestFixture(projectName)
+  val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
+    .createFixtureBuilder(projectName, tempDirFixture.projectDir.parentFile.toPath(), true)
   val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
     setUp()
   }

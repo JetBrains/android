@@ -53,7 +53,7 @@ class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
   @get:Rule
   var testName = TestName()
 
-  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
+  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -84,7 +84,7 @@ class LightSyncBasedTestsWithCMakeLikeStructureTest : SnapshotComparisonTest {
     AndroidProjectBuilder(
       ndkModel = { buildNdkModelStub() }
     )
-  )
+  ).named(this::class.simpleName)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -106,7 +106,8 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
   @get:Rule
   var testName = TestName()
 
-  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure())
+  val projectRule =
+    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure()).named(this::class.simpleName)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -128,7 +129,8 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
   @get:Rule
   var testName = TestName()
 
-  val projectRule = AndroidProjectRule.withAndroidModels(rootModuleBuilder, appModuleBuilder, libModuleBuilder)
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(rootModuleBuilder, appModuleBuilder, libModuleBuilder).named(this::class.simpleName)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!

@@ -25,7 +25,7 @@ open class AndroidTempDirTestFixture(
   private val testName: String
 ) : TempDirTestFixtureImpl() {
   override fun doCreateTempDirectory(): Path {
-    val folder = File("${getRootTempDirectory()}${File.separatorChar}${java.time.Clock.systemUTC().millis()}", testName.replace('$', '.'))
+    val folder = File(getRootTempDirectory(), FileUtil.sanitizeFileName(testName.replace('$', '.'), false))
     FileUtils.mkdirs(folder)
     return folder.toPath()
   }

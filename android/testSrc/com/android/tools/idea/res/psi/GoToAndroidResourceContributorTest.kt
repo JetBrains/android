@@ -42,7 +42,7 @@ import org.junit.Test
  */
 @RunsInEdt
 class GoToAndroidResourceContributorTest {
-  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
+  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
 
   @get:Rule
   val chain = RuleChain(projectRule, EdtRule())
