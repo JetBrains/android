@@ -74,17 +74,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         emptyList()
       }
       else {
-        val facade = JavaPsiFacade.getInstance(project)
-        val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
-          facade.findClass(it, ProjectScope.getAllScope(project))
-        }
-        surfaceBaseClasses.flatMap { baseClass ->
-          ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
-            .findAll()
-            // TODO: filter base on manifest index.
-            .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
-            .mapNotNull { it.qualifiedName }
-        }
+        findAvailableComponents(module)
       }
       wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
       if (availableComponents.isNotEmpty()) {
@@ -162,6 +152,20 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         .applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
         }
+    }
+  }
+
+  private fun findAvailableComponents(module: Module): List<String> {
+    val facade = JavaPsiFacade.getInstance(project)
+    val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
+      facade.findClass(it, ProjectScope.getAllScope(project))
+    }
+    return surfaceBaseClasses.flatMap { baseClass ->
+      ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
+        .findAll()
+        // TODO: filter base on manifest index.
+        .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
+        .mapNotNull { it.qualifiedName }
     }
   }
 }
