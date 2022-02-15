@@ -106,7 +106,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   fun load(buffer: InMemoryBuffer) {
     val nativeRegistryPostProcessor = NativeRegistryPostProcessor()
     val snapshot = Snapshot.createSnapshot(buffer!!, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
-    snapshot.computeDominators()
+    snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
     hasLoaded = true
     val javaLangClassObject = snapshot.heaps.stream()
