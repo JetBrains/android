@@ -69,9 +69,14 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTest",
             "tags": SYNC_PERFGATE_TAGS,
         },
-        "Dolphin": {
+        "DolphinV1": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV1",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "DolphinV2": {
+            "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV2",
             "tags": SYNC_PERFGATE_TAGS,
         },
         "ExtraLarge": {
