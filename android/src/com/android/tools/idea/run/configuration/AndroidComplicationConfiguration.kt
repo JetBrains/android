@@ -62,9 +62,6 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     if (supportedTypes.isEmpty()) {
       throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"))
     }
-    if (chosenSlots.isEmpty()) {
-      throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
-    }
     for (slot in chosenSlots) {
       if (!supportedTypes.contains(slot.type)) {
         throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slot.type))
@@ -77,6 +74,9 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(configurationModule.module!!).get()
     if (!snapshotFuture.isDone) {
       return
+    }
+    if (chosenSlots.isEmpty()) {
+      throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
     verifyProviderTypes(extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName))
   }
