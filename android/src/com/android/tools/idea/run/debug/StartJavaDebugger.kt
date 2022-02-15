@@ -120,10 +120,6 @@ private fun getDebugProcessStarter(
   onDebugProcessDestroyed: ((Client) -> Unit)?,
   detachIsDefault: Boolean,
 ): AsyncPromise<XDebugProcessStarter> {
-  if (!StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
-    throw RuntimeException("Unexpected execution path")
-  }
-
   val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
 
   val debugEnvironment = AndroidJavaDebugEnvironment(
