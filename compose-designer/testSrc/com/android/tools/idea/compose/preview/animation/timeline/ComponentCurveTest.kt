@@ -20,12 +20,14 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ComponentCurveTest {
 
+  @Ignore
   @Test
   fun `create component curve`() {
     val slider = TestUtils.createTestSlider()
