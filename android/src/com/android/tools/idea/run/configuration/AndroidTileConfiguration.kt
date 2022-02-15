@@ -20,6 +20,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurati
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
@@ -30,7 +31,7 @@ class AndroidTileConfigurationType :
     AndroidBundle.message("android.tile.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
     StudioIcons.Shell.Filetree.ANDROID_PROJECT
-  ) {
+  ), DumbAware {
   companion object {
     const val ID = "AndroidTileConfigurationType"
   }

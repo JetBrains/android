@@ -26,6 +26,7 @@ import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.annotations.Transient
 import icons.StudioIcons
@@ -37,7 +38,7 @@ class AndroidComplicationConfigurationType :
     AndroidBundle.message("android.complication.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
     StudioIcons.Shell.Filetree.ANDROID_PROJECT
-  ) {
+  ), DumbAware {
   companion object {
     const val ID = "AndroidComplicationConfigurationType"
   }
