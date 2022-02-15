@@ -15,12 +15,30 @@
  */
 package org.jetbrains.android.dom.lint;
 
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
-
+import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 
 @DefinesXml
 public interface LintDomElement extends DomElement {
   List<IssueDomElement> getIssues();
+
+  // See LintXmlConfiguration#readConfig
+
+  @Attribute("lintJar") GenericAttributeValue<String> getLintJar();
+  @Attribute("lintJars") GenericAttributeValue<String> getLintJars();
+  @Attribute("baseline") GenericAttributeValue<String> getBaseline();
+  @Attribute("checkAllWarnings") GenericAttributeValue<Boolean> getCheckAllWarnings();
+  @Attribute("ignoreWarnings") GenericAttributeValue<Boolean> getIgnoreWarnings();
+  @Attribute("warningsAsErrors") GenericAttributeValue<Boolean> getWarningsAsErrors();
+  @Attribute("fatalOnly") GenericAttributeValue<Boolean> getFatalOnly();
+  @Attribute("checkTestSources") GenericAttributeValue<Boolean> getCheckTestSources();
+  @Attribute("ignoreTestSources") GenericAttributeValue<Boolean> getIgnoreTestSources();
+  @Attribute("checkGeneratedSources") GenericAttributeValue<Boolean> getCheckGeneratedSources();
+  @Attribute("checkDependencies") GenericAttributeValue<Boolean> getCheckDependencies();
+  @Attribute("explainIssues") GenericAttributeValue<Boolean> getExplainIssues();
+  @Attribute("removeFixedBaselineIssues") GenericAttributeValue<Boolean> getRemoveFixedBaselineIssues();
+  @Attribute("abortOnError") GenericAttributeValue<Boolean> getAbortOnError();
 }
