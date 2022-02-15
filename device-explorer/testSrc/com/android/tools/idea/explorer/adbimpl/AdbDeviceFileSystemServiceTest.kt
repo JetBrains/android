@@ -72,14 +72,14 @@ class AdbDeviceFileSystemServiceTest {
     // Prepare
     val service = getInstance(project)
     service.start()
-    assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
+    assertEquals(2, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
     assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
 
     // Act
     Disposer.dispose(service)
 
     // Assert
-    assertEquals(0, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
+    assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
     assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
   }
 

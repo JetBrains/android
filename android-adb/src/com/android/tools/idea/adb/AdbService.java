@@ -19,6 +19,7 @@ import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MI
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AdbInitOptions;
+import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.Log;
@@ -28,6 +29,9 @@ import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -36,8 +40,13 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.ui.popup.util.PopupUtil;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -55,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 @Service
-public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
+public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener, AndroidDebugBridge.IDebugBridgeChangeListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   /**
    * The default timeout used by many calls to ddmlib. This includes executing a command,
@@ -95,6 +104,73 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * Underlying implementation of AdbService.
    */
   private final @NotNull AdbService.Implementation myImplementation = new Implementation();
+
+  /**
+   * Tracks whether ADB_MDNS_OPENSCREEN env. variable can be used when starting ADB.
+   *
+   * This is required because some version of ADB crash at startup when ADB_MDNS_OPENSCREEN env variable is set.
+   * We detect this pattern and prevent ADB_MDNS_OPENSCREEN to be set on the next ADB restart.
+   */
+  private boolean myAllowMdnsOpenscreen = true;
+
+  /**
+   * Tracks whether we have shown the notification popup about ADB crashing during initialization.
+   * We use a static variable to ensure we show the notification only once per Android Studio session.
+   */
+  private boolean myInitializationErrorShown = false;
+
+  /**
+   * Anticipated adb version for ADB_MDNS_OPENSCREEN option fix.
+   */
+  private static final String MDNS_OPENSCREEN_FIX_ADB_VERSION = "1.0.42";
+
+  @Override
+  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+  }
+
+  @Override
+  public void initializationError(@NotNull Exception exception) {
+    // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
+    // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
+    if (!SystemInfo.isWindows ||
+        !AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ||
+        !(exception instanceof IOException) ||
+        !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
+      return;
+    }
+
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge == null) {
+      return;
+    }
+
+    AdbVersion version = bridge.getCurrentAdbVersion();
+    if (version == null || version.compareTo(AdbVersion.parseFrom(MDNS_OPENSCREEN_FIX_ADB_VERSION)) >= 0) {
+      return;
+    }
+
+    Log.w("Remote shutdown of adb host was detected, attempting to restart server without MDNS Openscreen.", exception);
+    String helpMessage = String.format(
+      "Error initializing adb with MDNS Openscreen enabled.\n" +
+      "Attempting restart adb with option disabled.\n" +
+      "Try updating to a newer version of ADB (%s or later).",
+      MDNS_OPENSCREEN_FIX_ADB_VERSION);
+    Notification notification = NotificationGroup.balloonGroup("Adb Service")
+      .createNotification(helpMessage, NotificationType.WARNING)
+      .setImportant(true);
+    Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
+
+    myAllowMdnsOpenscreen = false;
+
+    if (!myInitializationErrorShown) {
+      PopupUtil.showBalloonForActiveComponent(helpMessage, MessageType.WARNING);
+      myInitializationErrorShown = true;
+    }
+    try {
+      terminateDdmlib();
+    } catch (TimeoutException ignored) {}
+    // Leave until next getBridge caller to reinitialize.
+  }
 
   public static AdbService getInstance() {
     return ApplicationManager.getApplication().getService(AdbService.class);
@@ -166,6 +242,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   @Override
   public void dispose() {
     LOG.info("Disposing AdbService");
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AdbOptionsService.getInstance().removeListener(this);
     try {
       mySequentialExecutor.submit(() -> {
@@ -213,6 +290,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
     AdbOptionsService.getInstance().addListener(this);
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
@@ -240,11 +318,12 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
     options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
     options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
-    if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()) {
+    if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get() && getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
       options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");
     }
+    getInstance().myAllowMdnsOpenscreen = true;
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
       // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
       //noinspection UnstableApiUsage
