@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
@@ -38,7 +40,6 @@ object TestUtils {
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
-
     override fun paint(g: Graphics2D) {
       g.fillRect(x + offsetPx, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }
@@ -55,6 +56,14 @@ object TestUtils {
     }
     return slider
   }
+
+  fun createComposeAnimation(label: String? = null, type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE) =
+    object : ComposeAnimation {
+      override val animationObject = Any()
+      override val type = type
+      override val label = label
+      override val states = setOf(Any())
+    }
 
   fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
     assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
