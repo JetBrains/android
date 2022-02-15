@@ -331,6 +331,9 @@ object InspectorPainter {
     /** Set list of states for comboBoxes. */
     fun updateStates(states: Set<Any>)
 
+    /** Set models for all comboBoxes in this component. */
+    fun setModels(models: List<DefaultComboBoxModel<Any>>)
+
     /** Setup all listeners. */
     fun setupListeners()
 
@@ -342,7 +345,30 @@ object InspectorPainter {
 
     /** Set a start state. */
     fun setStartState(state: Any?)
+
+    /** Create models for comboBoxes in this component. */
+    fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>>
   }
+
+  /** Wrapper around multiple StateComboBox with shared state. */
+  class StateComboBoxes(private val boxes: List<StateComboBox>) {
+    // ComboBox models are shared for all [StateComboBox] so only boxes.first() can be used where needed.
+    fun stateHashCode() = boxes.first().stateHashCode()
+    fun setupListeners() {
+      boxes.first().setupListeners()
+    }
+
+    fun updateStates(states: Set<Any>) {
+      val models = boxes.first().createModels(states)
+      boxes.forEach { it.setModels(models) }
+    }
+
+    fun getState(index: Int = 0): Any = boxes.first().getState(index)
+    fun setStartState(state: Any?) {
+      boxes.first().setStartState(state)
+    }
+  }
+
 
   class EmptyComboBox() : StateComboBox, JPanel() {
     override val component = this
@@ -351,6 +377,8 @@ object InspectorPainter {
     override fun updateStates(states: Set<Any>) {}
     override fun getState(index: Int): Any = 0
     override fun setStartState(state: Any?) {}
+    override fun setModels(models: List<DefaultComboBoxModel<Any>>) {}
+    override fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>> = emptyList()
   }
 
   /**
@@ -377,6 +405,13 @@ object InspectorPainter {
     override fun updateStates(states: Set<Any>) {
       model = DefaultComboBoxModel(states.toTypedArray())
     }
+
+    override fun setModels(models: List<DefaultComboBoxModel<Any>>) {
+      model = models.first()
+    }
+
+    override fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>> =
+      listOf(DefaultComboBoxModel(states.toTypedArray()))
 
     override fun setStartState(state: Any?) {
       (state as? String).let {
@@ -474,6 +509,15 @@ object InspectorPainter {
         callback(this)
       })
     }
+
+    override fun setModels(models: List<DefaultComboBoxModel<Any>>) {
+      startStateComboBox.model = models[0]
+      endStateComboBox.model = models[1]
+    }
+
+    override fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>> =
+      listOf(DefaultComboBoxModel(states.toTypedArray()), DefaultComboBoxModel(states.toTypedArray()))
+
 
     override fun updateStates(states: Set<Any>) {
       startStateComboBox.model = DefaultComboBoxModel(states.toTypedArray())

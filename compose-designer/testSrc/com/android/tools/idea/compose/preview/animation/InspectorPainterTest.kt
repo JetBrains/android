@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.ui.ComboBox
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -95,6 +96,45 @@ class InspectorPainterTest {
   }
 
   @Test
+  fun createStartEndComboBoxes() {
+    var callbacks = 0
+    val comboBoxOne: InspectorPainter.StateComboBox =
+      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+    val comboBoxTwo: InspectorPainter.StateComboBox =
+      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
+
+    // All StateComboBox have the same state.
+    boxes.updateStates(setOf("One", "Two", "Three"))
+    boxes.setStartState("One")
+    assertEquals("One", boxes.getState(0))
+    assertEquals("One", comboBoxOne.getState(0))
+    assertEquals("One", comboBoxTwo.getState(0))
+    assertEquals("Two", boxes.getState(1))
+    assertEquals("Two", comboBoxOne.getState(1))
+    assertEquals("Two", comboBoxTwo.getState(1))
+    // All StateComboBox have the same stateHashCode.
+    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
+    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
+    // Callback is called only once and state for all comboBoxes has changed.
+    boxes.setupListeners()
+    (comboBoxOne.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
+      this.selectedIndex = 2
+      assertEquals(1, callbacks)
+      assertEquals("Three", boxes.getState(0))
+      assertEquals("Three", comboBoxOne.getState(0))
+      assertEquals("Three", comboBoxTwo.getState(0))
+    }
+    (comboBoxTwo.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
+      this.selectedIndex = 1
+      assertEquals(2, callbacks)
+      assertEquals("Two", boxes.getState(0))
+      assertEquals("Two", comboBoxOne.getState(0))
+      assertEquals("Two", comboBoxTwo.getState(0))
+    }
+  }
+
+  @Test
   fun createAnimatedVisibilityComboBox() {
     val comboBox: InspectorPainter.StateComboBox =
       InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = {})
@@ -105,6 +145,42 @@ class InspectorPainterTest {
     comboBox.setStartState("Two")
     assertEquals("Two", comboBox.getState(0))
     comboBox.setupListeners()
+  }
+
+  @Test
+  fun createAnimatedVisibilityComboBoxes() {
+    var callbacks = 0
+    val comboBoxOne: InspectorPainter.StateComboBox =
+      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
+    val comboBoxTwo: InspectorPainter.StateComboBox =
+      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
+    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
+
+    // All StateComboBox have the same state.
+    boxes.updateStates(setOf("One", "Two", "Three"))
+    boxes.setStartState("One")
+    assertEquals("One", boxes.getState(0))
+    assertEquals("One", comboBoxOne.getState(0))
+    assertEquals("One", comboBoxTwo.getState(0))
+    // All StateComboBox have the same stateHashCode.
+    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
+    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
+    // Callback is called only once.
+    boxes.setupListeners()
+    (comboBoxOne.component as ComboBox<*>).apply {
+      this.selectedIndex = 2
+      assertEquals(1, callbacks)
+      assertEquals("Three", boxes.getState(0))
+      assertEquals("Three", comboBoxOne.getState(0))
+      assertEquals("Three", comboBoxTwo.getState(0))
+    }
+    (comboBoxTwo.component as ComboBox<*>).apply {
+      this.selectedIndex = 1
+      assertEquals(2, callbacks)
+      assertEquals("Two", boxes.getState(0))
+      assertEquals("Two", comboBoxOne.getState(0))
+      assertEquals("Two", comboBoxTwo.getState(0))
+    }
   }
 
   @Test
