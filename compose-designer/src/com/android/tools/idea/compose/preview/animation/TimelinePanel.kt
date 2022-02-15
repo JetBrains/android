@@ -36,11 +36,10 @@ import kotlin.math.max
  */
 private const val DEFAULT_MAX_DURATION_MS = 10000L
 
-
 /**
  * Timeline slider with auto-resized ticks and labels distance.
  */
-open class TimelinePanel(private val tracker: ComposeAnimationEventTracker)
+open class TimelinePanel(val previewState: AnimationPreviewState, val tracker: ComposeAnimationEventTracker)
   : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
@@ -63,10 +62,9 @@ open class TimelinePanel(private val tracker: ComposeAnimationEventTracker)
     zoomValue = z
   }
 
-  open fun createSliderUI() = TimelineSliderUI(this@TimelinePanel, tracker)
+  open fun createSliderUI() = TimelineSliderUI(this)
 
   override fun updateUI() {
-    setUI(createSliderUI())
     updateLabelUIs()
   }
 
@@ -105,7 +103,7 @@ open class TimelinePanel(private val tracker: ComposeAnimationEventTracker)
  *   * The vertical thumb is a vertical line that matches the parent height
  *   * The tick lines also match the parent height
  */
-open class TimelineSliderUI(slider: JSlider, private val tracker: ComposeAnimationEventTracker?) : BasicSliderUI(slider) {
+open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timeline) {
 
   val positionProxy = object : PositionProxy {
     override fun valueForXPosition(value: Int): Int =
@@ -128,7 +126,9 @@ open class TimelineSliderUI(slider: JSlider, private val tracker: ComposeAnimati
 
   /** Element currently hovered or dragged. */
   var activeElement: TimelineElement? = null
-    private set
+    private set(value) {
+      field = if (timeline.previewState.isCoordinationAvailable()) value else null
+    }
 
   /** Separate elements with a line. */
   private fun separateElements() = elements.size > 1
@@ -282,7 +282,7 @@ open class TimelineSliderUI(slider: JSlider, private val tracker: ComposeAnimati
 
     override fun mouseReleased(e: MouseEvent) {
       super.mouseReleased(e)
-      tracker?.invoke(
+      timeline.tracker?.invoke(
         if (activeElement == null) {
           if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
           else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE

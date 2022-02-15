@@ -791,7 +791,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
 
 
-    private val slider = object : TimelinePanel(logger) {
+    private val slider = object : TimelinePanel(object: AnimationPreviewState {}, logger) {
       override fun createSliderUI() = TimelineSlider(this)
     }.apply {
       setUI(TimelineSlider(this))
@@ -875,7 +875,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      *   * The vertical thumb is a vertical line that matches the parent height
      *   * The tick lines also match the parent height
      */
-    private inner class TimelineSlider(slider: JSlider) : TimelineSliderUI(slider, logger) {
+    private inner class TimelineSlider(timeline: TimelinePanel) : TimelineSliderUI(timeline) {
       fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo? =
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()

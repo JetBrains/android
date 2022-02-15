@@ -85,9 +85,9 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove cards`() {
-    val cardOne = AnimationCard(surface, ElementState("One")) {}.apply { setDuration(111) }
-    val cardTwo = AnimationCard(surface, ElementState("Two")) {}.apply { setDuration(222) }
-    val cardThree = AnimationCard(surface, ElementState("Three")) {}.apply { setDuration(333) }
+    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply { setDuration(111) }
+    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply { setDuration(222) }
+    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply { setDuration(333) }
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
 
@@ -123,9 +123,9 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui`() {
-    val cardOne = AnimationCard(surface, ElementState("One")) {}.apply { setDuration(111) }
-    val cardTwo = AnimationCard(surface, ElementState("Two")) {}.apply { setDuration(222) }
-    val cardThree = AnimationCard(surface, ElementState("Three")) {}.apply { setDuration(333) }
+    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply { setDuration(111) }
+    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply { setDuration(222) }
+    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply { setDuration(333) }
 
 
     val panel = AllTabPanel().apply {
@@ -161,7 +161,7 @@ class AllTabPanelTest {
       })
     }
     for (i in 0..10) {
-      panel.addCard(AnimationCard(surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })
+      panel.addCard(AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })
     }
 
     invokeAndWaitIfNeeded {

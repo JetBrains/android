@@ -34,7 +34,10 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 /** Bottom control panel. */
-class BottomPanel(surface: DesignSurface, private val tracker: ComposeAnimationEventTracker) : JPanel(TabularLayout("*", "Fit,*,Fit")) {
+class BottomPanel(val previewState: AnimationPreviewState,
+                  surface: DesignSurface,
+                  private val tracker: ComposeAnimationEventTracker) : JPanel(
+  TabularLayout("*", "Fit,*,Fit")) {
 
   var clockTimeMs = 0
 
@@ -75,8 +78,11 @@ class BottomPanel(surface: DesignSurface, private val tracker: ComposeAnimationE
 
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
-      e.presentation.isEnabled = true
+      if (e.presentation.isEnabled != previewState.isCoordinationAvailable()) {
+        e.presentation.isEnabled = previewState.isCoordinationAvailable()
+        e.presentation.text = if (previewState.isCoordinationAvailable()) message("animation.inspector.action.reset.timeline")
+        else message("animation.inspector.coordination.unavailable.reset.timeline")
+      }
     }
   }
-
 }

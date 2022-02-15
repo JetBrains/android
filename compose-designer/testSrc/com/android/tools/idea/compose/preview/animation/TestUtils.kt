@@ -45,9 +45,13 @@ object TestUtils {
     }
   }
 
+  fun testPreviewState(withCoordination: Boolean = true) = object : AnimationPreviewState {
+    override fun isCoordinationAvailable() = withCoordination
+  }
+
   /** Create [TimelinePanel] with 300x500 size. */
   fun createTestSlider(): TimelinePanel {
-    val slider = TimelinePanel {}
+    val slider = TimelinePanel(testPreviewState()) {}
     slider.maximum = 100
     JPanel(BorderLayout()).apply {
       // Extra parent panel is required for slider to properly set all sizes.

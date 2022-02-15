@@ -33,10 +33,10 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
-class AnimationCard(
-  val surface: DesignSurface,
-  val state: ElementState,
-  private val tracker: ComposeAnimationEventTracker)
+class AnimationCard(previewState: AnimationPreviewState,
+                    val surface: DesignSurface,
+                    val state: ElementState,
+                    private val tracker: ComposeAnimationEventTracker)
   : JPanel(TabularLayout("*")) {
 
   // Collapsed view:
@@ -100,7 +100,7 @@ class AnimationCard(
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
-    val lockToolbar = DefaultToolbarImpl(surface, "LockUnlockAnimationCard", LockAction(state, tracker))
+    val lockToolbar = DefaultToolbarImpl(surface, "LockUnlockAnimationCard", LockAction(previewState, state, tracker))
     secondRow.add(lockToolbar, TabularLayout.Constraint(0, 0))
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))

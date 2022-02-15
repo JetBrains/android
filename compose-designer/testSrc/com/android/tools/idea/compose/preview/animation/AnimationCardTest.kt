@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.util.stream.Collectors
 import javax.swing.JComponent
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -41,7 +44,8 @@ class AnimationCardTest {
 
   @Test
   fun `create animation card`() {
-    val card = AnimationCard(Mockito.mock(DesignSurface::class.java), ElementState("Title")) { }.apply { setDuration(111) }
+    val card = AnimationCard(TestUtils.testPreviewState(), Mockito.mock(DesignSurface::class.java),
+                             ElementState("Title")) { }.apply { setDuration(111) }
     card.setSize(300, 300)
 
     invokeAndWaitIfNeeded {
@@ -73,9 +77,10 @@ class AnimationCardTest {
       }
 
       // Lock button.
-      (card.components[1] as JComponent).components[0].also {
+      findLockButton(card).also {
         // Button is here and visible.
         assertTrue(it.isVisible)
+        assertTrue { it.isEnabled }
         TestUtils.assertBigger(minimumSize, it.size)
         // After clicking button callback is called.
         var lockCalls = 0
@@ -96,5 +101,34 @@ class AnimationCardTest {
       assertEquals(1, openInTabActions)
       assertNotNull(ui)
     }
+  }
+
+  @Test
+  fun `create animation card if coordination is not available`(): Unit = invokeAndWaitIfNeeded {
+    val card = AnimationCard(TestUtils.testPreviewState(false), Mockito.mock(DesignSurface::class.java),
+                             ElementState("Title")) { }.apply {
+      setDuration(111)
+      setSize(300, 300)
+    }
+    val ui = FakeUi(card).apply {
+      updateToolbars()
+      layout()
+    }
+
+    // Lock button is not available.
+    findLockButton(card).also {
+      // Button is here and visible.
+      assertTrue(it.isVisible)
+      assertFalse { it.isEnabled }
+      TestUtils.assertBigger(minimumSize, it.size)
+    }
+    // Uncomment to preview ui.
+    //ui.render()
+  }
+
+  private fun findLockButton(parent: Component): Component {
+    val lockToolbar = TreeWalker(parent).descendantStream().filter { it is ActionToolbarImpl }.collect(
+      Collectors.toList()).map { it as ActionToolbarImpl }.firstOrNull { it.place == "LockUnlockAnimationCard" }
+    return (lockToolbar as JComponent).components[0]
   }
 }

@@ -32,6 +32,7 @@ import java.awt.Container
 import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class BottomPanelTest {
@@ -67,6 +68,7 @@ class BottomPanelTest {
     (panel.components[0] as Container).components[2].also {
       // Reset button.
       assertTrue(it.isVisible)
+      assertTrue(it.isEnabled)
       TestUtils.assertBigger(minimumSize, it.size)
       // After clicking button callback is called.
       var resetCalls = 0
@@ -74,6 +76,21 @@ class BottomPanelTest {
       ui.clickOn(it)
       ui.updateToolbars()
       assertEquals(1, resetCalls)
+    }
+  }
+
+  @Test
+  fun `reset button is disabled if coordination is not available`(): Unit = invokeAndWaitIfNeeded {
+    val panel = createBottomPanel(false)
+    val ui = FakeUi(panel.parent).apply {
+      updateToolbars()
+      layout()
+    }
+    (panel.components[0] as Container).components[2].also {
+      // Reset button.
+      assertTrue(it.isVisible)
+      assertFalse(it.isEnabled)
+      TestUtils.assertBigger(minimumSize, it.size)
     }
   }
 
@@ -111,8 +128,8 @@ class BottomPanelTest {
 
 
   /** Create [BottomPanel] with 300x500 size. */
-  private fun createBottomPanel(): BottomPanel {
-    val panel = BottomPanel(surface) {}
+  private fun createBottomPanel(withCoordination: Boolean = true): BottomPanel {
+    val panel = BottomPanel(TestUtils.testPreviewState(withCoordination), surface) {}
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)
