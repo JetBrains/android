@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 
 class HttpDataTest {
   @Test
@@ -189,5 +192,27 @@ class HttpDataTest {
   fun statusCodeFromFields() {
     val data = createFakeHttpData(1, responseFields = "content-length = 10000 \n  response-status-code = 200")
     assertThat(data.responseHeader.statusCode).isEqualTo(200)
+  }
+
+  @Test
+  fun decodesGzippedResponsePayload() {
+    val byteOutput = ByteArrayOutputStream()
+    GZIPOutputStream(byteOutput).use { stream ->
+      stream.write("test".encodeToByteArray())
+    }
+    byteOutput.toByteArray()
+    val data = createFakeHttpData(1,
+                                  responseFields = "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+                                  responsePayload = ByteString.copyFrom(byteOutput.toByteArray()))
+    assertThat(data.responsePayload.toStringUtf8()).isEqualTo("test")
+  }
+
+  @Test
+  fun decodeMalformedGzipResponsePayload_showRawPayload() {
+    val malformedBytes = "Not a gzip".toByteArray()
+    val data = createFakeHttpData(1,
+                                  responseFields = "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+                                  responsePayload = ByteString.copyFrom(malformedBytes))
+    assertThat(data.responsePayload.toByteArray()).isEqualTo(malformedBytes)
   }
 }
