@@ -17,6 +17,7 @@ PluginInfo = provider(
         "files_mac": "",
         "files_mac_arm": "",
         "files_win": "",
+        "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
     },
 )
 
@@ -225,6 +226,7 @@ def _studio_plugin_impl(ctx):
             module_deps = depset(ctx.attr.modules),
             lib_deps = depset(ctx.attr.libs),
             licenses = depset(ctx.files.licenses),
+            overwrite_plugin_version = True,
         ),
     ]
 
@@ -452,12 +454,10 @@ def _stamp_platform(ctx, platform, zip, out):
     args = ["--stamp_platform", out.path]
     _stamp(ctx, platform, zip, args, [], out)
 
-def _stamp_platform_plugin(ctx, platform, zip, src, dst):
-    args = ["--stamp_platform_plugin", src.path, dst.path]
-    _stamp(ctx, platform, zip, args, [src], dst)
-
-def _stamp_plugin(ctx, platform, zip, src, dst):
+def _stamp_plugin(ctx, platform, zip, src, dst, overwrite_plugin_version):
     args = ["--stamp_plugin", src.path, dst.path]
+    if overwrite_plugin_version:
+        args.append("--overwrite_plugin_version")
     _stamp(ctx, platform, zip, args, [src], dst)
 
 def _zip_merger(ctx, zips, overrides, out):
@@ -527,7 +527,7 @@ def _android_studio_os(ctx, platform, out):
     overrides += [(platform_prefix, platform_stamp)]
     for plugin in platform_plugins:
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s" % (plugin.basename, platform.name))
-        _stamp_platform_plugin(ctx, platform, platform_zip, plugin, stamp)
+        _stamp_plugin(ctx, platform, platform_zip, plugin, stamp, overwrite_plugin_version = False)
         overrides += [(platform_prefix, stamp)]
 
     dev01 = ctx.actions.declare_file(ctx.attr.name + ".dev01." + platform.name)
@@ -546,7 +546,7 @@ def _android_studio_os(ctx, platform, out):
             fail("Expected exactly one plugin zip; instead found: " + str(plugin_zips))
         plugin_zip = plugin_zips[0]
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s.zip" % (p[PluginInfo].directory, platform.name))
-        _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
+        _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp, p[PluginInfo].overwrite_plugin_version)
         overrides += [(platform_prefix + platform.base_path, stamp)]
         zips += [(platform_prefix + platform.base_path, plugin_zip)]
         licenses += [p[PluginInfo].licenses]
@@ -693,6 +693,7 @@ def _intellij_plugin_impl(ctx):
             module_deps = depset(),
             lib_deps = depset(),
             licenses = depset(),
+            overwrite_plugin_version = False,
         ),
     ]
 

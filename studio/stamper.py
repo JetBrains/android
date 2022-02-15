@@ -124,16 +124,16 @@ BASE_PATH = {
 }
 
 
-# Stamps a plugin's plugin.xml file. if <full> is true it performs
-# a full stamping and tag fixing (such as adding missing tags, fixing
+# Stamps a plugin's plugin.xml file. if <overwrite_plugin_version> is true it
+# performs a full stamping and tag fixing (such as adding missing tags, fixing
 # from and to versions etc). Otherwise it simple replaces the build
 # number.
-def _stamp_plugin(platform, os, build_info, full, src, dst):
+def _stamp_plugin(platform, os, build_info, overwrite_plugin_version, src, dst):
   resource_path = RES_PATH[os]
   jar_name, content = _find_file(src, "**/*.jar", "META-INF/plugin.xml")
   bid = _get_build_id(build_info)
 
-  if full:
+  if overwrite_plugin_version:
     build_txt = _read_file(platform, resource_path + "build.txt")
     content = _stamp_plugin_file(build_txt[3:], content)
 
@@ -179,11 +179,9 @@ def main(argv):
       dest="stamp_plugin",
       help="Stamps plugin zip <in> and saves stampped files in an <out> zip.")
   parser.add_argument(
-      "--stamp_platform_plugin",
-      nargs=2,
-      metavar=("src", "dst"),
-      dest="stamp_platform_plugin",
-      help="Stamps a platform plugin zip <in> and saves stampped files in an <out> zip.")
+      "--overwrite_plugin_version",
+      action="store_true",
+      help="Whether to set the <version> and <idea-version> tags for this plugin.")
   parser.add_argument(
       "--stamp_platform",
       default="",
@@ -248,10 +246,8 @@ def main(argv):
         patch = args.version_patch,
         full = args.version_full,
         out = args.stamp_platform)
-  if args.stamp_platform_plugin:
-    _stamp_plugin(args.platform, args.os, build_info, False, args.stamp_platform_plugin[0], args.stamp_platform_plugin[1])
   if args.stamp_plugin:
-    _stamp_plugin(args.platform, args.os, build_info, True, args.stamp_plugin[0], args.stamp_plugin[1])
+    _stamp_plugin(args.platform, args.os, build_info, args.overwrite_plugin_version, args.stamp_plugin[0], args.stamp_plugin[1])
 
 if __name__ == "__main__":
   main(sys.argv[1:])

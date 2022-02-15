@@ -72,6 +72,7 @@ class ToolsTest(unittest.TestCase):
         "--version_file", volatile,
         "--platform", platform,
         "--stamp_plugin", before, res,
+        "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
@@ -98,6 +99,7 @@ class ToolsTest(unittest.TestCase):
         "--version_file", volatile,
         "--platform", platform,
         "--stamp_plugin", before, res,
+        "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
@@ -124,6 +126,7 @@ class ToolsTest(unittest.TestCase):
         "--version_file", volatile,
         "--platform", platform,
         "--stamp_plugin", before, res,
+        "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
@@ -220,6 +223,7 @@ class ToolsTest(unittest.TestCase):
         "--version_file", volatile,
         "--platform", platform,
         "--stamp_plugin", before, res,
+        "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
