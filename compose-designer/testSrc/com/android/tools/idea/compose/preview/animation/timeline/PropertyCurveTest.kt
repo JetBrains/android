@@ -20,14 +20,16 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
 
 class PropertyCurveTest {
 
   @Test
-  fun `create property curves`() {
+  fun `create property curves`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
     val property = AnimatedProperty.Builder()
       .add(0, ComposeUnit.IntSize(0, 0))
@@ -35,16 +37,14 @@ class PropertyCurveTest {
       .add(100, ComposeUnit.IntSize(20, -20))
       .build()!!
 
-    val propertyCurveOne = PropertyCurve.create(ElementState(),
-                                                property, InspectorLayout.TIMELINE_TOP_OFFSET,
-                                                0, slider.sliderUI.positionProxy).also {
-      it.timelineUnit = ComposeUnit.TimelineUnit(
-        "UnitOne", ComposeUnit.IntSize(1, 2))
+    val propertyCurveOne = PropertyCurve.create(
+      ElementState(), property, InspectorLayout.TIMELINE_TOP_OFFSET, 0, slider.sliderUI.positionProxy).also {
+      it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2))
     }
 
-    val propertyCurveTwo = PropertyCurve.create(ElementState(),
-                                                property, InspectorLayout.TIMELINE_TOP_OFFSET + propertyCurveOne.height,
-                                                1, slider.sliderUI.positionProxy)
+    val propertyCurveTwo = PropertyCurve.create(
+      ElementState(), property, InspectorLayout.TIMELINE_TOP_OFFSET + propertyCurveOne.height,
+      1, slider.sliderUI.positionProxy)
 
     slider.sliderUI.elements.add(propertyCurveOne)
     slider.sliderUI.elements.add(propertyCurveTwo)

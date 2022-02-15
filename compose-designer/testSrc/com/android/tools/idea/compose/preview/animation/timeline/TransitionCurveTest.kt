@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
 
 class TransitionCurveTest {
@@ -32,9 +33,10 @@ class TransitionCurveTest {
     .build()!!
 
   @Test
-  fun `create transition curves`() {
+  fun `create transition curves`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurveOne = TransitionCurve.create(state = ElementState(), transition = transition,
@@ -57,9 +59,10 @@ class TransitionCurveTest {
   }
 
   @Test
-  fun `create transition curves with null properties`() {
+  fun `create transition curves with null properties`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to null, 2 to property, 3 to null))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
                                                  rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
@@ -70,9 +73,10 @@ class TransitionCurveTest {
   }
 
   @Test
-  fun `create transition curve with null timeline units`() {
+  fun `create transition curve with null timeline units`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property, 2 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
                                                  rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
@@ -84,9 +88,10 @@ class TransitionCurveTest {
   }
 
   @Test
-  fun `create transition curve with less timeline units`() {
+  fun `create transition curve with less timeline units`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
                                                  rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
@@ -99,9 +104,10 @@ class TransitionCurveTest {
   }
 
   @Test
-  fun `create transition curve with more timeline units`() {
+  fun `create transition curve with more timeline units`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
                                                  rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,

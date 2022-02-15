@@ -20,19 +20,18 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
-import org.junit.Ignore
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ComponentCurveTest {
 
-  @Ignore
   @Test
-  fun `create component curve`() {
+  fun `create component curve`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    // Render ui once so positionProxy for slider will return valid positions.
-    val ui = FakeUi(slider.parent)
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
     val property = AnimatedProperty.Builder()
       .add(0, ComposeUnit.IntSize(0, 0))

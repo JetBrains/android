@@ -17,9 +17,7 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -27,15 +25,13 @@ import kotlin.test.assertTrue
 
 class TimelineLineTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-
   @Test
-  fun `check line contains points`() {
+  fun `check line contains points`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       maximum = 600
+      // Call layoutAndDispatchEvents() so positionProxy returns correct values
+      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
     }
-    FakeUi(slider.parent).apply { layout() }
     slider.sliderUI.apply {
       val line = TimelineLine(ElementState(), 50, 150, 50, positionProxy)
       assertFalse(line.contains(30, 80))
@@ -51,28 +47,27 @@ class TimelineLineTest {
   }
 
   @Test
-  fun `ui with lines renders correctly`() {
-    invokeAndWaitIfNeeded {
-      val slider = TestUtils.createTestSlider().apply {
-        value = 1000
-      }
-      slider.sliderUI.apply {
-        elements.add(TimelineLine(ElementState(), 50, 150, 50, positionProxy).apply {
-          status = TimelineElementStatus.Hovered
-        })
-        elements.add(TimelineLine(ElementState(), 50, 150, 150, positionProxy).apply {
-          status = TimelineElementStatus.Dragged
-        })
-        elements.add(TimelineLine(ElementState(), 50, 150, 250, positionProxy).apply {
-          status = TimelineElementStatus.Inactive
-        })
-        elements.add(TimelineLine(ElementState(), 50, 150, 350, positionProxy).apply {
-        })
-      }
-      val ui = FakeUi(slider.parent)
-      // Uncomment to preview ui.
-      //ui.render()
-      assertNotNull(ui)
+  fun `ui with lines renders correctly`(): Unit = invokeAndWaitIfNeeded {
+    val slider = TestUtils.createTestSlider().apply {
+      value = 1000
     }
+    slider.sliderUI.apply {
+      elements.add(TimelineLine(ElementState(), 50, 150, 50, positionProxy).apply {
+        status = TimelineElementStatus.Hovered
+      })
+      elements.add(TimelineLine(ElementState(), 50, 150, 150, positionProxy).apply {
+        status = TimelineElementStatus.Dragged
+      })
+      elements.add(TimelineLine(ElementState(), 50, 150, 250, positionProxy).apply {
+        status = TimelineElementStatus.Inactive
+      })
+      elements.add(TimelineLine(ElementState(), 50, 150, 350, positionProxy).apply {
+      })
+    }
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+    // Uncomment to preview ui.
+    //ui.render()
+    assertNotNull(ui)
   }
 }
