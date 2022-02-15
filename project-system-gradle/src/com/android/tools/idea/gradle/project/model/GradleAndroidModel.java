@@ -87,7 +87,7 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
  */
 public class GradleAndroidModel implements AndroidModuleModel {
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2021-03-17/1";
+  private final static String ourAndroidSyncVersion = "2022-02-15/1";
 
   @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
