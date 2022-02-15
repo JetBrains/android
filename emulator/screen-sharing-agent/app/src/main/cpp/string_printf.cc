@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-#include "display_info.h"
-
 #include "string_printf.h"
 
 namespace screensharing {
 
 using namespace std;
 
-DisplayInfo::DisplayInfo(int32_t logical_width, int32_t logical_height, int32_t rotation, int32_t layer_stack, int32_t flags)
-    : logical_size { logical_width, logical_height },
-      rotation(rotation),
-      layer_stack(layer_stack),
-      flags(flags) {
-}
-
-string DisplayInfo::ToDebugString() const {
-  return StringPrintf("logical_size:%dx%d display_rotation:%d layer_stack:%d flags:0x%x",
-                      logical_size.width, logical_size.height, rotation, layer_stack, flags);
+string StringPrintf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int size_s = vsnprintf(nullptr, 0, format, args);
+  va_end(args);
+  if (size_s <= 0) {
+    throw runtime_error("Error during formatting.");
+  }
+  auto size = static_cast<size_t>(size_s) + 1;  // Extra space for '\0'.
+  auto buf = make_unique<char[]>(size);
+  va_start(args, format);
+  vsnprintf(buf.get(), size, format, args);
+  va_end(args);
+  return string(buf.get(), buf.get() + size - 1);  // Without the '\0'.
 }
 
 }  // namespace screensharing

@@ -25,9 +25,9 @@
 
 #include "log.h"
 
-using namespace std;
-
 namespace screensharing {
+
+using namespace std;
 
 namespace {
 

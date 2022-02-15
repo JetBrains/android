@@ -27,6 +27,7 @@
 #include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
+#include "scoped_setting.h"
 
 namespace screensharing {
 
@@ -47,7 +48,7 @@ private:
   void ProcessKeyboardEvent(const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
   void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
-  void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
+  static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
 
   Jni jni_ = nullptr;
   Base128InputStream input_stream_;
@@ -58,6 +59,7 @@ private:
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
   int64_t motion_event_start_time_;
   KeyCharacterMap* key_character_map_;
+  ScopedSetting stay_on_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

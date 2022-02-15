@@ -33,6 +33,9 @@ add_library(
         jvm.cc
         log.cc
         main.cc
+        scoped_setting.cc
+        settings.cc
+        string_printf.cc
         video_packet_header.cc
 )
 

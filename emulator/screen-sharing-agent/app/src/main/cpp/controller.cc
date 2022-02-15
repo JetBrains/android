@@ -22,8 +22,10 @@
 #include "accessors/key_event.h"
 #include "accessors/window_manager.h"
 #include "agent.h"
-#include "log.h"
 #include "jvm.h"
+#include "log.h"
+#include "settings.h"
+#include "string_printf.h"
 
 namespace screensharing {
 
@@ -31,6 +33,11 @@ using namespace std;
 using namespace std::chrono;
 
 namespace {
+
+// Constants from android.os.BatteryManager.
+constexpr int BATTERY_PLUGGED_AC = 1;
+constexpr int BATTERY_PLUGGED_USB = 2;
+constexpr int BATTERY_PLUGGED_WIRELESS = 4;
 
 constexpr int BUFFER_SIZE = 4096;
 
@@ -48,7 +55,8 @@ Controller::Controller(int socket_fd)
       input_manager_(),
       pointer_helper_(),
       motion_event_start_time_(0),
-      key_character_map_() {
+      key_character_map_(),
+      stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in") {
   assert(socket_fd > 0);
 }
 
@@ -94,6 +102,9 @@ void Controller::Initialize() {
 
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
+
+  // Keep the screen on as long as the device has power.
+  stay_on_.Set(StringPrintf("%d", BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS).c_str());
 }
 
 void Controller::Run() {

@@ -22,11 +22,11 @@
 
 namespace screensharing {
 
+using namespace std;
+
 static constexpr char TAG[] = "ScreenSharing";
 
 Log::Level Log::level_ = Log::Level::INFO;
-
-using namespace std;
 
 void Log::V(const char* message, ...) {
   if (IsEnabled(Level::VERBOSE)) {
@@ -77,22 +77,6 @@ void Log::Fatal(const char* message, ...) {
   __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
   va_end(args);
   exit(1);
-}
-
-string StringPrintf(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int size_s = vsnprintf(nullptr, 0, format, args);
-  va_end(args);
-  if (size_s <= 0) {
-    throw runtime_error("Error during formatting.");
-  }
-  auto size = static_cast<size_t>(size_s) + 1;  // Extra space for '\0'.
-  auto buf = make_unique<char[]>(size);
-  va_start(args, format);
-  vsnprintf(buf.get(), size, format, args);
-  va_end(args);
-  return string(buf.get(), buf.get() + size - 1);  // Without the '\0'.
 }
 
 }  // namespace screensharing

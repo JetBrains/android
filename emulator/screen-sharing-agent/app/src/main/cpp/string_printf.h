@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-#include "video_packet_header.h"
+#pragma once
 
-#include <unistd.h>
-#include <sys/socket.h>
-
-#include "string_printf.h"
+#include <string>
 
 namespace screensharing {
 
-std::string VideoPacketHeader::ToDebugString() const {
-  return StringPrintf("display_width:%d display_height:%d orientation:%d packet_size:%d"
-                      " frame_number:%" PRId64 " origination_timestamp_us:%" PRId64 " presentation_timestamp_us:%" PRId64,
-                      display_width, display_height, display_orientation, packet_size,
-                      frame_number, origination_timestamp_us, presentation_timestamp_us);
-}
+// Formats a string and returns it.
+std::string StringPrintf(const char* format, ...) __attribute__((format(printf, 1, 2)));
 
 }  // namespace screensharing

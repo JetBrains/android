@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,31 @@
  * limitations under the License.
  */
 
-#include "video_packet_header.h"
+#pragma once
 
-#include <unistd.h>
-#include <sys/socket.h>
+#include <string>
 
-#include "string_printf.h"
+#include "common.h"
+#include "settings.h"
 
 namespace screensharing {
 
-std::string VideoPacketHeader::ToDebugString() const {
-  return StringPrintf("display_width:%d display_height:%d orientation:%d packet_size:%d"
-                      " frame_number:%" PRId64 " origination_timestamp_us:%" PRId64 " presentation_timestamp_us:%" PRId64,
-                      display_width, display_height, display_orientation, packet_size,
-                      frame_number, origination_timestamp_us, presentation_timestamp_us);
-}
+// An Android system setting that can be modified and then restored to the original value when
+// the ScopedSetting object is destroyed.
+class ScopedSetting {
+public:
+  ScopedSetting(Settings::Table table, std::string key);
+  ~ScopedSetting();
+
+  void Set(const char* value);
+
+private:
+  Settings::Table table_;
+  const std::string key_;
+  bool restore_required_;
+  std::string saved_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScopedSetting);
+};
 
 }  // namespace screensharing

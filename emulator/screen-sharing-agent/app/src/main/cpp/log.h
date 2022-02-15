@@ -64,6 +64,4 @@ private:
   Log() = delete;
 };
 
-std::string StringPrintf(const char* format, ...) __attribute__((format(printf, 1, 2)));
-
 }  // namespace screensharing
