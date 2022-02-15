@@ -218,9 +218,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       GradleSyncMessages.getInstance(project).errorDescription.isNotEmpty() -> GradleSyncMessages.getInstance(project).errorDescription
       else -> "Unknown cause".also { LOG.warn(IllegalStateException("No error message given")) }
     }
-    val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(millisTook)})"
+    val resultMessage = "Gradle sync failed in ${formatDuration(millisTook)}"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.ERROR, null)
-    LOG.warn(resultMessage)
+    LOG.warn(resultMessage + ". " + causeMessage)
 
     // Log the error to ideas log
     // Note: we log this as well as message above so the stack trace is present in the logs.
