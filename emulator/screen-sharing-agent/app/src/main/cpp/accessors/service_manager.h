@@ -25,6 +25,7 @@ namespace screensharing {
 class ServiceManager {
 public:
   static JObject GetServiceAsInterface(Jni jni, const char* name, const char* type);
+  static JObject GetService(Jni jni, const char* name);
 
 private:
   ServiceManager(Jni jni);
