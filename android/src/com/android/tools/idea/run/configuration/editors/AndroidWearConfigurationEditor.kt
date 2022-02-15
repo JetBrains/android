@@ -24,6 +24,7 @@ import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
@@ -68,9 +69,9 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   init {
     Disposer.register(project, this)
 
-    modulesComboBox.addActionListener { event ->
+    modulesComboBox.addActionListener {
       val module = moduleSelector.module
-      val availableComponents = if (module == null) {
+      val availableComponents = if (module == null || DumbService.isDumb(project)) {
         emptyList()
       }
       else {
