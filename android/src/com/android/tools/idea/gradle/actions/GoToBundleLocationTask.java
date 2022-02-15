@@ -226,7 +226,7 @@ public class GoToBundleLocationTask {
       }
 
       VirtualFile virtualFile = !bundleFile.isFile() ? askUserForBundleFile(bundleFile)
-                                                     : LocalFileSystem.getInstance().findFileByIoFile(bundleFile);
+                                                     : LocalFileSystem.getInstance().refreshAndFindFileByIoFile(bundleFile);
 
       if (virtualFile == null) {
         getLog().warn(String.format("Bundle file not found in virtual file system \"%s\"", bundlePath));

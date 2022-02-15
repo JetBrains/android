@@ -181,7 +181,7 @@ public class GoToApkLocationTask {
         File apkPath = myApkPathsPerModule.get(description.substring(ANALYZE.length()));
         VirtualFile apk;
         if (apkPath.isFile()) {
-          apk = LocalFileSystem.getInstance().findFileByIoFile(apkPath);
+          apk = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkPath);
         }
         else {
           FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
