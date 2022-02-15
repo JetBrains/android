@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.PIN_EMOJI
 import com.android.tools.idea.compose.preview.PinnedPreviewElementManager
 import com.android.tools.idea.compose.preview.PreviewElementProvider
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -84,8 +83,8 @@ internal class PinAllPreviewElementsAction(
   }
 }
 
-internal class PinPreviewElementAction(private val dataContextProvider: () -> DataContext)
-  : ToggleAction(PIN_EMOJI, null, null) {
+internal class PinPreviewElementAction(private val isAvailable: (DataContext) -> Boolean = { true },
+                                       private val dataContextProvider: () -> DataContext) : ToggleAction(PIN_EMOJI, null, null) {
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -95,8 +94,7 @@ internal class PinPreviewElementAction(private val dataContextProvider: () -> Da
     // Only instances can be pinned (except pinned ones)
     val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) is PreviewElementInstance
     e.presentation.isVisible = isInstance
-    // Disable the action while refreshing.
-    e.presentation.isEnabled = isInstance && !isAnyPreviewRefreshing(e.dataContext)
+    e.presentation.isEnabled = isInstance && isAvailable(e.dataContext)
   }
 
   override fun isSelected(e: AnActionEvent): Boolean =

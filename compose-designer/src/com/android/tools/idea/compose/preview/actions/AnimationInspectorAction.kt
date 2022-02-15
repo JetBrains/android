@@ -19,7 +19,6 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,26 +30,22 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 import javax.swing.JComponent
 
 /**
- * Action to open the compose animation inspector to analyze animations of a Compose Preview in detail.
+ * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in details.
  *
+ * @param isAvailable returns whether the action is available given a [DataContext]. Actions that are not available must be disabled.
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
-internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext)
-  : AnActionButton(message("action.animation.inspector.title"), message("action.animation.inspector.description"), ANIMATION_INSPECTOR),
-    CustomComponentAction {
-
-  private val isSelected: Boolean
-    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstance != null
-
-  private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
+internal class AnimationInspectorAction(private val isAvailable: (DataContext) -> Boolean = { true },
+                                        private val dataContextProvider: () -> DataContext) : AnActionButton(
+  message("action.animation.inspector.title"), message("action.animation.inspector.description"),
+  ANIMATION_INSPECTOR), CustomComponentAction {
 
   private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     e.presentation.apply {
-      // Disable the action while refreshing.
-      isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+      isEnabled = isAvailable(e.dataContext)
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled && getPreviewElement()?.hasAnimations == true
       description =
@@ -59,7 +54,7 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    getComposePreviewManager()?.let { it.animationInspectionPreviewElementInstance = getPreviewElement() }
+    dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.let { it.animationInspectionPreviewElementInstance = getPreviewElement() }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {

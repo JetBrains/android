@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -34,16 +33,16 @@ import javax.swing.JComponent
 /**
  * Action that controls when to enable the Interactive mode.
  *
+ * @param isAvailable returns whether the action is available given a [DataContext]. Actions that are not available must be disabled.
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
-internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW),
-  CustomComponentAction {
+internal class EnableInteractiveAction(private val isAvailable: (DataContext) -> Boolean = { true },
+                                       private val dataContextProvider: () -> DataContext) : AnActionButton(
+  message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW), CustomComponentAction {
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    // Disable the action while refreshing.
-    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+    e.presentation.isEnabled = isAvailable(e.dataContext)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

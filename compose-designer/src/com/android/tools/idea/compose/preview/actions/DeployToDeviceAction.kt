@@ -18,8 +18,6 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
@@ -41,12 +39,15 @@ import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.util.module
 
 /**
- * Action to deploy a @Composable to the device.
+ * Action to run a Compose Preview on a device/emulator.
  *
+ * @param isAvailable returns whether the action is available given a [DataContext]. Actions that are not available must be disabled.
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
-internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
-  : AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE), CustomComponentAction {
+internal class DeployToDeviceAction(private val isAvailable: (DataContext) -> Boolean = { true },
+                                    private val dataContextProvider: () -> DataContext) : AnAction(message("action.run.title"),
+                                                                                                   message("action.run.description"),
+                                                                                                   RUN_ON_DEVICE), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
@@ -62,7 +63,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     super.update(e)
     val isTestFile = previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
-      isEnabled = !isTestFile && !isAnyPreviewRefreshing(e.dataContext)
+      isEnabled = !isTestFile && isAvailable(e.dataContext)
       description = if (isTestFile) message("action.run.description.test.files") else message("action.run.description")
     }
   }
@@ -96,6 +97,4 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   }
 
   private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)
-
-  private fun isRefreshing() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.status()?.isRefreshing == true
 }
