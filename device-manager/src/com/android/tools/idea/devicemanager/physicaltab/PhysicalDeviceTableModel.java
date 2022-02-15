@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
@@ -209,7 +210,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-        return Object.class;
+        return AndroidVersion.class;
       case TYPE_MODEL_COLUMN_INDEX:
         return Collection.class;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
@@ -245,7 +246,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return myCombinedDevices.get(modelRowIndex).getAndroidVersion().getApiString();
+        return myCombinedDevices.get(modelRowIndex).getAndroidVersion();
       case TYPE_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex).getConnectionTypes();
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:

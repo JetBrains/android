@@ -247,7 +247,7 @@ public final class PhysicalDeviceTableModelTest {
     Object value = model.getValueAt(0, PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
 
     // Assert
-    assertEquals("31", value);
+    assertEquals(new AndroidVersion(31), value);
   }
 
   @Test

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.avdmanager.ApiLevelComparator;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
+import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
@@ -73,6 +74,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel));
 
     setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
+    setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
 
     setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
@@ -114,7 +116,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
     sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(PhysicalDevice::getName));
-    sorter.setComparator(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX, new ApiLevelComparator().reversed());
+    sorter.setComparator(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setComparator(PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setSortable(PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, false);
     sorter.setSortable(PhysicalDeviceTableModel.REMOVE_MODEL_COLUMN_INDEX, false);

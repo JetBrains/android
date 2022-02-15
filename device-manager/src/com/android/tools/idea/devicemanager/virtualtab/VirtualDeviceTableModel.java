@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
@@ -138,7 +139,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case DEVICE_MODEL_COLUMN_INDEX:
           return Device.class;
         case API_MODEL_COLUMN_INDEX:
-          return Object.class;
+          return AndroidVersion.class;
         case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
           return Long.class;
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
@@ -158,7 +159,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-        return Object.class;
+        return AndroidVersion.class;
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return Long.class;
       case ACTIONS_MODEL_COLUMN_INDEX:
@@ -196,7 +197,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case DEVICE_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex);
         case API_MODEL_COLUMN_INDEX:
-          return myDevices.get(modelRowIndex).getAndroidVersion().getApiString();
+          return myDevices.get(modelRowIndex).getAndroidVersion();
         case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex).getSizeOnDisk();
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
@@ -216,7 +217,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getAndroidVersion().getApiString();
+        return myDevices.get(modelRowIndex).getAndroidVersion();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getSizeOnDisk();
       case ACTIONS_MODEL_COLUMN_INDEX:
