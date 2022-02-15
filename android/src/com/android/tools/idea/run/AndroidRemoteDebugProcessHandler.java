@@ -22,7 +22,6 @@ import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -47,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
  * Additionally, restore the connection between Client and DDMLib if we detach from the process".
  * See {@link AndroidRemoteDebugProcessHandler#detachProcessImpl()}
  */
-final public class AndroidRemoteDebugProcessHandler extends RemoteDebugProcessHandler implements SwappableProcessHandler {
+final public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements SwappableProcessHandler {
 
   private final Project myProject;
   private final Client myClient;
@@ -58,7 +57,6 @@ final public class AndroidRemoteDebugProcessHandler extends RemoteDebugProcessHa
                                           Client client,
                                           boolean detachIsDefault,
                                           @Nullable Consumer<Client> finishAndroidProcessCallback) {
-    super(project);
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
