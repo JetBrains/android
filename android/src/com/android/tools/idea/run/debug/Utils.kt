@@ -40,7 +40,7 @@ fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, poll
       throw ExecutionException("Device is offline")
     }
     for (appId in appIds) {
-      val clients = DeploymentApplicationService.getInstance().findClient(device, appId)
+      val clients = DeploymentApplicationService.instance.findClient(device, appId)
       if (clients.isNotEmpty()) {
         Logger.getInstance("waitForClient").info("Connecting to $appId")
         if (clients.size > 1) {

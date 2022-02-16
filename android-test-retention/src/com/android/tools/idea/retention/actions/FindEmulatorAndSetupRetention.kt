@@ -224,7 +224,7 @@ class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHa
             targetDevice = adb.devices.find { device ->
               device.serialNumber == emulatorSerialString
             }?: return@awaitWithCheckCanceled false
-            return@awaitWithCheckCanceled DeploymentApplicationService.getInstance().findClient(targetDevice, packageName).isNotEmpty()
+            return@awaitWithCheckCanceled DeploymentApplicationService.instance.findClient(targetDevice, packageName).isNotEmpty()
           }
           LOG.info("Client ready.")
           indicator.fraction = CLIENTS_READY_FRACTION

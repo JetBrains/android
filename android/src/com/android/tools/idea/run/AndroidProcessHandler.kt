@@ -62,7 +62,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   val captureLogcat: Boolean = true,
   val autoTerminate: Boolean = true,
   private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
-  private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
+  private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.instance,
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
   }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {

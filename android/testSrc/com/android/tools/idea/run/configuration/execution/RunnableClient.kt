@@ -19,6 +19,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
@@ -76,8 +77,19 @@ internal class RunnableClient(private val appId: String, val disposable: Disposa
       }
     }
 
-    val testDeploymentApplicationService = Mockito.spy(DeploymentApplicationService.getInstance())
-    Mockito.`when`(testDeploymentApplicationService.findClient(device, appId)).thenReturn(listOf(client))
+    val testDeploymentApplicationService = object : DeploymentApplicationService {
+      override fun findClient(iDevice: IDevice, applicationId: String): List<Client> {
+        if (device == iDevice && applicationId == appId) {
+          return listOf(client)
+        }
+        return emptyList()
+      }
+
+      override fun getVersion(iDevice: IDevice): Future<AndroidVersion> {
+        throw RuntimeException("Not implemented for test")
+      }
+    }
+
     ApplicationManager.getApplication()
       .replaceService(DeploymentApplicationService::class.java, testDeploymentApplicationService, disposable)
   }

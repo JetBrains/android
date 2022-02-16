@@ -26,7 +26,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -69,8 +68,6 @@ class AndroidRunStateTest {
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-
-    Disposer.register(disposableRule.disposable, DeploymentApplicationService.getInstance())
 
     `when`(mockEnv.project).thenReturn(projectRule.project)
     `when`(mockEnv.executionTarget).thenReturn(mockAndroidExecutionTarget)

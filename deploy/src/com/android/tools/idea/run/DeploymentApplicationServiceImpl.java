@@ -21,21 +21,15 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.ApplicationIdResolver;
 import com.android.tools.idea.run.deployable.DeviceVersion;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
-public class DeploymentApplicationService implements Disposable {
+public class DeploymentApplicationServiceImpl implements Disposable, DeploymentApplicationService {
   private final ApplicationIdResolver myApplicationIdResolver;
   private final DeviceVersion myDeviceVersion;
 
-  @NotNull
-  public static DeploymentApplicationService getInstance() {
-    return ApplicationManager.getApplication().getService(DeploymentApplicationService.class);
-  }
-
-  private DeploymentApplicationService() {
+  private DeploymentApplicationServiceImpl() {
     myApplicationIdResolver = new ApplicationIdResolver();
     myDeviceVersion = new DeviceVersion();
   }
