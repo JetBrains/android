@@ -201,7 +201,7 @@ public final class StudioFlags {
     true);
   public static final Flag<Boolean> USE_COMPONENT_TREE_TABLE = Flag.create(
     DESIGN_TOOLS, "design.component.tree.table", "Enable TreeTable implementation of component tree",
-    "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", false);
+    "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", true);
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
@@ -767,7 +767,7 @@ public final class StudioFlags {
     "Enable saving and loading snapshots in the layout inspector.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.counts", "Enable recomposition counts",
-    "Enable gathering and display of recomposition counts in the layout inspector.", false);
+    "Enable gathering and display of recomposition counts in the layout inspector.", true);
   //endregion
 
   //region Embedded Emulator
