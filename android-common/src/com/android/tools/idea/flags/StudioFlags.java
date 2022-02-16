@@ -1365,5 +1365,16 @@ public final class StudioFlags {
     true
   );
   // endregion SERVER_FLAGS
+
+  // region App Insights
+  private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
+  public static final Flag<Boolean> APP_INSIGHTS_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enabled",
+      "Enabled",
+      "Enable App Insights tool window and highlighting support.",
+      false);
+  // endregion App Insights
   private StudioFlags() { }
 }
