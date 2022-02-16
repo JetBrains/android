@@ -15,16 +15,32 @@
  */
 package com.android.tools.idea.projectsystem.gradle;
 
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
+  @NotNull private static final String CLASSES_FOLDER_NAME = "classes";
+  @NotNull private static final String RESOURCES_FOLDER_NAME = "resources";
+  @NotNull private static final String MAIN_FOLDER_NAME = "main";
+  @NotNull private static final String TEST_FOLDER_NAME = "test";
+  @NotNull private static final String KOTLIN_FOLDER_NAME = "kotlin";
+
   private final boolean includeAndroidTests;
 
   public GradleClassFileFinder(@NotNull Module module) {
@@ -39,12 +55,49 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   @Override
   @Nullable
   protected VirtualFile findClassFileInModule(@NotNull Module module, @NotNull String className) {
-    return GradleClassFinderUtil.getModuleCompileOutputs(module, includeAndroidTests)
-      .map(file -> VfsUtil.findFileByIoFile(file, true))
+    for (VirtualFile outputDir : getModuleCompileOutputs(module)) {
+      VirtualFile file = ClassFileFinderUtil.findClassFileInOutputRoot(outputDir, className);
+      if (file != null) {
+        return file;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  private Collection<VirtualFile> getCompilerOutputRoots(@NotNull GradleAndroidModel model) {
+    List<IdeAndroidArtifact> artifacts = new ArrayList<>();
+    artifacts.add(model.getMainArtifact());
+    if (includeAndroidTests) {
+      artifacts.add(model.getArtifactForAndroidTest());
+    }
+    ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
+
+    for (IdeAndroidArtifact artifactInfo : artifacts) {
+
+      for (File additionalFolder : artifactInfo.getClassesFolder()) {
+        VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
+        if (file != null) {
+          compilerOutputs.add(file);
+        }
+      }
+    }
+
+    return compilerOutputs.build();
+  }
+
+  @NotNull
+  private Collection<VirtualFile> getModuleCompileOutputs(@NotNull Module module) {
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
+    if (androidModel != null) {
+      return getCompilerOutputRoots(androidModel);
+    }
+
+    // The module is not an Android module. Check for regular Java outputs.
+    Module[] modules = {module};
+    return Stream.of(CompilerPaths.getOutputPaths(modules))
+      .map(path -> VfsUtil.findFileByIoFile(new File(path), true))
       .filter(Objects::nonNull)
-      .map(vFile -> ClassFileFinderUtil.findClassFileInOutputRoot(vFile, className))
-      .filter(Objects::nonNull)
-      .findFirst()
-      .orElse(null);
+      .collect(Collectors.toList());
   }
 }
