@@ -42,6 +42,8 @@ private:
   Jni jni_;
   JObject input_manager_;
   jmethodID inject_input_event_method_;
+
+  DISALLOW_COPY_AND_ASSIGN(InputManager);
 };
 
 }  // namespace screensharing
