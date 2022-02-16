@@ -99,6 +99,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -473,7 +474,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available files.
         if (findCycles()) {
-          throw new RuntimeException("Aborting rendering");
+          throw new RuntimeException(
+            String.format("Cycle found (count=%3$d) evaluating '%1$s' with path '%2$s' (parserFiles=%4$s)",
+                          layoutName, xml.toDebugString(), myParserCount, StringUtil.join(myParserFiles, ", ")));
         }
 
         // Also reset counter to 0 so we don't check on every subsequent iteration.
