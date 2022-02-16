@@ -42,10 +42,11 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
     // Hide action if last Gradle sync was unsuccessful.
     val project = CommonDataKeys.PROJECT.getData(dataContext)
+    val elements = getPsiElementArray(dataContext)
     val file = CommonDataKeys.PSI_FILE.getData(dataContext)
     return when {
       project != null && !project.isLastSyncSuccessful -> false
-      getPsiElementArray(dataContext).any { !isAvailableForFile(it.containingFile) } -> false
+      elements.any { !isAvailableForFile(it.containingFile) } -> false
       else -> file == null || isAvailableForFile(file)
     }
   }
