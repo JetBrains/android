@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.downloads;
 
+import com.android.tools.idea.TestDataPathUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.concurrency.FutureResult;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -37,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class DownloadServiceTest extends AndroidTestCase {
+public class DownloadServiceTest extends LightPlatformTestCase {
   private static final String DATA_PATH = "downloads";
   private static final String DATA_FILENAME = "test_data.json";
   private static final String DATA_FILE = new File(DATA_PATH, DATA_FILENAME).getPath();
@@ -50,9 +51,9 @@ public class DownloadServiceTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File fallbackFile = new File(myFixture.getTestDataPath(), "fallback.json");
+    File fallbackFile = new File(TestDataPathUtils.getTestDataPath().toFile(), "fallback.json");
     myFallbackFileUrl = fallbackFile.toURI().toURL();
-    myDownloadFile = new File(myFixture.getTestDataPath(), DATA_FILENAME);
+    myDownloadFile = new File(TestDataPathUtils.getTestDataPath().toFile(), DATA_FILENAME);
     URL downloadFileUrl = fallbackFile.toURI().toURL();
     myDescription = new DownloadableFileDescriptionImpl(downloadFileUrl.toString(), DATA_FILE, "json");
 
@@ -74,7 +75,7 @@ public class DownloadServiceTest extends AndroidTestCase {
     Semaphore s = new Semaphore();
     s.down();
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
-      assertTrue(s.waitFor(5000));
+      assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
@@ -104,19 +105,19 @@ public class DownloadServiceTest extends AndroidTestCase {
     Semaphore s2 = new Semaphore();
     s2.down();
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
-      assertTrue(s.waitFor(5000));
+      assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
     AtomicBoolean check = new AtomicBoolean(false);
     service.refresh(() -> check.set(true), null);
     service.refresh(() -> {
-      assertTrue(check.get());
+      assertThat(check.get()).isTrue();
       s2.up();
     }, null);
 
     s.up();
-    assertTrue(s2.waitFor(5000));
+    assertThat(s2.waitFor(5000)).isTrue();
 
     assertThat(service.getLoadedCount()).isEqualTo(1);
     assertThat(service.getLastLoadUrl()).isNotEqualTo(myFallbackFileUrl);
@@ -151,14 +152,14 @@ public class DownloadServiceTest extends AndroidTestCase {
    */
   public void testFallbackToPrevious() throws Exception {
     File newFile = new File(CACHE_PATH, "test_data2.json");
-    FileUtil.copy(new File(new File(myFixture.getTestDataPath(), DATA_PATH), "testPreviousData.json"), newFile);
+    FileUtil.copy(new File(new File(TestDataPathUtils.getTestDataPath().toFile(), DATA_PATH), "testPreviousData.json"), newFile);
 
     if (!newFile.setLastModified(20000)) {
       fail();
     }
 
     File oldFile = new File(CACHE_PATH, "test_data.json");
-    FileUtil.copy(new File(new File(myFixture.getTestDataPath(), DATA_PATH), "testPreviousData.json"), oldFile);
+    FileUtil.copy(new File(new File(TestDataPathUtils.getTestDataPath().toFile(), DATA_PATH), "testPreviousData.json"), oldFile);
 
     if (!oldFile.setLastModified(10000)) {
       fail();
