@@ -1169,6 +1169,11 @@ public class LayoutlibSceneManager extends SceneManager {
             else {
               updateRenderTask(newTask);
             }
+            if (result != null && !result.getRenderResult().isSuccess()) {
+              // Erase the previously cached result in case the render has finished, but was not a success. Otherwise, we might end up
+              // in a state where the user thinks the render was successful, but it actually failed.
+              updateRenderTask(null);
+            }
           })
             .handle((result, exception) ->
                       result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception));
