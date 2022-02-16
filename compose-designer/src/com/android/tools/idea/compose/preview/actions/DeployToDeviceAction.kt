@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.findComposeToolingNamespace
-import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
@@ -31,8 +30,6 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
@@ -41,13 +38,11 @@ import org.jetbrains.kotlin.idea.util.module
 /**
  * Action to run a Compose Preview on a device/emulator.
  *
- * @param isAvailable returns whether the action is available given a [DataContext]. Actions that are not available must be disabled.
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
-internal class DeployToDeviceAction(private val isAvailable: (DataContext) -> Boolean = { true },
-                                    private val dataContextProvider: () -> DataContext) : AnAction(message("action.run.title"),
+internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) : AnAction(message("action.run.title"),
                                                                                                    message("action.run.description"),
-                                                                                                   RUN_ON_DEVICE), CustomComponentAction {
+                                                                                                   RUN_ON_DEVICE) {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
@@ -63,13 +58,10 @@ internal class DeployToDeviceAction(private val isAvailable: (DataContext) -> Bo
     super.update(e)
     val isTestFile = previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
-      isEnabled = !isTestFile && isAvailable(e.dataContext)
+      isEnabled = !isTestFile
       description = if (isTestFile) message("action.run.description.test.files") else message("action.run.description")
     }
   }
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place)
 
   private fun runPreviewConfiguration(project: Project, module: Module, previewElement: PreviewElement) {
     val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]

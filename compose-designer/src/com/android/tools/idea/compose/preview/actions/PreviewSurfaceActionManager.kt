@@ -21,11 +21,9 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
@@ -69,25 +67,17 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
           Separator(),
           StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
             StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
-              PinPreviewElementAction(
-                { isToolbarActionAvailable(it) }
-              ) { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
             }
           },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction(
-              { isToolbarActionAvailable(it) }
-            ) { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
           },
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
-            EnableInteractiveAction(
-              { isToolbarActionAvailable(it) }
-            ) { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
           },
-          DeployToDeviceAction(
-            { isToolbarActionAvailable(it) }
-          ) { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
-        )
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+        ).disabledIfRefreshingOrRenderErrors().visibleOnlyInComposeStaticPreview()
       ),
       true,
       false
@@ -100,7 +90,4 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       isOpaque = false
       border = JBUI.Borders.empty()
     }
-
-  /** Toolbar actions should not be available when the previews are refreshing. */
-  private fun isToolbarActionAvailable(context: DataContext) = !isAnyPreviewRefreshing(context)
 }

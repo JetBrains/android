@@ -83,8 +83,7 @@ internal class PinAllPreviewElementsAction(
   }
 }
 
-internal class PinPreviewElementAction(private val isAvailable: (DataContext) -> Boolean = { true },
-                                       private val dataContextProvider: () -> DataContext) : ToggleAction(PIN_EMOJI, null, null) {
+internal class PinPreviewElementAction(private val dataContextProvider: () -> DataContext) : ToggleAction(PIN_EMOJI, null, null) {
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -94,7 +93,7 @@ internal class PinPreviewElementAction(private val isAvailable: (DataContext) ->
     // Only instances can be pinned (except pinned ones)
     val isInstance = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) is PreviewElementInstance
     e.presentation.isVisible = isInstance
-    e.presentation.isEnabled = isInstance && isAvailable(e.dataContext)
+    e.presentation.isEnabled = isInstance
   }
 
   override fun isSelected(e: AnActionEvent): Boolean =
