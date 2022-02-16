@@ -40,15 +40,17 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
   private val Project.isLastSyncSuccessful get() = getSyncManager().getLastSyncResult().isSuccessful
 
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
-    // Hide action if last Gradle sync was unsuccessful.
     val project = CommonDataKeys.PROJECT.getData(dataContext)
     val elements = getPsiElementArray(dataContext)
     val file = CommonDataKeys.PSI_FILE.getData(dataContext)
     return when {
+      // Hide action if last Gradle sync was unsuccessful.
       project != null && !project.isLastSyncSuccessful -> false
+      // Or if any element's file doesn't support it
       elements.any { !isAvailableForFile(it.containingFile) } -> false
+      // Or if the file doesn't support it
       file != null && !isAvailableForFile(file) -> false
-      else -> true
+      else -> true // Otherwise, it's ok
     }
   }
 
