@@ -49,7 +49,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
   @VisibleForTesting
   internal val enableNamedFiltersCheckbox =
-    JCheckBox(LogcatBundle.message("logcat.settings.enable.saved.filters"), logcatSettings.namedFiltersEnabled)
+    JCheckBox(LogcatBundle.message("logcat.settings.enable.named.filters"), logcatSettings.namedFiltersEnabled)
 
   private val component = JPanel(GridBagLayout()).apply {
     cyclicBufferSizeWarningLabel.foreground = JBColor.red

@@ -17,15 +17,14 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.Button
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.SavedFilter
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.Separator
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Button
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.NamedFilter
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Separator
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.event.MouseAdapter
@@ -48,7 +47,7 @@ import javax.swing.event.ListDataListener
 private val CLEAR_FILTER_ITEM = Button(LogcatBundle.message("logcat.filter.clear.filter"))
 
 // TODO(aalbert): Render this placeholder in a different color.
-private val NO_SAVED_FILTERS_ITEM = Button(LogcatBundle.message("logcat.filter.clear.saved.filters.placeholder"))
+private val NO_NAMED_FILTERS_ITEM = Button(LogcatBundle.message("logcat.filter.clear.named.filters.placeholder"))
 private val MANAGE_FILTERS_ITEM = Button(LogcatBundle.message("logcat.filter.clear.manage.filters"))
 private val SEPARATOR = Separator()
 
@@ -64,7 +63,7 @@ internal class NamedFilterComponent(
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : JPanel(), FilterTextComponent {
   private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector)
-  private val savedFiltersCombo = SavedFilterCombo(filterTextField)
+  private val namedFiltersCombo = NamedFilterCombo(filterTextField)
 
   override var text: String
     get() = filterTextField.text
@@ -83,13 +82,13 @@ internal class NamedFilterComponent(
       autoCreateGaps = true
       setHorizontalGroup(
         createSequentialGroup()
-          .addComponent(savedFiltersCombo, DEFAULT_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+          .addComponent(namedFiltersCombo, DEFAULT_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
           .addComponent(filterTextField)
           .addComponent(saveButton)
       )
       setVerticalGroup(
         createParallelGroup(GroupLayout.Alignment.CENTER)
-          .addComponent(savedFiltersCombo, DEFAULT_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+          .addComponent(namedFiltersCombo, DEFAULT_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
           .addComponent(filterTextField, DEFAULT_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
           .addComponent(saveButton)
       )
@@ -116,8 +115,8 @@ internal class NamedFilterComponent(
           ) as? String
           if (name != null) {
             // TODO(aalbert): Implement storing saved filters in the project.
-            savedFiltersCombo.addSavedFilter(name, filterTextField.text)
-            savedFiltersCombo.setSelectedSavedFilter(name)
+            addNamedFilter(name, filterTextField.text)
+            namedFiltersCombo.setSelectedNamedFilter(name)
           }
         }
       })
@@ -128,32 +127,31 @@ internal class NamedFilterComponent(
     filterTextField.addDocumentListener(listener)
   }
 
-  @TestOnly
-  fun addSavedFilter(name: String, filter: String) {
-    savedFiltersCombo.addSavedFilter(name, filter)
+  fun addNamedFilter(name: String, filter: String) {
+    namedFiltersCombo.addNamedFilter(name, filter)
   }
 }
 
 /**
- * A class that is used as the item in the Saved Filter ComboBox.
+ * A class that is used as the item in the Named Filter ComboBox.
  *
  * There are 3 types of items:
- * 1. A Saved Filter item. When chosen, apples the value to the filter text field.
+ * 1. A Named Filter item. When chosen, apples the value to the filter text field.
  * 2. A Button item. Performs some action when chosen.
  * 3. A Separator item. Visual only.
  */
 @VisibleForTesting
-internal sealed class SavedFilterComboItem {
-  // TODO(aalbert): Handle modified filters (when the filter text field is modified while the saved filter is selected.
-  class SavedFilter(val name: String, val filter: String) : SavedFilterComboItem() {
+internal sealed class NamedFilterComboItem {
+  // TODO(aalbert): Handle modified filters (when the filter text field is modified while the named filter is selected.
+  class NamedFilter(val name: String, val filter: String) : NamedFilterComboItem() {
     override val component = JLabel(name)
   }
 
-  class Button(@VisibleForTesting val label: String) : SavedFilterComboItem() {
+  class Button(@VisibleForTesting val label: String) : NamedFilterComboItem() {
     override val component = JLabel(label)
   }
 
-  class Separator : SavedFilterComboItem() {
+  class Separator : NamedFilterComboItem() {
     override val component = JSeparator(SwingConstants.HORIZONTAL)
   }
 
@@ -161,58 +159,58 @@ internal sealed class SavedFilterComboItem {
 }
 
 /**
- * A [JComboBox] that contains a list of saved filters items as well as some management items.
+ * A [JComboBox] that contains a list of named filters items as well as some management items.
  *
  * @param filterTextField a text field whose value is set when items are selected.
  */
-private class SavedFilterCombo(filterTextField: FilterTextField) : JComboBox<SavedFilterComboItem>() {
-  private val savedFilterComboModel = SavedFilterComboModel(filterTextField)
+private class NamedFilterCombo(filterTextField: FilterTextField) : JComboBox<NamedFilterComboItem>() {
+  private val namedFilterComboModel = NamedFilterComboModel(filterTextField)
 
   init {
-    // When selectedItem is null, we render "Unsaved filter". See SavedFilterComboRenderer.
+    // When selectedItem is null, we render "Unsaved filter". See NamedFilterComboRenderer.
     selectedItem = null
     // Do not use "renderer = " syntax because there is also a protected field by that name that hides the method
-    setRenderer(SavedFilterComboRenderer())
-    model = savedFilterComboModel
+    setRenderer(NamedFilterComboRenderer())
+    model = namedFilterComboModel
 
     // TODO(b/218861725): The UX specifies no border on the combo which is strange. It's not trivial to do this because simply removing the
     //  border leaves the combo with the wrong background color (in Light theme) and it's not trivial to fix that. We may need to use a
     //  custom component instead of a JComboBox.
   }
 
-  fun addSavedFilter(name: String, filter: String) {
-    savedFilterComboModel.addSavedFilter(SavedFilter(name, filter))
+  fun addNamedFilter(name: String, filter: String) {
+    namedFilterComboModel.addNamedFilter(NamedFilter(name, filter))
   }
 
-  fun setSelectedSavedFilter(name: String) {
-    savedFilterComboModel.setSelectedSavedFilter(name)
+  fun setSelectedNamedFilter(name: String) {
+    namedFilterComboModel.setSelectedNamedFilter(name)
   }
 }
 
 /**
- * A [ComboBoxModel] that contains a list of saved filters items as well as some management items.
+ * A [ComboBoxModel] that contains a list of named filters items as well as some management items.
  *
  * @param filterTextField a text field whose value is set when items are selected.
  */
-private class SavedFilterComboModel(private val filterTextField: FilterTextField) : ComboBoxModel<SavedFilterComboItem> {
+private class NamedFilterComboModel(private val filterTextField: FilterTextField) : ComboBoxModel<NamedFilterComboItem> {
   // Filters sorted alphabetically by name
-  private val savedFilters = sortedMapOf<String, SavedFilter>()
-  private var selectedItem: SavedFilter? = null
+  private val myNamedFilters = sortedMapOf<String, NamedFilter>()
+  private var selectedItem: NamedFilter? = null
 
   /**
-   * The combo always contains a "Clear filter" item, a "Manage filters" item and 2 separators. If there are no saved filters, it contains a
+   * The combo always contains a "Clear filter" item, a "Manage filters" item and 2 separators. If there are no named filters, it contains a
    * hint item.
    */
-  override fun getSize() = if (savedFilters.isEmpty()) 5 else savedFilters.size + 4
+  override fun getSize() = if (myNamedFilters.isEmpty()) 5 else myNamedFilters.size + 4
 
-  // TODO(aalbert): Find a way to make NO_SAVED_FILTERS_ITEM & SEPARATOR items not selectable
-  override fun getElementAt(index: Int): SavedFilterComboItem {
+  // TODO(aalbert): Find a way to make NO_NAMED_FILTERS_ITEM & SEPARATOR items not selectable
+  override fun getElementAt(index: Int): NamedFilterComboItem {
     return when {
       index == 0 -> CLEAR_FILTER_ITEM
       index == 1 || index == size - 2 -> SEPARATOR
       index == size - 1 -> MANAGE_FILTERS_ITEM
-      savedFilters.isEmpty() -> NO_SAVED_FILTERS_ITEM
-      else -> savedFilters.values.toList()[index - 2]
+      myNamedFilters.isEmpty() -> NO_NAMED_FILTERS_ITEM
+      else -> myNamedFilters.values.toList()[index - 2]
     }
   }
 
@@ -224,7 +222,7 @@ private class SavedFilterComboModel(private val filterTextField: FilterTextField
 
   override fun setSelectedItem(anItem: Any?) {
     when {
-      anItem is SavedFilter -> {
+      anItem is NamedFilter -> {
         selectedItem = anItem
         filterTextField.text = anItem.filter
       }
@@ -240,24 +238,24 @@ private class SavedFilterComboModel(private val filterTextField: FilterTextField
 
   override fun getSelectedItem(): Any? = selectedItem
 
-  fun addSavedFilter(savedFilter: SavedFilter) {
-    savedFilters[savedFilter.name] = savedFilter
+  fun addNamedFilter(namedFilter: NamedFilter) {
+    myNamedFilters[namedFilter.name] = namedFilter
   }
 
-  fun setSelectedSavedFilter(name: String) {
-    selectedItem = savedFilters[name]
+  fun setSelectedNamedFilter(name: String) {
+    selectedItem = myNamedFilters[name]
   }
 }
 
 /**
- * Renders the main text of the ComboBox. This is the name of the saved filter or the text "Unsaved filter" if no saved filter is set.
+ * Renders the main text of the ComboBox. This is the name of the named filter or the text "Unsaved filter" if no named filter is set.
  */
-private class SavedFilterComboRenderer : ListCellRenderer<SavedFilterComboItem> {
+private class NamedFilterComboRenderer : ListCellRenderer<NamedFilterComboItem> {
   override fun getListCellRendererComponent(
-    list: JList<out SavedFilterComboItem>,
-    value: SavedFilterComboItem?,
+    list: JList<out NamedFilterComboItem>,
+    value: NamedFilterComboItem?,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean
-  ): Component = value?.component ?: JLabel(LogcatBundle.message("logcat.filter.unsaved.filter"))
+  ): Component = value?.component ?: JLabel(LogcatBundle.message("logcat.filter.unnamed.filter"))
 }

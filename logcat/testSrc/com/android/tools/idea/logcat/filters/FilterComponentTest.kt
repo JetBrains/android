@@ -19,9 +19,9 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakePackageNamesProvider
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.Button
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.SavedFilter
-import com.android.tools.idea.logcat.filters.SavedFilterComboItem.Separator
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Button
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.NamedFilter
+import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Separator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -52,7 +52,7 @@ class FilterComponentTest {
   }
 
   @Test
-  fun rendersItems_noSavedFilters() {
+  fun rendersItems_noNamedFilters() {
     val filterComponent = filterComponent()
 
     assertThat(filterComponent.getComboBox().getItems()).containsExactly(
@@ -65,11 +65,11 @@ class FilterComponentTest {
   }
 
   @Test
-  fun rendersItems_withSavedFilters() {
+  fun rendersItems_withNamedFilters() {
     val filterComponent = filterComponent()
 
-    filterComponent.addSavedFilter("Foo", "foo")
-    filterComponent.addSavedFilter("Bar", "bar")
+    filterComponent.addNamedFilter("Foo", "foo")
+    filterComponent.addNamedFilter("Bar", "bar")
 
     assertThat(filterComponent.getComboBox().getItems()).containsExactly(
       ItemInfo("Clear filter bar"),
@@ -82,7 +82,7 @@ class FilterComponentTest {
   }
 
   @Test
-  fun noSavedFilter_rendersCorrectly() {
+  fun noNamedFilter_rendersCorrectly() {
     val filterComponent = filterComponent()
 
     assertThat(filterComponent.getComboBox().getRenderedText()).isEqualTo("Unsaved filter")
@@ -98,9 +98,9 @@ class FilterComponentTest {
   }
 
   @Test
-  fun selectSavedFilter() {
+  fun selectNamedFilter() {
     val filterComponent = filterComponent()
-    filterComponent.addSavedFilter("Foo", "foo")
+    filterComponent.addNamedFilter("Foo", "foo")
 
     filterComponent.getComboBox().selectItem("Foo")
 
@@ -109,9 +109,9 @@ class FilterComponentTest {
   }
 
   @Test
-  fun selectSavedFilterAndThenClear() {
+  fun selectNamedFilterAndThenClear() {
     val filterComponent = filterComponent()
-    filterComponent.addSavedFilter("Foo", "foo")
+    filterComponent.addNamedFilter("Foo", "foo")
 
     filterComponent.getComboBox().selectItem("Foo")
     filterComponent.getComboBox().selectItem("Clear filter bar")
@@ -121,7 +121,7 @@ class FilterComponentTest {
   }
 
   @Test
-  fun saveButton_showsDialogAndAddsSavedFilter() {
+  fun saveButton_showsDialogAndAddsNamedFilter() {
     // TODO(aalbert): Will add tests for save button and dialog later because right now, we're using generic JOptionPane.showInputDialog()
     //  which doesn't use a testable DialogWrapper. We need to change to a more specialized dialog which will use a DialogWrapper.
   }
@@ -144,26 +144,26 @@ class FilterComponentTest {
 private fun NamedFilterComponent.getFilterTextField(): FilterTextField =
   TreeWalker(this).descendants().filterIsInstance<FilterTextField>()[0]
 
-private fun NamedFilterComponent.getComboBox(): JComboBox<SavedFilterComboItem> =
-  TreeWalker(this).descendants().filterIsInstance<JComboBox<SavedFilterComboItem>>()[0]
+private fun NamedFilterComponent.getComboBox(): JComboBox<NamedFilterComboItem> =
+  TreeWalker(this).descendants().filterIsInstance<JComboBox<NamedFilterComboItem>>()[0]
 
 // This is the only way I found to get the text of the combobox.
-private fun JComboBox<SavedFilterComboItem>.getRenderedText(): String {
+private fun JComboBox<NamedFilterComboItem>.getRenderedText(): String {
   // In our renderer implementation, only the selectedItem param is used.
   val component = renderer.getListCellRendererComponent(
     JList(),
-    selectedItem as SavedFilterComboItem?,
+    selectedItem as NamedFilterComboItem?,
     selectedIndex,
     false,
     false)
   return (component as JLabel).text
 }
 
-private fun JComboBox<SavedFilterComboItem>.getItems(): List<ItemInfo> {
+private fun JComboBox<NamedFilterComboItem>.getItems(): List<ItemInfo> {
   val items = mutableListOf<ItemInfo>()
   for (i in 0 until itemCount) {
     val itemInfo = when (val item = getItemAt(i)) {
-      is SavedFilter -> ItemInfo(item.name, item.filter)
+      is NamedFilter -> ItemInfo(item.name, item.filter)
       is Button -> ItemInfo(item.label)
       is Separator -> ItemInfo("separator")
       else -> throw IllegalStateException("Unknown item found: ${this::class.simpleName}")
@@ -173,11 +173,11 @@ private fun JComboBox<SavedFilterComboItem>.getItems(): List<ItemInfo> {
   return items
 }
 
-private fun JComboBox<SavedFilterComboItem>.selectItem(label: String) {
+private fun JComboBox<NamedFilterComboItem>.selectItem(label: String) {
   for (i in 0 until itemCount) {
     val item = getItemAt(i)
     val itemToSelect = when {
-      item is SavedFilter && item.name == label -> item
+      item is NamedFilter && item.name == label -> item
       item is Button && item.label == label -> item
       else -> null
     }
@@ -189,5 +189,5 @@ private fun JComboBox<SavedFilterComboItem>.selectItem(label: String) {
   throw IllegalArgumentException("Item '$label' not found")
 }
 
-// An encapsulation of SavedFilterComboItem classes that is easily testable
+// An encapsulation of NamedFilterComboItem classes that is easily testable
 private data class ItemInfo(val name: String, val filter: String? = null)
