@@ -24,8 +24,8 @@
 #include "agent.h"
 #include "jvm.h"
 #include "log.h"
+#include "num_to_string.h"
 #include "settings.h"
-#include "string_printf.h"
 
 namespace screensharing {
 
@@ -105,7 +105,7 @@ void Controller::Initialize() {
   pointer_coordinates_.MakeGlobal();
 
   // Keep the screen on as long as the device has power.
-  stay_on_.Set(StringPrintf("%d", BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS).c_str());
+  stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
   // Turn off "Auto-rotate screen".
   accelerometer_rotation_.Set("0");
 }
