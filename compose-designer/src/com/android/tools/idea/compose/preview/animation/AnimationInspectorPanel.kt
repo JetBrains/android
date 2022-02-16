@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
@@ -74,11 +75,6 @@ private const val TIMELINE_HEADER_HEIGHT = 25
  */
 private const val TIMELINE_FOOTER_HEIGHT = 20
 
-/**
- * Default max duration (ms) of the animation preview when it's not possible to get it from Compose.
- */
-private const val DEFAULT_MAX_DURATION_MS = 10000L
-
 /** Height of one row for animation. */
 private const val TIMELINE_ROW_HEIGHT = 70
 
@@ -94,7 +90,7 @@ private const val LABEL_OFFSET = 10
 
 //TODO(b/161344747) This value could be dynamic depending on the curve type.
 /** Number of points for one curve. */
-private const val DEFAULT_CURVE_POINTS_NUMBER = 200
+internal const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
 //TODO Change to a tracker class.
 typealias ComposeAnimationEventTracker = (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit
@@ -105,7 +101,12 @@ typealias ComposeAnimationEventTracker = (type: ComposeAnimationToolingEvent.Com
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationInspectorPanel]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
+internal class AnimationInspectorPanel(override val surface: DesignSurface) : JPanel(
+  TabularLayout("Fit,*", "Fit,*")), Disposable, ComposeAnimationPreview {
+
+  override val component = this
+
+  override fun animationsCount(): Int = tabbedPane.tabs.count()
 
   /**
    * Animation transition for selected from/to states.
@@ -181,7 +182,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   /**
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
    */
-  internal var animationClock: AnimationClock? = null
+  override var animationClock: AnimationClock? = null
 
   private var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
 
@@ -205,7 +206,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Updates the `from` and `to` state combo boxes to display the states of the given animation, and resets the timeline. Invokes a given
    * callback once everything is populated.
    */
-  fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
+  override fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
     animationTabs[animation]?.let { tab ->
       tab.stateComboBox.updateStates(states)
       val transition = animation.animationObject
@@ -234,7 +235,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation, and resets the timeline. Invokes a given
    * callback once the combo box is populated.
    */
-  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
+  override fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
     animationTabs[animation]?.let { tab ->
       tab.stateComboBox.updateStates(animation.states)
 
@@ -277,7 +278,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     timeline.updateMaxDuration(maxDurationPerIteration)
 
     var maxDuration = DEFAULT_MAX_DURATION_MS
-    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationMs()}) return
+    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationMs() }) return
 
     timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
       // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
@@ -291,7 +292,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   /**
    * Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached animations.
    */
-  internal fun invalidatePanel() {
+  override fun invalidatePanel() {
     tabbedPane.removeAllTabs()
     animationTabs.clear()
     showNoAnimationsPanel()
@@ -317,7 +318,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   /**
    * Adds an [AnimationTab] corresponding to the given [animation] to [tabbedPane].
    */
-  internal fun addTab(animation: ComposeAnimation) {
+  override fun addTab(animation: ComposeAnimation) {
     val animationTab = animationTabs[animation] ?: return
 
     val isAddingFirstTab = tabbedPane.tabCount == 0
@@ -336,7 +337,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Creates an [AnimationTab] corresponding to the given [animation] and add it to the [animationTabs] map.
    * Note: this method does not add the tab to [tabbedPane]. For that, [addTab] should be used.
    */
-  internal fun createTab(animation: ComposeAnimation) {
+  override fun createTab(animation: ComposeAnimation) {
     val tabName = animation.label
                   ?: when (animation.type) {
                     ComposeAnimationType.ANIMATED_VALUE -> message("animation.inspector.tab.animated.value.default.title")
@@ -358,7 +359,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   /**
    * Removes the [AnimationTab] corresponding to the given [animation] from [tabbedPane].
    */
-  internal fun removeTab(animation: ComposeAnimation) {
+  override fun removeTab(animation: ComposeAnimation) {
     tabbedPane.tabs.find { (it.component as? AnimationTab)?.animation === animation }?.let { tabbedPane.removeTab(it) }
     animationTabs.remove(animation)
 
@@ -791,7 +792,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
 
 
-    private val slider = object : TimelinePanel(object: AnimationPreviewState {}, logger) {
+    private val slider = object : TimelinePanel(object : AnimationPreviewState {}, logger) {
       override fun createSliderUI() = TimelineSlider(this)
     }.apply {
       setUI(TimelineSlider(this))

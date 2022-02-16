@@ -20,6 +20,14 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import org.jetbrains.annotations.VisibleForTesting
 import java.lang.reflect.Method
 
+
+/**
+ * Returns true if coordination is supported by the clock.
+ * In that case clock time could be set individually for each animation.
+ */
+internal fun AnimationClock.coordinationIsSupported() =
+  setClockTimesFunction != null
+
 /**
  * Returns a list of the given [ComposeAnimation]'s animated properties. The properties are
  * wrapped into a [ComposeAnimatedProperty] object containing the property label and the
@@ -84,7 +92,7 @@ internal fun AnimationClock.getAnimatedVisibilityState(animation: ComposeAnimati
  *
  * @param clock Instance of `PreviewAnimationClock` that animations in the inspector are subscribed to.
  */
-internal class AnimationClock(val clock: Any) {
+class AnimationClock(val clock: Any) {
 
   /**
    * Function `getAnimatedProperties` of [clock].

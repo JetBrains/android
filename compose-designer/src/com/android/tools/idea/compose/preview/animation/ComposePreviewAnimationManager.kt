@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -34,8 +35,22 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
+import javax.swing.JComponent
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
+
+interface ComposeAnimationPreview : Disposable {
+  var animationClock: AnimationClock?
+  val surface: DesignSurface
+  val component: JComponent
+  fun animationsCount(): Int
+  fun createTab(animation: ComposeAnimation)
+  fun addTab(animation: ComposeAnimation)
+  fun removeTab(animation: ComposeAnimation)
+  fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit)
+  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit)
+  fun invalidatePanel()
+}
 
 /**
  * Responsible for opening the [AnimationInspectorPanel] and managing its state. `PreviewAnimationClockMethodTransform` intercepts calls to
@@ -45,7 +60,7 @@ private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
  */
 object ComposePreviewAnimationManager {
   @get:VisibleForTesting
-  var currentInspector: AnimationInspectorPanel? = null
+  internal var currentInspector: ComposeAnimationPreview? = null
     private set
 
   @get:VisibleForTesting
@@ -62,13 +77,16 @@ object ComposePreviewAnimationManager {
       AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
   @Slow
-  fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
+  fun createAnimationInspectorPanel(surface: DesignSurface,
+                                    parent: Disposable,
+                                    onNewInspectorOpen: () -> Unit): ComposeAnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
     AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(
       ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR
     ))
     return invokeAndWaitIfNeeded {
-      val animationInspectorPanel = AnimationInspectorPanel(surface)
+      val animationInspectorPanel = (if (COMPOSE_ANIMATION_PREVIEW_COORDINATION.get()) AnimationPreview(surface)
+      else AnimationInspectorPanel(surface)) as ComposeAnimationPreview
       Disposer.register(parent, animationInspectorPanel)
       currentInspector = animationInspectorPanel
       animationInspectorPanel

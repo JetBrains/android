@@ -34,7 +34,7 @@ import kotlin.math.max
 /**
  * Default max duration (ms) of the animation preview when it's not possible to get it from Compose.
  */
-private const val DEFAULT_MAX_DURATION_MS = 10000L
+internal const val DEFAULT_MAX_DURATION_MS = 10000L
 
 /**
  * Timeline slider with auto-resized ticks and labels distance.

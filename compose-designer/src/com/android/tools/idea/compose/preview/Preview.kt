@@ -413,7 +413,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
             // opening a new one.
             animationInspectionPreviewElementInstance = null
-          }
+          }.component
           surface.background = INTERACTIVE_BACKGROUND_COLOR
         }
         else {
