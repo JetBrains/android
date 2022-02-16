@@ -120,11 +120,7 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
 
             val mainSourceSetInfo = activeSourceSetInfos.firstOrNull { it.kotlinComponent.name == variantName }
             if (mainSourceSetInfo != null) {
-                val runTasks = activeSourceSetInfos
-                    .filter { it.isTestModule }
-                    .flatMap { it.externalSystemRunTasks }
-
-                KotlinSourceSetDataService.configureFacet(moduleData, mainSourceSetInfo, nodeToImport, module, modelsProvider, runTasks)
+                KotlinSourceSetDataService.configureFacet(moduleData, mainSourceSetInfo, nodeToImport, module, modelsProvider)
             }
 
             val kotlinFacet = KotlinFacet.get(module)
