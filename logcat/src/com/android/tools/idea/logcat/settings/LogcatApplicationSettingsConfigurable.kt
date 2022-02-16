@@ -88,7 +88,8 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
-    return bufferSizeKb != null && isValidBufferSize(bufferSizeKb) && bufferSizeKb != logcatSettings.bufferSize / 1024
+    return (bufferSizeKb != null && isValidBufferSize(bufferSizeKb) && bufferSizeKb != logcatSettings.bufferSize / 1024)
+           || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
   }
 
   override fun apply() {

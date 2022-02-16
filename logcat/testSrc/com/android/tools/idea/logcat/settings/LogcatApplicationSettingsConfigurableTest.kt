@@ -39,7 +39,7 @@ class LogcatApplicationSettingsConfigurableTest {
   fun createComponent() {
     logcatSettings.bufferSize = 25 * 1024
 
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
 
     assertThat(configurable.cycleBufferSizeTextField.text).isEqualTo("25")
     assertThat(configurable.cyclicBufferSizeWarningLabel.text).isEqualTo("")
@@ -47,7 +47,7 @@ class LogcatApplicationSettingsConfigurableTest {
 
   @Test
   fun bufferSize_invalid() {
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable()
 
     listOf("not-a-number", "-1", "0", "102401").forEach {
       configurable.cycleBufferSizeTextField.text = it
@@ -60,7 +60,7 @@ class LogcatApplicationSettingsConfigurableTest {
 
   @Test
   fun bufferSize_valid() {
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable()
 
     listOf("1", "100", "1000").forEach {
       configurable.cycleBufferSizeTextField.text = it
@@ -72,7 +72,7 @@ class LogcatApplicationSettingsConfigurableTest {
 
   @Test
   fun bufferSize_large() {
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable()
 
     configurable.cycleBufferSizeTextField.text = (LARGE_FOR_CONTENT_LOADING / 1024 + 1).toString()
 
@@ -83,7 +83,7 @@ class LogcatApplicationSettingsConfigurableTest {
   @Test
   fun bufferSize_unchanged() {
     logcatSettings.bufferSize = 100 * 1024
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
 
     configurable.cycleBufferSizeTextField.text = "100"
 
@@ -93,7 +93,7 @@ class LogcatApplicationSettingsConfigurableTest {
 
   @Test
   fun apply() {
-    val configurable = LogcatApplicationSettingsConfigurable(logcatSettings).apply { createComponent() }
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     val mockLogcatPresenter = mock<LogcatPresenter>()
     LogcatToolWindowFactory.logcatPresenters.add(mockLogcatPresenter)
 
@@ -102,4 +102,30 @@ class LogcatApplicationSettingsConfigurableTest {
     verify(mockLogcatPresenter).applyLogcatSettings(logcatSettings)
     LogcatToolWindowFactory.logcatPresenters.remove(mockLogcatPresenter)
   }
+
+  @Test
+  fun isModified_bufferSize() {
+    logcatSettings.bufferSize = 100 * 1024
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    configurable.cycleBufferSizeTextField.text = "200"
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_namedFilters() {
+    logcatSettings.namedFiltersEnabled = false
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    configurable.enableNamedFiltersCheckbox.isSelected = true
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  private fun logcatApplicationSettingsConfigurable(logcatSettings: LogcatSettings = LogcatSettings())
+    : LogcatApplicationSettingsConfigurable =
+    LogcatApplicationSettingsConfigurable(logcatSettings).apply(LogcatApplicationSettingsConfigurable::createComponent)
 }
