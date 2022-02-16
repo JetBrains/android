@@ -46,10 +46,8 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
       return false
     }
 
-    for (element in getPsiElementArray(dataContext)) {
-      if (!isAvailableForFile(element.containingFile)) {
-        return false
-      }
+    if (getPsiElementArray(dataContext).any { element -> !isAvailableForFile(element.containingFile) }) {
+      return false
     }
 
     val file = CommonDataKeys.PSI_FILE.getData(dataContext)
