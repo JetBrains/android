@@ -15,6 +15,8 @@
  */
 package com.android.tools.componenttree.treetable
 
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ContextPopupHandler
@@ -22,6 +24,7 @@ import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.invokeLater
+import com.intellij.ui.DisabledTraversalPolicy
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.TreeSpeedSearch
@@ -85,6 +88,9 @@ class TreeTableImpl(
   private var initialHeaderVisibility = false
 
   init {
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = DisabledTraversalPolicy()
+    resetDefaultFocusTraversalKeys()
     tree.cellRenderer = TreeCellRendererImpl(this)
     tree.addTreeWillExpandListener(ExpansionListener())
     tree.selectionModel.selectionMode = treeSelectionMode
@@ -98,6 +104,7 @@ class TreeTableImpl(
       addMouseListener(it)
       addMouseMotionListener(it)
     }
+
     if (autoScroll) {
       treeTableSelectionModel.addAutoScrollListener {
         invokeLater {
@@ -177,9 +184,21 @@ class TreeTableImpl(
     if (initialized) {
       tableModel.clearRendererCache()
       installKeyboardActions(this)
+      registerActionKey(::toggleTree, KeyStrokes.ENTER, "enter")
+      registerActionKey(::toggleTree, KeyStrokes.SPACE, "space")
       extraColumns.forEach { it.updateUI() }
       initExtraColumns()
       dropTargetHandler?.updateUI()
+    }
+  }
+
+  private fun toggleTree() {
+    val row = selectedRow.takeIf { it >= 0 } ?: return
+    if (tree.isExpanded(row)) {
+      tree.collapseRow(row)
+    }
+    else {
+      tree.expandRow(row)
     }
   }
 
