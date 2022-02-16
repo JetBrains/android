@@ -56,7 +56,8 @@ Controller::Controller(int socket_fd)
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
-      stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in") {
+      stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
+      accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation") {
   assert(socket_fd > 0);
 }
 
@@ -105,6 +106,8 @@ void Controller::Initialize() {
 
   // Keep the screen on as long as the device has power.
   stay_on_.Set(StringPrintf("%d", BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS).c_str());
+  // Turn off "Auto-rotate screen".
+  accelerometer_rotation_.Set("0");
 }
 
 void Controller::Run() {

@@ -60,6 +60,7 @@ private:
   int64_t motion_event_start_time_;
   KeyCharacterMap* key_character_map_;
   ScopedSetting stay_on_;
+  ScopedSetting accelerometer_rotation_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };
