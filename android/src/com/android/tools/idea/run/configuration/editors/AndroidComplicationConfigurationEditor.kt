@@ -134,6 +134,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
         addActionListener {
           currentChosenSlots.remove(chosenSlot)
         }
+        toolTipText = "Remove"
         isContentAreaFilled = false
         border = null
       })
