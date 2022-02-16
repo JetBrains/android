@@ -22,9 +22,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.cache.CacheBuilder
@@ -37,7 +37,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
@@ -62,6 +61,7 @@ import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.time.Duration
 import java.util.UUID
+import kotlin.streams.toList
 
 /** Command received from the daemon to indicate the result is available. */
 private const val CMD_RESULT = "RESULT"
@@ -286,12 +286,11 @@ private class DaemonRegistry(
  */
 private fun defaultCompileClassPathLocator(module: Module): List<String> {
   // Build classpath
-  val mainArtifact = GradleAndroidModel.get(module)
-    ?.selectedVariant
-    ?.mainArtifact
-  val modulePath = listOfNotNull(
-    CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path
-  ) + (mainArtifact?.classesFolder?.map { it.absolutePath } ?: emptyList())
+  val modulePath =
+    GradleClassFinderUtil.getModuleCompileOutputs(module, true)
+      .filter { it.exists() }
+      .map { it.absolutePath.toString() }
+      .toList()
 
   val libraryDeps = module.getLibraryDependenciesJars()
     .map { it.toString() }
