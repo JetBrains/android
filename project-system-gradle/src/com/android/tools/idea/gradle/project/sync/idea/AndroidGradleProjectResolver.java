@@ -512,13 +512,16 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                           @NotNull GradleAndroidModel GradleAndroidModel) {
     // Get the unit test task for the current module.
     String testTaskName = getTasksFromAndroidModuleData(GradleAndroidModel);
+    String gradlePath = GradleProjectResolverUtil.getGradlePath(moduleDataNode.getData());
+
     Set<String> sourceFolders = new HashSet<>();
     for (IdeSourceProvider sourceProvider : GradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
       for (File sourceFolder : getAllSourceFolders(sourceProvider)) {
         sourceFolders.add(sourceFolder.getPath());
       }
     }
-    TestData testData = new TestData(GradleConstants.SYSTEM_ID, testTaskName, testTaskName, sourceFolders);
+    String taskNamePrefix = gradlePath.equals(":") ? gradlePath : gradlePath + ":";
+    TestData testData = new TestData(GradleConstants.SYSTEM_ID, testTaskName, taskNamePrefix + testTaskName, sourceFolders);
     moduleDataNode.createChild(ProjectKeys.TEST, testData);
   }
 
