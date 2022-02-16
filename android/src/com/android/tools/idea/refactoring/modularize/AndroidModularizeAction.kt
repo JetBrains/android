@@ -46,7 +46,7 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
       return false
     }
 
-    if (getPsiElementArray(dataContext).any { element -> !isAvailableForFile(element.containingFile) }) {
+    if (getPsiElementArray(dataContext).any { !isAvailableForFile(it.containingFile) }) {
       return false
     }
 
