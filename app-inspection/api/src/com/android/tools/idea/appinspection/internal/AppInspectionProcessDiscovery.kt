@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
-import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -40,8 +39,6 @@ import java.util.concurrent.Executor
  * Definition: An inspectable process is a process that has certain inspection flags indicated in its manifest. However, currently it is
  * simply a process that is known by transport pipeline and is running on a JVMTI-compatible (O+) device.
  * TODO(b/148540564): tracks the work needed to make process detection feasible.
- *
- * Processes are discovered by listening to the transport pipeline via [TransportEventListener].
  *
  * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the AppInspection combobox.
  */
