@@ -47,7 +47,8 @@ open class AndroidModularizeAction : BaseJavaRefactoringAction() {
     return when {
       project != null && !project.isLastSyncSuccessful -> false
       elements.any { !isAvailableForFile(it.containingFile) } -> false
-      else -> file == null || isAvailableForFile(file)
+      file != null && !isAvailableForFile(file) -> false
+      else -> true
     }
   }
 
