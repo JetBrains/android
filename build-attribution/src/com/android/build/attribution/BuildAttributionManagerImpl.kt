@@ -81,7 +81,7 @@ class BuildAttributionManagerImpl(
         BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
         buildSessionId
       )
-      BasicBuildAttributionInfo(GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion))
+      BasicBuildAttributionInfo(agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion) })
     }
   }
 
