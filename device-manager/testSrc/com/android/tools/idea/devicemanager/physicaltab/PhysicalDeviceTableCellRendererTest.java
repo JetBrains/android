@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.intellij.ui.table.JBTable;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;

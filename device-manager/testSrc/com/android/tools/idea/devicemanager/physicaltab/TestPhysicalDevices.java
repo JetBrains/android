@@ -16,6 +16,9 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.ConnectionType;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestPhysicalDevices {

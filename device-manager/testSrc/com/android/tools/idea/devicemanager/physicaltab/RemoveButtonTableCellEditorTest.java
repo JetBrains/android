@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.devicemanager.DeviceTables;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.intellij.openapi.project.Project;
 import javax.swing.AbstractButton;

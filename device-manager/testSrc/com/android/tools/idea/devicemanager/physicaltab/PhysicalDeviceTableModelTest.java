@@ -18,6 +18,8 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
 import java.util.Arrays;

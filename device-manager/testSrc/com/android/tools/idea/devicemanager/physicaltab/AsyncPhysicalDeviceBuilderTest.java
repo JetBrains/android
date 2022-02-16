@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.concurrent.Future;

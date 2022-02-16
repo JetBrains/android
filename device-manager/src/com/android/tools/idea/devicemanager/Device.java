@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -18,6 +18,8 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.util.DeviceUtils;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;

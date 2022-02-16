@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNull;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

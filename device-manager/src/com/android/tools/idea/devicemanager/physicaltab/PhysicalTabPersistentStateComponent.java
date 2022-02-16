@@ -17,6 +17,8 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;

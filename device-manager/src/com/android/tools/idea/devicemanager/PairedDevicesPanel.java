@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.ActionData;
 import com.android.tools.adtui.stdui.EmptyStatePanel;
-import com.android.tools.idea.devicemanager.physicaltab.Key;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;

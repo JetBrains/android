@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,12 +26,12 @@ public final class SerialNumber extends Key {
   }
 
   @Override
-  protected @NotNull ConnectionType getConnectionType() {
+  public @NotNull ConnectionType getConnectionType() {
     return ConnectionType.USB;
   }
 
   @Override
-  protected @NotNull SerialNumber getSerialNumber() {
+  public @NotNull SerialNumber getSerialNumber() {
     return this;
   }
 

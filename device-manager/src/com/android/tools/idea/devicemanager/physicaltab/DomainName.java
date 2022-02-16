@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.ConnectionType;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +33,12 @@ final class DomainName extends Key {
   }
 
   @Override
-  protected @NotNull ConnectionType getConnectionType() {
+  public @NotNull ConnectionType getConnectionType() {
     return ConnectionType.WI_FI;
   }
 
   @Override
-  protected @NotNull SerialNumber getSerialNumber() {
+  public @NotNull SerialNumber getSerialNumber() {
     Matcher matcher = PATTERN.matcher(myValue);
 
     if (!matcher.matches()) {

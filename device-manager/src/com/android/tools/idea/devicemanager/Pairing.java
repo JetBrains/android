@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;

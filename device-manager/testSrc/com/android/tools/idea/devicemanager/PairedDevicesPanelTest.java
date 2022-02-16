@@ -24,8 +24,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.stdui.EmptyStatePanel;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.idea.devicemanager.physicaltab.Key;
-import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;

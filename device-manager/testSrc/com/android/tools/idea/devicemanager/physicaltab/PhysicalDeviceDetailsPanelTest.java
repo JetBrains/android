@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSection;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSectionCallback;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySection;

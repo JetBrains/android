@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

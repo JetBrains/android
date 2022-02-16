@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.Arrays;

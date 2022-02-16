@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
-import com.android.tools.idea.devicemanager.physicaltab.Key;
-import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
+import com.android.tools.idea.devicemanager.ConnectionType;
+import com.android.tools.idea.devicemanager.Key;
+import com.android.tools.idea.devicemanager.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,12 +29,12 @@ public final class VirtualDeviceName extends Key {
   }
 
   @Override
-  protected @NotNull ConnectionType getConnectionType() {
+  public @NotNull ConnectionType getConnectionType() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected @NotNull SerialNumber getSerialNumber() {
+  public @NotNull SerialNumber getSerialNumber() {
     throw new UnsupportedOperationException();
   }
 
