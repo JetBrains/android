@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons.common
+package com.android.tools.idea.npw.assetstudio.material.icons.common
 
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getBundledIconPath
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getBundledStyleDirectoryPath
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getBundledIconPath
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getBundledStyleDirectoryPath
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.android.utils.SdkUtils.fileToUrl
 import java.io.File
 import java.net.URL

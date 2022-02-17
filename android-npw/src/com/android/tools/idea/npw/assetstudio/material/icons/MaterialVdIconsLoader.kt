@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.npw.assetstudio.material.icons
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.tools.idea.material.icons.common.BundledIconsUrlProvider
-import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
-import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getIconFileNameWithoutExtension
+import com.android.tools.idea.npw.assetstudio.material.icons.common.BundledIconsUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getIconFileNameWithoutExtension
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
 

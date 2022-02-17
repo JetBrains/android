@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons.download
+package com.android.tools.idea.npw.assetstudio.material.icons.download
 
 import com.android.testutils.truth.PathSubject.assertThat
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil

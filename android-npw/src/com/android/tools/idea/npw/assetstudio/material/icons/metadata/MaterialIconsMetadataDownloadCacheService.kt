@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons.metadata
+package com.android.tools.idea.npw.assetstudio.material.icons.metadata
 
-import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
-import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.common.BundledMetadataUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.common.SdkMetadataUrlProvider
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getMetadata
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.Semaphore

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.npw.assetstudio.material.icons
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
-import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataBuilder
-import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadataBuilder
+import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger
 import java.io.BufferedReader
