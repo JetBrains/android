@@ -15,28 +15,33 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.util.ui.JBUI
-import java.awt.Dimension
+import com.intellij.openapi.actionSystem.ToggleAction
+import icons.StudioIcons
 
 /**
- * [AnAction] that enables/disables the fast preview in the project.
+ * Action that toggles the Fast Preview state.
  */
-private class ToggleFastPreviewAction: AnAction() {
+class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.StatusBar.LIVE_LITERALS) {
+  override fun isSelected(e: AnActionEvent): Boolean = FastPreviewApplicationConfiguration.getInstance().isEnabled
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = state
+  }
+
   override fun update(e: AnActionEvent) {
     super.update(e)
+
+    if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
+      // No Fast Preview available
+      e.presentation.isEnabledAndVisible = false
+      return
+    }
 
     val presentation = e.presentation
     val project = e.project
@@ -44,7 +49,6 @@ private class ToggleFastPreviewAction: AnAction() {
       presentation.isEnabledAndVisible = false
       return
     }
-
     if (PreviewPowerSaveManager.isInPowerSaveMode) {
       presentation.description = message("action.preview.fast.refresh.disabled.in.power.save.description")
       presentation.isEnabled = false
@@ -58,34 +62,5 @@ private class ToggleFastPreviewAction: AnAction() {
       message("action.preview.fast.refresh.disable.title")
     else
       message("action.preview.fast.refresh.enable.title")
-  }
-
-  override fun actionPerformed(e: AnActionEvent) {
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = !FastPreviewApplicationConfiguration.getInstance().isEnabled
-  }
-}
-
-/**
- * A customized [DropDownAction] with no text and only displaying the down arrow with the [ToggleFastPreviewAction].
- */
-private class FastPreviewDropDownAction: DropDownAction(null, null, AllIcons.General.ArrowDownSmall) {
-  init {
-    // Create a thin arrow button by making the button a bit narrower and disable the default drop down icon.
-    setMinimumButtonSize(Dimension(JBUI.scale(19), ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height))
-    templatePresentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, true)
-
-    add(ToggleFastPreviewAction())
-  }
-}
-
-/**
- * Additional actions for fast preview. This group is meant to be displayed next to the refresh button to indicate "related actions".
- * The group will add a down arrow with the popup menu actions for fast preview and a separator: `▼ |`
- */
-class FastPreviewAdditionalActionsGroup: DefaultActionGroup(FastPreviewDropDownAction(), Separator.create()) {
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-
-    e.presentation.isEnabledAndVisible = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 }
