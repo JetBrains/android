@@ -23,11 +23,14 @@ import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Button
 import com.android.tools.idea.logcat.filters.NamedFilterComboItem.NamedFilter
 import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Separator
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComboBox
@@ -38,22 +41,30 @@ import javax.swing.JList
  * Tests for [NamedFilterComponent]
  */
 @RunsInEdt
-class FilterComponentTest {
+class NamedFilterComponentTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
+  private val androidLogcatNamedFilters = AndroidLogcatNamedFilters()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication()
+      .replaceService(AndroidLogcatNamedFilters::class.java, androidLogcatNamedFilters, projectRule.project)
+  }
+
   @Test
   fun constructor_setsText() {
-    val filterComponent = filterComponent("foo")
+    val filterComponent = namedFilterComponent("foo")
 
     assertThat(filterComponent.getFilterTextField().text).isEqualTo("foo")
   }
 
   @Test
   fun rendersItems_noNamedFilters() {
-    val filterComponent = filterComponent()
+    val filterComponent = namedFilterComponent()
 
     assertThat(filterComponent.getComboBox().getItems()).containsExactly(
       ItemInfo("Clear filter bar"),
@@ -66,10 +77,10 @@ class FilterComponentTest {
 
   @Test
   fun rendersItems_withNamedFilters() {
-    val filterComponent = filterComponent()
+    val filterComponent = namedFilterComponent()
 
-    filterComponent.addNamedFilter("Foo", "foo")
-    filterComponent.addNamedFilter("Bar", "bar")
+    filterComponent.putNamedFilter("Foo", "foo")
+    filterComponent.putNamedFilter("Bar", "bar")
 
     assertThat(filterComponent.getComboBox().getItems()).containsExactly(
       ItemInfo("Clear filter bar"),
@@ -83,14 +94,14 @@ class FilterComponentTest {
 
   @Test
   fun noNamedFilter_rendersCorrectly() {
-    val filterComponent = filterComponent()
+    val filterComponent = namedFilterComponent()
 
     assertThat(filterComponent.getComboBox().getRenderedText()).isEqualTo("Unsaved filter")
   }
 
   @Test
   fun clearFilter() {
-    val filterComponent = filterComponent("foo")
+    val filterComponent = namedFilterComponent("foo")
 
     filterComponent.getComboBox().selectItem("Clear filter bar")
 
@@ -99,8 +110,8 @@ class FilterComponentTest {
 
   @Test
   fun selectNamedFilter() {
-    val filterComponent = filterComponent()
-    filterComponent.addNamedFilter("Foo", "foo")
+    val filterComponent = namedFilterComponent()
+    filterComponent.putNamedFilter("Foo", "foo")
 
     filterComponent.getComboBox().selectItem("Foo")
 
@@ -110,8 +121,8 @@ class FilterComponentTest {
 
   @Test
   fun selectNamedFilterAndThenClear() {
-    val filterComponent = filterComponent()
-    filterComponent.addNamedFilter("Foo", "foo")
+    val filterComponent = namedFilterComponent()
+    filterComponent.putNamedFilter("Foo", "foo")
 
     filterComponent.getComboBox().selectItem("Foo")
     filterComponent.getComboBox().selectItem("Clear filter bar")
@@ -126,7 +137,32 @@ class FilterComponentTest {
     //  which doesn't use a testable DialogWrapper. We need to change to a more specialized dialog which will use a DialogWrapper.
   }
 
-  private fun filterComponent(
+  @Test
+  fun persistence_loadsFromOptions() {
+    androidLogcatNamedFilters.namedFilters["Foo"] = "foo"
+    androidLogcatNamedFilters.namedFilters["Bar"] = "bar"
+    val filterComponent = namedFilterComponent()
+
+    assertThat(filterComponent.getComboBox().getItems()).containsExactly(
+      ItemInfo("Clear filter bar"),
+      ItemInfo("separator"),
+      ItemInfo("Bar", "bar"),
+      ItemInfo("Foo", "foo"),
+      ItemInfo("separator"),
+      ItemInfo("Manage filters"),
+    ).inOrder()
+  }
+
+  @Test
+  fun persistence_savesToOptions() {
+    val filterComponent = namedFilterComponent()
+
+    filterComponent.putNamedFilter("Foo", "foo")
+
+    assertThat(androidLogcatNamedFilters.namedFilters).containsExactly("Foo", "foo")
+  }
+
+  private fun namedFilterComponent(
     initialText: String = "",
   ): NamedFilterComponent {
     val logcatPresenter = FakeLogcatPresenter().apply {

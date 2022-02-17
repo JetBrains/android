@@ -62,8 +62,9 @@ internal class NamedFilterComponent(
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : JPanel(), FilterTextComponent {
+  private val namedFilters = AndroidLogcatNamedFilters.getInstance().namedFilters
   private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector)
-  private val namedFiltersCombo = NamedFilterCombo(filterTextField)
+  private val namedFiltersCombo = NamedFilterCombo(filterTextField, namedFilters)
 
   override var text: String
     get() = filterTextField.text
@@ -115,7 +116,7 @@ internal class NamedFilterComponent(
           ) as? String
           if (name != null) {
             // TODO(aalbert): Implement storing saved filters in the project.
-            addNamedFilter(name, filterTextField.text)
+            putNamedFilter(name, filterTextField.text)
             namedFiltersCombo.setSelectedNamedFilter(name)
           }
         }
@@ -127,8 +128,9 @@ internal class NamedFilterComponent(
     filterTextField.addDocumentListener(listener)
   }
 
-  fun addNamedFilter(name: String, filter: String) {
-    namedFiltersCombo.addNamedFilter(name, filter)
+  fun putNamedFilter(name: String, filter: String) {
+    namedFiltersCombo.putNamedFilter(name, filter)
+    namedFilters[name] = filter
   }
 }
 
@@ -163,8 +165,11 @@ internal sealed class NamedFilterComboItem {
  *
  * @param filterTextField a text field whose value is set when items are selected.
  */
-private class NamedFilterCombo(filterTextField: FilterTextField) : JComboBox<NamedFilterComboItem>() {
-  private val namedFilterComboModel = NamedFilterComboModel(filterTextField)
+private class NamedFilterCombo(
+  filterTextField: FilterTextField,
+  namedFilters: MutableMap<String, String>,
+) : JComboBox<NamedFilterComboItem>() {
+  private val namedFilterComboModel = NamedFilterComboModel(filterTextField, namedFilters)
 
   init {
     // When selectedItem is null, we render "Unsaved filter". See NamedFilterComboRenderer.
@@ -178,8 +183,8 @@ private class NamedFilterCombo(filterTextField: FilterTextField) : JComboBox<Nam
     //  custom component instead of a JComboBox.
   }
 
-  fun addNamedFilter(name: String, filter: String) {
-    namedFilterComboModel.addNamedFilter(NamedFilter(name, filter))
+  fun putNamedFilter(name: String, filter: String) {
+    namedFilterComboModel.putNamedFilter(NamedFilter(name, filter))
   }
 
   fun setSelectedNamedFilter(name: String) {
@@ -192,16 +197,17 @@ private class NamedFilterCombo(filterTextField: FilterTextField) : JComboBox<Nam
  *
  * @param filterTextField a text field whose value is set when items are selected.
  */
-private class NamedFilterComboModel(private val filterTextField: FilterTextField) : ComboBoxModel<NamedFilterComboItem> {
-  // Filters sorted alphabetically by name
-  private val myNamedFilters = sortedMapOf<String, NamedFilter>()
+private class NamedFilterComboModel(
+  private val filterTextField: FilterTextField,
+  namedFilters: MutableMap<String, String>) : ComboBoxModel<NamedFilterComboItem> {
+  private val filterMap = namedFilters.map { NamedFilter(it.key, it.value) }.associateByTo(sortedMapOf(), NamedFilter::name)
   private var selectedItem: NamedFilter? = null
 
   /**
    * The combo always contains a "Clear filter" item, a "Manage filters" item and 2 separators. If there are no named filters, it contains a
    * hint item.
    */
-  override fun getSize() = if (myNamedFilters.isEmpty()) 5 else myNamedFilters.size + 4
+  override fun getSize() = if (filterMap.isEmpty()) 5 else filterMap.size + 4
 
   // TODO(aalbert): Find a way to make NO_NAMED_FILTERS_ITEM & SEPARATOR items not selectable
   override fun getElementAt(index: Int): NamedFilterComboItem {
@@ -209,8 +215,8 @@ private class NamedFilterComboModel(private val filterTextField: FilterTextField
       index == 0 -> CLEAR_FILTER_ITEM
       index == 1 || index == size - 2 -> SEPARATOR
       index == size - 1 -> MANAGE_FILTERS_ITEM
-      myNamedFilters.isEmpty() -> NO_NAMED_FILTERS_ITEM
-      else -> myNamedFilters.values.toList()[index - 2]
+      filterMap.isEmpty() -> NO_NAMED_FILTERS_ITEM
+      else -> filterMap.values.toList()[index - 2]
     }
   }
 
@@ -238,12 +244,12 @@ private class NamedFilterComboModel(private val filterTextField: FilterTextField
 
   override fun getSelectedItem(): Any? = selectedItem
 
-  fun addNamedFilter(namedFilter: NamedFilter) {
-    myNamedFilters[namedFilter.name] = namedFilter
+  fun putNamedFilter(namedFilter: NamedFilter) {
+    filterMap[namedFilter.name] = namedFilter
   }
 
   fun setSelectedNamedFilter(name: String) {
-    selectedItem = myNamedFilters[name]
+    selectedItem = filterMap[name]
   }
 }
 
