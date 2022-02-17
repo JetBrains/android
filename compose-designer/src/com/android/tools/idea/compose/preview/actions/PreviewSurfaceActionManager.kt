@@ -77,7 +77,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
           },
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
-        ).disabledIfRefreshingOrRenderErrors().visibleOnlyInComposeStaticPreview()
+        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
       ),
       true,
       false
