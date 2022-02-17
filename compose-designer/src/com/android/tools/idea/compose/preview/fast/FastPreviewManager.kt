@@ -281,17 +281,18 @@ private class DaemonRegistry(
 }
 
 /**
- * Default class path locator that returns the complete classpath to pass to the compiler for a given
- * [Module].
+ * Default class path locator that returns the classpath for the module source code (excluding dependencies).
  */
-private fun defaultCompileClassPathLocator(module: Module): List<String> {
-  // Build classpath
-  val modulePath =
+private fun defaultModuleCompileClassPathLocator(module: Module): List<String> =
     GradleClassFinderUtil.getModuleCompileOutputs(module, true)
       .filter { it.exists() }
       .map { it.absolutePath.toString() }
       .toList()
 
+/**
+ * Default class path locator that returns the classpath containing the dependencies of [module] to pass to the compiler.
+ */
+private fun defaultModuleDependenciesCompileClassPathLocator(module: Module): List<String> {
   val libraryDeps = module.getLibraryDependenciesJars()
     .map { it.toString() }
 
@@ -300,7 +301,7 @@ private fun defaultCompileClassPathLocator(module: Module): List<String> {
                         ?.bootClasspath ?: listOf()
   // The Compose plugin is included as part of the fat daemon jar so no need to specify it
 
-  return (libraryDeps + modulePath + bootclassPath)
+  return (libraryDeps + bootclassPath)
 }
 
 /**
@@ -406,8 +407,10 @@ private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.fast.max.c
  *
  * @param project [Project] this manager is working with
  * @param alternativeDaemonFactory Optional daemon factory to use if the default one should not be used. Mainly for testing.
- * @param moduleClassPathLocator A method that given a [Module] returns the classpath to be passed to the compiler when making
- *  compilation requests for it.
+ * @param moduleClassPathLocator A method that given a [Module] returns the classpath for the module source to be passed to the
+ *  compiler. This will contain the classes that are part of the project.
+ * @param moduleDependenciesClassPathLocator A method that given a [Module] returns the classpath containing all dependencies of that module
+ *  to be passed to the compiler when making compilation requests for it.
  * @param moduleRuntimeVersionLocator A method that given a [Module] returns the [GradleVersion] of the Compose runtime that should
  *  be used. This is useful when locating the specific kotlin compiler daemon.
  * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
@@ -416,7 +419,8 @@ private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.fast.max.c
 class FastPreviewManager private constructor(
   private val project: Project,
   alternativeDaemonFactory: ((String) -> CompilerDaemonClient)? = null,
-  private val moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
+  private val moduleClassPathLocator: (Module) -> List<String> = ::defaultModuleCompileClassPathLocator,
+  private val moduleDependenciesClassPathLocator: (Module) -> List<String> = ::defaultModuleDependenciesCompileClassPathLocator,
   private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
@@ -483,7 +487,9 @@ class FastPreviewManager private constructor(
                              indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> = compilingMutex.withLock {
       val startTime = System.currentTimeMillis()
       indicator.text = "Building classpath"
-      val classPathString = moduleClassPathLocator(module).joinToString(File.pathSeparator)
+      val moduleClassPath = moduleClassPathLocator(module)
+      val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
+      val classPathString = (moduleClassPath + moduleDependenciesClassPath).joinToString(File.pathSeparator)
       val classPathArgs = if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
 
       val requestId = createCompileRequestId(files, classPathArgs)
@@ -512,9 +518,13 @@ class FastPreviewManager private constructor(
       val liveLiteralsArgs = if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
         LIVE_LITERALS_ARGS
       else emptyList()
+      val friendPaths = listOf(
+        "-Xfriend-paths=${moduleClassPath.joinToString(",")}"
+      )
       val args = FIXED_COMPILER_ARGS +
                  liveLiteralsArgs +
                  classPathArgs +
+                 friendPaths +
                  listOf("-d", outputAbsolutePath) +
                  inputFilesArgs
 
@@ -580,12 +590,14 @@ class FastPreviewManager private constructor(
     @TestOnly
     fun getTestInstance(project: Project,
                         daemonFactory: (String) -> CompilerDaemonClient,
-                        moduleClassPathLocator: (Module) -> List<String> = ::defaultCompileClassPathLocator,
+                        moduleClassPathLocator: (Module) -> List<String> = ::defaultModuleDependenciesCompileClassPathLocator,
+                        moduleDependenciesClassPathLocator: (Module) -> List<String> = ::defaultModuleDependenciesCompileClassPathLocator,
                         moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
                         maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): FastPreviewManager =
       FastPreviewManager(project = project,
                          alternativeDaemonFactory = daemonFactory,
                          moduleClassPathLocator = moduleClassPathLocator,
+                         moduleDependenciesClassPathLocator = moduleDependenciesClassPathLocator,
                          moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
                          maxCachedRequests = maxCachedRequests)
 

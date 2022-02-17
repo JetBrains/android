@@ -196,14 +196,19 @@ internal class FastPreviewManagerTest {
       fun empty() {}
     """.trimIndent())
     val compilationRequests = mutableListOf<List<String>>()
-    val manager = FastPreviewManager.getTestInstance(project, {
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
-        override suspend fun compileRequest(args: List<String>): CompilationResult {
-          compilationRequests.add(args)
-          return CompilationResult.Success
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
+          override suspend fun compileRequest(args: List<String>): CompilationResult {
+            compilationRequests.add(args)
+            return CompilationResult.Success
+          }
         }
-      }
-    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     assertTrue(compilationRequests.isEmpty())
@@ -222,7 +227,8 @@ internal class FastPreviewManagerTest {
       -P
       plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
       -cp
-      A.jar:b/c/Test.class
+      b/c/Test.class:A.jar
+      -Xfriend-paths=b/c/Test.class
       -d
       /tmp/overlay0
       /src/test.kt
@@ -249,7 +255,8 @@ internal class FastPreviewManagerTest {
         -jvm-target
         1.8
         -cp
-        A.jar:b/c/Test.class
+        b/c/Test.class:A.jar
+        -Xfriend-paths=b/c/Test.class
         -d
         /tmp/overlay0
         /src/testB.kt
@@ -279,7 +286,8 @@ internal class FastPreviewManagerTest {
       -P
       plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
       -cp
-      A.jar:b/c/Test.class
+      b/c/Test.class:A.jar
+      -Xfriend-paths=b/c/Test.class
       -d
       /tmp/overlay0
       /src/test.kt
@@ -293,9 +301,14 @@ internal class FastPreviewManagerTest {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(project, {
-      throw IllegalStateException("Unable to start compiler")
-    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        throw IllegalStateException("Unable to start compiler")
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     val result = manager.compileRequest(file, projectRule.module).first
@@ -307,13 +320,18 @@ internal class FastPreviewManagerTest {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(project, {
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
-        override suspend fun compileRequest(args: List<String>): CompilationResult {
-          throw IllegalStateException("Unable to process request")
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
+          override suspend fun compileRequest(args: List<String>): CompilationResult {
+            throw IllegalStateException("Unable to process request")
+          }
         }
-      }
-    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     val result = manager.compileRequest(file, projectRule.module).first
