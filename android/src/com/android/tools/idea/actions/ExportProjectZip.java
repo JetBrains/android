@@ -18,7 +18,6 @@ package com.android.tools.idea.actions;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.profiling.capture.CaptureService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -100,7 +99,6 @@ public class ExportProjectZip extends AnAction implements DumbAware {
       excludes.add(new File(basePath, SdkConstants.DOT_GRADLE));
       excludes.add(new File(basePath, GradleUtil.BUILD_DIR_DEFAULT_NAME));
       excludes.add(new File(basePath, Project.DIRECTORY_STORE_FOLDER));
-      excludes.add(new File(basePath, CaptureService.FD_CAPTURES));
     }
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {

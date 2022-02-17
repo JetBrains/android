@@ -317,7 +317,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.repositories.RepositoryUrlManager"/>
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <applicationService serviceInterface="org.jetbrains.android.facet.AndroidFacetConfiguration$EditorTabProvider"
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
     <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
@@ -327,8 +326,6 @@
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
-
-    <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
@@ -544,7 +541,6 @@
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
 
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
@@ -739,7 +735,6 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
-    <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
