@@ -35,10 +35,6 @@ import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -54,7 +50,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -857,31 +852,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T> T getFlag(@NotNull SessionParams.Key<T> key) {
-    if (key.equals(FLAG_KEY_APPLICATION_PACKAGE)) {
-      return (T)getPackage();
-    }
-    if (key.equals(FLAG_KEY_RECYCLER_VIEW_SUPPORT)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_XML_FILE_PARSER_SUPPORT)) {
-      return (T)Boolean.TRUE;
-    }
-    if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
-      return (T)myAdaptiveIconMaskPath;
-    }
-    return null;
-  }
-
-  @Nullable
   public String getResourcePackage() {
     return ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
   }
 
   @Nullable
-  private String getPackage() {
+  public String getApplicationId() {
     try {
       return RenderSecurityManager.runInSafeRegion(myCredential, () -> {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be

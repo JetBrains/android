@@ -1138,8 +1138,6 @@ public class LayoutlibSceneManager extends SceneManager {
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
-          newTask.getLayoutlibCallback()
-            .setAdaptiveIconMaskPath(configuration.getAdaptiveShape().getPathDescription());
           return newTask.inflate().whenComplete((result, inflateException) -> {
             Throwable exception = null;
             if (inflateException != null) {
