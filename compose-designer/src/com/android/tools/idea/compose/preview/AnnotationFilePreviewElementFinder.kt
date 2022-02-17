@@ -22,7 +22,6 @@ import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.openapi.application.ReadAction
@@ -89,26 +88,25 @@ fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  private fun findAllPreviewAnnotations(project: Project, vFile: VirtualFile): Collection<KtAnnotationEntry> {
+  private fun findAllComposableAnnotations(project: Project, vFile: VirtualFile): Collection<KtAnnotationEntry> {
     if (DumbService.isDumb(project)) {
       Logger.getInstance(AnnotationFilePreviewElementFinder::class.java)
         .debug("findPreviewMethods called while indexing. No annotations will be found")
       return emptyList()
     }
 
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile)  ?: return emptyList()
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
     return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
       val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+        KotlinAnnotationsIndex.getInstance().get(COMPOSABLE_ANNOTATION_NAME, project,
                                                  GlobalSearchScope.fileScope(project, vFile)).asSequence()
       }
 
-      val previewAnnotations = kotlinAnnotations
+      val composableAnnotations = kotlinAnnotations
         .filterIsInstance<KtAnnotationEntry>()
-        .filter { it.isPreviewAnnotation() }
         .toList()
 
-      CachedValueProvider.Result.create(previewAnnotations, psiFile)
+      CachedValueProvider.Result.create(composableAnnotations.distinct(), psiFile)
     }
   }
 
@@ -136,7 +134,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    * A [ModificationTracker] that tracks a [Promise] and can be used as a dependency for [CachedValuesManager.getCachedValue].
    * If the promise is rejected or fails, this will update the count, invalidating the cache (so it's not stored).
    */
-  private class PromiseModificationTracker(private val promise: Promise<*>): ModificationTracker {
+  private class PromiseModificationTracker(private val promise: Promise<*>) : ModificationTracker {
     private var modificationCount = 0L
     override fun getModificationCount(): Long = when {
       promise.isRejected -> ++modificationCount // The promise failed so we ensure it is not cached
@@ -162,8 +160,9 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       var result: Collection<PreviewElement>? = null
       while (result == null && retries > 0) {
         retries--
-        val promiseResult = CachedValuesManager.getManager(project).getCachedValue(psiFile,
-                                                                                   findPreviewMethodsCachedValue(project, vFile, psiFile))
+        val promiseResult = runReadAction {
+          CachedValuesManager.getManager(project).getCachedValue(psiFile, findPreviewMethodsCachedValue(project, vFile, psiFile))
+        }
         result = promiseResult.await()
         if (promiseResult.isSucceeded) break // No need to retry even if the result is null, the result is valid
         if (result == null) delay((MAX_NON_BLOCKING_ACTION_RETRIES - retries) * 10L)
@@ -179,12 +178,14 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     CachedValueProvider {
       val promise = ReadAction
         .nonBlocking(Callable<Collection<PreviewElement>> {
-          findAllPreviewAnnotations(project, vFile)
-            .mapNotNull {
+          findAllComposableAnnotations(project, vFile)
+            .mapNotNull { (it.psiOrParent.toUElementOfType() as? UAnnotation)?.getContainingComposableUMethod() }
+            .distinct() // avoid looking more than once per method
+            .flatMap {
               ProgressManager.checkCanceled()
-              (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement()
+              getPreviewElements(it)
             }
-            .distinct()
+            .distinct() // make sure to show equivalent Previews only once
         })
         .inSmartMode(project)
         .coalesceBy(project, vFile)
