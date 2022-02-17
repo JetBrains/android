@@ -28,7 +28,7 @@ public class AndroidSdkDownloader {
   // debug only
   public static void main(String[] args) {
     Path root = downloadSdk(BuildDependenciesManualRunOnly.getCommunityRootFromWorkingDirectory());
-    BuildDependenciesDownloader.info("Sdk is at " + root);
+    System.out.println("Sdk is at " + root);
   }
 
   private static Path downloadAndroidSdk(BuildDependenciesCommunityRoot communityRoot) {
