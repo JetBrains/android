@@ -109,18 +109,22 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         var displayHeight = 0
         // Process part nodes. The "onion" and "controls" nodes are ignored because they don't
         // contribute to the device frame appearance.
-        val partsByName: MutableMap<String, Part> = hashMapOf()
+        val partsByName = hashMapOf<String, Part>()
         val partNodes = skin.getNode("parts")?.children ?: return null
         for ((name, node) in partNodes.entries) {
-          if (name == "device") {
-            displayWidth = node.getValue("display.width")?.toInt() ?: return null
-            displayHeight = node.getValue("display.height")?.toInt() ?: return null
+          if (name == "onion" || name == "controls") {
+            continue
           }
-          else if (name != "onion" && name != "controls") {
-            partsByName[name] = createPart(node, skinFolder)
+          if (name == "device" || name == "primary" || displayWidth == 0 || displayHeight == 0) {
+            displayWidth = node.getValue("display.width")?.toInt() ?: 0
+            displayHeight = node.getValue("display.height")?.toInt() ?: 0
           }
+          partsByName[name] = createPart(node, skinFolder)
         }
 
+        if (displayWidth == 0 || displayHeight == 0) {
+          return null
+        }
         // Process layout nodes.
         var layout: SkinLayout? = null
         val layoutNodes = skin.getNode("layouts")?.children ?: return null
@@ -136,7 +140,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
             val x = subnode.getValue("x")?.toInt() ?: 0
             val y = subnode.getValue("y")?.toInt() ?: 0
             val name = subnode.getValue("name") ?: continue
-            if (name == "device") {
+            if (name == "device" || name == "primary") {
               val rotation = subnode.getValue("rotation")?.toInt() ?: 0
               if (rotation != 0) {
                 continue@layout // The layout is rotated - ignore it.

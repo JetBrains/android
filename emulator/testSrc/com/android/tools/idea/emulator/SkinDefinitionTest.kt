@@ -179,6 +179,14 @@ class SkinDefinitionTest {
   }
 
   @Test
+  fun testTwoDisplays() {
+    val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    // Check the skin layout.
+    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(2348, 1080))
+  }
+
+  @Test
   fun testSkinConsistency() {
     // Old-style skins are not checked by this test. Please don't add any new skins to this list.
     val oldStyleSkins = listOf(
@@ -361,7 +369,7 @@ class SkinDefinitionTest {
   }
 
   private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/golden/${name}.png")
   }
 }
 
@@ -384,4 +392,4 @@ private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(
 
 private const val ALPHA_MASK = 0xFF shl 24
 
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/SkinDefinitionTest/golden"
+private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData/SkinDefinitionTest"
