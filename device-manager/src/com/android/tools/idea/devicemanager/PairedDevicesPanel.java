@@ -36,14 +36,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
-import javax.swing.JTable;
-import javax.swing.table.TableColumnModel;
 import kotlin.Unit;
 import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.BuildersKt;
@@ -105,23 +102,14 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     }
     else {
       List<Pairing> pairings = phoneWearPairList.stream()
-        .map(pair -> new Pairing(pair.getPeerDevice(myDeviceId.toString()), pair.getPairingStatus()))
+        .map(pair -> new Pairing(pair, myDeviceId))
         .collect(Collectors.toList());
 
-      JTable table = new JBTable(new PairingTableModel(pairings));
-      table.setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
-      table.setShowGrid(false);
+      PairingTable table = new PairingTable();
+      table.getModel().setPairings(pairings);
 
-      TableColumnModel columnModel = table.getColumnModel();
-      columnModel.getColumn(0).setPreferredWidth(80_000); // Some large number, 80% of total width
-      columnModel.getColumn(1).setPreferredWidth(20_000);
-
-      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> {
-        int selectedIndex = table.getSelectedRow();
-        if (selectedIndex >= 0 && selectedIndex < phoneWearPairList.size()) {
-          unpair(phoneWearPairList.get(selectedIndex));
-        }
-      });
+      toolbar = ToolbarDecorator.createDecorator(table)
+        .setRemoveAction(button -> unpair(table.getSelectedPairing().orElseThrow(AssertionError::new).getPair()));
     }
 
     toolbar

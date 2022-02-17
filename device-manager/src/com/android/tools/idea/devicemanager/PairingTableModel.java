@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class PairingTableModel extends AbstractTableModel {
-  private static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  private static final int STATUS_MODEL_COLUMN_INDEX = 1;
+  static final int DEVICE_MODEL_COLUMN_INDEX = 0;
+  static final int STATUS_MODEL_COLUMN_INDEX = 1;
 
-  private final @NotNull List<@NotNull Pairing> myPairings;
+  private @NotNull List<@NotNull Pairing> myPairings = Collections.emptyList();
 
-  PairingTableModel(@NotNull List<@NotNull Pairing> pairings) {
+  @NotNull List<@NotNull Pairing> getPairings() {
+    return myPairings;
+  }
+
+  void setPairings(@NotNull List<@NotNull Pairing> pairings) {
     myPairings = pairings;
+    fireTableDataChanged();
   }
 
   @Override

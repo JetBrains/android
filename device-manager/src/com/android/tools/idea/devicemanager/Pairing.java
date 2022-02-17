@@ -18,16 +18,16 @@ package com.android.tools.idea.devicemanager;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
 import com.android.tools.idea.wearpairing.PairingDevice;
-import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import org.jetbrains.annotations.NotNull;
 
 final class Pairing {
+  private final @NotNull PhoneWearPair myPair;
   private final @NotNull Device myOtherDevice;
-  private final @NotNull PairingState myStatus;
 
-  Pairing(@NotNull PairingDevice otherDevice, @NotNull PairingState status) {
-    myOtherDevice = toDevice(otherDevice);
-    myStatus = status;
+  Pairing(@NotNull PhoneWearPair pair, @NotNull Key key) {
+    myPair = pair;
+    myOtherDevice = toDevice(pair.getPeerDevice(key.toString()));
   }
 
   private static @NotNull Device toDevice(@NotNull PairingDevice device) {
@@ -46,12 +46,16 @@ final class Pairing {
       .build();
   }
 
+  @NotNull PhoneWearPair getPair() {
+    return myPair;
+  }
+
   @NotNull Device getOtherDevice() {
     return myOtherDevice;
   }
 
   @NotNull String getStatus() {
-    switch (myStatus) {
+    switch (myPair.getPairingStatus()) {
       case OFFLINE:
         return "Offline";
       case CONNECTING:
@@ -61,7 +65,7 @@ final class Pairing {
       case PAIRING_FAILED:
         return "Error pairing";
       default:
-        throw new AssertionError(myStatus);
+        throw new AssertionError(myPair.getPairingStatus());
     }
   }
 }
