@@ -32,7 +32,6 @@ import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Point
 import java.awt.datatransfer.Transferable
@@ -49,11 +48,9 @@ import javax.swing.TransferHandler
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeWillExpandListener
-import javax.swing.plaf.basic.BasicTableHeaderUI
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableCellRenderer
-import javax.swing.table.TableColumnModel
 import javax.swing.tree.ExpandVetoException
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
@@ -172,8 +169,7 @@ class TreeTableImpl(
   }
 
   override fun createDefaultTableHeader(): JTableHeader {
-    // Do this to avoid the vertical lines drawn by DarculaTableHeaderUI
-    return TreeTableHeader(columnModel)
+    return TreeTableHeader(this)
   }
 
   override fun updateUI() {
@@ -209,7 +205,7 @@ class TreeTableImpl(
     paintColumnDividers(g)
   }
 
-  private fun paintColumnDividers(g: Graphics) {
+  fun paintColumnDividers(g: Graphics) {
     val color = g.color
     g.color = JBColor.border()
     var x = width
@@ -389,40 +385,6 @@ class TreeTableImpl(
         draggedItem?.let { tableModel.delete(it) }
       }
       draggedItem = null
-    }
-  }
-
-  /**
-   * A [JTableHeader] that is using [BasicTableHeaderUI] and paints divider lines.
-   *
-   * The default [JTableHeader] using DarculaTableHeaderUI will unconditionally paint column divider
-   * lines between all columns. We only want them where they are defined by the specified [ColumnInfo] instances.
-   *
-   * The [BasicTableHeaderUI] does not draw a divider between the header and the table content, do that here.
-   */
-  private inner class TreeTableHeader(model: TableColumnModel) : JTableHeader(model) {
-
-    override fun getPreferredSize(): Dimension {
-      val size = super.getPreferredSize()
-      size.height++
-      return size
-    }
-
-    override fun paintComponent(g: Graphics) {
-      super.paintComponent(g)
-      paintColumnDividers(g)
-      paintBottomSeparator(g)
-    }
-
-    override fun updateUI() {
-      setUI(BasicTableHeaderUI())
-    }
-
-    private fun paintBottomSeparator(g: Graphics) {
-      val g2 = g.create()
-      g2.color = JBColor.border()
-      g2.drawLine(0, height - 1, width, height - 1)
-      g2.dispose()
     }
   }
 }
