@@ -49,7 +49,7 @@ import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
-import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
@@ -114,7 +114,7 @@ internal class LogcatMainPanel(
   private val popupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
-  private var logcatSettings: LogcatSettings = LogcatSettings.getInstance(),
+  private var logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings.getInstance(),
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
@@ -286,7 +286,7 @@ internal class LogcatMainPanel(
     EditorFactory.getInstance().releaseEditor(editor)
   }
 
-  override fun applyLogcatSettings(logcatSettings: LogcatSettings) {
+  override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
     this.logcatSettings = logcatSettings
     val bufferSize = logcatSettings.bufferSize
     documentAppender.setMaxDocumentSize(bufferSize)

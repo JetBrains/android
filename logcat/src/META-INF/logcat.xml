@@ -50,7 +50,7 @@
         provider="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
         id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"/>
 
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.settings.LogcatSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.logcat.settings.AndroidLogcatSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/LogcatColorSchemeDefault.xml"/>

@@ -33,7 +33,7 @@ class LogcatApplicationSettingsConfigurableTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
-  private val logcatSettings = LogcatSettings()
+  private val logcatSettings = AndroidLogcatSettings()
 
   @Test
   fun createComponent() {
@@ -125,7 +125,7 @@ class LogcatApplicationSettingsConfigurableTest {
     assertThat(configurable.isModified).isTrue()
   }
 
-  private fun logcatApplicationSettingsConfigurable(logcatSettings: LogcatSettings = LogcatSettings())
+  private fun logcatApplicationSettingsConfigurable(logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings())
     : LogcatApplicationSettingsConfigurable =
     LogcatApplicationSettingsConfigurable(logcatSettings).apply(LogcatApplicationSettingsConfigurable::createComponent)
 }

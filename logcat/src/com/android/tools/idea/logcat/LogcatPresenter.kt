@@ -20,7 +20,7 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
-import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.Disposable
 
 /**
@@ -67,5 +67,5 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
    */
   fun isAttachedToDevice(): Boolean
 
-  fun applyLogcatSettings(logcatSettings: LogcatSettings)
+  fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 }

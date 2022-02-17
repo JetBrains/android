@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.components.PersistentStateComponent
+import org.junit.Test
 
-private const val DEFAULT_BUFFER_SIZE = 1024 * 1024
+/**
+ * Tests for [AndroidLogcatSettings]
+ */
+class AndroidLogcatSettingsTest {
+  @Test
+  fun defaults() {
+    val logcatSettings = AndroidLogcatSettings()
+    assertThat(logcatSettings.bufferSize).isEqualTo(1024 * 1024)
+  }
 
-@State(name = "LogcatSettings", storages = [Storage("logcatSettings.xml")])
-internal data class LogcatSettings(
-  var bufferSize: Int = DEFAULT_BUFFER_SIZE,
-  var namedFiltersEnabled: Boolean = false,
-) {
-
-  companion object {
-    fun getInstance(): LogcatSettings = ApplicationManager.getApplication().getService(LogcatSettings::class.java)
+  @Test
+  fun isPersistentComponent() {
+    assertThat(AndroidLogcatSettings()).isInstanceOf(PersistentStateComponent::class.java)
   }
 }

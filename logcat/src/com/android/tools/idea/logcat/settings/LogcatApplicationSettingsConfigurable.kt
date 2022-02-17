@@ -38,7 +38,7 @@ import javax.swing.event.DocumentEvent
 private const val MAX_BUFFER_SIZE_MB = 100
 private const val MAX_BUFFER_SIZE_KB = 1024 * MAX_BUFFER_SIZE_MB
 
-internal class LogcatApplicationSettingsConfigurable(private val logcatSettings: LogcatSettings) : Configurable, Configurable.NoScroll {
+internal class LogcatApplicationSettingsConfigurable(private val logcatSettings: AndroidLogcatSettings) : Configurable, Configurable.NoScroll {
   @VisibleForTesting
   internal val cycleBufferSizeTextField = JTextField(10).apply {
     text = (logcatSettings.bufferSize / 1024).toString()

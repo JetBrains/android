@@ -38,7 +38,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
@@ -142,7 +142,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun setsDocumentCyclicBuffer() = runBlocking {
-    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = LogcatSettings(bufferSize = 1024)) }
+    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = AndroidLogcatSettings(bufferSize = 1024)) }
     val document = logcatMainPanel.editor.document as DocumentImpl
     val logCatMessage = logCatMessage()
 
@@ -327,7 +327,7 @@ class LogcatMainPanelTest {
   @Test
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector, logcatSettings = LogcatSettings(bufferSize = 1024))
+      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector, logcatSettings = AndroidLogcatSettings(bufferSize = 1024))
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -367,7 +367,7 @@ class LogcatMainPanelTest {
   @Test
   fun foldings_rangeWithCyclicBuffer() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(foldingDetector = mockFoldingDetector, logcatSettings = LogcatSettings(bufferSize = 1024))
+      logcatMainPanel(foldingDetector = mockFoldingDetector, logcatSettings = AndroidLogcatSettings(bufferSize = 1024))
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -482,12 +482,12 @@ class LogcatMainPanelTest {
 
   @Test
   fun applyLogcatSettings_bufferSize() = runBlocking {
-    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = LogcatSettings(bufferSize = 1024000)) }
+    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = AndroidLogcatSettings(bufferSize = 1024000)) }
     val document = logcatMainPanel.editor.document as DocumentImpl
     val logCatMessage = logCatMessage(message = "foo".padStart(97, ' ')) // Make the message part exactly 100 chars long
     // Insert 20 log lines
     logcatMainPanel.processMessages(List(20) { logCatMessage })
-    val logcatSettings = LogcatSettings(bufferSize = 1024)
+    val logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
 
     logcatMainPanel.applyLogcatSettings(logcatSettings)
 
@@ -645,7 +645,7 @@ class LogcatMainPanelTest {
     popupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
     state: LogcatPanelConfig? = null,
-    logcatSettings: LogcatSettings = LogcatSettings(),
+    logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,

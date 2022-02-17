@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.settings.LogcatSettings
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import java.awt.Component
@@ -39,7 +39,7 @@ internal interface FilterTextComponent {
       filterParser: LogcatFilterParser,
       initialText: String,
     ): FilterTextComponent =
-      if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get() && LogcatSettings.getInstance().namedFiltersEnabled) {
+      if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get() && AndroidLogcatSettings.getInstance().namedFiltersEnabled) {
         NamedFilterComponent(project, logcatPresenter, filterParser, initialText)
       }
       else {
