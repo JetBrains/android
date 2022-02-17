@@ -28,7 +28,7 @@ class AndroidEditorAppearanceConfigurable : UiDslUnnamedConfigurable.Simple() {
 
   private val checkboxDescriptor = CheckboxDescriptor(
     AndroidBundle.message("android.editor.settings.appearance.enable.flags.for.languages"),
-    PropertyBinding({ settings.state.enableFlagsForLanguages }, { settings.state.enableFlagsForLanguages = it })
+    settings.state::enableFlagsForLanguages
   )
 
   override fun Panel.createContent() {
