@@ -20,7 +20,6 @@ import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
 import com.android.tools.idea.util.StudioPathManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
@@ -43,7 +42,7 @@ public class ImageConverter {
       initByteStringFields();
     }
     catch (Throwable e) {
-      logError("Native image converter library is not available", e);
+      logger().error("Native image converter library is not available", e);
     }
   }
 
@@ -150,19 +149,10 @@ public class ImageConverter {
       offsetField = byteStringClass.getDeclaredField("bytesOffset");
       offsetField.setAccessible(true);
     }
-    catch (NoSuchFieldException e) {
-      logError("Unable to access fields of " + byteStringClass.getName(), e);
+    catch (ReflectiveOperationException | RuntimeException e) {
       bytesField = null;
       offsetField = null;
-    }
-  }
-
-  private static void logError(@NotNull String message, @NotNull Throwable e) {
-    if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
-      logger().error(message, e); // Test mode.
-    }
-    else {
-      logger().warn(message, e);
+      throw new RuntimeException("Unable to access fields of " + byteStringClass.getName(), e);
     }
   }
 
