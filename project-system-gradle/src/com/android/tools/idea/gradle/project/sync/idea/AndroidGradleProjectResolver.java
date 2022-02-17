@@ -159,6 +159,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleModuleDataKt;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -512,7 +513,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                           @NotNull GradleAndroidModel GradleAndroidModel) {
     // Get the unit test task for the current module.
     String testTaskName = getTasksFromAndroidModuleData(GradleAndroidModel);
-    String gradlePath = GradleProjectResolverUtil.getGradlePath(moduleDataNode.getData());
+    ModuleData moduleData = moduleDataNode.getData();
+    String gradlePath = GradleProjectResolverUtil.getGradlePath(moduleData);
+    String compositeBuildGradlePath = GradleModuleDataKt.getCompositeBuildGradlePath(moduleData);
+    String fullGradlePath = compositeBuildGradlePath + gradlePath;
 
     Set<String> sourceFolders = new HashSet<>();
     for (IdeSourceProvider sourceProvider : GradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
@@ -520,7 +524,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         sourceFolders.add(sourceFolder.getPath());
       }
     }
-    String taskNamePrefix = gradlePath.equals(":") ? gradlePath : gradlePath + ":";
+    String taskNamePrefix = fullGradlePath.equals(":") ? fullGradlePath : fullGradlePath + ":";
     TestData testData = new TestData(GradleConstants.SYSTEM_ID, testTaskName, taskNamePrefix + testTaskName, sourceFolders);
     moduleDataNode.createChild(ProjectKeys.TEST, testData);
   }
