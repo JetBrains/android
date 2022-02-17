@@ -17,20 +17,21 @@ package com.android.tools.componenttree.treetable
 
 import com.android.tools.componenttree.api.ColumnInfo
 import com.intellij.ui.JBColor
+import com.intellij.util.IJSwingUtilities
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
-import javax.swing.plaf.basic.BasicTableHeaderUI
 import javax.swing.table.JTableHeader
 
 /**
- * A [JTableHeader] that is using [BasicTableHeaderUI] and paints divider lines.
+ * A [JTableHeader] that is using [TreeTableHeaderUI] and paints divider lines.
  *
  * The default [JTableHeader] using DarculaTableHeaderUI will unconditionally paint column divider
  * lines between all columns. We only want them where they are defined by the specified [ColumnInfo] instances.
@@ -39,16 +40,56 @@ import javax.swing.table.JTableHeader
  *
  * The component keeps track of the hover column and will use the tooltipText and cursor for the component found
  * under the mouse pointer. Also: all mouse clicks will be forwarded.
+ *
+ * This implementation supports editing columns. However, only focus navigation (usually though the keyboard) will
+ * use column editors. Currently, the component from the renderer is used as the editor. This only works as long as
+ * that component is not shared with other column renderers.
  */
 class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeTable.columnModel) {
   private var hoverColumn = -1
   private var hoverCachedComponent: Component? = null
 
+  var editingColumn = -1
+    private set
+
+  val isEditing: Boolean
+    get() = editingColumn >= 0
+
+  val columnCount: Int
+    get() = treeTable.columnCount
+
   init {
     reorderingAllowed = false
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = TreeTableHeaderTraversalPolicy(this)
     val mouseListener = HoverMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
+  }
+
+  fun editCellAt(columnIndex: Int): Boolean {
+    val column = columnModel.getColumn(columnIndex)
+    val component = column.headerRenderer.getTableCellRendererComponent(treeTable, null, false, false, 0, columnIndex)
+    val x = columnModel.columns.asSequence().take(columnIndex).sumOf { it.width }
+    component.setBounds(x, 0, column.width, height - 1)
+    removeEditor()
+    add(component)
+    component.validate()
+    component.repaint()
+    editingColumn = columnIndex
+    return true
+  }
+
+  fun removeEditor() {
+    // Remove focus from the current editor if it has it. Do this to avoid endless recursion.
+    // Auto focus transfer is a common problem for applications. See JDK-6210779.
+    val editor = components.firstOrNull()
+    if (editor != null && IJSwingUtilities.hasFocus(editor)) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
+    }
+
+    removeAll()
+    editingColumn = -1
   }
 
   override fun getPreferredSize(): Dimension {
@@ -64,7 +105,7 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
   }
 
   override fun updateUI() {
-    setUI(BasicTableHeaderUI())
+    setUI(TreeTableHeaderUI())
   }
 
   override fun getToolTipText(event: MouseEvent): String? {

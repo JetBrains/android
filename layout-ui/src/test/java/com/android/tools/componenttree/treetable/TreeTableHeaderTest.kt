@@ -16,6 +16,9 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.adtui.FocusableIcon
+import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
@@ -36,10 +39,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.AWTEvent
+import java.awt.AWTKeyStroke
 import java.awt.BorderLayout
 import java.awt.Cursor
+import java.awt.KeyboardFocusManager
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -110,6 +116,59 @@ class TreeTableHeaderTest {
     assertThat(column2.icon.pressCount).isEqualTo(4)
     assertThat(column2.icon.releaseCount).isEqualTo(4)
     assertThat(column2.icon.clickCount).isEqualTo(4)
+  }
+
+  @Test
+  fun testKeyboardNavigation() {
+    val scrollPane = createTreeTable()
+    scrollPane.setSize(800, 1000)
+    val panel = JPanel(BorderLayout())
+    val icon1 = FocusableIcon()
+    val icon2 = FocusableIcon()
+    icon1.icon = StudioIcons.Common.ERROR
+    icon2.icon = StudioIcons.Common.CLEAR
+    panel.add(icon1, BorderLayout.NORTH)
+    panel.add(scrollPane, BorderLayout.CENTER)
+    panel.add(icon2, BorderLayout.SOUTH)
+    panel.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")))
+    panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("TAB")))
+    val ui = FakeUi(panel, createFakeWindow = true)
+    val manager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    manager.focusOwner = icon1
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(icon2)
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(icon1)
+
+    // Make the icon in column2 focusable and try again:
+    column2.icon.isFocusable = true
+    ui.keyboard.pressBackTab()
+    assertThat(manager.focusOwner).isSameAs(icon2)
+    ui.keyboard.pressBackTab()
+    assertThat(manager.focusOwner).isSameAs(column2.icon)
+    ui.keyboard.pressBackTab()
+    assertThat(manager.focusOwner).isSameAs(icon1)
+
+    // Now also make icon from column1 and text from column2 focusable and try again:
+    column1.icon.isFocusable = true
+    column2.text.isFocusable = true
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(column1.icon)
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(column2.text)
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(column2.icon)
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(icon2)
+    ui.keyboard.pressTab()
+    assertThat(manager.focusOwner).isSameAs(icon1)
+  }
+
+  private fun FakeKeyboard.pressTab() = pressAndRelease(KeyEvent.VK_TAB)
+  private fun FakeKeyboard.pressBackTab() = with(this) {
+    press(KeyEvent.VK_SHIFT)
+    pressAndRelease(KeyEvent.VK_TAB)
+    release(KeyEvent.VK_SHIFT)
   }
 
   private fun createTreeTable(): JScrollPane {

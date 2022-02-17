@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.api.ComponentTreeBuilder
@@ -59,15 +60,12 @@ import java.awt.Cursor
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
-import javax.swing.SwingUtilities
 import javax.swing.table.TableCellRenderer
 import kotlin.math.max
 
@@ -172,25 +170,23 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
-    val panel = JPanel(BorderLayout())
-    val text = JBLabel("Composition counts")
-    val reset = JBLabel(AllIcons.Actions.Refresh)
-    text.border = JBUI.Borders.empty(ICON_BORDER, TEXT_HORIZONTAL_BORDER)
-    text.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    reset.border = JBUI.Borders.empty(ICON_BORDER)
-    reset.toolTipText = "Click to reset recomposition counts"
-    reset.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-    reset.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
-        if (SwingUtilities.isLeftMouseButton(event)) {
-          resetRecompositionCounts()
-        }
-      }
-    })
-    panel.background = UIUtil.TRANSPARENT_COLOR
-    panel.isOpaque = false
-    panel.add(text, BorderLayout.CENTER)
-    panel.add(reset, BorderLayout.EAST)
+    val text = JBLabel("Composition counts").apply {
+      border = JBUI.Borders.empty(ICON_BORDER, TEXT_HORIZONTAL_BORDER)
+      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    }
+    val reset = FocusableIcon().apply {
+      border = JBUI.Borders.empty(ICON_BORDER)
+      icon = AllIcons.Actions.Refresh
+      onClick = ::resetRecompositionCounts
+      cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+      toolTipText = "Click to reset recomposition counts"
+    }
+    val panel = JPanel(BorderLayout()).apply {
+      background = UIUtil.TRANSPARENT_COLOR
+      isOpaque = false
+      add(text, BorderLayout.CENTER)
+      add(reset, BorderLayout.EAST)
+    }
     return TableCellRenderer { _, _, _, _, _, _ -> panel }
   }
 
