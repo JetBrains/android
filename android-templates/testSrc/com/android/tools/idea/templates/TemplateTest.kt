@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.testutils.ignore.OnWindows
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -58,6 +59,10 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
   override fun setUp() {
     super.setUp()
+    // Disable on Windows due to b/199156040
+    if (OnWindows().present()) {
+      return
+    }
     UsageTracker.setWriterForTest(usageTracker)
 
     /**
@@ -75,6 +80,10 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
   override fun tearDown() {
     try {
+      // Disable on Windows due to b/199156040
+      if (OnWindows().present()) {
+        return
+      }
       usageTracker.close()
       UsageTracker.cleanAfterTesting()
     }
@@ -642,8 +651,9 @@ private fun getBoolFromEnvironment(key: String) = System.getProperty(key).orEmpt
 
 /**
  * Whether we should run these tests or not.
+ * Disable on Windows due to b/199156040
  */
-private val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
+private val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS") || OnWindows().present()
 
 /**
  * Whether we should enforce that lint passes cleanly on the projects
