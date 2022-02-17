@@ -94,6 +94,7 @@ iml_module(
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/intellij.android.compose-common[module]",
+        "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
     ],
 )
 

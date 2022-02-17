@@ -1235,7 +1235,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON = Flag.create(
     COMPOSE, "preview.fast.reload.in.process.enabled", "Enable the Compose fast-reload in-process compiler",
     "If enabled, the preview will use the in-process compiler for compiling.",
-    false);
+    true);
   //endregion
 
   // region App Inspection

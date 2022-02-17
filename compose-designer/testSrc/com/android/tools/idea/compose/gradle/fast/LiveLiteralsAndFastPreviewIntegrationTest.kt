@@ -28,8 +28,11 @@ import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.replaceText
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
@@ -77,6 +80,16 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
+
+    invokeAndWaitIfNeeded {
+      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+
+      WriteCommandAction.runWriteCommandAction(projectRule.project) {
+        // Delete the reference to PreviewInOtherFile since it's a top level function not supported
+        // by the embedded compiler (b/201728545) and it's not used by the tests.
+        projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+      }
+    }
   }
 
   @After
@@ -131,9 +144,6 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
   @Ignore("b/161091273") // This test is flaky
   @Test
   fun `verify literals in overlay file`() = runBlocking {
-    withContext(uiThread) {
-      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
     val liveLiteralsService = LiveLiteralsService.getInstance(projectRule.project)
     val (_, outputFiles) = compileAndListOutputFiles()
     assertTrue(outputFiles.any { it.contains("LiveLiterals") })
@@ -162,9 +172,6 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
 
   @Test
   fun `disabled live literals does not generate LiveLiterals classes`() = runBlocking {
-    withContext(uiThread) {
-      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-    }
     LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
     val (_, outputFiles) = compileAndListOutputFiles()
     assertTrue(outputFiles.isNotEmpty() && outputFiles.none { it.contains("LiveLiterals") })

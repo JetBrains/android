@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.fast
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
@@ -75,6 +76,8 @@ private val DEFAULT_RUNTIME_VERSION = GradleVersion.parse("1.1.0-alpha02")
 
 /** Settings passed to the compiler daemon in debug mode. */
 private const val DAEMON_DEBUG_SETTINGS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+
+data class DisableReason(val title: String, val description: String? = null, val throwable: Throwable? = null)
 
 /**
  * Starts the daemon in the given [daemonPath].
@@ -357,7 +360,7 @@ private fun defaultDaemonFactory(version: String, log: Logger, scope: CoroutineS
  * compiler used by the Emulator Live Edit.
  */
 private fun embeddedDaemonFactory(project: Project, log: Logger): CompilerDaemonClient {
-  log.warn("Using the experimental in-process compiler")
+  log.info("Using the experimental in-process compiler")
   return EmbeddedCompilerClientImpl(project, log)
 }
 
@@ -456,6 +459,18 @@ class FastPreviewManager private constructor(
     get() = FastPreviewApplicationConfiguration.getInstance().isEnabled
 
   /**
+   * Returns the reason why the Fast Preview was disabled, if available.
+   */
+  var disableReason: DisableReason? = null
+    private set
+
+  /**
+   * Allow auto disable. If set to true, the Fast Preview might disable itself automatically if there is a compiler failure.
+   * This can happen if the project has unsupported features like annotation providers.
+   */
+  var allowAutoDisable: Boolean = true
+
+  /**
    * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building
    * or fast preview is disabled.
    */
@@ -480,6 +495,10 @@ class FastPreviewManager private constructor(
    * successful and the path where the result classes can be found.
    *
    * The method takes an optional [ProgressIndicator] to update the progress of the request.
+   *
+   * If the compilation request is not successful and [allowAutoDisable] is true, the [FastPreviewManager] will disable
+   * itself until [enable] is called again. This is to prevent code that can not be compiled using this service being
+   * retried over and over. The user will have the option to re-enable it via a notification.
    */
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(files: Collection<PsiFile>,
@@ -530,26 +549,41 @@ class FastPreviewManager private constructor(
 
       indicator.text = "Looking for compiler daemon"
       val runtimeVersion = moduleRuntimeVersionLocator(module).toString()
-      val daemon = try {
-        daemonRegistry.getOrCreateDaemon(runtimeVersion)
-      }
-      catch (t: Throwable) {
-        return@withLock  Pair(CompilationResult.DaemonStartFailure(t), outputAbsolutePath)
-      }
 
-      try {
-        project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationStarted(files)
-      }
-      catch (_: Throwable) {
-      }
-      indicator.text = "Compiling"
       val result = try {
-        daemon.compileRequest(args)
+        val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
+
+        try {
+          project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationStarted(files)
+        }
+        catch (_: Throwable) {
+        }
+        indicator.text = "Compiling"
+        try {
+          daemon.compileRequest(args)
+        }
+        catch (t: Throwable) {
+          CompilationResult.RequestException(t)
+        }
       }
       catch (t: Throwable) {
-        return@withLock  Pair(CompilationResult.RequestException(t), outputAbsolutePath)
+        CompilationResult.DaemonStartFailure(t)
       }
       log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result, id=$requestId)")
+      if (result != CompilationResult.Success && allowAutoDisable) {
+        val reason = when (result) {
+          is CompilationResult.RequestException -> DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
+                                                                 description = result.e?.message,
+                                                                 throwable = result.e)
+          is CompilationResult.DaemonStartFailure -> DisableReason(title = message("fast.preview.disabled.reason.unable.start"),
+                                                                   throwable = result.e)
+          is CompilationResult.DaemonError -> DisableReason(
+            title = message("fast.preview.disabled.reason.unable.compile.compiler.error"),
+            description = message("fast.preview.disabled.reason.unable.compile.compiler.error.description"))
+          else -> null
+        }
+        disable(reason)
+      }
       return@withLock Pair(result, outputAbsolutePath).also {
         synchronized(requestTracker) {
           pendingRequest.complete(it)
@@ -580,6 +614,20 @@ class FastPreviewManager private constructor(
       Disposer.register(this@FastPreviewManager, it)
     }
     project.messageBus.connect(disposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
+  }
+
+  /**
+   * Disables the Fast Preview. Optionally, receive a reason to be disabled that might be displayed to the user.
+   */
+  fun disable(reason: DisableReason? = null) {
+    disableReason = reason
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = false
+  }
+
+  /** Enables the Fast Preview. */
+  fun enable() {
+    disableReason = null
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 
   override fun dispose() {}

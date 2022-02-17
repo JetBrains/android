@@ -26,9 +26,11 @@ import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
@@ -41,6 +43,7 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -70,6 +73,11 @@ class FastPreviewManagerTest {
     }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
+      WriteCommandAction.runWriteCommandAction(projectRule.project) {
+        // Delete the reference to PreviewInOtherFile since it's a top level function not supported
+        // by the embedded compiler (b/201728545) and it's not used by the tests.
+        projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
+      }
       projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
       projectRule.fixture.type("\n")
     }
@@ -138,6 +146,7 @@ class FastPreviewManagerTest {
       finalState.height > initialState.height * 1.20)
   }
 
+  @Ignore("Temporarily disabled since the embedded compiler does not support multiple files yet")
   @Test
   fun testMultipleFilesCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!

@@ -28,11 +28,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertNotNull
 
 private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
@@ -336,5 +339,66 @@ internal class FastPreviewManagerTest {
     }
     val result = manager.compileRequest(file, projectRule.module).first
     assertTrue(result.toString(), result is CompilationResult.RequestException)
+  }
+
+  @Test
+  fun `handle compile failure`() = runBlocking {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty() {}
+    """.trimIndent())
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
+          override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.DaemonError(-1)
+        }
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    val result = manager.compileRequest(file, projectRule.module).first
+    assertTrue(result.toString(), result is CompilationResult.DaemonError)
+  }
+
+  @Test
+  fun `auto disable on failure`(): Unit = runBlocking {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty() {}
+    """.trimIndent())
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
+          override suspend fun compileRequest(args: List<String>): CompilationResult {
+            throw IllegalStateException("Unable to process request")
+          }
+        }
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    assertNull(manager.disableReason)
+    assertTrue(manager.isEnabled)
+    manager.compileRequest(file, projectRule.module).first.also { result ->
+      assertTrue(result.toString(), result is CompilationResult.RequestException)
+      assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
+      assertEquals(
+        "DisableReason(title=Unable to compile using Fast Preview, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
+        manager.disableReason.toString())
+      manager.enable()
+      assertNull(manager.disableReason)
+    }
+
+    manager.allowAutoDisable = false
+    // Repeat the failure but set autoDisable to false
+    manager.compileRequest(file, projectRule.module).first.also { result ->
+      assertTrue(result.toString(), result is CompilationResult.RequestException)
+      assertTrue(manager.isEnabled)
+      assertNull(manager.disableReason)
+    }
   }
 }

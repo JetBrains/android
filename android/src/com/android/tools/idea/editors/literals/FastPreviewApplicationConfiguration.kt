@@ -22,6 +22,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
+import org.jetbrains.annotations.TestOnly
 
 @com.intellij.openapi.components.State(name = "FastPreviewConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
@@ -40,6 +41,11 @@ class FastPreviewApplicationConfiguration : SimplePersistentStateComponent<FastP
     set(value) {
       state.isEnabled = value
     }
+
+  @TestOnly
+  fun resetDefault() {
+    state.isEnabled = true
+  }
 
   companion object {
     fun getInstance(): FastPreviewApplicationConfiguration = ApplicationManager.getApplication().getService(

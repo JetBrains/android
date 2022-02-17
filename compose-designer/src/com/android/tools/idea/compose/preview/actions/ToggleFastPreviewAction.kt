@@ -31,7 +31,9 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
   override fun isSelected(e: AnActionEvent): Boolean = FastPreviewApplicationConfiguration.getInstance().isEnabled
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = state
+    val project = e.project ?: return
+    val fastPreviewManager = FastPreviewManager.getInstance(project)
+    if (state) fastPreviewManager.enable() else fastPreviewManager.disable()
   }
 
   override fun update(e: AnActionEvent) {
