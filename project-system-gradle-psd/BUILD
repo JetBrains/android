@@ -7,6 +7,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.psd.iml"],
     lint_baseline = "lint_baseline.xml",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
