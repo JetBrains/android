@@ -31,22 +31,12 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
-  static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
-
   static final int LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX = 3;
   static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
   static final int EDIT_MODEL_COLUMN_INDEX = 5;
   static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull VirtualDevice> myDevices;
-
-  static final class Actions {
-    @SuppressWarnings("InstantiationOfUtilityClass")
-    static final Actions INSTANCE = new Actions();
-
-    private Actions() {
-    }
-  }
 
   static final class LaunchInEmulatorValue {
     static final LaunchInEmulatorValue INSTANCE = new LaunchInEmulatorValue();

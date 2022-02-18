@@ -77,43 +77,6 @@ public final class Tables {
     return icon;
   }
 
-  public static void selectNextOrFirstRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() + 1;
-
-    if (viewRowIndex < table.getRowCount()) {
-      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-    else {
-      table.setRowSelectionInterval(0, 0);
-    }
-  }
-
-  public static void selectNextRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() + 1;
-
-    if (viewRowIndex < table.getRowCount()) {
-      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-  }
-
-  public static void selectPreviousOrLastRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() - 1;
-
-    if (viewRowIndex < 0) {
-      viewRowIndex = table.getRowCount() - 1;
-    }
-
-    table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-  }
-
-  public static void selectPreviousRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() - 1;
-
-    if (viewRowIndex >= 0) {
-      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-  }
-
   public static void setWidths(@NotNull TableColumn column, int width) {
     column.setMinWidth(width);
     column.setMaxWidth(width);

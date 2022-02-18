@@ -29,7 +29,6 @@ import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
-import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
@@ -46,7 +45,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.Point;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,7 +66,8 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
+// TODO Stop implementing AvdRefreshProvider and AvdInfoProvider
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
 
@@ -177,7 +176,10 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(VirtualDevice::getName));
     sorter.setComparator(VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setComparator(VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
-    sorter.setSortable(VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX, false);
+    sorter.setSortable(VirtualDeviceTableModel.LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX, false);
+    sorter.setSortable(VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, false);
+    sorter.setSortable(VirtualDeviceTableModel.EDIT_MODEL_COLUMN_INDEX, false);
+    sorter.setSortable(VirtualDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX, false);
     sorter.setSortKeys(Collections.singletonList(new SortKey(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, SortOrder.ASCENDING)));
 
     return sorter;
@@ -190,26 +192,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public @NotNull VirtualDeviceTableModel getModel() {
     return (VirtualDeviceTableModel)dataModel;
-  }
-
-  @Override
-  public boolean isActionsColumn(int viewColumnIndex) {
-    return convertColumnIndexToModel(viewColumnIndex) == VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX;
-  }
-
-  @Override
-  public int viewRowIndexAtPoint(@NotNull Point point) {
-    return rowAtPoint(point);
-  }
-
-  @Override
-  public int viewColumnIndexAtPoint(@NotNull Point point) {
-    return columnAtPoint(point);
-  }
-
-  @Override
-  public int getEditingViewRowIndex() {
-    return editingRow;
   }
 
   @Override
@@ -259,10 +241,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   int sizeOnDiskViewColumnIndex() {
     return convertColumnIndexToView(VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX);
-  }
-
-  int actionsViewColumnIndex() {
-    return convertColumnIndexToView(VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX);
   }
 
   private int launchInEmulatorViewColumnIndex() {
