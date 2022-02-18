@@ -1,0 +1,20 @@
+apply plugin: 'com.android.application'
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
+
+  defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 19
+    applicationId 'com.example.android.app'
+    resValue "string", "APP_KEY", "abc"
+  }
+}
+
+dependencies {
+    implementation project(path: ':app:mylibrary')
+    testImplementation 'junit:junit:4.12'
+}
+
+repositories {}

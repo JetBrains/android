@@ -149,13 +149,19 @@ public class LintIdeClient extends LintClient implements Disposable {
         try {
           LintModelLintOptions lintOptions = model.getLintOptions();
           driver.setCheckTestSources(lintOptions.getCheckTestSources());
-          driver.setCheckDependencies(lintOptions.getCheckDependencies());
+          driver.setCheckGeneratedSources(lintOptions.getCheckGeneratedSources());
+          // We're not setting check dependencies based on the AGP settings;
+          // in the IDE, different semantics apply (you select the inspection scope).
+          // We'll set it to true (unconditionally on build model type) below.
         }
         catch (Exception e) {
           LOG.error(e);
         }
       }
     }
+
+    // In the IDE we always analyze all dependencies (and we'll filter based on IDE scope)
+    driver.setCheckDependencies(true);
 
     return driver;
   }

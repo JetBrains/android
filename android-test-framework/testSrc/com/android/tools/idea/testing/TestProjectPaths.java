@@ -113,4 +113,5 @@ public final class TestProjectPaths {
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES_GROOVY = "projects/unusedResources";
   public static final String UNUSED_RESOURCES_KTS = "projects/unusedResourcesKotlin";
+  public static final String UNUSED_RESOURCES_MULTI_MODULE = "projects/unusedResourcesMultiModule";
 }

@@ -22,13 +22,21 @@ import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
+import com.android.tools.idea.lint.inspections.AndroidLintUnusedResourcesInspection
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInspection.CommonProblemDescriptor
+import com.intellij.codeInspection.GlobalInspectionTool
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
+import com.intellij.codeInspection.reference.RefEntity
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import java.util.Locale
 
 class AndroidLintGradleTest : AndroidGradleTestCase() {
@@ -103,6 +111,24 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
           Fix: Suppress UseValueOf with an annotation
       """.trimIndent()
     )
+  }
+
+  fun testUnusedResources() {
+    loadProject(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE)
+    val inspection = AndroidLintUnusedResourcesInspection()
+    myFixture.enableInspections(inspection)
+    doGlobalInspectionTest(inspection, AnalysisScope(myFixture.project))
+  }
+
+  fun doGlobalInspectionTest(
+    tool: GlobalInspectionTool,
+    scope: AnalysisScope): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
+    // We can't just override
+    //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
+    // here because that interferes with the loadProject() operations running initially
+    myFixture.testDataPath = File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
+    val testDir = "/lint/global/${getTestName(true)}"
+    return super.doGlobalInspectionTest(GlobalInspectionToolWrapper(tool), testDir, scope)
   }
 }
 

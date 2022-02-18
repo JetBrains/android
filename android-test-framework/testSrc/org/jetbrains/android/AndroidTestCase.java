@@ -418,32 +418,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
-    @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
-  }
-
-  /**
-   * Given an inspection and a path to a directory that contains an "expected.xml" file, run the
-   * inspection on the current test project and verify that its output matches that of the
-   * expected file.
-   */
-  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
-    @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    myFixture.enableInspections(wrapper.getTool());
-
-    scope.invalidate();
-
-    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-    GlobalInspectionContextForTests globalContext =
-      InspectionsKt.createGlobalContextForTool(scope, getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
-
-    InspectionTestUtil.runTool(wrapper, scope, globalContext);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, myFixture.getTestDataPath() + globalTestDir);
-
-    return globalContext.getPresentation(wrapper).getProblemElements();
-  }
-
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
