@@ -5096,6 +5096,7 @@ MODULE                        : project.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -5163,6 +5164,7 @@ MODULE                        : project.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -5230,6 +5232,7 @@ MODULE                        : project.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -5843,6 +5846,7 @@ MODULE                        : project.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -5908,6 +5912,7 @@ MODULE                        : project.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -5973,6 +5978,7 @@ MODULE                        : project.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors

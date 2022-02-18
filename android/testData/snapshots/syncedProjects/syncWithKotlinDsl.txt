@@ -129,7 +129,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -281,7 +281,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
@@ -401,7 +401,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -608,7 +608,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -695,7 +695,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
@@ -782,7 +782,7 @@ PROJECT                       : testSyncWithKotlinDsl
             MergedCompilerArguments
                 apiVersion                    : 1.6
                 languageVersion               : 1.6
-            Platform                      : JVM (JVM_1_8)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]

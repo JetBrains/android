@@ -1371,6 +1371,7 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1432,6 +1433,7 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1482,6 +1484,7 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1590,6 +1593,7 @@ MODULE                        : MainActivity.javaLib
                     moduleName                    : javaLib
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1629,6 +1633,7 @@ MODULE                        : MainActivity.javaLib
                     moduleName                    : javaLib
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2681,6 +2686,7 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2747,6 +2753,7 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2813,6 +2820,7 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors

@@ -1591,6 +1591,7 @@ MODULE                        : My_First_App.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1658,6 +1659,7 @@ MODULE                        : My_First_App.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1727,6 +1729,7 @@ MODULE                        : My_First_App.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2343,6 +2346,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2408,6 +2412,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -2475,6 +2480,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors

@@ -1663,6 +1663,7 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1736,6 +1737,7 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
@@ -1806,6 +1808,7 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
+                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     errors                        : ArgumentParseErrors
