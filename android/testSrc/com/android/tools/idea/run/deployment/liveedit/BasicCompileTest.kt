@@ -100,8 +100,7 @@ class BasicCompileTest {
 
   @Test
   fun crossFileReference() {
-    // b/201728545
-    compileFail(files["CallA.kt"], findFunction(files["CallA.kt"], "callA"))
+    compile(files["CallA.kt"], "callA")
   }
 
   private fun compile(file: PsiFile?, functionName: String): List<AndroidLiveEditCodeGenerator.GeneratedCode> {
@@ -112,16 +111,6 @@ class BasicCompileTest {
     val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file, function)), output)
     return output
-  }
-
-  private fun compileFail(file: PsiFile?, function: KtNamedFunction) {
-    val output = mutableListOf<AndroidLiveEditCodeGenerator.GeneratedCode>()
-    try {
-      AndroidLiveEditCodeGenerator().compile(myProject, listOf(MethodReference(file!!, function)), output)
-      fail("Compilation should fail")
-    } catch (e: LiveEditUpdateException) {
-      // Do nothing; test passes.
-    }
   }
 
   /**
