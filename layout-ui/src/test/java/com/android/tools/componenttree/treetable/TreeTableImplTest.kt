@@ -375,8 +375,19 @@ class TreeTableImplTest {
     result.interactions.setHeaderVisibility(true)
     assertThat(table.tableHeader.isShowing).isTrue()
 
+    // Simulate minimize and restore of the component tree
+    table.removeNotify()
+    table.addNotify()
+    assertThat(table.tableHeader.isShowing).isTrue()
+
+
     // hide the header
     result.interactions.setHeaderVisibility(false)
+    assertThat(table.tableHeader.isShowing).isFalse()
+
+    // Simulate minimize and restore of the component tree
+    table.removeNotify()
+    table.addNotify()
     assertThat(table.tableHeader.isShowing).isFalse()
   }
 

@@ -140,12 +140,10 @@ class TreeTableImpl(
 
   override fun setHeaderVisibility(visible: Boolean) {
     val columnHeader = (parent?.parent as? JScrollPane)?.columnHeader
+    initialHeaderVisibility = visible
     if (columnHeader != null) {
-      columnHeader.isVisible = visible
-    }
-    else {
       // If the columnHeader isn't created yet, delay the setting until we are notified through addNotify.
-      initialHeaderVisibility = visible
+      columnHeader.isVisible = visible
     }
   }
 
