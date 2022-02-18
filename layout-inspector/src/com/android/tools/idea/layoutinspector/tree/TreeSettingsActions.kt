@@ -93,9 +93,7 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
-      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 

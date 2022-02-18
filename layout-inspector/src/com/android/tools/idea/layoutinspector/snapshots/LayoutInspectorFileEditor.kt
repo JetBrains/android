@@ -188,14 +188,11 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
   }
 
   /**
-   * Factory for [LayoutInspectorFileEditor]s. Note that for now [StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS] needs to be on or
-   * else [com.android.tools.idea.profiling.capture.CaptureEditorProvider] will be used to create
-   * `com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor`s
+   * Factory for [LayoutInspectorFileEditor]s.
    */
   class Provider : FileEditorProvider, DumbAware {
     override fun accept(project: Project, file: VirtualFile): Boolean {
-      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType &&
-             StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get()
+      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType
     }
 
     override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file.toNioPath())

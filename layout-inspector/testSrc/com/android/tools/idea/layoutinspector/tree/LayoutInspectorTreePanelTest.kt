@@ -115,7 +115,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
-  private val semanticsRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, useTreeTable)
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
@@ -123,8 +122,8 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private var updateSettingsLatch: ReportingCountDownLatch? = null
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(semanticsRule)
-    .around(treeRule).around(EdtRule()).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(treeRule)
+    .around(EdtRule()).around(disposableRule)!!
 
   @Before
   fun setUp() {

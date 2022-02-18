@@ -38,9 +38,6 @@ class InspectorTreeSettingsTest {
   val appRule = ApplicationRule()
 
   @get:Rule
-  val semanticsFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
-
-  @get:Rule
   val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule
@@ -76,13 +73,6 @@ class InspectorTreeSettingsTest {
     assertThat(settings.highlightSemantics).isFalse()
     settings.highlightSemantics = true
     assertThat(settings.highlightSemantics).isTrue()
-    settings.highlightSemantics = false
-    assertThat(settings.highlightSemantics).isFalse()
-
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.override(false)
-    assertThat(settings.highlightSemantics).isFalse()
-    settings.highlightSemantics = true
-    assertThat(settings.highlightSemantics).isFalse()
     settings.highlightSemantics = false
     assertThat(settings.highlightSemantics).isFalse()
   }
@@ -146,9 +136,6 @@ class InspectorTreeSettingsTest {
 }
 
 class EditorTreeSettingsTest {
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
-
   @Test
   fun testSettings() {
     val client: InspectorClient = mock()

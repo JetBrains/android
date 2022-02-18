@@ -759,12 +759,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
-    "If enabled, display semantic information found in the agent.", true);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
-    "Enable saving and loading snapshots in the layout inspector.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.counts", "Enable recomposition counts",
     "Enable gathering and display of recomposition counts in the layout inspector.", true);

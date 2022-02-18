@@ -60,9 +60,6 @@ class TreeSettingsActionsTest {
   val applicationRule = ApplicationRule()
 
   @get:Rule
-  val semanticsFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
-
-  @get:Rule
   val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule

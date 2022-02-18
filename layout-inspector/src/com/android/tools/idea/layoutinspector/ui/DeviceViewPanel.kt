@@ -477,7 +477,7 @@ class DeviceViewPanel(
     leftGroup.add(Separator.getInstance())
     leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get() && !layoutInspector.isSnapshot) {
+    if (!layoutInspector.isSnapshot) {
       leftGroup.add(CaptureSnapshotAction)
     }
     leftGroup.add(AlphaSliderAction)

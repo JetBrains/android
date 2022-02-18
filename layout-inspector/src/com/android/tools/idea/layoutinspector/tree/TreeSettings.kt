@@ -64,7 +64,6 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
     set(value) = set(KEY_COMPOSE_AS_CALLSTACK, value, DEFAULT_COMPOSE_AS_CALLSTACK)
 
   override var highlightSemantics = DEFAULT_HIGHLIGHT_SEMANTICS
-    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() && field
 
   override var supportLines: Boolean
     get() = get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)
