@@ -58,10 +58,17 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   @NotNull
   public ByteString preProcessTrace(@NotNull ByteString trace, @NotNull List<String> symbolDirs) {
     try {
+      if (trace.isEmpty()) {
+        getLogger().error("Simpleperf preprocessing exited unsuccessfully. Input trace is empty.");
+        return FAILURE;
+      }
+
       File processedTraceFile = FileUtil.createTempFile(
         String.format("%s%ctrace-%d", FileUtil.getTempDirectory(), File.separatorChar, System.currentTimeMillis()), ".trace", true);
 
-      Process reportSample = new ProcessBuilder(getReportSampleCommand(trace, processedTraceFile, symbolDirs)).start();
+      List<String> command = getReportSampleCommand(trace, processedTraceFile, symbolDirs);
+      getLogger().info("Running simpleperf command: " + command);
+      Process reportSample = new ProcessBuilder(command).start();
       reportSample.waitFor();
 
       boolean reportSampleSuccess = reportSample.exitValue() == 0;
