@@ -169,6 +169,7 @@ object GuiTestLauncher {
     /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
     if (SystemInfo.isMac) {
       options += "-Dapple.laf.useScreenMenuBar=false"
+      options += "-DjbScreenMenuBar.enabled=false"
     }
     /* aspects agent options */
     if (JavaVersion.current().feature < 9) {  // b/134524025
