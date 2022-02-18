@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.memorysettings;
 
-import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getGradleDaemonXmx;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotlinDaemonXmx;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.google.common.base.Strings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +37,8 @@ public class GradleUserProperties {
   private int gradleXmx = -1;
   private int kotlinXmx = -1;
 
-  GradleUserProperties() {
-    gradleUserHomeProperties = getProperties();
+  GradleUserProperties(Project project) {
+    gradleUserHomeProperties = getProperties(project);
     if (GradlePropertiesUtil.hasJvmArgs(gradleUserHomeProperties)) {
       propertiesPath = gradleUserHomeProperties.getPath();
       findGradleDaemonXmx(gradleUserHomeProperties);
@@ -82,8 +82,8 @@ public class GradleUserProperties {
   }
 
   @Nullable
-  private static GradleProperties getProperties() {
-    File file = getUserGradlePropertiesFile();
+  private static GradleProperties getProperties(Project project) {
+    File file = GradleUtil.getUserGradlePropertiesFile(project);
     try {
       if (file.exists()) {
         return new GradleProperties(file);

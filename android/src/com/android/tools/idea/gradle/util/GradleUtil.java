@@ -36,7 +36,6 @@ import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.SystemProperties.getUserHome;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
 import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
@@ -442,10 +441,10 @@ public final class GradleUtil {
    * This method calculates the path for user gradle.properties file based on gradle user home folder
    * defined in execution settings for this project.
    *
-   * In case this is not possible use default location as described in {@link  GradleProperties#getUserGradlePropertiesFile()}.
+   * In case this is not possible use default location as described in {@link  GradleUtil#getUserGradlePropertiesFile()}.
    */
   @NotNull
-  public static File getGradleUserSettingsFile(@NotNull Project project) {
+  public static File getUserGradlePropertiesFile(@NotNull Project project) {
     GradleExecutionSettings settings = getGradleExecutionSettings(project);
     if (settings != null) {
       String gradleHomePath = settings.getServiceDirectory();
@@ -453,7 +452,25 @@ public final class GradleUtil {
         return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
       }
     }
-    return GradleProperties.getUserGradlePropertiesFile();
+    return getUserGradlePropertiesFile();
+  }
+
+  /**
+   * Calculates location of user gradle.properties based on system properties and environment variables. See
+   * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties">gradle properties</a>
+   * section in gradle documentation for the context.
+   * @return file pointing to gradle.properties in gradle user home.
+   */
+  @NotNull
+  private static File getUserGradlePropertiesFile() {
+    String gradleUserHome = System.getProperty("gradle.user.home");
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = System.getenv("GRADLE_USER_HOME");
+    }
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = join(System.getProperty("user.home"), DOT_GRADLE);
+    }
+    return new File(gradleUserHome, FN_GRADLE_PROPERTIES);
   }
 
   /**

@@ -86,7 +86,7 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
       GradleSettings.getInstance(getProject()).setServiceDirectoryPath(gradleHome);
     });
 
-    File userGradlePropertiesFile = GradleUtil.getGradleUserSettingsFile(getProject());
+    File userGradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(getProject());
     assertThat(userGradlePropertiesFile).isEqualTo(new File(gradleHome, "gradle.properties"));
   }
 

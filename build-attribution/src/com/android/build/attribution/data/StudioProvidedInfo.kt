@@ -68,7 +68,7 @@ data class StudioProvidedInfo(
 
     private fun getUserPropertiesConfigurationCachePropertyState(project: Project): String? {
       val propertiesFileResult = runCatching {
-        PropertiesFiles.getProperties(GradleUtil.getGradleUserSettingsFile(project))
+        PropertiesFiles.getProperties(GradleUtil.getUserGradlePropertiesFile(project))
       }
       return propertiesFileResult.getOrNull()?.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
     }
