@@ -2592,12 +2592,12 @@ Android Studio Preview.app/Contents/plugins/google-login-as/lib/javax.servlet-ap
 Android Studio Preview.app/Contents/plugins/google-samples/lib/google-samples.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-7.1.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-7.1.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-7.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-7.4.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-7.4.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-7.4.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-api.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.4.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
 Android Studio Preview.app/Contents/plugins/hg4idea/lib/hg4idea.jar
 Android Studio Preview.app/Contents/plugins/java-decompiler/lib/java-decompiler.jar

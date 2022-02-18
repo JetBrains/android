@@ -2031,12 +2031,12 @@ android-studio/plugins/google-login-as/lib/javax.servlet-api-3.0.1.jar
 android-studio/plugins/google-samples/lib/google-samples.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
-android-studio/plugins/gradle/lib/gradle-api-7.1.jar
-android-studio/plugins/gradle/lib/gradle-api-impldep-7.1.jar
-android-studio/plugins/gradle/lib/gradle-launcher-7.1.jar
+android-studio/plugins/gradle/lib/gradle-api-7.4.jar
+android-studio/plugins/gradle/lib/gradle-api-impldep-7.4.jar
+android-studio/plugins/gradle/lib/gradle-launcher-7.4.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-android-studio/plugins/gradle/lib/gradle-wrapper-7.1.jar
+android-studio/plugins/gradle/lib/gradle-wrapper-7.4.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/hg4idea/lib/hg4idea.jar
 android-studio/plugins/java-decompiler/lib/java-decompiler.jar

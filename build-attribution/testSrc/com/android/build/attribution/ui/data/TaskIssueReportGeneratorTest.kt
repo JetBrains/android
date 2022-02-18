@@ -64,9 +64,9 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
       AlwaysRunTaskData(task1androidPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
 
       AlwaysRunTaskData(taskAmodule1, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE),
-      AlwaysRunTaskData(taskBmodule1, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS),
-      AlwaysRunTaskData(taskBmodule2, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS),
-      AlwaysRunTaskData(taskBmodule3OtherPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS)
+      AlwaysRunTaskData(taskBmodule1, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+      AlwaysRunTaskData(taskBmodule2, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS),
+      AlwaysRunTaskData(taskBmodule3OtherPlugin, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
     )
 
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(

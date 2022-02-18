@@ -180,8 +180,6 @@ class BuildAttributionAnalyticsManager(
 
   private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason) =
     when (reason) {
-      AlwaysRunTaskData.Reason.NO_OUTPUTS_WITHOUT_ACTIONS ->
-        AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITHOUT_ACTIONS
       AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS ->
         AlwaysRunTasksAnalyzerData.AlwaysRunTask.AlwaysRunReason.NO_OUTPUTS_WITH_ACTIONS
       AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE ->
