@@ -144,7 +144,7 @@ public class GradleTaskFinder {
         tasks.removeAll(keyPath);
         if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
           // Clean only if other tasks are needed
-          tasks.put(keyPath, CLEAN_TASK_NAME);
+          tasks.put(keyPath, createFullTaskName(gradlePath, CLEAN_TASK_NAME));
         }
         tasks.putAll(keyPath, moduleTasks);
       }
