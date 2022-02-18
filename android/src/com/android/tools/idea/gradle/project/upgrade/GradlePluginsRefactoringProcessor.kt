@@ -198,6 +198,15 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
       }
 
+    fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5 -> GradleVersion.parse("2.0")
+        VERSION_6_7_1 -> GradleVersion.parse("2.32")
+        VERSION_7_0_2, VERSION_7_2 -> GradleVersion.parse("2.38")
+        VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("2.40.1")
+      }
+
     /**
      * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
      * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
@@ -228,6 +237,9 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
       "com.google.android.gms:oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
       "com.google.android.gms.oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
+
+      "com.google.dagger:hilt-android-gradle-plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
+      "dagger.hilt.android.plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
     )
   }
 }
