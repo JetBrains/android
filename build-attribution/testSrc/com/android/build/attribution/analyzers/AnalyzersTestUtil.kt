@@ -121,11 +121,7 @@ fun createProjectConfigurationFinishEventStub(
 ): ProjectConfigurationFinishEvent {
   val projectConfigurationFinishEvent = Mockito.mock(ProjectConfigurationFinishEvent::class.java)
 
-  val project = Mockito.mock(ProjectIdentifier::class.java)
-  whenever(project.projectPath).thenReturn(projectPath)
-
-  val descriptor = Mockito.mock(ProjectConfigurationOperationDescriptor::class.java)
-  whenever(descriptor.project).thenReturn(project)
+  val descriptor = createProjectConfigurationOperationDescriptor(projectPath)
 
   val result = Mockito.mock(ProjectConfigurationSuccessResult::class.java)
   whenever(result.startTime).thenReturn(projectConfigurationStartTime)
@@ -140,6 +136,13 @@ fun createProjectConfigurationFinishEventStub(
   whenever(projectConfigurationFinishEvent.descriptor).thenReturn(descriptor)
   whenever(projectConfigurationFinishEvent.result).thenReturn(result)
   return projectConfigurationFinishEvent
+}
+
+fun createProjectConfigurationOperationDescriptor(projectPath: String) =
+  Mockito.mock(ProjectConfigurationOperationDescriptor::class.java).apply {
+  val project = Mockito.mock(ProjectIdentifier::class.java)
+  whenever(project.projectPath).thenReturn(projectPath)
+  whenever(this.project).thenReturn(project)
 }
 
 fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): GradleInvocationResult {

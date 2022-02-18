@@ -254,7 +254,13 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
       if (skipIfNull && buildAttributionManager == null) {
         return;
       }
-      operation.addProgressListener(buildAttributionManager, OperationType.PROJECT_CONFIGURATION, OperationType.TASK, OperationType.TEST);
+      operation.addProgressListener(
+        buildAttributionManager,
+        OperationType.PROJECT_CONFIGURATION,
+        OperationType.TASK,
+        OperationType.TEST,
+        OperationType.FILE_DOWNLOAD
+      );
       buildAttributionManager.onBuildStart(myRequest);
     }
 

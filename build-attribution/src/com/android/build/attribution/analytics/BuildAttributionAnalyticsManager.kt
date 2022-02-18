@@ -22,6 +22,7 @@ import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTe
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
@@ -49,6 +50,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionAnalyzersData
 import com.google.wireless.android.sdk.stats.BuildAttributionPerformanceStats
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
+import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData
 import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.JetifierUsageData
@@ -101,6 +103,9 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.configurationCacheCompatibilityData =
       transformConfigurationCacheCompatibilityData(analysisResult.getConfigurationCachingCompatibility())
     analyzersDataBuilder.jetifierUsageData = transformJetifierUsageData(analysisResult.getJetifierUsageResult())
+    analysisResult.getDownloadsAnalyzerResult().takeIf { it.analyzerActive }?.let {
+      analyzersDataBuilder.downloadsAnalysisData = transformDownloadsAnalyzerData(it)
+    }
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
 
@@ -253,7 +258,6 @@ class BuildAttributionAnalyticsManager(
     }
       .build()
 
-
   private fun transformJetifierUsageData(jetifierUsageResult: JetifierUsageAnalyzerResult) =
     JetifierUsageData.newBuilder().apply {
       checkJetifierTaskBuild = jetifierUsageResult.checkJetifierBuild
@@ -268,6 +272,25 @@ class BuildAttributionAnalyticsManager(
       if (jetifierUsageResult.projectStatus is JetifierRequiredForLibraries) {
         numberOfLibrariesRequireJetifier = jetifierUsageResult.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size
       }
+    }
+      .build()
+
+  private fun transformDownloadsAnalyzerData(downloadsAnalyzerResult: DownloadsAnalyzer.Result): BuildDownloadsAnalysisData =
+    BuildDownloadsAnalysisData.newBuilder().apply {
+      addAllRepositories(downloadsAnalyzerResult.repositoryResults.map { repoResult ->
+        BuildDownloadsAnalysisData.RepositoryStats.newBuilder().apply {
+          repositoryType = repoResult.repository.analyticsType
+          successRequestsCount = repoResult.successRequestsCount
+          successRequestsTotalTimeMs = repoResult.successRequestsTimeMs
+          successRequestsTotalBytesDownloaded = repoResult.successRequestsBytesDownloaded
+          failedRequestsCount = repoResult.failedRequestsCount
+          failedRequestsTotalTimeMs = repoResult.failedRequestsTimeMs
+          failedRequestsTotalBytesDownloaded = repoResult.failedRequestsBytesDownloaded
+          missedRequestsCount = repoResult.missedRequestsCount
+          missedRequestsTotalTimeMs = repoResult.missedRequestsTimeMs
+        }
+          .build()
+      })
     }
       .build()
 

@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
@@ -65,6 +66,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getJavaVersion(): Int? = null
     override fun isGCSettingSet(): Boolean? = null
     override fun buildUsesConfigurationCache(): Boolean = false
+    override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.Result(repositoryResults = emptyList())
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)
