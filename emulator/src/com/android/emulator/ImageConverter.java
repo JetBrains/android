@@ -65,7 +65,7 @@ public class ImageConverter {
         return;
       }
       catch (IllegalAccessException e) {
-        logger().warn("Unable to use reflection, will use slow path", e);
+        logger().error("Unable to use reflection, will use slow path", e);
         bytesField = null;
         offsetField = null;
       }
