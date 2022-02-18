@@ -16,11 +16,9 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isInStaticAndNonAnimationMode
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,19 +49,17 @@ internal fun List<AnAction>.visibleOnlyInComposeStaticPreview(): ActionGroup = C
  */
 internal fun AnAction.visibleOnlyInComposeStaticPreview(): ActionGroup = listOf(this).visibleOnlyInComposeStaticPreview()
 
-fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
-  map { RefreshingAndRenderErrorsActionWrapper(it, sceneView) }
+fun List<AnAction>.disabledIfRefreshingOrRenderErrors(): List<AnAction> = map { RefreshingAndRenderErrorsActionWrapper(it) }
 
 /**
  * Wrapper that disables a given action if previews are refreshing.
+ * TODO(b/203426144): also disable the actions when there are render errors.
  */
-private class RefreshingAndRenderErrorsActionWrapper(delegate: AnAction, private val sceneView: SceneView)
-  : MyDelegatingAction(delegate), CustomComponentAction {
-
+private class RefreshingAndRenderErrorsActionWrapper(delegate: AnAction) : MyDelegatingAction(delegate), CustomComponentAction {
   override fun update(e: AnActionEvent) {
     super.update(e)
     val delegateEnabledStatus = e.presentation.isEnabled
-    e.presentation.isEnabled = delegateEnabledStatus && !(isAnyPreviewRefreshing(e.dataContext) || sceneView.hasRenderErrors())
+    e.presentation.isEnabled = delegateEnabledStatus && !isAnyPreviewRefreshing(e.dataContext)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

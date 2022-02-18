@@ -17,13 +17,20 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.surface.DelegateInteractionHandler
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.createPreviewDesignSurface
+import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.deleteLine
@@ -33,10 +40,15 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
@@ -46,6 +58,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -61,8 +74,78 @@ import java.awt.image.BufferedImage
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertFalse
+
+
+private class TestComposePreviewView(parentDisposable: Disposable, project: Project) : ComposePreviewView, JPanel() {
+  override val pinnedSurface: NlDesignSurface = NlDesignSurface.builder(project, parentDisposable)
+    .setNavigationHandler(PreviewNavigationHandler())
+    .build()
+  override val mainSurface: NlDesignSurface = createPreviewDesignSurface(
+    project,
+    PreviewNavigationHandler(),
+    DelegateInteractionHandler(),
+    { null },
+    parentDisposable,
+    DesignSurface.ZoomControlsPolicy.HIDDEN,
+    sceneManagerProvider = { surface, model ->
+      LayoutlibSceneManager(model, surface, ComposeSceneComponentProvider(), ComposeSceneUpdateListener()) { RealTimeSessionClock() }
+    })
+  override val component: JComponent
+    get() = this
+  override var bottomPanel: JComponent? = null
+  override var hasComponentsOverlay: Boolean = false
+  override var isInteractive: Boolean = false
+  override var isAnimationPreview: Boolean = false
+  override val isMessageBeingDisplayed: Boolean = false
+  override var hasContent: Boolean = false
+  override var hasRendered: Boolean = false
+
+  private val nextRefreshLock = Any()
+  private var nextRefreshListener: CompletableDeferred<Unit>? = null
+
+  init {
+    layout = BorderLayout()
+    add(mainSurface, BorderLayout.CENTER)
+  }
+
+
+  override fun updateNotifications(parentEditor: FileEditor) {
+  }
+
+  override fun updateVisibilityAndNotifications() {
+  }
+
+  override fun updateProgress(message: String) {
+  }
+
+  override fun setPinnedSurfaceVisibility(visible: Boolean) {
+  }
+
+  override fun onRefreshCancelledByTheUser() {
+  }
+
+  override fun onRefreshCompleted() {
+    synchronized(nextRefreshLock) {
+      val current = nextRefreshListener
+      nextRefreshListener = null
+      current
+    }?.complete(Unit)
+  }
+
+  /**
+   * Returns a [CompletableDeferred] that completes when the next (or current if it's running) refresh finishes.
+   */
+  fun getOnRefreshCompletable() = synchronized(nextRefreshLock) {
+    if (nextRefreshListener == null) nextRefreshListener = CompletableDeferred()
+    nextRefreshListener!!
+  }
+}
+
+private val SceneViewPeerPanel.displayName: String
+  get() = sceneView.sceneManager.model.modelDisplayName ?: ""
 
 class ComposePreviewRepresentationTest {
   @get:Rule
