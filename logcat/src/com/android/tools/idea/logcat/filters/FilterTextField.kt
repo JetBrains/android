@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -35,8 +36,10 @@ import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.PopupChooserBuilder
+import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
+import com.intellij.ui.components.JBList
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
@@ -52,6 +55,7 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JLabel
+import kotlin.math.min
 
 private const val MAX_HISTORY_SIZE = 20
 private const val APPLY_FILTER_DELAY_MS = 100L
@@ -157,7 +161,7 @@ internal class FilterTextField(
   @UiThread
   private fun showPopup() {
     addToHistory()
-    JBPopupFactory.getInstance().createPopupChooserBuilder(propertiesComponent.getValues(HISTORY_PROPERTY_NAME)?.asList() ?: emptyList())
+    PopupChooserBuilder(HistoryList(propertiesComponent))
       .setMovable(false)
       .setRequestFocus(true)
       .setItemChosenCallback { textField.text = it }
@@ -219,4 +223,24 @@ internal class FilterTextField(
     @VisibleForTesting
     internal const val HISTORY_PROPERTY_NAME = "logcatFilterHistory"
   }
+}
+
+private class HistoryList(propertiesComponent: PropertiesComponent) : JBList<String>() {
+  init {
+    val listModel = CollectionListModel(propertiesComponent.getValues(FilterTextField.HISTORY_PROPERTY_NAME)?.asList() ?: emptyList())
+    model = listModel
+    addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (e.keyCode == KeyEvent.VK_DELETE) {
+          // TODO(aalbert): Add usage tracking
+          val index = selectedIndex
+          listModel.remove(index)
+          selectedIndex = min(index, model.size - 1)
+          propertiesComponent.setValues(FilterTextField.HISTORY_PROPERTY_NAME, listModel.items.toTypedArray())
+        }
+      }
+    })
+  }
+
+  override fun getToolTipText(event: MouseEvent?): String = LogcatBundle.message("logcat.filter.history.tooltip")
 }

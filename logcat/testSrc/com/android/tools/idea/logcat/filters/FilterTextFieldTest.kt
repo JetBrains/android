@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
@@ -48,7 +47,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
-import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -86,44 +84,6 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "text")
 
     assertThat(filterTextField.text).isEqualTo("text")
-  }
-
-  @Test
-  @RunsInEdt
-  fun historyPopup_withText() {
-    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
-    val filterTextField = filterTextField(initialText = "text")
-
-    filterTextField.size = Dimension(100, 100)
-    val fakeUi = FakeUi(filterTextField)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Toolbar.FILTER_HISTORY }
-    fakeUi.clickOn(historyButton)
-
-    val popup = popupRule.fakePopupFactory.getPopup<String>(0)
-    assertThat(popup.isMovable).isFalse()
-    assertThat(popup.isRequestFocus).isTrue()
-    assertThat(popup.showStyle).isEqualTo(FakeJBPopup.ShowStyle.SHOW_UNDERNEATH_OF)
-    assertThat(popup.showArgs).containsExactly(filterTextField)
-    assertThat(popup.items).containsExactly("text", "foo", "bar").inOrder()
-  }
-
-  @Test
-  @RunsInEdt
-  fun historyPopup_withoutText() {
-    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
-    val filterTextField = filterTextField(projectRule.project, fakeLogcatPresenter, initialText = "")
-
-    filterTextField.size = Dimension(100, 100)
-    val fakeUi = FakeUi(filterTextField)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Toolbar.FILTER_HISTORY }
-    fakeUi.clickOn(historyButton)
-
-    val popup = popupRule.fakePopupFactory.getPopup<String>(0)
-    assertThat(popup.isMovable).isFalse()
-    assertThat(popup.isRequestFocus).isTrue()
-    assertThat(popup.showStyle).isEqualTo(FakeJBPopup.ShowStyle.SHOW_UNDERNEATH_OF)
-    assertThat(popup.showArgs).containsExactly(filterTextField)
-    assertThat(popup.items).containsExactly("foo", "bar").inOrder()
   }
 
   @Test
