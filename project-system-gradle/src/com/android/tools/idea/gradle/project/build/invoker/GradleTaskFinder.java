@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.utils.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
@@ -130,27 +131,29 @@ public class GradleTaskFinder {
       }
 
       Set<String> moduleTasks = new LinkedHashSet<>();
-      findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
+      Pair<Module,String> moduleAndGradleProjectPath = findModuleAndGradleProjectPath(module);
+      if (moduleAndGradleProjectPath != null) {
+        module = moduleAndGradleProjectPath.getFirst();
+        String gradlePath = moduleAndGradleProjectPath.getSecond();
+        findAndAddGradleBuildTasks(module, gradlePath, buildMode, moduleTasks, testCompileType);
 
-      Path keyPath = ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
-      // Remove duplicates.
-      moduleTasks.addAll(tasks.get(keyPath));
+        Path keyPath = ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
+        // Remove duplicates.
+        moduleTasks.addAll(tasks.get(keyPath));
 
-      tasks.removeAll(keyPath);
-      if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
-        // Clean only if other tasks are needed
-        tasks.put(keyPath, CLEAN_TASK_NAME);
+        tasks.removeAll(keyPath);
+        if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
+          // Clean only if other tasks are needed
+          tasks.put(keyPath, CLEAN_TASK_NAME);
+        }
+        tasks.putAll(keyPath, moduleTasks);
       }
-      tasks.putAll(keyPath, moduleTasks);
     }
 
     return ArrayListMultimap.create(tasks);
   }
 
-  private static void findAndAddGradleBuildTasks(@NotNull Module module,
-                                                 @NotNull BuildMode buildMode,
-                                                 @NotNull Set<String> tasks,
-                                                 @NotNull TestCompileType testCompileType) {
+  private static @Nullable Pair<Module,String> findModuleAndGradleProjectPath(@NotNull Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     // TODO(b/203237539)
     if (gradleFacet == null) {
@@ -165,10 +168,10 @@ public class GradleTaskFinder {
           }
         }
         if (gradleFacet == null) {
-          return;
+          return null;
         }
       } else {
-        return;
+        return null;
       }
     }
 
@@ -180,9 +183,17 @@ public class GradleTaskFinder {
       String msg = String.format("Module '%1$s' does not have a Gradle path. It is likely that this module was manually added by the user.",
                                  module.getName());
       getLogger().info(msg);
-      return;
+      return null;
     }
 
+    return Pair.of(module, gradlePath);
+  }
+
+  private static void findAndAddGradleBuildTasks(@NotNull Module module,
+                                                 @NotNull String gradlePath,
+                                                 @NotNull BuildMode buildMode,
+                                                 @NotNull Set<String> tasks,
+                                                 @NotNull TestCompileType testCompileType) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       AndroidFacetProperties properties = androidFacet.getProperties();
