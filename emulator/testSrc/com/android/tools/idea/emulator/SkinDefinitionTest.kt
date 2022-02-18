@@ -249,9 +249,9 @@ class SkinDefinitionTest {
   }
 
   private fun validateLayout(skinLayout: SkinLayout, skinFolder: Path): List<String> {
-    val backgroundImage: BufferedImage
-    try {
-      backgroundImage = readBackgroundImage(skinFolder) ?: return listOf("The skin doesn't define a background image")
+    val backgroundImageFile = getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
+    val backgroundImage = try {
+      backgroundImageFile.readImage()
     }
     catch (e: NoSuchFileException) {
       return listOf("The background image \"${e.file}\" does not exist")
@@ -265,7 +265,7 @@ class SkinDefinitionTest {
     val problems = mutableListOf<String>()
     val image = skinLayout.draw()
     if (backgroundImage.width != image.width || backgroundImage.height != image.height) {
-      problems.add("The background image can be cropped without loosing any information")
+      problems.add("The ${backgroundImageFile.fileName} image can be cropped without loosing any information")
     }
 
     val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparent)
@@ -297,13 +297,12 @@ class SkinDefinitionTest {
     return problems
   }
 
-  private fun readBackgroundImage(skinFolder: Path): BufferedImage? {
+  private fun getBackgroundImageFile(skinFolder: Path): Path? {
     val layoutFile = skinFolder.resolve("layout")
     val contents = Files.readAllBytes(layoutFile).toString(StandardCharsets.UTF_8)
     val layoutDefinition = SkinLayoutDefinition.parseString(contents)
     val backgroundFileName = layoutDefinition.getValue("parts.portrait.background.image") ?: return null
-    val backgroundFile = skinFolder.resolve(backgroundFileName)
-    return backgroundFile.readImage()
+    return skinFolder.resolve(backgroundFileName)
   }
 
   private fun findBoundsOfContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>): Rectangle {
