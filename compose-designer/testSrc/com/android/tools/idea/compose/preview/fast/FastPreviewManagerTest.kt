@@ -22,8 +22,11 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiFile
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -33,6 +36,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
@@ -41,7 +45,10 @@ private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
-  override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.Success
+  override suspend fun compileRequest(files: Collection<PsiFile>,
+                                      module: Module,
+                                      outputDirectory: Path,
+                                      indicator: ProgressIndicator): CompilationResult = CompilationResult.Success
   override fun dispose() {}
 }
 
@@ -203,8 +210,13 @@ internal class FastPreviewManagerTest {
       project,
       daemonFactory = {
         object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(args: List<String>): CompilationResult {
-            compilationRequests.add(args)
+          override suspend fun compileRequest(files: Collection<PsiFile>,
+                                              module: Module,
+                                              outputDirectory: Path,
+                                              indicator: ProgressIndicator): CompilationResult {
+            compilationRequests.add(files.map { it.virtualFile.path }.toList()
+                                    + module.name
+                                    + listOf(outputDirectory.toString()))
             return CompilationResult.Success
           }
         }
@@ -220,21 +232,9 @@ internal class FastPreviewManagerTest {
       val requestParameters = compilationRequests.single().joinToString("\n")
         .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
       assertEquals("""
-      -verbose
-      -version
-      -no-stdlib
-      -no-reflect
-      -Xdisable-default-scripting-plugin
-      -jvm-target
-      1.8
-      -P
-      plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
-      -cp
-      b/c/Test.class:A.jar
-      -Xfriend-paths=b/c/Test.class
-      -d
-      /tmp/overlay0
       /src/test.kt
+      light_idea_test_case
+      /tmp/overlay0
     """.trimIndent(), requestParameters)
     }
 
@@ -250,19 +250,9 @@ internal class FastPreviewManagerTest {
         val requestParameters = compilationRequests.single().joinToString("\n")
           .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
         assertEquals("""
-        -verbose
-        -version
-        -no-stdlib
-        -no-reflect
-        -Xdisable-default-scripting-plugin
-        -jvm-target
-        1.8
-        -cp
-        b/c/Test.class:A.jar
-        -Xfriend-paths=b/c/Test.class
-        -d
-        /tmp/overlay0
         /src/testB.kt
+        light_idea_test_case
+        /tmp/overlay0
       """.trimIndent(), requestParameters)
       }
       finally {
@@ -279,22 +269,10 @@ internal class FastPreviewManagerTest {
       val requestParameters = compilationRequests.single().joinToString("\n")
         .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
       assertEquals("""
-      -verbose
-      -version
-      -no-stdlib
-      -no-reflect
-      -Xdisable-default-scripting-plugin
-      -jvm-target
-      1.8
-      -P
-      plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true
-      -cp
-      b/c/Test.class:A.jar
-      -Xfriend-paths=b/c/Test.class
-      -d
-      /tmp/overlay0
       /src/test.kt
       /src/testC.kt
+      light_idea_test_case
+      /tmp/overlay0
     """.trimIndent(), requestParameters)
     }
   }
@@ -327,7 +305,10 @@ internal class FastPreviewManagerTest {
       project,
       daemonFactory = {
         object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(args: List<String>): CompilationResult {
+          override suspend fun compileRequest(files: Collection<PsiFile>,
+                                              module: Module,
+                                              outputDirectory: Path,
+                                              indicator: ProgressIndicator): CompilationResult {
             throw IllegalStateException("Unable to process request")
           }
         }
@@ -350,7 +331,10 @@ internal class FastPreviewManagerTest {
       project,
       daemonFactory = {
         object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.DaemonError(-1)
+          override suspend fun compileRequest(files: Collection<PsiFile>,
+                                              module: Module,
+                                              outputDirectory: Path,
+                                              indicator: ProgressIndicator): CompilationResult = CompilationResult.DaemonError(-1)
         }
       },
       moduleClassPathLocator = { listOf("b/c/Test.class") },
@@ -371,7 +355,10 @@ internal class FastPreviewManagerTest {
       project,
       daemonFactory = {
         object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(args: List<String>): CompilationResult {
+          override suspend fun compileRequest(files: Collection<PsiFile>,
+                                              module: Module,
+                                              outputDirectory: Path,
+                                              indicator: ProgressIndicator): CompilationResult {
             throw IllegalStateException("Unable to process request")
           }
         }

@@ -16,6 +16,10 @@
 package com.android.tools.idea.compose.preview.fast
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.psi.PsiFile
+import java.nio.file.Path
 
 /**
  * Class that represents the result of a compilation request.
@@ -53,6 +57,11 @@ interface CompilerDaemonClient : Disposable {
 
   /**
    * Sends the given compilation requests and returns a [CompilationResult] indicating the result.
+   *
+   * @param files Set of files to be compiled on this request.
+   * @param module [Module] to use as classpath for this compilation requests.
+   * @param outputDirectory [Path] existing path to store the result of the compilation.
+   * @param indicator [ProgressIndicator] that the request can use to inform the user about the progress of the request.
    */
-  suspend fun compileRequest(args: List<String>): CompilationResult
+  suspend fun compileRequest(files: Collection<PsiFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator): CompilationResult
 }

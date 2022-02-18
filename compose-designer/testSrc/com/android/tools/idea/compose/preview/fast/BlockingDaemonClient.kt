@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CompletableDeferred
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 
 /*
@@ -23,13 +27,17 @@ import java.util.concurrent.atomic.AtomicLong
  */
 internal class BlockingDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
+
   private val compilationRequestFuture = CompletableDeferred<Unit>()
   private val _requestReceived = AtomicLong(0)
   val firstRequestReceived = CompletableDeferred<Unit>()
   val requestReceived: Long
     get() = _requestReceived.get()
 
-  override suspend fun compileRequest(args: List<String>): CompilationResult {
+  override suspend fun compileRequest(files: Collection<PsiFile>,
+                                      module: Module,
+                                      outputDirectory: Path,
+                                      indicator: ProgressIndicator): CompilationResult {
     _requestReceived.incrementAndGet()
     firstRequestReceived.complete(Unit)
     compilationRequestFuture.await()

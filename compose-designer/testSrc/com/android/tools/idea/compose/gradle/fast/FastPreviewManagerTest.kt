@@ -43,9 +43,10 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -53,12 +54,21 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
+@RunWith(Parameterized::class)
+class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "useEmbeddedCompiler = {0}")
+    val useEmbeddedCompilerValues = listOf(true, false)
+  }
 
-class FastPreviewManagerTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   @get:Rule
   val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  @get:Rule
+  val useInProcessCompilerFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON, useEmbeddedCompiler)
   lateinit var psiMainFile: PsiFile
   lateinit var fastPreviewManager: FastPreviewManager
 
@@ -142,11 +152,9 @@ class FastPreviewManagerTest {
     val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
     assertTrue(
       "Resulting image is expected to be at least 20% higher since a new text line was added",
-
       finalState.height > initialState.height * 1.20)
   }
 
-  @Ignore("Temporarily disabled since the embedded compiler does not support multiple files yet")
   @Test
   fun testMultipleFilesCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!

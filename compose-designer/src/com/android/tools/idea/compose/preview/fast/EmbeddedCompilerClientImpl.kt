@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditJvmIrCodegenFactory
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.PsiFile
 import com.intellij.util.io.createFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
@@ -44,9 +46,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
-import com.intellij.openapi.diagnostic.Logger
 
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
@@ -88,17 +88,17 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     return analysisResult.bindingContext
   }
 
-  private fun compileKtFile(file: KtFile, outputDirectory: Path) {
-    log.debug("compileKtFile($file, $outputDirectory)")
-    val inputs = listOf(file)
+  private fun compileKtFiles(inputs: List<KtFile>, outputDirectory: Path) {
+    log.debug("compileKtFile($inputs, $outputDirectory)")
     val resolution = runReadAction {
       log.debug("fetchResolution")
       KotlinCacheService.getInstance(project).getResolutionFacade(inputs, project.platform!!)
     }
     val bindingContext = runReadAction { analyze(inputs, resolution) }
 
+    val languageVersionSettings = inputs.first().languageVersionSettings
     val generationState = runReadAction {
-      backendCodeGen(resolution, bindingContext, inputs, AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+      backendCodeGen(resolution, bindingContext, inputs, AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
     }
     generationState.factory.asList().forEach {
       val path = outputDirectory.resolve(it.relativePath)
@@ -182,22 +182,20 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     throw LiveEditUpdateException.compilationError(e.message ?: "No error message", e)
   }
 
-  override suspend fun compileRequest(args: List<String>): CompilationResult {
+  override suspend fun compileRequest(
+    files: Collection<PsiFile>,
+    module: Module,
+    outputDirectory: Path,
+    indicator: ProgressIndicator): CompilationResult {
     _isRunning.set(true)
-    try {
-      val outputDirectory = Paths.get(args.dropLast(1).last())
-      val inputFilePath = Paths.get(args.last())
-      val inputKtFile = inputFilePath.let {
-        val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(it) ?: return@let null
-        AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as? KtFile
-      } ?: return CompilationResult.RequestException(IllegalStateException("Invalid kotlin PSI file at $inputFilePath"))
-
-      return try {
-        compileKtFile(inputKtFile, outputDirectory = outputDirectory)
+    return try {
+      val inputs = files.filterIsInstance<KtFile>().toList()
+      try {
+        compileKtFiles(inputs, outputDirectory = outputDirectory)
         CompilationResult.Success
       }
       catch (t: Throwable) {
-        CompilationResult.RequestException(t)
+        return CompilationResult.RequestException(t)
       }
     }
     finally {
