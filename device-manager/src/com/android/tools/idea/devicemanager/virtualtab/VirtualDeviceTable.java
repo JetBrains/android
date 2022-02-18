@@ -34,7 +34,6 @@ import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -54,7 +53,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.ActionMap;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JComponent;
 import javax.swing.ListSelectionModel;
@@ -113,50 +111,32 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     model.addTableModelListener(event -> sizeWidthsToFit());
 
-    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      Project project = panel.getProject();
+    Project project = panel.getProject();
 
-      setDefaultEditor(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellEditor(project));
+    setDefaultEditor(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellEditor(project));
 
-      setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
-                       new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
-                                                                                   this,
-                                                                                   EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
+    setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
+                     new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
+                                                                                 this,
+                                                                                 EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
-      setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
-      setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
-
-      setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
-
-      setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
-                         new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
-
-      setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
-      setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
-    }
-    else {
-      setDefaultEditor(Actions.class, new ActionsTableCell(this));
-      setDefaultRenderer(Actions.class, new ActionsTableCell(this));
-    }
+    setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
+    setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
 
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
+    setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
+
+    setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
+                       new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
+
+    setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
+    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
 
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
-
-    if (!VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      ActionMap map = getActionMap();
-
-      map.put("selectNextColumn", new SelectNextColumnAction());
-      map.put("selectNextColumnCell", new SelectNextColumnCellAction());
-      map.put("selectNextRow", new SelectNextRowAction());
-      map.put("selectPreviousColumn", new SelectPreviousColumnAction());
-      map.put("selectPreviousColumnCell", new SelectPreviousColumnCellAction());
-      map.put("selectPreviousRow", new SelectPreviousRowAction());
-    }
 
     // noinspection DialogTitleCapitalization
     getEmptyText()
@@ -179,22 +159,16 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      Tables.getPreferredColumnWidth(this, sizeOnDiskViewColumnIndex(), JBUIScale.scale(65)),
                      JBUIScale.scale(20));
 
-    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      Tables.setWidths(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
-                       Tables.getPreferredColumnWidth(this, launchInEmulatorViewColumnIndex(), 0));
+    Tables.setWidths(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, launchInEmulatorViewColumnIndex(), 0));
 
-      Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
-                       Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
 
-      Tables.setWidths(columnModel.getColumn(editViewColumnIndex()), Tables.getPreferredColumnWidth(this, editViewColumnIndex(), 0));
+    Tables.setWidths(columnModel.getColumn(editViewColumnIndex()), Tables.getPreferredColumnWidth(this, editViewColumnIndex(), 0));
 
-      Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
-                       Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
-    }
-    else {
-      Tables.setWidths(columnModel.getColumn(actionsViewColumnIndex()),
-                       Tables.getPreferredColumnWidth(this, actionsViewColumnIndex(), JBUIScale.scale(65)));
-    }
+    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
@@ -255,27 +229,24 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   protected @NotNull JTableHeader createDefaultTableHeader() {
+    TableColumnModel model = new DefaultTableColumnModel();
+
+    model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
+    model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
+    model.addColumn(columnModel.getColumn(sizeOnDiskViewColumnIndex()));
+
+    Collection<TableColumn> columns = Arrays.asList(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
+                                                    columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                                                    columnModel.getColumn(editViewColumnIndex()),
+                                                    columnModel.getColumn(popUpMenuViewColumnIndex()));
+
+    TableColumn column = new MergedTableColumn(columns);
+    column.setHeaderValue("Actions");
+
+    model.addColumn(column);
+
     JTableHeader header = super.createDefaultTableHeader();
-
-    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      TableColumnModel model = new DefaultTableColumnModel();
-
-      model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
-      model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
-      model.addColumn(columnModel.getColumn(sizeOnDiskViewColumnIndex()));
-
-      Collection<TableColumn> columns = Arrays.asList(columnModel.getColumn(launchInEmulatorViewColumnIndex()),
-                                                      columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
-                                                      columnModel.getColumn(editViewColumnIndex()),
-                                                      columnModel.getColumn(popUpMenuViewColumnIndex()));
-
-      TableColumn column = new MergedTableColumn(columns);
-      column.setHeaderValue("Actions");
-
-      model.addColumn(column);
-      header.setColumnModel(model);
-    }
-
+    header.setColumnModel(model);
     header.setReorderingAllowed(false);
     header.setResizingAllowed(false);
 
