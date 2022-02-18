@@ -95,11 +95,18 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     return true;
   }
 
-  @Nullable
-  private DexElementNode getSelectedNode() {
+  private @Nullable DexElementNode getSelectedNode() {
     TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return null;
+    }
+
     Object component = path.getLastPathComponent();
-    return component instanceof DexElementNode ? (DexElementNode)component : null;
+    if (!(component instanceof DexElementNode)) {
+      return null;
+    }
+
+    return (DexElementNode) component;
   }
 
   @Override
