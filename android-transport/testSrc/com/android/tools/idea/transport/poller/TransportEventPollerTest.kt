@@ -201,10 +201,12 @@ class TransportEventPollerTest {
   fun pollerTracksEventListenerTimestamp() {
     var event10Seen = 0
     var event20Seen = 0
+    var eventsPicked = 0
     TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
-      startTime = { 0L },
+      startTime = { 5L },
       callback = {
+        eventsPicked++
         if (it.timestamp == 10L) {
           event10Seen++
         }
@@ -216,21 +218,28 @@ class TransportEventPollerTest {
       executor = MoreExecutors.directExecutor()
     ).also { transportEventPoller!!.registerListener(it) }
 
-    // Add event with timestamp 10
+    // Add event with timestamp 2. This shouldn't be picked up by poller because listener was ts=5
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(2))
+    // Add event with timestamp 10. This should be picked up by poller because listener was ts=5
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(10))
     transportEventPoller!!.poll()
+    assertThat(eventsPicked).isEqualTo(1)
     assertThat(event10Seen).isEqualTo(1)
     assertThat(event20Seen).isEqualTo(0)
 
-    // Add event with timestamp 5. This shouldn't be picked up by poller because last seen event was ts=10.
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(5))
+    // Add event with timestamp 8. This shouldn't be picked up by poller because last seen event was ts=10.
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(8))
+    eventsPicked = 0
     transportEventPoller!!.poll()
+    assertThat(eventsPicked).isEqualTo(0)
     assertThat(event10Seen).isEqualTo(1)
     assertThat(event20Seen).isEqualTo(0)
 
-    // Add event with timestamp 20
+    // Add event with timestamp 20. This should be picked up by poller because last seen event was ts=10.
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(20))
+    eventsPicked = 0
     transportEventPoller!!.poll()
+    assertThat(eventsPicked).isEqualTo(1)
     assertThat(event10Seen).isEqualTo(1)
     assertThat(event20Seen).isEqualTo(1)
   }
