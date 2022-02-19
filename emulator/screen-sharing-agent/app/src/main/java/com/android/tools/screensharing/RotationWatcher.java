@@ -22,5 +22,6 @@ import android.view.IRotationWatcher;
  * in window_manager.cc.
  */
 public class RotationWatcher extends IRotationWatcher.Stub {
+  @Override
   public native void onRotationChanged(int rotation);
 }
