@@ -21,11 +21,15 @@
 #include "jvm.h"
 #include "log.h"
 
-static screensharing::WindowManager* window_manager_instance_ = nullptr;
-
 namespace screensharing {
 
 using namespace std;
+
+namespace {
+
+WindowManager* window_manager_instance = nullptr;
+
+}  // namespace
 
 WindowManager::WindowManager(Jni jni)
     : window_manager_(ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager")),
@@ -63,10 +67,10 @@ WindowManager::~WindowManager() {
 }
 
 WindowManager& WindowManager::GetInstance(Jni jni) {
-  if (window_manager_instance_ == nullptr) {
-    window_manager_instance_ = new WindowManager(jni);
+  if (window_manager_instance == nullptr) {
+    window_manager_instance = new WindowManager(jni);
   }
-  return *window_manager_instance_;
+  return *window_manager_instance;
 }
 
 int WindowManager::GetDefaultDisplayRotation(Jni jni) {
@@ -129,7 +133,7 @@ void WindowManager::OnRotationChanged(int32_t rotation) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(JNIEnv* jni_env, jobject thiz, jint rotation) {
-  if (window_manager_instance_ != nullptr) {
-    window_manager_instance_->OnRotationChanged(rotation);
+  if (screensharing::window_manager_instance != nullptr) {
+    screensharing::window_manager_instance->OnRotationChanged(rotation);
   }
 }
