@@ -71,8 +71,11 @@ KeyEventMessage* KeyEventMessage::deserialize(Base128InputStream& stream) {
 }
 
 TextInputMessage* TextInputMessage::deserialize(Base128InputStream& stream) {
-  u16string text = stream.ReadString16();
-  return new TextInputMessage(text);
+  unique_ptr<u16string> text = stream.ReadString16();
+  if (text == nullptr || text->empty()) {
+    Log::Fatal("Received a TextInputMessage without text");
+  }
+  return new TextInputMessage(*text);
 }
 
 SetDeviceOrientationMessage* SetDeviceOrientationMessage::deserialize(Base128InputStream& stream) {

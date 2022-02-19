@@ -18,6 +18,8 @@
 
 #include <unistd.h>
 
+#include <memory>
+
 namespace screensharing {
 
 using namespace std;
@@ -112,7 +114,7 @@ bool Base128InputStream::ReadBool() {
   return c != 0;
 }
 
-u16string Base128InputStream::ReadString16() {
+unique_ptr<u16string> Base128InputStream::ReadString16() {
   int len = ReadInt32();
   if (len < 0) {
     throw StreamFormatException::InvalidFormat();
@@ -122,12 +124,12 @@ u16string Base128InputStream::ReadString16() {
   }
   --len;
   if (len == 0) {
-    return u16string();
+    return make_unique<u16string>();
   }
-  auto result = u16string(static_cast<unsigned int>(len), '\0');
+  auto result = make_unique<u16string>(static_cast<unsigned int>(len), '\0');
   try {
     for (int i = 0; i < len; i++) {
-      result[i] = ReadUInt16();
+      (*result)[i] = ReadUInt16();
     }
   } catch (EndOfFile& e) {
     throw StreamFormatException::PrematureEndOfStream();
