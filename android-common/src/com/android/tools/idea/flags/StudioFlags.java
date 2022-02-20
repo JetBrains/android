@@ -580,6 +580,14 @@ public final class StudioFlags {
     "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
+  public static final Flag<Boolean> ADB_DEVICE_MONITOR_TOOL_WINDOW_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.device.monitor.enable",
+    "Enable the \"Device Monitor\" tool window",
+    "Enable the \"Device Monitor\" tool window which shows the list of JDWP proceses of Android Devices.\n" +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
     RUNDEBUG,
     "adblib.migration.device.explorer",
