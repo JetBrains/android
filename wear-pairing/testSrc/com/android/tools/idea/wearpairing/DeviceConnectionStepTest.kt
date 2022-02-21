@@ -215,6 +215,58 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     }
   }
 
+  @Test
+  fun shouldShowFactoryResetIfPairingStatusDosntMatch() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") { request ->
+      when {
+        request.contains("get-pairing-status") ->
+          "Broadcasting: Intent { act=com.google.android.gms.wearable.EMULATOR flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Local:[LocalNodeId]\nPeer:[AnotherNode,false,false]\""
+        else -> null
+      }
+    }
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JLabel> { it.text == "Factory reset Wear OS emulator" } != null
+    }
+  }
+
+  @Test
+  fun shouldShowFactoryResetIfCloudNodeIdDoesntMatchOnOldGmscore() {
+    phoneDevice.launch = {
+      Futures.immediateFuture(createTestDevice(gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
+                                               companionAppVersion = "versionName=1.0.0") { request ->
+        when {
+          request.contains("cloud network id:") ->
+            "cloud network id: aaa"
+          else -> null
+        }
+      })
+    }
+    wearDevice.launch = {
+      Futures.immediateFuture(createTestDevice(gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
+                                               companionAppVersion = "versionName=1.0.0") { request ->
+        when {
+          request.contains("cloud network id:") ->
+            "cloud network id: bbb"
+          else -> null
+        }
+      })
+    }
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JLabel> { it.text == "Factory reset Wear OS emulator" } != null
+    }
+  }
+
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     Disposer.register(testRootDisposable, deviceConnectionStep)
@@ -236,7 +288,10 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
     usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
 
-  private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE, companionAppId: String? = null): IDevice {
+  private fun createTestDevice(companionAppVersion: String,
+                               gmscoreVersion: Int = Int.MAX_VALUE,
+                               companionAppId: String? = null,
+                               additionalReplies: (request: String) -> String? = { null }): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
     Mockito.`when`(
       iDevice.executeShellCommand(
@@ -247,13 +302,13 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver
 
-      val reply = when {
+      val reply = additionalReplies(request)?: when {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
         // Note: get-pairing-status gets called on both phone and watch. Watch uses the Local part and phone uses the Peer part.
         request.contains("get-pairing-status") ->
           "Broadcasting: Intent { act=com.google.android.gms.wearable.EMULATOR flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"Local:[TestNodeId]\nPeer:[AnotherNode,false,false]\nPeer:[TestNodeId,true,true]\""
+          "Broadcast completed: result=1, data=\"Local:[TestNodeId]\nPeer:[TestNodeId,true,true]\nPeer:[AnotherNode,false,false]\""
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         request.contains("settings get secure") -> companionAppId.toString()

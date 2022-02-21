@@ -367,8 +367,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       if (isColdBoot || iDevice.retrieveUpTime() < 200.0) {
         // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
         showUiWaitingDeviceStatus()
-        waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty() }
-        waitForCondition(10_000) { iDevice.loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
+        if (iDevice.hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
+          waitForCondition(50_000) { iDevice.isPairingStatusAvailable() }
+        }
+        else {
+          waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty() }
+          waitForCondition(10_000) { iDevice.loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
+        }
       }
 
       return iDevice
@@ -837,6 +842,14 @@ private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> 
 }
 
 private suspend fun checkWearMayNeedFactoryReset(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
+  if (wearDevice.hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
+    val (wearNodeId, wearPairingStatus) = wearDevice.getPairingStatus()
+    if (wearNodeId != null) {
+      // Only need factory reset if the watch thinks it's paired with another phone
+      return wearPairingStatus.isNotEmpty() && !wearPairingStatus[0].nodeId.isNullOrEmpty() &&
+             !wearPairingStatus[0].nodeId.equals(phoneDevice.loadNodeID(), ignoreCase = true)
+    }
+  }
   val phoneCloudID = phoneDevice.loadCloudNetworkID()
   val wearCloudID = wearDevice.loadCloudNetworkID()
 

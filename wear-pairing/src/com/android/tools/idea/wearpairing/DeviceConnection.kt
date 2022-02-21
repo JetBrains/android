@@ -52,9 +52,15 @@ suspend fun IDevice.runShellCommand(cmd: String): String = withContext(AndroidDi
   outputReceiver.output.trim()
 }
 
+private suspend fun IDevice.localNodeFromPairingStatus(): String? =
+  LOCAL_NODE_REGEX.find(runShellCommand(GET_PAIRING_STATUS_COMMAND))?.groupValues?.get(1)
+
+suspend fun IDevice.isPairingStatusAvailable(): Boolean =
+  localNodeFromPairingStatus() != null
+
 suspend fun IDevice.loadNodeID(): String {
   if (hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
-    LOCAL_NODE_REGEX.find(runShellCommand(GET_PAIRING_STATUS_COMMAND))?.groupValues?.get(1)?.let { return it }
+    localNodeFromPairingStatus()?.let { return it }
   }
   val localIdPattern = "local: "
   val output = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
@@ -92,27 +98,31 @@ suspend fun IDevice.isCompanionAppInstalled(companionAppId: String): Boolean {
   return output.contains("versionName=")
 }
 
-private data class PairingStatus(val nodeId: String?, val connected: Boolean, val enabled: Boolean)
+data class PairingStatus(val nodeId: String?, val connected: Boolean, val enabled: Boolean)
 
-private suspend fun getPairingStatus(phoneDevice: IDevice, wearNodeId: String): Pair<String?, PairingStatus?> {
-  val broadcastResult = phoneDevice.runShellCommand(GET_PAIRING_STATUS_COMMAND)
-  var localNodeId : String? = null
+private suspend fun IDevice.getPairingStatus(peerNodeId: String): Pair<String?, PairingStatus?> {
+  val (localNodeId, pairingStatuses) = getPairingStatus()
+  return Pair(localNodeId, pairingStatuses.firstOrNull { peerNodeId.equals(it.nodeId, ignoreCase = true) })
+}
+
+suspend fun IDevice.getPairingStatus(): Pair<String?, List<PairingStatus>> {
+  val broadcastResult = runShellCommand(GET_PAIRING_STATUS_COMMAND)
+  var localNodeId: String? = null
   val peerStatus = broadcastResult.lines()
     .also { if (it.size > 1) localNodeId = LOCAL_NODE_REGEX.find(it[1])?.groupValues?.get(1) }
     .takeIf { it.size > 2 }?.let { it.subList(2, it.size) }
     ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
     ?.filter { it.size >= 4 }
-    ?.firstOrNull { it[1] == wearNodeId }
-    ?.let { PairingStatus(it[1], it[2].toBoolean(), it[3].toBoolean()) }
+    ?.map { PairingStatus(if ("null".equals(it[1], ignoreCase = true)) null else it[1], it[2].toBoolean(), it[3].toBoolean()) }
   if (localNodeId == null) LOG.error("Unexpected pairing status: $broadcastResult")
-  return Pair(localNodeId, peerStatus)
+  return Pair(localNodeId, peerStatus.orEmpty())
 }
 
 suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
   if (phoneDevice.hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
     // TODO: We need additional states to differentiate between the cases where the nodeId matches
     //  but it's either not enabled or is not connected
-    val (localNodeId, pairingStatus) = getPairingStatus(phoneDevice, wearDevice.loadNodeID())
+    val (localNodeId, pairingStatus) = phoneDevice.getPairingStatus(wearDevice.loadNodeID())
     if (localNodeId != null) {
       return pairingStatus?.takeIf { it.enabled && it.connected } != null
     }
