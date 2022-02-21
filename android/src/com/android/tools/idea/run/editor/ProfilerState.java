@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ProfilerState {
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
-  public static final String PROFILING_MODE_PROPERTY_NAME = "android.experimental.profilingMode";
+  public static final String PROFILING_MODE_PROPERTY_NAME = "android.profilingMode";
   public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024*2; // 2KB
 
   /**

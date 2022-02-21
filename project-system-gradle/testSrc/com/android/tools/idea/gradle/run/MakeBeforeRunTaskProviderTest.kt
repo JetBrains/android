@@ -270,7 +270,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
       `when`(myRunConfiguration.profilerState).thenReturn(profilerState)
       val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
-      assertThat(arguments).contains("-Pandroid.experimental.profilingMode=profileable")
+      assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
     } finally {
       StudioFlags.PROFILEABLE_BUILDS.clearOverride()
     }
