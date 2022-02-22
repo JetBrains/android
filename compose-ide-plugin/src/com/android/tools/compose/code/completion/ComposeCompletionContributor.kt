@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
@@ -169,6 +170,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
       !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
+      context.file.findElementAt(context.tailOffset)?.parentOfType<KtFunction>() == null -> super.handleInsert(context)
       else -> ComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }

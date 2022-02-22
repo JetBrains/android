@@ -747,6 +747,62 @@ class ComposeCompletionContributorTest {
     ).inOrder()
   }
 
+  /**
+   * Regression test for b/153769933. The Compose insertion handler adds the parameters automatically when completing the name
+   * of a Composable. This is incorrect if the insertion point is not a call statement. This ensures that the insertion is not triggered
+   * for imports.
+   */
+  @Test
+  fun testImportCompletionDoesNotTriggerInsertionHandler() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/foundation/Canvas.kt",
+      // language=kotlin
+      """
+      package androidx.compose.foundation
+
+      import androidx.compose.runtime.Composable
+
+      // This simulates the Canvas composable
+      @Composable
+      fun Canvas(children: @Composable() () -> Unit) {}
+    """)
+
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.foundation.Ca${caret}
+
+      @Composable
+      fun Test() {
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.foundation.Canvas
+
+      @Composable
+      fun Test() {
+      }
+      """.trimIndent()
+      , true)
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return lookupElements.orEmpty().map { lookupElement ->
