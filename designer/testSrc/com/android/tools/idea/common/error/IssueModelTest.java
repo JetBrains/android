@@ -34,6 +34,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,8 @@ public class IssueModelTest {
 
   @Test
   public void setRenderErrorModel() {
+    VirtualFile file = myProjectRule.fixture.addFileToProject("res/layout/layout.xml", "").getVirtualFile();
+
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
     RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
 
@@ -63,6 +66,7 @@ public class IssueModelTest {
     assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
     NlModel sourceNlModel = Mockito.mock(NlModel.class);
+    Mockito.when(sourceNlModel.getVirtualFile()).thenReturn(file);
     myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
     assertTrue(myIssueModel.hasIssues());
     assertTrue(hasRenderError());

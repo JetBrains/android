@@ -32,7 +32,7 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    IssuePanelService.getInstance(surface.project).setShowIssuePanel(state, surface, false)
+    IssuePanelService.getInstance(surface.project).setShowSurfaceIssuePanel(state, surface, false)
   }
 
   override fun update(e: AnActionEvent) {

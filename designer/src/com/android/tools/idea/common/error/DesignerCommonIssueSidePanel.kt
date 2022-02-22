@@ -45,7 +45,7 @@ import javax.swing.text.html.StyleSheet
 /**
  * The side panel to show the detail of issue and its source code if available
  */
-class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, private val file: VirtualFile) : JPanel(BorderLayout()) {
+class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, private val file: VirtualFile?) : JPanel(BorderLayout()) {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
   val editor: Editor?
@@ -62,6 +62,9 @@ class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, p
   }
 
   private fun createEditor(): Editor? {
+    if (file == null) {
+      return null
+    }
     val document = ProblemsView.getDocument(project, file) ?: return null
     return EditorFactory.getInstance().createEditor(document, project, EditorKind.PREVIEW)
   }

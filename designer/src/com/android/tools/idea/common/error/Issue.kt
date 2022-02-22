@@ -21,10 +21,13 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.vfs.VirtualFile
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
 data class NlComponentIssueSource(val component: NlComponent) : IssueSource, NlAttributesHolder {
+  @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
+  override val file: VirtualFile? = component.model.virtualFile
   override val displayText: String = listOfNotNull(
     component.model.modelDisplayName,
     component.id,
@@ -46,6 +49,8 @@ fun IssueSource.isFromNlComponent(component: NlComponent): Boolean {
 }
 
 private data class NlModelIssueSource(private val model: NlModel) : IssueSource {
+  @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
+  override val file: VirtualFile? = model.virtualFile
   override val displayText: String = model.modelDisplayName.orEmpty()
 }
 
@@ -53,12 +58,14 @@ private data class NlModelIssueSource(private val model: NlModel) : IssueSource 
  * Interface that represents the source for a given [Issue].
  */
 interface IssueSource {
+  val file: VirtualFile?
   /** The display text to show in the issue panel. */
   val displayText: String
 
   companion object {
     @JvmField
     val NONE = object : IssueSource {
+      override val file: VirtualFile? = null
       override val displayText: String = ""
 
       override fun equals(other: Any?): Boolean = other === this

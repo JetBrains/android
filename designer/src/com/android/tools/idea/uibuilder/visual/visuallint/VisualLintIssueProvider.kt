@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.vfs.VirtualFile
 import java.util.Objects
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
@@ -46,6 +47,7 @@ class VisualLintIssueProvider : IssueProvider() {
   fun clear() = issues.clear()
 
   data class VisualLintIssueSource(val models: Set<NlModel>, val components: List<NlComponent>) : IssueSource {
+    override val file: VirtualFile? = null
     override val displayText = ""
   }
 }

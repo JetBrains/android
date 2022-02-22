@@ -15,49 +15,45 @@
  */
 package com.android.tools.idea.common.error
 
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 
-interface DesignerCommonIssueProvider<T> {
-  val source: T
+interface DesignerCommonIssueProvider<T> : Disposable {
   var filter: (Issue) -> Boolean
-  fun getIssues(file: IssuedFileData): List<Issue>
-  fun getIssuedFileDataList(): List<IssuedFileData>
-
-  /**
-   * Callback when issue provider is removed.
-   */
-  fun onRemoved() = Unit
+  fun getFilteredIssues(): List<Issue>
+  fun registerUpdateListener(listener: Runnable)
 }
 
-data class IssuedFileData(val file: VirtualFile, val source: Any?)
+class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any?> {
 
-object EmptyIssueProvider : DesignerCommonIssueProvider<Any?> {
-  override val source: Any? = null
-  override var filter: (Issue) -> Boolean
-    get() = { true }
-    set(_) {}
-  override fun getIssues(file: IssuedFileData): List<Issue> = emptyList()
-  override fun getIssuedFileDataList(): List<IssuedFileData> = emptyList()
-}
+  private var designIssues: List<Issue> = emptyList()
+  private val listeners = mutableListOf<Runnable>()
+  private val messageBusConnection = project.messageBus.connect()
 
-/**
- * An adapter of [DesignerCommonIssueProvider] to wrap the data from [IssueModel].
- */
-class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile, private val onRemovedTask: () -> Unit = {})
-  : DesignerCommonIssueProvider<IssueModel> {
-  override val source: IssueModel = issueModel
   private var _filter: (Issue) -> Boolean = { true }
   override var filter: (Issue) -> Boolean
     get() = _filter
-    set(value) {
-      _filter = value
-    }
+    set(value) { _filter = value }
 
-  override fun getIssues(file: IssuedFileData): List<Issue> {
-    return if (file.source == issueModel) issueModel.issues.filter(filter).toList() else emptyList()
+  init {
+    Disposer.register(project, this)
+    messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
+      override fun issueUpdated(issues: List<Issue>) {
+        designIssues = issues
+        listeners.forEach { it.run() }
+      }
+    })
   }
 
-  override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))
+  override fun getFilteredIssues(): List<Issue> = designIssues.filter(filter).toList()
 
-  override fun onRemoved() = onRemovedTask()
+  override fun registerUpdateListener(listener: Runnable) {
+    listeners.add(listener)
+  }
+
+  override fun dispose() {
+    messageBusConnection.disconnect()
+    listeners.clear()
+  }
 }

@@ -34,7 +34,7 @@ class ShowQuickFixesAction : AnAction(), UpdateInBackground {
     val presentation = event.presentation
     presentation.text = ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix"
 
-    val node = event.getData(PlatformDataKeys.SELECTED_ITEM) as? LayoutFileIssueNode
+    val node = event.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode
     if (node == null) {
       presentation.isEnabled = false
       return
@@ -51,7 +51,7 @@ class ShowQuickFixesAction : AnAction(), UpdateInBackground {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val node = event.getData(PlatformDataKeys.SELECTED_ITEM) as? LayoutFileIssueNode ?: return
+    val node = event.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode ?: return
     val issue = node.issue
     val fixes = issue.fixes
 

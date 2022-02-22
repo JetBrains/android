@@ -29,7 +29,7 @@ class ToggleIssueDetailAction : ToggleAction() {
       e.presentation.isEnabled = false
       return
     }
-    val node = e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? LayoutFileIssueNode
+    val node = e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode
     e.presentation.isEnabled = node != null
     super.update(e)
   }

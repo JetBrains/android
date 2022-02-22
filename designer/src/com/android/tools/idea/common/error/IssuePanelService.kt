@@ -42,8 +42,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
-import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.ui.UIUtil
 
 /**
@@ -103,42 +101,14 @@ class IssuePanelService(private val project: Project) {
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issuePanel = DesignerCommonIssuePanel(project, project)
+      val issuePanel = DesignerCommonIssuePanel(project, project, DesignToolsIssueProvider(project))
+
       sharedIssuePanel = issuePanel
-      issuePanel.setIssueProvider(EmptyIssueProvider)
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
         sharedIssueTab = this
         isCloseable = false
         contentManager.addContent(this@apply)
       }
-
-      contentManager.addContentManagerListener(object : ContentManagerListener {
-        override fun selectionChanged(event: ContentManagerEvent) {
-          val provider = issuePanel.getIssueProvider() ?: return
-          if (provider !is EmptyIssueProvider) {
-            // Nothing to do.
-            return
-          }
-          if (event.index == 2) {
-            val editor = FileEditorManager.getInstance(project).selectedEditor
-            val surface = getDesignSurface(editor)
-            if (surface == null || surface.layoutType is DrawableFileType) {
-              if (removeSharedIssueTabFromProblemsPanel()) {
-                issuePanel.setIssueProvider(EmptyIssueProvider)
-              }
-              return
-            }
-            else {
-              addSharedIssueTabToProblemsPanel()
-              contentManager.setSelectedContent(sharedIssueTab!!)
-              val issueModel = surface.issueModel
-              val listener = IssueModel.IssueModelListener { issuePanel.updateTree(editor!!.file, issueModel) }
-              issueModel.addErrorModelListener(listener)
-              issuePanel.setIssueProvider(IssueModelProvider(issueModel, editor!!.file!!) { issueModel.removeErrorModelListener(listener) })
-            }
-          }
-        }
-      })
     }
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
@@ -148,32 +118,20 @@ class IssuePanelService(private val project: Project) {
         }
         // If it is current tab, remove it.
         if (!source.hasOpenFiles()) {
-          if (removeSharedIssueTabFromProblemsPanel()) {
-            // The tab has been removed, clear the issue provider.
-            sharedIssuePanel!!.setIssueProvider(EmptyIssueProvider)
-          }
+          removeSharedIssueTabFromProblemsPanel()
         }
       }
 
       override fun selectionChanged(event: FileEditorManagerEvent) {
         val surface = getDesignSurface(event.newEditor)
         if (surface == null || surface.layoutType is DrawableFileType) {
-          if (removeSharedIssueTabFromProblemsPanel()) {
-            // The tab has been removed, clear the issue provider.
-            sharedIssuePanel!!.setIssueProvider(EmptyIssueProvider)
-          }
+          removeSharedIssueTabFromProblemsPanel()
         }
         else {
           // Surface exists.
           addSharedIssueTabToProblemsPanel()
-          setShowIssuePanel(true, surface, false)
+          setShowSurfaceIssuePanel(true, surface, false)
         }
-      }
-    })
-
-    project.messageBus.connect().subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
-      override fun issueUpdated(issues: List<Issue>) {
-        // TODO: Display issues in the issue panel.
       }
     })
   }
@@ -220,82 +178,59 @@ class IssuePanelService(private val project: Project) {
    */
   fun isShowingIssuePanel(surface: DesignSurface) : Boolean {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      if (!isTabShowing(sharedIssueTab)) {
-        return false
-      }
-      return sharedIssuePanel?.getIssueProvider()?.source == surface.issueModel
+      return isTabShowing(sharedIssueTab)
     }
-    return false
+    return !surface.issuePanel.isMinimized
   }
 
-  fun setShowIssuePanel(visible: Boolean, surface: DesignSurface, userInvoked: Boolean) {
-    if (visible) {
-      showIssuePanel(surface, userInvoked)
-    }
-    else {
-      hideIssuePanel(surface, userInvoked)
-    }
-  }
-
-  /**
-   * Show the issue panel for the given [DesignSurface]. [userInvoked] identifies this was the direct consequence of a user action.
-   */
-  private fun showIssuePanel(surface: DesignSurface, userInvoked: Boolean) {
-    val issueModel = surface.issueModel
+  fun setShowSurfaceIssuePanel(visible: Boolean, surface: DesignSurface, userInvoked: Boolean) {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val tab = sharedIssueTab ?: return
-      if (!isTabShowing(tab)) {
-        showTab(tab)
+      if (visible) {
+        showSharedIssuePanel(surface)
       }
-      val surfaceName = when (surface.name) {
-        null -> {
-          when (surface.models.firstOrNull()?.file?.typeOf()) {
-            is LayoutFileType -> "Layout"
-            is PreferenceScreenFileType -> "Preference"
-            is MenuFileType -> "Menu"
-            else -> "Designer"
-          }
-        }
-        else -> surface.name
-      }
-      tab.displayName = createTabName(surfaceName, surface.issueModel.issueCount)
-
-      val panel = sharedIssuePanel ?: return
-      // the tab is showing, replace the issue provider to the issue model of surface.
-      val issueProvider = panel.getIssueProvider()
-      if (issueProvider?.source != issueModel) {
-        // TODO: Refactor to not rely on the virtual file
-        val file = surface.models.firstOrNull()?.virtualFile ?: return
-        val listener = IssueModel.IssueModelListener {
-          // The number of issue count may be changed, update the title.
-          tab.displayName = createTabName(surfaceName, surface.issueModel.issueCount)
-          panel.updateTree(file, issueModel)
-        }
-        issueModel.addErrorModelListener(listener)
-        panel.setIssueProvider(IssueModelProvider(issueModel, file) {
-          issueModel.removeErrorModelListener(listener)
-        })
-        panel.updateTree(file, issueModel)
+      else {
+        hideSharedIssuePanel()
       }
     }
     else {
-      surface.setShowIssuePanel(true, userInvoked)
+      if (visible) {
+        surface.setShowIssuePanel(true, userInvoked)
+      }
+      else {
+        surface.setShowIssuePanel(false, userInvoked)
+      }
     }
-    return
   }
 
   /**
-   * This hide IJ's Problem Panel as well. [userInvoked] identifies this was the direct consequence of a user action.
+   * Show the issue panel for the given [DesignSurface].
+   */
+  private fun showSharedIssuePanel(surface: DesignSurface) {
+    val tab = sharedIssueTab ?: return
+    if (!isTabShowing(tab)) {
+      showTab(tab)
+    }
+    val surfaceName = when (surface.name) {
+      null -> {
+        when (surface.models.firstOrNull()?.file?.typeOf()) {
+          is LayoutFileType -> "Layout"
+          is PreferenceScreenFileType -> "Preference"
+          is MenuFileType -> "Menu"
+          else -> "Designer"
+        }
+      }
+      else -> surface.name
+    }
+    tab.displayName = createTabName(surfaceName, sharedIssuePanel?.issueProvider?.getFilteredIssues()?.count() ?: 0)
+  }
+
+  /**
+   * This function will hide IJ's Problem Panel.
    * If IJ's Problem panel cannot be found, then this function does nothing.
    */
-  private fun hideIssuePanel(surface: DesignSurface, userInvoked: Boolean) {
-    if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
-      problemsViewPanel.hide()
-    }
-    else {
-      surface.setShowIssuePanel(false, userInvoked)
-    }
+  private fun hideSharedIssuePanel() {
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    problemsViewPanel.hide()
   }
 
   /**
@@ -303,7 +238,7 @@ class IssuePanelService(private val project: Project) {
    * TODO: Remove the dependency of [NlComponent]
    */
   fun showIssueForComponent(surface: DesignSurface, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
-    setShowIssuePanel(true, surface, userInvoked)
+    setShowSurfaceIssuePanel(true, surface, userInvoked)
     // TODO: The shared issue panel should support this feature.
     if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       val issuePanel = surface.issuePanel
@@ -324,16 +259,11 @@ class IssuePanelService(private val project: Project) {
    * Return the visibility of issue panel for the given [DesignSurface].
    */
   fun isIssuePanelVisible(surface: DesignSurface): Boolean {
-    if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      // When this flag is enabled, we use attach and detach mechanism. The issue panel should never be hidden in this case.
-      val tab = sharedIssueTab ?: return false
-      if (!isTabShowing(tab)) {
-        return false
-      }
-      return sharedIssuePanel?.getIssueProvider()?.source == surface.issueModel
+    return if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+      isTabShowing(sharedIssueTab)
     }
     else {
-      return !surface.issuePanel.isMinimized
+      !surface.issuePanel.isMinimized
     }
   }
 
@@ -397,10 +327,11 @@ private fun DesignSurface.setShowIssuePanel(show: Boolean, userInvoked: Boolean)
 /**
  * This is same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
  */
-private fun createTabName(title: String, issueCount: Int): String {
+private fun createTabName(title: String, issueCount: Int?): String {
+  val html = HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor()))
   return HtmlBuilder().append(title)
     .append(" ")
-    .append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
+    .append(if (issueCount != null) html.addText("$issueCount") else html)
     .wrapWithHtmlBody()
     .toString()
 }

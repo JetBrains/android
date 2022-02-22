@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.isEmpty
 import org.junit.Before
 import org.junit.Test
@@ -269,6 +270,7 @@ class NlAtfIssueTest : LayoutTestCase() {
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
+    override val file: VirtualFile? = null
     override val displayText: String = "displayText"
 
     var getAttrResult = ""
