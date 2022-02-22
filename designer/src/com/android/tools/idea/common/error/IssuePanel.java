@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
@@ -127,6 +128,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
 
   public IssuePanel(@NotNull IssueModel issueModel, @NotNull IssueListener listener) {
     super(new BorderLayout());
+    Disposer.register(issueModel, this);
     setName(ISSUE_PANEL_NAME);
     myIssueModel = issueModel;
     myListener = listener;

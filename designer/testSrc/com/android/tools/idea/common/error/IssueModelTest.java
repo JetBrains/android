@@ -26,6 +26,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -33,27 +34,24 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class IssueModelTest {
+
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+
   private IssueModel myIssueModel;
-  private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
-    myIssueModel = new IssueModel(MoreExecutors.directExecutor());
-    myDisposable = Disposer.newDisposable();
-    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
+    myIssueModel = new IssueModel(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), MoreExecutors.directExecutor());
   }
 
   @Test
@@ -189,7 +187,8 @@ public class IssueModelTest {
 
   @Test
   public void limitMaxNumberOfIssues() {
-    IssueModel limitedIssueModel = new IssueModel(MoreExecutors.directExecutor(), 5);
+    IssueModel limitedIssueModel =
+      new IssueModel(myProjectRule.getTestRootDisposable(), myProjectRule.getProject(), MoreExecutors.directExecutor(), 5);
     assertFalse(limitedIssueModel.hasIssues());
     limitedIssueModel.addIssueProvider(new RenderIssueProvider(
       null,
@@ -250,11 +249,6 @@ public class IssueModelTest {
 
     myIssueModel.removeIssueProvider(fakeProvider);
     assertTrue(fakeProvider.getListeners().isEmpty());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    Disposer.dispose(myDisposable);
   }
 
   public boolean hasRenderError() {

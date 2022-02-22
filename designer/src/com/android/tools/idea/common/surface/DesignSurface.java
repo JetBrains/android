@@ -250,7 +250,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
-  protected final IssueModel myIssueModel = new IssueModel();
+  protected final IssueModel myIssueModel;
   private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
@@ -311,10 +311,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     super(new BorderLayout());
 
     Disposer.register(parentDisposable, this);
-    Disposer.register(this, myIssueModel);
     myProject = project;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
+    myIssueModel = new IssueModel(this, myProject);
 
     boolean hasZoomControls = myZoomControlsPolicy != ZoomControlsPolicy.HIDDEN;
 
@@ -387,7 +387,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
     myIssuePanel = new IssuePanel(myIssueModel, new DesignSurfaceIssueListenerImpl(this));
-    Disposer.register(this, myIssuePanel);
 
     add(myLayeredPane);
 

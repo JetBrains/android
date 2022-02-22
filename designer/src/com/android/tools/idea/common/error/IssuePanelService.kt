@@ -170,6 +170,12 @@ class IssuePanelService(private val project: Project) {
         }
       }
     })
+
+    project.messageBus.connect().subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
+      override fun issueUpdated(issues: List<Issue>) {
+        // TODO: Display issues in the issue panel.
+      }
+    })
   }
 
   private fun getDesignSurface(editor: FileEditor?): DesignSurface? {
