@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.FocusableIcon
+import com.android.tools.adtui.stdui.CommonHyperLinkLabel
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.api.ComponentTreeBuilder
@@ -36,7 +37,6 @@ import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAcces
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.icons.AllIcons
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.Disposable
@@ -74,7 +74,7 @@ fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
-private const val ICON_BORDER = 2
+private const val ICON_BORDER = 10
 private const val ICON_HORIZONTAL_PADDING = 10
 private const val TEXT_HORIZONTAL_BORDER = 5
 
@@ -172,31 +172,31 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
-    val text = JBLabel("Composition counts").apply {
+    val header = JBLabel("Recomposition counts").apply {
       border = JBUI.Borders.empty(ICON_BORDER, TEXT_HORIZONTAL_BORDER)
       font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     }
-    val reset = FocusableIcon().apply {
+    val reset = CommonHyperLinkLabel().apply {
+      text = "Reset"
       border = JBUI.Borders.empty(ICON_BORDER)
-      icon = AllIcons.Actions.Refresh
-      onClick = ::resetRecompositionCounts
+      hyperLinkListeners.add(::resetRecompositionCounts)
       cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
       toolTipText = "Click to reset recomposition counts"
     }
     val panel = JPanel(BorderLayout()).apply {
       background = UIUtil.TRANSPARENT_COLOR
       isOpaque = false
-      add(text, BorderLayout.CENTER)
+      add(header, BorderLayout.CENTER)
       add(reset, BorderLayout.EAST)
     }
     return TableCellRenderer { _, _, _, _, _, _ -> panel }
   }
 
   private fun createCountsHeader() =
-    createIconHeader(StudioIcons.Compose.Toolbar.RUN_CONFIGURATION, "Number of times this composable has been recomposed")
+    createIconHeader(StudioIcons.LayoutEditor.Palette.STACK_VIEW, "Number of times this composable has been recomposed")
 
   private fun createSkipsHeader() =
-    createIconHeader(AllIcons.RunConfigurations.ToolbarSkipped, "Number of times recomposition for this component has been skipped")
+    createIconHeader(StudioIcons.LayoutEditor.Properties.GONE, "Number of times recomposition for this component has been skipped")
 
   private fun createIconHeader(icon: Icon, toolTipText: String? = null) : TableCellRenderer {
     val label = JBLabel(icon)

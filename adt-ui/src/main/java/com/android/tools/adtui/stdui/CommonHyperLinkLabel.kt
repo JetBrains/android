@@ -16,7 +16,6 @@
 package com.android.tools.adtui.stdui
 
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -42,12 +41,13 @@ class CommonHyperLinkLabel(
   private val strikeout: Boolean = false
 ) : JBLabel() {
   val hyperLinkListeners = mutableListOf<() -> Unit>()
-  var normalForegroundColor: Color = JBColor.BLACK
-    private set
+  val normalForegroundColor: Color
+    get() = if (showAsLink) JBUI.CurrentTheme.Link.Foreground.ENABLED else UIUtil.getLabelForeground()
   private var initialized = true
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
+    foreground = normalForegroundColor
     isOpaque = false
     isFocusable = showAsLink
     cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
@@ -68,7 +68,7 @@ class CommonHyperLinkLabel(
     super.updateUI()
     if (initialized) {
       font = getSmallFont(showAsLink, strikeout)
-      normalForegroundColor = if (showAsLink) JBUI.CurrentTheme.Link.linkColor() else UIUtil.getLabelForeground()
+      foreground = normalForegroundColor
     }
   }
 
