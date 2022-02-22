@@ -119,14 +119,18 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     }
 
     var labelX = 0f
+    var countX = 0f
     var labelY = 0f
     var borderWidth = 0f
+    val count = (owner as? ComposeViewNode)?.recomposeCount ?: 0
+    var showCount = isSelected && treeSettings.showRecompositions && count > 0
 
     // Draw the label background if necessary (the white border of the label and the label background).
     if (isSelected && viewSettings.drawLabel) {
       g2.font = g2.font.deriveFont(getLabelFontSize(viewSettings.scaleFraction))
       val fontMetrics = g2.fontMetrics
       val textWidth = fontMetrics.stringWidth(owner.unqualifiedName).toFloat()
+      val countWidth = if (showCount) fontMetrics.stringWidth(count.toString()).toFloat() else 0f
 
       val border = if (viewSettings.drawBorders || !viewSettings.drawUntransformedBounds) {
         bounds
@@ -135,14 +139,23 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         owner.layoutBounds
       }
 
-      val position = computeLabelPosition(border, textWidth)
-      labelX = position.first
-      labelY = position.second
-
       val textHeight = (fontMetrics.maxAscent).toFloat()
       borderWidth = textHeight * 0.3f
+
+      val position = computeLabelPosition(border, textWidth)
+      labelX = position.first
+      countX = position.second - countWidth - 2f * borderWidth
+      labelY = position.third
+
+      // Only draw the recomposition count if there is room and at least 2 * borderWidth between the label and the count:
+      showCount = showCount && labelX + textWidth + 2f * borderWidth  < countX - 2f * borderWidth
+
       g2.draw(Rectangle2D.Float(labelX, labelY - textHeight - 2f * borderWidth, textWidth + 2f * borderWidth,
                                 textHeight + 2f * borderWidth))
+      if (showCount) {
+        g2.draw(Rectangle2D.Float(countX, labelY - textHeight - 2f * borderWidth, countWidth + 2f * borderWidth,
+                                  textHeight + 2f * borderWidth))
+      }
 
       g2.color = SELECTED_LINE_COLOR
       val emphasizedBorderThickness = getEmphasizedBorderThickness(viewSettings.scaleFraction)
@@ -150,6 +163,12 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
                                 labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
                                 textWidth + 2f * borderWidth + emphasizedBorderThickness,
                                 textHeight + 2f * borderWidth + emphasizedBorderThickness))
+      if (showCount) {
+        g2.fill(Rectangle2D.Float(countX - emphasizedBorderThickness / 2f,
+                                  labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
+                                  countWidth + 2f * borderWidth + emphasizedBorderThickness,
+                                  textHeight + 2f * borderWidth + emphasizedBorderThickness))
+      }
     }
 
     // Draw the border
@@ -179,18 +198,26 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
       g2.color = Color.WHITE
       g2.drawString(owner.unqualifiedName, labelX + borderWidth,
                     labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
+
+      if (showCount) {
+        g2.drawString(count.toString(), countX + borderWidth,
+                      labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
+      }
     }
   }
 
   /**
-   * Compute the position of the label:
+   * Compute the position of the label and recomposition count:
    * - find the edge with the least slope where one of the ends is at the minimum y. This is the "top".
    * - find the left side of that segment. The x coordinate of that is the x coordinate of the label.
+   * - find the right side of that segment. The x coordinate of that is the right x coordinate of the recomposition count.
    * - find where the bottom edge of the label should meet the edge of the border: This is the minimum of halfway across the edge
    *   and halfway across the label.
    * - find the y coordinate of that using the slope of the line.
+   *
+   * @return (xLeft, xRight, yTop)
    */
-  private fun computeLabelPosition(border: Shape, textWidth: Float): Pair<Float, Float> {
+  private fun computeLabelPosition(border: Shape, textWidth: Float): Triple<Float, Float, Float> {
     val minY = border.bounds.minY.toFloat()
     var minSlope = Float.MAX_VALUE
     val nextPoint = FloatArray(6)
@@ -200,7 +227,8 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     var prevY: Float
     var leastSlopedSideWidth = 0f
     var topLeftY = 0f
-    var x = 0f
+    var xLeft = 0f
+    var xRight = 0f
     while (true) {
       prevX = nextPoint[0]
       prevY = nextPoint[1]
@@ -215,7 +243,8 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         }
         val slope = (nextPoint[1] - prevY) / (nextPoint[0] - prevX)
         if (abs(slope) < abs(minSlope)) {
-          x = min(nextPoint[0], prevX)
+          xLeft = min(nextPoint[0], prevX)
+          xRight = max(nextPoint[0], prevX)
           minSlope = slope
           leastSlopedSideWidth = abs(nextPoint[0] - prevX)
           topLeftY = if (nextPoint[0] < prevX) nextPoint[1] else prevY
@@ -223,7 +252,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
       }
     }
     val connectionWidth = min(leastSlopedSideWidth, textWidth) / 2f
-    return Pair(x, minSlope * connectionWidth + topLeftY)
+    return Triple(xLeft, xRight, minSlope * connectionWidth + topLeftY)
   }
 
   override fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> =

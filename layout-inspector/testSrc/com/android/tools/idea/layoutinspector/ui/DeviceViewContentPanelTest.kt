@@ -42,6 +42,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -96,7 +97,6 @@ import java.awt.Color
 import java.awt.Cursor
 import java.awt.Cursor.HAND_CURSOR
 import java.awt.Dimension
-import java.awt.Font
 import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.Point
@@ -110,6 +110,7 @@ import javax.swing.JPopupMenu
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.01
+private const val DIFF_THRESHOLD_TEXT = 0.2
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewContentPanelTest {
@@ -169,14 +170,15 @@ class DeviceViewContentPanelTest {
   @Test
   fun testPaint() {
     val model = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 5, 6, 10, 10) {
+      view(ROOT, 0, 0, 100, 150) {
+        view(VIEW1, 10, 15, 25, 25) {
           image()
         }
+        compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
       }
     }
     @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(50, 70, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val settings = EditorDeviceViewSettings(scalePercent = 100)
@@ -185,7 +187,7 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { mock() }, mock(), null,
                                        disposable.disposable)
-    panel.setSize(50, 70)
+    panel.setSize(120, 200)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint.png"), generatedImage, DIFF_THRESHOLD)
@@ -205,40 +207,69 @@ class DeviceViewContentPanelTest {
     panel.model.layerSpacing = 1
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 15
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 3
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
-    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+    model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     // Set the font so it will be the same across platforms
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaint_label", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD_TEXT)
+
+    treeSettings.showRecompositions = true
+    graphics = generatedImage.createGraphics()
+    // Set the font so it will be the same across platforms
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_count.png"), generatedImage, DIFF_THRESHOLD_TEXT)
+
+    model[COMPOSE1]?.qualifiedName = "LongName" // hides the recomposition count
+    graphics = generatedImage.createGraphics()
+    // Set the font so it will be the same across platforms
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_label_hides_count.png"), generatedImage, 0.2)
+    model[COMPOSE1]?.qualifiedName = "Text"
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    // Set the font so it will be the same across platforms
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaint_noborders", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    // Set the font so it will be the same across platforms
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaint_hovered", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD_TEXT)
   }
 
   @Test
@@ -267,28 +298,33 @@ class DeviceViewContentPanelTest {
     panel.setSize(130, 250)
 
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     panel.model.layerSpacing = 10
     panel.model.rotate(0.5, 0.7)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_rotated", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_rotated.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     panel.model.hoveredDrawInfo = panel.model.hitRects.find { it.node is DrawViewImage }
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_hovered", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_hovered.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_hovered_selected", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_hovered_selected.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     panel.model.hoveredDrawInfo = null
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_selected", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_selected.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     settings.drawFold = false
     graphics = generatedImage.createGraphics()
@@ -302,7 +338,8 @@ class DeviceViewContentPanelTest {
     model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.HORIZONTAL)
     graphics = generatedImage2.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_horizontal", generatedImage2, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_horizontal.png"), generatedImage2, DIFF_THRESHOLD_TEXT)
   }
 
   @Test
@@ -754,10 +791,10 @@ class DeviceViewContentPanelTest {
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(
-      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintWithImages_label", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Suppress("UndesirableClassUsage")
@@ -815,10 +852,10 @@ class DeviceViewContentPanelTest {
 
     model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
-    graphics.font = Font("Droid Sans", Font.PLAIN, 12)
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(
-      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintWithImagesBetweenChildren_root", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD_TEXT)
   }
 
   @Test
@@ -906,22 +943,22 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(
-      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintTransformed_label", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawUntransformedBounds = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(
-      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintTransformed_untransformed", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(
-      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintTransformed_onlyUntransformed", generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -1106,9 +1143,6 @@ class DeviceViewContentPanelTest {
         view(VIEW3, 0, 20, 20, 20)
       }
     }
-    @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(70, 70, TYPE_INT_ARGB)
-    var graphics = generatedImage.createGraphics()
 
     val settings = EditorDeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
@@ -1121,7 +1155,10 @@ class DeviceViewContentPanelTest {
     panel.model.layerSpacing = 30
     settings.scalePercent = 100
     panel.model.rotate(0.3, 0.2)
-    graphics = generatedImage.createGraphics()
+
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(70, 70, TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildAboveSibling.png"), generatedImage,
                                      DIFF_THRESHOLD)
@@ -1149,6 +1186,7 @@ class DeviceViewContentPanelWithScaledFontTest {
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    CheckUtil.assertImageSimilarPerPlatform(resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintEmpty", generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintEmpty", generatedImage, DIFF_THRESHOLD_TEXT)
   }
 }

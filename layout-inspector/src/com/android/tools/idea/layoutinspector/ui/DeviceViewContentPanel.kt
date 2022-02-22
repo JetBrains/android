@@ -72,6 +72,8 @@ private const val FRAMES_BEFORE_RESET_TO_BITMAP = 3
 
 private val HQ_RENDERING_HINTS = mapOf(
   RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+  RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
+  RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
   RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
   RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
   RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
