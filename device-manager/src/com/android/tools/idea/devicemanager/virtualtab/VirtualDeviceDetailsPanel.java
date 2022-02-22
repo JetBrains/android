@@ -19,6 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
 import com.android.tools.idea.flags.StudioFlags;
@@ -69,13 +70,9 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
     if (addPairedDevices && StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      switch (device.getType()) {
-        case PHONE:
-        case WEAR_OS:
-          myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this);
-          break;
-        default:
-          break;
+      if ((device.getType() == DeviceType.PHONE && device.getAndroidVersion().getApiLevel() >= 30 && device.getAvdInfo().hasPlayStore())
+          || device.getType() == DeviceType.WEAR_OS) {
+        myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this);
       }
     }
 
