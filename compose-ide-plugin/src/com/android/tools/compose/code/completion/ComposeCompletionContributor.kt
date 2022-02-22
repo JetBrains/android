@@ -53,14 +53,16 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
+import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
@@ -106,6 +108,19 @@ private val List<ValueParameterDescriptor>.isLastRequiredLambdaWithNoParameters:
     return !lastParameter.hasDefaultValue() && lastParameter.isLambdaWithNoParameters
   }
 
+
+/**
+ * Find the [CallType] from the [InsertionContext]. The [CallType] can be used to detect if the completion is being done in a regular
+ * statement, an import or some other expression and decide if we want to apply the [ComposeInsertHandler].
+ */
+private fun InsertionContext.inferCallType(): CallType<*> {
+  // Look for an existing KtSimpleNameExpression to pass to CallTypeAndReceiver.detect so we can infer the call type.
+  val namedExpression = (file.findElementAt(startOffset)?.parent as? KtSimpleNameExpression)?.mainReference?.expression
+                        ?: return CallType.DEFAULT
+
+  return CallTypeAndReceiver.detect(namedExpression).callType
+}
+
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
  */
@@ -146,6 +161,10 @@ class ComposeCompletionContributor : CompletionContributor() {
  * Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more.
  */
 private class ComposeLookupElement(original: LookupElement) : LookupElementDecorator<LookupElement>(original) {
+  /**
+   * Set of [CallType]s that should be handled by the [ComposeInsertHandler].
+   */
+  private val validCallTypes = setOf(CallType.DEFAULT, CallType.DOT)
 
   init {
     require(original.psiElement?.isComposableFunction() == true)
@@ -166,12 +185,13 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
 
   override fun handleInsert(context: InsertionContext) {
     val descriptor = getFunctionDescriptor()
+    val callType by lazy { context.inferCallType() }
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
       !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
-      context.file.findElementAt(context.tailOffset)?.parentOfType<KtFunction>() == null -> super.handleInsert(context)
-      else -> ComposeInsertHandler(descriptor).handleInsert(context, this)
+      !validCallTypes.contains(callType) -> super.handleInsert(context)
+      else -> ComposeInsertHandler(descriptor, callType).handleInsert(context, this)
     }
   }
 
@@ -289,7 +309,9 @@ private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnor
 
 private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
 
-private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
+private class ComposeInsertHandler(
+  private val descriptor: FunctionDescriptor,
+  callType: CallType<*>) : KotlinCallableInsertHandler(callType) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
 

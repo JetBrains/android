@@ -803,6 +803,64 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/209672710. Ensure that completing Composables that are not top-level does not fully qualify them incorrectly.
+   */
+  @Test
+  fun testCompletingComposablesWithinObjects() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      object ObjectWithComposables {
+        // This simulates the Canvas composable
+        @Composable
+        fun TestMethod(children: @Composable() () -> Unit) {}
+      }
+    """)
+
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Test() {
+        ObjectWithComposables.Test${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Test() {
+        ObjectWithComposables.TestMethod {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return lookupElements.orEmpty().map { lookupElement ->
