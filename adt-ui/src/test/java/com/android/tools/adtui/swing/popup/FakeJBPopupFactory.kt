@@ -58,7 +58,7 @@ import javax.swing.event.HyperlinkListener
  * As methods are implemented, please move them towards the top of the file.
  */
 class FakeJBPopupFactory : JBPopupFactory() {
-  private val popups = mutableListOf<Any>()
+  private val popups = mutableListOf<JBPopup>()
 
   /**
    * Returns a popup that has been created using this factory.
@@ -93,6 +93,8 @@ class FakeJBPopupFactory : JBPopupFactory() {
 
   override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
     FakeComponentPopupBuilder()
+
+  override fun getChildPopups(parent: Component): MutableList<JBPopup>  = popups
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
@@ -177,10 +179,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun getCenterOf(container: JComponent?, content: JComponent?): Point {
-    TODO("Not yet implemented")
-  }
-
-  override fun getChildPopups(parent: Component): MutableList<JBPopup> {
     TODO("Not yet implemented")
   }
 

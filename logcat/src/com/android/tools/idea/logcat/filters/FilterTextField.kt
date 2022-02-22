@@ -31,12 +31,12 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
+import com.intellij.openapi.util.ScalableIcon
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.components.JBList
@@ -45,6 +45,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Color
 import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -55,10 +56,18 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.ListCellRenderer
 import kotlin.math.min
 
-private const val MAX_HISTORY_SIZE = 20
 private const val APPLY_FILTER_DELAY_MS = 100L
+
+// TODO(b/220381322): Use icons from UX instead of these placeholders. The temporary icons need to be scaled down.
+private val FAVORITE_ICON = AllIcons.Ide.FeedbackRating.scale()
+private val FAVORITE_ON_ICON = AllIcons.Ide.FeedbackRatingOn.scale()
+private val FAVORITE_FOCUSED_ICON = AllIcons.Ide.FeedbackRatingFocused.scale()
+private val FAVORITE_FOCUSED_ON_ICON = AllIcons.Ide.FeedbackRatingFocusedOn.scale()
 
 /**
  * A text field for the filter.
@@ -69,15 +78,22 @@ internal class FilterTextField(
   private val filterParser: LogcatFilterParser,
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
-  private val maxHistorySize: Int = MAX_HISTORY_SIZE,
 ) : BorderLayoutPanel(), FilterTextComponent {
+  private val filterHistory = AndroidLogcatFilterHistory.getInstance()
+
   @TestOnly
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
-  private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
   private val documentChangedListeners = mutableListOf<DocumentListener>()
-  private val textField = FilterEditorTextField(project, logcatPresenter, initialText, androidProjectDetector)
+  private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(StudioIcons.Logcat.Toolbar.FILTER_HISTORY)
   private val clearButton = InlineButton(AllIcons.Actions.Close)
+  private val favoriteButton = InlineButton(FAVORITE_ICON)
+
+  private var isFavorite: Boolean = false
+    set(value) {
+      field = value
+      favoriteButton.icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_ICON
+    }
 
   override var text: String
     get() = textField.text
@@ -88,9 +104,17 @@ internal class FilterTextField(
   override val component: Component get() = this
 
   init {
+    text = initialText
+    isFavorite = filterHistory.favorites.contains(text)
+
     addToLeft(historyButton)
     addToCenter(textField)
-    addToRight(clearButton)
+    addToRight(JPanel().apply {
+      background = textField.background
+      isOpaque = true
+      add(clearButton)
+      add(favoriteButton)
+    })
 
     // Set a border around the text field and buttons.
     // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work. It seems to need CompoundBorder.
@@ -98,7 +122,7 @@ internal class FilterTextField(
 
     historyButton.apply {
       addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
+        override fun mouseClicked(e: MouseEvent) {
           showPopup()
         }
       })
@@ -109,6 +133,7 @@ internal class FilterTextField(
     textField.apply {
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
+          isFavorite = false
           notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
             for (listener in documentChangedListeners) {
               listener.documentChanged(event)
@@ -129,7 +154,7 @@ internal class FilterTextField(
           addToHistory()
         }
       })
-      // The text field needs to be move an extra pixel down to appear correctly.
+      // The text field needs to be moved an extra pixel down to appear correctly.
       border = JBUI.Borders.customLine(background, 1, 0, 0, 0)
     }
 
@@ -148,6 +173,24 @@ internal class FilterTextField(
         }
       })
     }
+
+    favoriteButton.apply {
+      addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          addToHistory()
+          isFavorite = !isFavorite
+          mouseEntered(e) // Setter for isFavorite will set the wrong icon (not hovered)
+        }
+
+        override fun mouseEntered(e: MouseEvent) {
+          icon = if (isFavorite) FAVORITE_FOCUSED_ON_ICON else FAVORITE_FOCUSED_ICON
+        }
+
+        override fun mouseExited(e: MouseEvent) {
+          icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_ICON
+        }
+      })
+    }
   }
 
   @UiThread
@@ -161,10 +204,14 @@ internal class FilterTextField(
   @UiThread
   private fun showPopup() {
     addToHistory()
-    PopupChooserBuilder(HistoryList(propertiesComponent))
+    PopupChooserBuilder(HistoryList(filterHistory))
       .setMovable(false)
       .setRequestFocus(true)
-      .setItemChosenCallback { textField.text = it }
+      .setItemChosenCallback {
+        text = it.filter
+        isFavorite = it.isFavorite
+      }
+      .setSelectedValue(FilterHistoryItem(text, isFavorite), true)
       .createPopup()
       .showUnderneathOf(this)
   }
@@ -174,13 +221,8 @@ internal class FilterTextField(
     if (text.isEmpty()) {
       return
     }
-    val history = propertiesComponent.getValues(HISTORY_PROPERTY_NAME)?.asList()?.toMutableList() ?: mutableListOf()
-    history.remove(text)
-    history.add(0, text)
-    if (history.size > maxHistorySize) {
-      history.removeLast()
-    }
-    propertiesComponent.setValues(HISTORY_PROPERTY_NAME, history.toTypedArray())
+    filterHistory.add(text, isFavorite)
+    // TODO(aalbert): Add isFavorite to tracking
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
@@ -194,7 +236,6 @@ internal class FilterTextField(
   private inner class FilterEditorTextField(
     project: Project,
     private val logcatPresenter: LogcatPresenter,
-    text: String,
     private val androidProjectDetector: AndroidProjectDetector,
   ) : EditorTextField(project, LogcatFilterFileType) {
     public override fun createEditor(): EditorEx {
@@ -205,10 +246,6 @@ internal class FilterTextField(
         // Remove the line border but preserve the inner margins. See EditorTextField#setBorder()
         setBorder(JBUI.Borders.empty(2, 2, 2, 2))
       }
-    }
-
-    init {
-      this.text = text
     }
   }
 
@@ -223,24 +260,52 @@ internal class FilterTextField(
     @VisibleForTesting
     internal const val HISTORY_PROPERTY_NAME = "logcatFilterHistory"
   }
-}
 
-private class HistoryList(propertiesComponent: PropertiesComponent) : JBList<String>() {
-  init {
-    val listModel = CollectionListModel(propertiesComponent.getValues(FilterTextField.HISTORY_PROPERTY_NAME)?.asList() ?: emptyList())
-    model = listModel
-    addKeyListener(object : KeyAdapter() {
-      override fun keyPressed(e: KeyEvent) {
-        if (e.keyCode == KeyEvent.VK_DELETE) {
-          // TODO(aalbert): Add usage tracking
-          val index = selectedIndex
-          listModel.remove(index)
-          selectedIndex = min(index, model.size - 1)
-          propertiesComponent.setValues(FilterTextField.HISTORY_PROPERTY_NAME, listModel.items.toTypedArray())
+  private class HistoryList(filterHistory: AndroidLogcatFilterHistory) : JBList<FilterHistoryItem>() {
+    init {
+      val listModel = CollectionListModel(
+        filterHistory.favorites.map { FilterHistoryItem(it, true) } + filterHistory.nonFavorites.map { FilterHistoryItem(it, false) })
+      model = listModel
+      addKeyListener(object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          if (e.keyCode == KeyEvent.VK_DELETE) {
+            filterHistory.remove(selectedValue.filter)
+            val index = selectedIndex
+            listModel.remove(index)
+            selectedIndex = min(index, model.size - 1)
+          }
         }
-      }
-    })
+      })
+      this.cellRenderer = HistoryListCellRenderer()
+    }
   }
 
-  override fun getToolTipText(event: MouseEvent?): String = LogcatBundle.message("logcat.filter.history.tooltip")
+  private class HistoryListCellRenderer : ListCellRenderer<FilterHistoryItem> {
+    override fun getListCellRendererComponent(
+      list: JList<out FilterHistoryItem>,
+      value: FilterHistoryItem,
+      index: Int,
+      isSelected: Boolean,
+      cellHasFocus: Boolean
+    ): Component {
+      return BorderLayoutPanel().apply {
+        val isFavorite = value.isFavorite
+        addToLeft(JLabel(value.filter).apply {
+          border = JBUI.Borders.empty(0, 3, 0, if (isFavorite) 0 else FAVORITE_ICON.iconWidth * 2)
+          foreground = (if (isSelected) list.selectionForeground else list.foreground)
+        })
+        if (isFavorite) {
+          addToRight(JLabel(FAVORITE_ON_ICON))
+        }
+        background = (if (isSelected) list.selectionBackground else list.background)
+      }
+    }
+  }
+
+  override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.history.tooltip")
+
+  private data class FilterHistoryItem(val filter: String, val isFavorite: Boolean)
 }
+
+// Under test environment, the icons are fakes and non-scalable.
+private fun Icon.scale(): Icon = if (this is ScalableIcon) scale(0.5f) else this

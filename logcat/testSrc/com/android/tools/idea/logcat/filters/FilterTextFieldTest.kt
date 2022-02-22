@@ -27,7 +27,6 @@ import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
-import com.android.tools.idea.logcat.filters.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
@@ -35,7 +34,6 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
@@ -69,13 +67,14 @@ class FilterTextFieldTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, popupRule)
 
-  private val properties by lazy { PropertiesComponent.getInstance() }
+  private val filterHistory by lazy { AndroidLogcatFilterHistory.getInstance() }
   private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(projectRule.project, this) } }
   private val logcatFilterParser by lazy { LogcatFilterParser(projectRule.project, FakePackageNamesProvider()) }
 
   @After
   fun tearDown() {
-    properties.setValues(HISTORY_PROPERTY_NAME, null)
+    filterHistory.nonFavorites.clear()
+    filterHistory.favorites.clear()
   }
 
   @Test
@@ -84,6 +83,28 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "text")
 
     assertThat(filterTextField.text).isEqualTo("text")
+  }
+
+  @Test
+  @RunsInEdt
+  fun constructor_setsText_asFavorite() {
+    filterHistory.add("text", isFavorite = true)
+
+    val filterTextField = filterTextField(initialText = "text")
+
+    val icons = TreeWalker(filterTextField).descendants().filterIsInstance<JLabel>()
+    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRating }).isNull()
+    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRatingOn }).isNotNull()
+  }
+
+  @Test
+  @RunsInEdt
+  fun constructor_setsText_asNonFavorite() {
+    val filterTextField = filterTextField(initialText = "text")
+
+    val icons = TreeWalker(filterTextField).descendants().filterIsInstance<JLabel>()
+    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRating }).isNotNull()
+    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRatingOn }).isNull()
   }
 
   @Test
@@ -114,7 +135,25 @@ class FilterTextFieldTest {
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
     textField.keyListeners.forEach { it.keyPressed(keyEvent) }
 
-    assertThat(getHistory()).containsExactly("bar").inOrder()
+    assertThat(getHistoryNonFavorites()).containsExactly("bar").inOrder()
+  }
+
+  @Test
+  @RunsInEdt
+  fun pressEnter_addsToHistory_favorite() {
+    val filterTextField = filterTextField()
+    filterTextField.size = Dimension(100, 100)
+    filterTextField.addNotify() // Creates editor
+    val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+
+    filterTextField.text = "bar"
+    fakeUi.clickOn(historyButton)
+    val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
+    textField.keyListeners.forEach { it.keyPressed(keyEvent) }
+
+    assertThat(getHistoryFavorites()).containsExactly("bar").inOrder()
   }
 
   @Test
@@ -127,7 +166,24 @@ class FilterTextFieldTest {
     filterTextField.text = "foo"
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
 
-    assertThat(getHistory()).containsExactly("foo")
+    assertThat(getHistoryNonFavorites()).containsExactly("foo")
+  }
+
+  @Test
+  @RunsInEdt
+  fun loosesFocus_addsToHistory_favorite() {
+    val filterTextField = filterTextField()
+    filterTextField.size = Dimension(100, 100)
+    filterTextField.addNotify() // Creates editor
+    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+
+    filterTextField.text = "foo"
+    fakeUi.clickOn(historyButton)
+    editorTextField.focusLost(FocusEvent(editorTextField, 0))
+
+    assertThat(getHistoryFavorites()).containsExactly("foo")
   }
 
   @Test
@@ -149,43 +205,6 @@ class FilterTextFieldTest {
         .build())
   }
 
-  @Test
-  @RunsInEdt
-  fun history_size() {
-    val filterTextField = filterTextField(maxHistorySize = 3)
-    filterTextField.addNotify() // Creates editor
-    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
-
-    for (text in listOf("foo1", "foo2", "foo3", "foo4")) {
-      filterTextField.text = text
-      editorTextField.focusLost(FocusEvent(editorTextField, 0))
-    }
-
-    assertThat(getHistory()).containsExactly(
-      "foo4",
-      "foo3",
-      "foo2",
-    ).inOrder()
-  }
-
-  @Test
-  @RunsInEdt
-  fun history_bubbles() {
-    val filterTextField = filterTextField(maxHistorySize = 3)
-    filterTextField.addNotify() // Creates editor
-    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
-
-    for (text in listOf("foo1", "foo2", "foo3", "foo1")) {
-      filterTextField.text = text
-      editorTextField.focusLost(FocusEvent(editorTextField, 0))
-    }
-
-    assertThat(getHistory()).containsExactly(
-      "foo1",
-      "foo3",
-      "foo2",
-    ).inOrder()
-  }
 
   @Test
   @RunsInEdt
@@ -219,9 +238,9 @@ class FilterTextFieldTest {
     filterParser: LogcatFilterParser = logcatFilterParser,
     initialText: String = "",
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
-    maxHistorySize: Int = 10,
   ) =
-    FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector, maxHistorySize)
+    FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector)
 
-  private fun getHistory(): List<String> = properties.getValues(HISTORY_PROPERTY_NAME)?.asList() ?: emptyList()
+  private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
+  private fun getHistoryFavorites(): List<String> = filterHistory.favorites
 }
