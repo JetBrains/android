@@ -40,9 +40,7 @@ import org.junit.Before
 import org.junit.FixMethodOrder
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
-import org.junit.runners.Parameterized
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -117,7 +115,7 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Test
   open fun testInitialization() {
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val log: Logger = getLogger()
     try { // Measure initial sync (already synced when loadProject was called)
       val initialStats: GradleSyncStats? = getLastSyncStats()
@@ -147,7 +145,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     val scenarioName = getScenarioName()
     val memoryThread = MemoryMeasurementThread(scenarioName)
     memoryThread.start()
-    projectRule.loadProject(relativePath)
+    loadProject(relativePath)
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
@@ -212,6 +210,16 @@ abstract class AbstractGradleSyncPerfTestCase {
       memoryThread.stopReadings()
       logSummary("Time", measurements, log)
       memoryThread.logSummary(log)
+    }
+  }
+
+  private fun loadProject(projectPath: String) {
+    // For V2 we test with the most recent AGP/Gradle combination.
+    // For V1 we pin to the last AGP/Gradle combination that supports V1 only.
+    if (useModelV2) {
+      projectRule.loadProject(projectPath)
+    } else {
+      projectRule.loadProject(projectPath, gradleVersion = "7.2", agpVersion = "7.1.0")
     }
   }
 
