@@ -63,8 +63,8 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
     ActionManagerEx.getInstanceEx().createActionToolbar(
       "sceneView",
       DefaultActionGroup(
+        listOf(Separator()) +
         listOfNotNull(
-          Separator(),
           StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
             StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
               PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
