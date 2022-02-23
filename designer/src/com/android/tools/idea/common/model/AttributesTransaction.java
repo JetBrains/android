@@ -120,6 +120,18 @@ public class AttributesTransaction implements NlAttributesHolder {
   }
 
   /**
+   * Returns true if this transaction has any pending changes that will be applied when {@link #commit()} is called.
+   */
+  public boolean hasPendingChanges() {
+    myLock.readLock().lock();
+    try {
+      return !myPendingAttributes.isEmpty();
+    } finally {
+      myLock.readLock().unlock();
+    }
+  }
+
+  /**
    * Applies all the existing attributes to the given ViewInfo info
    *
    * @param viewInfo

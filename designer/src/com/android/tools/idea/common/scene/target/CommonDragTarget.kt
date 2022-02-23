@@ -424,7 +424,10 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    */
   private fun handleRemainingComponentsOnRelease() {
     draggedComponents.mapNotNull { draggedComponent ->
-      draggedComponent.authoritativeNlComponent.attributeTransaction?.let { draggedComponent.authoritativeNlComponent }
+      // We only need to apply changes if there are any pending.
+      if (draggedComponent.authoritativeNlComponent.attributeTransaction?.hasPendingChanges() == true)
+        draggedComponent.authoritativeNlComponent
+      else null
     }.ifNotEmpty {
       NlWriteCommandActionUtil.run(
         this,
