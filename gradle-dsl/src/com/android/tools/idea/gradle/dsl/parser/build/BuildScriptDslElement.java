@@ -33,7 +33,7 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<BuildScriptDslElement> BUILDSCRIPT =
     new PropertiesElementDescription<>("buildscript", BuildScriptDslElement.class, BuildScriptDslElement::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dependencies", DependenciesDslElement.DEPENDENCIES},
     {"repositories", RepositoriesDslElement.REPOSITORIES},
     {"ext", ExtDslElement.EXT}
@@ -41,7 +41,7 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  public ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;

@@ -380,12 +380,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @NotNull
-  private static final ImmutableMap<String,PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
+  private static final ImmutableMap<String,PropertiesElementDescription<?>> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
 
   public static final class EmptyGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return NO_CHILD_PROPERTIES_ELEMENTS;
     }
 
@@ -407,8 +406,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    *
    * @return a map of external names to descriptions of the corresponding properties element.
    */
-  @NotNull
-  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(GradleDslNameConverter.Kind kind) {
+  @SuppressWarnings("rawtypes")
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    GradleDslNameConverter.Kind kind
+  ) {
     return NO_CHILD_PROPERTIES_ELEMENTS;
   }
 

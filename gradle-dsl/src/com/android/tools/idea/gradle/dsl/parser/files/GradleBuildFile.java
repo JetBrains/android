@@ -24,21 +24,13 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
-import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
-import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
-import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -49,7 +41,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,43 +132,12 @@ public class GradleBuildFile extends GradleScriptFile {
     super.addAppliedProperty(element);
   }
 
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
-    {"android", AndroidDslElement.ANDROID},
-    {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
-    {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
-    {"crashlytics", CrashlyticsDslElement.CRASHLYTICS},
-    {"dependencies", DependenciesDslElement.DEPENDENCIES},
-    {"ext", ExtDslElement.EXT},
-    {"java", JavaDslElement.JAVA},
-    {"repositories", RepositoriesDslElement.REPOSITORIES},
-    {"subprojects", SubProjectsDslElement.SUBPROJECTS},
-    {"plugins", PluginsDslElement.PLUGINS}
-  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
-
-  // Gradle Declarative has different naming for some root elements. Maybe it will be gone in stable declarative version
-  public static final ImmutableMap<String, PropertiesElementDescription> SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
-    {"androidApplication", AndroidDslElement.ANDROID},
-    {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
-    {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
-    {"crashlytics", CrashlyticsDslElement.CRASHLYTICS},
-    {"declarativeDependencies", DependenciesDslElement.DEPENDENCIES},
-    {"ext", ExtDslElement.EXT},
-    {"java", JavaDslElement.JAVA},
-    {"repositories", RepositoriesDslElement.REPOSITORIES},
-    {"subprojects", SubProjectsDslElement.SUBPROJECTS},
-    {"plugins", PluginsDslElement.PLUGINS}
-  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
-
   @NotNull
   @Override
-  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
-    if (kind == GradleDslNameConverter.Kind.SOMETHING) {
-      return SOMETHING_CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    return CHILD_PROPERTIES_ELEMENTS_MAP;
+    return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
   }
 
   /**
@@ -215,10 +175,9 @@ public class GradleBuildFile extends GradleScriptFile {
   }
 
   public static final class BuildGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
+      return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
     }
 
     @NotNull

@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
-import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -135,6 +135,8 @@ public interface GradleBuildModel extends GradleDslContextModel, GradleFileModel
 
   @NotNull
   RepositoriesModel repositories();
+
+  <T extends GradleDslModel> @NotNull T getModel(Class<T> klass);
 
   /**
    * @return the models for files that are used by this GradleBuildModel.

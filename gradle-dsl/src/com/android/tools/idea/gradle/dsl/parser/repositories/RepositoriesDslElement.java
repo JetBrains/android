@@ -36,7 +36,7 @@ public class RepositoriesDslElement extends GradleDslBlockElement implements Des
     return REPOSITORIES;
   }
 
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"flatDir", FlatDirRepositoryDslElement.FLAT_DIR},
     {"google", MavenRepositoryDslElement.GOOGLE},
     {"jcenter", MavenRepositoryDslElement.JCENTER},
@@ -44,9 +44,8 @@ public class RepositoriesDslElement extends GradleDslBlockElement implements Des
     {"mavenCentral", MavenRepositoryDslElement.MAVEN_CENTRAL}
   }).collect(toImmutableMap(data -> (String)data[0], data -> (PropertiesElementDescription)data[1]));
 
-  @NotNull
   @Override
-  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;

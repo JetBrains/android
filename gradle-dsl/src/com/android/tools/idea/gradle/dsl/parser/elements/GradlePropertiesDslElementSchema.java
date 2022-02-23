@@ -20,7 +20,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.esotericsoftware.kryo.kryo5.util.Null;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +35,7 @@ public abstract class GradlePropertiesDslElementSchema {
   /**
    * Method supposed to be override in children and returns all block element description for particular Dsl Element
    */
-  @NotNull
-  protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+  protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
     return ImmutableMap.of();
   }
 
@@ -45,13 +43,13 @@ public abstract class GradlePropertiesDslElementSchema {
    * Returns descriptions filtered by file type (Kts, Groovy, Toml). It is currently used for editor code suggestions
    */
   @NotNull
-  public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions(GradleDslNameConverter.Kind kind){
-    return getAllBlockElementDescriptions().entrySet().stream().filter(val -> val.getValue().isValidForKind.test(kind))
+  public ImmutableMap<String, PropertiesElementDescription<?>> getBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
+    return getAllBlockElementDescriptions(kind).entrySet().stream().filter(val -> val.getValue().isValidForKind.test(kind))
       .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Nullable
-  public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
+  public PropertiesElementDescription<?> getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
     return getBlockElementDescriptions(kind).get(name);
   }
 

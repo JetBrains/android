@@ -137,13 +137,12 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     super.addParsedElement(element);
   }
 
-  static private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
+  static private ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
     {"firebaseCrashlytics", FIREBASE_CRASHLYTICS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
-  @NotNull
   @Override
-  public ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
@@ -171,9 +170,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   }
 
   public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
     @Override
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    protected @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
       return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
     }
 

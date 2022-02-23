@@ -31,13 +31,13 @@ public class DependencyResolutionManagementDslElement extends GradleDslBlockElem
   public static final PropertiesElementDescription<DependencyResolutionManagementDslElement> DEPENDENCY_RESOLUTION_MANAGEMENT =
     new PropertiesElementDescription<>("dependencyResolutionManagement", DependencyResolutionManagementDslElement.class, DependencyResolutionManagementDslElement::new);
 
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][]{
     {"repositories", RepositoriesDslElement.REPOSITORIES},
     {"versionCatalogs", VersionCatalogsDslElement.VERSION_CATALOGS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
-  public @NotNull ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap(
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENT_MAP;
