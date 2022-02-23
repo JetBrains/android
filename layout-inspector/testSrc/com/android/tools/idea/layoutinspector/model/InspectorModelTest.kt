@@ -16,12 +16,15 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.io.readImage
+import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
@@ -33,7 +36,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import kotlin.test.fail
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -206,7 +209,7 @@ class InspectorModelTest {
 
   @Test
   fun testWindows() {
-    val model = InspectorModel(mock(Project::class.java))
+    val model = InspectorModel(mock())
     assertTrue(model.isEmpty)
 
     // add first window
@@ -361,6 +364,17 @@ class InspectorModelTest {
     t1.join(1000L)
     t2.join(1000L)
     exception?.let { throw it }
+  }
+
+  @Test
+  fun fireAttachStateEvent() {
+    val model = InspectorModel(mock())
+    val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+    model.attachStageListeners.add(mockListener)
+
+    model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+
+    verify(mockListener).invoke(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
   private fun children(view: ViewNode): List<ViewNode> =

@@ -33,7 +33,6 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -43,6 +42,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.snapshots.CaptureSnapshotAction
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
@@ -67,6 +67,7 @@ import icons.StudioIcons
 import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.actions.internal.refactoringTesting.edtExecute
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
@@ -304,6 +305,40 @@ class DeviceViewPanel(
     loadingPane.add(layeredPane, BorderLayout.CENTER)
     add(loadingPane, BorderLayout.CENTER)
     val model = layoutInspector.layoutInspectorModel
+
+    model.attachStageListeners.add { state ->
+      val text = when (state) {
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE -> "Unknown state"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT -> "Start request sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED -> "Start request received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK -> "Capture started"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED -> "Screenshot captured"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED -> "Hierarchy captured"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED -> "View information received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT -> "Compose information request"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED -> "Compose information received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED -> "Legacy window list requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED -> "Legacy window list received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED -> "Legacy hierarchy requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED -> "Legacy hierarchy received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED -> "Legacy screenshot requested"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED -> "Legacy screenshot received"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE -> "Compose tree parsed"
+        DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
+      }
+
+      if (text.isNotEmpty()) {
+        loadingPane.setLoadingText(text)
+      }
+    }
+
     processes?.addSelectedProcessListeners(newSingleThreadExecutor()) {
       if (processes.selectedProcess?.isRunning == true) {
         if (model.isEmpty) {
@@ -311,7 +346,7 @@ class DeviceViewPanel(
         }
       }
       if (processes.selectedProcess == null) {
-        loadingPane.stopLoading()
+          loadingPane.stopLoading()
       }
     }
     model.modificationListeners.add { old, new, _ ->

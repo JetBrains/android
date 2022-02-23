@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.util.ListenerCollection
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
@@ -65,6 +66,9 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       hoverListeners.forEach { it(old, new) }
     }
   }
+
+  // TODO: update all listeners to use ListenerCollection
+  val attachStageListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
@@ -131,6 +135,10 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
    * Get a ViewNode by viewId name
    */
   operator fun get(id: String) = ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
+
+  fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
+    attachStageListeners.forEach { it.invoke(state) }
+  }
 
   /**
    * Get the root of the view tree that the [view] parameter lives in.

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -28,14 +29,14 @@ class InspectorClientLaunchMonitorTest {
   fun monitorStopsStuckConnection() {
     val scheduler = VirtualTimeScheduler()
     run {
-      val monitor = InspectorClientLaunchMonitor(scheduler)
+      val monitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
       verify(client).disconnect()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(scheduler)
+      val monitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
@@ -46,11 +47,23 @@ class InspectorClientLaunchMonitorTest {
       verify(client).disconnect()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(scheduler)
+      val monitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
       val client = mock<InspectorClient>()
       monitor.updateProgress(CONNECTED_STATE)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
       verify(client, times(0)).disconnect()
     }
+  }
+
+  @Test
+  fun attachErrorStateListenersAreCalled() {
+    val listeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+    val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+    listeners.add(mockListener)
+
+    val monitor = InspectorClientLaunchMonitor(listeners)
+    monitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+
+    verify(mockListener).invoke(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 }

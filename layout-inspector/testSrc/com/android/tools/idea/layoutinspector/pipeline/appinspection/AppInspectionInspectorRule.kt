@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_L
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
+import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
@@ -126,7 +127,7 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()): InspectorClientProvider {
+  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())): InspectorClientProvider {
     return AppInspectionClientProvider({ inspectionService.apiServices }, { monitor }, parentDisposable)
   }
 

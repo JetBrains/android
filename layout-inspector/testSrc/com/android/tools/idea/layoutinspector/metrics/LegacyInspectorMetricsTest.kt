@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -44,7 +45,7 @@ class LegacyInspectorMetricsTest {
 
   private val disposableRule = DisposableRule()
   private val scheduler = VirtualTimeScheduler()
-  private val launchMonitor = InspectorClientLaunchMonitor(scheduler)
+  private val launchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
   private val windowIdsRetrievedLock = CountDownLatch(1)
 
   private val windowIds = mutableListOf<String>()

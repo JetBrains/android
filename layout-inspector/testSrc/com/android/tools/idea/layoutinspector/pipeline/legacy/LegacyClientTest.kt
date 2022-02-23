@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import org.junit.Before
@@ -52,7 +53,7 @@ class LegacyClientTest {
     val loader = mock(LegacyTreeLoader::class.java)
     doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
     val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
-    client.launchMonitor = InspectorClientLaunchMonitor(scheduler)
+    client.launchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
     client
   }
 

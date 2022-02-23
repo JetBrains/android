@@ -66,6 +66,7 @@ import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.addManifest
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -916,7 +917,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 class AppInspectionInspectorClientWithFailingClientTest {
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val monitor = spy(InspectorClientLaunchMonitor()).also {
+  private val monitor = spy(InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())).also {
     `when`(it.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)).thenThrow(RuntimeException("expected"))
   }
 

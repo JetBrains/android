@@ -92,6 +92,7 @@ class LayoutInspector private constructor(
       client.registerErrorCallback(::logError)
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
+      client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
       stats.start(client.isCapturing)
     }
     else {

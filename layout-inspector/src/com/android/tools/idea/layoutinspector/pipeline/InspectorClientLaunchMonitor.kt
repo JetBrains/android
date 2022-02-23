@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
 
 class InspectorClientLaunchMonitor(
+  private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
 ) {
   private var lastUpdate: Long = 0L
@@ -44,6 +46,8 @@ class InspectorClientLaunchMonitor(
   }
 
   fun updateProgress(progress: AttachErrorState) {
+    attachErrorStateListeners.forEach { it.invoke(progress) }
+
     if (progress <= currentProgress) {
       return
     }

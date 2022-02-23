@@ -54,8 +54,9 @@ abstract class AbstractInspectorClient(
   private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
   private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
+  private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(attachStateListeners)
     @TestOnly set
 
   override fun dispose() {
@@ -72,6 +73,10 @@ abstract class AbstractInspectorClient(
 
   final override fun registerTreeEventCallback(callback: (Any) -> Unit) {
     treeEventCallbacks.add(callback)
+  }
+
+  final override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) {
+    attachStateListeners.add(callback)
   }
 
   /**
