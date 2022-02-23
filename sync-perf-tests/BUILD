@@ -59,14 +59,26 @@ iml_module(
             ],
         },
         # Perfgate tests
-        "Base100": {
+        # We split the V1 and V2 tests in different shards so that project loading from one
+        # does not impact the initial metrics for another. See b/215189237 for more context.
+        "Base100V1": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTestV1",
             "tags": SYNC_PERFGATE_TAGS,
         },
-        "Base100Kotlin": {
+        "Base100V2": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTestV2",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "Base100KotlinV1": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTestV1",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "Base100KotlinV2": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTestV2",
             "tags": SYNC_PERFGATE_TAGS,
         },
         "DolphinV1": {
@@ -79,16 +91,28 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV2",
             "tags": SYNC_PERFGATE_TAGS,
         },
-        "ExtraLarge": {
+        "ExtraLargeV1": {
             "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTestV1",
             # Only run manually since this project requires too much memory (b/176172752)
             "timeout": "long",
             "tags": ["manual"],
         },
-        "SantaTracker": {
+        "ExtraLargeV2": {
+            "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTestV2",
+            # Only run manually since this project requires too much memory (b/176172752)
+            "timeout": "long",
+            "tags": ["manual"],
+        },
+        "SantaTrackerV1": {
             "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTestV1",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "SantaTrackerV2": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTestV2",
             "tags": SYNC_PERFGATE_TAGS,
         },
         # This split test target contains AveragePerfTest, and other unspecified tests if
