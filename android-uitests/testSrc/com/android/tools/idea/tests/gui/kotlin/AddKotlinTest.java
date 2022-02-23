@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
+import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.kotlinCompilerVersionShort;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -164,11 +164,7 @@ public class AddKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
-    String kotlinVersion = bundledRuntimeVersion();
-    int dash = kotlinVersion.indexOf('-');
-    if (dash != -1) {
-      kotlinVersion = kotlinVersion.substring(0, dash);
-    }
+    String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "ext\\.kotlin_version.*=.*",
       "ext.kotlin_version = '" + kotlinVersion + '\'')
