@@ -2282,9 +2282,7 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.NewJavaProjectToKotlinProjectConversionTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
-        "qa_unreliable",  # b/180411529
-        "qa_fast_unreliable",  # b/180411529
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

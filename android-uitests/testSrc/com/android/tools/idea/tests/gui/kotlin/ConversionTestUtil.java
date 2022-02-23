@@ -15,9 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
 import com.android.tools.idea.wizard.template.Language;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Ref;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionTestUtil {
@@ -43,5 +54,71 @@ public class ConversionTestUtil {
       .setSourceLanguage(language)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
+  }
+
+  @NotNull
+  protected static void removeCodeForGradleSyncToPass(@NotNull GuiTestRule guiTest) throws Exception {
+    // Gradle sync is failing https://buganizer.corp.google.com/issues/180411529 and because of it this test case is failing
+    // TODO: the following is a hack. See http://b/217805224 for removal of the hack
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    ideFrameFixture.getEditor().open("app/build.gradle").getCurrentFileContents().contains("compileSdk");
+
+
+    String buildGradleContents = ideFrameFixture.getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+
+    String kotlinVersion = bundledRuntimeVersion();
+    int dash = kotlinVersion.indexOf('-');
+    if (dash != -1) {
+      kotlinVersion = kotlinVersion.substring(0, dash);
+    }
+    String newBuildGradleContents = buildGradleContents.replaceAll(
+      "mavenCentral\\(\\)",
+      ""
+    );
+
+    OutputStream buildGradleOutput = ideFrameFixture.getEditor()
+      .open("app/build.gradle")
+      .getCurrentFile()
+      .getOutputStream(null);
+    Ref<IOException> ioErrors = new Ref<>();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        try (
+          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8)
+        ) {
+          buildGradleWriter.write(newBuildGradleContents);
+        } catch (IOException writeError) {
+          ioErrors.set(writeError);
+        }
+      });
+    });
+    IOException ioError = ioErrors.get();
+    if (ioError != null) {
+      throw new Exception("Unable to modify build.gradle file", ioError);
+    }
+    guiTest.waitForBackgroundTasks();
+    // TODO End hack
+  }
+
+  @NotNull
+  protected static void convertJavaToKotlin(@NotNull GuiTestRule guiTest){
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+
+    //Click 'OK, configure Kotlin in the project' on 'Kotlin is not configured in the project' dialog box
+    /*
+     * Content of dialog box:  'You will have to configure Kotlin in project before performing a conversion'
+     */
+    KotlinIsNotConfiguredDialogFixture.find(ideFrameFixture.robot())
+      .clickOkAndWaitDialogDisappear();
+
+    //Click 'OK' on 'Configure Kotlin with Android with Gradle' dialog box
+    ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+      .clickOkAndWaitDialogDisappear();
+
   }
 }

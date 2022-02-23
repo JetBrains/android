@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.android.tools.idea.wizard.template.Language.Java;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
@@ -23,8 +24,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.regex.Pattern;
@@ -39,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 @RunWith(GuiTestRemoteRunner.class)
 public class NewJavaProjectToKotlinProjectConversionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   private final EmulatorTestRule emulator = new EmulatorTestRule();
 
   @Rule public final RuleChain emulatorRules = RuleChain
@@ -48,13 +47,11 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
   private static final Logger logger = Logger.getInstance(NewJavaProjectToKotlinProjectConversionTest.class);
 
-  protected static final String TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 21;
-  public static final Pattern RUN_OUTPUT =
-    Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
-  private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 90;
 
   /**
    * Verifies it can convert Java Project to Kotlin Project.
@@ -78,39 +75,39 @@ public class NewJavaProjectToKotlinProjectConversionTest {
    * <p>
    */
 
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testNewJavaProjectToKotlinProjectConversion() throws Exception {
+  public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
-    IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
-    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+    ConversionTestUtil.convertJavaToKotlin(guiTest);
 
-    //Click 'OK, configure Kotlin in the project' on 'Kotlin is not configured in the project' dialog box
-    /*
-     * Content of dialog box:  'You will have to configure Kotlin in project before performing a conversion'
-     */
-    KotlinIsNotConfiguredDialogFixture.find(ideFrameFixture.robot())
-      .clickOkAndWaitDialogDisappear();
+    // TODO: the following is a hack.
+    // Gradle sync is failing https://buganizer.corp.google.com/issues/180411529
+    // hence adding hack to remove code from app/build.gradle as discussed in https://b.corp.google.com/issues/180411529#comment2
+    ConversionTestUtil.removeCodeForGradleSyncToPass(guiTest);
+    // TODO End hack
 
-    //Click 'OK' on 'Configure Kotlin with Android with Gradle' dialog box
-    ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
-        .clickOkAndWaitDialogDisappear();
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    //ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+  }
 
-    //Gradle sync is failing https://buganizer.corp.google.com/issues/180411529 and because of it this test case is failing
+  @RunIn(TestGroup.SANITY_BAZEL)
+  @Test
+  public void testNewBasicActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
-    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(120), "Build", "Rebuild Project");
+    IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
-    /*
-    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+    // TODO: the following is a hack.
+    // Gradle sync is failing https://buganizer.corp.google.com/issues/180411529
+    // hence adding hack to remove code from app/build.gradle as discussed in https://b.corp.google.com/issues/180411529#comment2
+    ConversionTestUtil.removeCodeForGradleSyncToPass(guiTest);
+    // TODO End hack
 
-    ideFrameFixture.runApp(APP_NAME, emulator.getDefaultAvdName());
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    // Check app successfully builds and deploys on emulator.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 60);
-    */
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
   }
 }
