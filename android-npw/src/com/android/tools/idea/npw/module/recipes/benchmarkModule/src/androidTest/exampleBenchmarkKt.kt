@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest
 
-fun exampleBenchmarkKt(packageName: String) =
+fun exampleBenchmarkKt(className: String, packageName: String) =
 """package $packageName
 
 import android.util.Log
@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 * output the result. Modify your code to see how it affects performance.
 */
 @RunWith(AndroidJUnit4::class)
-class ExampleBenchmark {
+class $className {
 
     @get:Rule
     val benchmarkRule = BenchmarkRule()

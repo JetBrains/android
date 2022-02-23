@@ -121,7 +121,7 @@ maven_repository(
         "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
         "@maven//:androidx.core.core-ktx_1.2.0",

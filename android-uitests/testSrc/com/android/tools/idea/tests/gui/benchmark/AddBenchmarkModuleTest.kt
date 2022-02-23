@@ -187,9 +187,6 @@ class AddBenchmarkModuleTest {
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
@@ -245,9 +242,6 @@ class AddBenchmarkModuleTest {
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
