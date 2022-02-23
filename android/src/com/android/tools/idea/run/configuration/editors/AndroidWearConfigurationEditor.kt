@@ -75,7 +75,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
     modulesComboBox.addActionListener {
       object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
-        var availableComponents: List<String> = emptyList()
+        var availableComponents: Set<String> = emptySet()
 
         override fun run(indicator: ProgressIndicator) {
           val module = moduleSelector.module
@@ -87,8 +87,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
         override fun onFinished() {
           wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
-          if (availableComponents.isNotEmpty()) {
-            wearComponentFqNameComboBox.item = availableComponents.first()
+          availableComponents.firstOrNull { it == componentName }?.let {
+            wearComponentFqNameComboBox.item = it
           }
         }
       }.queue()
@@ -167,7 +167,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     }
   }
 
-  private fun findAvailableComponents(module: Module): List<String> {
+  private fun findAvailableComponents(module: Module): Set<String> {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
     val surfaceBaseClasses = configuration.componentBaseClassesFqNames.mapNotNull {
@@ -179,6 +179,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         // TODO: filter base on manifest index.
         .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
         .mapNotNull { it.qualifiedName }
-    }
+    }.distinct()
+      .sorted()
+      .toSet()
   }
 }
