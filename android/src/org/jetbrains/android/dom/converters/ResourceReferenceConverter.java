@@ -519,21 +519,21 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
 
-    if (parsed == null || !parsed.isReference()) {
-      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
-
+    if (parsed != null && parsed.isReference()) {
+      String errorMessage = parsed.getErrorMessage();
+      if (errorMessage != null) {
+        return "Invalid resource reference - " + StringUtil.decapitalize(errorMessage);
+      }
+    }
+    else {
       if (myResourceTypes.contains(ResourceType.STRING)) {
         // Anything is allowed
         return null;
       }
 
+      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
       if (additionalConverter != null) {
         return additionalConverter.getErrorMessage(s, context);
-      }
-    } else {
-      String errorMessage = parsed.getErrorMessage();
-      if (errorMessage != null) {
-        return errorMessage;
       }
     }
 

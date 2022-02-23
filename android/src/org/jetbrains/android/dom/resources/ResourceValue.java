@@ -22,11 +22,11 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
 import java.util.Objects;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -256,7 +256,7 @@ public class ResourceValue {
       }
 
       if (!Character.isJavaIdentifierStart(name.charAt(0))) {
-        return "The resource name must begin with a character";
+        return "Resource name must begin with a letter";
       }
 
       if (ResourceType.SAMPLE_DATA == type) {
