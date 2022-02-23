@@ -420,7 +420,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
                 Statement sizeStatement = db.getConnection().createStatement();
                 ResultSet sizeResult = sizeStatement.executeQuery(String.format("SELECT COUNT(*) FROM %s", tableName))) {
                 int tableSize = sizeResult.getInt(1);
-                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize).build();
+                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize);
               }
             }
           }
