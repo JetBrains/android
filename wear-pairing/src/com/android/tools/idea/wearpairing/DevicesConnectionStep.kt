@@ -133,10 +133,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   override fun canGoBack(): Boolean = false
 
   override fun dispose() {
-    runningJob?.cancel(null)
-    backgroundJob?.cancel(null)
-    deviceStateListener.releaseAll()
-    bindings.releaseAll()
+    synchronized(this) { // Dispose can be called from the UI thread or from coroutines
+      runningJob?.cancel(null)
+      backgroundJob?.cancel(null)
+      deviceStateListener.releaseAll()
+      bindings.releaseAll()
+    }
   }
 
   private fun startStepFlow() {
@@ -199,7 +201,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     val companionAppId = wearDevice.getCompanionAppIdForWatch()
     if (phoneDevice.isCompanionAppInstalled(companionAppId)) {
       // Companion App already installed, go to the next step
-      goToNextStep(phoneDevice, wearDevice)
+      goToNextStep()
     }
     else if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID) {
       // Wear 2.x companion app
@@ -531,7 +533,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       scanningListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
         runningJob = coroutineScope.launch(ioThread) {
-          goToNextStep(phoneDevice, wearDevice)
+          goToNextStep()
         }
       },
       wearDevice = wearDevice
@@ -783,22 +785,20 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     )
   }
 
-  private suspend fun goToNextStep(phoneDevice: IDevice, wearDevice: IDevice) {
+  private fun goToNextStep() {
     // The "Next" button changes asynchronously. Create a temporary property that will change state at the same time.
     val doGoForward = BoolValueProperty()
     bindings.bind(doGoForward, canGoForward)
-    deviceStateListener.listen(doGoForward) {
-      ApplicationManager.getApplication().invokeLater {
-        wizardFacade.goForward()
+    deviceStateListener.listenAndFire(doGoForward) {
+      if (canGoForward.get()) {
         dispose()
+        ApplicationManager.getApplication().invokeLater {
+          wizardFacade.goForward()
+        }
       }
     }
 
     canGoForward.set(true)
-
-    delay(100) // Backup, in case "go next" fails
-    showUiInstallCompanionAppSuccess(phoneDevice, wearDevice)
-    wizardFacade.goForward()
   }
 
   private fun showEmbeddedEmulator(device: IDevice) {
