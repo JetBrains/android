@@ -43,7 +43,7 @@ import javax.swing.JButton
 import javax.swing.JLabel
 
 
-class DeviceConnectionStepTest : LightPlatform4TestCase() {
+class DevicesConnectionStepTest : LightPlatform4TestCase() {
   private val invokeStrategy = TestInvokeStrategy()
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
