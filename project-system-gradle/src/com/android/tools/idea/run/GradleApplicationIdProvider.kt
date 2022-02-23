@@ -27,11 +27,13 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
+import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -46,6 +48,17 @@ class GradleApplicationIdProvider(
 ) : ApplicationIdProvider {
 
   override fun getPackageName(): String {
+
+    fun getBaseFeatureApplicationIdProvider(baseFeatureGetter: (AndroidFacet) -> Module?): ApplicationIdProvider {
+      if (variant !== androidModel.selectedVariant) error("Variant ${variant.name} expected to be ${androidModel.selectedVariant.name}")
+      val baseModule =
+        baseFeatureGetter(androidFacet) ?: throw ApkProvisionException("Can't get base-app module for ${androidFacet.module.name}")
+      val baseFacet = AndroidFacet.getInstance(baseModule)
+        ?: throw ApkProvisionException("Can't get base-app Android Facet for ${androidFacet.module.name}")
+      val baseModel =
+        GradleAndroidModel.get(baseFacet) ?: throw ApkProvisionException("Can't get base-app Android Facet for ${androidFacet.module.name}")
+      return GradleApplicationIdProvider(baseFacet, forTests = false, baseModel, baseModel.selectedVariant)
+    }
     // Android library project doesn't produce APK except for instrumentation tests. And for instrumentation test,
     // AGP creates instrumentation APK only. Both test code and library code will be packaged into an instrumentation APK.
     // This is called self-instrumenting test: https://source.android.com/compatibility/tests/development/instr-self-e2e
@@ -54,8 +67,8 @@ class GradleApplicationIdProvider(
     val applicationId = when (projectType) {
       PROJECT_TYPE_LIBRARY -> testPackageName
       PROJECT_TYPE_TEST -> getTargetApplicationIdProvider()?.packageName
-      PROJECT_TYPE_INSTANTAPP -> tryToGetInstantAppApplicationId()
-      PROJECT_TYPE_DYNAMIC_FEATURE -> tryToGetDynamicFeatureApplicationId()
+      PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
+      PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.holderModule) }.packageName
       PROJECT_TYPE_APP -> AndroidModuleInfo.getInstance(androidFacet).getPackage().nullize()
       PROJECT_TYPE_ATOM -> null
       PROJECT_TYPE_FEATURE -> null
@@ -64,20 +77,6 @@ class GradleApplicationIdProvider(
       logger.warn("Could not get applicationId for ${androidFacet.module.name}. Project type: $projectType")
     }
     return applicationId ?: getApplicationIdFromModelOrManifest(androidFacet)
-  }
-
-  private fun tryToGetDynamicFeatureApplicationId(): String? {
-    if (androidModel.androidProject.projectType !== PROJECT_TYPE_DYNAMIC_FEATURE) error("PROJECT_TYPE_DYNAMIC_FEATURE expected")
-    val baseAppModule = DynamicAppUtils.getBaseFeature(androidFacet.module)
-                        ?: return null.also { logger.warn("Can't get base-app module for ${androidFacet.module.name}") }
-    val baseAppFacet = baseAppModule.androidFacet
-                       ?: return null.also { logger.warn("Can't get base-app Android Facet for ${androidFacet.module.name}") }
-    return getApplicationIdFromModelOrManifest(baseAppFacet)
-  }
-
-  private fun tryToGetInstantAppApplicationId(): String {
-    if (androidModel.androidProject.projectType !== PROJECT_TYPE_INSTANTAPP) error("PROJECT_TYPE_INSTANTAPP expected")
-    return getApplicationIdFromModelOrManifest(androidFacet)
   }
 
   override fun getTestPackageName(): String? {
