@@ -57,6 +57,7 @@ import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
+import com.android.tools.idea.run.tasks.ClearableLogcatComponent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset.COMPACT
@@ -120,7 +121,7 @@ internal class LogcatMainPanel(
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
   zoneId: ZoneId = ZoneId.systemDefault()
-) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, ClearableLogcatComponent, Disposable {
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
@@ -361,6 +362,14 @@ internal class LogcatMainPanel(
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
     messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
+  }
+
+  override fun getConnectedDevice(): IDevice? {
+    return deviceManager?.device
+  }
+
+  override fun clearLogcat() {
+    clearMessageView()
   }
 }
 

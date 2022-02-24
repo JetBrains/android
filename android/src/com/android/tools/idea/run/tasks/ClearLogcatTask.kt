@@ -13,69 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.tasks;
+package com.android.tools.idea.run.tasks
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.logcat.AndroidLogcatService;
-import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
-import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.adtui.TreeWalker
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowManager
 
-public class ClearLogcatTask implements LaunchTask {
-  private final Project myProject;
+private const val ID = "CLEAR_LOGCAT"
+private const val LOGCAT_TOOL_WINDOW_ID = "Logcat"
 
-  private static final String ID = "CLEAR_LOGCAT";
+/**
+ * A [LaunchTask] that clears Logcat components.
+ */
+class ClearLogcatTask(private val project: Project) : LaunchTask {
+  override fun getDescription(): String = "Clearing Logcat"
 
-  public ClearLogcatTask(@NotNull Project project) {
-    myProject = project;
-  }
+  override fun getDuration(): Int = LaunchTaskDurations.ASYNC_TASK
 
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "Clearing logcat";
-  }
+  override fun getId(): String = ID
 
-  @Override
-  public int getDuration() {
-    return LaunchTaskDurations.ASYNC_TASK;
-  }
-
-  @Override
-  public LaunchResult run(@NotNull LaunchContext launchContext) {
-    clearLogcatAndConsole(myProject, launchContext.getDevice());
-    return LaunchResult.success();
-  }
-
-  @NotNull
-  @Override
-  public String getId() {
-    return ID;
-  }
-
-  private static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final ToolWindow toolWindow =
-          ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId());
-        if (toolWindow == null) {
-          return;
-        }
-
-        for (Content content : toolWindow.getContentManager().getContents()) {
-          final AndroidLogcatView view = content.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
-
-          if (view != null) {
-            AndroidLogcatService.getInstance().clearLogcat(device, project);
+  override fun run(launchContext: LaunchContext): LaunchResult {
+    invokeLater {
+      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(LOGCAT_TOOL_WINDOW_ID) ?: return@invokeLater
+      val device = launchContext.device
+      for (content in toolWindow.contentManager.contents) {
+        TreeWalker(content.component).descendantStream().forEach {
+          if (it is ClearableLogcatComponent && it.getConnectedDevice() == device) {
+            it.clearLogcat()
           }
         }
       }
-    });
+    }
+    return LaunchResult.success()
   }
 }

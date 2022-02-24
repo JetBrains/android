@@ -33,7 +33,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -61,7 +60,6 @@ import org.jetbrains.annotations.Nullable;
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
 public class AndroidLogcatView {
-  public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
   static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 
   // TODO Refactor all this filter combo box stuff to its own class

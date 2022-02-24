@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.run.tasks.ClearableLogcatComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class LogcatPanel extends JBLoadingPanel {
+public final class LogcatPanel extends JBLoadingPanel implements ClearableLogcatComponent {
   private final DevicePanel myDevicePanel;
   private final AndroidLogcatView myLogcatView;
 
@@ -46,5 +49,19 @@ public final class LogcatPanel extends JBLoadingPanel {
   @NotNull
   public AndroidLogcatView getLogcatView() {
     return myLogcatView;
+  }
+
+  @Nullable
+  @Override
+  public IDevice getConnectedDevice() {
+    return myLogcatView.getSelectedDevice();
+  }
+
+  @Override
+  public void clearLogcat() {
+    IDevice device = myLogcatView.getSelectedDevice();
+    if (device != null) {
+      AndroidLogcatService.getInstance().clearLogcat(device, myLogcatView.getProject());
+    }
   }
 }

@@ -82,9 +82,8 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
 
-    // Store references to the logcat & device panel views, so that these views can be retrieved directly from
-    // the DDMS tool window. (e.g. to clear logcat before a launch, select a particular device, etc)
-    c.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
+    // Store references to the device panel view, so that it can be retrieved directly from
+    // the DDMS tool window. (e.g. to select a particular device, etc)
     c.putUserData(DEVICES_PANEL_KEY, logcatPanel.getDevicePanel());
 
     contentManager.addContent(c);
