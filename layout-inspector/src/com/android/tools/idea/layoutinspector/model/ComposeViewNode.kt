@@ -66,12 +66,26 @@ class ComposeViewNode(
   viewId: ResourceReference?,
   textValue: String,
   layoutFlags: Int,
+
+  /** The number of times this node was recomposed (i.e. the composable method called) since last reset. */
   var recomposeCount: Int,
+
+  /** The number of times this node was skipped (i.e. the composable method was not called when it might have been) since last reset. */
   var recomposeSkips: Int,
+
+  /** The filename of where the code for this composable resides. This name not contain a path. */
   var composeFilename: String,
+
+  /** The hash of the package name where the composable resides. */
   var composePackageHash: Int,
+
+  /** The offset to the method start in the file where the composable resides. */
   var composeOffset: Int,
+
+  /** The line number of the method start in the file where the composable resides. */
   var composeLineNumber: Int,
+
+  /** Flags as defined byh the FLAG_* constants above. */
   var composeFlags: Int
 ): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags) {
 

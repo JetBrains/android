@@ -158,7 +158,11 @@ class InspectorModelTest {
     val model = model {
       view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
         view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
+            compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 15, composeSkips = 12) {
+              compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 5, composeSkips = 22)
+            }
+          }
         }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
@@ -171,7 +175,11 @@ class InspectorModelTest {
     val newWindow =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") {
+            compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 16, composeSkips = 52) {
+              compose(COMPOSE1, "Text", "text.kt", 234, composeCount = 35, composeSkips = 33)
+            }
+          }
         }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
@@ -179,6 +187,8 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
+    assertThat(model.maxRecompositionCount).isEqualTo(35)
+    assertThat(model.maxRecompositionSkips).isEqualTo(52)
     assertTrue(isModified)
     assertNull(model.selection)
     assertNull(model.hoveredNode)

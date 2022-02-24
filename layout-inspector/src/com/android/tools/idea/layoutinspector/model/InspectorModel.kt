@@ -44,6 +44,16 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   var lastGeneration = 0
   var updating = false
 
+  /**
+   * The highest recomposeCount found among the ComposeViewNodes in this model.
+   */
+  var maxRecompositionCount = 0
+
+  /**
+   * The highest recomposeSkips found among the ComposeViewNodes in this model.
+   */
+  var maxRecompositionSkips = 0
+
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
   override var selection: ViewNode? = null
@@ -177,6 +187,13 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     selectionListeners.forEach { it(old, new, origin) }
   }
 
+  fun resetRecompositionCounts() {
+    maxRecompositionCount = 0
+    maxRecompositionSkips = 0
+    updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
+    updatePropertiesPanel()
+  }
+
   fun updatePropertiesPanel() {
     setSelection(selection, SelectionOrigin.INTERNAL)
   }
@@ -230,6 +247,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         idLookup.clear()
         val allNodes = root.flatten().toSet()
         hiddenNodes.removeIf { !allNodes.contains(it) }
+        maxRecompositionCount = root.flatten().maxOfOrNull { (it as? ComposeViewNode)?.recomposeCount ?: 0 } ?: 0
+        maxRecompositionSkips = root.flatten().maxOfOrNull { (it as? ComposeViewNode)?.recomposeSkips ?: 0 } ?: 0
       }
       root.calculateTransitiveBounds()
       modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }

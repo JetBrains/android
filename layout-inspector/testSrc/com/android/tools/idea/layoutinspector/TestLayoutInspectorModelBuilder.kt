@@ -113,6 +113,8 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val textValue: String,
                               private val layoutFlags: Int,
                               private val layout: ResourceReference? = defaultLayout,
+                              private val composeCount: Int = 0,
+                              private val composeSkips: Int = 0,
                               private val composeFilename: String = "",
                               private val composePackageHash: Int = 0,
                               private val composeOffset: Int = 0,
@@ -156,6 +158,8 @@ class InspectorViewDescriptor(private val drawId: Long,
               composeOffset: Int = 0,
               composeLineNumber: Int = 0,
               composeFlags: Int = 0,
+              composeCount: Int = 0,
+              composeSkips: Int = 0,
               x: Int = 0,
               y: Int = 0,
               width: Int = 0,
@@ -164,12 +168,13 @@ class InspectorViewDescriptor(private val drawId: Long,
     children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0,
                                          composeFilename = composeFilename, composePackageHash = composePackageHash,
                                          composeOffset = composeOffset, composeLineNumber = composeLineNumber,
-                                         composeFlags = composeFlags).apply(body))
+                                         composeFlags = composeFlags, composeCount = composeCount,
+                                         composeSkips = composeSkips).apply(body))
 
   fun build(): ViewNode {
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
-      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0, 0, 0,
+      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0, composeCount, composeSkips,
                            composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags)
     ViewNode.writeAccess {
       children.forEach {
