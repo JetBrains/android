@@ -77,17 +77,11 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() throws Exception {
+  public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() {
 
     IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
-
-    // TODO: the following is a hack.
-    // Gradle sync is failing https://buganizer.corp.google.com/issues/180411529
-    // hence adding hack to remove code from app/build.gradle as discussed in https://b.corp.google.com/issues/180411529#comment2
-    ConversionTestUtil.removeCodeForGradleSyncToPass(guiTest);
-    // TODO End hack
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
