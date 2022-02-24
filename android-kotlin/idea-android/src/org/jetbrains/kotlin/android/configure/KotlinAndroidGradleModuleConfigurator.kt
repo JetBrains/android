@@ -17,6 +17,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
+import com.intellij.ide.actions.OpenFileAction
+import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -28,9 +33,13 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
+import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
+import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
-import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl
+import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
+import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
+import org.jetbrains.kotlin.idea.util.application.executeCommand
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
 import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime
@@ -230,9 +239,33 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     @JvmSuppressWildcards
     override fun configure(project: Project, excludeModules: Collection<Module>) {
-        super.configure(project, excludeModules)
-        // Sync after changing build scripts
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED))
+        // We override this, inlining the superclass method, in order to be able to trigger sync on undo and redo
+        // across this operation.
+        val dialog = ConfigureDialogWithModulesAndVersion(project, this, excludeModules, getMinimumSupportedVersion())
+
+        dialog.show()
+        if (!dialog.isOK) return
+
+        val collector = doConfigure(project, dialog.modulesToConfigure, dialog.kotlinVersion)
+        collector.showNotification()
+    }
+
+    fun doConfigure(project: Project, modules: List<Module>, version: String): NotificationMessageCollector {
+        return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
+            val collector = createConfigureKotlinNotificationCollector(project)
+            val changedFiles = configureWithVersion(project, modules, version, collector)
+
+            for (file in changedFiles) {
+                OpenFileAction.openFile(file.virtualFile, project)
+            }
+            // Sync after changing build scripts
+            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED))
+            UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
+                override fun undo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
+                override fun redo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)
+            })
+            collector
+        }
     }
 
     private fun addDependency(moduleBuildModel: GradleBuildModel, groupId: String, artifactId: String, version: String) {
