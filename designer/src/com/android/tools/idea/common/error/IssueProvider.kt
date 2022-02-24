@@ -44,5 +44,5 @@ interface IssueProviderListener {
                                                     Topic.BroadcastDirection.NONE)
   }
 
-  fun issueUpdated(issues: List<Issue>)
+  fun issueUpdated(removedIssues: List<Issue>, newIssues: List<Issue>)
 }

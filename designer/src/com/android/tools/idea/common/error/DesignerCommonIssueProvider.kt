@@ -27,7 +27,7 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
 class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any?> {
 
-  private var designIssues: List<Issue> = emptyList()
+  private val designIssues = mutableListOf<Issue>()
   private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect()
 
@@ -39,8 +39,9 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
   init {
     Disposer.register(project, this)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
-      override fun issueUpdated(issues: List<Issue>) {
-        designIssues = issues
+      override fun issueUpdated(removedIssues: List<Issue>, newIssues: List<Issue>) {
+        designIssues.removeAll(removedIssues)
+        designIssues.addAll(newIssues)
         listeners.forEach { it.run() }
       }
     })

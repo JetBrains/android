@@ -29,6 +29,7 @@ import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ public class IssueModel implements Disposable {
    * by this model.
    */
   private final int myIssueNumberLimit;
-  private ImmutableList<Issue> myIssues = ImmutableList.of();
+  @NotNull private ImmutableList<Issue> myIssues = ImmutableList.of();
   private final ListenerCollection<IssueModelListener> myListeners;
   protected int myWarningCount;
   protected int myErrorCount;
@@ -140,10 +141,11 @@ public class IssueModel implements Disposable {
         .build();
     }
     newIssueList.forEach(issue -> updateIssuesCounts(issue));
+    List<Issue> oldIssues = myIssues;
     myIssues = newIssueList;
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
-    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(newIssueList);
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(oldIssues, newIssueList);
   }
 
   private void updateIssuesCounts(@NotNull Issue issue) {
@@ -209,6 +211,14 @@ public class IssueModel implements Disposable {
 
   public boolean hasIssues() {
     return !myIssues.isEmpty();
+  }
+
+  public void activate() {
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(ImmutableList.of(), myIssues);
+  }
+
+  public void deactivate() {
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(myIssues, ImmutableList.of());
   }
 
   public interface IssueModelListener {

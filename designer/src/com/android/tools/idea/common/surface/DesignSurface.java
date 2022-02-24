@@ -1393,6 +1393,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     myIsActive = true;
+    myIssueModel.activate();
   }
 
   public void deactivate() {
@@ -1403,6 +1404,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     myIsActive = false;
+    myIssueModel.deactivate();
 
     myInteractionManager.cancelInteraction();
   }
