@@ -586,6 +586,10 @@ class AgpUpgradeRefactoringProcessor(
             total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
           }
         }
+        // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
+        // done on the EDT).
+        classpathRefactoringProcessor.initializeIsAlwaysNoOpForProject()
+        componentRefactoringProcessors.forEach { it.initializeIsAlwaysNoOpForProject() }
       },
       commandName, true, project)
   }
@@ -736,6 +740,10 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       }
       return _isAlwaysNoOpForProject!!
     }
+
+  internal fun initializeIsAlwaysNoOpForProject() {
+    _isAlwaysNoOpForProject = runReadAction { computeIsAlwaysNoOpForProject() }
+  }
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
