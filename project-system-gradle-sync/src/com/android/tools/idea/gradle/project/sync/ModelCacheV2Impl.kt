@@ -898,7 +898,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId = null
+      deprecatedPreMergedApplicationId = null,
+      desugaredMethodsFiles = variant.desugaredMethods
     )
   }
 

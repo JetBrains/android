@@ -88,6 +88,11 @@ interface IdeVariantCore: IdeVariantHeader {
 
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   val deprecatedPreMergedApplicationId: String?
+
+  /**
+   * Files listing any D8 backported desugared methods or core library desugared methods.
+   */
+  val desugaredMethodsFiles: Collection<File>
 }
 
 interface IdeVariant: IdeVariantCore {

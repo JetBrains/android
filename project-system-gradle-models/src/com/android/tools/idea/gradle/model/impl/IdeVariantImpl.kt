@@ -54,6 +54,7 @@ data class IdeVariantCoreImpl(
   override val testedTargetVariants: List<IdeTestedTargetVariant>,
     // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
+  override val desugaredMethodsFiles: Collection<File>
 ) : IdeVariantCore, Serializable
 
 data class IdeVariantImpl(

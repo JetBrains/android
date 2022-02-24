@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariant
@@ -360,7 +359,8 @@ class LintModelFactory : LintModelModuleLoader {
           shrinkable = buildType.isMinifyEnabled,
           buildFeatures = getBuildFeatures(project, module.gradleVersion),
           libraryResolver = libraryResolver,
-          partialResultsDir = null
+          partialResultsDir = null,
+          desugaredMethodsFiles = variant.desugaredMethodsFiles
         )
     }
 
@@ -845,6 +845,9 @@ class LintModelFactory : LintModelModuleLoader {
 
         override val partialResultsDir: File?
             get() = null
+
+        override val desugaredMethodsFiles: Collection<File>
+            get() = variant.desugaredMethodsFiles
     }
 
     companion object {
