@@ -41,6 +41,7 @@ public class StudioIcons {
     public static final Icon RUN = load("/studio/icons/avd/run.svg"); // 16x16
     public static final Icon STATUS_DECORATOR_OFFLINE = load("/studio/icons/avd/status-decorator-offline.svg"); // 16x16
     public static final Icon STATUS_DECORATOR_ONLINE = load("/studio/icons/avd/status-decorator-online.svg"); // 16x16
+    public static final Icon STOP = load("/studio/icons/avd/stop.svg"); // 16x16
   }
 
   public static class Common {
@@ -163,6 +164,7 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon ANIMATION_INSPECTOR = load("/studio/icons/compose/toolbar/animation-inspector.svg"); // 16x16
+      public static final Icon FREEZE_ANIMATION = load("/studio/icons/compose/toolbar/freeze-animation.svg"); // 16x16
       public static final Icon INSPECT_PREVIEW = load("/studio/icons/compose/toolbar/inspect-preview.svg"); // 16x16
       public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
       public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
