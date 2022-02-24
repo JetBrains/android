@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
@@ -86,10 +88,15 @@ class RenderErrorTest {
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
     val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
-    val sceneViewWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }.sceneView
-    val sceneViewWithoutErrors = panels.single { it.displayName == "PreviewWithoutRenderErrors" }.sceneView
 
-    assertTrue(sceneViewWithErrors.hasRenderErrors())
-    assertFalse(sceneViewWithoutErrors.hasRenderErrors())
+    val sceneViewPanelWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }
+    assertTrue(sceneViewPanelWithErrors.sceneView.hasRenderErrors())
+    val visibleErrorsPanel = TreeWalker(sceneViewPanelWithErrors).descendants().filterIsInstance<SceneViewErrorsPanel>().single()
+    assertTrue(visibleErrorsPanel.isVisible)
+
+    val sceneViewPanelWithoutErrors = panels.single { it.displayName == "PreviewWithoutRenderErrors" }
+    assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+    val invisibleErrorsPanel = TreeWalker(sceneViewPanelWithoutErrors).descendants().filterIsInstance<SceneViewErrorsPanel>().single()
+    assertFalse(invisibleErrorsPanel.isVisible)
   }
 }

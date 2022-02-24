@@ -518,6 +518,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public abstract ItemTransferable getSelectionAsTransferable();
 
   /**
+   * Returns whether render error panels should be rendered when {@link SceneView}s in this surface have render errors.
+   */
+  public boolean shouldRenderErrorsPanel() {
+    return false;
+  }
+
+  /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
    * @see #getModels()
    * @deprecated The surface can contain multiple models. Use {@link #getModels() instead}.

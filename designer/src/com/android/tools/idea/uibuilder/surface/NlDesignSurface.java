@@ -143,6 +143,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     private boolean myShouldRunVisualLintService = false;
 
+    private boolean myShouldRenderErrorsPanel = false;
+
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
       myParentDisposable = parentDisposable;
@@ -316,6 +318,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     @NotNull
+    public Builder setShouldRenderErrorsPanel(Boolean shouldRenderErrorsPanel) {
+      myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
+      return this;
+    }
+
+    @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
       if (myMinScale > myMaxScale) {
@@ -337,7 +345,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
                                  myZoomControlsPolicy,
                                  myShouldRunVisualLintService,
-                                 mySupportedActions);
+                                 mySupportedActions,
+                                 myShouldRenderErrorsPanel);
     }
   }
 
@@ -409,6 +418,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private final boolean myShouldRunVisualLintService;
 
+  private boolean myShouldRenderErrorsPanel;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -425,7 +436,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
                           boolean shouldRunVisualLintService,
-                          @NotNull Set<NlSupportedActions> supportedActions) {
+                          @NotNull Set<NlSupportedActions> supportedActions,
+                          boolean shouldRenderErrorsPanel) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
@@ -440,6 +452,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myNavigationHandler = navigationHandler;
     mySupportedActions = supportedActions;
     myShouldRunVisualLintService = shouldRunVisualLintService;
+    myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
@@ -639,6 +652,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   public NavigationHandler getNavigationHandler() {
     return myNavigationHandler;
+  }
+
+  @Override
+  public boolean shouldRenderErrorsPanel() {
+    return myShouldRenderErrorsPanel;
   }
 
   /**

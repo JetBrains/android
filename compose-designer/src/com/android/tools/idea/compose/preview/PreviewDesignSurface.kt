@@ -121,6 +121,7 @@ fun createPreviewDesignSurface(
     .setSelectionModel(NopSelectionModel)
     .setZoomControlsPolicy(zoomControlsPolicy)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
+    .setShouldRenderErrorsPanel(true)
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)
