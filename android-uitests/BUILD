@@ -2279,10 +2279,13 @@ java_test(
 
 java_test(
     name = "NewJavaProjectToKotlinProjectConversionTest",
-    data = COMMON_DATA,
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "@maven//:com.google.code.gson.gson_2.6.2",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.NewJavaProjectToKotlinProjectConversionTest"],
     tags = COMMON_TAGS + [
-        "qa_smoke",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
