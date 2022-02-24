@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.Component;
+import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Icon;
 import javax.swing.JTable;
@@ -38,6 +40,11 @@ public class IconButtonTableCellEditor extends AbstractCellEditor implements Tab
     myButton.setToolTipText(tooltipText);
 
     myValue = value;
+  }
+
+  @VisibleForTesting
+  public final @NotNull AbstractButton getButton() {
+    return myButton;
   }
 
   @Override

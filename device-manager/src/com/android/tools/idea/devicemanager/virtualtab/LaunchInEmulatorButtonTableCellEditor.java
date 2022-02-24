@@ -20,35 +20,107 @@ import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
-import com.android.tools.idea.devicemanager.legacy.LegacyAvdManagerUtils;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.awt.Component;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+// TODO The EDT, application pool threads, and who knows what other ones are accessing the AvdInfo. I don't like that.
 final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEditor {
+  private final @Nullable Project myProject;
+  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull BiFunction<@NotNull Component, @Nullable Project, @NotNull FutureCallback<@Nullable Object>> myNewSetEnabled;
+
   private VirtualDevice myDevice;
 
   LaunchInEmulatorButtonTableCellEditor(@Nullable Project project) {
+    this(project, AvdManagerConnection::getDefaultAvdManagerConnection, SetEnabled::new);
+  }
+
+  @VisibleForTesting
+  LaunchInEmulatorButtonTableCellEditor(@Nullable Project project,
+                                        @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
+                                        @NotNull BiFunction<@NotNull Component, @Nullable Project, @NotNull FutureCallback<@Nullable Object>> newSetEnabled) {
     super(StudioIcons.Avd.RUN, LaunchInEmulatorValue.INSTANCE, "Launch this AVD in the emulator");
 
+    myProject = project;
+    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myNewSetEnabled = newSetEnabled;
+
     myButton.addActionListener(actionEvent -> {
-      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION)
-        .build();
-
-      DeviceManagerUsageTracker.log(deviceManagerEvent);
-
-      ListenableFuture<IDevice> future = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myDevice.getAvdInfo());
-      Futures.addCallback(future, LegacyAvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
+      if (myDevice.isOnline()) {
+        stop();
+      }
+      else {
+        launch(project);
+      }
     });
+  }
+
+  private void stop() {
+    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+      .setKind(EventKind.VIRTUAL_STOP_ACTION)
+      .build();
+
+    DeviceManagerUsageTracker.log(event);
+    myButton.setEnabled(false);
+
+    ListenableFuture<Void> future = myGetDefaultAvdManagerConnection.get().stopAvdAsync(myDevice.getAvdInfo());
+    Futures.addCallback(future, myNewSetEnabled.apply(myButton, myProject), EdtExecutorService.getInstance());
+  }
+
+  private void launch(@Nullable Project project) {
+    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+      .setKind(EventKind.VIRTUAL_LAUNCH_ACTION)
+      .build();
+
+    DeviceManagerUsageTracker.log(event);
+    myButton.setEnabled(false);
+
+    ListenableFuture<IDevice> future = myGetDefaultAvdManagerConnection.get().startAvd(project, myDevice.getAvdInfo());
+    Futures.addCallback(future, myNewSetEnabled.apply(myButton, myProject), EdtExecutorService.getInstance());
+  }
+
+  @VisibleForTesting
+  static final class SetEnabled implements FutureCallback<Object> {
+    private final @NotNull Component myButton;
+    private final @Nullable Project myProject;
+
+    @VisibleForTesting
+    SetEnabled(@NotNull Component button, @Nullable Project project) {
+      myButton = button;
+      myProject = project;
+    }
+
+    @Override
+    public void onSuccess(@Nullable Object result) {
+      myButton.setEnabled(true);
+    }
+
+    @Override
+    public void onFailure(@NotNull Throwable throwable) {
+      myButton.setEnabled(true);
+      String message = throwable.getMessage();
+
+      if (message == null) {
+        message = "There was an unspecified error in the device manager. Please consult idea.log for more information.";
+      }
+
+      Messages.showErrorDialog(myProject, message, "Device Manager");
+    }
   }
 
   @Override
@@ -57,11 +129,20 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
                                                         boolean selected,
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
-    super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
-
     myDevice = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
-    myButton.setEnabled(myDevice.getAvdInfo().getStatus().equals(AvdStatus.OK));
 
+    if (myDevice.isOnline()) {
+      myButton.setDefaultIcon(StudioIcons.Avd.STOP);
+      myButton.setEnabled(true);
+      myButton.setToolTipText("Stop the emulator running this AVD");
+    }
+    else {
+      myButton.setDefaultIcon(StudioIcons.Avd.RUN);
+      myButton.setEnabled(myDevice.getAvdInfo().getStatus().equals(AvdStatus.OK));
+      myButton.setToolTipText("Launch this AVD in the emulator");
+    }
+
+    super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
     return myButton;
   }
 }

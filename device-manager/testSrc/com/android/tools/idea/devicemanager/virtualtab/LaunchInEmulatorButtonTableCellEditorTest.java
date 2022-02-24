@@ -15,18 +15,33 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceTables;
+import com.android.tools.idea.devicemanager.IconButton;
+import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.virtualtab.LaunchInEmulatorButtonTableCellEditor.SetEnabled;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.project.Project;
+import icons.StudioIcons;
 import java.awt.Component;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import javax.swing.AbstractButton;
 import javax.swing.JTable;
-import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,12 +49,88 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class LaunchInEmulatorButtonTableCellEditorTest {
-  private final TableCellEditor myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
+  private final @NotNull AvdManagerConnection myConnection = Mockito.mock(AvdManagerConnection.class);
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
+
+  private IconButtonTableCellEditor myEditor;
+
+  @Test
+  public void onSuccessDeviceIsOnline() throws InterruptedException {
+    // Arrange
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+    Mockito.when(myConnection.stopAvdAsync(myAvd)).thenReturn(Futures.immediateVoidFuture());
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    myEditor = new LaunchInEmulatorButtonTableCellEditor(null,
+                                                         () -> myConnection,
+                                                         (button, project) -> newSetEnabled(button, project, latch));
+
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
+
+    AbstractButton button = myEditor.getButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+    assertTrue(button.isEnabled());
+  }
+
+  @Test
+  public void onSuccess() throws InterruptedException {
+    // Arrange
+    Mockito.when(myConnection.startAvd(null, myAvd)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+    CountDownLatch latch = new CountDownLatch(1);
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
+
+    myEditor = new LaunchInEmulatorButtonTableCellEditor(null,
+                                                         () -> myConnection,
+                                                         (button, project) -> newSetEnabled(button, project, latch));
+
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
+
+    AbstractButton button = myEditor.getButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+    assertTrue(button.isEnabled());
+  }
+
+  private static @NotNull FutureCallback<@Nullable Object> newSetEnabled(@NotNull Component button,
+                                                                         @Nullable Project project,
+                                                                         @NotNull CountDownLatch latch) {
+    return new CountDownLatchFutureCallback<>(new SetEnabled(button, project), latch);
+  }
+
+  @Test
+  public void getTableCellEditorComponentDeviceIsOnline() {
+    // Arrange
+    myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
+    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+
+    // Act
+    Object component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
+
+    // Assert
+    IconButton button = (IconButton)component;
+
+    assertEquals(Optional.of(StudioIcons.Avd.STOP), button.getDefaultIcon());
+    assertTrue(button.isEnabled());
+    assertEquals("Stop the emulator running this AVD", button.getToolTipText());
+  }
 
   @Test
   public void getTableCellEditorComponentStatusDoesntEqualOk() {
     // Arrange
+    myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.ERROR_PROPERTIES);
 
     VirtualDevice device = new VirtualDevice.Builder()
@@ -48,28 +139,38 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
       .setTarget("Android 12.0")
       .setCpuArchitecture("arm")
       .setAndroidVersion(new AndroidVersion(31))
+      .setGetDefaultAvdManagerConnection(() -> myConnection)
       .setAvdInfo(myAvd)
       .build();
 
     JTable table = DeviceTables.mock(device);
 
     // Act
-    Component component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
+    Object component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
 
     // Assert
-    assertFalse(component.isEnabled());
+    IconButton button = (IconButton)component;
+
+    assertEquals(Optional.of(StudioIcons.Avd.RUN), button.getDefaultIcon());
+    assertFalse(button.isEnabled());
+    assertEquals("Launch this AVD in the emulator", button.getToolTipText());
   }
 
   @Test
   public void getTableCellEditorComponent() {
     // Arrange
+    myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd));
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
 
     // Act
-    Component component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
+    Object component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
 
     // Assert
-    assertTrue(component.isEnabled());
+    IconButton button = (IconButton)component;
+
+    assertEquals(Optional.of(StudioIcons.Avd.RUN), button.getDefaultIcon());
+    assertTrue(button.isEnabled());
+    assertEquals("Launch this AVD in the emulator", button.getToolTipText());
   }
 }

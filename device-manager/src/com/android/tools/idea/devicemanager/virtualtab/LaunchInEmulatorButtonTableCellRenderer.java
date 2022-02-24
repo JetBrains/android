@@ -34,9 +34,20 @@ final class LaunchInEmulatorButtonTableCellRenderer extends IconButtonTableCellR
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
-    myButton.setEnabled(((VirtualDeviceTable)table).getDeviceAt(viewRowIndex).getAvdInfo().getStatus().equals(AvdStatus.OK));
+    VirtualDevice device = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
 
+    if (device.isOnline()) {
+      myButton.setDefaultIcon(StudioIcons.Avd.STOP);
+      myButton.setEnabled(true);
+      myButton.setToolTipText("Stop the emulator running this AVD");
+    }
+    else {
+      myButton.setDefaultIcon(StudioIcons.Avd.RUN);
+      myButton.setEnabled(device.getAvdInfo().getStatus().equals(AvdStatus.OK));
+      myButton.setToolTipText("Launch this AVD in the emulator");
+    }
+
+    super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
     return myButton;
   }
 }

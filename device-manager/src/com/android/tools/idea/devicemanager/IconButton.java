@@ -23,7 +23,7 @@ import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 
 public final class IconButton extends JButton implements IconTableCell {
-  private final @NotNull Icon myDefaultIcon;
+  private @NotNull Icon myDefaultIcon;
 
   public IconButton(@NotNull Icon defaultIcon) {
     super(defaultIcon);
@@ -41,5 +41,9 @@ public final class IconButton extends JButton implements IconTableCell {
   @Override
   public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
     return Optional.of(myDefaultIcon);
+  }
+
+  public void setDefaultIcon(@NotNull Icon defaultIcon) {
+    myDefaultIcon = defaultIcon;
   }
 }
