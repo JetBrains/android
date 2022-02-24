@@ -426,6 +426,7 @@ filegroup(
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
+        "//tools/base/lint:lint-checks-proto",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/tracer:trace_agent",

@@ -25,14 +25,17 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
+import com.android.tools.lint.checks.GradleDetector;
 import com.android.utils.Pair;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
@@ -105,6 +108,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     if (ConfigImportHelper.isConfigImported() && (ideInfo.isAndroidStudio() || ideInfo.isGameTools())) {
       ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
     }
+
+    useIdeGooglePlaySdkIndexInGradleDetector();
   }
 
   /**
@@ -328,5 +333,16 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     IAndroidTarget target = platform.getTarget();
     AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
     sdkModificator.commitChanges();
+  }
+
+  private void useIdeGooglePlaySdkIndexInGradleDetector() {
+    GradleDetector.setPlaySdkIndexFactory((path, client) -> {
+      IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
+      playIndex.setShowCriticalIssues(StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get());
+      playIndex.setShowMessages(StudioFlags.SHOW_SDK_INDEX_MESSAGES.get());
+      playIndex.setShowLinks(StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get());
+      playIndex.setShowPolicyIssues(StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get());
+      return playIndex;
+    });
   }
 }

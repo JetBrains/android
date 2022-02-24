@@ -119,6 +119,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
     ],
 )
 
