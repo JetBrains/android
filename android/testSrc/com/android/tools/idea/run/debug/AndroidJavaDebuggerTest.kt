@@ -16,11 +16,10 @@
 package com.android.tools.idea.run.debug
 
 import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.ClientImpl
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.JavaCodeInsightTestCase
@@ -34,10 +33,6 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.GenericProgramRunner
 import org.junit.Test
 import org.mockito.Mockito
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.ServerSocket
-import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
 /**
@@ -47,22 +42,21 @@ import javax.swing.Icon
  */
 class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
   private val APP_PACKAGE = "com.android.example"
-  private val PID = 1111
 
-  private lateinit var clientSocket: ServerSocket
+  private lateinit var client: Client
+  private lateinit var runnableClientsService: RunnableClientsService
   private lateinit var executionEnvironment: ExecutionEnvironment
 
   override fun setUp() {
     super.setUp()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
     executionEnvironment = createFakeExecutionEnvironment()
-    clientSocket = ServerSocket()
-    clientSocket.reuseAddress = true
-    clientSocket.bind(InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
+    runnableClientsService = RunnableClientsService(testRootDisposable)
+    client = runnableClientsService.startClient(Mockito.mock(IDevice::class.java), APP_PACKAGE)
   }
 
   override fun tearDown() {
-    clientSocket.close()
+    runnableClientsService.stop()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
     super.tearDown()
   }
@@ -87,46 +81,38 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
 
   @Test
   fun test() {
-    val port = clientSocket.localPort
-    val mockClient = createMockClient(Mockito.mock(IDevice::class.java), port)
-
-    val session = attachJavaDebuggerToClient(myProject, mockClient, executionEnvironment, null).blockingGet(1000)
+    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment, null).blockingGet(1000)
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
 
   @Test
   fun testCallback() {
-    val port = clientSocket.localPort
-    val mockClient = createMockClient(Mockito.mock(IDevice::class.java), port)
-
     var callbackCount = 0
     val onDebugProcessStarted: () -> Unit = {
       callbackCount++
     }
 
-    val session = attachJavaDebuggerToClient(myProject, mockClient, executionEnvironment, onDebugProcessStarted = onDebugProcessStarted).blockingGet(1000)
+    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment,
+                                             onDebugProcessStarted = onDebugProcessStarted).blockingGet(1000)
     assertThat(session).isNotNull()
     assertThat(callbackCount).isEqualTo(1)
   }
 
   @Test
   fun testSessionName() {
-    val port = clientSocket.localPort
-    val mockClient = createMockClient(Mockito.mock(IDevice::class.java), port)
-
-    val session = attachJavaDebuggerToClientAndShowTab(myProject, mockClient).blockingGet(1000)
+    val session = attachJavaDebuggerToClientAndShowTab(myProject, client).blockingGet(1000)
     assertThat(session).isNotNull()
-    assertThat(session!!.sessionName).isEqualTo("Android Debugger (pid: 1111, debug port: $port)")
+    assertThat(client.debuggerListenPort).isAtLeast(0)
+    assertThat(client.clientData.pid).isAtLeast(0)
+    assertThat(session!!.sessionName).isEqualTo("Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})")
   }
 
   @Test
   fun testKillAppOnDestroy() {
-    val port = clientSocket.localPort
-    val mockDevice = Mockito.mock(IDevice::class.java)
-    val mockClient = createMockClient(mockDevice, port)
+    val mockDevice = client.device
 
-    val session = attachJavaDebuggerToClient(myProject, mockClient, executionEnvironment).blockingGet(1000)!!
+    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     Thread.sleep(100)
@@ -135,27 +121,10 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
 
   @Test
   fun testVMExitedNotifierIsInvoked() {
-    val port = clientSocket.localPort
-    val mockClient = createMockClient(Mockito.mock(IDevice::class.java), port)
-
-    val session = attachJavaDebuggerToClient(myProject, mockClient, executionEnvironment).blockingGet(1000)!!
+    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
-    Mockito.verify(mockClient, Mockito.times(1)).notifyVmMirrorExited()
-  }
-
-  private fun createMockClient(mockDevice: IDevice, debugPort: Int): Client {
-    val mockClientData = Mockito.mock(ClientData::class.java)
-    Mockito.`when`(mockClientData.pid).thenReturn(PID)
-    Mockito.`when`(mockClientData.packageName).thenReturn(APP_PACKAGE)
-    Mockito.`when`(mockClientData.clientDescription).thenReturn(APP_PACKAGE)
-
-    val mockClient = Mockito.mock(Client::class.java)
-    Mockito.`when`(mockClient.clientData).thenReturn(mockClientData)
-    Mockito.`when`(mockClient.debuggerListenPort).thenReturn(debugPort)
-    Mockito.`when`(mockClient.device).thenReturn(mockDevice)
-
-    return mockClient
+    Mockito.verify(client, Mockito.times(1)).notifyVmMirrorExited()
   }
 }

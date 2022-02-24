@@ -104,16 +104,16 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
         "Broadcast completed: result=1, data=\"3\"",
     ).toCommandHandlers()
 
-    val runnableClient = RunnableClient(appId, testRootDisposable)
+    val runnableClientsService = RunnableClientsService(testRootDisposable)
 
     val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClient.startClient(device)
+      runnableClientsService.startClient(device, appId)
       receiver.addOutput("Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
                          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
     }
 
     val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClient.stopClient()
+      runnableClientsService.stopClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
     }
 

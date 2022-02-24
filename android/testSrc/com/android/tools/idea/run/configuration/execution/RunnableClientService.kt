@@ -22,6 +22,7 @@ import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.intellij.concurrency.AsyncFutureResultImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
@@ -38,10 +39,41 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Adds Client with given appId on IDevice.
  *
  * Client become available via [DeploymentApplicationService] and opens a connection for debug when [startClient] is invoked.
- * Client closes connection and "removed" from device when [stopClient] is invoked.
+ * Client closes connection and "removed" from [DeploymentApplicationService] device when [stopClient] is invoked.
  */
-internal class RunnableClient(private val appId: String, val disposable: Disposable) {
-  private lateinit var client: Client
+internal class RunnableClientsService(testDisposable: Disposable) {
+  private val deviceToRunnableClients: MutableMap<IDevice, MutableMap<String, RunnableClient>> = mutableMapOf()
+  private val deploymentApplicationService = TestDeploymentApplicationService()
+
+  init {
+    ApplicationManager.getApplication()
+      .replaceService(DeploymentApplicationService::class.java, deploymentApplicationService, testDisposable)
+  }
+
+  fun stop() {
+    deviceToRunnableClients.entries.forEach { (device, clients) ->
+      clients.keys.forEach { appId -> stopClient(device, appId) }
+    }
+  }
+
+  fun startClient(device: IDevice, appId: String): Client {
+    val clients = deviceToRunnableClients.computeIfAbsent(device) { mutableMapOf() }
+    val runnableClient = RunnableClient.start(device, appId)
+    clients[appId] = runnableClient
+    deploymentApplicationService.addClient(device, appId, runnableClient.client)
+    return runnableClient.client
+  }
+
+  fun stopClient(device: IDevice, appId: String) {
+    val runnableClient = deviceToRunnableClients[device]?.get(appId) ?: throw RuntimeException("Client is not started")
+    runnableClient.stopClient()
+    deploymentApplicationService.removeClient(device, appId)
+    deviceToRunnableClients[device]!!.remove(appId)
+  }
+}
+
+private class RunnableClient private constructor(private val device: IDevice, private val appId: String) {
+  lateinit var client: Client
   private val clientSocket: ServerSocket = ServerSocket()
   private val isRunning = AtomicBoolean()
   var task: Future<*>? = null
@@ -50,12 +82,20 @@ internal class RunnableClient(private val appId: String, val disposable: Disposa
       .setNameFormat("runnable-client-%d")
       .build())
 
+  companion object {
+    fun start(device: IDevice, appId: String): RunnableClient {
+      val runnableClient = RunnableClient(device, appId)
+      runnableClient.doStartClient()
+      return runnableClient
+    }
+  }
+
   init {
     clientSocket.reuseAddress = true
     clientSocket.bind(InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
   }
 
-  fun startClient(device: IDevice) {
+  private fun doStartClient() {
     // Do not reuse RunnableClient
     assert(!this::client.isInitialized)
     client = createMockClient(device, clientSocket.localPort)
@@ -76,22 +116,6 @@ internal class RunnableClient(private val appId: String, val disposable: Disposa
         clientSocket.close()
       }
     }
-
-    val testDeploymentApplicationService = object : DeploymentApplicationService {
-      override fun findClient(iDevice: IDevice, applicationId: String): List<Client> {
-        if (device == iDevice && applicationId == appId) {
-          return listOf(client)
-        }
-        return emptyList()
-      }
-
-      override fun getVersion(iDevice: IDevice): Future<AndroidVersion> {
-        throw RuntimeException("Not implemented for test")
-      }
-    }
-
-    ApplicationManager.getApplication()
-      .replaceService(DeploymentApplicationService::class.java, testDeploymentApplicationService, disposable)
   }
 
   fun stopClient() {
@@ -115,5 +139,27 @@ internal class RunnableClient(private val appId: String, val disposable: Disposa
     Mockito.`when`(mockClient.device).thenReturn(device)
 
     return mockClient
+  }
+}
+
+private class TestDeploymentApplicationService : DeploymentApplicationService {
+
+  private val deviceToClients: MutableMap<IDevice, MutableMap<String, Client>> = mutableMapOf()
+
+  fun addClient(device: IDevice, appId: String, client: Client) {
+    val clients = deviceToClients.computeIfAbsent(device) { mutableMapOf() }
+    clients[appId] = client
+  }
+
+  fun removeClient(device: IDevice, appId: String) {
+    deviceToClients[device]?.remove(appId)
+  }
+
+  override fun findClient(iDevice: IDevice, applicationId: String): List<Client> {
+    return deviceToClients[iDevice]?.get(applicationId)?.let { listOf(it) } ?: emptyList()
+  }
+
+  override fun getVersion(iDevice: IDevice): Future<AndroidVersion> {
+    return AsyncFutureResultImpl()
   }
 }

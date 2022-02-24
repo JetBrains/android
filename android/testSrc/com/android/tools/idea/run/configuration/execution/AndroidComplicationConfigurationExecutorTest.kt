@@ -171,15 +171,15 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       setDebugAppBroadcast to "Broadcast completed: result=1"
     ).toCommandHandlers()
 
-    val runnableClient = RunnableClient(appId, testRootDisposable)
+    val runnableClientsService = RunnableClientsService(testRootDisposable)
 
     val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
-      runnableClient.startClient(device)
+      runnableClientsService.startClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
     }
 
-    val unsetWatchFaceCommandHandler: CommandHandler = { _, receiver ->
-      runnableClient.stopClient()
+    val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
+      runnableClientsService.stopClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
     }
 

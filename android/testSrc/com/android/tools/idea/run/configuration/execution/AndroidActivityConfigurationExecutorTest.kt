@@ -79,14 +79,14 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val startCommand = "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
     val stopCommand = "am force-stop com.example.app"
 
-    val runnableClient = RunnableClient(appId, testRootDisposable)
+    val runnableClientsService = RunnableClientsService(testRootDisposable)
 
     val startActivityCommandHandler: CommandHandler = { device, _ ->
-      runnableClient.startClient(device)
+      runnableClientsService.startClient(device, appId)
     }
 
-    val stopActivityCommandHandler: CommandHandler = { _, _ ->
-      runnableClient.stopClient()
+    val stopActivityCommandHandler: CommandHandler = { device, _ ->
+      runnableClientsService.stopClient(device, appId)
     }
 
     val device = getMockDevice(mapOf(
