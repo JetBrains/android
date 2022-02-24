@@ -651,16 +651,6 @@
     <option name="references" hit="String References" />
     <option name="string" hit="String References" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
-    <option name="android" hit="Android Logcat" />
-    <option name="logcat" hit="Android Logcat" />
-    <option name="assert" hit="Assert" />
-    <option name="debug" hit="Debug" />
-    <option name="error" hit="Error" />
-    <option name="info" hit="Info" />
-    <option name="verbose" hit="Verbose" />
-    <option name="warning" hit="Warning" />
-  </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of Compose Literals" configurable_name="Live Edit of Compose Literals">
     <option name="compose" hit="Live Edit of Compose Literals" />
     <option name="edit" hit="Live Edit of Compose Literals" />
@@ -1033,6 +1023,15 @@
     <option name="details" path="SDK Platforms" hit="Show Package Details" />
     <option name="package" path="SDK Platforms" hit="Show Package Details" />
     <option name="show" path="SDK Platforms" hit="Show Package Details" />
+  </configurable>
+  <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
+    <option name="" hit=" KB" />
+    <option name="kb" hit=" KB" />
+    <option name="logcat" hit="Logcat" />
+    <option name="buffer" hit="Logcat cycle buffer size:" />
+    <option name="cycle" hit="Logcat cycle buffer size:" />
+    <option name="logcat" hit="Logcat cycle buffer size:" />
+    <option name="size" hit="Logcat cycle buffer size:" />
   </configurable>
   <configurable id="device.file.explorer" configurable_name="Device File Explorer">
     <option name="device" hit="Device File Explorer" />

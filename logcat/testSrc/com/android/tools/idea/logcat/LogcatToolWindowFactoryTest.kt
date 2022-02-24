@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -55,28 +56,22 @@ class LogcatToolWindowFactoryTest {
   }
 
   @Test
-  fun isApplicable_default() {
-    assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
-  }
-
-  @Test
-  fun isApplicable_obeysFlag_true() {
-    StudioFlags.LOGCAT_V2_ENABLE.override(true)
+  fun isApplicable() {
     assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isTrue()
   }
 
   @Test
-  fun isApplicable_obeysFlag_false() {
+  fun isApplicable_legacy() {
     StudioFlags.LOGCAT_V2_ENABLE.override(false)
+
     assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
 
   @Test
   fun isApplicable_nonAndroidEnvironment() {
-    StudioFlags.LOGCAT_V2_ENABLE.override(true)
     val mockIdeInfo = spy(IdeInfo.getInstance())
     `when`(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, projectRule.project);
+    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, projectRule.project)
 
     assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
@@ -125,26 +120,31 @@ class LogcatToolWindowFactoryTest {
   }
 
   @Test
-  fun colorSettingsPagesRegistration_obeysFlag_true() {
+  fun colorSettingsPagesRegistration() {
     // We have to use a mock because there is no clean way to clean up ColorSettingsPages
     val mockColorSettingsPages = mock<ColorSettingsPages>()
     ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
-    StudioFlags.LOGCAT_V2_ENABLE.override(true)
 
     LogcatToolWindowFactory()
+    AndroidLogcatToolWindowFactory()
 
+    verify(mockColorSettingsPages).registerPage(any(LogcatColorSettingsPage::class.java))
     verify(mockColorSettingsPages).registerPage(any(LogcatFilterColorSettingsPage::class.java))
+    verify(mockColorSettingsPages, never()).registerPage(any(AndroidLogcatColorPage::class.java))
   }
 
   @Test
-  fun colorSettingsPagesRegistration_obeysFlag_false() {
+  fun colorSettingsPagesRegistration_legacy() {
     // We have to use a mock because there is no clean way to clean up ColorSettingsPages
     val mockColorSettingsPages = mock<ColorSettingsPages>()
     ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
     StudioFlags.LOGCAT_V2_ENABLE.override(false)
 
     LogcatToolWindowFactory()
+    AndroidLogcatToolWindowFactory()
 
+    verify(mockColorSettingsPages, never()).registerPage(any(LogcatColorSettingsPage::class.java))
     verify(mockColorSettingsPages, never()).registerPage(any(LogcatFilterColorSettingsPage::class.java))
+    verify(mockColorSettingsPages).registerPage(any(AndroidLogcatColorPage::class.java))
   }
 }

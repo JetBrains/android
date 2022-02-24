@@ -566,11 +566,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public AndroidLogcatToolWindowFixture getAndroidLogcatToolWindow() {
-    return new AndroidLogcatToolWindowFixture(getProject(), robot());
-  }
-
-  @NotNull
   public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
     return new BuildVariantsToolWindowFixture(this);
   }

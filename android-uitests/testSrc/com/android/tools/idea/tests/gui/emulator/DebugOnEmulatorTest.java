@@ -59,7 +59,6 @@ public class DebugOnEmulatorTest {
     .around(guiTest);
 
   private static final String APP_NAME = "app";
-  private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
@@ -120,9 +119,6 @@ public class DebugOnEmulatorTest {
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
-    ideFrameFixture.getAndroidLogcatToolWindow()
-      .show()
-      .selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();
   }
 }

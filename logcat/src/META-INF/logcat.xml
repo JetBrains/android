@@ -17,7 +17,7 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow
-        id="Logcat V2"
+        id="Logcat"
         anchor="bottom"
         icon="StudioIcons.Shell.ToolWindows.LOGCAT"
         canCloseContents="true"

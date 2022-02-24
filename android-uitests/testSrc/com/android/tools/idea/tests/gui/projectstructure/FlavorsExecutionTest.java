@@ -128,11 +128,6 @@ public class FlavorsExecutionTest {
     String flavor1LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", FIRST_ACTIVITY_NAME);
     flavor1WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor1LaunchPattern, Pattern.DOTALL)), 120);
 
-    ideFrameFixture
-      .getAndroidLogcatToolWindow()
-      .show()
-      .selectProcess(PROCESS_NAME);
-
     BuildVariantsToolWindowFixture buildVariantsWindow = ideFrameFixture.getBuildVariantsWindow();
     buildVariantsWindow.selectVariantForModule("SimpleFlavoredApplication.app", "flavor2Debug");
     guiTest.waitForBackgroundTasks();
@@ -143,11 +138,6 @@ public class FlavorsExecutionTest {
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
     ProcessRunningDialogFixture.find(ideFrameFixture).clickTerminate();
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);
-
-    ideFrameFixture
-      .getAndroidLogcatToolWindow()
-      .show()
-      .selectProcess(PROCESS_NAME);
   }
 
   @After

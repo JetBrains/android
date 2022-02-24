@@ -681,7 +681,7 @@ public final class StudioFlags {
     "logcat.v2.enable",
     "Enable Logcat V2",
     "Enables version 2 of the Logcat tool window",
-    false
+    true
   );
 
   public static final Flag<Boolean> LOGCAT_V2_NAMED_FILTERS_ENABLE = Flag.create(

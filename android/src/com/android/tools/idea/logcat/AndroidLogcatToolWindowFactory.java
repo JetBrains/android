@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -31,6 +32,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.colors.ColorSettingsPages;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
@@ -57,9 +59,15 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
+  public AndroidLogcatToolWindowFactory() {
+    if (!StudioFlags.LOGCAT_V2_ENABLE.get()) {
+      ColorSettingsPages.getInstance().registerPage(new AndroidLogcatColorPage());
+    }
+  }
+
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return AndroidEnvironmentUtils.isAndroidEnvironment(project);
+    return !StudioFlags.LOGCAT_V2_ENABLE.get() && AndroidEnvironmentUtils.isAndroidEnvironment(project);
   }
 
   @Override

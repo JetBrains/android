@@ -42,14 +42,12 @@ class LogcatApplicationSettingsConfigurableProviderTest {
   }
 
   @Test
-  fun canCreateConfigurable_flagEnabled() {
-    StudioFlags.LOGCAT_V2_ENABLE.override(true)
-
+  fun canCreateConfigurable() {
     assertThat(provider.canCreateConfigurable()).isTrue()
   }
 
   @Test
-  fun canCreateConfigurable_flagDisabled() {
+  fun canCreateConfigurable_legacy() {
     StudioFlags.LOGCAT_V2_ENABLE.override(false)
 
     assertThat(provider.canCreateConfigurable()).isFalse()
