@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.literals
 
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.highlighting.HighlightManager
@@ -36,6 +35,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.concurrency.await
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -380,7 +380,9 @@ class LiteralsManager(
   private val literalUsageReferenceProvider: PsiElementLiteralUsageReferenceProvider = DefaultPsiElementLiteralUsageReferenceProvider) {
   /** Types that can be considered "literals". */
   private val literalsTypes = setOf(KtConstantExpression::class.java, KtUnaryExpression::class.java)
-
+  private val literalReadingExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+    "LiteralsManager executor", (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+  )
   private val LOG = Logger.getInstance(LiteralsManager::class.java)
 
   private suspend fun findLiterals(root: PsiElement,
@@ -439,7 +441,7 @@ class LiteralsManager(
           super.visitElement(element)
         }
       })
-    }.submit(AndroidExecutors.getInstance().ioThreadExecutor).await()
+    }.submit(literalReadingExecutor).await()
 
     return LiteralReferenceSnapshotImpl(savedLiterals)
   }
