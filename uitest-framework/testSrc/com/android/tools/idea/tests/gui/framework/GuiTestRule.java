@@ -336,8 +336,9 @@ public class GuiTestRule implements TestRule {
                                                                     @Nullable String gradleVersion,
                                                                     @Nullable String gradlePluginVersion,
                                                                     @Nullable String kotlinVersion,
+                                                                    @Nullable String ndkVersion,
                                                                     @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpSharedIndexProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
+    File projectDir = setUpSharedIndexProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
@@ -346,24 +347,25 @@ public class GuiTestRule implements TestRule {
                                                                     @Nullable String gradleVersion,
                                                                     @Nullable String gradlePluginVersion,
                                                                     @Nullable String kotlinVersion,
+                                                                    @Nullable String ndkVersion,
                                                                     @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
   @NotNull
   public IdeFrameFixture importProjectWithSharedIndexAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    return importProjectWithSharedIndexAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
+    return importProjectWithSharedIndexAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
@@ -402,12 +404,13 @@ public class GuiTestRule implements TestRule {
   public File setUpSharedIndexProject(@NotNull String projectDirName,
                            @Nullable String gradleVersion,
                            @Nullable String gradlePluginVersion,
-                           @Nullable String kotlinVersion) throws IOException {
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
     System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
@@ -438,10 +441,11 @@ public class GuiTestRule implements TestRule {
   public File setUpProject(@NotNull String projectDirName,
                            @Nullable String gradleVersion,
                            @Nullable String gradlePluginVersion,
-                           @Nullable String kotlinVersion) throws IOException {
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
@@ -467,7 +471,7 @@ public class GuiTestRule implements TestRule {
    */
   @NotNull
   public File setUpProject(@NotNull String projectDirName) throws IOException {
-    return setUpProject(projectDirName, null, null, null);
+    return setUpProject(projectDirName, null, null, null, null);
   }
 
   @NotNull
@@ -500,14 +504,16 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null);
   }
 
   protected void updateGradleVersions(@NotNull File projectPath,
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
-                                      @Nullable String kotlinVersion) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+                                      @Nullable String kotlinVersion,
+                                      @Nullable String ndkVersion
+                                      ) throws IOException {
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
   }
 
   @NotNull

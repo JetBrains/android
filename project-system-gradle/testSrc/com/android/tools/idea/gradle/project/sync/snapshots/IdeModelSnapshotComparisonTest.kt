@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
@@ -145,7 +146,8 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
         projectName.template,
         "project",
         null,
-        agpVersion.legacyAgpVersion
+        agpVersion.legacyAgpVersion,
+        ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
       )
       CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
       openPreparedProject("project${testProjectName?.pathToOpen}") { project ->

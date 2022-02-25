@@ -87,10 +87,11 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     kotlinVersion: String? = null,
     gradleVersion: String? = null,
     agpVersion: String? = null,
+    ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     if (preLoad != null) {
-      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, agpVersion, kotlinVersion)
+      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
 
       preLoad(rootFile)
       delegateTestCase.importProject()
@@ -98,7 +99,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     }
     else {
       delegateTestCase.loadProject(
-        projectPath, null, gradleVersion, agpVersion, kotlinVersion)
+        projectPath, null, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
     }
   }
 
@@ -110,10 +111,12 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    * @param gradleVersion If specified, which Gradle version will be used.
    * @param agpVersion If specified, which AGP version will be used.
    * @param kotlinVersion If specified, which kotlin version will be used.
+   * @param ndkVersion If specified, which NDK version will be used.
    */
   @JvmOverloads
-  fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null, kotlinVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion)
+  fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null,
+                  kotlinVersion: String? = null, ndkVersion: String? = null) {
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
   }
 
   @JvmOverloads

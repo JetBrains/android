@@ -111,6 +111,7 @@ public class AndroidGradleTests {
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
+  private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
     waitForSourceFolderManagerToProcessUpdates(project, null);
@@ -146,20 +147,21 @@ public class AndroidGradleTests {
    */
   @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @Nullable String gradleVersion,
                                                    @Nullable String gradlePluginVersion,
                                                    @Nullable String kotlinVersion,
+                                                   @Nullable String ndkVersion,
                                                    File... localRepos)
     throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
+    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
@@ -167,6 +169,7 @@ public class AndroidGradleTests {
                                                             @Nullable String gradleVersion,
                                                             @Nullable String gradlePluginVersion,
                                                             @Nullable String kotlinVersion,
+                                                            @Nullable String ndkVersion,
                                                             File... localRepos)
     throws IOException {
     String toolsBaseVersion;
@@ -194,7 +197,7 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
@@ -234,6 +237,10 @@ public class AndroidGradleTests {
       contents = updateMinSdkVersion(contents);
       contents = updateLocalRepositories(contents, localRepositories);
 
+      if (ndkVersion != null) {
+        contents = contents.replace(NDK_VERSION_PLACEHOLDER, String.format("ndkVersion=\"%s\"", ndkVersion));
+      }
+
       if (!contents.equals(contentsOrig)) {
         Files.write(contents, path, Charsets.UTF_8);
       }
@@ -269,6 +276,10 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
       contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
       contents = updateLocalRepositories(contents, localRepositories);
+
+      if (ndkVersion != null) {
+        contents = contents.replace(NDK_VERSION_PLACEHOLDER, String.format("ndkVersion=\"%s\"", ndkVersion));
+      }
 
       if (!contents.equals(contentsOrig)) {
         Files.write(contents, path, Charsets.UTF_8);
@@ -638,10 +649,11 @@ public class AndroidGradleTests {
                                                  @Nullable String gradleVersion,
                                                  @Nullable String gradlePluginVersion,
                                                  @Nullable String kotlinVersion,
+                                                 @Nullable String ndkVersion,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
   }
 
   /**

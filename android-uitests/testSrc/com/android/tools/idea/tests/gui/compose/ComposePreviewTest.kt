@@ -111,6 +111,7 @@ class ComposePreviewTest {
                                                                                              null,
                                                                                              null,
                                                                                              "1.6.0",
+                                                                                             null,
                                                                                              GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
   @Test

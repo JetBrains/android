@@ -122,7 +122,8 @@ open class ProjectsUpgradeTestBase {
     projectPath = testProject.projectBasePath(),
     gradleVersion = testProject.gradleVersion(),
     kotlinVersion = testProject.kotlinVersion(),
-    agpVersion = testProject.agpVersion()
+    agpVersion = testProject.agpVersion(),
+    ndkVersion = testProject.ndkVersion()
   ) { projectRoot ->
     applyProjectPatch(testProject, projectRoot)
   }
@@ -138,7 +139,7 @@ open class ProjectsUpgradeTestBase {
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
         AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.gradleVersion(), testProject.agpVersion(),
-                                                         testProject.kotlinVersion())
+                                                         testProject.kotlinVersion(), testProject.ndkVersion())
       }
     }
   }
@@ -155,8 +156,8 @@ open class ProjectsUpgradeTestBase {
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot, baseGradleVersion, expectedProjectState.agpVersion(), expectedProjectState.kotlinVersion()
-      )
+        projectRoot, baseGradleVersion, expectedProjectState.agpVersion(), expectedProjectState.kotlinVersion(),
+        expectedProjectState.ndkVersion())
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.
@@ -209,4 +210,5 @@ open class ProjectsUpgradeTestBase {
     agpGradleVersion()).version.toString()
 
   private fun AUATestProjectState.kotlinVersion() = "1.3.72"
+  private fun AUATestProjectState.ndkVersion() : String? = null
 }
