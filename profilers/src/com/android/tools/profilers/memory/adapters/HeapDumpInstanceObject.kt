@@ -40,8 +40,8 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
     else -> instance.classObj.let { classObj ->
       when {
         instance is ClassObj -> ValueObject.ValueType.CLASS
-        instance is ClassInstance && classObj.className == ClassDb.JAVA_LANG_STRING -> ValueObject.ValueType.STRING
-        classObj.className.endsWith("[]") -> ValueObject.ValueType.ARRAY
+        instance is ClassInstance && classObj!!.className == ClassDb.JAVA_LANG_STRING -> ValueObject.ValueType.STRING
+        classObj!!.className.endsWith("[]") -> ValueObject.ValueType.ARRAY
         else -> ValueObject.ValueType.OBJECT
       }
     }
@@ -69,7 +69,7 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
     else -> ""
   }
 
-  override fun getHeapId() = instance.heap.id
+  override fun getHeapId() = instance.heap!!.id
   override fun getClassEntry() = classEntry
   override fun getDepth() = instance.distanceToGcRoot
   override fun getNativeSize() = instance.nativeSize
@@ -115,12 +115,12 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
 
   override fun getValueType() = valueType
 
-  override fun getAllocationCallStack() = when (instance.stack) {
+  override fun getAllocationCallStack() = when (val st = instance.stack) {
     null -> null
     else -> {
       val builder = AllocationStack.newBuilder()
       val frameBuilder = StackFrameWrapper.newBuilder()
-      for (stackFrame in instance.stack.frames) {
+      for (stackFrame in st.frames) {
         val fileName = stackFrame.filename
         val guessedClassName = if (fileName.endsWith(".java")) fileName.substring(0, fileName.length - ".java".length) else fileName
         frameBuilder.addFrames(AllocationStack.StackFrame.newBuilder()
@@ -135,13 +135,13 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
     }
   }
 
-  override fun isCallStackEmpty() = instance.stack == null || instance.stack.frames.isEmpty()
+  override fun isCallStackEmpty() = instance.stack == null || instance.stack!!.frames.isEmpty()
   override fun getIsRoot() = instance is RootObj
   override fun getReferences() = if (isRoot) listOf() else extractReferences()
 
   @VisibleForTesting
   fun extractReferences(): List<ReferenceObject> {
-    val order = compareBy(Instance::getDistanceToGcRoot, Instance::getId) // to enforce more deterministic order
+    val order = compareBy(Instance::distanceToGcRoot, Instance::id) // to enforce more deterministic order
     // Hard referrers first, soft second
     val sortedReferences = instance.hardReverseReferences.sortedWith(order) +
                            (instance.softReverseReferences?.sortedWith(order) ?: listOf())

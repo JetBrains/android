@@ -123,8 +123,8 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     heapSetMappings.forEach { (heap, heapSet) ->
       heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
       heap.forEachInstance { instance -> true.also {
-        assert(ClassDb.JAVA_LANG_CLASS != instance.classObj.className)
-        val classEntry = instance.classObj.makeEntry()
+        assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
+        val classEntry = instance.classObj!!.makeEntry()
         addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this, instance, classEntry, null))
       } }
       if ("default" != heap.name || snapshot.heaps.size == 1 || heap.instancesCount > 0) {
@@ -220,6 +220,6 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                                                       .build())
 
   private fun ClassObj.makeEntry(name: String = this.className) =
-    if (superClassObj != null) classDb.registerClass(id, superClassObj.id, name)
+    if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name)
     else classDb.registerClass(id, name)
 }
