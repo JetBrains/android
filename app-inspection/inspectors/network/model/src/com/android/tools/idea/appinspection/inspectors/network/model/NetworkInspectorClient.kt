@@ -21,6 +21,7 @@ import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
+import java.net.URL
 
 interface NetworkInspectorClient {
   suspend fun getStartTimeStampNs(): Long
@@ -40,6 +41,7 @@ class NetworkInspectorClientImpl(
   }
 
   override suspend fun interceptResponse(url: String, body: String) {
+    val urlObject = URL(url)
     messenger.sendRawCommand {
       interceptCommand = NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
         interceptRuleAddedBuilder.apply {
@@ -47,14 +49,12 @@ class NetworkInspectorClientImpl(
           ruleCount += 1
           ruleBuilder.apply {
             criteriaBuilder.apply {
-              urlBuilder.apply {
-                type = NetworkInspectorProtocol.MatchingText.Type.PLAIN
-                text = url
-              }
-              methodBuilder.apply {
-                type = NetworkInspectorProtocol.MatchingText.Type.PLAIN
-                text = ""
-              }
+              protocol = urlObject.protocol
+              host = urlObject.host
+              path = urlObject.path
+              port = if (urlObject.port == -1) "" else urlObject.port.toString()
+              query = urlObject.query
+              method = ""
             }
             addTransformation(
               NetworkInspectorProtocol.Transformation.newBuilder().apply {
