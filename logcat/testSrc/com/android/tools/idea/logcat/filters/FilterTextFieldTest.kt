@@ -113,7 +113,6 @@ class FilterTextFieldTest {
     val editorFactory = EditorFactory.getInstance()
     val androidProjectDetector = FakeAndroidProjectDetector(true)
     val filterTextField = filterTextField(projectRule.project, fakeLogcatPresenter, androidProjectDetector = androidProjectDetector)
-    filterTextField.addNotify() // Creates editor
 
     val editor = filterTextField.getEditorEx()
 
@@ -128,7 +127,6 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun pressEnter_addsToHistory() {
     val filterTextField = filterTextField()
-    filterTextField.addNotify() // Creates editor
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     filterTextField.text = "bar"
 
@@ -142,14 +140,12 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun pressEnter_addsToHistory_favorite() {
     val filterTextField = filterTextField()
-    filterTextField.size = Dimension(100, 100)
-    filterTextField.addNotify() // Creates editor
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
 
     filterTextField.text = "bar"
-    fakeUi.clickOn(historyButton)
+    fakeUi.clickOn(favoriteButton)
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
     textField.keyListeners.forEach { it.keyPressed(keyEvent) }
 
@@ -160,7 +156,6 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory() {
     val filterTextField = filterTextField()
-    filterTextField.addNotify() // Creates editor
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
@@ -173,14 +168,12 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory_favorite() {
     val filterTextField = filterTextField()
-    filterTextField.size = Dimension(100, 100)
-    filterTextField.addNotify() // Creates editor
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val historyButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
 
     filterTextField.text = "foo"
-    fakeUi.clickOn(historyButton)
+    fakeUi.clickOn(favoriteButton)
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
 
     assertThat(getHistoryFavorites()).containsExactly("foo")
@@ -190,7 +183,6 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun addToHistory_logsUsage() {
     val filterTextField = filterTextField()
-    filterTextField.addNotify() // Creates editor
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
@@ -201,17 +193,36 @@ class FilterTextFieldTest {
         .setType(FILTER_ADDED_TO_HISTORY)
         .setLogcatFilter(
           LogcatFilterEvent.newBuilder()
-            .setImplicitLineTerms(1))
+            .setImplicitLineTerms(1)
+            .setIsFavorite(false))
         .build())
   }
 
+  @Test
+  @RunsInEdt
+  fun addToHistory_favorite_logsUsage() {
+    val filterTextField = filterTextField()
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+
+    filterTextField.text = "foo"
+    fakeUi.clickOn(favoriteButton)
+
+    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
+      LogcatUsageEvent.newBuilder()
+        .setType(FILTER_ADDED_TO_HISTORY)
+        .setLogcatFilter(
+          LogcatFilterEvent.newBuilder()
+            .setImplicitLineTerms(1)
+            .setIsFavorite(true))
+        .build())
+  }
 
   @Test
   @RunsInEdt
   fun clickClear() {
     val filterTextField = filterTextField(initialText = "foo")
-    filterTextField.size = Dimension(100, 100)
-    val fakeUi = FakeUi(filterTextField)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
     val clearButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Actions.Close }
 
     fakeUi.clickOn(clearButton)
@@ -239,7 +250,10 @@ class FilterTextFieldTest {
     initialText: String = "",
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
-    FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector)
+    FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector).apply {
+      addNotify()  // Creates editor
+      size = Dimension(100, 100) // Allows FakeUi mouse clicks
+    }
 
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites

@@ -108,7 +108,7 @@ internal class LogcatFilterParser(
    * @param filterString a string in the Logcat filter language
    * @return A [LogcatFilterEvent] representing the provided string.
    */
-  fun getUsageTrackingEvent(filterString: String): LogcatFilterEvent {
+  fun getUsageTrackingEvent(filterString: String): LogcatFilterEvent.Builder? {
     val builder = LogcatFilterEvent.newBuilder()
     try {
       val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
@@ -117,7 +117,7 @@ internal class LogcatFilterParser(
       }
       else {
         // We should not be getting a null here because we don't call this method if filterString is empty
-        val logcatFilter = psi.toFilter() ?: return builder.build()
+        val logcatFilter = psi.toFilter() ?: return builder
         processFilters(logcatFilter) { filter ->
           when {
             filter is StringFilter && filter.field == IMPLICIT_LINE -> builder.implicitLineTerms++
@@ -144,7 +144,7 @@ internal class LogcatFilterParser(
     catch (e: LogcatFilterParseException) {
       builder.containsErrors = true
     }
-    return builder.build()
+    return builder
   }
 
   private fun processFilters(filter: LogcatFilter, process: (LogcatFilter) -> Unit) {

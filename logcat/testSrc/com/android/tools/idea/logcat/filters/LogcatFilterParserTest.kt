@@ -302,7 +302,7 @@ class LogcatFilterParserTest {
   fun getUsageTrackingEvent_terms() {
     val query = "tag:foo tag:bar -package:foo line~:foo -message~:bar age:2m level:INFO package:mine foo"
 
-    assertThat(logcatFilterParser().getUsageTrackingEvent(query)).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent(query)?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setTagTerms(TermVariants.newBuilder().setCount(2))
         .setPackageTerms(TermVariants.newBuilder().setCountNegated(1))
@@ -317,7 +317,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_operators() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("(foo | bar) & (for | boo)")).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent("(foo | bar) & (for | boo)")?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setImplicitLineTerms(4)
         .setAndOperators(1)
@@ -328,7 +328,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_error() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("level:foo")).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent("level:foo")?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setContainsErrors(true)
         .build())
@@ -336,7 +336,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_emptyFilter() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("")).isEqualTo(LogcatFilterEvent.getDefaultInstance())
+    assertThat(logcatFilterParser().getUsageTrackingEvent("")?.build()).isEqualTo(LogcatFilterEvent.getDefaultInstance())
   }
 
   private fun logcatFilterParser(

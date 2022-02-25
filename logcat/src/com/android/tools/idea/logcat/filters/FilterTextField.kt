@@ -45,7 +45,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Color
 import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -177,8 +176,8 @@ internal class FilterTextField(
     favoriteButton.apply {
       addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-          addToHistory()
           isFavorite = !isFavorite
+          addToHistory()
           mouseEntered(e) // Setter for isFavorite will set the wrong icon (not hovered)
         }
 
@@ -222,11 +221,10 @@ internal class FilterTextField(
       return
     }
     filterHistory.add(text, isFavorite)
-    // TODO(aalbert): Add isFavorite to tracking
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(filterParser.getUsageTrackingEvent(text)))
+        .setLogcatFilter(filterParser.getUsageTrackingEvent(text)?.setIsFavorite(isFavorite)))
   }
 
   private inner class FilterTextFieldBorder : DarculaTextBorder() {
