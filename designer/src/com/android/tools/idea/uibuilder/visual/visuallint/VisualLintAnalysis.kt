@@ -22,7 +22,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyser
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
@@ -31,7 +31,7 @@ enum class VisualLintErrorType {
   BOUNDS, BOTTOM_NAV, BOTTOM_APP_BAR, OVERLAP, LONG_TEXT, ATF, LOCALE_TEXT
 }
 
-private val basicAnalyzers = listOf(BoundsAnalyser, BottomNavAnalyzer, BottomAppBarAnalyzer, OverlapAnalyzer, LongTextAnalyzer)
+private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, OverlapAnalyzer, LongTextAnalyzer)
 
 /**
  * Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.

@@ -26,7 +26,7 @@ import com.android.utils.HtmlBuilder
  * [VisualLintAnalyzer] for issues where a child view is not fully contained within
  * the bounds of its parent.
  */
-object BoundsAnalyser : VisualLintAnalyzer() {
+object BoundsAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOUNDS
 
