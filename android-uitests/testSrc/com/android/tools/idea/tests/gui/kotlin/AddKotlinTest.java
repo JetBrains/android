@@ -157,7 +157,7 @@ public class AddKotlinTest {
     Wait.seconds(15)
       .expecting("Gradle Kotlin plugin version to be set")
       .until(() ->
-        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("ext.kotlin_version")
+        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin_version")
       );
 
     String buildGradleContents = ideFrameFixture.getEditor()
@@ -166,8 +166,8 @@ public class AddKotlinTest {
 
     String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
-      "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + kotlinVersion + '\'')
+      "kotlin_version.*=.*",
+      "kotlin_version = '" + kotlinVersion + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
