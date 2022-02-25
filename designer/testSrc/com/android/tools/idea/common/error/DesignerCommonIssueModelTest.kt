@@ -19,7 +19,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.NodeDescriptor
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
 import com.intellij.util.concurrency.Invoker
@@ -37,15 +36,15 @@ class DesignerCommonIssueModelTest {
   fun test() {
     val invoker = Invoker.forEventDispatchThread(rule.testRootDisposable)
     val model = DesignerCommonIssueModel(rule.testRootDisposable, invoker)
-    val root = TestNode(rule.project, null)
+    val root = TestNode()
 
     runInEdtAndGet {
       invoker.invoke {
         model.root = root
         assertEquals(0, model.getChildCount(model.root))
 
-        val child1 = TestNode(rule.project, root)
-        val child2 = TestNode(rule.project, root)
+        val child1 = TestNode(root)
+        val child2 = TestNode(root)
         root.addChild(child1)
         root.addChild(child2)
 
@@ -56,12 +55,12 @@ class DesignerCommonIssueModelTest {
   }
 }
 
-class TestNode(project: Project, parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?)
-  : DesignerCommonIssueNode(project, parentDescriptor) {
+class TestNode(parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null)
+  : DesignerCommonIssueNode(null, parentDescriptor) {
 
   private val children = mutableListOf<DesignerCommonIssueNode>()
 
-  override fun update(project: Project, presentation: PresentationData) = Unit
+  override fun updatePresentation(presentation: PresentationData) = Unit
 
   override fun getName(): String = ""
 

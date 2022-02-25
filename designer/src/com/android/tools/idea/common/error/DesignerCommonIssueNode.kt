@@ -23,6 +23,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -59,7 +60,14 @@ import java.util.Objects
 abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?)
   : PresentableNodeDescriptor<DesignerCommonIssueNode>(project, parentDescriptor), LeafState.Supplier {
 
-  protected abstract fun update(project: Project, presentation: PresentationData)
+  final override fun update(presentation: PresentationData) {
+    if (myProject != null && myProject.isDisposed) {
+      return
+    }
+    updatePresentation(presentation)
+  }
+
+  protected abstract fun updatePresentation(presentation: PresentationData)
 
   abstract override fun getName(): String
 
@@ -67,34 +75,29 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 
   abstract fun getChildren(): Collection<DesignerCommonIssueNode>
 
+  /**
+   * The associated [VirtualFile] of this node to provide [PlatformDataKeys.VIRTUAL_FILE] data. Can be null.
+   */
   open fun getVirtualFile(): VirtualFile? = null
 
+  /**
+   * The associated [Navigatable] of this node to provide the [PlatformDataKeys.NAVIGATABLE] data. Can be null.
+   */
   open fun getNavigatable(): Navigatable? = null
 
-  override fun getElement() = this
+  final override fun getElement() = this
 
   /**
    * To provide the description of issue when copying the description by [CopyIssueDescriptionAction].
    */
   open fun getDescription(): String? = null
-
-  final override fun update(presentation: PresentationData) {
-    if (myProject == null || myProject.isDisposed) {
-      return
-    }
-    update(myProject, presentation)
-  }
 }
 
 /**
  * The root of common issue panel. This is an invisible root node for simulating the multi-root tree.
  */
-class DesignerCommonIssueRoot(project: Project, var issueProvider: DesignerCommonIssueProvider<out Any?>)
+class DesignerCommonIssueRoot(project: Project?, var issueProvider: DesignerCommonIssueProvider<out Any?>)
   : DesignerCommonIssueNode(project, null) {
-
-  override fun update(project: Project, presentation: PresentationData) {
-    presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-  }
 
   override fun getName(): String = "Current File And Qualifiers"
 
@@ -109,14 +112,18 @@ class DesignerCommonIssueRoot(project: Project, var issueProvider: DesignerCommo
 
     return if (otherIssues != null) fileNodes + NoFileNode(otherIssues, this) else fileNodes
   }
+
+  override fun updatePresentation(presentation: PresentationData) {
+    presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+  }
 }
 
 /**
  * The node represents a file, which contains the issue(s).
  *
  */
-class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: DesignerCommonIssueNode)
-  : DesignerCommonIssueNode(parent.project, parent) {
+class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: DesignerCommonIssueNode?)
+  : DesignerCommonIssueNode(parent?.project, parent) {
 
   override fun getLeafState() = LeafState.DEFAULT
 
@@ -127,7 +134,7 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
 
   override fun getNavigatable(): Navigatable? = null
 
-  override fun update(project: Project, presentation: PresentationData) {
+  override fun updatePresentation(presentation: PresentationData) {
     val virtualFile = file
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(
@@ -140,8 +147,8 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
     presentation.addText("  ${FileUtil.getLocationRelativeToUserHome(url)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     val count = issues.size
     if (count > 0) {
-      val text = "Has $count problems"
-      presentation.addText("  $text", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+      val text = "  Has $count issue${if (count == 1) "" else "s"}"
+      presentation.addText(text, SimpleTextAttributes.GRAYED_ATTRIBUTES)
     }
     else {
       presentation.addText("  There is no issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
@@ -165,7 +172,7 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
 /**
  * A node for the issues which do not belong to any particular file.
  */
-class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode) : DesignerCommonIssueNode(parent.project, parent) {
+class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
   override fun getLeafState() = LeafState.DEFAULT
 
   override fun getName() = "Others"
@@ -174,13 +181,13 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode) : Des
 
   override fun getNavigatable(): Navigatable? = null
 
-  override fun update(project: Project, presentation: PresentationData) {
+  override fun updatePresentation(presentation: PresentationData) {
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(AllIcons.Nodes.Folder)
     val count = issues.size
     if (count > 0) {
-      val text = "Has $count problem${if (count == 1) "s" else ""}"
-      presentation.addText("  $text", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+      val text = "  Has $count issue${if (count == 1) "" else "s"}"
+      presentation.addText(text, SimpleTextAttributes.GRAYED_ATTRIBUTES)
     }
     else {
       presentation.addText("  There is no issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
@@ -204,7 +211,8 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode) : Des
 /**
  * The node represents an [Issue] in the layout file.
  */
-class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommonIssueNode) : DesignerCommonIssueNode(parent.project, parent) {
+class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommonIssueNode?)
+  : DesignerCommonIssueNode(parent?.project, parent) {
 
   private var text: String = ""
   private var offset: Int = -1
@@ -218,14 +226,17 @@ class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommon
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> = emptySet()
 
-  override fun getNavigatable() = file?.let { OpenFileDescriptor(project, it, offset) }
+  override fun getNavigatable(): OpenFileDescriptor? {
+    val targetFile = getVirtualFile()
+    return if (project != null && targetFile != null) OpenFileDescriptor(project, targetFile, offset) else null
+  }
 
   override fun getDescription(): String {
     // Use summary instead because [issue.description] is a html text and very long.
     return issue.summary
   }
 
-  override fun update(project: Project, presentation: PresentationData) {
+  override fun updatePresentation(presentation: PresentationData) {
     val source = issue.source
     val nodeDisplayText: String
     if (source is NlComponentIssueSource) {
