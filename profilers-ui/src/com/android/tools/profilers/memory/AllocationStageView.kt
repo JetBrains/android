@@ -114,7 +114,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     secondComponent = chartCaptureSplitter
     proportion = .2f
   }
-  private var loadingPanel: LoadingPanel? = null
+  @VisibleForTesting
+  var loadingPanel: LoadingPanel? = null
   private val mainPanelLayout = CardLayout()
   private val mainPanel = JPanel(mainPanelLayout).apply {
     add(trackingPanel, CARD_TRACKING)
@@ -148,10 +149,15 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
         loadingPanel?.stopLoading()
       }
     }
-    stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) { showTrackingeUi() }
     updateLabel()
     updateInstanceDetailsSplitter()
-    showLoadingPanel()
+    if (stage.isStatic) {
+      showTrackingeUi()
+    }
+    else {
+      stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) { showTrackingeUi() }
+      showLoadingPanel()
+    }
     component.add(mainPanel, BorderLayout.CENTER)
 
     mainPanel.addHierarchyListener {

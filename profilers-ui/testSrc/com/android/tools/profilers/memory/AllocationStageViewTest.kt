@@ -97,6 +97,17 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   }
 
   @Test
+  fun `loading panel is shown only for live recording`() {
+    stageView.apply {
+     if (isLive) {
+       assertThat(loadingPanel).isNotNull()
+     } else {
+       assertThat(loadingPanel).isNull()
+     }
+    }
+  }
+
+  @Test
   fun `sampling menu updates text when sampling mode changes`() {
     tick()
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(FULL)
