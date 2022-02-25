@@ -127,6 +127,14 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     print("Expected plugin id to be %d, but found %s" % (plugin_id, found_id))
     sys.exit(1)
 
+  if element.tag != 'idea-plugin':
+    print("Expected plugin.xml root item to be 'idea-plugin' but was %s" % element.tag)
+    sys.exit(1)
+
+  if element.attrib.get("allow-bundled-update", "false") != "false" and found_id != "org.jetbrains.kotlin":
+      print("Bundled plugin update are not allowed for plugin: %s" % found_id)
+      sys.exit(1)
+
   if deps is not None:
     depends_xml = set()
     for e in element.findall("depends"):
