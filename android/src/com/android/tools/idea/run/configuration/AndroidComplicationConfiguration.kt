@@ -71,7 +71,8 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
   }
 
   internal fun getTypesFromManifest(): List<Complication.ComplicationType>{
-    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(this.module!!).get()
+    val module = this.module ?: return emptyList()
+    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
     if (snapshotFuture.isDone) {
       return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName)
     }
