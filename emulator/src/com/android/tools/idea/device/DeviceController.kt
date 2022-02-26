@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.device
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.ContainerUtil
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -26,14 +31,19 @@ import java.util.concurrent.TimeUnit
  */
 class DeviceController(
   disposableParent: Disposable,
-  val controlChannel: SuspendingSocketChannel
+  controlChannel: SuspendingSocketChannel
 ) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(javaClass.simpleName, 1)
   private val outputStream = Base128OutputStream(newOutputStream(controlChannel, CONTROL_MSG_BUFFER_SIZE))
+  private val suspendingInputStream = newInputStream(controlChannel, CONTROL_MSG_BUFFER_SIZE)
+  private val inputStream = Base128InputStream(suspendingInputStream)
+  private val receiverScope = AndroidCoroutineScope(this)
+  private val deviceClipboardListeners: MutableList<DeviceClipboardListener> = ContainerUtil.createLockFreeCopyOnWriteList()
 
   init {
     Disposer.register(disposableParent, this)
+    startReceivingMessages()
   }
 
   fun sendControlMessage(message: ControlMessage) {
@@ -51,6 +61,37 @@ class DeviceController(
     executor.shutdown()
     executor.awaitTermination(2, TimeUnit.SECONDS)
   }
+
+  fun addDeviceClipboardListener(listener: DeviceClipboardListener) {
+    deviceClipboardListeners.add(listener)
+  }
+
+  fun removeDeviceClipboardListener(listener: DeviceClipboardListener) {
+    deviceClipboardListeners.remove(listener)
+  }
+
+  private fun startReceivingMessages() {
+    receiverScope.launch {
+      while (true) {
+        suspendingInputStream.waitForData(1)
+        when (val message = ControlMessage.deserialize(inputStream)) {
+          is ClipboardChangedMessage -> onDeviceClipboardChanged(message)
+          else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
+        }
+      }
+    }
+  }
+
+  private fun onDeviceClipboardChanged(message: ClipboardChangedMessage) {
+    val text = message.text
+    for (listener in deviceClipboardListeners) {
+      listener.onDeviceClipboardChanged(text)
+    }
+  }
+
+  interface DeviceClipboardListener {
+    fun onDeviceClipboardChanged(text: String)
+  }
 }
 
-const val CONTROL_MSG_BUFFER_SIZE = 4096
+private const val CONTROL_MSG_BUFFER_SIZE = 4096

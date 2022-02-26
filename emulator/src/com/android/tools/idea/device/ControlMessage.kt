@@ -18,6 +18,7 @@ package com.android.tools.idea.device
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
 import com.android.utils.Base128OutputStream
+import kotlin.text.Charsets.UTF_8
 
 /**
  * Common base of all control messages.
@@ -28,11 +29,11 @@ sealed class ControlMessage(val type: Int) {
     stream.writeInt(type)
   }
 
-  abstract class Deserializer {
-    abstract fun deserialize(stream: Base128InputStream): ControlMessage
+  interface Deserializer {
+    fun deserialize(stream: Base128InputStream): ControlMessage
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     override fun deserialize(stream: Base128InputStream): ControlMessage {
       return when (val type = stream.readInt()) {
         MotionEventMessage.TYPE -> MotionEventMessage.deserialize(stream)
@@ -40,6 +41,9 @@ sealed class ControlMessage(val type: Int) {
         TextInputMessage.TYPE -> TextInputMessage.deserialize(stream)
         SetDeviceOrientationMessage.TYPE -> SetDeviceOrientationMessage.deserialize(stream)
         SetMaxVideoResolutionMessage.TYPE -> SetMaxVideoResolutionMessage.deserialize(stream)
+        StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
+        StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
+        ClipboardChangedMessage.TYPE -> ClipboardChangedMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
@@ -63,7 +67,7 @@ internal data class MotionEventMessage(
     stream.writeInt(displayId)
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     const val TYPE = 1
 
     // Constants from android.view.MotionEvent.
@@ -121,7 +125,7 @@ internal data class KeyEventMessage(
     stream.writeInt(metaState)
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     const val TYPE = 2
 
     override fun deserialize(stream: Base128InputStream): KeyEventMessage {
@@ -144,7 +148,7 @@ internal data class TextInputMessage(
     stream.writeString(text)
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     const val TYPE = 3
 
     override fun deserialize(stream: Base128InputStream): TextInputMessage {
@@ -162,7 +166,7 @@ internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessag
     stream.writeInt(orientation)
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     const val TYPE = 4
 
     override fun deserialize(stream: Base128InputStream): SetDeviceOrientationMessage {
@@ -181,13 +185,63 @@ internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : C
     stream.writeInt(height)
   }
 
-  companion object : Deserializer() {
+  companion object : Deserializer {
     const val TYPE = 5
 
     override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
       val width = stream.readInt()
       val height = stream.readInt()
       return SetMaxVideoResolutionMessage(width, height)
+    }
+  }
+}
+
+/** Sets device clipboard and requests clipboard updates from the device. */
+internal class StartClipboardSyncMessage(val maxSyncedLength: Int, val text: String) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(maxSyncedLength)
+    stream.writeBytes(text.toByteArray(UTF_8))
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 6
+
+    override fun deserialize(stream: Base128InputStream): StartClipboardSyncMessage {
+      val maxSyncedLength = stream.readInt()
+      val bytes = stream.readBytes()
+      return StartClipboardSyncMessage(maxSyncedLength, bytes.toString(UTF_8))
+    }
+  }
+}
+
+/** Stops clipboard updates from the device. */
+internal class StopClipboardSyncMessage : ControlMessage(TYPE) {
+
+  companion object : Deserializer {
+    const val TYPE = 7
+
+    override fun deserialize(stream: Base128InputStream): StopClipboardSyncMessage {
+      return StopClipboardSyncMessage()
+    }
+  }
+}
+
+/** A clipboard update from the device. */
+internal class ClipboardChangedMessage(val text: String) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBytes(text.toByteArray(UTF_8))
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 8
+
+    override fun deserialize(stream: Base128InputStream): ClipboardChangedMessage {
+      val bytes = stream.readBytes()
+      return ClipboardChangedMessage(bytes.toString(UTF_8))
     }
   }
 }

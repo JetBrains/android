@@ -156,6 +156,8 @@ class DeviceView(
           if (width > 0 && height > 0) {
             deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
           }
+          val clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
+          clipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync()
         }
       }
       decoder.addFrameListener(object : VideoDecoder.FrameListener {
@@ -461,7 +463,7 @@ class DeviceView(
       val oldMultiTouchMode = multiTouchMode
       multiTouchMode = (event.modifiersEx and CTRL_DOWN_MASK) != 0
       if (multiTouchMode && oldMultiTouchMode) {
-        repaint() // If multitouch mode changed above, the repaint method was already called.
+        repaint() // If multi-touch mode changed above, the repaint method was already called.
       }
     }
   }
