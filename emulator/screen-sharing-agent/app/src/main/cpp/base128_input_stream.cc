@@ -55,6 +55,21 @@ uint8_t Base128InputStream::ReadByte() {
   return buffer_[offset_++];
 }
 
+string Base128InputStream::ReadBytes() {
+  int len = ReadInt32();
+  if (len < 0) {
+    throw StreamFormatException::InvalidFormat();
+  }
+  string bytes;
+  if (len > 0) {
+    bytes.reserve(len);
+    for (int i = 0; i < len; ++i) {
+      bytes.push_back(static_cast<int8_t>(ReadByte()));
+    }
+  }
+  return bytes;
+}
+
 int16_t Base128InputStream::ReadInt16() {
   int b = ReadByte();
   int value = b & 0x7F;

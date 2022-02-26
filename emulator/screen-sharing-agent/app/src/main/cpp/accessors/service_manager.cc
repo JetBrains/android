@@ -39,14 +39,17 @@ ServiceManager& ServiceManager::GetInstance(Jni jni) {
   return *instance_;
 }
 
-JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type) {
-  JObject binder = GetService(jni, name);
+JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type, bool allow_null) {
+  JObject binder = GetService(jni, name, allow_null);
+  if (binder.IsNull()) {
+    return binder;
+  }
   string stub_class_name = string(type) + "$Stub";
   JClass stub_class = jni.GetClass(stub_class_name.c_str());
   string method_signature = string("(Landroid/os/IBinder;)L") + type + ";";
   jmethodID as_interface_method = stub_class.GetStaticMethodId("asInterface", method_signature.c_str());
   auto service = stub_class.CallStaticObjectMethod(as_interface_method, binder.ref());
-  if (service.IsNull()) {
+  if (service.IsNull() && !allow_null) {
     auto last_slash = strrchr(type, '/');
     auto type_name = last_slash == nullptr ? type : last_slash + 1;
     Log::Fatal("Unable to get the \"%s\" service object", type_name);
@@ -54,11 +57,11 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   return service;
 }
 
-JObject ServiceManager::GetService(Jni jni, const char* name) {
+JObject ServiceManager::GetService(Jni jni, const char* name, bool allow_null) {
   Log::D("GetService(\"%s\")", name);
   ServiceManager& manager = GetInstance(jni);
   JObject binder = manager.service_manager_class_.CallStaticObjectMethod(jni, manager.get_service_method_, JString(jni, name).ref());
-  if (binder.IsNull()) {
+  if (binder.IsNull() && !allow_null) {
     Log::Fatal("Unable to find the \"%s\" service", name);
   }
   return binder;

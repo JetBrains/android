@@ -40,9 +40,22 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(Base128InputStream& strea
     case SetMaxVideoResolutionMessage::TYPE:
       return unique_ptr<ControlMessage>(SetMaxVideoResolutionMessage::Deserialize(stream));
 
+    case StartClipboardSyncMessage::TYPE:
+      return unique_ptr<ControlMessage>(StartClipboardSyncMessage::Deserialize(stream));
+
+    case StopClipboardSyncMessage::TYPE:
+      return unique_ptr<ControlMessage>(StopClipboardSyncMessage::Deserialize(stream));
+
+    case ClipboardChangedMessage::TYPE:
+      return unique_ptr<ControlMessage>(ClipboardChangedMessage::Deserialize(stream));
+
     default:
       Log::Fatal("Unexpected message type %d", type);
   }
+}
+
+void ControlMessage::Serialize(Base128OutputStream& stream) const {
+  stream.WriteInt32(type_);
 }
 
 MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) {
@@ -87,6 +100,21 @@ SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128I
   uint32_t width = stream.ReadUInt32();
   uint32_t height = stream.ReadUInt32();
   return new SetMaxVideoResolutionMessage(width, height);
+}
+
+StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {
+  int max_sync_length = stream.ReadInt32();
+  string text = stream.ReadBytes();
+  return new StartClipboardSyncMessage(max_sync_length, move(text));
+}
+
+StopClipboardSyncMessage* StopClipboardSyncMessage::Deserialize(Base128InputStream& stream) {
+  return new StopClipboardSyncMessage();
+}
+
+void ClipboardChangedMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteBytes(text_);
 }
 
 }  // namespace screensharing

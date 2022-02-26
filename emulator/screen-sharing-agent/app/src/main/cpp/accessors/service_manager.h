@@ -24,8 +24,8 @@ namespace screensharing {
 // Provides access to the android.os.ServiceManager.getService method.
 class ServiceManager {
 public:
-  static JObject GetServiceAsInterface(Jni jni, const char* name, const char* type);
-  static JObject GetService(Jni jni, const char* name);
+  static JObject GetServiceAsInterface(Jni jni, const char* name, const char* type, bool allow_null = false);
+  static JObject GetService(Jni jni, const char* name, bool allow_null = false);
 
 private:
   ServiceManager(Jni jni);

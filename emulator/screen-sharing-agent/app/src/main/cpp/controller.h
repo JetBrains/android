@@ -18,9 +18,10 @@
 
 #include <thread>
 #include <vector>
+
+#include <accessors/clipboard_manager.h>
 #include <accessors/input_manager.h>
 #include <accessors/key_character_map.h>
-
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
 #include "common.h"
@@ -41,6 +42,17 @@ public:
   void Shutdown();
 
 private:
+  struct ClipboardListener : public ClipboardManager::ClipboardListener {
+    ClipboardListener(Controller* controller)
+        : controller_(controller) {
+    }
+    virtual ~ClipboardListener();
+
+    virtual void OnPrimaryClipChanged() override;
+
+    Controller* controller_;
+  };
+
   void Initialize();
   void Run();
   void ProcessMessage(const ControlMessage& message);
@@ -49,9 +61,13 @@ private:
   void ProcessTextInput(const TextInputMessage& message);
   void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
+  void StartClipboardSync(const StartClipboardSyncMessage& message);
+  void StopClipboardSync();
+  void OnPrimaryClipChanged();
 
   Jni jni_ = nullptr;
   Base128InputStream input_stream_;
+  Base128OutputStream output_stream_;
   std::thread thread_;
   InputManager* input_manager_;
   PointerHelper* pointer_helper_;
@@ -61,6 +77,10 @@ private:
   KeyCharacterMap* key_character_map_;
   ScopedSetting stay_on_;
   ScopedSetting accelerometer_rotation_;
+
+  ClipboardListener clipboard_listener_;
+  ClipboardManager* clipboard_manager_;
+  std::atomic<int> max_synced_clipboard_length_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

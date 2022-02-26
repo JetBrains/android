@@ -23,6 +23,7 @@
 #include <android/input.h>
 
 #include "base128_input_stream.h"
+#include "base128_output_stream.h"
 #include "common.h"
 
 namespace screensharing {
@@ -36,6 +37,7 @@ public:
     return type_;
   }
 
+  virtual void Serialize(Base128OutputStream& stream) const;
   static std::unique_ptr<ControlMessage> Deserialize(Base128InputStream& stream);
 
 protected:
@@ -205,6 +207,72 @@ private:
   uint32_t height_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
+};
+
+// Sets contents of the clipboard and requests notifications of clipboard changes.
+class StartClipboardSyncMessage : ControlMessage {
+public:
+  StartClipboardSyncMessage(int max_synced_length, std::string&& text)
+      : ControlMessage(TYPE),
+        max_synced_length_(max_synced_length),
+        text_(text) {
+  }
+  virtual ~StartClipboardSyncMessage() {};
+
+  const std::string& get_text() const { return text_; }
+  int get_max_synced_length() const { return max_synced_length_; }
+
+  static constexpr int TYPE = 6;
+
+private:
+  friend class ControlMessage;
+
+  static StartClipboardSyncMessage* Deserialize(Base128InputStream& stream);
+
+  int max_synced_length_;
+  std::string text_;
+
+  DISALLOW_COPY_AND_ASSIGN(StartClipboardSyncMessage);
+};
+
+// Stops notifications of clipboard changes.
+class StopClipboardSyncMessage : ControlMessage {
+public:
+  StopClipboardSyncMessage()
+      : ControlMessage(TYPE) {
+  }
+  virtual ~StopClipboardSyncMessage() {};
+
+  static constexpr int TYPE = 7;
+
+private:
+  friend class ControlMessage;
+
+  static StopClipboardSyncMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(StopClipboardSyncMessage);
+};
+
+// Notification of clipboard content change.
+class ClipboardChangedMessage : ControlMessage {
+public:
+  ClipboardChangedMessage(const std::string& text)
+      : ControlMessage(TYPE) {
+  }
+  virtual ~ClipboardChangedMessage() {};
+
+  const std::string& get_text() const { return text_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 8;
+
+private:
+  friend class ControlMessage;
+
+  std::string text_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClipboardChangedMessage);
 };
 
 }  // namespace screensharing

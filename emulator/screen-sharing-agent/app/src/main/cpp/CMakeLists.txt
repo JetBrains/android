@@ -14,6 +14,7 @@ add_library(
 
         SHARED
 
+        accessors/clipboard_manager.cc
         accessors/display_info.cc
         accessors/display_manager.cc
         accessors/input_manager.cc

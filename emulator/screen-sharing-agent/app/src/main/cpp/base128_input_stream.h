@@ -37,6 +37,7 @@ public:
 
   int Close();
   uint8_t ReadByte();
+  std::string ReadBytes();
   int16_t ReadInt16();
   uint16_t ReadUInt16() { return static_cast<uint16_t>(ReadInt16()); }
   int32_t ReadInt32();
