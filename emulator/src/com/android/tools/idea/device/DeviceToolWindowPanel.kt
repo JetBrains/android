@@ -111,7 +111,7 @@ internal class DeviceToolWindowPanel(
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
     primaryDeviceView = deviceView
-    mainToolbar.setTargetComponent(deviceView)
+    mainToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
