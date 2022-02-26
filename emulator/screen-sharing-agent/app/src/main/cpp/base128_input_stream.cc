@@ -57,16 +57,12 @@ uint8_t Base128InputStream::ReadByte() {
 int16_t Base128InputStream::ReadInt16() {
   int b = ReadByte();
   int value = b & 0x7F;
-  try {
-    for (int shift = 7; (b & 0x80) != 0; shift += 7) {
-      b = ReadByte();
-      if (shift == 21 && (b & 0xFC) != 0) {
-        throw StreamFormatException::InvalidFormat();
-      }
-      value |= (b & 0x7F) << shift;
+  for (int shift = 7; (b & 0x80) != 0; shift += 7) {
+    b = ReadByte();
+    if (shift == 21 && (b & 0xFC) != 0) {
+      throw StreamFormatException::InvalidFormat();
     }
-  } catch (EndOfFile& e) {
-    throw StreamFormatException::PrematureEndOfStream();
+    value |= (b & 0x7F) << shift;
   }
   return static_cast<int16_t>(value);
 }
@@ -74,16 +70,12 @@ int16_t Base128InputStream::ReadInt16() {
 int32_t Base128InputStream::ReadInt32() {
   int b = ReadByte();
   int value = b & 0x7F;
-  try {
-    for (int shift = 7; (b & 0x80) != 0; shift += 7) {
-      b = ReadByte();
-      if (shift == 28 && (b & 0xF0) != 0) {
-        throw StreamFormatException::InvalidFormat();
-      }
-      value |= (b & 0x7F) << shift;
+  for (int shift = 7; (b & 0x80) != 0; shift += 7) {
+    b = ReadByte();
+    if (shift == 28 && (b & 0xF0) != 0) {
+      throw StreamFormatException::InvalidFormat();
     }
-  } catch (EndOfFile& e) {
-    throw StreamFormatException::PrematureEndOfStream();
+    value |= (b & 0x7F) << shift;
   }
   return value;
 }
@@ -91,16 +83,12 @@ int32_t Base128InputStream::ReadInt32() {
 int64_t Base128InputStream::ReadInt64() {
   int b = ReadByte();
   long value = b & 0x7F;
-  try {
-    for (int shift = 7; (b & 0x80) != 0; shift += 7) {
-      b = ReadByte();
-      if (shift == 63 && (b & 0x7E) != 0) {
-        throw StreamFormatException::InvalidFormat();
-      }
-      value |= ((long) (b & 0x7F)) << shift;
+  for (int shift = 7; (b & 0x80) != 0; shift += 7) {
+    b = ReadByte();
+    if (shift == 63 && (b & 0x7E) != 0) {
+      throw StreamFormatException::InvalidFormat();
     }
-  } catch (EndOfFile& e) {
-    throw StreamFormatException::PrematureEndOfStream();
+    value |= ((long) (b & 0x7F)) << shift;
   }
 
   return value;
@@ -127,18 +115,10 @@ unique_ptr<u16string> Base128InputStream::ReadString16() {
     return make_unique<u16string>();
   }
   auto result = make_unique<u16string>(static_cast<unsigned int>(len), '\0');
-  try {
-    for (int i = 0; i < len; i++) {
-      (*result)[i] = ReadUInt16();
-    }
-  } catch (EndOfFile& e) {
-    throw StreamFormatException::PrematureEndOfStream();
+  for (int i = 0; i < len; i++) {
+    (*result)[i] = ReadUInt16();
   }
   return result;
-}
-
-Base128InputStream::StreamFormatException Base128InputStream::StreamFormatException::PrematureEndOfStream() {
-  return StreamFormatException("Premature end of stream");
 }
 
 Base128InputStream::StreamFormatException Base128InputStream::StreamFormatException::InvalidFormat() {

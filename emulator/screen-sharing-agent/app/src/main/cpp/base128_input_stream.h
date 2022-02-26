@@ -52,8 +52,6 @@ public:
       : IoException(message) {
     }
 
-    static StreamFormatException PrematureEndOfStream();
-
     static StreamFormatException InvalidFormat();
   };
 
