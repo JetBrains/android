@@ -209,12 +209,19 @@ JClass JClass::GetSuperclass() const {
 
 string JClass::GetName() const {
   JNIEnv* jni_env = GetJni();
-  jclass clazz = ref();
   if (Jvm::class_get_name_method_ == nullptr) {
     // class_get_name_method_ is not initialized yet. This means that GetName was called indirectly by Jvm::Initialize.
     return "java.lang.Class";
   }
-  auto name = down_cast<jstring>(jni_env->CallObjectMethod(clazz, Jvm::class_get_name_method_));
+  auto name = down_cast<jstring>(jni_env->CallObjectMethod(ref(), Jvm::class_get_name_method_));
+  if (name == nullptr) {
+    // For some mysterious reason the java.lang.Class.getName method sometimes returns null,
+    // but returns the correct class name when retried.
+    name = down_cast<jstring>(jni_env->CallObjectMethod(ref(), Jvm::class_get_name_method_));
+    if (name == nullptr) {
+      return "<unknown_class>";
+    }
+  }
   return JString(jni_env, name).GetValue();
 }
 
@@ -275,10 +282,13 @@ JString::JString(JNIEnv* jni_env, const char* value)
 }
 
 string JString::GetValue() const {
+  if (IsNull()) {
+    Log::Fatal("JString::GetValue is called on a null String");
+  }
   const char* localName = GetJni()->GetStringUTFChars(ref(), nullptr);
-  std::string res(localName);
+  string result(localName);
   GetJni()->ReleaseStringUTFChars(ref(), localName);
-  return res;
+  return result;
 }
 
 JObject JObjectArray::GetElement(JNIEnv* jni_env, int32_t index) const {
