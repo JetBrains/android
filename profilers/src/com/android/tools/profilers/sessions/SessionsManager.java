@@ -47,7 +47,6 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
-import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -155,7 +154,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     myArtifactsFetchers = new ArrayList<>();
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
-    myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);

@@ -165,7 +165,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   override fun isError() = false
 
   override fun unload() {
-    queryRange!!.removeDependencies(aspectObserver)
+    queryRange?.removeDependencies(aspectObserver)
     executorService!!.shutdownNow()
   }
 

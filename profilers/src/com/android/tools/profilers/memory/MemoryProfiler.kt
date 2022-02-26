@@ -206,15 +206,12 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
       get() = Logger.getInstance(MemoryProfiler::class.java)
 
     /**
-     * @return whether live allocation is active for the specified session. This is determined by whether there are valid
-     * [AllocationSamplingRateDurationData]'s (which are sent via perfa when live tracking is enabled} within the session's time range.
+     * @return whether live allocation is active for the specified session.
      */
     @JvmStatic
     fun isUsingLiveAllocation(profilers: StudioProfilers, session: Common.Session) =
-      AllocationSamplingRateDataSeries(profilers.client,
-                                       session,
-                                       profilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-        .getDataForRange(profilers.timeline.dataRange).isNotEmpty()
+      getAllocationInfosForSession(profilers.client, session, profilers.timeline.dataRange,
+                                   profilers.ideServices).let { it.isNotEmpty() && !it[0].legacy }
 
     /**
      * @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise.

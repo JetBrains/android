@@ -13,6 +13,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -109,6 +110,14 @@ class AllocationStageViewTest(private val isLive: Boolean) {
 
   @Test
   fun `sampling menu updates text when sampling mode changes`() {
+    stage.liveAllocationSamplingMode = FULL
+    val info = Memory.AllocationsInfo.newBuilder().setStartTime(AllocationSessionArtifactTest.TIMESTAMP1).setEndTime(
+      Long.MAX_VALUE).setLegacy(false)
+    val session = stage.studioProfilers.session
+    transportService.addEventToStream(
+      session.streamId,
+      ProfilersTestData.generateMemoryAllocationInfoData(AllocationSessionArtifactTest.TIMESTAMP1, session.pid, info.build()).setIsEnded(
+        false).build())
     tick()
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(FULL)
 

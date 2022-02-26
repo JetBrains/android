@@ -86,18 +86,20 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     assertThat(configBuilder.hasMem()).isTrue()
   }
 
-  fun testAllocationTrackingIsNoneForStartupNativeMemory() {
+  fun testAllocationTrackingIsFullByDefault() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
     val state = ProfilerState();
     `when`(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.FULL.value)
 
+    // Note startup profiling should not change the default default mode because live allocation tracking can be
+    // started only by an explicit user operation which is impossible while startup profiling is in progress.
     state.STARTUP_PROFILING_ENABLED = true;
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.FULL.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
   }
 

@@ -70,7 +70,7 @@ class MemoryAllocTracking(timer: FakeTimer) : CommandHandler(timer) {
     }
     else {
       // Only inserts a stop event if there is a matching start tracking event.
-      events.find { it.groupId == infoId }?.let {
+      events.find { it.groupId == infoId && it.kind == Common.Event.Kind.MEMORY_ALLOC_TRACKING}?.let {
         events.add(Common.Event.newBuilder().apply {
           groupId = infoId
           pid = command.pid

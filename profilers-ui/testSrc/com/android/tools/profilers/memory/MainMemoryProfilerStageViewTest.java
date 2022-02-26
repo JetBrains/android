@@ -327,7 +327,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
 
   @Test
-  public void testCaptureElapsedTime() {
+  public void testLegacyCaptureElapsedTime() {
     final int startTime = 1;
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
@@ -765,15 +765,27 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 10, Memory.MemoryGcData.newBuilder()
         .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
 
+    // Start live allocation tracking
+    Memory.AllocationsInfo.Builder info = Memory.AllocationsInfo.newBuilder().setStartTime(1).setSuccess(true).setLegacy(false);
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocationInfoData(1, process.getPid(), info.setEndTime(Long.MAX_VALUE).build()).setIsEnded(false).build());
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 1, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
+    // Change allocation tracking sampling mode
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 5, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
+    // Generate stop live allocation tracking
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
-        .generateMemoryAllocSamplingData(process.getPid(), 8, MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build());
+        .generateMemoryAllocationInfoData(1, process.getPid(), info.setEndTime(8).build()).setIsEnded(true).build());
+    // Restart  live allocation tracking
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocationInfoData(10, process.getPid(),
+                                          info.setStartTime(10).setEndTime(Long.MAX_VALUE).build()).setIsEnded(false).build());
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
         .generateMemoryAllocSamplingData(process.getPid(), 10, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());

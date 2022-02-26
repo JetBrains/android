@@ -91,13 +91,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = makeModel(CaptureDataSeries::ofHeapDumpSamples);
-    myAllocationDurations =
-      isLiveAllocationTrackingSupported()
-      ? AllocationDurationData.makeModel(getTimeline().getViewRange(),
-                                         getTimeline().getDataRange(),
-                                         applyDataSeriesConstructor(CaptureDataSeries::ofAllocationInfos),
-                                         getAllocationSamplingRateDataSeries())
-      : makeModel(CaptureDataSeries::ofAllocationInfos);
+    myAllocationDurations = makeModel(CaptureDataSeries::ofAllocationInfos);
     myNativeAllocationDurations = makeModel(CaptureDataSeries::ofNativeAllocationSamples);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->

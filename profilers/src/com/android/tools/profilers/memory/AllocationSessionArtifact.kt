@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.memory.AllocationDurationData.Companion.consecutiveAllocRanges
+import com.android.tools.profilers.memory.MemoryProfiler.Companion.getAllocationInfosForSession
 import com.android.tools.profilers.sessions.SessionArtifact
 import java.util.concurrent.TimeUnit
 
@@ -39,8 +39,8 @@ class AllocationSessionArtifact(private val profilers: StudioProfilers,
   override fun getArtifactProto() = info
   override fun getSessionMetaData() = sessionMetadata
   override fun getName() = "Allocation Records"
-  override fun getTimestampNs() = TimeUnit.MICROSECONDS.toNanos(startUs.toLong()) - session.startTimestamp
-  override fun isOngoing() = false
+  override fun getTimestampNs() = info.startTime - session.startTimestamp
+  override fun isOngoing() = info.endTime == Long.MAX_VALUE
   override fun onSelect() {
     if (session !== profilers.session)
       profilers.sessionsManager.setSession(session)
@@ -53,16 +53,15 @@ class AllocationSessionArtifact(private val profilers: StudioProfilers,
     @JvmStatic
     fun getSessionArtifacts(profilers: StudioProfilers,
                             session: Common.Session,
-                            sessionMetadata: Common.SessionMetaData) : List<SessionArtifact<*>> {
+                            sessionMetadata: Common.SessionMetaData): List<SessionArtifact<*>> {
       val rangeUs = Range(session.startTimestamp.nanosToMicros().toDouble(), session.endTimestamp.nanosToMicros().toDouble())
-      val samplingSeries =
-        AllocationSamplingRateDataSeries(profilers.client, session, profilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
-      return samplingSeries.getDataForRange(rangeUs).consecutiveAllocRanges().mapNotNull { r ->
-        val infos = MemoryProfiler.getAllocationInfosForSession(profilers.client, session, r, profilers.ideServices)
-        if (infos.isEmpty()) {
-          null
-        } else {
-          AllocationSessionArtifact(profilers, session, sessionMetadata, infos[0], r.min, r.max)
+      return getAllocationInfosForSession(profilers.client, session, rangeUs, profilers.ideServices).mapNotNull { info ->
+        if (info.legacy) {
+          LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
+        }
+        else {
+          AllocationSessionArtifact(profilers, session, sessionMetadata, info, info.startTime.nanosToMicros().toDouble(),
+                                    info.endTime.nanosToMicros().toDouble())
         }
       }
     }
