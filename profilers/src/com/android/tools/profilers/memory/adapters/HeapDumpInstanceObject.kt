@@ -144,7 +144,7 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
     val order = compareBy(Instance::distanceToGcRoot, Instance::id) // to enforce more deterministic order
     // Hard referrers first, soft second
     val sortedReferences = instance.hardReverseReferences.sortedWith(order) +
-                           (instance.softReverseReferences?.sortedWith(order) ?: listOf())
+                           instance.softReverseReferences.sortedWith(order)
     return sortedReferences.map { reference ->
       // Note that each instance can have multiple references to the same object.
       val referencingFieldNames = when (reference) {
@@ -163,7 +163,7 @@ internal class HeapDumpInstanceObject(private val captureObject: HeapDumpCapture
         else -> listOf()
       }
       ReferenceObject(referencingFieldNames, captureObject.findInstanceObject(reference)!!)
-    }
+    }.toList()
   }
 
   companion object {
