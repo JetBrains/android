@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="zxing-core">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0/core-3.4.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.1/core-3.4.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.0/core-3.4.0-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/zxing/core/3.4.1/core-3.4.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
