@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.stdui.CommonHyperLinkLabel
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
@@ -123,10 +122,22 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
       .withHeaderRenderer(createTreeHeaderRenderer())
-      .withColumn(createIntColumn<TreeViewNode>("Counts", { (it.view as? ComposeViewNode)?.recomposeCount }, leftDivider = true,
-                                                maxInt = { inspectorModel?.maxRecompositionCount }, headerRenderer = createCountsHeader()))
-      .withColumn(createIntColumn<TreeViewNode>("Skips", { (it.view as? ComposeViewNode)?.recomposeSkips }, foreground = JBColor.lightGray,
-                                                maxInt = { inspectorModel?.maxRecompositionSkips }, headerRenderer = createSkipsHeader()))
+      .withColumn(createIntColumn<TreeViewNode>(
+        "Counts",
+        { (it.view as? ComposeViewNode)?.recomposeCount },
+        leftDivider = true,
+        maxInt = { inspectorModel?.maxRecompositionCount ?: 0 },
+        minInt = { 0 },
+        headerRenderer = createCountsHeader())
+      )
+      .withColumn(createIntColumn<TreeViewNode>(
+        "Skips",
+        { (it.view as? ComposeViewNode)?.recomposeSkips },
+        foreground = JBColor.lightGray,
+        maxInt = { inspectorModel?.maxRecompositionSkips ?: 0 },
+        minInt = { 0 },
+        headerRenderer = createSkipsHeader())
+      )
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")

@@ -19,10 +19,10 @@ import com.android.tools.componenttree.treetable.IntTableCellRenderer
 import com.intellij.ui.components.JBLabel
 import java.awt.Color
 import java.awt.Rectangle
+import java.lang.Integer.max
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
-import kotlin.math.absoluteValue
 
 /**
  * Creates a [IntColumn]
@@ -43,13 +43,15 @@ inline fun <reified T> createIntColumn(
   name: String,
   noinline getter: (T) -> Int?,
   noinline maxInt: () -> Int? = { null },
+  noinline minInt: () -> Int? = { null },
   noinline action: (item: T, component: JComponent, bounds: Rectangle) -> Unit = { _, _, _ -> },
   noinline popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit = { _, _, _, _ -> },
   noinline tooltip: (item: T) -> String? = { _ -> null },
   leftDivider: Boolean = false,
   foreground: Color? = null,
   headerRenderer: TableCellRenderer? = null
-): ColumnInfo = SingleTypeIntColumn(name, T::class.java, getter, maxInt, action, popup, tooltip, leftDivider, foreground, headerRenderer)
+): ColumnInfo = SingleTypeIntColumn(name, T::class.java, getter, maxInt, minInt, action, popup, tooltip, leftDivider, foreground,
+                                    headerRenderer)
 
 /**
  * A [ColumnInfo] implementation with Int values.
@@ -60,7 +62,8 @@ class SingleTypeIntColumn<T>(
   name: String,
   private val itemClass: Class<T>,
   private val getter: (T) -> Int?,
-  private val maxInt: () -> Int?,
+  private val getMaxInt: () -> Int?,
+  private val getMinInt: () -> Int?,
   private val action: (item: T, component: JComponent, bounds: Rectangle) -> Unit,
   private val popup: (item: T, component: JComponent, x: Int, y: Int) -> Unit,
   private val tooltip: (item: T) -> String?,
@@ -71,7 +74,11 @@ class SingleTypeIntColumn<T>(
   override fun getInt(item: Any): Int =
     cast(item)?.let { getter(it) } ?: 0
 
-  override fun getMaxInt(): Int? = maxInt()
+  override val maxInt: Int?
+    get() = getMaxInt()
+
+  override val minInt: Int?
+    get() = getMinInt()
 
   override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
     cast(item)?.let { action(it, component, bounds) }
@@ -98,7 +105,9 @@ abstract class IntColumn(
 ) : ColumnInfo {
   abstract fun getInt(item: Any): Int
 
-  open fun getMaxInt(): Int? = null
+  open val maxInt: Int? = null
+
+  open val minInt: Int? = null
 
   override val width = -1
 
@@ -109,17 +118,23 @@ abstract class IntColumn(
   }
 
   override fun computeWidth(table: JTable, data: Sequence<*>): Int {
-    val high = getMaxInt() ?: maxAbsInt(data)
-    val negativeHigh = if (high > 0) -high else high
-    val number = StringBuilder()
-    number.append(negativeHigh)
-    number.forEachIndexed { i, _ -> number.setCharAt(i, '8') }
+    val high = StringBuilder((maxInt ?: maxInt(data)).toString())
+    val low = StringBuilder((minInt ?: minInt(data)).toString())
+    high.forEachIndexed { i, c -> if (Character.isDigit(c)) high.setCharAt(i, '8') }
+    low.forEachIndexed { i, c -> if (Character.isDigit(c)) low.setCharAt(i, '8') }
+    return max(widthOf(high), widthOf(low))
+  }
+
+  private fun widthOf(str: StringBuilder): Int {
     val renderer = renderer ?: IntTableCellRenderer(this)
     val component: JBLabel = renderer as JBLabel
-    component.text = number.toString()
+    component.text = str.toString()
     return component.preferredSize.width
   }
 
-  private fun maxAbsInt(data: Sequence<*>): Int =
-    data.filterNotNull().maxOfOrNull { getInt(it).absoluteValue } ?: 0
+  private fun maxInt(data: Sequence<*>): Int =
+    data.filterNotNull().maxOfOrNull { getInt(it) } ?: 0
+
+  private fun minInt(data: Sequence<*>): Int =
+    data.filterNotNull().minOfOrNull { getInt(it) } ?: 0
 }
