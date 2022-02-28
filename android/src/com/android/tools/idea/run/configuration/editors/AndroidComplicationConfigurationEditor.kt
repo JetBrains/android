@@ -16,11 +16,9 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
-import com.android.tools.idea.run.configuration.extractComplicationSupportedTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
@@ -66,10 +64,29 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     currentChosenSlots.apply {
       beginUpdate()
       clear()
-      addAll(runConfiguration.chosenSlots.map { it.copy() })
+      addAll(runConfiguration.chosenSlots.map { removeInvalidTypes(it.copy()) })
       endUpdate()
     }
     update()
+  }
+
+  private fun removeInvalidTypes(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): AndroidComplicationConfiguration.ChosenSlot{
+    if (sourceTypes.contains(chosenSlot.type)) {
+      return chosenSlot
+    }
+    return AndroidComplicationConfiguration.ChosenSlot(chosenSlot.id, null)
+  }
+
+  private fun substituteInvalidTypes(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): AndroidComplicationConfiguration.ChosenSlot{
+    val supportedTypesForNewId = filterTypes(supportedTypes(chosenSlot.id), sourceTypes)
+    if (!supportedTypesForNewId.contains(chosenSlot.type)) {
+      if (supportedTypesForNewId.isEmpty()) {
+        chosenSlot.type = null
+      } else {
+        chosenSlot.type = supportedTypesForNewId.first()
+      }
+    }
+    return chosenSlot
   }
 
   override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
@@ -107,7 +124,8 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
         addSlotLink = link("+ Add Slot", style = null) {
           val nextAvailableSlot = allAvailableSlots.first { notChosenSlotIds.contains(it.slotId) }
           currentChosenSlots.add(
-            AndroidComplicationConfiguration.ChosenSlot(nextAvailableSlot.slotId, nextAvailableSlot.supportedTypes.first()))
+            substituteInvalidTypes(
+              AndroidComplicationConfiguration.ChosenSlot(nextAvailableSlot.slotId, nextAvailableSlot.supportedTypes.first())))
         }.component
         addSlotLink.isEnabled = currentChosenSlots.size < allAvailableSlots.size
       }
@@ -176,10 +194,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
         // When new slotId is chosen we are trying to save chosen type,
         // if it is applicable for new slot Id, if not we set first supported type.
         chosenSlot.id = this.item
-        val supportedTypesForNewId = supportedTypes(chosenSlot.id)
-        if (!supportedTypesForNewId.contains(chosenSlot.type)) {
-          chosenSlot.type = supportedTypesForNewId.first()
-        }
+        substituteInvalidTypes(chosenSlot)
         // We should change available slots ids in each slotIdComboBox + update supportedTypes. It's easier repaint the whole [slotsComponent].
         repaintSlotsComponent()
       }
