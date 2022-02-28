@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -38,7 +39,8 @@ import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
  */
 internal class FakeLogcatPresenter : LogcatPresenter {
   var reloadedMessages = 0
-  var attachedToDevice = false
+  var attachedDevice: IDevice? = null
+
   val messageBatches = mutableListOf<List<LogCatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
   @Suppress("UNUSED_PARAMETER")
@@ -67,7 +69,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     lineBatches.add(list)
   }
 
-  override fun isAttachedToDevice() = attachedToDevice
+  override fun getConnectedDevice() = attachedDevice
 
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
     TODO("Not yet implemented")
@@ -79,6 +81,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getPackageNames(): Set<String> {
     TODO("Not yet implemented")
+  }
+
+  override fun selectDevice(device: IDevice) {
+    attachedDevice = device
   }
 
   fun appendMessage(message: String) {

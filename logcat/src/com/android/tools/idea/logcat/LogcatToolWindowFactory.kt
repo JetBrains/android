@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.IDevice
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.run.ShowLogcatListener
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ex.ToolWindowEx
+import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.EventQueue
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
   init {
@@ -35,6 +42,34 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       ColorSettingsPages.getInstance().apply {
         registerPage(LogcatColorSettingsPage())
         registerPage(LogcatFilterColorSettingsPage())
+      }
+    }
+  }
+
+  override fun init(toolWindow: ToolWindow) {
+    super.init(toolWindow)
+    val project = (toolWindow as ToolWindowEx).project
+    project.messageBus.connect(project)
+      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, _ -> showLogcat(toolWindow, device) })
+  }
+
+  private fun showLogcat(toolWindow: ToolWindowEx, device: IDevice) {
+    EventQueue.invokeLater {
+      toolWindow.activate {
+        val contentManager = toolWindow.contentManager
+        val count = contentManager.contentCount
+        for (i in 0 until count) {
+          val content = contentManager.getContent(i)
+          content?.findLogcatPresenters()?.forEach {
+            if (it.getConnectedDevice() == device) {
+              contentManager.setSelectedContent(content, true)
+              return@activate
+            }
+          }
+        }
+        // TODO(aalbert): Getting a pretty name for a device is complicated since it requires fetching properties from device. Use serial
+        //  number as a tab name for now.
+        createNewTab(toolWindow, device.serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(device)
       }
     }
   }
@@ -60,3 +95,5 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 }
 
 private fun isLogcatV2Enabled() = StudioFlags.LOGCAT_V2_ENABLE.get()
+
+private fun Content.findLogcatPresenters(): List<LogcatPresenter> = TreeWalker(component).descendants().filterIsInstance<LogcatPresenter>()

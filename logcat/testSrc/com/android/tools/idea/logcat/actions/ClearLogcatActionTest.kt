@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.google.common.truth.Truth.assertThat
@@ -44,7 +45,7 @@ class ClearLogcatActionTest {
 
   @Test
   fun update_notEmptyAndAttached() {
-    fakeLogcatPresenter.attachedToDevice = true
+    fakeLogcatPresenter.attachedDevice = mock()
     fakeLogcatPresenter.appendMessage("not-empty")
     val action = newClearLogcatAction(fakeLogcatPresenter)
 
@@ -55,7 +56,7 @@ class ClearLogcatActionTest {
 
   @Test
   fun update_notEmptyAndNotAttached() {
-    fakeLogcatPresenter.attachedToDevice = false
+    fakeLogcatPresenter.attachedDevice = null
     fakeLogcatPresenter.appendMessage("not-empty")
     val action = newClearLogcatAction(fakeLogcatPresenter)
 
@@ -66,7 +67,7 @@ class ClearLogcatActionTest {
 
   @Test
   fun update_isEmptyAndAttached() {
-    fakeLogcatPresenter.attachedToDevice = true
+    fakeLogcatPresenter.attachedDevice = mock()
     fakeLogcatPresenter.appendMessage("not-empty")
     fakeLogcatPresenter.clearMessageView()
     val action = newClearLogcatAction(fakeLogcatPresenter)

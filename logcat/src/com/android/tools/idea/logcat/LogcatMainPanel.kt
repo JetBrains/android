@@ -315,7 +315,11 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun isAttachedToDevice() = deviceManager != null
+  override fun getConnectedDevice() = deviceManager?.device
+
+  override fun selectDevice(device: IDevice) {
+    headerPanel.selectDevice(device)
+  }
 
   override fun getTags(): Set<String> = tags
 

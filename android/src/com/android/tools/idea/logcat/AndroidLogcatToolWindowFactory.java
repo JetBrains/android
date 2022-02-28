@@ -17,10 +17,12 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.ShowLogcatListener;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,11 +44,13 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
+import java.awt.EventQueue;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +67,13 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     if (!StudioFlags.LOGCAT_V2_ENABLE.get()) {
       ColorSettingsPages.getInstance().registerPage(new AndroidLogcatColorPage());
     }
+  }
+
+  @Override
+  public void init(@NotNull ToolWindow toolWindow) {
+    Project project = ((ToolWindowEx)toolWindow).getProject();
+    project.getMessageBus().connect(project)
+      .subscribe(ShowLogcatListener.TOPIC, (device, applicationId) -> showLogcat(toolWindow, device, applicationId));
   }
 
   @Override
@@ -131,6 +142,27 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
         Messages.showErrorDialog(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), "ADB Connection Error");
       }
     }, EdtExecutorService.getInstance());
+  }
+
+  private void showLogcat(
+    @NotNull ToolWindow toolWindow,
+    @NotNull IDevice device,
+    @Nullable String applicationId) {
+    EventQueue.invokeLater(() -> toolWindow.activate(() -> {
+      int count = toolWindow.getContentManager().getContentCount();
+      // There should never be more than a single content but this code works just as good as using getContent(0) protected by an if.
+      for (int i = 0; i < count; i++) {
+        Content content = toolWindow.getContentManager().getContent(i);
+        DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidLogcatToolWindowFactory.DEVICES_PANEL_KEY);
+        if (devicePanel != null) {
+          devicePanel.selectDevice(device);
+          if (applicationId != null) {
+            devicePanel.selectClient(device.getClient(applicationId));
+          }
+          break;
+        }
+      }
+    }));
   }
 
   private static final class MyToolWindowManagerListener implements ToolWindowManagerListener {

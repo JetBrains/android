@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.DevicePanel
 import com.android.tools.idea.logcat.filters.FilterTextComponent
@@ -24,12 +25,12 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
-import java.awt.Component
 import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.GroupLayout
+import javax.swing.JComboBox
 import javax.swing.JPanel
 
 /**
@@ -42,7 +43,7 @@ internal class LogcatHeaderPanel(
   packageNamesProvider: PackageNamesProvider,
   filter: String,
 ) : JPanel() {
-  private val deviceComboBox: Component
+  private val deviceComboBox: JComboBox<IDevice>
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
@@ -71,6 +72,10 @@ internal class LogcatHeaderPanel(
   }
 
   fun getFilterText() = filterComponent.text
+
+  fun selectDevice(device: IDevice) {
+    deviceComboBox.selectedItem = device
+  }
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)

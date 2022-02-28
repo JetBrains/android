@@ -15,15 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.run.ShowLogcatListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,9 +43,7 @@ public class ShowLogcatTask implements LaunchTask {
 
   @Override
   public LaunchResult run(@NotNull LaunchContext launchContext) {
-    IDevice device = launchContext.getDevice();
-    Client client = myApplicationId == null ? null : device.getClient(myApplicationId);
-    showLogcatConsole(myProject, device, client);
+    myProject.getMessageBus().syncPublisher(ShowLogcatListener.TOPIC).showLogcat(launchContext.getDevice(), myApplicationId);
     return LaunchResult.success();
   }
 
@@ -60,32 +51,5 @@ public class ShowLogcatTask implements LaunchTask {
   @Override
   public String getId() {
     return ID;
-  }
-
-  private static void showLogcatConsole(@NotNull final Project project, @NotNull final IDevice device, @Nullable final Client client) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final ToolWindow androidToolWindow = ToolWindowManager.getInstance(project).
-          getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId());
-
-        // Activate the tool window, and once activated, make sure the right device is selected
-        androidToolWindow.activate(new Runnable() {
-          @Override
-          public void run() {
-            int count = androidToolWindow.getContentManager().getContentCount();
-            for (int i = 0; i < count; i++) {
-              Content content = androidToolWindow.getContentManager().getContent(i);
-              DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidLogcatToolWindowFactory.DEVICES_PANEL_KEY);
-              if (devicePanel != null) {
-                devicePanel.selectDevice(device);
-                devicePanel.selectClient(client);
-                break;
-              }
-            }
-          }
-        }, false);
-      }
-    });
   }
 }

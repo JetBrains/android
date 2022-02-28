@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -63,9 +64,11 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   suspend fun appendMessages(textAccumulator: TextAccumulator)
 
   /**
-   * Returns `true` if panel is attached to a device
+   * Returns the connected device or null if not connected
    */
-  fun isAttachedToDevice(): Boolean
+  fun getConnectedDevice(): IDevice?
 
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
+
+  fun selectDevice(device: IDevice)
 }

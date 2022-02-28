@@ -60,10 +60,21 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     }
   }
 
-  private fun createNewTab(project: Project, contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false) {
+  private fun createNewTab(
+    project: Project, contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false): Content {
     val content = createContent(project, contentManager, tabState)
     contentManager.addContent(content)
     contentManager.setSelectedContent(content, requestFocus)
+    return content
+  }
+
+  protected fun createNewTab(toolWindow: ToolWindowEx, tabName: String): Content {
+    val contentManager = toolWindow.contentManager
+    val content = createContent(toolWindow.project, contentManager, tabState = null)
+    contentManager.addContent(content)
+    contentManager.setSelectedContent(content, true)
+    content.displayName = tabName
+    return content
   }
 
   private fun createContent(project: Project, contentManager: ContentManager, tabState: TabState?): Content {
