@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import static com.android.tools.idea.wearpairing.AndroidWearPairingBundle.message;
+
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
@@ -133,12 +135,34 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
       setIcon(myPairedLabel, icon.orElse(null), selected);
       myPairedLabel.setVisible(icon.isPresent());
+      myPanel.setToolTipText(getPairedTooltip(device));
     }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(Tables.getBorder(selected, focused));
 
     return myPanel;
+  }
+
+  private @NotNull String getPairedTooltip(@NotNull Device device) {
+    List<WearPairingManager.PhoneWearPair> pairList = myManager.getPairsForDevice(device.getKey().toString());
+
+    if (pairList.isEmpty()) {
+      return "";
+    }
+    StringBuilder result = new StringBuilder("<html>");
+    for (WearPairingManager.PhoneWearPair pair : pairList) {
+      if (pair.getPairingStatus().equals(WearPairingManager.PairingState.CONNECTED)) {
+        result.append(
+          message("wear.assistant.device.list.tooltip.status.connected", pair.getPeerDevice(device.getKey().toString()).getDisplayName()));
+      }
+      else {
+        result.append(
+          message("wear.assistant.device.list.tooltip.status.paired", pair.getPeerDevice(device.getKey().toString()).getDisplayName()));
+      }
+    }
+
+    return result.append("</html>").toString();
   }
 
   private static void setIcon(@NotNull JLabel label, @Nullable Icon icon, boolean selected) {

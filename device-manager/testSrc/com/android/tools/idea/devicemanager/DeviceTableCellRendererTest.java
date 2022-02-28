@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNull;
 import com.android.flags.junit.SetFlagRule;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.wearpairing.ConnectionState;
+import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
@@ -59,8 +61,15 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponentDeviceIsPairedAndConnected() {
     // Arrange
-    PhoneWearPair pair = Mockito.mock(PhoneWearPair.class);
-    Mockito.when(pair.getPairingStatus()).thenReturn(PairingState.CONNECTED);
+    PairingDevice phoneDevice =
+      new PairingDevice(TestPhysicalDevices.GOOGLE_PIXEL_3.getKey().toString(), TestPhysicalDevices.GOOGLE_PIXEL_3.getName(),
+                        TestPhysicalDevices.GOOGLE_PIXEL_3.getAndroidVersion()
+                          .getApiLevel(), false, false, true, ConnectionState.ONLINE);
+    PairingDevice wearDevice =
+      new PairingDevice("wear", "wear",
+                        30, true, true, true, ConnectionState.ONLINE);
+    PhoneWearPair pair = new PhoneWearPair(phoneDevice, wearDevice);
+    pair.setPairingStatus(PairingState.CONNECTED);
 
     WearPairingManager manager = Mockito.mock(WearPairingManager.class);
     Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
@@ -78,8 +87,15 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponentDeviceIsPaired() {
     // Arrange
-    PhoneWearPair pair = Mockito.mock(PhoneWearPair.class);
-    Mockito.when(pair.getPairingStatus()).thenReturn(PairingState.UNKNOWN);
+    PairingDevice phoneDevice =
+      new PairingDevice(TestPhysicalDevices.GOOGLE_PIXEL_3.getKey().toString(), TestPhysicalDevices.GOOGLE_PIXEL_3.getName(),
+                        TestPhysicalDevices.GOOGLE_PIXEL_3.getAndroidVersion()
+                          .getApiLevel(), false, false, true, ConnectionState.ONLINE);
+    PairingDevice wearDevice =
+      new PairingDevice("wear", "wear",
+                        30, true, true, true, ConnectionState.ONLINE);
+    PhoneWearPair pair = new PhoneWearPair(phoneDevice, wearDevice);
+    pair.setPairingStatus(PairingState.UNKNOWN);
 
     WearPairingManager manager = Mockito.mock(WearPairingManager.class);
     Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
