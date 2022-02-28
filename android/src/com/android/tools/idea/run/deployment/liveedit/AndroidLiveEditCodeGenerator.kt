@@ -314,7 +314,10 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       throw LiveEditUpdateException.internalError("No compiler output.")
     }
 
-    fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" || clazzFile.className.contains("ComposableSingletons\$")
+    fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
+                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
+                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
+                                                         clazzFile.className.contains("ComposableSingletons\$")
 
     // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
     val internalClassName = className.replace(".", "/")
