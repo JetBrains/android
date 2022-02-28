@@ -26,6 +26,7 @@ add_library(
         accessors/window_manager.cc
         agent.cc
         base128_input_stream.cc
+        base128_output_stream.cc
         control_messages.cc
         controller.cc
         display_streamer.cc
