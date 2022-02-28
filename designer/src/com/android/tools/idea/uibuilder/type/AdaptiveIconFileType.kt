@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.type
 
+import com.android.SdkConstants
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription
+import org.jetbrains.android.dom.FileDescriptionUtils
 
 object AdaptiveIconFileType : DesignerEditorFileType {
-  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && AdaptiveIconDomFileDescription.isAdaptiveIcon(file)
+  private val ADAPTIVE_ICON_TAGS = setOf(SdkConstants.TAG_ADAPTIVE_ICON)
+
+  override fun isResourceTypeOf(file: PsiFile): Boolean {
+    return file is XmlFile
+           && (FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.MIPMAP, ADAPTIVE_ICON_TAGS)
+               || FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, ADAPTIVE_ICON_TAGS))
+  }
 
   override fun getToolbarActionGroups(surface: DesignSurface) = AdaptiveIconActionGroups(surface)
 }

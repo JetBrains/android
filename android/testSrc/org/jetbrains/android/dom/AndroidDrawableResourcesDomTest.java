@@ -319,10 +319,6 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestCompletion();
   }
 
-  public void testAdaptiveIconCompletion1() throws Throwable {
-    doTestCompletion();
-  }
-
   public void testAdaptiveIconCompletionSubtags() throws Throwable {
     doTestCompletion();
   }
@@ -333,7 +329,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
                              // API 21:
                              "ripple", "vector", "animated-vector", "animated-selector", "drawable",
                              // API 26:
-                             "adaptive-icon", "maskable-icon");
+                             "adaptive-icon");
   }
 
   public void testCustomDrawableRootTagCompletion() throws Throwable {
