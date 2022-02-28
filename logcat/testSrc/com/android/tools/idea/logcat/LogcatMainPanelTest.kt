@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
@@ -43,6 +45,7 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.logcatEvents
+import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
@@ -74,6 +77,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.BorderLayout
@@ -298,6 +302,41 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
+  }
+
+  @Test
+  fun clearMessageView_bySubscriptionToClearLogcatListener() {
+    val device = mockDevice("device1")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also {
+        it.deviceContext.fireDeviceSelected(device)
+        it.editor.document.setText("not-empty")
+      }
+    }
+
+    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device)
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    runInEdtAndWait { }
+    assertThat(logcatMainPanel.editor.document.text).isEmpty()
+  }
+
+  @Test
+  fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
+    val device1 = mockDevice("device1")
+    val device2 = mockDevice("device2")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also {
+        it.deviceContext.fireDeviceSelected(device1)
+        it.editor.document.setText("not-empty")
+      }
+    }
+
+    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2)
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    runInEdtAndWait { }
+    assertThat(logcatMainPanel.editor.document.text).isEqualTo("not-empty")
   }
 
   /**
@@ -669,3 +708,14 @@ class LogcatMainPanelTest {
 }
 
 private fun LogCatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
+
+private fun mockDevice(serialNumber: String): IDevice {
+  return mock<IDevice>().also {
+    // Set up a mock device with just enough information to get the test to work. We still get a bunch of errors in the log.
+    // TODO(aalbert): Extract an interface from LogcatDeviceManager so we can pass a factory into LogcatMainPanel to make it easier to
+    //  test.
+    `when`(it.state).thenReturn(ONLINE)
+    `when`(it.clients).thenReturn(emptyArray())
+    `when`(it.serialNumber).thenReturn(serialNumber)
+  }
+}

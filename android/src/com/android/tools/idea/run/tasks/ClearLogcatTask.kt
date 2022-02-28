@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.run.tasks
 
-import com.android.tools.adtui.TreeWalker
-import com.intellij.openapi.application.invokeLater
+import com.android.tools.idea.run.ClearLogcatListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowManager
 
 private const val ID = "CLEAR_LOGCAT"
-private const val LOGCAT_TOOL_WINDOW_ID = "Logcat"
 
 /**
  * A [LaunchTask] that clears Logcat components.
@@ -34,17 +31,7 @@ class ClearLogcatTask(private val project: Project) : LaunchTask {
   override fun getId(): String = ID
 
   override fun run(launchContext: LaunchContext): LaunchResult {
-    invokeLater {
-      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(LOGCAT_TOOL_WINDOW_ID) ?: return@invokeLater
-      val device = launchContext.device
-      for (content in toolWindow.contentManager.contents) {
-        TreeWalker(content.component).descendantStream().forEach {
-          if (it is ClearableLogcatComponent && it.getConnectedDevice() == device) {
-            it.clearLogcat()
-          }
-        }
-      }
-    }
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(launchContext.device)
     return LaunchResult.success()
   }
 }

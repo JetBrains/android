@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.run.tasks.ClearableLogcatComponent;
+import com.android.tools.idea.run.ClearLogcatListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class LogcatPanel extends JBLoadingPanel implements ClearableLogcatComponent {
+public final class LogcatPanel extends JBLoadingPanel {
   private final DevicePanel myDevicePanel;
   private final AndroidLogcatView myLogcatView;
 
@@ -39,6 +37,12 @@ public final class LogcatPanel extends JBLoadingPanel implements ClearableLogcat
 
     add(new DeviceAndSearchPanel(myDevicePanel, myLogcatView), BorderLayout.NORTH);
     add(myLogcatView.getContentPanel(), BorderLayout.CENTER);
+
+    project.getMessageBus().connect(project).subscribe(ClearLogcatListener.TOPIC, device -> {
+      if (device.equals(myLogcatView.getSelectedDevice())) {
+        AndroidLogcatService.getInstance().clearLogcat(device, myLogcatView.getProject());
+      }
+    });
   }
 
   @NotNull
@@ -49,19 +53,5 @@ public final class LogcatPanel extends JBLoadingPanel implements ClearableLogcat
   @NotNull
   public AndroidLogcatView getLogcatView() {
     return myLogcatView;
-  }
-
-  @Nullable
-  @Override
-  public IDevice getConnectedDevice() {
-    return myLogcatView.getSelectedDevice();
-  }
-
-  @Override
-  public void clearLogcat() {
-    IDevice device = myLogcatView.getSelectedDevice();
-    if (device != null) {
-      AndroidLogcatService.getInstance().clearLogcat(device, myLogcatView.getProject());
-    }
   }
 }
