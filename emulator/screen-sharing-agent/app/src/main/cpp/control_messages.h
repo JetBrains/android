@@ -36,7 +36,7 @@ public:
     return type_;
   }
 
-  static std::unique_ptr<ControlMessage> deserialize(Base128InputStream& stream);
+  static std::unique_ptr<ControlMessage> Deserialize(Base128InputStream& stream);
 
 protected:
   ControlMessage(int32_t type)
@@ -91,7 +91,7 @@ public:
 private:
   friend class ControlMessage;
 
-  static MotionEventMessage* deserialize(Base128InputStream& stream);
+  static MotionEventMessage* Deserialize(Base128InputStream& stream);
 
   const std::vector<Pointer> pointers_;
   const int32_t action_;
@@ -126,7 +126,7 @@ public:
 private:
   friend class ControlMessage;
 
-  static KeyEventMessage* deserialize(Base128InputStream& stream);
+  static KeyEventMessage* Deserialize(Base128InputStream& stream);
 
   int32_t action_;
   int32_t keycode_;
@@ -151,7 +151,7 @@ public:
 private:
   friend class ControlMessage;
 
-  static TextInputMessage* deserialize(Base128InputStream& stream);
+  static TextInputMessage* Deserialize(Base128InputStream& stream);
 
   std::u16string text_;
 
@@ -174,7 +174,7 @@ public:
 private:
   friend class ControlMessage;
 
-  static SetDeviceOrientationMessage* deserialize(Base128InputStream& stream);
+  static SetDeviceOrientationMessage* Deserialize(Base128InputStream& stream);
 
   uint32_t orientation_;
 
@@ -199,7 +199,7 @@ public:
 private:
   friend class ControlMessage;
 
-  static SetMaxVideoResolutionMessage* deserialize(Base128InputStream& stream);
+  static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
   uint32_t width_;
   uint32_t height_;

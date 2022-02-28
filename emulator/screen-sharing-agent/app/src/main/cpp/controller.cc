@@ -114,7 +114,7 @@ void Controller::Run() {
   Log::D("Controller::Run");
   try {
     for (;;) {
-      unique_ptr<ControlMessage> message = ControlMessage::deserialize(input_stream_);
+      unique_ptr<ControlMessage> message = ControlMessage::Deserialize(input_stream_);
       ProcessMessage(*message);
     }
   } catch (EndOfFile& e) {

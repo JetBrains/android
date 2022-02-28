@@ -22,30 +22,30 @@ namespace screensharing {
 
 using namespace std;
 
-unique_ptr<ControlMessage> ControlMessage::deserialize(Base128InputStream& stream) {
+unique_ptr<ControlMessage> ControlMessage::Deserialize(Base128InputStream& stream) {
   int32_t type = stream.ReadInt32();
   switch (type) {
     case MotionEventMessage::TYPE:
-      return unique_ptr<ControlMessage>(MotionEventMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(MotionEventMessage::Deserialize(stream));
 
     case KeyEventMessage::TYPE:
-      return unique_ptr<ControlMessage>(KeyEventMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(KeyEventMessage::Deserialize(stream));
 
     case TextInputMessage::TYPE:
-      return unique_ptr<ControlMessage>(TextInputMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(TextInputMessage::Deserialize(stream));
 
     case SetDeviceOrientationMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetDeviceOrientationMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(SetDeviceOrientationMessage::Deserialize(stream));
 
     case SetMaxVideoResolutionMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetMaxVideoResolutionMessage::deserialize(stream));
+      return unique_ptr<ControlMessage>(SetMaxVideoResolutionMessage::Deserialize(stream));
 
     default:
       Log::Fatal("Unexpected message type %d", type);
   }
 }
 
-MotionEventMessage* MotionEventMessage::deserialize(Base128InputStream& stream) {
+MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) {
   uint32_t n = stream.ReadUInt32();
   vector<Pointer> pointers(n);
   for (auto i = 0; i < n; i++) {
@@ -63,14 +63,14 @@ MotionEventMessage* MotionEventMessage::deserialize(Base128InputStream& stream) 
   return new MotionEventMessage(move(pointers), action, display_id);
 }
 
-KeyEventMessage* KeyEventMessage::deserialize(Base128InputStream& stream) {
+KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
   int32_t action = stream.ReadInt32();
   int32_t keycode = stream.ReadInt32();
   uint32_t meta_state = stream.ReadUInt32();
   return new KeyEventMessage(action, keycode, meta_state);
 }
 
-TextInputMessage* TextInputMessage::deserialize(Base128InputStream& stream) {
+TextInputMessage* TextInputMessage::Deserialize(Base128InputStream& stream) {
   unique_ptr<u16string> text = stream.ReadString16();
   if (text == nullptr || text->empty()) {
     Log::Fatal("Received a TextInputMessage without text");
@@ -78,12 +78,12 @@ TextInputMessage* TextInputMessage::deserialize(Base128InputStream& stream) {
   return new TextInputMessage(*text);
 }
 
-SetDeviceOrientationMessage* SetDeviceOrientationMessage::deserialize(Base128InputStream& stream) {
+SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128InputStream& stream) {
   uint32_t orientation = stream.ReadUInt32();
   return new SetDeviceOrientationMessage(orientation);
 }
 
-SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::deserialize(Base128InputStream& stream) {
+SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
   uint32_t width = stream.ReadUInt32();
   uint32_t height = stream.ReadUInt32();
   return new SetMaxVideoResolutionMessage(width, height);
