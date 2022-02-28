@@ -33,6 +33,7 @@ Base128InputStream::Base128InputStream(int fd, size_t buffer_size)
 }
 
 Base128InputStream::~Base128InputStream() {
+  close(fd_);
   delete [] buffer_;
 }
 
