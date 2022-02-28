@@ -4,7 +4,11 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.compose-designer",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "gen",
+        "src",
+    ],
     iml_files = ["intellij.android.compose-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
