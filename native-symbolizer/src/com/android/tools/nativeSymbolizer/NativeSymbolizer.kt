@@ -77,7 +77,7 @@ fun getLlvmSymbolizerPath(): String {
   val result = if (StudioPathManager.isRunningFromSources()) {
     StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/$os/lldb/bin/$exe")
   } else {
-    Paths.get(PathManager.getBinPath(), "lldb/bin/$exe")
+    Paths.get(PathManager.getHomePath(), "plugins/android-ndk/resources/lldb/bin/$exe")
   }
   return result.toString()
 }
