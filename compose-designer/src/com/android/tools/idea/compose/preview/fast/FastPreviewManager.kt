@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
-import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -54,7 +53,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
 import org.jetbrains.annotations.TestOnly
-import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.time.Duration
@@ -248,8 +246,7 @@ private typealias CompileRequestId = String
 
 /**
  * Creates a [CompileRequestId] for the given inputs. [files] will be used to ensure the [CompileRequestId] changes if
- * one of the given files contents have changed. [requestUniqueArgs] is the list of unique arguments for this requests, usually
- * the classpath of the request.
+ * one of the given files contents have changed.
  */
 private fun createCompileRequestId(files: Collection<PsiFile>, module: Module): CompileRequestId {
   val filesDependency = files
@@ -370,12 +367,6 @@ class FastPreviewManager private constructor(
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> = compilingMutex.withLock {
       val startTime = System.currentTimeMillis()
-      indicator.text = "Building classpath"
-      val moduleClassPath = moduleClassPathLocator(module)
-      val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
-      val classPathString = (moduleClassPath + moduleDependenciesClassPath).joinToString(File.pathSeparator)
-      val classPathArgs = if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
-
       val requestId = createCompileRequestId(files, module)
       val (isRunning: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
         var isRunning = true
