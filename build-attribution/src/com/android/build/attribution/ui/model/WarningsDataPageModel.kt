@@ -223,7 +223,6 @@ private class WarningsTreeStructure(
           }
         }
       }
-      treeStats.totalWarningsCount += reportData.issues.sumBy { it.warningCount }
 
       if (filter.showAnnotationProcessorWarnings) {
         reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
@@ -238,7 +237,6 @@ private class WarningsTreeStructure(
             treeStats.filteredWarningsCount += size
           }
       }
-      treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
 
       // Add configuration caching issues
       if (filter.showConfigurationCacheWarnings && reportData.confCachingData.shouldShowWarning()) {
@@ -256,7 +254,6 @@ private class WarningsTreeStructure(
         })
         treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
       }
-      treeStats.totalWarningsCount += reportData.confCachingData.warningsCount()
 
       // Add Jetifier usage warning
       if (reportData.jetifierData.shouldShowWarning()) {
@@ -264,8 +261,8 @@ private class WarningsTreeStructure(
           rootNode.add(treeNode(JetifierUsageWarningRootNodeDescriptor(reportData.jetifierData)))
           treeStats.filteredWarningsCount++
         }
-        treeStats.totalWarningsCount++
       }
+      treeStats.totalWarningsCount = reportData.countTotalWarnings()
     }
   }
 
@@ -506,3 +503,9 @@ fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = when (this.projec
 }
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
   if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"
+
+fun BuildAttributionReportUiData.countTotalWarnings(): Int =
+  issues.sumOf { it.warningCount } +
+  annotationProcessors.issueCount +
+  confCachingData.warningsCount() +
+  if (jetifierData.shouldShowWarning()) 1 else 0

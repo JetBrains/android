@@ -41,7 +41,8 @@ class BuildAttributionUiAnalytics(
     WNA_BUTTON,
     BUILD_OUTPUT_LINK,
     TAB_HEADER,
-    AUTO_OPEN
+    AUTO_OPEN,
+    BALLOON_LINK
   }
 
   private val unknownPage: BuildAttributionUiEvent.Page = BuildAttributionUiEvent.Page.newBuilder()
@@ -82,6 +83,7 @@ class BuildAttributionUiAnalytics(
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
       // Not opened by direct user action so don't report.
       TabOpenEventSource.AUTO_OPEN -> null
+      TabOpenEventSource.BALLOON_LINK -> BuildAttributionUiEvent.EventType.TOOL_WINDOW_BALLOON_DETAILS_LINK_CLICKED
     }
     if (eventType != null) doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(eventType))
   }
@@ -211,6 +213,10 @@ class BuildAttributionUiAnalytics(
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
       .addAllAppliedFilters(tasksFilterState(filter))
       .setEventProcessingTimeMs(duration.toMillis())
+  )
+
+  fun toolWindowBalloonShown() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.TOOL_WINDOW_BALLOON_SHOWN)
   )
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {

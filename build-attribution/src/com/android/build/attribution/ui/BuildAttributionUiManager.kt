@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
@@ -110,6 +111,8 @@ class BuildAttributionUiManagerImpl(
     uiSizeProvider = { buildAttributionView?.component?.size }
   )
 
+  private val notificationManager = BuildAnalyzerNotificationManager(project, uiAnalytics)
+
   private lateinit var reportUiData: BuildAttributionReportUiData
 
   init {
@@ -134,6 +137,12 @@ class BuildAttributionUiManagerImpl(
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
       stateReporter.setStateDataExist()
+      notificationManager.showToolWindowBalloonIfNeeded(this.reportUiData) {
+        openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
+        (buildAttributionView as? NewViewComponentContainer)?.let {
+          it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+        }
+      }
     }
   }
 
@@ -288,7 +297,7 @@ private class NewViewComponentContainer(
   issueReporter: TaskIssueReporter,
   uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
-  private val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
+  val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
   private val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
   private var view = createView()
 
