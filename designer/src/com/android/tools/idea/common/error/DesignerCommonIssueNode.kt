@@ -88,9 +88,13 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
   final override fun getElement() = this
 
   /**
-   * To provide the description of issue when copying the description by [CopyIssueDescriptionAction].
+   * To provide the description of issue when copying the description by [CopyIssueDescriptionAction] or shortcut key (Control-C/Command-C).
    */
-  open fun getDescription(): String? = null
+  internal fun getDescription(): String {
+    val data = PresentationData()
+    updatePresentation(data)
+    return data.coloredText.joinToString { it.text }.trim()
+  }
 }
 
 /**
@@ -231,11 +235,6 @@ class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommon
     return if (project != null && targetFile != null) OpenFileDescriptor(project, targetFile, offset) else null
   }
 
-  override fun getDescription(): String {
-    // Use summary instead because [issue.description] is a html text and very long.
-    return issue.summary
-  }
-
   override fun updatePresentation(presentation: PresentationData) {
     val source = issue.source
     val nodeDisplayText: String
@@ -253,7 +252,6 @@ class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommon
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-    presentation.tooltip = getDescription()
   }
 
   override fun hashCode() = Objects.hash(parentDescriptor, file, issue)

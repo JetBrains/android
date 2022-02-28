@@ -99,7 +99,6 @@ private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout
 
     setupTitle()
     setupDescriptionPanel(issue)
-    setupFixPanel(issue)
 
     content.add(errorTitle, BorderLayout.NORTH)
     content.add(errorDescription, BorderLayout.CENTER)
@@ -123,12 +122,6 @@ private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout
 
     errorDescription.text = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
                                             UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
-  }
-
-  private fun setupFixPanel(issue: Issue) {
-    fixPanel.layout = BoxLayout(fixPanel, BoxLayout.Y_AXIS)
-    issue.fixes.forEach { fix: Issue.Fix -> createFixEntry(fix) }
-    fixPanel.isVisible = fixPanel.componentCount > 0
   }
 
   private fun createFixEntry(fix: Issue.Fix) {
