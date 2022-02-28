@@ -32,11 +32,10 @@ import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Font
-import javax.swing.BoxLayout
 import javax.swing.JEditorPane
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
+import javax.swing.ScrollPaneConstants
 import javax.swing.text.Element
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.html.HTMLEditorKit
@@ -66,7 +65,7 @@ class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, p
       return null
     }
     val document = ProblemsView.getDocument(project, file) ?: return null
-    return EditorFactory.getInstance().createEditor(document, project, EditorKind.PREVIEW)
+    return EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
   }
 }
 
@@ -76,56 +75,35 @@ class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, p
  */
 private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout()) {
   private val content = JPanel(BorderLayout())
-  private val sourceLabel: JLabel = JLabel()
   private val errorTitle: JBLabel = JBLabel()
   private val errorDescription: JTextPane = JTextPane()
-  private val fixPanel: JPanel = JPanel()
 
   init {
     background = primaryContentBackground
 
-    val displayText = issue.source.displayText
-    if (displayText.isEmpty()) {
-      sourceLabel.isVisible = false
-    }
-    else {
-      sourceLabel.text = displayText
-    }
-
-    val scrollPanel = JBScrollPane(content)
+    val scrollPanel = JBScrollPane(content,
+                                   ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
     add(scrollPanel, BorderLayout.CENTER)
     content.border = JBUI.Borders.empty(4)
     content.background = primaryContentBackground
 
-    setupTitle()
-    setupDescriptionPanel(issue)
-
     content.add(errorTitle, BorderLayout.NORTH)
     content.add(errorDescription, BorderLayout.CENTER)
-    content.add(fixPanel, BorderLayout.SOUTH)
 
-    errorTitle.background = primaryContentBackground
-    errorDescription.background = primaryContentBackground
-    fixPanel.background = primaryContentBackground
-
-    errorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-  }
-
-  private fun setupTitle() {
     errorTitle.font = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD)
-  }
+    errorTitle.background = primaryContentBackground
 
-  private fun setupDescriptionPanel(issue: Issue) {
     errorDescription.editorKit = IssueHTMLEditorKit()
     errorDescription.addHyperlinkListener(issue.hyperlinkListener)
     errorDescription.font = UIUtil.getToolTipFont()
-
+    errorDescription.background = primaryContentBackground
+    errorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+    errorDescription.isEditable = false
     errorDescription.text = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
                                             UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
-  }
 
-  private fun createFixEntry(fix: Issue.Fix) {
-    fixPanel.add(IssueView.FixEntry(fix.buttonText, fix.description, fix.runnable))
+    background = UIUtil.getEditorPaneBackground()
   }
 
   private fun updateImageSize(html: String, size: Int): String {
@@ -150,6 +128,6 @@ private class IssueHTMLEditorKit : HTMLEditorKit() {
   }
 
   override fun createInputAttributes(element: Element, set: MutableAttributeSet) {
-    // Do Nothing, the super implementation stripped out the <BR/> tags but we need them
+    // Do Nothing, the super implementation stripped out the <BR/> tags, but we need them.
   }
 }
