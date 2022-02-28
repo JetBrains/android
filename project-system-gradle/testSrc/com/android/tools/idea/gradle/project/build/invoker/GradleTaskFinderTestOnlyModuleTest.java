@@ -46,6 +46,6 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     File projectPath = getBaseDirPath(getProject());
     ListMultimap<Path, String> tasksPerProject = taskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
-    assertThat(tasks).containsExactly(":app:clean", ":app:assembleDebug", ":test:clean", ":test:assembleDebug").inOrder();
+    assertThat(tasks).containsExactly(":app:clean", ":test:clean", ":app:assembleDebug", ":test:assembleDebug").inOrder();
   }
 }

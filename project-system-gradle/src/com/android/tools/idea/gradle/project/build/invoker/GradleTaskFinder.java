@@ -52,9 +52,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -107,6 +110,7 @@ public class GradleTaskFinder {
                                                                  @NotNull BuildMode buildMode,
                                                                  @NotNull TestCompileType testCompileType) {
     LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
+    LinkedHashMultimap<Path, String> cleanTasks = LinkedHashMultimap.create();
 
     Set<Module> allModules = new LinkedHashSet<>();
     for (Module module : modules) {
@@ -136,21 +140,32 @@ public class GradleTaskFinder {
         module = moduleAndGradleProjectPath.getFirst();
         String gradlePath = moduleAndGradleProjectPath.getSecond();
         findAndAddGradleBuildTasks(module, gradlePath, buildMode, moduleTasks, testCompileType);
-
         Path keyPath = ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
-        // Remove duplicates.
-        moduleTasks.addAll(tasks.get(keyPath));
-
-        tasks.removeAll(keyPath);
         if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
           // Clean only if other tasks are needed
-          tasks.put(keyPath, createFullTaskName(gradlePath, CLEAN_TASK_NAME));
+          cleanTasks.put(keyPath, createFullTaskName(gradlePath, CLEAN_TASK_NAME));
         }
+
+        // Remove duplicates and prepend moduleTasks to tasks.
+        // TODO(xof): investigate whether this effective reversal is necessary for or neutral regarding correctness.
+        moduleTasks.addAll(tasks.get(keyPath));
+        tasks.removeAll(keyPath);
         tasks.putAll(keyPath, moduleTasks);
       }
     }
+    ArrayListMultimap<Path, String> result = ArrayListMultimap.create();
 
-    return ArrayListMultimap.create(tasks);
+    for (Path key : cleanTasks.keySet()) {
+      List<String> keyTasks = new ArrayList<>(cleanTasks.get(key));
+      // We effectively reversed the per-module tasks, other than clean, above; reverse the clean tasks here.
+      Collections.reverse(keyTasks);
+      result.putAll(key, keyTasks);
+    }
+    for (Map.Entry<Path, String> entry : tasks.entries()) {
+      result.put(entry.getKey(), entry.getValue());
+    }
+
+    return result;
   }
 
   private static @Nullable Pair<Module,String> findModuleAndGradleProjectPath(@NotNull Module module) {
