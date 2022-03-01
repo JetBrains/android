@@ -174,11 +174,13 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
         val nameEnd = message.indexOf(' ', nameStart)
         val name = message.substring(nameStart, nameEnd)
 
+        log.warn("Compilation error", e)
         throw LiveEditUpdateException.knownIssue(201728545,
                                                  "unable to compile a file that reference a top level function in another source file.\n" +
                                                  "For now work around this by moving function $name inside the class.")
       }
     }
+    log.warn("Compilation error", e)
     throw LiveEditUpdateException.compilationError(e.message ?: "No error message", e)
   }
 
