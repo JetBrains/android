@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PreviewPropertiesInspectorBuilder
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -82,7 +83,9 @@ private fun createPreviewPickerPanel(
   model: PsiPropertyModel,
   valuesProvider: EnumSupportValuesProvider
 ): JPanel {
-  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model, valuesProvider)) }
+  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also {
+    it.addView(PsiPropertyView(model, PreviewPropertiesInspectorBuilder(valuesProvider)))
+  }
 
   return JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)

@@ -39,7 +39,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 /**
- * Generates the UI for the Hardware section in the @Preview picker. See [PsiPropertiesInspectorBuilder].
+ * Generates the UI for the Hardware section in the @Preview picker. See [PreviewPropertiesInspectorBuilder].
  */
 internal fun addHardwareView(
   inspector: InspectorPanel,
