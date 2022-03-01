@@ -33,10 +33,10 @@ import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.ide.common.resources.Locale
+import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notebook.editor.BackedVirtualFile
@@ -59,11 +59,12 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 import java.awt.Dimension
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
 
@@ -143,13 +144,14 @@ internal fun KtNamedFunction.isInTestFile() = isTestFile(this.project, this.cont
 internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, this.containingFile.virtualFile)
 
 /**
- *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQNS], is not in a test file and is defined in a valid location.
+ *  Whether this function is not in a test file and is properly annotated
+ *  with [PREVIEW_ANNOTATION_FQNS], considering indirect annotations when
+ *  the Multipreview flag is enabled, and validating the location of Previews
  *
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  !isInTestFile() && isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQNS) }
-
+  !isInTestFile() && isValidPreviewLocation() && this.toUElementOfType<UMethod>()?.let { hasPreviewElements(it) } == true
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
  * this will return null.

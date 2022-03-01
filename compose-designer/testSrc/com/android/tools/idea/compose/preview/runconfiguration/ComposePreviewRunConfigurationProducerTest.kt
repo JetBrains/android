@@ -36,6 +36,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
@@ -57,6 +58,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   override fun tearDown() {
     super.tearDown()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
+    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -132,6 +134,31 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     val configuration = createConfigurationFromElement(composableLibraryModule)
     assertEquals(newComposePreviewRunConfiguration().name, configuration.name)
     assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, configuration.composableMethodFqn)
+  }
+
+  fun testSetupConfigurationFromContextMultipreviw() {
+    val file = myFixture.addFileToProjectAndInvalidate(
+      "src/TestMultipreview.kt",
+      // language=kotlin
+      """
+        package my.composable.app
+
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview
+        annotation class MyAnnotation
+
+        @Composable
+        @MyAnnotation
+        fun Preview1() {
+        }
+      """.trimIndent())
+
+    val composableWithMultipreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val configuration = createConfigurationFromElement(composableWithMultipreview)
+    assertEquals("Preview1", configuration.name)
+    assertEquals("my.composable.app.TestMultipreviewKt.Preview1", configuration.composableMethodFqn)
   }
 
   fun testInvalidContexts() {
