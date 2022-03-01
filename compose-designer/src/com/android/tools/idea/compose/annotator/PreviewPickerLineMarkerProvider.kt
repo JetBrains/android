@@ -19,6 +19,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
+import com.android.tools.idea.compose.preview.pickers.properties.PreviewPickerPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
@@ -103,7 +104,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
         // TODO(b/205184728): Replace tracker instance when implementation is ready
-        val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElementDefinitionPsi, NoOpTracker)
+        val model = PreviewPickerPropertyModel.fromPreviewElement(project, module, previewElementDefinitionPsi, NoOpTracker)
         val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
           module,
           previewElementDefinitionPsi?.virtualFile

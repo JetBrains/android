@@ -19,7 +19,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.namespaceVariations
-import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
+import com.android.tools.idea.compose.preview.pickers.properties.PreviewPickerPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
@@ -111,16 +111,18 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val previews = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
+        val parsed =
+          PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
       }
       previews[1].also { namedPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview.previewElementDefinitionPsi, NoOpTracker)
+        val parsed = PreviewPickerPropertyModel.fromPreviewElement(project, module, namedPreview.previewElementDefinitionPsi, NoOpTracker)
         assertEquals("named", parsed.properties["", "name"].value)
       }
       previews[3].also { namedPreviewFromConst ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst.previewElementDefinitionPsi, NoOpTracker)
+        val parsed =
+          PreviewPickerPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst.previewElementDefinitionPsi, NoOpTracker)
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
     }
@@ -279,6 +281,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       assertEquals(expectedPropertyValue, model.properties["", "showBackground"].value)
       assertEquals("@Preview(showBackground = $expectedPropertyValue)", preview.annotationText())
     }
+
     fun checkShowBackgroundEmptyChange(newValue: String?, expectedPropertyValue: String?) {
       model.properties["", "showBackground"].value = newValue
       assertEquals(expectedPropertyValue, model.properties["", "showBackground"].value)
@@ -469,7 +472,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
-      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
+      PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
     var expectedModificationsCountdown = 13
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
@@ -562,7 +565,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     ConfigurationManager.getOrCreateInstance(module)
     return ReadAction.compute<PsiPropertyModel, Throwable> {
-      PsiCallPropertyModel.fromPreviewElement(project, module, preview.previewElementDefinitionPsi, tracker)
+      PreviewPickerPropertyModel.fromPreviewElement(project, module, preview.previewElementDefinitionPsi, tracker)
     }
   }
 }
