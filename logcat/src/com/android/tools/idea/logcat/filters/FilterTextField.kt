@@ -40,11 +40,11 @@ import com.intellij.openapi.util.ScalableIcon
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.components.JBList
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -53,11 +53,15 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.BoxLayout.LINE_AXIS
 import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
+import javax.swing.SwingConstants.VERTICAL
 import kotlin.math.min
 
 private const val APPLY_FILTER_DELAY_MS = 100L
@@ -67,6 +71,19 @@ private val FAVORITE_ICON = AllIcons.Ide.FeedbackRating.scale()
 private val FAVORITE_ON_ICON = AllIcons.Ide.FeedbackRatingOn.scale()
 private val FAVORITE_FOCUSED_ICON = AllIcons.Ide.FeedbackRatingFocused.scale()
 private val FAVORITE_FOCUSED_ON_ICON = AllIcons.Ide.FeedbackRatingFocusedOn.scale()
+private val FAVORITE_BLANK_ICON = EmptyIcon.create(FAVORITE_ON_ICON.iconWidth, FAVORITE_ON_ICON.iconHeight)
+
+// The text of the history dropdown item needs a little horizontal padding
+private val HISTORY_ITEM_LABEL_BORDER = JBUI.Borders.empty(0, 3)
+
+// The vertical separator between the clear & favorite icons needs a little padding
+private val VERTICAL_SEPARATOR_BORDER = JBUI.Borders.empty(3)
+
+// The inner editor component should have no border, but we need to preserve the inner margins. See EditorTextField#setBorder()
+private val EDITOR_BORDER = JBUI.Borders.empty(2, 2, 2, 2)
+
+// The history icon needs some padding. These values make it look the same as the "Find in files" dialog for example.
+private val HISTORY_ICON_BORDER = JBUI.Borders.empty(0, 5, 0, 4)
 
 /**
  * A text field for the filter.
@@ -108,10 +125,14 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    addToRight(JPanel().apply {
+    addToRight(JPanel(null).apply {
+      layout = BoxLayout(this, LINE_AXIS)
       background = textField.background
       isOpaque = true
       add(clearButton)
+      add(JSeparator(VERTICAL)).apply {
+        border = VERTICAL_SEPARATOR_BORDER
+      }
       add(favoriteButton)
     })
 
@@ -125,8 +146,7 @@ internal class FilterTextField(
           showPopup()
         }
       })
-      // The history icon needs a margin. These values make it look the same as the "Find in files" dialog for example.
-      border = JBUI.Borders.empty(0, 5, 0, 4)
+      border = HISTORY_ICON_BORDER
     }
 
     textField.apply {
@@ -241,8 +261,7 @@ internal class FilterTextField(
         putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
         putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
         putUserData(AndroidProjectDetector.KEY, androidProjectDetector)
-        // Remove the line border but preserve the inner margins. See EditorTextField#setBorder()
-        setBorder(JBUI.Borders.empty(2, 2, 2, 2))
+        setBorder(EDITOR_BORDER)
       }
     }
   }
@@ -252,11 +271,6 @@ internal class FilterTextField(
       isOpaque = true
       background = textField.background
     }
-  }
-
-  companion object {
-    @VisibleForTesting
-    internal const val HISTORY_PROPERTY_NAME = "logcatFilterHistory"
   }
 
   private class HistoryList(filterHistory: AndroidLogcatFilterHistory) : JBList<FilterHistoryItem>() {
@@ -288,13 +302,11 @@ internal class FilterTextField(
     ): Component {
       return BorderLayoutPanel().apply {
         val isFavorite = value.isFavorite
-        addToLeft(JLabel(value.filter).apply {
-          border = JBUI.Borders.empty(0, 3, 0, if (isFavorite) 0 else FAVORITE_ICON.iconWidth * 2)
+        addToLeft(JLabel(if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON))
+        addToCenter(JLabel(value.filter).apply {
+          border = HISTORY_ITEM_LABEL_BORDER
           foreground = (if (isSelected) list.selectionForeground else list.foreground)
         })
-        if (isFavorite) {
-          addToRight(JLabel(FAVORITE_ON_ICON))
-        }
         background = (if (isSelected) list.selectionBackground else list.background)
       }
     }
