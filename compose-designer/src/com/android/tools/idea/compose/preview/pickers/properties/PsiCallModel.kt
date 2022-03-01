@@ -35,9 +35,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
-import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -45,11 +43,11 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -121,10 +119,10 @@ internal class PsiCallPropertyModel internal constructor(
     fun fromPreviewElement(
       project: Project,
       module: Module,
-      previewElement: PreviewElement,
+      previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
       tracker: PreviewPickerTracker
     ): PsiCallPropertyModel {
-      val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
+      val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
       val libraryDefaultValues: Map<String, String?> =
         (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues() ?: kotlin.run {

@@ -17,15 +17,19 @@ package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview
+import com.android.tools.idea.compose.preview.getContainingComposableUMethod
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
+import org.jetbrains.kotlin.idea.highlighter.isAnnotationClass
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.getContainingUClass
 import org.jetbrains.uast.toUElement
 
 private val PreviewCheckResultKey = Key.create<Pair<String, CheckResult>>(PreviewAnnotationCheck::class.java.canonicalName)
@@ -48,6 +52,9 @@ internal object PreviewAnnotationCheck {
   fun checkPreviewAnnotationIfNeeded(annotationEntry: KtAnnotationEntry): CheckResult {
     if (!ApplicationManager.getApplication().isReadAccessAllowed) return failedCheck("No read access")
     val annotation = annotationEntry.toUElement() as? UAnnotation ?: return failedCheck("Can't get annotation UElement")
+    if (!hasValidTarget(annotation)) return failedCheck(
+      "Preview target must be a composable function${if (StudioFlags.COMPOSE_MULTIPREVIEW.get()) " or an annotation class" else ""}"
+    )
     val deviceValueExpression = annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
     val deviceValue = deviceValueExpression.evaluateString() ?: return failedCheck("Can't get string literal of 'device' value")
 
@@ -75,6 +82,10 @@ internal object PreviewAnnotationCheck {
     return result
   }
 }
+
+private fun hasValidTarget(annotation: UAnnotation) =
+  annotation.getContainingComposableUMethod() != null ||
+  (StudioFlags.COMPOSE_MULTIPREVIEW.get() && annotation.getContainingUClass()?.isAnnotationClass() == true)
 
 /**
  * Regex to match a string with the [Preview.DeviceSpec.OPERATOR] between two other non-empty strings. E.g: name=value, n=v

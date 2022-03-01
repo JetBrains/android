@@ -111,16 +111,16 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val previews = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview, NoOpTracker)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
       }
       previews[1].also { namedPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview, NoOpTracker)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview.previewElementDefinitionPsi, NoOpTracker)
         assertEquals("named", parsed.properties["", "name"].value)
       }
       previews[3].also { namedPreviewFromConst ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst, NoOpTracker)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst.previewElementDefinitionPsi, NoOpTracker)
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
     }
@@ -469,7 +469,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
-      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview, NoOpTracker)
+      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
     var expectedModificationsCountdown = 13
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
@@ -562,7 +562,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     ConfigurationManager.getOrCreateInstance(module)
     return ReadAction.compute<PsiPropertyModel, Throwable> {
-      PsiCallPropertyModel.fromPreviewElement(project, module, preview, tracker)
+      PsiCallPropertyModel.fromPreviewElement(project, module, preview.previewElementDefinitionPsi, tracker)
     }
   }
 }

@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +41,12 @@ internal class PreviewAnnotationCheckTest {
   @Before
   fun setup() {
     fixture.stubPreviewAnnotation()
+    fixture.stubComposableAnnotation()
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   @Test
@@ -48,8 +57,10 @@ internal class PreviewAnnotationCheckTest {
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Composable
         fun myFun() {}
       """.trimIndent()
     ).virtualFile
@@ -72,8 +83,10 @@ internal class PreviewAnnotationCheckTest {
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
 
         @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Composable
         fun myFun() {}
 """.trimIndent()).virtualFile
 
@@ -110,8 +123,10 @@ internal class PreviewAnnotationCheckTest {
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Composable
         fun myFun() {}
 """.trimIndent()).virtualFile
 
@@ -125,5 +140,85 @@ internal class PreviewAnnotationCheckTest {
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
     assertEquals("No read access", (result.issues[0] as Failure).failureMessage)
+  }
+
+  @Test
+  fun testBadTarget() {
+    val vFile = rule.fixture.addFileToProject(
+      "test.kt",
+      // language=kotlin
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        class myNotAnnotation() {}
+      """.trimIndent()
+    ).virtualFile
+
+    val annotationEntry = runWriteActionAndWait {
+      rule.fixture.openFileInEditor(vFile)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
+    }
+    assertNotNull(annotationEntry)
+
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    assertEquals(1, result.issues.size)
+    assertEquals(Failure::class, result.issues[0]::class)
+    assertEquals("Preview target must be a composable function or an annotation class",
+                 (result.issues[0] as Failure).failureMessage)
+  }
+
+  @Test
+  fun testMultipreviewAnnotation_flagEnabled() {
+    val vFile = rule.fixture.addFileToProject(
+      "test.kt",
+      // language=kotlin
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        annotation class myAnnotation() {}
+      """.trimIndent()
+    ).virtualFile
+
+    val annotationEntry = runWriteActionAndWait {
+      rule.fixture.openFileInEditor(vFile)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
+    }
+    assertNotNull(annotationEntry)
+
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    assert(result.issues.isEmpty())
+  }
+
+  @Test
+  fun testMultipreviewAnnotation_flagDisabled() {
+    val vFile = rule.fixture.addFileToProject(
+      "test.kt",
+      // language=kotlin
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        annotation class myAnnotation() {}
+      """.trimIndent()
+    ).virtualFile
+
+    val annotationEntry = runWriteActionAndWait {
+      rule.fixture.openFileInEditor(vFile)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
+    }
+    assertNotNull(annotationEntry)
+
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(false)
+    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    assertEquals(1, result.issues.size)
+    assertEquals(Failure::class, result.issues[0]::class)
+    assertEquals("Preview target must be a composable function", (result.issues[0] as Failure).failureMessage)
   }
 }

@@ -22,8 +22,7 @@ import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
-import com.android.tools.idea.compose.preview.toPreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -36,6 +35,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
@@ -72,15 +72,12 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     // Do not show the picker if there are any syntax issues with the annotation
     if (PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry).hasIssues) return null
 
-    val previewElement = uElement.toPreviewElement() ?: run {
-      log.warn("Couldn't obtain PreviewElement from Preview annotation")
-      return null
-    }
+    val previewElementDefinitionPsi = uElement.toSmartPsiPointer()
     val module = element.module ?: run {
       log.warn("Couldn't obtain current module")
       return null
     }
-    val info = createInfo(element, element.textRange, element.project, module, previewElement)
+    val info = createInfo(element, element.textRange, element.project, module, previewElementDefinitionPsi)
     NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
     return info
   }
@@ -95,7 +92,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     textRange: TextRange,
     project: Project,
     module: Module,
-    previewElement: PreviewElement
+    previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
   ): LineMarkerInfo<PsiElement> {
     // Make sure there's a configuration available
     ConfigurationManager.getOrCreateInstance(module)
@@ -106,10 +103,10 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       { message("picker.preview.annotator.tooltip") },
       { mouseEvent, _ ->
         // TODO(b/205184728): Replace tracker instance when implementation is ready
-        val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElement, NoOpTracker)
+        val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElementDefinitionPsi, NoOpTracker)
         val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
           module,
-          previewElement.previewElementDefinitionPsi?.virtualFile
+          previewElementDefinitionPsi?.virtualFile
         )
         PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)
       },
