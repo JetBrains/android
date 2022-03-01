@@ -224,7 +224,7 @@ public class ProjectStructure {
 
     @NotNull
     public List<GradleVersion> getAllVersions() {
-      return new ArrayList<>(myAgpVersionsPerModule.values());
+      return myAgpVersionsPerModule.values().stream().distinct().collect(Collectors.toList());
     }
 
     boolean isEmpty() {
