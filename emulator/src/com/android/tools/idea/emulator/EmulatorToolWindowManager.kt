@@ -113,7 +113,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     @AnyThread
     override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
       if (connectionState == ConnectionState.DISCONNECTED) {
-        EventQueue.invokeLater {
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
           if (contentCreated && emulators.remove(emulator)) {
             removeEmulatorPanel(emulator)
           }
@@ -169,7 +169,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                    AvdLaunchListener { avd, commandLine, project ->
                                      if (project == this.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
-                                       EventQueue.invokeLater { onEmulatorUsed(avd.name) }
+                                       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+                                         onEmulatorUsed(avd.name)
+                                       }
                                      }
                                    })
 
@@ -414,7 +416,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
         return
       }
 
-      EventQueue.invokeLater {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title)
       }
     }
@@ -425,7 +427,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   private fun physicalDeviceDisconnected(deviceSerialNumber: String) {
-    EventQueue.invokeLater {
+    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       removePhysicalDevicePanel(deviceSerialNumber)
     }
   }
@@ -466,7 +468,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
-      EventQueue.invokeLater {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentCreated && emulators.add(emulator)) {
           addEmulatorPanel(emulator)
         }
@@ -481,7 +483,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
-      EventQueue.invokeLater {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentCreated && emulators.remove(emulator)) {
           removeEmulatorPanel(emulator)
         }

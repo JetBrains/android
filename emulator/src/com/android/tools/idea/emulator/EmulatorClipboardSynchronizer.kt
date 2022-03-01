@@ -114,7 +114,7 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
 
       // Skip the first response that reflects the current clipboard state.
       if (responseCount != 0 && response.text.isNotEmpty()) {
-        EventQueue.invokeLater {
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
           val content = StringSelection(response.text)
           ClipboardSynchronizer.getInstance().setContent(content, content)
         }

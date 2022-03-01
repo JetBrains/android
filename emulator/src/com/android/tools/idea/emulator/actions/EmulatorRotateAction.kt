@@ -46,7 +46,7 @@ sealed class EmulatorRotateAction(
       .build()
     emulatorController.setPhysicalModel(rotationModel, object: EmptyStreamObserver<Empty>() {
       override fun onCompleted() {
-        EventQueue.invokeLater {
+        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
           emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
         }
       }

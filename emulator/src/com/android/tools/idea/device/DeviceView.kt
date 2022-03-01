@@ -149,7 +149,7 @@ class DeviceView(
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
       deviceClient.startAgentAndConnect()
       val decoder = deviceClient.createVideoDecoder(realSize.rotatedByQuadrants(-displayRotationQuadrants))
-      EventQueue.invokeLater {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
           this.deviceClient = deviceClient
           this.decoder = decoder
@@ -161,7 +161,7 @@ class DeviceView(
       decoder.addFrameListener(object : VideoDecoder.FrameListener {
 
         override fun onNewFrameAvailable() {
-          EventQueue.invokeLater {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             connected = true
             if (frameNumber == 0) {
               hideLongRunningOperationIndicatorInstantly()
@@ -189,7 +189,7 @@ class DeviceView(
   }
 
   private fun showDisconnectedMessage(message: String) {
-    EventQueue.invokeLater {
+    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
       if (!disposed) {
         connected = false
         decoder = null

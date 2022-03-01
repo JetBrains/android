@@ -152,7 +152,7 @@ class EmulatorToolWindowPanel(
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
-      EventQueue.invokeLater {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (isFocusOwner) {
           clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
         }
@@ -238,7 +238,7 @@ class EmulatorToolWindowPanel(
     if (connected) {
       emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
         override fun onNext(response: ExtendedControlsStatus) {
-          EventQueue.invokeLater {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             uiState.extendedControlsShown = response.visibilityChanged
           }
         }
@@ -290,7 +290,7 @@ class EmulatorToolWindowPanel(
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
         override fun onNext(response: DisplayConfigurations) {
           LOG.debug("Display configurations: " + shortDebugString(response))
-          EventQueue.invokeLater {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             displayConfigurationReceived(response.displaysList)
           }
         }
