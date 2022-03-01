@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeviceSpecChinSizeParam extends PsiElement {
+public interface DeviceSpecChinSizeParam extends DeviceSpecParam {
 
   @NotNull
   DeviceSpecSizeT getSizeT();

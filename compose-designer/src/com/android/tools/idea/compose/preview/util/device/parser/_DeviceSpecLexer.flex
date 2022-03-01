@@ -25,9 +25,8 @@ import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSp
 EOL=\R
 WHITE_SPACE=\s+
 
-WS=[ \t\n\x0B\f\r]+
-INT_T=[0-9]+
-DEVICE_ID_T=[:letter:]+[a-zA-Z_0-9]*
+NUMERIC_T=[0-9]+(\.[0-9])?
+STRING_T=[:letter:]+([a-zA-Z_0-9]|[ \t\n\x0B\f\r])*
 
 %%
 <YYINITIAL> {
@@ -40,24 +39,23 @@ DEVICE_ID_T=[:letter:]+[a-zA-Z_0-9]*
   ","                { return COMMA; }
   "="                { return EQUALS; }
   ":"                { return COLON; }
+  "unit"             { return UNIT_KEYWORD; }
   "spec"             { return SPEC_KEYWORD; }
   "id"               { return ID_KEYWORD; }
+  "name"             { return NAME_KEYWORD; }
   "landscape"        { return LANDSCAPE_KEYWORD; }
   "portrait"         { return PORTRAIT_KEYWORD; }
   "square"           { return SQUARE_KEYWORD; }
-  "name"             { return NAME_PARAM_KEYWORD; }
-  "width"            { return WIDTH_PARAM_KEYWORD; }
-  "height"           { return HEIGHT_PARAM_KEYWORD; }
-  "parent"           { return PARENT_PARAM_KEYWORD; }
-  "orientation"      { return ORIENTATION_PARAM_KEYWORD; }
-  "isRound"          { return IS_ROUND_PARAM_KEYWORD; }
-  "chinSize"         { return CHIN_SIZE_PARAM_KEYWORD; }
-  "dpi"              { return DPI_PARAM_KEYWORD; }
-  "boolean"          { return BOOLEAN; }
+  "width"            { return WIDTH_KEYWORD; }
+  "height"           { return HEIGHT_KEYWORD; }
+  "parent"           { return PARENT_KEYWORD; }
+  "orientation"      { return ORIENTATION_KEYWORD; }
+  "isRound"          { return IS_ROUND_KEYWORD; }
+  "chinSize"         { return CHIN_SIZE_KEYWORD; }
+  "dpi"              { return DPI_KEYWORD; }
 
-  {WS}               { return WS; }
-  {INT_T}            { return INT_T; }
-  {DEVICE_ID_T}      { return DEVICE_ID_T; }
+  {NUMERIC_T}        { return NUMERIC_T; }
+  {STRING_T}         { return STRING_T; }
 
 }
 

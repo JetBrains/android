@@ -7,28 +7,32 @@ import com.intellij.psi.PsiElement;
 
 public class DeviceSpecVisitor extends PsiElementVisitor {
 
-  public void visitChinSizeParam(@NotNull DeviceSpecChinSizeParam o) {
+  public void visitBooleanT(@NotNull DeviceSpecBooleanT o) {
     visitPsiElement(o);
+  }
+
+  public void visitChinSizeParam(@NotNull DeviceSpecChinSizeParam o) {
+    visitParam(o);
   }
 
   public void visitDpiParam(@NotNull DeviceSpecDpiParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitHeightParam(@NotNull DeviceSpecHeightParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitIsRoundParam(@NotNull DeviceSpecIsRoundParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitNameParam(@NotNull DeviceSpecNameParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitOrientationParam(@NotNull DeviceSpecOrientationParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitOrientationT(@NotNull DeviceSpecOrientationT o) {
@@ -40,7 +44,11 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
   }
 
   public void visitParentParam(@NotNull DeviceSpecParentParam o) {
-    visitPsiElement(o);
+    visitParam(o);
+  }
+
+  public void visitShapeParam(@NotNull DeviceSpecShapeParam o) {
+    visitParam(o);
   }
 
   public void visitSizeT(@NotNull DeviceSpecSizeT o) {
@@ -55,8 +63,12 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitUnitParam(@NotNull DeviceSpecUnitParam o) {
+    visitParam(o);
+  }
+
   public void visitWidthParam(@NotNull DeviceSpecWidthParam o) {
-    visitPsiElement(o);
+    visitParam(o);
   }
 
   public void visitPsiElement(@NotNull PsiElement o) {

@@ -11,7 +11,7 @@ import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSp
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.compose.preview.util.device.parser.*;
 
-public class DeviceSpecParamImpl extends ASTWrapperPsiElement implements DeviceSpecParam {
+public abstract class DeviceSpecParamImpl extends ASTWrapperPsiElement implements DeviceSpecParam {
 
   public DeviceSpecParamImpl(@NotNull ASTNode node) {
     super(node);
@@ -25,54 +25,6 @@ public class DeviceSpecParamImpl extends ASTWrapperPsiElement implements DeviceS
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof DeviceSpecVisitor) accept((DeviceSpecVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecChinSizeParam getChinSizeParam() {
-    return findChildByClass(DeviceSpecChinSizeParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecDpiParam getDpiParam() {
-    return findChildByClass(DeviceSpecDpiParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecHeightParam getHeightParam() {
-    return findChildByClass(DeviceSpecHeightParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecIsRoundParam getIsRoundParam() {
-    return findChildByClass(DeviceSpecIsRoundParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecNameParam getNameParam() {
-    return findChildByClass(DeviceSpecNameParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecOrientationParam getOrientationParam() {
-    return findChildByClass(DeviceSpecOrientationParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecParentParam getParentParam() {
-    return findChildByClass(DeviceSpecParentParam.class);
-  }
-
-  @Override
-  @Nullable
-  public DeviceSpecWidthParam getWidthParam() {
-    return findChildByClass(DeviceSpecWidthParam.class);
   }
 
 }

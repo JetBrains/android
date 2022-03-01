@@ -10,15 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.*;
 import com.android.tools.idea.compose.preview.util.device.parser.*;
 
-public class DeviceSpecDpiParamImpl extends DeviceSpecParamImpl implements DeviceSpecDpiParam {
+public class DeviceSpecUnitParamImpl extends DeviceSpecParamImpl implements DeviceSpecUnitParam {
 
-  public DeviceSpecDpiParamImpl(@NotNull ASTNode node) {
+  public DeviceSpecUnitParamImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull DeviceSpecVisitor visitor) {
-    visitor.visitDpiParam(this);
+    visitor.visitUnitParam(this);
   }
 
   @Override
@@ -29,8 +29,8 @@ public class DeviceSpecDpiParamImpl extends DeviceSpecParamImpl implements Devic
 
   @Override
   @NotNull
-  public PsiElement getNumericT() {
-    return findNotNullChildByType(NUMERIC_T);
+  public DeviceSpecUnit getUnit() {
+    return findNotNullChildByClass(DeviceSpecUnit.class);
   }
 
 }

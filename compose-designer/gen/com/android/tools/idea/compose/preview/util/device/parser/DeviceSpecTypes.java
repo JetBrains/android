@@ -8,6 +8,7 @@ import com.android.tools.idea.compose.preview.util.device.parser.impl.*;
 
 public interface DeviceSpecTypes {
 
+  IElementType BOOLEAN_T = new DeviceSpecElementType("BOOLEAN_T");
   IElementType CHIN_SIZE_PARAM = new DeviceSpecElementType("CHIN_SIZE_PARAM");
   IElementType DPI_PARAM = new DeviceSpecElementType("DPI_PARAM");
   IElementType HEIGHT_PARAM = new DeviceSpecElementType("HEIGHT_PARAM");
@@ -17,39 +18,44 @@ public interface DeviceSpecTypes {
   IElementType ORIENTATION_T = new DeviceSpecElementType("ORIENTATION_T");
   IElementType PARAM = new DeviceSpecElementType("PARAM");
   IElementType PARENT_PARAM = new DeviceSpecElementType("PARENT_PARAM");
+  IElementType SHAPE_PARAM = new DeviceSpecElementType("SHAPE_PARAM");
   IElementType SIZE_T = new DeviceSpecElementType("SIZE_T");
   IElementType SPEC = new DeviceSpecElementType("SPEC");
   IElementType UNIT = new DeviceSpecElementType("UNIT");
+  IElementType UNIT_PARAM = new DeviceSpecElementType("UNIT_PARAM");
   IElementType WIDTH_PARAM = new DeviceSpecElementType("WIDTH_PARAM");
 
-  IElementType BOOLEAN = new DeviceSpecTokenType("boolean");
-  IElementType CHIN_SIZE_PARAM_KEYWORD = new DeviceSpecTokenType("chinSize");
+  IElementType CHIN_SIZE_KEYWORD = new DeviceSpecTokenType("chinSize");
   IElementType COLON = new DeviceSpecTokenType(":");
   IElementType COMMA = new DeviceSpecTokenType(",");
-  IElementType DEVICE_ID_T = new DeviceSpecTokenType("DEVICE_ID_T");
   IElementType DP = new DeviceSpecTokenType("dp");
-  IElementType DPI_PARAM_KEYWORD = new DeviceSpecTokenType("dpi");
+  IElementType DPI_KEYWORD = new DeviceSpecTokenType("dpi");
   IElementType EQUALS = new DeviceSpecTokenType("=");
   IElementType FALSE = new DeviceSpecTokenType("false");
-  IElementType HEIGHT_PARAM_KEYWORD = new DeviceSpecTokenType("height");
+  IElementType HEIGHT_KEYWORD = new DeviceSpecTokenType("height");
   IElementType ID_KEYWORD = new DeviceSpecTokenType("id");
-  IElementType INT_T = new DeviceSpecTokenType("INT_T");
-  IElementType IS_ROUND_PARAM_KEYWORD = new DeviceSpecTokenType("isRound");
+  IElementType IS_ROUND_KEYWORD = new DeviceSpecTokenType("isRound");
   IElementType LANDSCAPE_KEYWORD = new DeviceSpecTokenType("landscape");
-  IElementType NAME_PARAM_KEYWORD = new DeviceSpecTokenType("name");
-  IElementType ORIENTATION_PARAM_KEYWORD = new DeviceSpecTokenType("orientation");
-  IElementType PARENT_PARAM_KEYWORD = new DeviceSpecTokenType("parent");
+  IElementType NAME_KEYWORD = new DeviceSpecTokenType("name");
+  IElementType NUMERIC_T = new DeviceSpecTokenType("NUMERIC_T");
+  IElementType ORIENTATION_KEYWORD = new DeviceSpecTokenType("orientation");
+  IElementType PARENT_KEYWORD = new DeviceSpecTokenType("parent");
   IElementType PORTRAIT_KEYWORD = new DeviceSpecTokenType("portrait");
   IElementType PX = new DeviceSpecTokenType("px");
   IElementType SPEC_KEYWORD = new DeviceSpecTokenType("spec");
   IElementType SQUARE_KEYWORD = new DeviceSpecTokenType("square");
+  IElementType STRING_T = new DeviceSpecTokenType("STRING_T");
   IElementType TRUE = new DeviceSpecTokenType("true");
-  IElementType WIDTH_PARAM_KEYWORD = new DeviceSpecTokenType("width");
+  IElementType UNIT_KEYWORD = new DeviceSpecTokenType("unit");
+  IElementType WIDTH_KEYWORD = new DeviceSpecTokenType("width");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == CHIN_SIZE_PARAM) {
+      if (type == BOOLEAN_T) {
+        return new DeviceSpecBooleanTImpl(node);
+      }
+      else if (type == CHIN_SIZE_PARAM) {
         return new DeviceSpecChinSizeParamImpl(node);
       }
       else if (type == DPI_PARAM) {
@@ -70,11 +76,11 @@ public interface DeviceSpecTypes {
       else if (type == ORIENTATION_T) {
         return new DeviceSpecOrientationTImpl(node);
       }
-      else if (type == PARAM) {
-        return new DeviceSpecParamImpl(node);
-      }
       else if (type == PARENT_PARAM) {
         return new DeviceSpecParentParamImpl(node);
+      }
+      else if (type == SHAPE_PARAM) {
+        return new DeviceSpecShapeParamImpl(node);
       }
       else if (type == SIZE_T) {
         return new DeviceSpecSizeTImpl(node);
@@ -84,6 +90,9 @@ public interface DeviceSpecTypes {
       }
       else if (type == UNIT) {
         return new DeviceSpecUnitImpl(node);
+      }
+      else if (type == UNIT_PARAM) {
+        return new DeviceSpecUnitParamImpl(node);
       }
       else if (type == WIDTH_PARAM) {
         return new DeviceSpecWidthParamImpl(node);

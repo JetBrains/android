@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeviceSpecOrientationParam extends PsiElement {
+public interface DeviceSpecOrientationParam extends DeviceSpecParam {
 
   @NotNull
   DeviceSpecOrientationT getOrientationT();

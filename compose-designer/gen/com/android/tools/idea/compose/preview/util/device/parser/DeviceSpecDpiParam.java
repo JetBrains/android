@@ -5,9 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeviceSpecDpiParam extends PsiElement {
+public interface DeviceSpecDpiParam extends DeviceSpecParam {
 
   @NotNull
-  PsiElement getIntT();
+  PsiElement getNumericT();
 
 }

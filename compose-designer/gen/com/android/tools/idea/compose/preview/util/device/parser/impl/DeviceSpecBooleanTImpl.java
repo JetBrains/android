@@ -8,29 +8,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.compose.preview.util.device.parser.*;
 
-public class DeviceSpecDpiParamImpl extends DeviceSpecParamImpl implements DeviceSpecDpiParam {
+public class DeviceSpecBooleanTImpl extends ASTWrapperPsiElement implements DeviceSpecBooleanT {
 
-  public DeviceSpecDpiParamImpl(@NotNull ASTNode node) {
+  public DeviceSpecBooleanTImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  @Override
   public void accept(@NotNull DeviceSpecVisitor visitor) {
-    visitor.visitDpiParam(this);
+    visitor.visitBooleanT(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof DeviceSpecVisitor) accept((DeviceSpecVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public PsiElement getNumericT() {
-    return findNotNullChildByType(NUMERIC_T);
   }
 
 }

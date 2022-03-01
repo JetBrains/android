@@ -11,6 +11,6 @@ public interface DeviceSpecSizeT extends PsiElement {
   DeviceSpecUnit getUnit();
 
   @NotNull
-  PsiElement getIntT();
+  PsiElement getNumericT();
 
 }

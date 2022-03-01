@@ -33,9 +33,9 @@
   elementTypeClass='com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecElementType'
   tokenTypeClass='com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTokenType'
 
-  tokens=[
-    WS='regexp:\s+'  // White spaces for live preview
+  extends(".*_param")=param
 
+  tokens=[
     // literals
     TRUE = 'true'
     FALSE = 'false'
@@ -45,48 +45,55 @@
     EQUALS = '='
     COLON = ':'
 
+    UNIT_KEYWORD = 'unit'
+
     SPEC_KEYWORD = 'spec'
     ID_KEYWORD = 'id'
+    NAME_KEYWORD = 'name'
     LANDSCAPE_KEYWORD = 'landscape'
     PORTRAIT_KEYWORD = 'portrait'
     SQUARE_KEYWORD = 'square'
 
-    NAME_PARAM_KEYWORD = 'name'
-    WIDTH_PARAM_KEYWORD = 'width'
-    HEIGHT_PARAM_KEYWORD = 'height'
-    PARENT_PARAM_KEYWORD = 'parent'
-    ORIENTATION_PARAM_KEYWORD = 'orientation'
-    IS_ROUND_PARAM_KEYWORD = 'isRound'
-    CHIN_SIZE_PARAM_KEYWORD = 'chinSize'
-    DPI_PARAM_KEYWORD = 'dpi'
+    WIDTH_KEYWORD = 'width'
+    HEIGHT_KEYWORD = 'height'
+    PARENT_KEYWORD = 'parent'
+    ORIENTATION_KEYWORD = 'orientation'
+    IS_ROUND_KEYWORD = 'isRound'
+    CHIN_SIZE_KEYWORD = 'chinSize'
+    DPI_KEYWORD = 'dpi'
 
-    INT_T = 'regexp:\d+'
-    DEVICE_ID_T = 'regexp:\p{Alpha}+\w*'
+    NUMERIC_T = 'regexp:\d+(\.\d)?'
+    STRING_T = 'regexp:\p{Alpha}+(\w|\s)*'
   ]
 }
 
-root ::= SPEC_KEYWORD COLON spec | ID_KEYWORD COLON DEVICE_ID_T
+root ::= SPEC_KEYWORD COLON spec | ID_KEYWORD COLON STRING_T | NAME_KEYWORD COLON STRING_T
 
 /* Type definition */
 unit ::= (PX | DP)
-size_t ::= INT_T (unit)?
+size_t ::= NUMERIC_T (unit)?
 orientation_t ::= LANDSCAPE_KEYWORD | PORTRAIT_KEYWORD | SQUARE_KEYWORD
+boolean_t ::= TRUE | FALSE
 
 /* Parameter definitions */
-name_param ::= NAME_PARAM_KEYWORD EQUALS DEVICE_ID_T
-width_param::= WIDTH_PARAM_KEYWORD EQUALS size_t
-height_param ::= HEIGHT_PARAM_KEYWORD EQUALS size_t
-parent_param::= PARENT_PARAM_KEYWORD EQUALS DEVICE_ID_T
-orientation_param ::= ORIENTATION_PARAM_KEYWORD EQUALS orientation_t
-is_round_param ::= IS_ROUND_PARAM_KEYWORD EQUALS boolean
-chin_size_param ::= CHIN_SIZE_PARAM_KEYWORD EQUALS size_t
-dpi_param ::= DPI_PARAM_KEYWORD EQUALS INT_T
+name_param ::= NAME_KEYWORD EQUALS STRING_T
+width_param::= WIDTH_KEYWORD EQUALS size_t
+height_param ::= HEIGHT_KEYWORD EQUALS size_t
+shape_param ::= "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin") // Deprecated, just here to be compatible with the old parser
+unit_param ::= UNIT_KEYWORD EQUALS unit // Deprecated, just here to be compatible with the old parser
+parent_param::= PARENT_KEYWORD EQUALS STRING_T
+orientation_param ::= ORIENTATION_KEYWORD EQUALS orientation_t
+is_round_param ::= IS_ROUND_KEYWORD EQUALS boolean_t
+chin_size_param ::= CHIN_SIZE_KEYWORD EQUALS size_t
+dpi_param ::= DPI_KEYWORD EQUALS NUMERIC_T
 
 /* Top level definitions */
 param ::= parent_param
    | name_param
    | width_param
    | height_param
+   | shape_param // Deprecated, just here to be compatible with the old parser
+   | unit_param // Deprecated, just here to be compatible with the old parser
    | orientation_param
    | is_round_param
    | chin_size_param

@@ -35,8 +35,8 @@ public class DeviceSpecSizeTImpl extends ASTWrapperPsiElement implements DeviceS
 
   @Override
   @NotNull
-  public PsiElement getIntT() {
-    return findNotNullChildByType(INT_T);
+  public PsiElement getNumericT() {
+    return findNotNullChildByType(NUMERIC_T);
   }
 
 }

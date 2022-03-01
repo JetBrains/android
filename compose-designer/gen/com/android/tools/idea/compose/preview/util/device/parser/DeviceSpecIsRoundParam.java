@@ -5,6 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeviceSpecIsRoundParam extends PsiElement {
+public interface DeviceSpecIsRoundParam extends DeviceSpecParam {
+
+  @NotNull
+  DeviceSpecBooleanT getBooleanT();
 
 }
