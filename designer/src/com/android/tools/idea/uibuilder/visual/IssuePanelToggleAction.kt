@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
@@ -32,7 +32,12 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    IssuePanelService.getInstance(surface.project).setShowSurfaceIssuePanel(state, surface, false)
+    if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+      IssuePanelService.getInstance(surface.project).setSharedIssuePanelVisibility(state)
+    }
+    else {
+      surface.setIssuePanelVisibility(state, false)
+    }
   }
 
   override fun update(e: AnActionEvent) {

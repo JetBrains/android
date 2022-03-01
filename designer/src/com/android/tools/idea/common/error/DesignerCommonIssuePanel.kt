@@ -91,6 +91,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       updateTree()
     }
     tree = Tree(AsyncTreeModel(treeModel, this))
+    tree.emptyText.text = "No design issue is found"
     PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")
 
     tree.isRootVisible = false
