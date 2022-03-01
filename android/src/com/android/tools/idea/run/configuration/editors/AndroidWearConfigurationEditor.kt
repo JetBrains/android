@@ -149,6 +149,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         .constraints(CCFlags.growX, CCFlags.pushX)
         .applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
+          setMinLength(400)
           addPropertyChangeListener("model") {
             this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
           }
