@@ -323,6 +323,10 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestCompletion();
   }
 
+  public void testAdaptiveIconCompletionSubtags1() throws Throwable {
+    doTestCompletion();
+  }
+
   public void testRootTagCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
                              "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate",

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,8 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.Styleable;
 
-import java.util.List;
-
-@DefinesXml
-public interface AdaptiveIcon extends DrawableDomElement {
-  AdaptiveIconDrawableLayer getBackground();
-  AdaptiveIconDrawableLayer getForeground();
-  AdaptiveIconDrawableLayer getMonochrome();
+@Styleable("AdaptiveIconDrawableLayer")
+public interface AdaptiveIconDrawableLayer extends ListItemBase {
 }
