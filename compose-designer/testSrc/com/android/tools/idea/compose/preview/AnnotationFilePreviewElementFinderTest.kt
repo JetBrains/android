@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.DisplayPositioning
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
@@ -23,6 +24,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
@@ -81,6 +83,9 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
+  val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
+
+  @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
                                        composableAnnotationPackage = composableAnnotationPackage)
   private val project get() = projectRule.project
@@ -123,6 +128,19 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
         @[Composable Preview]
         fun Preview6() {
+        }
+
+        @Preview(name = "named multipreview")
+        annotation class MySubAnnotation() {}
+
+        @MySubAnnotation
+        @Preview
+        annotation class MyAnnotation() {}
+
+        @MyAnnotation
+        @Preview(name = "preview7")
+        @Composable
+        fun Preview7() {
         }
 
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
@@ -172,7 +190,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
-    assertEquals(8, elements.size)
+    assertEquals(11, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
@@ -188,7 +206,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[1].let {
-      assertEquals("preview2", it.displaySettings.name)
+      assertEquals("preview2 - Preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
@@ -208,7 +226,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[2].let {
-      assertEquals("preview3", it.displaySettings.name)
+      assertEquals("preview3 - Preview3", it.displaySettings.name)
       assertNull(it.displaySettings.group)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
@@ -228,7 +246,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[3].let {
-      assertEquals("preview4", it.displaySettings.name)
+      assertEquals("preview4 - Preview4", it.displaySettings.name)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
@@ -240,7 +258,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[4].let {
-      assertEquals("preview5", it.displaySettings.name)
+      assertEquals("preview5 - Preview5", it.displaySettings.name)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
 
@@ -266,11 +284,53 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[6].let {
-      assertEquals("Preview with parameters", it.displaySettings.name)
+      assertEquals("named multipreview - Preview7", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"named multipreview\")", it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[7].let {
-      assertEquals("FQN", it.displaySettings.name)
+      assertEquals("MyAnnotation 1 - Preview7", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[8].let {
+      assertEquals("preview7 - Preview7", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview7\")", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[9].let {
+      assertEquals("Preview with parameters - PreviewWithParametrs", it.displaySettings.name)
+    }
+
+    elements[10].let {
+      assertEquals("FQN - FullyQualifiedAnnotationPreview", it.displaySettings.name)
     }
   }
 
@@ -297,11 +357,11 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     assertEquals(2, elements.size)
 
-    elements[0].let{
+    elements[0].let {
       assertEquals("TestKt.Preview1", it.composableMethodFqn)
     }
 
-    elements[1].let{
+    elements[1].let {
       assertEquals("TestKt.Preview2", it.composableMethodFqn)
     }
   }
@@ -324,7 +384,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
     val element = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).single()
     // Check that we keep the first element
-    assertEquals("preview", element.displaySettings.name)
+    assertEquals("preview - Preview1", element.displaySettings.name)
   }
 
   @Test
@@ -404,7 +464,9 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         result.await()
       }
       fail("The result should not have been returned in non-smart mode")
-    } catch (_: TimeoutCancellationException) {}
+    }
+    catch (_: TimeoutCancellationException) {
+    }
     runInEdtAndWait {
       DumbServiceImpl.getInstance(project).isDumb = false
     }
@@ -564,10 +626,10 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
-    val elements =  AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     assertEquals(2, elements.size)
     elements[0].let {
-      assertEquals("preview1", it.displaySettings.name)
+      assertEquals("preview1 - Preview1", it.displaySettings.name)
       assertEquals(2, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
@@ -579,7 +641,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[1].let {
-      assertEquals("preview2", it.displaySettings.name)
+      assertEquals("preview2 - Preview1", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)

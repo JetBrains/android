@@ -27,11 +27,15 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewParameter
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
@@ -46,7 +50,21 @@ import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.toUElement
+import org.jetbrains.uast.toUElementOfType
+import org.jetbrains.uast.tryResolve
 
+/**
+ * In Multipreview, every annotation is traversed in the DFS for finding Previews.
+ * This list is used as an optimization to avoid traversing annotations which fqcn
+ * starts with any of these prefixes, as those annotations will never lead to a Preview.
+ */
+private val NON_MULTIPREVIEW_PREFIXES = listOf(
+  "android.",
+  "androidx.",
+  "kotlin.",
+  "kotlinx.",
+  "java.",
+)
 
 /**
  * Returns true if the [KtAnnotationEntry] is a `@Preview` annotation.
@@ -58,6 +76,16 @@ internal fun KtAnnotationEntry.isPreviewAnnotation() = ReadAction.compute<Boolea
 }
 
 /**
+ * Returns true if the Multipreview flag is enabled and this annotation fqcn
+ * doesn't start with any of the prefixes of [NON_MULTIPREVIEW_PREFIXES]
+ */
+private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
+  return StudioFlags.COMPOSE_MULTIPREVIEW.get() && NON_MULTIPREVIEW_PREFIXES.all {
+    (this.tryResolve() as? PsiClass)?.qualifiedName?.startsWith(it) == false
+  }
+}
+
+/**
  * Returns true if the [UAnnotation] is a `@Preview` annotation.
  */
 internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> {
@@ -65,20 +93,59 @@ internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Thr
 }
 
 /**
- * Given a Composable method, return a list of [PreviewElement] corresponding to its Preview annotations
+ * Returns true if the [uMethod] is annotated with a @Preview annotation, taking in consideration
+ * indirect annotations with multipreview when the flag is enabled
+ */
+internal fun hasPreviewElements(uMethod: UMethod) = getPreviewElements(uMethod).firstOrNull() != null
+
+/**
+ * Given a Composable method, return a sequence of [PreviewElement] corresponding to its Preview annotations
  */
 internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) = runReadAction {
-  if (uMethod.isComposable()) uMethod.uAnnotations.mapNotNull { it.toPreviewElement(uMethod, overrideGroupName) }
-  else listOf() // for non-composable methods, return an empty list
+  if (uMethod.isComposable()) {
+    val visitedAnnotationClasses = mutableSetOf<String>()
+    uMethod.uAnnotations.asSequence().flatMap { it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName) }
+  }
+  else emptySequence() // for non-composable methods, return an empty sequence
+}
+
+private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<String>,
+                                           uMethod: UMethod? = getContainingComposableUMethod(),
+                                           overrideGroupName: String? = null,
+                                           parentAnnotationInfo: String? = null): Sequence<PreviewElement> = runReadAction {
+  if (this.isPreviewAnnotation()) {
+    return@runReadAction sequenceOfNotNull(this.toPreviewElement(uMethod, overrideGroupName, parentAnnotationInfo))
+  }
+  val annotationClassFqcn = (this.tryResolve() as? PsiClass)?.qualifiedName
+  if (this.couldBeMultiPreviewAnnotation() && annotationClassFqcn != null && !visitedAnnotationClasses.contains(annotationClassFqcn)) {
+    visitedAnnotationClasses.add(annotationClassFqcn)
+    var nDirectPreviews = 0
+    val curAnnotationName = (this.tryResolve() as? PsiClass)!!.name
+    (this.tryResolve() as? PsiModifierListOwner)?.annotations
+      ?.mapNotNull { it.toUElementOfType() as? UAnnotation }
+      ?.asSequence()
+      ?.flatMap {
+        if (it.isPreviewAnnotation()) {
+          it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName, "$curAnnotationName ${++nDirectPreviews}")
+        }
+        else {
+          it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName)
+        }
+      }
+    ?: emptySequence()
+  }
+  else emptySequence()
 }
 
 /**
  * Converts the [UAnnotation] to a [PreviewElement] if the annotation is a `@Preview` annotation or returns null
  * if it's not.
  */
-internal fun UAnnotation.toPreviewElement(uMethod: UMethod? = getContainingComposableUMethod(), overrideGroupName: String? = null) = runReadAction {
+internal fun UAnnotation.toPreviewElement(uMethod: UMethod? = getContainingComposableUMethod(),
+                                          overrideGroupName: String? = null,
+                                          parentAnnotationInfo: String? = null) = runReadAction {
   if (this.isPreviewAnnotation()) {
-    uMethod?.let { previewAnnotationToPreviewElement(this, it, overrideGroupName) }
+    uMethod?.let { previewAnnotationToPreviewElement(this, it, overrideGroupName, parentAnnotationInfo) }
   }
   else null
 }
@@ -142,10 +209,17 @@ private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<Stri
  */
 private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               annotatedMethod: UMethod,
-                                              overrideGroupName: String? = null): PreviewElement? {
+                                              overrideGroupName: String? = null,
+                                              parentAnnotationInfo: String? = null): PreviewElement? {
+  fun getPreviewName(nameParameter: String?) = when {
+    nameParameter != null -> "$nameParameter - ${annotatedMethod.name}"
+    parentAnnotationInfo != null -> "$parentAnnotationInfo - ${annotatedMethod.name}"
+    else -> annotatedMethod.name
+  }
+
   val uClass: UClass = annotatedMethod.uastParent as UClass
   val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
-  val previewName = previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString() ?: annotatedMethod.name
+  val previewName = getPreviewName(previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString())
   val defaultValues = previewAnnotation.findPreviewDefaultValues()
 
   fun getBooleanAttribute(attributeName: String) = previewAnnotation.findDeclaredAttributeValue(attributeName)?.evaluate() as? Boolean

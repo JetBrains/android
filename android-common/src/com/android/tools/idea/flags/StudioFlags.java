@@ -1244,6 +1244,11 @@ public final class StudioFlags {
     COMPOSE, "preview.fast.reload.in.process.enabled", "Enable the Compose fast-reload in-process compiler",
     "If enabled, the preview will use the in-process compiler for compiling.",
     true);
+
+  public static final Flag<Boolean> COMPOSE_MULTIPREVIEW = Flag.create(
+    COMPOSE, "preview.multipreview.enabled", "Enable Compose Multipreview",
+    "If enabled, annotation classes annotated with Preview, and its usages, will be considered when finding Previews in a file",
+    false);
   //endregion
 
   // region App Inspection
