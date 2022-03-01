@@ -24,11 +24,14 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.editor.event.EditorFactoryEvent
-import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.FileEditorManagerListener.FILE_EDITOR_MANAGER
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -457,17 +460,21 @@ class LiveLiteralsService private constructor(private val project: Project,
     val newActivationDisposable = Disposer.newDisposable()
 
     // Find all the active editors
-    EditorFactory.getInstance().allEditors.forEach {
-      if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
+    val fileEditorManager = FileEditorManager.getInstance(project)
+    fileEditorManager.selectedEditors
+      .filterIsInstance<TextEditor>()
+      .map { it.editor }
+      .forEach {
+        if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
     }
 
-    // Listen for all new editors opening
-    EditorFactory.getInstance().addEditorFactoryListener(object : EditorFactoryListener {
-      override fun editorCreated(event: EditorFactoryEvent) {
-        if (event.editor.project == project) addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
+    project.messageBus.connect(newActivationDisposable).subscribe(FILE_EDITOR_MANAGER, object: FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        (event.newEditor as? TextEditor)?.editor?.let {
+          if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
+        }
       }
-    }, newActivationDisposable)
-
+    })
 
     setupChangeListener(project, ::onDocumentsUpdated, newActivationDisposable, updateMergingQueue)
     setupBuildListener(project, object : BuildListener {
