@@ -152,24 +152,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
-  private class RunConfigurationGradleContext(
-    val androidFacet: AndroidFacet,
-    val isTestConfiguration: Boolean,
-    val alwaysDeployApkFromBundle: Boolean
-  )
-
-  private fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext? {
-    if (this !is AndroidRunConfigurationBase &&
-      this !is AndroidWearConfiguration
-    ) return null
-
-    return RunConfigurationGradleContext(
-      androidFacet = safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null,
-      isTestConfiguration = if (this is AndroidRunConfigurationBase) isTestConfiguration else false,
-      alwaysDeployApkFromBundle = (this as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
-    )
-  }
-
   override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
     val context = runConfiguration.getGradleContext() ?: return null
     return GradleApkProvider(
