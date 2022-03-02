@@ -16,10 +16,18 @@
 package org.jetbrains.android.dom;
 
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryPackageNameFromManifestIndex;
+import static com.android.tools.idea.testing.AndroidTestUtils.goToElementAtCaret;
+import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import java.io.IOException;
 import java.util.List;
@@ -384,12 +392,33 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
       "        <animated-vector android:drawable=\"@android:color/background_dark\">\n" +
       "            <target\n" +
       "                android:name=\"button\"\n" +
-      "                android:animation=\"@android:anim/bounce_interpolator\" />\n" +
+      "                android:animation=\"@android:animator/fade_in\" />\n" +
       "        </animated-vector>\n" +
       "    </transition>\n" +
       "\n" +
       "</animated-selector>");
     doTestHighlighting(file.getVirtualFile());
+  }
+
+  public void testAnimatedVectorTargetElement() {
+    PsiFile file = myFixture.addFileToProject(
+      "res/drawable/foo.xml",
+      "<animated-selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "    <transition android:fromId=\"@+id/off\" android:toId=\"@+id/on\">\n" +
+      "        <animated-vector android:drawable=\"@android:color/background_dark\">\n" +
+      "            <target\n" +
+      "                android:name=\"button\"\n" +
+      "                android:animation=\"@android:animator/fade_in\" />\n" +
+      "        </animated-vector>\n" +
+      "    </transition>\n" +
+      "\n" +
+      "</animated-selector>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    moveCaret(myFixture, "@android:a|nimator/fade_in");
+    PsiElement elementAtCaret = myFixture.getElementAtCaret();
+    assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement.class);
+    assertThat(((ResourceReferencePsiElement)elementAtCaret).getResourceReference())
+      .isEqualTo(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.ANIMATOR, "fade_in"));
   }
 
   private void doTestOnlyDrawableReferences() throws IOException {

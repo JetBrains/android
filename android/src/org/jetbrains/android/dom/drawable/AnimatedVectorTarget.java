@@ -30,6 +30,6 @@ public interface AnimatedVectorTarget extends DrawableDomElement {
 
   @Convert(ResourceReferenceConverter.class)
   @Required
-  @AndroidResourceType("anim")
+  @AndroidResourceType("animator")
   AndroidAttributeValue<ResourceValue> getAnimation();
 }
