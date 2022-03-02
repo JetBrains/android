@@ -147,6 +147,7 @@ internal class FilterTextField(
         }
       })
       border = HISTORY_ICON_BORDER
+      toolTipText = LogcatBundle.message("logcat.filter.history.tooltip")
     }
 
     textField.apply {
@@ -178,6 +179,7 @@ internal class FilterTextField(
     }
 
     clearButton.apply {
+      toolTipText = LogcatBundle.message("logcat.filter.clear.tooltip")
       addMouseListener(object : MouseAdapter() {
         override fun mouseEntered(e: MouseEvent) {
           clearButton.icon = AllIcons.Actions.CloseHovered
@@ -194,9 +196,12 @@ internal class FilterTextField(
     }
 
     favoriteButton.apply {
+      toolTipText = LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
       addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           isFavorite = !isFavorite
+          toolTipText = if (isFavorite) LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
+          else LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
           addToHistory()
           mouseEntered(e) // Setter for isFavorite will set the wrong icon (not hovered)
         }
@@ -312,7 +317,7 @@ internal class FilterTextField(
     }
   }
 
-  override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.history.tooltip")
+  override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.delete.history.tooltip")
 
   private data class FilterHistoryItem(val filter: String, val isFavorite: Boolean)
 }
