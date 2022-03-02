@@ -42,6 +42,7 @@ internal class LogcatHeaderPanel(
   deviceContext: DeviceContext,
   packageNamesProvider: PackageNamesProvider,
   filter: String,
+  initialDevice: SavedDevice?,
 ) : JPanel() {
   private val deviceComboBox: JComboBox<IDevice>
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
@@ -52,7 +53,7 @@ internal class LogcatHeaderPanel(
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
     //  have an instance per tab/split and would like to be disposed when the container closes.
     //  It's not yet clear if we will and up using DevicePanel or not, so will not make changes to it just yet.
-    val devicePanel = DevicePanel(project, deviceContext)
+    val devicePanel = DevicePanel(project, deviceContext, initialDevice)
     deviceComboBox = devicePanel.deviceComboBox
 
     filterComponent.apply {

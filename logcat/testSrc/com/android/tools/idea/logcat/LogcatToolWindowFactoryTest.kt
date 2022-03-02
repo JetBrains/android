@@ -98,7 +98,7 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun createChildComponent_parsesState() {
     val logcatPanelConfig = LogcatPanelConfig(
-      "device",
+      device = null,
       FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
       "filter")
 

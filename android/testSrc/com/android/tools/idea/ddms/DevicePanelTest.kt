@@ -44,7 +44,7 @@ internal class DevicePanelTest {
     myProject = Mockito.mock(Project::class.java)
     myBridge = Mockito.mock(AndroidDebugBridge::class.java)
 
-    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox())
+    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox(), null)
     myDeviceComboBox = myPanel.deviceComboBox
   }
 

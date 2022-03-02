@@ -17,6 +17,10 @@ package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL
+import com.android.ddmlib.IDevice.PROP_BUILD_VERSION
+import com.android.ddmlib.IDevice.PROP_DEVICE_MANUFACTURER
+import com.android.ddmlib.IDevice.PROP_DEVICE_MODEL
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -127,6 +131,7 @@ internal class LogcatMainPanel(
   internal val editor: EditorEx = createLogcatEditor(project)
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
+
   @VisibleForTesting
   val deviceContext = DeviceContext()
 
@@ -149,6 +154,7 @@ internal class LogcatMainPanel(
     logcatPresenter = this,
     deviceContext, packageNamesProvider,
     state?.filter ?: if (androidProjectDetector.isAndroidProject(project)) DEFAULT_FILTER else "",
+    state?.device,
   )
 
   private val logcatFilterParser = LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
@@ -262,7 +268,7 @@ internal class LogcatMainPanel(
     val formattingOptionsStyle = formattingOptions.getStyle()
     return LogcatPanelConfig.toJson(
       LogcatPanelConfig(
-        deviceContext.selectedDevice?.serialNumber,
+        deviceContext.selectedDevice?.toSavedDevice(),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         headerPanel.getFilterText()))
   }
@@ -413,3 +419,19 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 }
 
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
+
+private fun IDevice?.toSavedDevice(): SavedDevice? {
+  return if (this == null) {
+    null
+  }
+  else {
+    val properties = mapOf(
+      PROP_DEVICE_MODEL to getProperty(PROP_DEVICE_MODEL),
+      PROP_DEVICE_MANUFACTURER to getProperty(PROP_DEVICE_MANUFACTURER),
+      PROP_BUILD_VERSION to getProperty(PROP_BUILD_VERSION),
+      PROP_BUILD_API_LEVEL to getProperty(PROP_BUILD_API_LEVEL),
+    )
+    val avdName = if (avdData.isDone) avdData.get().name else null
+    SavedDevice(serialNumber, name, isEmulator, avdName, properties)
+  }
+}

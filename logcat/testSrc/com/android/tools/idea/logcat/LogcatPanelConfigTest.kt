@@ -52,7 +52,7 @@ class LogcatPanelConfigTest {
 }
 
 private fun logcatPanelConfig(
-  deviceSerial: String? = null,
+  device: SavedDevice? = null,
   formattingConfig: FormattingConfig = FormattingConfig.Preset(STANDARD),
   filter: String = "",
-) = LogcatPanelConfig(deviceSerial, formattingConfig, filter)
+) = LogcatPanelConfig(device, formattingConfig, filter)

@@ -38,11 +38,9 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
  * Configuration for a logcat panel.
  *
  * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
- *
- * @param deviceSerial the serial number of the device monitored by this panel
  */
 internal data class LogcatPanelConfig(
-  var deviceSerial: String?,
+  var device: SavedDevice?,
   var formattingConfig: FormattingConfig,
   var filter: String,
 ) {
