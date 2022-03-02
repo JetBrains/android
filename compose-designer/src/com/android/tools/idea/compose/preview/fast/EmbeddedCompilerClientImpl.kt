@@ -27,6 +27,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.createFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
+import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
@@ -37,13 +39,17 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.project.platform
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.source.PsiSourceFile
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
@@ -133,7 +139,17 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
                                                          compilerConfiguration);
 
     if (useComposeIR) {
-      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(compilerConfiguration, PhaseConfig(jvmPhases)))
+      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
+        compilerConfiguration,
+        PhaseConfig(jvmPhases),
+        jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
+          override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
+            val psiSourceFile =
+              descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
+            return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
+          }
+        }
+      ))
     }
 
     val generationState = generationStateBuilder.build();
