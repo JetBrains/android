@@ -843,7 +843,7 @@ public class RenderTask {
    * See {@link RenderService#getRenderAsyncActionExecutor()}.
    */
   @VisibleForTesting
-  @NotNull <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+  public @NotNull <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
     return runAsyncRenderAction(callable, 0, TimeUnit.SECONDS);
   }
 

@@ -105,7 +105,7 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(580f, 389f, 76.5f, 11f), 0.5, "nested")
       verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(580f, 400f, 70f, 19f), 0.5,
@@ -398,7 +398,7 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav1")
       verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
@@ -421,7 +421,7 @@ class NavSceneTest {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5,
                        "fragment1", isStart = true, hasDeepLink = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
     }
   }
 

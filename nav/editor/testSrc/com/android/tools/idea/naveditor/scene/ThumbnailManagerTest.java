@@ -29,7 +29,6 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
@@ -42,6 +41,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -49,7 +49,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link ThumbnailManager}
@@ -101,7 +100,29 @@ public class ThumbnailManagerTest extends NavTestCase {
   }
 
   public void testOldVersion() throws Exception {
-    ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
+    Semaphore inProgressCheckDone = new Semaphore(1);
+    Semaphore taskStarted = new Semaphore(1);
+    ThumbnailManager manager = new ThumbnailManager(myFacet) {
+      @NotNull
+      @Override
+      protected CompletableFuture<RenderTask> createTask(@NotNull AndroidFacet facet,
+                                                         @NotNull XmlFile file,
+                                                         @NotNull Configuration configuration,
+                                                         @NotNull RenderService renderService) {
+        return CompletableFuture.completedFuture(RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration))
+          .whenComplete((task, ex) -> task.runAsyncRenderAction(() -> {
+            try {
+              taskStarted.release();
+              inProgressCheckDone.acquire();
+            }
+            catch (Exception e) {
+              fail(e.getMessage());
+            }
+            return null;
+          }));
+      }
+    };
+    Disposer.register(getProject(), manager);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
@@ -115,25 +136,9 @@ public class ThumbnailManagerTest extends NavTestCase {
     BufferedImage orig = thumbnail.getTerminalImage();
     assertNull(thumbnail.getImage());
 
-    Semaphore inProgressCheckDone = new Semaphore(1);
+    inProgressCheckDone.release(); // This was acquired when doing the first thumbnail rendering
     inProgressCheckDone.acquire();
-    Semaphore taskStarted = new Semaphore(1);
     taskStarted.acquire();
-
-    RenderService.setForTesting(getProject(), new RenderService(getProject()) {
-      @NotNull
-      @Override
-      public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
-        try {
-          taskStarted.release();
-          inProgressCheckDone.acquire();
-        }
-        catch (Exception e) {
-          fail(e.getMessage());
-        }
-        return super.taskBuilder(facet, configuration);
-      }
-    });
 
     ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
 
@@ -153,16 +158,16 @@ public class ThumbnailManagerTest extends NavTestCase {
     Semaphore started = new Semaphore(0);
     AtomicInteger renderCount = new AtomicInteger();
     ThumbnailManager manager = new ThumbnailManager(myFacet) {
-      @Nullable
+      @NotNull
       @Override
-      protected RenderTask createTask(@NotNull AndroidFacet facet,
-                                      @NotNull XmlFile file,
-                                      @NotNull Configuration configuration,
-                                      @NotNull RenderService renderService) {
+      protected CompletableFuture<RenderTask> createTask(@NotNull AndroidFacet facet,
+                                                         @NotNull XmlFile file,
+                                                         @NotNull Configuration configuration,
+                                                         @NotNull RenderService renderService) {
         started.release();
         lock.tryLock();
         renderCount.incrementAndGet();
-        return ReadAction.compute(() -> RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
+        return CompletableFuture.completedFuture(RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
       }
     };
     Disposer.register(getProject(), manager);

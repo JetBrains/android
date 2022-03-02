@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.res.LocalResourceRepository
@@ -30,6 +29,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.reference.SoftReference
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -86,8 +86,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     super.onDispose()
   }
 
-  // open for testing only
-  open fun getThumbnail(
+  fun getThumbnail(
     xmlFile: XmlFile,
     configuration: Configuration,
     dimensions: Dimension
@@ -183,19 +182,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       CompletableFuture.completedFuture(fullSize)
     }
     else {
-      val result = CompletableFuture<BufferedImage?>()
-      // TODO we run in a separate thread because task.render() currently isn't asynchronous
-      // if inflate() (which is itself synchronous) hasn't already been called.
-      ApplicationManager.getApplication().executeOnPooledThread {
-        try {
-          val image = getImage(xmlFile, file, configuration)
-          result.complete(image)
-        }
-        catch (t: Throwable) {
-          result.completeExceptionally(t)
-        }
-      }
-      result
+      getImage(xmlFile, file, configuration)
     }
   }
 
@@ -224,38 +211,30 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     return result
   }
 
-  private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {
+  // open for testing
+  @VisibleForTesting
+  protected open fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
     val renderService = RenderService.getInstance(module.project)
-    val task = createTask(facet, xmlFile, configuration, renderService)
-    try {
-      var renderResult: CompletableFuture<RenderResult>? = null
-      if (task != null) {
-        renderResult = task.render()
-      }
-      var image: BufferedImage? = null
-      if (renderResult != null) {
-        // This should also be done in a listener if task.render() were actually async.
-        image = renderResult.get().renderedImage.copy
+    val renderTaskFuture = createTask(facet, xmlFile, configuration, renderService)
+    return renderTaskFuture.thenCompose { task -> task.render() }
+      .thenApply {
+        val image = it.renderedImage.copy
         myImages.put(file, configuration, SoftReference<BufferedImage>(image))
         myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
         myRenderModStamps.put(file, configuration, file.timeStamp)
+        image
       }
-      return image
-    }
-    finally {
-      task?.dispose()
-    }
+      .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.dispose() }, AppExecutorUtil.getAppExecutorService())
   }
 
   protected open fun createTask(facet: AndroidFacet,
                                 file: XmlFile,
                                 configuration: Configuration,
-                                renderService: RenderService): RenderTask? {
-    val task = renderService.taskBuilder(facet, configuration)
+                                renderService: RenderService): CompletableFuture<RenderTask> {
+    return renderService.taskBuilder(facet, configuration)
       .withPsiFile(file)
-      .buildSynchronously()
-    task?.setDecorations(false)
-    return task
+      .build()
+      .whenComplete { task, _ -> task.setDecorations(false) }
   }
 
   override fun onServiceDisposal(facet: AndroidFacet) {}
