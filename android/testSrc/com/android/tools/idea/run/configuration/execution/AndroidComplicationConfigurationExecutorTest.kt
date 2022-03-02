@@ -70,7 +70,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                              " --ecn component com.example.watchface/com.example.watchface.MyWatchFace"
   private val showWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
   private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
-  private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --ecn component 'com.example.app'"
+  private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
   private val unsetComplication = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
   private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
 
