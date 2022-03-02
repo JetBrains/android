@@ -182,7 +182,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
     val postBuildModelProvider = PostBuildModelProvider { postBuildModel }
 
-    return object : GradleApkProvider(
+    return GradleApkProvider(
       androidFacet,
       GradleApplicationIdProvider(
         androidFacet,
@@ -193,20 +193,17 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       postBuildModelProvider,
       forTests,
       false // Overriden and doesn't matter.
-    ) {
-      override fun getOutputKind(targetDevicesMinVersion: AndroidVersion?): OutputKind {
-        return when (assembleResult.buildMode) {
-          BuildMode.APK_FROM_BUNDLE -> OutputKind.AppBundleOutputModel
-          BuildMode.ASSEMBLE -> OutputKind.Default
-          else -> error("Unsupported build mode: ${assembleResult.buildMode}")
-        }
-      }
-    }
+    )
       .getApks(
         emptyList(),
         AndroidVersion(30),
         androidModel,
-        androidModel.selectedVariant
+        androidModel.selectedVariant,
+        when (assembleResult.buildMode) {
+          BuildMode.APK_FROM_BUNDLE -> GradleApkProvider.OutputKind.AppBundleOutputModel
+          BuildMode.ASSEMBLE -> GradleApkProvider.OutputKind.Default
+          else -> error("Unsupported build mode: ${assembleResult.buildMode}")
+        }
       )
   }
 
