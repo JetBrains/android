@@ -26,7 +26,6 @@ import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ValidationError
 import com.google.common.collect.ImmutableList
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.testFramework.replaceService
@@ -91,10 +90,6 @@ abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
     @Throws(ApkProvisionException::class)
     override fun getApks(device: IDevice): Collection<ApkInfo> {
       return listOf(ApkInfo(File("file"), appId))
-    }
-
-    override fun validate(): List<ValidationError> {
-      return ArrayList()
     }
   }
 
