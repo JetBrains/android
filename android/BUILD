@@ -425,6 +425,7 @@ filegroup(
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [

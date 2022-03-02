@@ -1368,6 +1368,7 @@ android-studio/plugins/android/lib/explainer.jar
 android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7-windows-x86_64.jar
 android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7.jar
 android-studio/plugins/android/lib/ffmpeg-platform-5.0-1.5.7.jar
+android-studio/plugins/android/lib/firebase_java_proto.jar
 android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
 android-studio/plugins/android/lib/game-tools-protos.jar
 android-studio/plugins/android/lib/game-tools.jar

@@ -260,3 +260,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:jetbrains.kotlinx.coroutines.test_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "firebase_java_proto",
+    jars = ["//tools/vendor/google/firebase/src/proto:firebase_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)
