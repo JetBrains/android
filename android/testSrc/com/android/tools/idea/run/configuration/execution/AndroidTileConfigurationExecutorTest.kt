@@ -49,6 +49,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
   private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
   private val removeTile = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation remove-tile --ecn component com.example.app/com.example.app.Component"
+  private val clearDebugAppAm = "am clear-debug-app"
+  private val clearDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(
@@ -106,7 +108,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       consoleViewImpl.flushDeferredText()
       consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
     }
-    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
+    val consoleOutput = consoleOutputPromise.get(2, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the tile manually.")
   }
@@ -147,7 +149,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val commandHandlers = mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\"",
       showTile to "Broadcast completed: result=1",
-      setDebugAppBroadcast to "Broadcast completed: result=2, data=\"Failed to set up the debug app\""
+      setDebugAppBroadcast to "Broadcast completed: result=2, data=\"Failed to set up the debug app\"",
+      clearDebugAppBroadcast to ""
     ).toCommandHandlers()
 
     val addTileCommandHandler: CommandHandler = { device, receiver ->
@@ -155,18 +158,22 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receiver.addOutput("Broadcast completed: result=1, Index=[101]")
     }
 
-    val processTerminatedLatch = CountDownLatch(1)
-
     val removeTileCommandHandler: CommandHandler = { device, receiver ->
       runnableClientsService.stopClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
+    }
+
+    val processTerminatedLatch = CountDownLatch(1)
+    val clearDebugAppAmCommandHandler: CommandHandler = { device, receiver ->
+      receiver.addOutput("")
       processTerminatedLatch.countDown()
     }
 
     val device = getMockDevice(
       commandHandlers +
       (addTile to addTileCommandHandler) +
-      (removeTile to removeTileCommandHandler)
+      (removeTile to removeTileCommandHandler) +
+      (clearDebugAppAm to clearDebugAppAmCommandHandler)
     )
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
@@ -177,13 +184,16 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
+    // Verify previous app instance is terminated.
+    Mockito.verify(executor, Mockito.times(1)).terminatePreviousAppInstance(any())
+
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
     processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(6)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(8)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -202,12 +212,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(commands[4]).isEqualTo(showTile)
     // Unset tile
     assertThat(commands[5]).isEqualTo(removeTile)
+    // Clear debug app
+    assertThat(commands[6]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(commands[7]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
   fun testTileProcessHandler() {
     val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
-                                            Mockito.mock(ConsoleView::class.java))
+                                            Mockito.mock(ConsoleView::class.java), false)
     val countDownLatch = CountDownLatch(1)
     val device = getMockDevice(mapOf(
       removeTile to { _, _ -> countDownLatch.countDown() }

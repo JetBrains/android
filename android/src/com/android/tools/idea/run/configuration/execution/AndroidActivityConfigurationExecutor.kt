@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
 import com.android.tools.idea.run.configuration.isDebug
@@ -50,10 +49,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
     val applicationInstaller = getApplicationInstaller(console)
     val processHandler = ActivityProcessHandler(appId, console)
     devices.forEach { device ->
-      val terminator = ApplicationTerminator(device, appId)
-      if (!terminator.killApp()) {
-        throw ExecutionException("Could not terminate running app $appId")
-      }
+      terminatePreviousAppInstance(device)
       processHandler.addDevice(device)
       ProgressManager.checkCanceled()
       indicator?.text = "Installing app"
@@ -99,7 +95,7 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
 }
 
 class ActivityProcessHandler(private val appId: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
-  override fun destroyProcessOnDevice(device: IDevice) {
+  override fun stopSurface(device: IDevice) {
     device.executeShellCommand("am force-stop $appId", console)
   }
 }

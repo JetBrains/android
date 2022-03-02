@@ -53,8 +53,9 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     Disposer.register(project, console)
     val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val processHandler = WatchFaceProcessHandler(console)
+    val processHandler = WatchFaceProcessHandler(console, isDebug)
     devices.forEach { device ->
+      terminatePreviousAppInstance(device)
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
@@ -123,9 +124,10 @@ internal fun showWatchFace(device: IDevice, console: ConsoleView) {
   }
 }
 
-class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
+class WatchFaceProcessHandler(private val console: ConsoleView, override val isDebug: Boolean)
+  : AndroidProcessHandlerForDevices() {
 
-  override fun destroyProcessOnDevice(device: IDevice) {
+  override fun stopSurface(device: IDevice) {
     val receiver = CommandResultReceiver()
     device.executeShellCommand(UNSET_WATCH_FACE, console, receiver)
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {

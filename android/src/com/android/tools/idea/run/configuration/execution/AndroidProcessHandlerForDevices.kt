@@ -16,13 +16,20 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.NullOutputReceiver
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.TimeUnit
 
 /**
  * Subclasses should implement [destroyProcessOnDevice]
  */
 abstract class AndroidProcessHandlerForDevices : ProcessHandler() {
+  private val DEBUG_SURFACE_CLEAR =
+    "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
+  private val ACTIVITY_MANAGER_CLEAR = "am clear-debug-app"
+  open val isDebug = false
+
   val devices = mutableListOf<IDevice>()
 
   open fun addDevice(device: IDevice) {
@@ -36,7 +43,20 @@ abstract class AndroidProcessHandlerForDevices : ProcessHandler() {
     }
   }
 
-  abstract fun destroyProcessOnDevice(device: IDevice)
+  abstract fun stopSurface(device: IDevice)
+
+  private fun stopDebugApp(device: IDevice) {
+    val dummyReceiver = NullOutputReceiver()
+    device.executeShellCommand(DEBUG_SURFACE_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
+    device.executeShellCommand(ACTIVITY_MANAGER_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
+  }
+
+  private fun destroyProcessOnDevice(device: IDevice) {
+    stopSurface(device)
+    if (isDebug) {
+      stopDebugApp(device)
+    }
+  }
   override fun detachProcessImpl() = notifyProcessDetached()
   override fun detachIsDefault() = false
   override fun getProcessInput() = null

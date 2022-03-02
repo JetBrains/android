@@ -57,8 +57,10 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val watchFaceInfo = "${configuration.watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
-    val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
+    val processHandler = ComplicationProcessHandler(
+      AppComponent.getFQEscapedName(appId, configuration.componentName!!), console, isDebug)
     devices.forEach { device ->
+      terminatePreviousAppInstance(device)
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
@@ -130,9 +132,9 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 /**
  * [complicationComponentName] format: appId/complicationFQName. e.g androidx.wear.samples.app/androidx.wear.samples.MyComplication
  */
-class ComplicationProcessHandler(private val complicationComponentName: String,
-                                 private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
-  override fun destroyProcessOnDevice(device: IDevice) {
+class ComplicationProcessHandler(private val complicationComponentName: String, private val console: ConsoleView,
+                                 override val isDebug: Boolean): AndroidProcessHandlerForDevices() {
+  override fun stopSurface(device: IDevice) {
     val removeReceiver = CommandResultReceiver()
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     device.executeShellCommand(removeComplicationCommand, console, removeReceiver)
