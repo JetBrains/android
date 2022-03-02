@@ -127,9 +127,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
   }
 
   public void checkString3(String sourcePath, String targetPath) {
-/* b/214640623
     checkStrings(sourcePath, targetPath);
-b/214640623 */
   }
 
   public void testDimensionsJava() {
@@ -156,10 +154,10 @@ b/214640623 */
   }
 
   public void checkDrawables(String sourcePath, String targetPath) {
-    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
-                                            "res/drawable/ic_launcher.png").getPath();
-    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
-                                            "res/drawable-hdpi/ic_launcher.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                "res/drawable/ic_launcher.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                "res/drawable-hdpi/ic_launcher.png").getPath();
 
     checkDoc(sourcePath, targetPath);
   }
@@ -174,12 +172,12 @@ b/214640623 */
 
   public void checkStateListDrawables(String sourcePath, String targetPath) {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/selector.xml", "res/drawable/selector.xml");
-    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
-                                            "res/drawable/button.png").getPath();
-    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
-                                            "res/drawable/button_active.png").getPath();
-    String p3 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
-                                            "res/drawable/button_disabled.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                "res/drawable/button.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                "res/drawable/button_active.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                "res/drawable/button_disabled.png").getPath();
     checkDoc(sourcePath, targetPath);
   }
 
@@ -192,10 +190,10 @@ b/214640623 */
   }
 
   public void checkMipmaps(String sourcePath, String targetPath) {
-    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
-                                            "res/mipmap/ic_launcher.png").getPath();
-    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
-                                            "res/mipmap-hdpi/ic_launcher.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
+                                "res/mipmap/ic_launcher.png").getPath();
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
+                                "res/mipmap-hdpi/ic_launcher.png").getPath();
 
     checkDoc(sourcePath, targetPath);
   }
