@@ -1147,6 +1147,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_SPRING_PICKER = Flag.create(
+    COMPOSE, "preview.spring.picker",
+    "Enable the SpringSpec picker",
+    "If enabled, a picker will be available in SpringSpec calls on the Editor gutter",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_BLUEPRINT_MODE = Flag.create(
     COMPOSE, "preview.blueprint",
     "Enable the blueprint mode for Compose previews",

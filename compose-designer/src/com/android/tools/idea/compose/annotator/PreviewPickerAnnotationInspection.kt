@@ -41,7 +41,7 @@ import org.jetbrains.uast.toUElement
 class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
-    if (previewAnnotation.getModuleSystem()?.isPickerEnabled() != true) return
+    if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
 
     val result = PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(previewAnnotation)
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 
+// region Preview
 internal const val PARAMETER_NAME = "name"
 internal const val PARAMETER_GROUP = "group"
 internal const val PARAMETER_API_LEVEL = "apiLevel"
@@ -41,6 +42,17 @@ internal const val PARAMETER_HARDWARE_HEIGHT = "Height"
 internal const val PARAMETER_HARDWARE_DIM_UNIT = "DimensionUnit"
 internal const val PARAMETER_HARDWARE_DENSITY = "Density"
 internal const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
+// endregion
+// region SpringSpec
+internal const val DECLARATION_SPRING_SPEC = "SpringSpec"
+internal const val DECLARATION_FLOAT_SPEC = "FloatSpringSpec"
+internal const val DECLARATION_SPRING = "spring"
+
+internal const val PARAMETER_RATIO = "dampingRatio"
+internal const val PARAMETER_STIFFNESS = "stiffness"
+internal const val PARAMETER_THRESHOLD = "visibilityThreshold"
+// endregion
+
 
 object Preview {
   object DeviceSpec {

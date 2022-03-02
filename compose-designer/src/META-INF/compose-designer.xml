@@ -122,6 +122,9 @@
     <codeInsight.lineMarkerProvider
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider
+        language="kotlin"
+        implementationClass="com.android.tools.idea.compose.annotator.SpringPickerLineMarkerProvider"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>

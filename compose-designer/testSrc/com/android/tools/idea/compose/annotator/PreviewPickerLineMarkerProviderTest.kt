@@ -117,7 +117,7 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
   @RunsInEdt
   @Test
   fun gutterIconOnCorrectAnnotation() {
-    val psiFile = rule.findPsiFile(filePath)
+    val psiFile = fixture.findPsiFile(filePath)
     fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     fixture.doHighlighting()
@@ -140,7 +140,7 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
   @RunsInEdt
   @Test
   fun lineMarkerAvailabilityOnVariedDeviceConfiguration() {
-    val psiFile = rule.findPsiFile(filePath)
+    val psiFile = fixture.findPsiFile(filePath)
     fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     fixture.moveCaret("\"my group\"|\n)\n@Composable")
