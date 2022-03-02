@@ -73,6 +73,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
   private val unsetComplication = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
   private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
+  private val clearDebugAppAm = "am clear-debug-app"
+  private val clearDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   @Test
   fun test() {
@@ -214,13 +216,17 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
+    // Verify previous app instance is terminated.
+    Mockito.verify(executor, times(1)).terminatePreviousAppInstance(any())
+
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
     processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(10)).executeShellCommand(
+
+    Mockito.verify(device, times(12)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -246,6 +252,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[8]).isEqualTo(unsetComplication)
     // Unset debug watchFace
     assertThat(commands[9]).isEqualTo(unsetWatchFace)
+    // Clear debug app
+    assertThat(commands[10]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(commands[11]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
@@ -299,7 +308,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       consoleViewImpl.flushDeferredText()
       consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
     }
-    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
+    val consoleOutput = consoleOutputPromise.get(2, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
   }
@@ -307,7 +316,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   @Test
   fun testComplicationProcessHandler() {
     val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
-                                                    Mockito.mock(ConsoleView::class.java))
+                                                    Mockito.mock(ConsoleView::class.java), false)
     val countDownLatch = CountDownLatch(1)
     val device = getMockDevice(mapOf(
       unsetWatchFace to { _, _ -> countDownLatch.countDown() }
