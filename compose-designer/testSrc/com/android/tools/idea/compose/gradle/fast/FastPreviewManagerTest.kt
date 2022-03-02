@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.gradle.fast
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
@@ -37,6 +37,8 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
@@ -65,8 +67,10 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
 
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+
   @get:Rule
   val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+
   @get:Rule
   val useInProcessCompilerFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON, useEmbeddedCompiler)
   lateinit var psiMainFile: PsiFile
@@ -91,6 +95,9 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
       projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
       projectRule.fixture.type("\n")
     }
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
+    }
   }
 
   @After
@@ -103,11 +110,7 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
   @Test
   fun testSingleFileCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    runWriteActionAndWait {
-      projectRule.fixture.type("Text(\"Hello 3\")\n")
-      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
@@ -117,11 +120,7 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
   @Test
   fun testDaemonIsRestartedAutomatically() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    runWriteActionAndWait {
-      projectRule.fixture.type("Text(\"Hello 3\")\n")
-      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
@@ -139,11 +138,7 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
     val initialState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
 
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    runWriteActionAndWait {
-      projectRule.fixture.type("Text(\"Hello 3\")\n")
-      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
@@ -158,7 +153,7 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
   @Test
   fun testMultipleFilesCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
-    val psiSecondFile =  runReadAction {
+    val psiSecondFile = runReadAction {
       val vFile = projectRule.project.guessProjectDir()!!
         .findFileByRelativePath("app/src/main/java/google/simpleapplication/OtherPreviews.kt")!!
       PsiManager.getInstance(projectRule.project).findFile(vFile)!!
@@ -178,6 +173,17 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
         })
       }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
+    }
+  }
+
+  private fun typeAndSaveDocument(typedString: String) {
+    runWriteActionAndWait {
+      projectRule.fixture.type(typedString)
+      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
+    }
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
     }
   }
 }
