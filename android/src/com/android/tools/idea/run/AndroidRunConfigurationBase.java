@@ -7,10 +7,12 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -186,13 +188,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.applicationid", getName())));
     }
 
-    ApkProvider apkProvider = getApkProvider();
-    if (apkProvider != null) {
-      errors.addAll(apkProvider.validate());
-    }
-    else {
-      errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported", getName())));
-    }
+    AndroidProjectSystem projectSystem = getProjectSystem(getProject());
+    errors.addAll(projectSystem.validateRunConfiguration(this));
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -394,12 +391,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   public ApplicationIdProvider getApplicationIdProvider() {
-    return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
+    return getProjectSystem(getProject()).getApplicationIdProvider(this);
   }
 
   @Nullable
   public final ApkProvider getApkProvider() {
-    return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
+    return getProjectSystem(getProject()).getApkProvider(this);
   }
 
   public boolean isTestConfiguration() {

@@ -33,5 +33,5 @@ public interface ApkProvider {
   Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
 
   @NotNull
-  List<ValidationError> validate();
+  default List<ValidationError> validate() { throw new UnsupportedOperationException(); };
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.execution.createApp
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
@@ -58,10 +57,6 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     @Throws(ApkProvisionException::class)
     override fun getApks(device: IDevice): Collection<ApkInfo> {
       return listOf(ApkInfo(File(apkFile), appId))
-    }
-
-    override fun validate(): List<ValidationError> {
-      return ArrayList()
     }
   }
 }

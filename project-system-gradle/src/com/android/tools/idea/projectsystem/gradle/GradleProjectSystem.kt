@@ -63,6 +63,7 @@ import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
@@ -151,20 +152,38 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
-  override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase &&
-        runConfiguration !is AndroidWearConfiguration) return null
-    val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
-    val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
-    val alwaysDeployApkFromBundle = (runConfiguration as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
+  private class RunConfigurationGradleContext(
+    val androidFacet: AndroidFacet,
+    val isTestConfiguration: Boolean,
+    val alwaysDeployApkFromBundle: Boolean
+  )
 
+  private fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext? {
+    if (this !is AndroidRunConfigurationBase &&
+      this !is AndroidWearConfiguration
+    ) return null
+
+    return RunConfigurationGradleContext(
+      androidFacet = safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null,
+      isTestConfiguration = if (this is AndroidRunConfigurationBase) isTestConfiguration else false,
+      alwaysDeployApkFromBundle = (this as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
+    )
+  }
+
+  override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
+    val context = runConfiguration.getGradleContext() ?: return null
     return GradleApkProvider(
-      androidFacet,
+      context.androidFacet,
       getApplicationIdProvider(runConfiguration) ?: return null,
       PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
-      isTestConfiguration,
-      alwaysDeployApkFromBundle
+      context.isTestConfiguration,
+      context.alwaysDeployApkFromBundle
     )
+  }
+
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    val context = runConfiguration.getGradleContext() ?: return super.validateRunConfiguration(runConfiguration)
+    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle)
   }
 
   internal fun getBuiltApksForSelectedVariant(

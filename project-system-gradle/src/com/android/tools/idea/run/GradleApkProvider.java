@@ -487,15 +487,9 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  @Override
-  public List<ValidationError> validate() {
-    return doValidate(myFacet, myTest, myAlwaysDeployApkFromBundle);
-  }
-
-  @NotNull
-  private static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
-                                                           boolean isTest,
-                                                           boolean alwaysDeployApkFromBundle) {
+  public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
+                                                          boolean isTest,
+                                                          boolean alwaysDeployApkFromBundle) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
     GradleAndroidModel androidModuleModel = GradleAndroidModel.get(androidFacet);

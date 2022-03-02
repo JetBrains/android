@@ -20,12 +20,11 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
@@ -34,7 +33,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -634,11 +632,7 @@ private data class ApkProviderTest(
     ): ApkProvider {
       val module = project.gradleModule(gradlePath)!!
       val androidFacet = AndroidFacet.getInstance(module)!!
-      return object : ApkProvider {
-        override fun validate(): List<ValidationError> = emptyList()
-        override fun getApks(ignored: IDevice): Collection<ApkInfo> =
-          getBuiltApksForSelectedVariant(androidFacet, forTests).orEmpty()
-      }
+      return ApkProvider { getBuiltApksForSelectedVariant(androidFacet, forTests).orEmpty() }
     }
 
     val apkProvider = when (scenario.target) {
@@ -662,7 +656,10 @@ private data class ApkProviderTest(
 
       fun Collection<ApkInfo>.toTestString() = joinToString("\n\n") { it.toTestString() }
 
-      expect.that(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
+      val validationErrors = runConfiguration
+        ?.let { project.getProjectSystem().validateRunConfiguration(runConfiguration) }
+        .orEmpty()
+      expect.that(validationErrors.joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
       val apks = runCatching { apkProvider.getApks(device) }
       expect.that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())

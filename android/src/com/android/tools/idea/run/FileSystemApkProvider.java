@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import java.io.File;
@@ -48,11 +47,5 @@ public class FileSystemApkProvider implements ApkProvider {
     List<ApkInfo> apkList = Lists.newArrayList();
     apkList.add(new ApkInfo(myApkPath, id));
     return apkList;
-  }
-
-  @NotNull
-  @Override
-  public List<ValidationError> validate() {
-    return ImmutableList.of();
   }
 }

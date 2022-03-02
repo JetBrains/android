@@ -22,6 +22,7 @@ import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.runReadAction
@@ -86,6 +87,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   @JvmDefault
   fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
+
+  @JvmDefault
+  fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    return listOf(ValidationError.fatal("Run configuration ${runConfiguration.name} is not supported in this project"));
+  }
 
   /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.

@@ -148,10 +148,4 @@ public class NonGradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(messageBuilder.toString());
     }
   }
-
-  @NotNull
-  @Override
-  public List<ValidationError> validate() {
-    return ImmutableList.of();
-  }
 }

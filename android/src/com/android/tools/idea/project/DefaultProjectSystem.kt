@@ -43,6 +43,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.FileSystemApkProvider
 import com.android.tools.idea.run.NonGradleApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -126,6 +127,10 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
       else -> null
     }
+  }
+
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+    return emptyList()
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> {
