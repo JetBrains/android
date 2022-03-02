@@ -30,7 +30,7 @@ class NoFileNodeTest {
     node.update()
 
     val expected = PresentationData()
-    expected.addText("Others", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  There is no issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.Nodes.Folder)
 
@@ -44,7 +44,7 @@ class NoFileNodeTest {
     node.update()
 
     val expected = PresentationData()
-    expected.addText("Others", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  Has 1 issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.Nodes.Folder)
 
@@ -58,7 +58,7 @@ class NoFileNodeTest {
     node.update()
 
     val expected = PresentationData()
-    expected.addText("Others", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  Has 2 issues", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.Nodes.Folder)
 

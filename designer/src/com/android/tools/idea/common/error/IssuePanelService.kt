@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -41,7 +42,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.UIUtil
@@ -354,9 +354,19 @@ class IssuePanelService(private val project: Project) {
     return if (sharedIssueTab?.isSelected == true) sharedIssuePanel else null
   }
 
+  /**
+   * Get the selected issues from shared issue panel.
+   */
+  fun getSelectedIssues(): List<Issue> {
+    val issuePanelComponent = sharedIssuePanel?.getComponent() ?: return emptyList()
+    return DataManager.getInstance().getDataContext(issuePanelComponent).getData(SELECTED_ISSUES) ?: emptyList()
+  }
+
   companion object {
     @JvmStatic
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
+
+    val SELECTED_ISSUES = DataKey.create<List<Issue>>(DesignerCommonIssuePanel::class.java.name + "_selectedIssues")
   }
 }
 

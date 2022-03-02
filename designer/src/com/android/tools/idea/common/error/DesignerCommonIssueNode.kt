@@ -174,12 +174,18 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
 }
 
 /**
+ * TODO(b/222110455): So far Layout Validation is the only use case. Needs refactor when having other use cases.
+ *                    It can use the type of [IssueSource] to detect the source.
+ */
+const val NO_FILE_NODE_NAME = "Layout Validation"
+
+/**
  * A node for the issues which do not belong to any particular file.
  */
 class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
   override fun getLeafState() = LeafState.DEFAULT
 
-  override fun getName() = "Others"
+  override fun getName() = NO_FILE_NODE_NAME
 
   override fun getVirtualFile(): VirtualFile? = null
 

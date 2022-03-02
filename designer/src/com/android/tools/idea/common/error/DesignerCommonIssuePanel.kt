@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
+import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
+import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -24,6 +28,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
@@ -36,10 +41,12 @@ import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import org.jdesktop.swingx.calendar.DateSelectionModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.tree.TreePath
+import javax.swing.tree.TreeSelectionModel
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
 /**
@@ -73,6 +80,14 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
         return node.getVirtualFile()
       }
+      if (SELECTED_ISSUES.`is`(dataId)) {
+        return when (node) {
+          is IssuedFileNode -> node.issues
+          is NoFileNode -> node.issues
+          is IssueNode -> listOf(node.issue)
+          else -> emptyList()
+        }
+      }
       return null
     }
   }
@@ -95,6 +110,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")
 
     tree.isRootVisible = false
+    tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
     EditSourceOnDoubleClickHandler.install(tree)
     EditSourceOnEnterKeyHandler.install(tree)
@@ -117,6 +133,15 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
         val sidePanel = createSidePanel(it?.newLeadSelectionPath?.lastPathComponent as? DesignerCommonIssueNode)
         splitter.secondComponent = sidePanel
         splitter.revalidate()
+      }
+      // TODO(b/222110455): Can we have better way to trigger the refreshing of Layout Validation or other design tools?
+      //                    Refactor to remove the dependency of VisualizationToolWindowFactory.
+      val window = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+      if (window != null) {
+        DataManager.getInstance().getDataContext(window.component).getData(DESIGN_SURFACE)?.let { surface ->
+          surface.revalidateScrollArea()
+          surface.repaint()
+        }
       }
     }
   }
