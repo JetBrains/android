@@ -100,7 +100,7 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = device.defaultHardware.screen.diagonalLength
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS
-    diagonalLength < 6.5 -> DeviceGroup.NEXUS_XL
+    diagonalLength < 7 -> DeviceGroup.NEXUS_XL
     else -> DeviceGroup.NEXUS_TABLET
   }
 }

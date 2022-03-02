@@ -73,6 +73,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    6.3, 1440 \u00d7 2960, 560dpi (Pixel 3 XL)\n" +
       "    6.3, 1440 \u00d7 3040, 560dpi (Pixel 4 XL)\n" +
       "    6.4, 1080 \u00d7 2400, 420dpi (Pixel 6)\n" +
+      "    6.7, 1440 \u00d7 3120, 560dpi (Pixel 6 Pro)\n" +
       "    ------------------------------------------------------\n" +
       "    Tablet\n" +
       "    7.0, 800 \u00d7 1280, tvdpi (Nexus 7 2012)\n" +
