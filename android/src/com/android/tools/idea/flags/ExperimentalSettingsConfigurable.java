@@ -62,6 +62,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myPreviewPickerCheckBox;
   private JCheckBox myBuildOnSaveCheckBox;
   private JLabel myBuildOnSaveLabel;
+  private JLabel myPreviewPickerLabel;
 
   private Runnable myRestartCallback;
 
@@ -88,6 +89,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
     myBuildOnSaveCheckBox.setVisible(StudioFlags.COMPOSE_FAST_PREVIEW.get());
     myBuildOnSaveLabel.setVisible(StudioFlags.COMPOSE_FAST_PREVIEW.get());
+    myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
+    myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();
     reset();
   }
