@@ -20,8 +20,6 @@ import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PreviewPickerPropertyModel
-import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -105,11 +103,11 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       { mouseEvent, _ ->
         // TODO(b/205184728): Replace tracker instance when implementation is ready
         val model = PreviewPickerPropertyModel.fromPreviewElement(project, module, previewElementDefinitionPsi, NoOpTracker)
-        val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
-          module,
-          previewElementDefinitionPsi?.virtualFile
+        PsiPickerManager.show(
+          location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
+          displayTitle = message("picker.preview.title"),
+          model = model
         )
-        PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)
       },
       GutterIconRenderer.Alignment.LEFT,
       { message("picker.preview.annotator.tooltip") }

@@ -32,7 +32,11 @@ import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PreviewPropertiesInspectorBuilder
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
@@ -64,6 +68,7 @@ internal class PreviewPickerPropertyModel private constructor(
   module: Module,
   resolvedCall: ResolvedCall<*>,
   psiPropertiesProvider: PreviewPropertiesProvider,
+  valuesProvider: EnumSupportValuesProvider,
   tracker: PreviewPickerTracker
 ) : PsiCallPropertyModel(
   project = project,
@@ -72,6 +77,9 @@ internal class PreviewPickerPropertyModel private constructor(
   psiPropertiesProvider = psiPropertiesProvider,
   tracker = tracker
 ) {
+
+  override val inspectorBuilder: PsiPropertiesInspectorBuilder = PreviewPropertiesInspectorBuilder(valuesProvider)
+
   private val availableDevices = AndroidFacet.getInstance(module)?.let { facet ->
     AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
   } ?: emptyList()
@@ -104,6 +112,10 @@ internal class PreviewPickerPropertyModel private constructor(
           Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
           emptyMap()
         }
+      val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
+        module = module,
+        containingFile = previewElementDefinitionPsi.virtualFile
+      )
       val defaultApiLevel = ConfigurationManager.findExistingInstance(module)?.defaultTarget?.version?.apiLevel?.toString()
 
       /**
@@ -132,7 +144,8 @@ internal class PreviewPickerPropertyModel private constructor(
         module = module,
         resolvedCall = resolvedCall,
         psiPropertiesProvider = PreviewPropertiesProvider(defaultValues),
-        tracker = tracker
+        tracker = tracker,
+        valuesProvider = valuesProvider
       )
     }
 

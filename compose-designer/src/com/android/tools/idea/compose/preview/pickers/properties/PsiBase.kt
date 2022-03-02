@@ -39,6 +39,16 @@ interface PsiPropertyItem : NewPropertyItem {
 internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
 
+  /**
+   * Builder to generate the properties Table UI.
+   *
+   * May define how the properties are organized, add headers or sections; and set custom editors.
+   */
+  abstract val inspectorBuilder: PsiPropertiesInspectorBuilder
+
+  /**
+   * Usage tracker, called on every [PsiPropertyItem] modification.
+   */
   abstract val tracker: PreviewPickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
@@ -64,13 +74,12 @@ internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
  * A [PropertiesView] for editing [PsiPropertyModel]s.
  */
 internal class PsiPropertyView(
-  model: PsiPropertyModel,
-  psiPropertiesInspectorBuilder: PsiPropertiesInspectorBuilder,
+  model: PsiPropertyModel
 ) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
 
   init {
     addTab("").apply {
-      builders.add(psiPropertiesInspectorBuilder)
+      builders.add(model.inspectorBuilder)
     }
   }
 }
