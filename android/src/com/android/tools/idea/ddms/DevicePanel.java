@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.ddms;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -207,7 +209,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
       @Override
       protected boolean compare(@NotNull String text, @Nullable String pattern) {
-        return pattern != null && CharSequences.indexOfIgnoreCase(text,  pattern, 0) >= 0;
+        return pattern != null && CharSequences.indexOfIgnoreCase(text, pattern, 0) >= 0;
       }
     };
   }
@@ -275,7 +277,13 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Override
   public void deviceConnected(@NotNull final IDevice device) {
     LOG.info("Device connected: " + device.getName());
-    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+    if (device.isEmulator()) {
+      // If the device is an emulator, wait until we load the AVD data before updating the device combo so that we properly identify the
+      // device.
+      device.getAvdData().addListener(() -> UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo), directExecutor());
+    } else {
+      UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+    }
   }
 
   @Override
