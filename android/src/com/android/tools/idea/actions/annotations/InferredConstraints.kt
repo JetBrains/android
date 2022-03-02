@@ -29,7 +29,6 @@ import com.android.support.AndroidxName
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.annotationNames
 import com.android.tools.lint.checks.ANY_THREAD_ANNOTATION
 import com.android.tools.lint.checks.AnnotationDetector
-import com.android.tools.lint.checks.ApiDetector.Companion.REQUIRES_API_ANNOTATION
 import com.android.tools.lint.checks.BINDER_THREAD_ANNOTATION
 import com.android.tools.lint.checks.CHECK_RESULT_ANNOTATION
 import com.android.tools.lint.checks.CallSuperDetector.Issues.CALL_SUPER_ANNOTATION
@@ -48,7 +47,6 @@ import com.android.tools.lint.checks.RESTRICT_TO_ANNOTATION
 import com.android.tools.lint.checks.SIZE_ANNOTATION
 import com.android.tools.lint.checks.UI_THREAD_ANNOTATION
 import com.android.tools.lint.checks.VISIBLE_FOR_TESTING_ANNOTATION
-import com.android.tools.lint.checks.VersionChecks.Companion.CHECKS_SDK_INT_AT_LEAST_ANNOTATION
 import com.android.tools.lint.checks.WORKER_THREAD_ANNOTATION
 import com.android.tools.lint.client.api.JavaEvaluator
 import com.android.tools.lint.detector.api.ResourceEvaluator
@@ -80,6 +78,8 @@ import com.android.tools.lint.detector.api.ResourceEvaluator.STYLEABLE_RES_ANNOT
 import com.android.tools.lint.detector.api.ResourceEvaluator.STYLE_RES_ANNOTATION
 import com.android.tools.lint.detector.api.ResourceEvaluator.TRANSITION_RES_ANNOTATION
 import com.android.tools.lint.detector.api.ResourceEvaluator.XML_RES_ANNOTATION
+import com.android.tools.lint.detector.api.VersionChecks.Companion.CHECKS_SDK_INT_AT_LEAST_ANNOTATION
+import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
 import com.android.tools.lint.detector.api.isKotlin
 import com.google.common.collect.Sets
 import com.intellij.openapi.project.Project
