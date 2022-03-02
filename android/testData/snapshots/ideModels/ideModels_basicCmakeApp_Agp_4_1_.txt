@@ -472,7 +472,7 @@ MODULE                        : project.app
     ApiVersion                    : 3
     Name                          : app
     DefaultNdkVersion             : 21.1.6352462
-    NdkVersion                    : 21.4.7075529
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
     BuildSystems                  : cmake
     VariantInfos
         debug
@@ -491,7 +491,7 @@ MODULE                        : project.app.androidTest
     ApiVersion                    : 3
     Name                          : app
     DefaultNdkVersion             : 21.1.6352462
-    NdkVersion                    : 21.4.7075529
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
     BuildSystems                  : cmake
     VariantInfos
         debug
@@ -509,7 +509,7 @@ MODULE                        : project.app.main
     ApiVersion                    : 3
     Name                          : app
     DefaultNdkVersion             : 21.1.6352462
-    NdkVersion                    : 21.4.7075529
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
     BuildSystems                  : cmake
     VariantInfos
         debug
@@ -527,7 +527,7 @@ MODULE                        : project.app.unitTest
     ApiVersion                    : 3
     Name                          : app
     DefaultNdkVersion             : 21.1.6352462
-    NdkVersion                    : 21.4.7075529
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
     BuildSystems                  : cmake
     VariantInfos
         debug
