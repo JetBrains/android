@@ -37,15 +37,16 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
+import com.android.tools.idea.projectsystem.gradle.getGradleContext
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.GradleApkProvider
@@ -71,13 +72,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBuildCommonUtils
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
 import java.io.Writer
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Properties
 import javax.swing.Icon
 
 /**
@@ -237,15 +238,16 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
     // Compute modules to build
     val modules = getModules(context, configuration)
+    val runConfigurationGradleContext = configuration.getGradleContext()
     val cmdLineArgs =
       try {
-        getCommonArguments(modules, androidRunConfiguration, targetDeviceSpec) + "--stacktrace"
+        getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec) + "--stacktrace"
       } catch (e: Exception) {
         log.warn("Error generating command line arguments for Gradle task", e)
         return false
       }
     val targetDeviceVersion = targetDeviceSpec?.commonVersion
-    val buildResult = build(modules, configuration, targetDeviceVersion, task.goal, cmdLineArgs)
+    val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs)
     if (androidRunConfiguration != null && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
@@ -294,7 +296,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     @Throws(IOException::class)
     fun getCommonArguments(
       modules: Array<Module>,
-      configuration: AndroidRunConfigurationBase?,
+      configuration: RunConfigurationGradleContext?,
       targetDeviceSpec: AndroidDeviceSpec?
     ): List<String> {
       val cmdLineArgs = mutableListOf<String>()
@@ -310,7 +312,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     @VisibleForTesting
     fun getDeviceSpecificArguments(
       modules: Array<Module>,
-      configuration: AndroidRunConfigurationBase,
+      configuration: RunConfigurationGradleContext,
       deviceSpec: AndroidDeviceSpec?
     ): List<String> {
       if (deviceSpec == null) {
@@ -323,15 +325,13 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.minVersion)
         val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages)
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.absolutePath))
-        if (configuration is AndroidRunConfiguration) {
-          if (configuration.DEPLOY_AS_INSTANT) {
-            properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true))
-          }
-          if (configuration.DEPLOY_APK_FROM_BUNDLE) {
-            val featureList = getEnabledDynamicFeatureList(modules, configuration)
-            if (featureList.isNotEmpty()) {
-              properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INJECTED_DYNAMIC_MODULES_LIST, featureList))
-            }
+        if (configuration.deployAsInstant) {
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true))
+        }
+        if (configuration.alwaysDeployApkFromBundle) {
+          val featureList = getEnabledDynamicFeatureList(modules, configuration)
+          if (featureList.isNotEmpty()) {
+            properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INJECTED_DYNAMIC_MODULES_LIST, featureList))
           }
         }
       } else {
@@ -349,10 +349,8 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         if (deviceSpec.abis.isNotEmpty()) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
         }
-        if (configuration is AndroidRunConfiguration) {
-          if (configuration.DEPLOY_AS_INSTANT) {
-            properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
-          }
+        if (configuration.deployAsInstant) {
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
         }
       }
       return properties
@@ -360,9 +358,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
     private fun getEnabledDynamicFeatureList(
       modules: Array<Module>,
-      configuration: AndroidRunConfiguration
+      configuration: RunConfigurationGradleContext
     ): String {
-      val disabledFeatures = configuration.disabledDynamicFeatures.toSet()
+      val disabledFeatures = configuration.disabledDynamicFeatureModuleNames
       return modules.asSequence()
         .flatMap { GradleProjectSystemUtil.getDependentFeatureModulesForBase(it).asSequence() }
         .map { it.name }
@@ -377,7 +375,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
     @Throws(IOException::class)
     private fun getProfilingOptions(
-      configuration: AndroidRunConfigurationBase,
+      configuration: RunConfigurationGradleContext,
       targetDeviceSpec: AndroidDeviceSpec?
     ): List<String> {
       if (targetDeviceSpec?.minVersion == null) {
@@ -388,11 +386,10 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
       val minFeatureLevel = targetDeviceSpec.minVersion!!.featureLevel
       val arguments = mutableListOf<String>()
-      val state = configuration.profilerState
-      if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= VersionCodes.LOLLIPOP && minFeatureLevel < VersionCodes.O) {
+      if (configuration.isAdvancedProfilingEnabled && minFeatureLevel >= VersionCodes.LOLLIPOP && minFeatureLevel < VersionCodes.O) {
         val file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform()
         arguments.add(AndroidGradleSettings.createProjectProperty(ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.absolutePath))
-        val profilerProperties = state.toProperties()
+        val profilerProperties = configuration.profilerProperties ?: Properties()
         val propertiesFile = FileUtil.createTempFile("profiler", ".properties")
         propertiesFile.deleteOnExit() // TODO: It'd be nice to clean this up sooner than at exit.
         val writer: Writer = OutputStreamWriter(FileOutputStream(propertiesFile), Charsets.UTF_8)
@@ -401,22 +398,24 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
       }
       // Append PROFILING_MODE if set by profilers.
-      if (StudioFlags.PROFILEABLE_BUILDS.get() && state.PROFILING_MODE != ProfilerState.ProfilingMode.NOT_SET) {
-        arguments.add(AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, state.PROFILING_MODE.value))
+      if (StudioFlags.PROFILEABLE_BUILDS.get() && configuration.profilingMode != ProfilerState.ProfilingMode.NOT_SET) {
+        arguments.add(AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, configuration.profilingMode.value))
       }
       return arguments
     }
 
     private fun build(
       modules: Array<Module>,
-      configuration: RunConfiguration,
+      configuration: RunConfigurationGradleContext?,
       targetDeviceVersion: AndroidVersion?,
       userGoal: String?,
       commandLineArgs: List<String>
     ): AssembleInvocationResult? {
 
       check(modules.isNotEmpty()) { "Unable to determine list of modules to build" }
-      val project = configuration.project
+
+      val gradleTasksProvider = GradleModuleTasksProvider(modules)
+      val project = gradleTasksProvider.project
 
       fun doBuild(tasks: Map<Path, Collection<String>>, buildMode: BuildMode): AssembleInvocationResult? {
         if (tasks.values.flatten().isEmpty()) {
@@ -435,12 +434,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
         return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
       }
-      val gradleTasksProvider = GradleModuleTasksProvider(modules)
-      val testCompileType = when {
-        configuration is PreferGradleMake -> configuration.testCompileMode
-        AndroidBuildCommonUtils.isTestConfiguration(configuration.type.id) -> TestCompileType.UNIT_TESTS
-        else -> TestCompileType.NONE
-      }
+      val testCompileType = configuration?.testCompileType ?: TestCompileType.NONE
       return when {
         testCompileType === TestCompileType.UNIT_TESTS ->
           doBuild(gradleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA), BuildMode.COMPILE_JAVA)
@@ -450,7 +444,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
         //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
         //       AndroidRunConfigurationBase.
-        configuration is AndroidRunConfigurationBase && useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
+        useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
           doBuild(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE)
         else ->
           doBuild(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE)
@@ -459,20 +453,42 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
     private fun useSelectApksFromBundleBuilder(
       modules: Array<Module>,
-      configuration: AndroidRunConfigurationBase,
+      configuration: RunConfigurationGradleContext?,
       minTargetDeviceVersion: AndroidVersion?
     ): Boolean {
-      return modules.any { DynamicAppUtils.useSelectApksFromBundleBuilder(it, configuration, minTargetDeviceVersion) }
+      return modules.any {
+        useSelectApksFromBundleBuilder(
+          it,
+          configuration?.alwaysDeployApkFromBundle ?: false,
+          configuration?.isTestConfiguration ?: false,
+          minTargetDeviceVersion
+        )
+      }
     }
 
     private fun shouldCollectListOfLanguages(
       modules: Array<Module>,
-      configuration: AndroidRunConfigurationBase,
+      configuration: RunConfigurationGradleContext,
       targetDeviceVersion: AndroidVersion?
     ): Boolean {
       // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
       // end up deploying language split APKs to devices that don't support them.
-      return modules.all { DynamicAppUtils.shouldCollectListOfLanguages(it, configuration, targetDeviceVersion) }
+      return modules.all {
+        // Don't collect if not using the bundle tool
+        if (!useSelectApksFromBundleBuilder(
+            it,
+            configuration.alwaysDeployApkFromBundle,
+            configuration.isTestConfiguration,
+            targetDeviceVersion
+          )) {
+          false
+        } else {
+          // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
+          // they don't support install on demand, meaning all languages should be installed.
+          targetDeviceVersion != null && targetDeviceVersion.featureLevel >= VersionCodes.LOLLIPOP
+        }
+      }
     }
   }
 }
+

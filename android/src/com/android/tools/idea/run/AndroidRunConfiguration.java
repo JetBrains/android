@@ -399,12 +399,4 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public AndroidConfigurationExecutorBase getExecutor(@NotNull ExecutionEnvironment environment) {
     return new AndroidActivityConfigurationExecutor(environment);
   }
-
-  public static boolean shouldDeployApkFromBundle(AndroidRunConfiguration configuration) {
-    if (configuration.DEPLOY_APK_FROM_BUNDLE) {
-      Preconditions.checkArgument(configuration.DEPLOY);
-      return true;
-    }
-    return false;
-  }
 }

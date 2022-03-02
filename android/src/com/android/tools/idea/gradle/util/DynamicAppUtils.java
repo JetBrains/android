@@ -28,6 +28,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -118,23 +119,6 @@ public class DynamicAppUtils {
     return false;
   }
 
-  /**
-   * Returns {@code true} if a module should be built using the "select apks from bundle" task
-   */
-  public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
-                                                       @NotNull AndroidRunConfigurationBase configuration,
-                                                       @Nullable AndroidVersion minTargetDeviceVersion) {
-    boolean alwaysDeployApkFromBundle = false;
-    boolean deployForTests = configuration instanceof AndroidTestRunConfiguration;
-
-    if (configuration instanceof AndroidRunConfiguration) {
-      AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
-      alwaysDeployApkFromBundle = AndroidRunConfiguration.shouldDeployApkFromBundle(androidConfiguration);
-    }
-
-    return useSelectApksFromBundleBuilder(module, alwaysDeployApkFromBundle, deployForTests, minTargetDeviceVersion);
-  }
-
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        boolean alwaysDeployApkFromBundle,
                                                        boolean deployForTests,
@@ -157,23 +141,6 @@ public class DynamicAppUtils {
       }
     }
     return false;
-  }
-
-  /**
-   * Returns {@code true} if we should collect the list of languages of the target devices
-   * when deploying an app.
-   */
-  public static boolean shouldCollectListOfLanguages(@NotNull Module module,
-                                                     @NotNull AndroidRunConfigurationBase configuration,
-                                                     @Nullable AndroidVersion minTargetDeviceVersion) {
-    // Don't collect if not using the bundle tool
-    if (!useSelectApksFromBundleBuilder(module, configuration, minTargetDeviceVersion)) {
-      return false;
-    }
-
-    // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
-    // they don't support install on demand, meaning all languages should be installed.
-    return minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**

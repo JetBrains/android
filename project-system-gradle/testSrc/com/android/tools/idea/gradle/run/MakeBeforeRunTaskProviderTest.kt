@@ -17,20 +17,23 @@ package com.android.tools.idea.gradle.run
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
+import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
@@ -57,7 +60,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   @Mock
   private lateinit var myLaunchedDevice: IDevice
   @Mock
-  private lateinit var myRunConfiguration: AndroidRunConfiguration
+  private lateinit var myRunConfiguration: RunConfigurationGradleContext
 
   private lateinit var myModules: Array<Module>
 
@@ -89,6 +92,17 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       }.toTypedArray()
     )
     myModules = ModuleManager.getInstance(project).modules
+    myRunConfiguration = RunConfigurationGradleContext(
+      androidFacet = project.gradleModule(modules.first().first)?.androidFacet!!,
+      isTestConfiguration = false,
+      testCompileType = TestCompileType.NONE,
+      profilingMode = ProfilerState.ProfilingMode.NOT_SET,
+      isAdvancedProfilingEnabled = false,
+      profilerProperties = null,
+      alwaysDeployApkFromBundle = false,
+      deployAsInstant = false,
+      disabledDynamicFeatureModuleNames = emptySet()
+    )
   }
 
   fun testCommonArguments() {
@@ -132,12 +146,10 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   fun testPreviewDeviceArgumentsForBundleConfiguration() {
     setUpTestProject()
-    myRunConfiguration = mock(AndroidRunConfiguration::class.java)
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
-    myRunConfiguration.DEPLOY = true
-    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true
+    myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
@@ -156,8 +168,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
-    myRunConfiguration.DEPLOY = true
-    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true
+    myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
 
     val arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
@@ -242,7 +253,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   fun testRunGradleSyncWithPostBuildSyncSupported() {
     setUpTestProject("3.5.0", ":" to AndroidProjectBuilder())
-    `when`(myRunConfiguration.modules).thenReturn(arrayOf(module))
     val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
@@ -254,7 +264,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     setUpTestProject("4.1.0", ":" to AndroidProjectBuilder())
     val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
-    `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
     assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
@@ -268,7 +277,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
       }
       `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
-      `when`(myRunConfiguration.profilerState).thenReturn(profilerState)
+      myRunConfiguration = myRunConfiguration.copy(profilingMode = profilerState.PROFILING_MODE, profilerProperties = profilerState.toProperties())
+
       val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
       assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
     } finally {

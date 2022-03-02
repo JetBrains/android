@@ -56,8 +56,6 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfiguration.shouldDeployApkFromBundle
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider

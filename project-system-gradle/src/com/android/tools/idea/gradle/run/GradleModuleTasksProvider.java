@@ -41,6 +41,10 @@ public class GradleModuleTasksProvider {
     myProject = myModules[0].getProject();
   }
 
+  public @NotNull Project getProject() {
+    return myProject;
+  }
+
   public Map<Path, Collection<String>> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myProject, myModules);
