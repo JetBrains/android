@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
 
 class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
   override fun setUp() {
@@ -32,6 +33,7 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
     StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
+  @Test
   fun testGetWatchFaceInfo() {
     val watchFaceFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyTestWatchFace.kt",
@@ -52,6 +54,7 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
     assertNull(contributor.getInfo(watchFaceFile.findElementByText("package com.example.myapplication")))
   }
 
+  @Test
   fun testGetTileInfo() {
     val tileFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.kt",
@@ -69,6 +72,7 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
     assertNull(contributor.getInfo(tileFile.findElementByText("package com.example.myapplication")))
   }
 
+  @Test
   fun testGetComplicationInfo() {
     val complicationFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.kt",
@@ -86,6 +90,7 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
     assertNull(contributor.getInfo(complicationFile.findElementByText("package com.example.myapplication")))
   }
 
+  @Test
   fun testGetComplicationInfoJava() {
     val complicationFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.java",

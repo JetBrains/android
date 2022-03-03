@@ -31,8 +31,11 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.application.invokeLater
+import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
@@ -56,6 +59,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
+  @Test
   fun testRun() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
@@ -74,7 +78,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
@@ -96,14 +100,18 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
     // Print deferred text
-    consoleViewImpl.getComponent()
-    consoleViewImpl.flushDeferredText()
-
-    val consoleOutput = consoleViewImpl.editor.document.text
+    val consoleOutputPromise = CompletableFuture<String>()
+    invokeLater {
+      consoleViewImpl.getComponent()
+      consoleViewImpl.flushDeferredText()
+      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+    }
+    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the tile manually.")
   }
 
+  @Test
   fun testException() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
@@ -126,6 +134,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
   }
 
+  @Test
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
@@ -146,9 +155,12 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receiver.addOutput("Broadcast completed: result=1, Index=[101]")
     }
 
+    val processTerminatedLatch = CountDownLatch(1)
+
     val removeTileCommandHandler: CommandHandler = { device, receiver ->
       runnableClientsService.stopClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
+      processTerminatedLatch.countDown()
     }
 
     val device = getMockDevice(
@@ -162,12 +174,12 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
-    runContentDescriptor.processHandler!!.waitFor()
+    processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
@@ -192,6 +204,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(commands[5]).isEqualTo(removeTile)
   }
 
+  @Test
   fun testTileProcessHandler() {
     val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
                                             Mockito.mock(ConsoleView::class.java))

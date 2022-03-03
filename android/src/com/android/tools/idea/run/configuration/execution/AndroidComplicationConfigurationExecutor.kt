@@ -20,9 +20,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
@@ -75,20 +76,30 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
         configuration.verifyProviderTypes(getComplicationSourceTypes(provider.getApks(device)))
       }
       indicator?.checkCanceled()
-      val watchFaceApp = installWatchApp(device, console)
-
+      installWatchApp(device, console)
       val receiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
+
+      if (isDebug) {
+        val promise = AsyncPromise<RunContentDescriptor>()
+        executeOnPooledThread {
+          startDebugSession(devices.single(), processHandler, console)
+            .onError(promise::setError)
+            .then { it.runContentDescriptor }.processed(promise)
+        }
+        configuration.chosenSlots.forEach { slot ->
+          app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
+                                receiver)
+        }
+        showWatchFace(device, console)
+        return promise
+      }
       configuration.chosenSlots.forEach { slot ->
         app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
                               receiver)
       }
-      watchFaceApp.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
       showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
-    if (isDebug) {
-      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
-    }
     return createRunContentDescriptor(processHandler, console, environment)
   }
 

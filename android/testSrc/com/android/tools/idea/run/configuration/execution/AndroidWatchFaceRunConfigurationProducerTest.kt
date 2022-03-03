@@ -23,6 +23,7 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
 
 class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
@@ -37,6 +38,7 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
     StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
+  @Test
   fun testSetupConfigurationFromContext() {
     val watchFaceFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyTestWatchFace.kt",
@@ -60,6 +62,7 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
   fun testJavaSetupConfigurationFromContext() {
     val watchFaceFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyWatchFaceService.java",

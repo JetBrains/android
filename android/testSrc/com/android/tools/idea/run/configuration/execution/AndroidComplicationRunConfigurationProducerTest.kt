@@ -23,6 +23,7 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
 
 class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
@@ -37,6 +38,7 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
+  @Test
   fun testSetupConfigurationFromContext() {
     val complicationFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.kt",
@@ -57,6 +59,7 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
   fun testJavaSetupConfigurationFromContext() {
     val complicationFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.java",

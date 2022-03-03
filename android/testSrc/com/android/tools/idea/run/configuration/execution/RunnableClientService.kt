@@ -99,7 +99,6 @@ private class RunnableClient private constructor(private val device: IDevice, pr
     // Do not reuse RunnableClient
     assert(!this::client.isInitialized)
     client = createMockClient(device, clientSocket.localPort)
-    Mockito.`when`(device.isOnline).thenReturn(true)
     isRunning.set(true)
 
     task = mThreadPoolExecutor.submit {

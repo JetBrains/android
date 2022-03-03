@@ -20,16 +20,16 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.Complication
+import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
 import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
-import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
+import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
-import com.android.tools.deployer.model.component.Complication
-import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
@@ -38,10 +38,13 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.application.invokeLater
+import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -65,15 +68,13 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                                      " --ecn component 'com.example.app/com.example.app.Component'" +
                                      " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
                                      " --ei slot 3 --ei type 5"
-  private val setWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE" +
-                             " --es operation set-watchface" +
-                             " --ecn component com.example.watchface/com.example.watchface.MyWatchFace"
   private val showWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
   private val setDebugAppAm = "am set-debug-app -w 'com.example.app'"
   private val setDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
   private val unsetComplication = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
   private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
 
+  @Test
   fun test() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
@@ -93,7 +94,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       checkVersion to "Broadcast completed: result=1, data=\"2\"",
       setComplicationSlot1 to "Broadcast completed: result=1",
       setComplicationSlot3 to "Broadcast completed: result=1",
-      setWatchFace to "Broadcast completed: result=1",
       showWatchFace to "Broadcast completed: result=1").toCommandHandlers()
     )
 
@@ -114,11 +114,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(5)).executeShellCommand(
+    Mockito.verify(device, times(4)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -131,22 +131,25 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[1]).isEqualTo(setComplicationSlot1)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
     assertThat(commands[2]).isEqualTo(setComplicationSlot3)
-    // Set watch face.
-    assertThat(commands[3]).isEqualTo(setWatchFace)
     // Show watch face.
-    assertThat(commands[4]).isEqualTo(showWatchFace)
+    assertThat(commands[3]).isEqualTo(showWatchFace)
 
     // Verify that a warning was raised.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
     // Print deferred text
-    consoleViewImpl.getComponent()
-    consoleViewImpl.flushDeferredText()
-    val consoleOutput = consoleViewImpl.editor.document.text
+    val consoleOutputPromise = CompletableFuture<String>()
+    invokeLater {
+      consoleViewImpl.getComponent()
+      consoleViewImpl.flushDeferredText()
+      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+    }
+    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
                 "affect debugging. To avoid this, please update the Wear OS app on your device to the latest version.")
   }
 
+  @Test
   fun testDebug() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
@@ -164,7 +167,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val commandHandlers: MutableMap<Command, CommandHandler> = mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"2\"",
-      setComplicationSlot1 to "Broadcast completed: result=1",
       setComplicationSlot3 to "Broadcast completed: result=1",
       showWatchFace to "Broadcast completed: result=1",
       setDebugAppAm to "Broadcast completed: result=1",
@@ -173,19 +175,21 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val runnableClientsService = RunnableClientsService(testRootDisposable)
 
-    val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
+    val setComplicationCommandHandler: CommandHandler = { device, receiver ->
       runnableClientsService.startClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
     }
 
+    val processTerminatedLatch = CountDownLatch(1)
     val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
       runnableClientsService.stopClient(device, appId)
       receiver.addOutput("Broadcast completed: result=1")
+      processTerminatedLatch.countDown()
     }
 
     val device = getMockDevice(
       commandHandlers +
-      (setWatchFace to setWatchFaceCommandHandler) +
+      (setComplicationSlot1 to setComplicationCommandHandler) +
       (unsetWatchFace to unsetWatchFaceCommandHandler)
     )
 
@@ -207,16 +211,16 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
-    runContentDescriptor.processHandler!!.waitFor()
+    processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(11)).executeShellCommand(
+    Mockito.verify(device, times(10)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -236,16 +240,15 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[5]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
     assertThat(commands[6]).isEqualTo(setComplicationSlot3)
-    // Set watch face.
-    assertThat(commands[7]).isEqualTo(setWatchFace)
     // Show watch face
-    assertThat(commands[8]).isEqualTo(showWatchFace)
+    assertThat(commands[7]).isEqualTo(showWatchFace)
     // Unset complication
-    assertThat(commands[9]).isEqualTo(unsetComplication)
+    assertThat(commands[8]).isEqualTo(unsetComplication)
     // Unset debug watchFace
-    assertThat(commands[10]).isEqualTo(unsetWatchFace)
+    assertThat(commands[9]).isEqualTo(unsetWatchFace)
   }
 
+  @Test
   fun testWatchFaceWarning() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
@@ -264,7 +267,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       checkVersion to "Broadcast completed: result=1, data=\"2\"",
       setComplicationSlot1 to "Broadcast completed: result=1",
       setComplicationSlot3 to "Broadcast completed: result=1",
-      setWatchFace to "Broadcast completed: result=1",
       // Unsuccessful show watchface case.
       showWatchFace to "Broadcast completed: result=2"
     ).toCommandHandlers())
@@ -286,19 +288,23 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Mock the binary xml extraction.
     doReturn(listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT)).`when`(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)!!
 
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
     // Print differed test
-    consoleViewImpl.getComponent()
-    consoleViewImpl.flushDeferredText()
-
-    val consoleOutput = consoleViewImpl.editor.document.text
+    val consoleOutputPromise = CompletableFuture<String>()
+    invokeLater {
+      consoleViewImpl.getComponent()
+      consoleViewImpl.flushDeferredText()
+      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+    }
+    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
   }
 
+  @Test
   fun testComplicationProcessHandler() {
     val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
                                                     Mockito.mock(ConsoleView::class.java))
@@ -330,6 +336,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[1]).isEqualTo(unsetWatchFace)
   }
 
+  @Test
   fun testGetComplicationSourceTypes() {
     val types = getComplicationSourceTypes(
       listOf(ApkInfo(TestResources.getFile("/WearableTestApk.apk"), "com.example.android.wearable.watchface")),

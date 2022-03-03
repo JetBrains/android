@@ -26,8 +26,11 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
@@ -38,6 +41,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
+  @Test
   fun testRun() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
@@ -69,6 +73,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
       "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --user 123")
   }
 
+  @Test
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
@@ -85,8 +90,10 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
       runnableClientsService.startClient(device, appId)
     }
 
+    val processTerminatedLatch = CountDownLatch(1)
     val stopActivityCommandHandler: CommandHandler = { device, _ ->
       runnableClientsService.stopClient(device, appId)
+      processTerminatedLatch.countDown()
     }
 
     val device = getMockDevice(mapOf(
@@ -100,13 +107,13 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
 
-    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(10, TimeUnit.SECONDS)
     assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
     // Emulate stopping debug session.
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.destroyProcess()
-    processHandler.waitFor()
+    processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)

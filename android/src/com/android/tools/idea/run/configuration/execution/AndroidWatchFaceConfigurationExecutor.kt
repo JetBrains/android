@@ -23,6 +23,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -34,6 +35,7 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
+import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
@@ -59,13 +61,21 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
         throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version)
       }
       val app = installWatchFace(device, applicationInstaller)
+      if (isDebug) {
+        val promise = AsyncPromise<RunContentDescriptor>()
+        executeOnPooledThread {
+          startDebugSession(devices.single(), processHandler, console)
+            .onError(promise::setError)
+            .then { it.runContentDescriptor }.processed(promise)
+        }
+        setWatchFace(app, mode)
+        showWatchFace(device, console)
+        return promise
+      }
       setWatchFace(app, mode)
       showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
-    if (isDebug) {
-      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
-    }
     return createRunContentDescriptor(processHandler, console, environment)
   }
 

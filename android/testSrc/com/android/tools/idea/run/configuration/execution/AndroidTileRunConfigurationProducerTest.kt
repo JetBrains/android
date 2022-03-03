@@ -23,6 +23,7 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
 
 class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
@@ -37,6 +38,7 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
     StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
+  @Test
   fun testSetupConfigurationFromContext() {
     val tileFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.kt",
@@ -57,6 +59,7 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
   fun testJavaSetupConfigurationFromContext() {
     val tileFile = myFixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.java",
