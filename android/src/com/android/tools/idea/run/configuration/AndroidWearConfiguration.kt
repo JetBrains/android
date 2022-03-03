@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
@@ -52,6 +53,9 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     // If module is null `configurationModule.checkForWarning()` will throw an error
     val module = configurationModule.module!!
     AndroidFacet.getInstance(module) ?: throw RuntimeConfigurationError(AndroidBundle.message("no.facet.error", module.name))
+    if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+      throw RuntimeConfigurationError("Project is synchronizing")
+    }
     componentName ?: throw RuntimeConfigurationError("$userVisibleComponentTypeName is not chosen")
   }
 

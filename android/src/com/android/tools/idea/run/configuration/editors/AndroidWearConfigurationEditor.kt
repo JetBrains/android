@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.editors
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
@@ -46,6 +48,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selectedValueIs
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
@@ -89,6 +92,13 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
           wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
           availableComponents.firstOrNull { it == componentName }?.let {
             wearComponentFqNameComboBox.item = it
+          }
+          if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+            component?.parent?.parent?.apply {
+              removeAll()
+              layout = BorderLayout()
+              add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
+            }
           }
         }
       }.queue()
