@@ -343,4 +343,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
     assertThat(types).isEqualTo(listOf(SHORT_TEXT, LONG_TEXT))
   }
+
+  fun testGetManifestNoModule() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
+    val androidComplicationConfiguration = Mockito.spy(configSettings.configuration as AndroidComplicationConfiguration)
+    doReturn(null).`when`(androidComplicationConfiguration).module
+    assertThat(androidComplicationConfiguration.getTypesFromManifest()).isEqualTo(emptyList<Complication.ComplicationType>())
+  }
 }
