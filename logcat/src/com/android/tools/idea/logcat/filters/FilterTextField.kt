@@ -22,6 +22,8 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -55,12 +57,15 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.LINE_AXIS
+import javax.swing.BoxLayout.PAGE_AXIS
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
+import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.SwingConstants.VERTICAL
 import kotlin.math.min
 
@@ -84,6 +89,8 @@ private val EDITOR_BORDER = JBUI.Borders.empty(2, 2, 2, 2)
 
 // The history icon needs some padding. These values make it look the same as the "Find in files" dialog for example.
 private val HISTORY_ICON_BORDER = JBUI.Borders.empty(0, 5, 0, 4)
+
+private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
 
 /**
  * A text field for the filter.
@@ -232,10 +239,12 @@ internal class FilterTextField(
       .setMovable(false)
       .setRequestFocus(true)
       .setItemChosenCallback {
-        text = it.filter
-        isFavorite = it.isFavorite
+        (it as? Item)?.let { item ->
+          text = item.filter
+          isFavorite = item.isFavorite
+        }
       }
-      .setSelectedValue(FilterHistoryItem(text, isFavorite), true)
+      .setSelectedValue(Item(text, isFavorite), true)
       .createPopup()
       .showUnderneathOf(this)
   }
@@ -280,13 +289,20 @@ internal class FilterTextField(
 
   private class HistoryList(filterHistory: AndroidLogcatFilterHistory) : JBList<FilterHistoryItem>() {
     init {
-      val listModel = CollectionListModel(
-        filterHistory.favorites.map { FilterHistoryItem(it, true) } + filterHistory.nonFavorites.map { FilterHistoryItem(it, false) })
+      val items = mutableListOf<FilterHistoryItem>().apply {
+        addAll(filterHistory.favorites.map { Item(it, true) })
+        if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
+          add(Separator)
+        }
+        addAll(filterHistory.nonFavorites.map { Item(it, false) })
+      }
+      val listModel = CollectionListModel(items)
       model = listModel
       addKeyListener(object : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
-          if (e.keyCode == KeyEvent.VK_DELETE) {
-            filterHistory.remove(selectedValue.filter)
+          val item = selectedValue as? Item
+          if (item != null && e.keyCode == KeyEvent.VK_DELETE) {
+            filterHistory.remove(item.filter)
             val index = selectedIndex
             listModel.remove(index)
             selectedIndex = min(index, model.size - 1)
@@ -304,22 +320,42 @@ internal class FilterTextField(
       index: Int,
       isSelected: Boolean,
       cellHasFocus: Boolean
-    ): Component {
-      return BorderLayoutPanel().apply {
-        val isFavorite = value.isFavorite
-        addToLeft(JLabel(if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON))
-        addToCenter(JLabel(value.filter).apply {
-          border = HISTORY_ITEM_LABEL_BORDER
-          foreground = (if (isSelected) list.selectionForeground else list.foreground)
-        })
-        background = (if (isSelected) list.selectionBackground else list.background)
-      }
-    }
+    ): Component = value.createComponent(isSelected, list)
   }
+
 
   override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.delete.history.tooltip")
 
-  private data class FilterHistoryItem(val filter: String, val isFavorite: Boolean)
+  private sealed class FilterHistoryItem {
+    class Item(val filter: String, val isFavorite: Boolean) : FilterHistoryItem() {
+      override fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        return BorderLayoutPanel().apply {
+          addToLeft(JLabel(if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON))
+          addToCenter(JLabel(filter).apply {
+            border = HISTORY_ITEM_LABEL_BORDER
+            foreground = (if (isSelected) list.selectionForeground else list.foreground)
+          })
+          background = (if (isSelected) list.selectionBackground else list.background)
+        }
+      }
+    }
+
+    object Separator : FilterHistoryItem() {
+      override fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        // Simply returning a JSeparator here will change the background of the separator when it is selected. Wrapping it with a JPanel
+        // suppresses that behavior for some reason.
+        return JPanel(null).apply {
+          // A JSeparator relies on the layout to get a non-zero size. a FlowLayout (the default) doesn't work.
+          layout = BoxLayout(this, PAGE_AXIS)
+          background = list.background
+          border = HISTORY_LIST_SEPARATOR_BORDER
+          add(JSeparator(HORIZONTAL))
+        }
+      }
+    }
+
+    abstract fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
+  }
 }
 
 // Under test environment, the icons are fakes and non-scalable.
