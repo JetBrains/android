@@ -80,16 +80,6 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
-
-    invokeAndWaitIfNeeded {
-      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-
-      WriteCommandAction.runWriteCommandAction(projectRule.project) {
-        // Delete the reference to PreviewInOtherFile since it's a top level function not supported
-        // by the embedded compiler (b/201728545) and it's not used by the tests.
-        projectRule.fixture.editor.replaceText("PreviewInOtherFile()", "")
-      }
-    }
   }
 
   @After
