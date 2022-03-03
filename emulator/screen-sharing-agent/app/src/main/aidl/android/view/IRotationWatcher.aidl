@@ -1,3 +1,4 @@
+// Copy of https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/IRotationWatcher.aidl
 /* //device/java/android/android/hardware/ISensorListener.aidl
 **
 ** Copyright 2008, The Android Open Source Project
