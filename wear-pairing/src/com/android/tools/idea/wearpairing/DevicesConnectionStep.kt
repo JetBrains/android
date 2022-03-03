@@ -157,6 +157,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded() ?: return@launch
         secondStageStep!!.phoneIDevice = phoneIDevice
         secondStageStep.wearIDevice = wearIDevice
+
+        waitForDevicePairingStatus(phoneIDevice, wearIDevice)
         LOG.warn("Devices are online")
       }
 
@@ -355,27 +357,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     try {
       showUiLaunchingDevice(value.displayName)
 
-      var isColdBoot = false
       val iDevice = value.launch(project).await()
       value.launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
 
       // If it was not launched by us, it may still be booting. Wait for "boot complete".
       while (!iDevice.arePropertiesSet() || iDevice.getProperty("dev.bootcomplete") == null) {
         LOG.warn("${iDevice.name} not ready yet")
-        isColdBoot = true
         delay(2000)
-      }
-
-      if (isColdBoot || iDevice.retrieveUpTime() < 200.0) {
-        // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
-        showUiWaitingDeviceStatus()
-        if (iDevice.hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
-          waitForCondition(50_000) { iDevice.isPairingStatusAvailable() }
-        }
-        else {
-          waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty() }
-          waitForCondition(10_000) { iDevice.loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
-        }
       }
 
       return iDevice
@@ -388,6 +376,28 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       LOG.warn("Failed to launch device", ex)
       return null
     }
+  }
+
+  private suspend fun IDevice.waitForPairingStatus() {
+    if (hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
+      waitForCondition(50_000) { isPairingStatusAvailable() }
+    }
+    else {
+      // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
+      waitForCondition(50_000) { loadNodeID().isNotEmpty() }
+      waitForCondition(10_000) { loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
+    }
+  }
+
+  private suspend fun waitForDevicePairingStatus(phoneDevice: IDevice, wearDevice: IDevice) {
+    showUiWaitingDeviceStatus()
+
+    val companionAppId = wearDevice.getCompanionAppIdForWatch()
+    if (phoneDevice.isCompanionAppInstalled(companionAppId)) { // No need to wait, if Companion App is not installed
+      phoneDevice.waitForPairingStatus()
+    }
+
+    wearDevice.waitForPairingStatus()
   }
 
   private suspend fun showUI(
