@@ -17,12 +17,6 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.tools.idea.wizard.template.renderIf
 
-private fun isEap(kotlinVersion: String) = setOf("rc", "eap", "-M").any { it in kotlinVersion }
-
-fun kotlinEapRepoBlock(kotlinVersion: String) = renderIf(isEap(kotlinVersion)) {
-  """maven { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }"""
-}
-
 fun androidProjectGradleSettings(appTitle: String,
                                  kotlinVersion: String,
                                  useGradleKts: Boolean): String {
@@ -36,7 +30,6 @@ pluginManagement {
     gradlePluginPortal()
     google()
     mavenCentral()
-    ${kotlinEapRepoBlock(kotlinVersion)}
   }
 }
 dependencyResolutionManagement {
@@ -44,7 +37,6 @@ dependencyResolutionManagement {
   repositories {
     google()
     mavenCentral()
-    ${kotlinEapRepoBlock(kotlinVersion)}
   }
 }
 rootProject.name = "$escapedAppTitle"

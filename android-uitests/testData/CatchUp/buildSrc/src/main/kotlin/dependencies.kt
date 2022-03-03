@@ -201,7 +201,6 @@ object deps {
     object repositories {
       const val google = "https://maven.google.com"
       const val jitpack = "https://jitpack.io"
-      const val kotlineap = "https://dl.bintray.com/kotlin/kotlin-eap"
       const val kotlinx = "https://kotlin.bintray.com/kotlinx"
       const val plugins = "https://plugins.gradle.org/m2/"
       const val snapshots = "https://oss.sonatype.org/content/repositories/snapshots/"

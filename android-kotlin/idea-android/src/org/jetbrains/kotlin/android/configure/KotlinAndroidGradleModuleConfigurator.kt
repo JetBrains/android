@@ -68,9 +68,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         if (version.contains("SNAPSHOT")) {
             addMavenRepositoryByUrl("https://oss.sonatype.org/content/repositories/snapshots", "Sonatype OSS Snapshot Repository")
         }
-        else if (version.contains("-M")) {
-            addMavenRepositoryByUrl("https://dl.bintray.com/kotlin/kotlin-eap", "Kotlin EAP Repository")
-        }
         if (!containsMethodCall("jcenter")) {
             // Despite the name this doesn't add it if it's already there.
             addRepositoryByMethodName("mavenCentral")
