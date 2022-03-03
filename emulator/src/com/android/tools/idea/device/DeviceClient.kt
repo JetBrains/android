@@ -158,7 +158,7 @@ internal class DeviceClient(
         soFile = projectDir.resolve(
             "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
-        jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
+        jarFile = projectDir.resolve("app/build/intermediates/apk/$buildVariant/$apkName")
       }
       else {
         // Development environment for Studio.
