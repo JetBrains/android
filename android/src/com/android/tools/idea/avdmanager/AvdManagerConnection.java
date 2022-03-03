@@ -479,6 +479,11 @@ public class AvdManagerConnection {
     return service.submit(() -> isAvdRunning(info));
   }
 
+  public final @NotNull ListenableFuture<@Nullable Void> stopAvdAsync(@NotNull AvdInfo avd) {
+    // noinspection UnstableApiUsage
+    return Futures.submit(() -> stopAvd(avd), AppExecutorUtil.getAppExecutorService());
+  }
+
   @Slow
   public void stopAvd(@NotNull AvdInfo info) {
     assert myAvdManager != null;
