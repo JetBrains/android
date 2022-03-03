@@ -206,7 +206,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[1].let {
-      assertEquals("preview2 - Preview2", it.displaySettings.name)
+      assertEquals("Preview2 - preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
@@ -226,7 +226,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[2].let {
-      assertEquals("preview3 - Preview3", it.displaySettings.name)
+      assertEquals("Preview3 - preview3", it.displaySettings.name)
       assertNull(it.displaySettings.group)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
@@ -246,7 +246,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[3].let {
-      assertEquals("preview4 - Preview4", it.displaySettings.name)
+      assertEquals("Preview4 - preview4", it.displaySettings.name)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
@@ -258,7 +258,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[4].let {
-      assertEquals("preview5 - Preview5", it.displaySettings.name)
+      assertEquals("Preview5 - preview5", it.displaySettings.name)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
 
@@ -284,7 +284,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[6].let {
-      assertEquals("named multipreview - Preview7", it.displaySettings.name)
+      assertEquals("Preview7 - named multipreview", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -298,7 +298,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[7].let {
-      assertEquals("MyAnnotation 1 - Preview7", it.displaySettings.name)
+      assertEquals("Preview7 - MyAnnotation 1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -312,7 +312,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[8].let {
-      assertEquals("preview7 - Preview7", it.displaySettings.name)
+      assertEquals("Preview7 - preview7", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -326,11 +326,11 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[9].let {
-      assertEquals("Preview with parameters - PreviewWithParametrs", it.displaySettings.name)
+      assertEquals("PreviewWithParametrs - Preview with parameters", it.displaySettings.name)
     }
 
     elements[10].let {
-      assertEquals("FQN - FullyQualifiedAnnotationPreview", it.displaySettings.name)
+      assertEquals("FullyQualifiedAnnotationPreview - FQN", it.displaySettings.name)
     }
   }
 
@@ -384,7 +384,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
     val element = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).single()
     // Check that we keep the first element
-    assertEquals("preview - Preview1", element.displaySettings.name)
+    assertEquals("Preview1 - preview", element.displaySettings.name)
   }
 
   @Test
@@ -599,11 +599,81 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
               if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
         }
       }
-      .sortByDisplayAndSourcePosition()
+      .sortByDisplayAndSourcePosition(false)
       .map { it.composableMethodFqn }
       .toTypedArray()
       .let {
         assertArrayEquals(arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"), it)
+      }
+  }
+
+  @Test
+  fun testOrderingMultipreview() = runBlocking {
+    val composeTest = fixture.addFileToProjectAndInvalidate(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+
+        @Annot3
+        @Preview
+        annotation class Annot1(){}
+
+        @Preview
+        annotation class Annot2(){}
+
+        @Composable
+        @Preview
+        @Annot1
+        fun C() {
+        }
+
+        @Annot1
+        @Preview
+        annotation class Annot3(){}
+
+        @Composable
+        @Annot2
+        @Preview
+        @Annot3
+        fun A() {
+        }
+
+        @Composable
+        @Preview
+        @Annot1
+        fun TopA() {
+        }
+      """.trimIndent())
+
+    AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      .toMutableList().apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .map {
+        // Override positioning for testing for those preview starting with Top
+        object : PreviewElement by it {
+          override val displaySettings: PreviewDisplaySettings =
+            PreviewDisplaySettings(
+              it.displaySettings.name,
+              it.displaySettings.group,
+              it.displaySettings.showDecoration,
+              it.displaySettings.showBackground,
+              it.displaySettings.backgroundColor,
+              if (it.displaySettings.name == "TopA") DisplayPositioning.TOP else it.displaySettings.displayPositioning)
+        }
+      }
+      .sortByDisplayAndSourcePosition(true)
+      .map { it.displaySettings.name }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(arrayOf(
+          "C - Annot1 1", "C", "C - Annot3 1", // Previews of 'C'
+          "A - Annot1 1", "A - Annot2 1", "A - Annot3 1", "A", // Previews of 'A'
+          "TopA", "TopA - Annot1 1", "TopA - Annot3 1" // Previews of 'TopA'
+        ), it)
       }
   }
 
@@ -629,7 +699,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     assertEquals(2, elements.size)
     elements[0].let {
-      assertEquals("preview1 - Preview1", it.displaySettings.name)
+      assertEquals("Preview1 - preview1", it.displaySettings.name)
       assertEquals(2, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
@@ -641,7 +711,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     }
 
     elements[1].let {
-      assertEquals("preview2 - Preview1", it.displaySettings.name)
+      assertEquals("Preview1 - preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)

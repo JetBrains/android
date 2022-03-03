@@ -37,10 +37,12 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
@@ -152,6 +154,7 @@ internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, t
  */
 fun KtNamedFunction.isValidComposePreview() =
   !isInTestFile() && isValidPreviewLocation() && this.toUElementOfType<UMethod>()?.let { hasPreviewElements(it) } == true
+
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
  * this will return null.
@@ -175,7 +178,7 @@ private const val NO_DEVICE_SPEC = ""
  * Returns if the device has any state with [ScreenRound.ROUND] configuration.
  */
 private fun Device.hasRoundFrame(): Boolean =
-  allStates.any { it.hardware.screen.screenRound  == ScreenRound.ROUND }
+  allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND }
 
 /**
  * Returns the same device without any round screen frames.
@@ -186,7 +189,8 @@ private fun Device.withoutRoundScreenFrame(): Device = if (hasRoundFrame()) {
       .filter { it.hardware.screen.screenRound == ScreenRound.ROUND }
       .onEach { it.hardware.screen.screenRound = ScreenRound.NOTROUND }
   }
-} else this
+}
+else this
 
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
@@ -659,7 +663,22 @@ private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySe
 
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
+ * When [groupByComposable] is true, in order to group the Previews by their composable method, the first comparison
+ * value will actually be the source code line number of these composable methods.
+ * By default, the value of [groupByComposable] will be determined by the Multipreview flag, as grouping is needed for it.
  */
-fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = ReadAction.compute<List<T>, Throwable> {
-  sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator))
+fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(groupByComposable: Boolean = StudioFlags.COMPOSE_MULTIPREVIEW.get()):
+  List<T> = runReadAction {
+  sortedWith(
+    if (groupByComposable) {
+      var noOffsetFoundId = -1 // Used to differentiate composable methods of which is not possible to get an offset value
+      val composableOffset = this.distinctBy { it.composableMethodFqn }.associate {
+        it.composableMethodFqn to (it.previewBodyPsi?.element?.startOffset ?: noOffsetFoundId--)
+      }
+      compareBy<PreviewElement> { composableOffset[it.composableMethodFqn] }
+        .thenComparing(displayPriorityComparator)
+        .thenComparing(sourceOffsetComparator)
+    }
+    else displayPriorityComparator.thenComparing(sourceOffsetComparator)
+  )
 }

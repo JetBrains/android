@@ -212,8 +212,8 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               overrideGroupName: String? = null,
                                               parentAnnotationInfo: String? = null): PreviewElement? {
   fun getPreviewName(nameParameter: String?) = when {
-    nameParameter != null -> "$nameParameter - ${annotatedMethod.name}"
-    parentAnnotationInfo != null -> "$parentAnnotationInfo - ${annotatedMethod.name}"
+    nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
+    parentAnnotationInfo != null -> "${annotatedMethod.name} - $parentAnnotationInfo"
     else -> annotatedMethod.name
   }
 
