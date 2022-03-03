@@ -489,6 +489,7 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
                                                           boolean isTest,
+                                                          boolean isProfileable,
                                                           boolean alwaysDeployApkFromBundle) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
@@ -526,7 +527,8 @@ public final class GradleApkProvider implements ApkProvider {
                                         isTest,
                                         targetDevicesMinVersion
         ) == OutputKind.AppBundleOutputModel ||
-        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest)) {
+        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest) ||
+        isProfileable)  {
       return result.build();
     }
 

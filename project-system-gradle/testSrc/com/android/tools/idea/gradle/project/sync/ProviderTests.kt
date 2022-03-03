@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase.Cu
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -78,6 +79,7 @@ data class TestScenario(
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
   val device: Int = 30,
+  val profileable: Boolean = false
 ) {
   val name: String
     get() {
@@ -193,6 +195,9 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
       val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
       if (scenario.executeMakeBeforeRun) {
         runConfiguration?.executeMakeBeforeRunStepInTest(device)
+      }
+      if (scenario.profileable) {
+        runConfiguration!!.profilerState.PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
       }
 
       verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)

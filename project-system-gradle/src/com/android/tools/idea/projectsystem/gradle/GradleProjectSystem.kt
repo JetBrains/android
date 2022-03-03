@@ -63,6 +63,7 @@ import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.editor.ProfilerState.ProfilingMode
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
@@ -163,7 +164,9 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
     val context = runConfiguration.getGradleContext() ?: return super.validateRunConfiguration(runConfiguration)
-    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle)
+    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration,
+                                        context.profilingMode == ProfilingMode.PROFILEABLE,
+                                        context.alwaysDeployApkFromBundle)
   }
 
   internal fun getBuiltApksForSelectedVariant(
