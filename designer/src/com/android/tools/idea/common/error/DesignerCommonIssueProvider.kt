@@ -27,7 +27,8 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
 class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any?> {
 
-  private val designIssues = mutableListOf<Issue>()
+  private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
+
   private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect()
 
@@ -39,15 +40,19 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
   init {
     Disposer.register(project, this)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
-      override fun issueUpdated(removedIssues: List<Issue>, newIssues: List<Issue>) {
-        designIssues.removeAll(removedIssues)
-        designIssues.addAll(newIssues)
+      override fun issueUpdated(source: Any, issues: List<Issue>) {
+        if (issues.isEmpty()) {
+          sourceToIssueMap.remove(source)
+        }
+        else {
+          sourceToIssueMap[source] = issues
+        }
         listeners.forEach { it.run() }
       }
     })
   }
 
-  override fun getFilteredIssues(): List<Issue> = designIssues.filter(filter).toList()
+  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten().filter(filter).toList()
 
   override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)

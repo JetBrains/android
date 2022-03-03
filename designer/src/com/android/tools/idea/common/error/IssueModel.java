@@ -27,9 +27,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,11 +141,10 @@ public class IssueModel implements Disposable {
         .build();
     }
     newIssueList.forEach(issue -> updateIssuesCounts(issue));
-    List<Issue> oldIssues = myIssues;
     myIssues = newIssueList;
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
-    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(oldIssues, newIssueList);
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
   }
 
   private void updateIssuesCounts(@NotNull Issue issue) {
@@ -214,11 +213,11 @@ public class IssueModel implements Disposable {
   }
 
   public void activate() {
-    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(ImmutableList.of(), myIssues);
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, myIssues);
   }
 
   public void deactivate() {
-    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(myIssues, ImmutableList.of());
+    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, Collections.emptyList());
   }
 
   public interface IssueModelListener {

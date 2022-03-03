@@ -38,38 +38,75 @@ class DesignerCommonIssueProviderTest {
     val listener = mock(Runnable::class.java)
     provider.registerUpdateListener(listener)
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(emptyList(), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
     verify(listener).run()
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(emptyList(), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
     verify(listener, times(2)).run()
   }
 
   @Test
-  fun testProviderIssue() {
+  fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
     val provider = DesignToolsIssueProvider(project)
 
     assertEmpty(provider.getFilteredIssues())
+
+    val issueSource = Any()
 
     val issueA = TestIssue(summary = "IssueA")
     val issueB = TestIssue(summary = "IssueB")
     val issueC = TestIssue(summary = "IssueC")
     val issueD = TestIssue(summary = "IssueD")
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(emptyList(), listOf(issueA, issueB))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB))
     assertEquals(listOf(issueA, issueB), provider.getFilteredIssues())
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(emptyList(), listOf(issueC))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB, issueC))
     assertEquals(listOf(issueA, issueB, issueC), provider.getFilteredIssues())
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(listOf(issueA), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueC))
     assertEquals(listOf(issueB, issueC), provider.getFilteredIssues())
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(listOf(issueC), listOf(issueD))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueD))
     assertEquals(listOf(issueB, issueD), provider.getFilteredIssues())
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(emptyList(), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, emptyList())
+    assertEquals(emptyList<Issue>(), provider.getFilteredIssues())
+  }
+
+  @Test
+  fun testUpdateIssuesFromMultipleSource() {
+    val project = projectRule.project
+    val provider = DesignToolsIssueProvider(project)
+
+    assertEmpty(provider.getFilteredIssues())
+
+
+    val source1 = Any()
+    val source2 = Any()
+
+    val issueA = TestIssue(summary = "IssueA")
+    val issueB = TestIssue(summary = "IssueB")
+    val issueC = TestIssue(summary = "IssueC")
+    val issueD = TestIssue(summary = "IssueD")
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueA, issueB))
+    assertEquals(listOf(issueA, issueB), provider.getFilteredIssues())
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueC))
+    assertEquals(listOf(issueA, issueB, issueC), provider.getFilteredIssues())
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueB))
+    assertEquals(listOf(issueB, issueC), provider.getFilteredIssues())
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueD))
     assertEquals(listOf(issueB, issueD), provider.getFilteredIssues())
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, emptyList())
+    assertEquals(listOf(issueD), provider.getFilteredIssues())
+
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, emptyList())
+    assertEquals(emptyList<Issue>(), provider.getFilteredIssues())
   }
 }
