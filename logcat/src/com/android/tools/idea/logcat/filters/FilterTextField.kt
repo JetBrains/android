@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
@@ -33,11 +34,15 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ScalableIcon
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
@@ -46,8 +51,10 @@ import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
+import java.awt.Font
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
@@ -97,7 +104,7 @@ private val HISTORY_LIST_SEPARATOR_BORDER = JBUI.Borders.empty(3)
  */
 internal class FilterTextField(
   project: Project,
-  logcatPresenter: LogcatPresenter,
+  private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
@@ -234,8 +241,10 @@ internal class FilterTextField(
 
   @UiThread
   private fun showPopup() {
+    val popupDisposable = Disposer.newDisposable("popupDisposable")
+
     addToHistory()
-    PopupChooserBuilder(HistoryList(filterHistory))
+    val popup = PopupChooserBuilder(HistoryList(popupDisposable, logcatPresenter, filterHistory))
       .setMovable(false)
       .setRequestFocus(true)
       .setItemChosenCallback {
@@ -244,9 +253,11 @@ internal class FilterTextField(
           isFavorite = item.isFavorite
         }
       }
-      .setSelectedValue(Item(text, isFavorite), true)
+      .setSelectedValue(Item(text, isFavorite, count = null), true)
       .createPopup()
-      .showUnderneathOf(this)
+    Disposer.register(popup, popupDisposable)
+
+    popup.showUnderneathOf(this)
   }
 
   private fun addToHistory() {
@@ -287,14 +298,16 @@ internal class FilterTextField(
     }
   }
 
-  private class HistoryList(filterHistory: AndroidLogcatFilterHistory) : JBList<FilterHistoryItem>() {
+  private class HistoryList(parentDisposable: Disposable, logcatPresenter: LogcatPresenter, filterHistory: AndroidLogcatFilterHistory)
+    : JBList<FilterHistoryItem>() {
     init {
+      // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
       val items = mutableListOf<FilterHistoryItem>().apply {
-        addAll(filterHistory.favorites.map { Item(it, true) })
+        addAll(filterHistory.favorites.map { Item(filter = it, isFavorite = true, count = null) })
         if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
           add(Separator)
         }
-        addAll(filterHistory.nonFavorites.map { Item(it, false) })
+        addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null) })
       }
       val listModel = CollectionListModel(items)
       model = listModel
@@ -309,7 +322,27 @@ internal class FilterTextField(
           }
         }
       })
-      this.cellRenderer = HistoryListCellRenderer()
+      cellRenderer = HistoryListCellRenderer()
+
+      // In a background thread, calculate the count of all the items and update the model.
+      AndroidCoroutineScope(parentDisposable, workerThread).launch {
+        val application = ApplicationManager.getApplication()
+        listModel.items.forEachIndexed { index, item ->
+          if (item is Item) {
+            launch {
+              val count = application.runReadAction<Int> { logcatPresenter.countFilterMatches(item.filter) }
+              // Replacing an item in the model will remove the selection. Save the selected index, so we can restore it after.
+              withUiContext {
+                val selected = selectedIndex
+                listModel.setElementAt(Item(item.filter, item.isFavorite, count), index)
+                if (selected >= 0) {
+                  selectedIndex = selected
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -319,42 +352,91 @@ internal class FilterTextField(
       value: FilterHistoryItem,
       index: Int,
       isSelected: Boolean,
-      cellHasFocus: Boolean
-    ): Component = value.createComponent(isSelected, list)
+      cellHasFocus: Boolean,
+    ): Component = value.getComponent(isSelected, list)
   }
-
 
   override fun getToolTipText(event: MouseEvent): String = LogcatBundle.message("logcat.filter.delete.history.tooltip")
 
   private sealed class FilterHistoryItem {
-    class Item(val filter: String, val isFavorite: Boolean) : FilterHistoryItem() {
-      override fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
-        return BorderLayoutPanel().apply {
-          addToLeft(JLabel(if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON))
-          addToCenter(JLabel(filter).apply {
-            border = HISTORY_ITEM_LABEL_BORDER
-            foreground = (if (isSelected) list.selectionForeground else list.foreground)
-          })
-          background = (if (isSelected) list.selectionBackground else list.background)
+    class Item(val filter: String, val isFavorite: Boolean, val count: Int?)
+      : FilterHistoryItem() {
+
+      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        favoriteLabel.icon = if (isFavorite) FAVORITE_ON_ICON else FAVORITE_BLANK_ICON
+        filterLabel.text = filter
+        countLabel.text = when (count) {
+          null -> " ".repeat(3)
+          in 0..99 -> "% 2d ".format(count)
+          else -> "99+"
+        }
+        if (isSelected) {
+          filterLabel.foreground = list.selectionForeground
+          component.background = list.selectionBackground
+        }
+        else {
+          filterLabel.foreground = list.foreground
+          component.background = list.background
+        }
+        return component
+      }
+
+      // Items have unique text, so we only need to check the "filter" field. We MUST ignore the "count" field because we do not yet know
+      // the count when we set the selected item.
+      override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Item
+
+        if (filter != other.filter) return false
+
+        return true
+      }
+
+      // Items have unique text, so we only need to check the "filter" field
+      override fun hashCode(): Int {
+        return filter.hashCode()
+      }
+
+      // HistoryListCellRenderer will use this component's paint() to render the ue. The component itself is not inserted into the tree.
+      // The common pattern is to reuse the same component for all the items rather than allocate a new one for each item.
+      companion object {
+        private val favoriteLabel = JLabel()
+        private val filterLabel = JLabel().apply {
+          border = HISTORY_ITEM_LABEL_BORDER
+        }
+
+        private val countLabel = JLabel().apply {
+          font = Font(Font.MONOSPACED, Font.PLAIN, font.size)
+          border = HISTORY_ITEM_LABEL_BORDER
+        }
+
+        private val component = BorderLayoutPanel().apply {
+          addToLeft(favoriteLabel)
+          addToCenter(filterLabel)
+          addToRight(countLabel)
         }
       }
     }
 
     object Separator : FilterHistoryItem() {
-      override fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
-        // Simply returning a JSeparator here will change the background of the separator when it is selected. Wrapping it with a JPanel
-        // suppresses that behavior for some reason.
-        return JPanel(null).apply {
-          // A JSeparator relies on the layout to get a non-zero size. a FlowLayout (the default) doesn't work.
-          layout = BoxLayout(this, PAGE_AXIS)
-          background = list.background
-          border = HISTORY_LIST_SEPARATOR_BORDER
-          add(JSeparator(HORIZONTAL))
-        }
+      // A standalone JSeparator here will change the background of the separator when it is selected. Wrapping it with a JPanel
+      // suppresses that behavior for some reason.
+      private val component = JPanel(null).apply {
+        // A JSeparator relies on the layout to get a non-zero size. a FlowLayout (the default) doesn't work.
+        layout = BoxLayout(this, PAGE_AXIS)
+        border = HISTORY_LIST_SEPARATOR_BORDER
+        add(JSeparator(HORIZONTAL))
+      }
+
+      override fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent {
+        component.background = list.background
+        return component
       }
     }
 
-    abstract fun createComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
+    abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
   }
 }
 

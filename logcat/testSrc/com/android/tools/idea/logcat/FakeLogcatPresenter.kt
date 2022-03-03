@@ -87,6 +87,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     attachedDevice = device
   }
 
+  override fun countFilterMatches(filter: String): Int {
+    TODO("Not yet implemented")
+  }
+
   fun appendMessage(message: String) {
     lineBatches.add(listOf(message))
   }

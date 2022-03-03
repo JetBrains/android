@@ -71,4 +71,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 
   fun selectDevice(device: IDevice)
+
+  fun countFilterMatches(filter: String): Int
 }

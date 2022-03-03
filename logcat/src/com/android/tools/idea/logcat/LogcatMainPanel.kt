@@ -39,6 +39,7 @@ import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
+import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
@@ -325,6 +326,10 @@ internal class LogcatMainPanel(
 
   override fun selectDevice(device: IDevice) {
     headerPanel.selectDevice(device)
+  }
+
+  override fun countFilterMatches(filter: String): Int {
+    return LogcatMasterFilter(logcatFilterParser.parse(filter)).filter(messageBacklog.get().messages).size
   }
 
   override fun getTags(): Set<String> = tags
