@@ -433,6 +433,8 @@ class ToolWindowModel(
     val treeText: String
     val helpLinkUrl: String?
     val shortDescription: String?
+    val additionalInfo: String?
+      get() = null
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -462,6 +464,19 @@ class ToolWindowModel(
       init {
         selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
       }
+    }
+    is GradlePluginsRefactoringProcessor -> object : DefaultStepPresentation(processor) {
+      override val additionalInfo =
+        processor.cachedUsages
+          .filter { it is WellKnownGradlePluginDependencyUsageInfo || it is WellKnownGradlePluginDslUsageInfo }
+          .map { it.tooltipText }.toSortedSet().takeIf { !it.isEmpty() }?.run {
+             val result = StringBuilder()
+            result.append("<p>The following Gradle plugin versions will be updated:</p>\n")
+            result.append("<ul>\n")
+            forEach { result.append("<li>$it</li>\n") }
+            result.append("</ul>\n")
+            result.toString()
+          }
     }
     else -> DefaultStepPresentation(processor)
   }
@@ -757,6 +772,7 @@ class ContentManager(val project: Project) {
             // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
             text.append("<a href='$url'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.")
           }
+          selectedStep.additionalInfo?.let { text.append(it) }
           label.text = text.toString()
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {

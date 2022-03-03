@@ -283,6 +283,58 @@ class ContentManagerTest {
   }
 
   @Test
+  fun testToolWindowViewDetailsPanelWithOldKotlinPlugin() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:4.1.0'
+            classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.11'
+          }
+        }
+      """.trimIndent()
+    )
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    val gradleVersionProcessorPath = view.tree.getPathForRow(1)
+    view.tree.selectionPath = gradleVersionProcessorPath
+    val stepPresentation = (gradleVersionProcessorPath.lastPathComponent as CheckedTreeNode)
+      .userObject as ToolWindowModel.StepUiPresentation
+    assertThat(stepPresentation.treeText).contains("Upgrade Gradle plugins")
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade Gradle plugins")
+    assertThat(detailsPanelContent.text).contains("The following Gradle plugin versions will be updated:")
+    assertThat(detailsPanelContent.text).contains("Update version of org.jetbrains.kotlin:kotlin-gradle-plugin to")
+  }
+
+  @Test
+  fun testToolWindowViewDetailsPanelWithNewishKotlinPlugin() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:4.1.0'
+            classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.20'
+          }
+        }
+      """.trimIndent()
+    )
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    val gradleVersionProcessorPath = view.tree.getPathForRow(1)
+    view.tree.selectionPath = gradleVersionProcessorPath
+    val stepPresentation = (gradleVersionProcessorPath.lastPathComponent as CheckedTreeNode)
+      .userObject as ToolWindowModel.StepUiPresentation
+    assertThat(stepPresentation.treeText).doesNotContain("Upgrade Gradle plugins")
+  }
+
+  @Test
   fun testToolWindowViewWithGradleAndPluginUpgrades() {
     projectRule.fixture.addFileToProject(
       "build.gradle",
