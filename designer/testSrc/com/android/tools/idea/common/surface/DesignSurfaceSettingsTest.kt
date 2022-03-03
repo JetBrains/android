@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.AndroidTestCase
 
+@Suppress("UnstableApiUsage")
 class DesignSurfaceSettingsTest: AndroidTestCase() {
 
   private lateinit var defaultFilePathToZoomLevelMap: MutableMap<String, Double>
@@ -60,5 +64,30 @@ class DesignSurfaceSettingsTest: AndroidTestCase() {
     // Check the values are same after getting another instance.
     val anotherSurfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
     assertEquals(filePathToZoomLevelMap, anotherSurfaceState.filePathToZoomLevelMap)
+  }
+
+  fun testSavingPathForBackedFile() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+
+    val originalFile = myFixture.addFileToProject("path/to/origin/file", "").virtualFile
+    val backedFile1 = MyBackedFile("path/to/backed/file1", originalFile)
+    val backedFile2 = MyBackedFile("path/to/backed/file2", originalFile)
+
+    surfaceState.saveFileScale(myFixture.project, originalFile, 0.1)
+    assertEquals(0.1, surfaceState.loadFileScale(myFixture.project, backedFile1))
+    assertEquals(0.1, surfaceState.loadFileScale(myFixture.project, backedFile2))
+
+    surfaceState.saveFileScale(myFixture.project, backedFile1, 3.0)
+    assertEquals(3.0, surfaceState.loadFileScale(myFixture.project, originalFile))
+    assertEquals(3.0, surfaceState.loadFileScale(myFixture.project, backedFile2))
+
+    surfaceState.saveFileScale(myFixture.project, backedFile2, 0.5)
+    assertEquals(0.5, surfaceState.loadFileScale(myFixture.project, originalFile))
+    assertEquals(0.5, surfaceState.loadFileScale(myFixture.project, backedFile1))
+  }
+
+  private class MyBackedFile(private val path: String, private val sourceFile: VirtualFile) : LightVirtualFile(), BackedVirtualFile {
+    override fun getPath(): String = path
+    override fun getOriginFile(): VirtualFile = sourceFile
   }
 }

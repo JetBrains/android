@@ -27,6 +27,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
+import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
@@ -513,11 +514,13 @@ internal class ComposePreviewViewImpl(private val project: Project,
         hideLoading()
         if (hasContent) {
           if (showContent()) {
-            // We zoom to fit to have better initial zoom level when first build is completed.
             // We invoke later to allow the panel to layout itself before calling zoomToFit.
             ApplicationManager.getApplication().invokeLater {
+              // We zoom to fit the pinned surface to have better initial zoom level when first build is completed.
               if (isPinnedSurfaceVisible) pinnedSurface.zoomToFit()
-              mainSurface.zoomToFit()
+              // We don't zoom to fit the mainSurface because it restores to the last zoom level when it opened.
+              // If there is no last zoom level (e.g. it is a new file), it zooms to fit to have the initial zoom level. See
+              // addComponentListener(...) in the constructor of DesignSurface.
             }
           }
         }

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.psi.PsiFile
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
 
@@ -31,7 +32,7 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
   var surfaceState: SurfaceState = SurfaceState()
     private set
 
-  override fun getState(): SurfaceState? = surfaceState
+  override fun getState(): SurfaceState = surfaceState
 
   override fun loadState(state: SurfaceState) {
     surfaceState = state
@@ -53,14 +54,14 @@ class SurfaceState {
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
 
   @Transient
-  fun loadFileScale(file: PsiFile): Double? {
-    val relativePath = getRelativePathInProject(file) ?: return null
+  fun loadFileScale(project: Project, file: VirtualFile): Double? {
+    val relativePath = getRelativePathInProject(project, file) ?: return null
     return filePathToZoomLevelMap[relativePath]
   }
 
   @Transient
-  fun saveFileScale(file: PsiFile, scale: Double?) {
-    val relativePath = getRelativePathInProject(file) ?: return
+  fun saveFileScale(project: Project, file: VirtualFile, scale: Double?) {
+    val relativePath = getRelativePathInProject(project, file) ?: return
     if (scale == null) {
       filePathToZoomLevelMap.remove(relativePath)
     }
@@ -70,9 +71,9 @@ class SurfaceState {
   }
 }
 
-private fun getRelativePathInProject(file: PsiFile): String? {
-  // TODO(b/217382996): Consider to use a custom path for the temp or fake files?
-  val basePath = file.project.basePath ?: return null
-  val filePath = file.virtualFile?.path ?: return null
-  return FileUtilRt.getRelativePath(basePath, filePath, File.separatorChar, true)
+@Suppress("UnstableApiUsage")
+private fun getRelativePathInProject(project: Project, file: VirtualFile): String? {
+  val projectBasePath = project.basePath ?: return null
+  val filePath = file.let { BackedVirtualFile.getOriginFileIfBacked(it) }.path
+  return FileUtilRt.getRelativePath(projectBasePath, filePath, File.separatorChar, true)
 }
