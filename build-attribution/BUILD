@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -39,8 +40,16 @@ iml_module(
         "analyzers": {
             "shard_count": 2,
             "test_filter": "com.android.build.attribution.analyzers",
+            "data": [
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system:studio_repo",
+            ],
         },
         "other": {
+            "data": [
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system:studio_repo",
+            ],
         },
     },
     tags = [
@@ -56,9 +65,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/build-attribution/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
@@ -88,6 +94,34 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
     ],
+)
+
+old_agp_test(
+    name = "ConfigurationCachingCompatibilityAnalyzerTest",
+    timeout = "long",
+    agp_version = "7.1.0",
+    data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/build-attribution/testData",
+        "//tools/base/build-system:gradle-distrib",
+    ],
+    gradle_version = "LATEST",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.build-attribution.tests",
+    maven_deps = [
+        "//tools/base/build-system/previous-versions:7.1.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ":test_deps",
+    ],
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+    test_class = "com.android.build.attribution.AndroidBuildAttributionOldAgpTestSuite",
 )
 
 maven_repository(

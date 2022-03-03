@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,32 @@
 package com.android.build.attribution
 
 import com.android.testutils.JarTestSuiteRunner
+import com.android.testutils.junit4.OldAgpSuite
+import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.android.tools.tests.LeakCheckerRule
+import com.android.tools.tests.MavenRepoRule
+import org.junit.ClassRule
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
+@RunWith(OldAgpSuite::class)
 @JarTestSuiteRunner.ExcludeClasses(
-  AndroidBuildAttributionTestSuite::class,  // a suite mustn't contain itself
-  AndroidBuildAttributionOldAgpTestSuite::class,
+  AndroidBuildAttributionTestSuite::class,
+  AndroidBuildAttributionOldAgpTestSuite::class, // a suite mustn't contain itself
 )
-class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
+class AndroidBuildAttributionOldAgpTestSuite : IdeaTestSuiteBase() {
+
   companion object {
-    init {
-      linkIntoOfflineMavenRepo("tools/adt/idea/build-attribution/test_deps.manifest")
-      linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
-      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
-    }
+    @ClassRule
+    @JvmField
+    val checker = LeakCheckerRule()
+
+    @ClassRule
+    @JvmField
+    val daemons = GradleDaemonsRule()
+
+    @ClassRule
+    @JvmField
+    val mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty()
   }
 }

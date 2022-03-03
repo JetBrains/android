@@ -88,7 +88,7 @@ class OldAgpFilter extends Filter {
            + " agpVersions=" + allowedAgpVersion;
   }
 
-  private boolean isOldAgpTest(Description description) {
+  static boolean isOldAgpTest(Description description) {
     OldAgpTest annotation = description.getAnnotation(OldAgpTest.class);
     if (annotation != null) {
       return true;
