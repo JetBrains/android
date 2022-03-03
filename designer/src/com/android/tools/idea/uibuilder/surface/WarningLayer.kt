@@ -41,7 +41,7 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     val screenShape: Shape? = screenView.screenShape
     gc.color = Color.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
-    val selectedIssueSources = getSelectedIssues()
+    val selectedIssueSources = getSelectedIssues().map { it.source }
     val relevantComponents = selectedIssueSources.filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
       .flatMap { it.components }
       .filter { it.model == screenView.sceneManager.model }
