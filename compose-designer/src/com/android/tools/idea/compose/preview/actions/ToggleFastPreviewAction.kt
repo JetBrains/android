@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
@@ -33,7 +35,14 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.project ?: return
     val fastPreviewManager = FastPreviewManager.getInstance(project)
-    if (state) fastPreviewManager.enable() else fastPreviewManager.disable()
+    if (state) {
+      fastPreviewManager.enable()
+
+      // Automatically refresh when re-enabling
+      findComposePreviewManagersForContext(e.dataContext)
+        .filterIsInstance<FastPreviewSurface>()
+        .forEach { it.requestFastPreviewRefresh() }
+    } else fastPreviewManager.disable()
   }
 
   override fun update(e: AnActionEvent) {

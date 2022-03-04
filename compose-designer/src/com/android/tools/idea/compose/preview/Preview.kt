@@ -31,6 +31,7 @@ import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.fastCompileAsync
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
@@ -242,7 +243,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider<PreviewElement>,
                                    override val preferredInitialVisibility: PreferredVisibility,
                                    composePreviewViewProvider: ComposePreviewViewProvider) :
-  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware,
+  FastPreviewSurface {
   /**
    * Fake device id to identify this preview with the live literals service. This allows live literals to track how
    * many "users" it has.
@@ -774,15 +776,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
         }.collectLatest {
           if (FastPreviewManager.getInstance(project).isAvailable) {
-            val currentStatus = status()
-            if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
-              psiFilePointer.element?.let {
-                fastCompileAsync(this@ComposePreviewRepresentation, it) {
-                  forceRefresh()
-                }
-                return@collectLatest
-              }
-            }
+            if (requestFastPreviewRefresh()) return@collectLatest
           }
 
           if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
@@ -1208,4 +1202,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private fun shouldQuickRefresh() =
     !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && renderedElements.count() == 1
+
+  override fun requestFastPreviewRefresh(): Boolean {
+    val currentStatus = status()
+    if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
+      psiFilePointer.element?.let {
+        fastCompileAsync(this@ComposePreviewRepresentation, it) {
+          forceRefresh()
+        }
+        return true
+      }
+    }
+
+    return false
+  }
 }
