@@ -51,7 +51,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = 21;
+  protected static final int MIN_SDK_API = 29;
 
   /**
    * Verifies it can convert Java Project to Kotlin Project.
@@ -94,11 +94,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
-    // TODO: the following is a hack.
-    // Gradle sync is failing https://buganizer.corp.google.com/issues/180411529
-    // hence adding hack to remove code from app/build.gradle as discussed in https://b.corp.google.com/issues/180411529#comment2
-    ConversionTestUtil.removeCodeForGradleSyncToPass(guiTest);
-    // TODO End hack
+    ConversionTestUtil.convertJavaToKotlin(guiTest);
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
