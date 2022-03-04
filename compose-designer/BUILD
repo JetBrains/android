@@ -125,8 +125,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.compose.compiler.compiler_1.1.0-rc02",
-        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-rc01",
+        "@maven//:androidx.compose.compiler.compiler_1.1.1",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",

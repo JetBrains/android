@@ -221,7 +221,8 @@ private fun defaultDaemonFactory(version: String,
   val daemonPath = linkedSetOf(
     version,
     "${version.substringBeforeLast("-")}-fallback", // Find the fallback artifact for this same version
-    "${version.substringBefore(".")}.0.0-fallback"  // Find the fallback artifact for the same major version
+    "${version.substringBeforeLast(".")}.0-fallback",  // Find the fallback artifact for the same major version, e.g. 1.1
+    "${version.substringBefore(".")}.0.0-fallback"  // Find the fallback artifact for the same major version, e.g. 1
   ).asSequence().map {
     log.debug("Looking for kotlin daemon version '${version}'")
     findDaemonPath(it)
