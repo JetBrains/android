@@ -49,7 +49,6 @@ import com.intellij.util.IconUtil
 import com.intellij.util.SVGLoader
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBFont
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -676,8 +675,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     // Load svg image offline
     check(!EventQueue.isDispatchThread())
     val svgUrl = (StudioIcons.Common.SUCCESS as IconLoader.CachedImageIcon).url!!
-    val imgSize = JBUI.size(150, 150)
-    val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), imgSize.getWidth(), imgSize.getHeight())
+    val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), 150.0, 150.0)
     val successLabel = message(if (tapAndFinishWarning) { "wear.assistant.device.connection.pairing.success.skipandfinish" }
                                else { "wear.assistant.device.connection.pairing.success.subtitle" }, phoneName, watchName)
     val svgLabel = JBLabel(successLabel).apply {
