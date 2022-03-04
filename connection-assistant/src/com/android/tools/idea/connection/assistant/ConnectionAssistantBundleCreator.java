@@ -17,12 +17,10 @@ package com.android.tools.idea.connection.assistant;
 
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
+import java.net.URL;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.net.URL;
 
 public class ConnectionAssistantBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.ConnectionAssistant";
@@ -45,9 +43,5 @@ public class ConnectionAssistantBundleCreator implements AssistantBundleCreator 
   @Override
   public URL getConfig() {
     return getClass().getResource(TUTORIAL_CONFIG_FILENAME);
-  }
-
-  public static boolean isAssistantEnabled() {
-    return StudioFlags.CONNECTION_ASSISTANT_ENABLED.get();
   }
 }

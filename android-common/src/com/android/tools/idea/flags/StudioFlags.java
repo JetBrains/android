@@ -277,10 +277,6 @@ public final class StudioFlags {
 
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
-  public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
-    ASSISTANT, "connection.enabled", "Enable the connection assistant",
-    "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
-    true);
 
   public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",

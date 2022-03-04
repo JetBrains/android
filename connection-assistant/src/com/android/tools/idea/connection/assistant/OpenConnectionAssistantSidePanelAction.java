@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public class OpenConnectionAssistantSidePanelAction extends OpenAssistSidePanelAction {
   @Override
   public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(ConnectionAssistantBundleCreator.isAssistantEnabled());
+    e.getPresentation().setVisible(true);
   }
 
   @Override
