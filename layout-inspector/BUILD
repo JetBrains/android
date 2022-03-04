@@ -123,6 +123,8 @@ cc_library(
         "//prebuilts/studio/jdk:jni_headers",
         "//tools/base/dynamic-layout-inspector/skia:skia-lib",
         "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_cc_proto",
+        "@freetype_repo//:libft2",
+        "@libpng_repo//:libpng",
     ],
     alwayslink = 1,
 )
