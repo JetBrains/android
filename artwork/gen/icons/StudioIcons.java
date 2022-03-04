@@ -888,6 +888,12 @@ public class StudioIcons {
     public static final Icon RICH_TEST_RESULT_PASSED = load("/studio/icons/test/rich-test-result-passed.svg"); // 16x16
   }
 
+  public static class Wear {
+    public static final Icon COMPLICATIONS_RUN_CONFIG = load("/studio/icons/wear/complications-run-config.svg"); // 16x16
+    public static final Icon TILES_RUN_CONFIG = load("/studio/icons/wear/tiles-run-config.svg"); // 16x16
+    public static final Icon WATCH_FACE_RUN_CONFIG = load("/studio/icons/wear/watch-face-run-config.svg"); // 16x16
+  }
+
   public static class Wizards {
     public static class Modules {
       public static final Icon ANDROID_LIBRARY = load("/studio/icons/wizards/modules/android-library.svg"); // 16x16
