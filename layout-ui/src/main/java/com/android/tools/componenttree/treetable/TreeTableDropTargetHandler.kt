@@ -27,13 +27,18 @@ import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.Stroke
 import java.awt.datatransfer.Transferable
+import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.dnd.DropTargetDropEvent
 import java.awt.dnd.DropTargetEvent
 import java.awt.dnd.DropTargetListener
 import javax.swing.tree.TreePath
 
-class TreeTableDropTargetHandler(private val table: TreeTableImpl, private val draggedItems: List<Any>) : DropTargetListener {
+class TreeTableDropTargetHandler(
+  private val table: TreeTableImpl,
+  private val deleteOriginOfInternalMove: Boolean,
+  private val draggedItems: MutableList<Any>
+) : DropTargetListener {
   private var lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10)
   private var dashedStroke = createDashStroke()
   private var insertionRow = -1
@@ -62,8 +67,16 @@ class TreeTableDropTargetHandler(private val table: TreeTableImpl, private val d
     val item = table.getValueAt(insertionRow, 0)
     val insertAfterLastItemInReceiver = insertionRow - receiverRow > table.tableModel.children(receiver).size
     val before = if (!insertAfterLastItemInReceiver) item else null
-    val succeeded = table.tableModel.insert(receiver, event.transferable, before)
+    val isMove = event.dropAction == DnDConstants.ACTION_MOVE
+    val succeeded = table.tableModel.insert(receiver, event.transferable, before, isMove, draggedItems)
     if (succeeded) {
+      if (isMove && !deleteOriginOfInternalMove) {
+        // If this is a MOVE we normally want to delete the object being dragged from the origin.
+        // However: some models may prefer to simply move the existing object reference. In that case we do NOT want to delete the original,
+        // since that would delete the object that was just moved to a new position. A model can indicate this by specifying false for
+        // [deleteOriginOfInternalMove].
+        draggedItems.clear()
+      }
       event.acceptDrop(event.dropAction)
       event.dropComplete(true)
     }

@@ -51,8 +51,8 @@ private fun <T> NodeType<T>.canInsert(item: Any, data: Transferable): Boolean {
 }
 
 /** Type safe access to generic accessor */
-private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?): Boolean {
-  return insert(clazz.cast(item), data, before)
+private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+  return insert(clazz.cast(item), data, before, isMove, draggedFromTree)
 }
 
 /** Type safe access to generic accessor */
@@ -161,8 +161,8 @@ class TreeTableModelImpl(
   /**
    * Insert [data] into [node] either before [before] or at the end if [before] is null.
    */
-  fun insert(node: Any?, data: Transferable, before: Any? = null): Boolean {
-    return node?.let { typeOf(it).insert(it, data, before) } ?: false
+  fun insert(node: Any?, data: Transferable, before: Any? = null, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+    return node?.let { typeOf(it).insert(it, data, before, isMove, draggedFromTree) } ?: false
   }
 
   /**

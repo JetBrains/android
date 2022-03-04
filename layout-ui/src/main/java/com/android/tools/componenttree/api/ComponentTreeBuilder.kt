@@ -76,6 +76,7 @@ class ComponentTreeBuilder {
   private var dataProvider: DataProvider? = null
   private var dndSupport = false
   private var dndMerger: DnDMerger? = null
+  private var dndDeleteOriginOfInternalMove = true
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
@@ -147,11 +148,13 @@ class ComponentTreeBuilder {
    * Add Drag and Drop support.
    *
    * Optionally specify a merge operator for support of dragging multiple items.
-   * By default, only the 1st item will be dragged.
+   * Without a merge operator, only the 1st item will be dragged.
+   * When dragging items from the component tree itself [deleteOriginOfInternalMove] controls whether the origin items should be deleted.
    */
-  fun withDnD(merger: DnDMerger? = null) = apply {
+  fun withDnD(merger: DnDMerger? = null, deleteOriginOfInternalMove: Boolean = true) = apply {
     dndSupport = true
     dndMerger = merger
+    dndDeleteOriginOfInternalMove = deleteOriginOfInternalMove
   }
 
   /**
@@ -219,7 +222,7 @@ class ComponentTreeBuilder {
                               installTreeSearch, headerRenderer)
     table.name = componentName // For UI tests
     if (dndSupport && !GraphicsEnvironment.isHeadless()) {
-      table.enableDnD(dndMerger)
+      table.enableDnD(dndMerger, dndDeleteOriginOfInternalMove)
     }
     dataProvider?.let { DataManager.registerDataProvider(table, it) }
     val tree = table.tree

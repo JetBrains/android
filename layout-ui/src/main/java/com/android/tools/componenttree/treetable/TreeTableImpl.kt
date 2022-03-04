@@ -164,11 +164,11 @@ class TreeTableImpl(
     }
   }
 
-  fun enableDnD(merger: DnDMerger?) {
+  fun enableDnD(merger: DnDMerger?, deleteOriginOfInternalMove: Boolean) {
     dragEnabled = true
     val treeTransferHandler = TreeTableTransferHandler(merger)
     transferHandler = treeTransferHandler
-    dropTargetHandler = TreeTableDropTargetHandler(this, treeTransferHandler.draggedItems)
+    dropTargetHandler = TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
     dropTarget = DropTarget(this, dropTargetHandler)
   }
 
