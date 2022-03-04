@@ -52,12 +52,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+@Ignore("http://b/223246111")
 @RunWith(JUnit4.class)
 public final class PairedDevicesPanelTest {
   @Rule
