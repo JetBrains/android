@@ -421,8 +421,8 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
 
 private fun IDevice?.toSavedDevice(): SavedDevice? {
-  return if (this == null) {
-    null
+  return if (this == null || this is SavedDevice) {
+    this as? SavedDevice
   }
   else {
     val properties = mapOf(
@@ -431,7 +431,7 @@ private fun IDevice?.toSavedDevice(): SavedDevice? {
       PROP_BUILD_VERSION to getProperty(PROP_BUILD_VERSION),
       PROP_BUILD_API_LEVEL to getProperty(PROP_BUILD_API_LEVEL),
     )
-    val avdName = if (avdData.isDone) avdData.get().name else null
+    val avdName = if (avdData.isDone) avdData.get()?.name else null
     SavedDevice(serialNumber, name, isEmulator, avdName, properties)
   }
 }
