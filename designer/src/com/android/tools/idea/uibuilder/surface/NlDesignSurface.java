@@ -115,7 +115,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsPreview = false;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
-    private boolean myShowModelName = false;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
@@ -168,15 +167,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @NotNull
     public Builder setSceneManagerProvider(@NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
       mySceneManagerProvider = sceneManagerProvider;
-      return this;
-    }
-
-    /**
-     * Enables {@link NlDesignSurface} displaying of the model names when present.
-     */
-    @NotNull
-    public Builder showModelNames() {
-      myShowModelName = true;
       return this;
     }
 
@@ -332,7 +322,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
-                                 myShowModelName,
                                  mySceneManagerProvider,
                                  layoutManager,
                                  myActionManagerProvider,
@@ -374,7 +363,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
-  private boolean myShowModelNames = false;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private final boolean myIsInPreview;
@@ -423,7 +411,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
-                          boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
@@ -446,7 +433,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
-    myShowModelNames = showModelNames;
     myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
@@ -619,10 +605,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public boolean isLayoutDisabled() {
     return myIsCanvasResizing;
-  }
-
-  public boolean isShowModelNames() {
-    return myShowModelNames;
   }
 
   @NotNull

@@ -110,7 +110,6 @@ fun createPreviewDesignSurface(
   sceneManagerProvider: BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager>): NlDesignSurface =
   NlDesignSurface.builder(project, parentDisposable)
     .setIsPreview(true)
-    .showModelNames()
     .setNavigationHandler(navigationHandler)
     .setLayoutManager(defaultLayoutManager)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }

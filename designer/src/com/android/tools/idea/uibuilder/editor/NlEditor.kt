@@ -23,7 +23,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -31,6 +30,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,7 +56,6 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
                         {
                           if (StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()) {
                             NlDesignSurface.builder(myProject, this)
-                              .showModelNames()
                               .setRunVisualLintAnalysis(StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get())
                               .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
                               .build()
