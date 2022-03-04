@@ -52,6 +52,13 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
             AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment")
           )
         }
+        row {
+          checkBox(
+            AndroidBundle.message("live.edit.configurable.enable.partial.recompose"),
+            liveEditSettings::usePartialRecompose,
+            AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment")
+          )
+      }
         row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
           cell {
             // Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-287095

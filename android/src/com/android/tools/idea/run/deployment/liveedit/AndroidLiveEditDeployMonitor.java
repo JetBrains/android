@@ -360,10 +360,15 @@ public class AndroidLiveEditDeployMonitor {
     Project project, AdbClient adb, String packageName, String deployEventKey, LiveUpdateDeployer deployer, Installer installer,
     AndroidLiveEditCodeGenerator.CodeGeneratorOutput update) {
     boolean useDebugMode = LiveEditConfig.getInstance().getUseDebugMode();
+    boolean usePartialRecompose = LiveEditConfig.getInstance().getUsePartialRecompose() &&
+                                  update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE;
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
-        // TODO: Actually set the value of isComposable based on the frontend analysis.
-        update.getClassName(), update.getMethodName(), update.getMethodDesc(), false, -1, -1, update.getClassData(),
+        update.getClassName(), update.getMethodName(), update.getMethodDesc(),
+        usePartialRecompose,
+        update.getOffSet().getStart(),
+        update.getOffSet().getEnd(),
+        update.getClassData(),
         update.getSupportClasses(), useDebugMode);
 
     String deviceId = adb.getSerial() + "#" + packageName;

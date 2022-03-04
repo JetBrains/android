@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -236,7 +237,10 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     var targetFunction = input.function
     val compilerOutput = generationState.factory.asList()
     var bindingContext = generationState.bindingContext
-    val methodSignature = remapFunctionSignatureIfNeeded(targetFunction, bindingContext, generationState.typeMapper)
+    val desc = bindingContext[BindingContext.FUNCTION, targetFunction]!!
+
+    val methodSignature = remapFunctionSignatureIfNeeded(desc, generationState.typeMapper)
+    val isCompose = desc.hasComposableAnnotation()
 
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
@@ -302,9 +306,9 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     val idx = methodSignature.indexOf('(')
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
+    val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
 
-    // TODO: Check if function is composable.
-    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, FunctionType.KOTLIN,
+    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType,
                                input.state.initialOffsetOf(function)!!, supportClasses)
   }
 
@@ -342,8 +346,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     throw LiveEditUpdateException.compilationError(e.message?:"No error message", e)
   }
 
-  fun remapFunctionSignatureIfNeeded(function : KtFunction, context: BindingContext, mapper: KotlinTypeMapper) : String {
-    val desc = context[BindingContext.FUNCTION, function]!!
+  fun remapFunctionSignatureIfNeeded(desc: SimpleFunctionDescriptor, mapper: KotlinTypeMapper) : String {
     var target = "${desc.name}("
     for (param in desc.valueParameters) {
       target += remapComposableFunctionType(param.type, mapper)

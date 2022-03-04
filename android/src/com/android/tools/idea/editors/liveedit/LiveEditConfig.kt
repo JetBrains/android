@@ -29,6 +29,7 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
   class State: BaseState() {
     var useEmbeddedCompiler by property(true)
     var useDebugMode by property(false)
+    var usePartialRecompose by property(false)
     var refreshRateMs by property(MIN_REFRESH_RATE_MS)
   }
 
@@ -42,6 +43,12 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
     get() = state.useDebugMode
     set(value) {
       state.useDebugMode= value
+    }
+
+  var usePartialRecompose
+    get() = state.usePartialRecompose
+    set(value) {
+      state.usePartialRecompose= value
     }
 
   var refreshRateMs
