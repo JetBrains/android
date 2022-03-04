@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Cursor
 import java.awt.event.InputEvent
@@ -348,7 +348,7 @@ class CommonDragTargetTest : SceneTest() {
   private fun setAutoConnection(view: SceneView, component: SceneComponent, on: Boolean) {
     if (ToggleAutoConnectAction.isAutoconnectOn() != on) {
       ToggleAutoConnectAction().perform(ViewEditorImpl(view),
-                                        component.nlComponent.viewGroupHandler!!,
+                                        component.nlComponent.layoutHandler!!,
                                         component.parent!!.nlComponent,
                                         listOf(),
                                         0)

@@ -20,7 +20,7 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.util.ui.EmptyIcon
 import junit.framework.TestCase
@@ -38,8 +38,8 @@ class ToggleSizeViewActionTest: SceneTest() {
     val editor = ViewEditorImpl(myScreen.screen)
 
     try {
-      action.setSelected(editor, root.viewGroupHandler!!, root, listOf(text), true)
-      action.setSelected(editor, root.viewGroupHandler!!, root, listOf(text), false)
+      action.setSelected(editor, root.layoutHandler!!, root, listOf(text), true)
+      action.setSelected(editor, root.layoutHandler!!, root, listOf(text), false)
     }
     catch (error: AssertionError) {
       TestCase.fail("AssertionError \"$error\" should not happen")

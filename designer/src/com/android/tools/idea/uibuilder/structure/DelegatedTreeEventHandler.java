@@ -37,7 +37,7 @@ public interface DelegatedTreeEventHandler {
    * @param event           The event object containing the data about the event
    * @param parentComponent The receiver of the event used to get the handler.
    * @return true if the event has been handled false otherwise.
-   * @see com.android.tools.idea.uibuilder.model.NlComponentHelperKt#getViewGroupHandler(NlComponent)
+   * @see com.android.tools.idea.uibuilder.model.NlComponentHelperKt#getLayoutHandler(NlComponent)
    */
   boolean handleTreeEvent(@NotNull DelegatedTreeEvent event, @NotNull NlComponent parentComponent);
 

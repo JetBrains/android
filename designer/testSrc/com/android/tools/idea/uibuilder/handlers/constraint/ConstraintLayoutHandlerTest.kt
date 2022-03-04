@@ -28,7 +28,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
 
@@ -43,14 +43,14 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                           .height("1000dp"))
       .build()
 
-    val handler = nlModel.find("root")!!.viewGroupHandler!!
+    val handler = nlModel.find("root")!!.layoutHandler!!
     assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
         handler.clearAttributes(listOf())
       }
   }
 
   fun testClearConstraintAttributes() {
-    val handler = myModel.find("root")!!.viewGroupHandler!!
+    val handler = myModel.find("root")!!.layoutHandler!!
     val button1 = myModel.find("button1")!!
     val text1 = myModel.find("text1")!!
     val barrier1 = myModel.find("barrier1")!!
@@ -179,7 +179,7 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     val button = model.find("button")!!
     val button2 = model.find("button2")!!
 
-    val handler = model.find("root")!!.viewGroupHandler!!
+    val handler = model.find("root")!!.layoutHandler!!
     handler.clearAttributes(listOf(button, button2))
 
     screen.get("@id/button")

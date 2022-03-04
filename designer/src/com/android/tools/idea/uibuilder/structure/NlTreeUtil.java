@@ -57,7 +57,7 @@ public final class NlTreeUtil {
       }
     }
     // Delegate to TreeHandler
-    ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler((NlComponent)parentComponent);
+    ViewGroupHandler handler = NlComponentHelperKt.getLayoutHandler((NlComponent)parentComponent);
     if (handler != null && handler instanceof DelegatedTreeEventHandler) {
       return ((DelegatedTreeEventHandler)handler);
     }

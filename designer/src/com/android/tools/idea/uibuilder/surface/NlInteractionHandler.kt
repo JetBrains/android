@@ -23,7 +23,7 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Rectangle
@@ -59,7 +59,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>): Interact
       val primary = screenView.selectionModel.primary
       val parent = primary?.parent
       if (parent != null) {
-        val handler = parent.viewGroupHandler
+        val handler = parent.layoutHandler
         if (handler != null) {
           interaction = handler!!.createInteraction(screenView, mouseX, mouseY, primary)
         }
@@ -69,7 +69,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>): Interact
     if (interaction == null) {
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
-      val viewGroupHandler = component?.viewGroupHandler
+      val viewGroupHandler = component?.layoutHandler
       if (viewGroupHandler != null) {
         interaction = viewGroupHandler!!.createInteraction(screenView, mouseX, mouseY, component!!)
       }

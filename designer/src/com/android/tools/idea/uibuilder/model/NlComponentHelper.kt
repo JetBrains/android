@@ -31,9 +31,7 @@ import com.android.SdkConstants.TAG_GROUP
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_MENU
 import com.android.SdkConstants.TAG_SELECTOR
-import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.SdkConstants.VIEW
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -342,10 +340,19 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
   return null
 }
 
+/**
+ * Return the [ViewHandler] for the current [NlComponent].
+ */
 val NlComponent.viewHandler: ViewHandler?
   get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).getHandler(this) else null
 
-val NlComponent.viewGroupHandler: ViewGroupHandler?
+/**
+ * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent].
+ *
+ * If the current [NlComponent] is a ViewGroup then return the view handler for the current [NlComponent].
+ * Otherwise a view handler for a parent component is returned (if such a view handler exists).
+ */
+val NlComponent.layoutHandler: ViewGroupHandler?
   get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).findLayoutHandler(this, false) else null
 
 /**
@@ -506,10 +513,10 @@ class NlComponentMixin(component: NlComponent)
 
   override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent) {
     if (previousParent != receiver) {
-      previousParent?.viewGroupHandler?.onChildRemoved(previousParent, component, insertType)
+      previousParent?.layoutHandler?.onChildRemoved(previousParent, component, insertType)
     }
 
-    receiver.viewGroupHandler?.onChildInserted(receiver, component, insertType)
+    receiver.layoutHandler?.onChildInserted(receiver, component, insertType)
   }
 
   override fun postCreate(insertType: InsertType): Boolean {

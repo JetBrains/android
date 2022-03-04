@@ -20,7 +20,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
 
@@ -165,7 +165,7 @@ class LinearPlaceholderTest : SceneTest() {
 
   fun testAddComponentWithoutSnappingToSeparator() {
     val linearLayout = myScene.getSceneComponent("linear")!!
-    val placeholders = linearLayout.nlComponent.viewGroupHandler!!.getPlaceholders(linearLayout, emptyList())
+    val placeholders = linearLayout.nlComponent.layoutHandler!!.getPlaceholders(linearLayout, emptyList())
 
     val left = 50
     val top = 50
