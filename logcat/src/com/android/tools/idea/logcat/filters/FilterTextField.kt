@@ -116,8 +116,8 @@ internal class FilterTextField(
   private val documentChangedListeners = mutableListOf<DocumentListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(StudioIcons.Logcat.Toolbar.FILTER_HISTORY)
-  private val clearButton = InlineButton(AllIcons.Actions.Close)
-  private val favoriteButton = InlineButton(FAVORITE_ICON)
+  private val clearButton = JLabel(AllIcons.Actions.Close)
+  private val favoriteButton = JLabel(FAVORITE_ICON)
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -139,16 +139,7 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    addToRight(JPanel(null).apply {
-      layout = BoxLayout(this, LINE_AXIS)
-      background = textField.background
-      isOpaque = true
-      add(clearButton)
-      add(JSeparator(VERTICAL)).apply {
-        border = VERTICAL_SEPARATOR_BORDER
-      }
-      add(favoriteButton)
-    })
+    addToRight(InlinePanel(clearButton, JSeparator(VERTICAL), favoriteButton))
 
     // Set a border around the text field and buttons.
     // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work. It seems to need CompoundBorder.
@@ -289,12 +280,38 @@ internal class FilterTextField(
         setBorder(EDITOR_BORDER)
       }
     }
+
+    // On theme change, copy the background from textField.
+    override fun updateUI() {
+      border = JBUI.Borders.customLine(background, 1, 0, 0, 0)
+      super.updateUI()
+    }
   }
 
   private inner class InlineButton(icon: Icon) : JLabel(icon) {
     init {
       isOpaque = true
+    }
+
+    // On theme change, copy the background from textField.
+    override fun updateUI() {
       background = textField.background
+      super.updateUI()
+    }
+  }
+
+  private inner class InlinePanel(vararg children: JComponent) : JPanel(null) {
+    init {
+      layout = BoxLayout(this, LINE_AXIS)
+      isOpaque = true
+      border = VERTICAL_SEPARATOR_BORDER
+      children.forEach { add(it) }
+    }
+
+    // On theme change, copy the background from textField.
+    override fun updateUI() {
+      background = textField.background
+      super.updateUI()
     }
   }
 
