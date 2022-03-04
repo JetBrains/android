@@ -149,8 +149,6 @@ public final class GuiTests {
     ideSettings.PROXY_PORT = 80;
 
     GuiTestingService.getInstance().setGuiTestingMode(true);
-    GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
-    state.setSkipSdkMerge(false);
 
     // Clear saved Wizard settings to its initial defaults
     PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
