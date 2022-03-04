@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu.Separator;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     Collection<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(7, items.size());
+    assertEquals(8, items.size());
   }
 
   @Test
@@ -68,7 +69,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(8, items.size());
+    assertEquals(9, items.size());
 
     AbstractButton item = (AbstractButton)items.get(2);
 
@@ -94,7 +95,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(7, items.size());
+    assertEquals(8, items.size());
 
     AbstractButton item = (AbstractButton)items.get(5);
 
@@ -120,7 +121,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(7, items.size());
+    assertEquals(8, items.size());
 
     AbstractButton item = (AbstractButton)items.get(5);
 
@@ -139,7 +140,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(7, items.size());
+    assertEquals(8, items.size());
 
     AbstractButton item = (AbstractButton)items.get(5);
 
@@ -169,12 +170,15 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(7, items.size());
+    assertEquals(8, items.size());
+    assertTrue(items.get(4) instanceof Separator);
 
     AbstractButton item = (AbstractButton)items.get(5);
 
     assertTrue(item.isEnabled());
     assertEquals("Pair Device", item.getText());
     assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
+
+    assertTrue(items.get(6) instanceof Separator);
   }
 }
