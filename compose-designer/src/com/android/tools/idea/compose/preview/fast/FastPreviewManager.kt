@@ -56,6 +56,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.streams.toList
 
 /** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
@@ -295,6 +296,10 @@ class FastPreviewManager private constructor(
 
   private val log = Logger.getInstance(FastPreviewManager::class.java)
 
+  private val _isDisposed = AtomicBoolean(false)
+  val isDisposed: Boolean
+    get() = _isDisposed.get()
+
   private val scope = AndroidCoroutineScope(this, workerThread)
   private val daemonFactory = alternativeDaemonFactory ?: {
     if (StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON.get())
@@ -449,7 +454,7 @@ class FastPreviewManager private constructor(
    */
   fun addCompileListener(parentDisposable: Disposable, listener: CompileListener) {
     val disposable = Disposer.newDisposable().also {
-      Disposer.register(parentDisposable, this)
+      Disposer.register(parentDisposable, it)
       Disposer.register(this@FastPreviewManager, it)
     }
     project.messageBus.connect(disposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
@@ -469,7 +474,9 @@ class FastPreviewManager private constructor(
     FastPreviewApplicationConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    _isDisposed.set(true)
+  }
 
   companion object {
     fun getInstance(project: Project): FastPreviewManager = project.getService(FastPreviewManager::class.java)

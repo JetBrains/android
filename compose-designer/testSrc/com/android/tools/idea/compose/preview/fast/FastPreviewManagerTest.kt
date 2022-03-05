@@ -388,4 +388,21 @@ internal class FastPreviewManagerTest {
       assertNull(manager.disableReason)
     }
   }
+
+  // Regression test for http://b/222838793
+  @Test
+  fun `verify listener parent disposable`() {
+    val manager = FastPreviewManager.getTestInstance(project,
+                                                     daemonFactory = { NopCompilerDaemonClient },
+                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    val parentDisposable = Disposer.newDisposable()
+    manager.addCompileListener(parentDisposable, object: FastPreviewManager.Companion.CompileListener {
+      override fun onCompilationStarted(files: Collection<PsiFile>) {}
+      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {}
+    })
+    Disposer.dispose(parentDisposable)
+    assertFalse(manager.isDisposed)
+  }
 }
