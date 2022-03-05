@@ -39,6 +39,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.Promise
@@ -163,9 +164,11 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val promiseResult = runReadAction {
           CachedValuesManager.getManager(project).getCachedValue(psiFile, findPreviewMethodsCachedValue(project, vFile, psiFile))
         }
-        result = promiseResult.await()
-        if (promiseResult.isSucceeded) break // No need to retry even if the result is null, the result is valid
-        if (result == null) delay((MAX_NON_BLOCKING_ACTION_RETRIES - retries) * 10L)
+        try {
+          result = promiseResult.await()
+        } catch (_: Throwable) {
+          delay((MAX_NON_BLOCKING_ACTION_RETRIES - retries) * 10L)
+        }
       }
       result ?: emptyList()
     }
@@ -174,8 +177,12 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   @JvmStatic
   private fun findPreviewMethodsCachedValue(project: Project,
                                             vFile: VirtualFile,
-                                            psiFile: PsiFile): CachedValueProvider<Promise<Collection<PreviewElement>?>> =
+                                            psiFile: PsiFile): CachedValueProvider<CompletableDeferred<Collection<PreviewElement>>> =
     CachedValueProvider {
+      // This Deferred should not be needed, the promise could be returned directly. However, it seems there is a compiler issue that
+      // causes the findPreviewMethods to fail when using the "dist" build (not from source).
+      // Using the deferred seems to avoid the problem. b/222843951.
+      val deferred = CompletableDeferred<Collection<PreviewElement>>()
       val promise = ReadAction
         .nonBlocking(Callable<Collection<PreviewElement>> {
           findAllComposableAnnotations(project, vFile)
@@ -190,7 +197,13 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         .inSmartMode(project)
         .coalesceBy(project, vFile)
         .submit(AppExecutorUtil.getAppExecutorService())
+        .onSuccess {
+          deferred.complete(it)
+        }
+        .onError {
+          deferred.completeExceptionally(it)
+        }
 
-      CachedValueProvider.Result.create(promise, psiFile, PromiseModificationTracker(promise))
+      CachedValueProvider.Result.create(deferred, psiFile, PromiseModificationTracker(promise))
     }
 }

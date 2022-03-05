@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -86,12 +87,18 @@ class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
   private suspend fun refreshIfNeeded() {
     val newModificationStamp = modificationTracker.modificationCount
 
-    if (newModificationStamp != savedModificationStamp) {
-      val elements = delegate.previewElements().toList()
-      cachedPreviewElementLock.write {
+    try {
+      if (newModificationStamp != savedModificationStamp) {
+        val elements = delegate.previewElements().toList()
+        cachedPreviewElementLock.write {
           cachedPreviewElements = elements
+        }
+        savedModificationStamp = newModificationStamp
       }
-      savedModificationStamp = newModificationStamp
+    } catch(t: Throwable) {
+      // An exception happened during the refresh, log it and return the previous cached value if any.
+      // This is a mitigation for b/222843951 which causes an unexpected exception during delegate.previewElements()
+      Logger.getInstance(MemoizedPreviewElementProvider::class.java).warn(t)
     }
   }
 
