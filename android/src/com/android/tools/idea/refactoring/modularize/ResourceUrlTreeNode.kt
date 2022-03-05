@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.refactoring.modularize;
+package com.android.tools.idea.refactoring.modularize
 
-import com.android.resources.ResourceUrl;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
+import com.android.resources.ResourceUrl
+import com.intellij.ui.ColoredTreeCellRenderer
+import icons.StudioIcons
 
-public class ResourceUrlTreeNode extends DependencyTreeNode {
+class ResourceUrlTreeNode(resourceUrl: ResourceUrl) : DependencyTreeNode(resourceUrl) {
 
-  public ResourceUrlTreeNode(@NotNull ResourceUrl resourceUrl) {
-    super(resourceUrl);
-  }
-
-  @Override
-  public void render(@NotNull ColoredTreeCellRenderer renderer) {
-    renderer.setIcon(StudioIcons.Shell.Filetree.ANDROID_FILE);
-    renderer.append((getUserObject()).toString(), getTextAttributes());
+  override fun render(renderer: ColoredTreeCellRenderer) {
+    renderer.apply {
+      icon = StudioIcons.Shell.Filetree.ANDROID_FILE
+      append(getUserObject().toString(), textAttributes)
+    }
   }
 }
