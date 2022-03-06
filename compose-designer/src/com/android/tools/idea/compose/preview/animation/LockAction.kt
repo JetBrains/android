@@ -28,7 +28,7 @@ import java.util.function.Supplier
 class LockAction(private val previewState: AnimationPreviewState,
                  val state: ElementState,
                  val tracker: ComposeAnimationEventTracker) : ToggleAction(
-  Supplier { message("animation.inspector.action.lock") }, StudioIcons.LayoutEditor.Toolbar.LOCK) {
+  Supplier { message("animation.inspector.action.lock") }, StudioIcons.Compose.Toolbar.FREEZE_ANIMATION) {
 
   override fun setSelected(e: AnActionEvent, locked: Boolean) {
     state.locked = locked
