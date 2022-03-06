@@ -423,7 +423,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
     val stateComboBox = InspectorPainter.StateComboBoxes(listOf(stateComboBoxInTab, stateComboBoxInCard))
 
     /** State of animation, shared between single animation tab and coordination panel. */
-    val elementState = ElementState(animation.label).apply {
+    val elementState = ElementState(tabTitle).apply {
       addExpandedListener {
         updateTimelineElements()
       }
