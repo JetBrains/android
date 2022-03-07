@@ -491,6 +491,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
     newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X);
     newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y);
+    String id = newChild.getId();
+    if (id != null) {
+      ConstraintHelperHandler.willDelete(layout, id);
+    }
   }
 
   /**

@@ -17,12 +17,18 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
 import com.android.AndroidXConstants.RECYCLER_VIEW
+import com.android.SdkConstants
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -218,10 +224,43 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     assertEquals("view1,view2", getSelectedIds(list))
   }
 
+  fun testMoveOutRemovesReference() {
+    val model = createTestFlowModel()
+    val text1 = model.find("text1")!!
+    val linear = model.find("linear")!!
+    val flow = model.find("flow")!!
+    NlWriteCommandActionUtil.run(text1, "Move text1") {
+      text1.moveTo(linear, null, InsertType.MOVE, emptySet())
+    }
+    assertEquals("text2,button", flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS))
+  }
+
   private fun nonViewMockedComponent(id: String): NlComponent {
     val component = Mockito.mock(NlComponent::class.java)
     whenever(component.id).thenReturn(id)
     return component
+  }
+
+  private fun createTestFlowModel(): NlModel {
+    return model("constraint.xml",
+                 component(LINEAR_LAYOUT).id("@id/linear")
+                   .children(
+                     component(CONSTRAINT_LAYOUT.defaultName())
+                       .id("@id/root")
+                       .children(
+                         component(TEXT_VIEW).id("@id/text1"),
+                         component(TEXT_VIEW).id("@id/text2"),
+                         component(BUTTON).id("@id/button"),
+                         component(CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
+                           .id("@id/flow")
+                           .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS, "text1,text2,button")
+                       )
+                   )
+    ).build()
   }
 
   private fun createTestModel(): NlModel {

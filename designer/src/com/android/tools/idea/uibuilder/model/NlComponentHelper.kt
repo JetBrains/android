@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER
 import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
 import com.android.SdkConstants.ANDROID_URI
@@ -51,6 +52,7 @@ import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
@@ -276,7 +278,7 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
   }
   val viewInfo = viewInfo
   if (viewInfo != null) {
-    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName == className
+    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && isOrHasSuperclassInTest(className)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (className == viewClass.name) {
@@ -298,6 +300,17 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
  */
 fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
   return isOrHasSuperclass(className.oldName()) || isOrHasSuperclass(className.newName())
+}
+
+/**
+ * Return true if this NlComponent's class is derived from the specified [className].
+ *
+ * In tests the classes from ConstraintLayout may not be available on the classpath.
+ */
+private fun NlComponent.isOrHasSuperclassInTest(className: String): Boolean = when (className) {
+  CLASS_CONSTRAINT_LAYOUT_HELPER.newName(),
+  CLASS_CONSTRAINT_LAYOUT_HELPER.oldName() -> viewHandler is ConstraintHelperHandler
+  else -> className == tagName
 }
 
 /**
