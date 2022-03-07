@@ -71,7 +71,7 @@ class AnimationCard(previewState: AnimationPreviewState,
     border = JBUI.Borders.empty(0, 0, 0, 8)
   }
 
-  private val secondRow = JPanel(TabularLayout("30px,*")).apply {
+  private val secondRow = JPanel(TabularLayout("30px,*,Fit")).apply {
     border = JBUI.Borders.empty(0, 25, 0, 8)
   }
 
@@ -91,7 +91,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   }
 
   fun addStateComponent(component: JComponent) {
-    secondRow.add(component, TabularLayout.Constraint(0, 1))
+    secondRow.add(component, TabularLayout.Constraint(0, 2))
 
   }
 
