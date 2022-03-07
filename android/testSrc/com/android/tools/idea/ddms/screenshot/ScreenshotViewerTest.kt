@@ -31,6 +31,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EdtInvocationManager.dispatchAllInvocationEvents
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -104,8 +105,9 @@ class ScreenshotViewerTest {
     dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
-    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.WHITE.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.WHITE.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
+    assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(0)
   }
 
   private fun createImage(width: Int, height: Int): BufferedImage {
