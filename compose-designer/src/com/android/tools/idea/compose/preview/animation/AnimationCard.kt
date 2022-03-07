@@ -105,7 +105,7 @@ class AnimationCard(previewState: AnimationPreviewState,
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
     OpenInNewTab().installOn(this)
-    border = MatteBorder(1, 0, 0, 1, JBColor.border())
+    border = MatteBorder(1, 0, 0, 0, JBColor.border())
   }
 
   private inner class OpenInNewTab : DoubleClickListener() {

@@ -50,7 +50,9 @@ class AllTabPanel : JPanel(TabularLayout("*", "Fit,*")) {
       this.border = MatteBorder(InspectorLayout.TIMELINE_TOP_OFFSET, 0, 0, 0, InspectorColors.TIMELINE_BACKGROUND_COLOR)
     }
     // Timeline
-    secondComponent = JPanel(BorderLayout())
+    secondComponent = JPanel(BorderLayout()).apply {
+      this.border = MatteBorder(0, 1, 0, 0, JBColor.border())
+    }
     dividerWidth = 1
   }
 
