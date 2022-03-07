@@ -39,7 +39,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.inspector.Previ
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -69,7 +69,7 @@ internal class PreviewPickerPropertyModel private constructor(
   resolvedCall: ResolvedCall<*>,
   psiPropertiesProvider: PreviewPropertiesProvider,
   valuesProvider: EnumSupportValuesProvider,
-  tracker: PreviewPickerTracker
+  tracker: ComposePickerTracker
 ) : PsiCallPropertyModel(
   project = project,
   module = module,
@@ -103,7 +103,7 @@ internal class PreviewPickerPropertyModel private constructor(
       project: Project,
       module: Module,
       previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-      tracker: PreviewPickerTracker
+      tracker: ComposePickerTracker
     ): PreviewPickerPropertyModel {
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!

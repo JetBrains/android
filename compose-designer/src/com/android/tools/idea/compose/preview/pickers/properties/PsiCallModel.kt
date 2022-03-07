@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.actionSystem.DataProvider
@@ -51,7 +51,7 @@ internal abstract class PsiCallPropertyModel internal constructor(
   val module: Module,
   resolvedCall: ResolvedCall<*>,
   psiPropertiesProvider: PsiPropertiesProvider,
-  override val tracker: PreviewPickerTracker // TODO(b/205195408): Refactor tracker to a more general use
+  override val tracker: ComposePickerTracker // TODO(b/205195408): Refactor tracker to a more general use
 ) : PsiPropertyModel(), DataProvider {
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }

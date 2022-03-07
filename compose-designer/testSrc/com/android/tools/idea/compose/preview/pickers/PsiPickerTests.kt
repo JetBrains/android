@@ -28,7 +28,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.dev
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
@@ -560,7 +560,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     return Pair(testTracker, model)
   }
 
-  private suspend fun getFirstModel(fileContent: String, tracker: PreviewPickerTracker = NoOpTracker): PsiPropertyModel {
+  private suspend fun getFirstModel(fileContent: String, tracker: ComposePickerTracker = NoOpTracker): PsiPropertyModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     ConfigurationManager.getOrCreateInstance(module)
@@ -570,7 +570,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   }
 }
 
-private class TestTracker : PreviewPickerTracker {
+private class TestTracker : ComposePickerTracker {
   val valuesRegistered = mutableListOf<PickerTrackableValue>()
   val devicesRegistered = mutableListOf<Device?>()
 

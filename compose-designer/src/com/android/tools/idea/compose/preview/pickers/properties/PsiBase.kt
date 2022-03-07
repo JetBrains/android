@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
-import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
@@ -49,7 +49,7 @@ internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   /**
    * Usage tracker, called on every [PsiPropertyItem] modification.
    */
-  abstract val tracker: PreviewPickerTracker
+  abstract val tracker: ComposePickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
