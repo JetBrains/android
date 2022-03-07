@@ -265,7 +265,6 @@ old_agp_test(
     maven_deps = [
         ":test_deps",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     tags = [
         "block-network",

@@ -209,6 +209,6 @@ open class ProjectsUpgradeTestBase {
   private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(
     agpGradleVersion()).version.toString()
 
-  private fun AUATestProjectState.kotlinVersion() = "1.3.72"
+  private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
   private fun AUATestProjectState.ndkVersion() : String? = null
 }

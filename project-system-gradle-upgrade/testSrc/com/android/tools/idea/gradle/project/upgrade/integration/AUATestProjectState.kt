@@ -57,14 +57,15 @@ enum class TestProject(
  */
 enum class TestAGPVersion(
   val agpVersion: String?,
-  val gradleVersion: CompatibleGradleVersion
+  val gradleVersion: CompatibleGradleVersion,
+  val kotlinVersion: String = "1.3.72",
 ) {
   V_4_0("4.0.0", CompatibleGradleVersion.VERSION_6_1_1),
   V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5),
   V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1),
   V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2),
   V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2),
-  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV),
+  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, "1.5.21"),
 }
 
 /**
