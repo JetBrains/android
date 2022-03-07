@@ -99,11 +99,11 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
    */
   private fun paintCircle(g: Graphics2D, x: Int, y: Int) {
     g.apply {
-      color = InspectorColors.LINE_OUTLINE_COLOR
+      color = InspectorColors.LINE_CIRCLE_OUTLINE_COLOR
       fillOval(x - InspectorLayout.LINE_HALF_HEIGHT,
                y - InspectorLayout.LINE_HALF_HEIGHT,
                InspectorLayout.LINE_HEIGHT, InspectorLayout.LINE_HEIGHT)
-      color = InspectorColors.LINE_COLOR
+      color = InspectorColors.LINE_CIRCLE_COLOR
       fillOval(x - InspectorLayout.LINE_HALF_HEIGHT + OUTLINE_PADDING, y - InspectorLayout.LINE_HALF_HEIGHT + OUTLINE_PADDING,
                InspectorLayout.LINE_HEIGHT - 2 * OUTLINE_PADDING, InspectorLayout.LINE_HEIGHT - 2 * OUTLINE_PADDING)
     }

@@ -24,10 +24,12 @@ import java.awt.Color
 object InspectorColors {
 
   /** Color of the line. */
-  val LINE_COLOR = JBColor(0xa6bcc9, 0x8da9ba)
+  val LINE_COLOR = ColorUtil.withAlpha(JBColor(0xa6bcc9, 0x8da9ba), 0.7)
 
-  /** Outline color of the line. */
-  val LINE_OUTLINE_COLOR = JBColor(Color.white, JBColor.border().darker())
+  val LINE_CIRCLE_COLOR = ColorUtil.withAlpha(JBColor(0xa6bcc9, 0x8da9ba), 0.9)
+
+  /** Outline color of the line's circle. */
+  val LINE_CIRCLE_OUTLINE_COLOR = JBColor(Color.white, JBColor.background())
 
   val LINE_OUTLINE_COLOR_ACTIVE: Color = UIUtil.getTreeSelectionBorderColor()
 
