@@ -173,7 +173,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 }
 
 private val avdFrame = object : FramingOption {
-  override val displayName = "AVD skin"
+  override val displayName = "Show Device Frame"
 }
 
 private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()

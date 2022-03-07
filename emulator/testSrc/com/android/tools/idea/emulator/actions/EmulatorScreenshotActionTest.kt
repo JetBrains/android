@@ -39,7 +39,7 @@ import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import javax.swing.JCheckBox
+import javax.swing.JComboBox
 
 /**
  * Tests for [EmulatorScreenshotAction].
@@ -88,8 +88,8 @@ class EmulatorScreenshotActionTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     var image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithoutFrame")
-    val frameCheckbox = ui.getComponent<JCheckBox>()
-    ui.clickOn(frameCheckbox)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    clipComboBox.selectedIndex = 2 // The first frame option (after "Rectangular" and "Display Shape")
     EdtInvocationManager.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
