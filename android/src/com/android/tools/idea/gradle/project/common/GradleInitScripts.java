@@ -37,7 +37,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import kotlin.reflect.KType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -230,8 +232,10 @@ public class GradleInitScripts {
   static class AndroidStudioToolingPluginJars {
     @NotNull
     List<String> getJarPaths() {
-      return Arrays
-        .asList(getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class));
+      return Stream.of(
+        getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
     }
   }
 }
