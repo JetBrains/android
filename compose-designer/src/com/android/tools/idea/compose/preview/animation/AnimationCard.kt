@@ -67,12 +67,12 @@ class AnimationCard(previewState: AnimationPreviewState,
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
   var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private val firstRow = JPanel(TabularLayout("Fit,*,Fit")).apply {
+  private val firstRow = JPanel(TabularLayout("30px,*,Fit")).apply {
     border = JBUI.Borders.empty(0, 0, 0, 8)
   }
 
   private val secondRow = JPanel(TabularLayout("30px,*")).apply {
-    border = JBUI.Borders.empty(0, 15, 0, 8)
+    border = JBUI.Borders.empty(0, 25, 0, 8)
   }
 
   fun getCurrentHeight() =
