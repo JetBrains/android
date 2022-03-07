@@ -57,8 +57,9 @@ class AllTabPanel : JPanel(TabularLayout("*", "Fit,*")) {
   }
 
   private fun updateDimension() {
-    splitter.firstComponent.preferredSize =
-      Dimension(width, InspectorLayout.TIMELINE_TOP_OFFSET + cards.sumOf { it.getCurrentHeight() })
+    val preferredHeight = InspectorLayout.TIMELINE_TOP_OFFSET + cards.sumOf { it.getCurrentHeight() }
+    splitter.firstComponent.preferredSize = Dimension(splitter.firstComponent.width, preferredHeight)
+    splitter.secondComponent.preferredSize = Dimension(splitter.secondComponent.width, preferredHeight)
   }
 
   private val cardsLayout
