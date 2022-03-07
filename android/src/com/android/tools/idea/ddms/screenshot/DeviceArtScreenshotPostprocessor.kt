@@ -49,7 +49,7 @@ class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
       fill(Area(Ellipse2D.Double(0.0, 0.0, diameter, diameter)))
       dispose()
     }
-    val shapedImage = ImageUtils.createDipImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+    val shapedImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
     shapedImage.createGraphics().apply {
       applyQualityRenderingHints(this)
       drawImage(image, 0, 0, null)
