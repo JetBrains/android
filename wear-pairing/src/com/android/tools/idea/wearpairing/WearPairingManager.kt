@@ -213,6 +213,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
       LOG.error("Memory leak adding listeners")
     }
+
+    updateDevicesChannel.trySend(Unit)
   }
 
   @Synchronized
@@ -385,7 +387,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   private suspend fun updateListAndForwardState() {
     val (connectedDevices, deviceTable) = getAvailableDevices()
 
-    pairedDevicesList.forEach { phoneWearPair ->
+    // Don't loop directly on the list, because its values may be updated (ie added/removed)
+    pairedDevicesList.toList().forEach { phoneWearPair ->
       addDisconnectedPairedDeviceIfMissing(phoneWearPair.phone, deviceTable)
       addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
     }
