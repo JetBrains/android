@@ -30,7 +30,7 @@ class AndroidWatchFaceConfigurationType :
     ID,
     AndroidBundle.message("android.watchface.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Shell.Filetree.ANDROID_PROJECT
+    StudioIcons.Wear.WATCH_FACE_RUN_CONFIG
   ), DumbAware {
   companion object {
     const val ID = "AndroidWatchFaceConfigurationType"

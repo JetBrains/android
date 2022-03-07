@@ -37,7 +37,7 @@ class AndroidComplicationConfigurationType :
     ID,
     AndroidBundle.message("android.complication.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Shell.Filetree.ANDROID_PROJECT
+    StudioIcons.Wear.COMPLICATIONS_RUN_CONFIG
   ), DumbAware {
   companion object {
     const val ID = "AndroidComplicationConfigurationType"

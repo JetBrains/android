@@ -30,7 +30,7 @@ class AndroidTileConfigurationType :
     ID,
     AndroidBundle.message("android.tile.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Shell.Filetree.ANDROID_PROJECT
+    StudioIcons.Wear.TILES_RUN_CONFIG
   ), DumbAware {
   companion object {
     const val ID = "AndroidTileConfigurationType"
