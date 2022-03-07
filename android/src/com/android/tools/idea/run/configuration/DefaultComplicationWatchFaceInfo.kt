@@ -52,7 +52,7 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       arrayOf(
         ComplicationType.SHORT_TEXT,
         ComplicationType.RANGED_VALUE,
-        ComplicationType.MONOCHROMATIC_IMAGE,
+        ComplicationType.ICON,
         ComplicationType.SMALL_IMAGE,
         ComplicationType.LONG_TEXT
       )
@@ -63,7 +63,7 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       arrayOf(
         ComplicationType.SHORT_TEXT,
         ComplicationType.RANGED_VALUE,
-        ComplicationType.MONOCHROMATIC_IMAGE,
+        ComplicationType.ICON,
         ComplicationType.SMALL_IMAGE
       )
     ),
@@ -73,7 +73,7 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       arrayOf(
         ComplicationType.SHORT_TEXT,
         ComplicationType.RANGED_VALUE,
-        ComplicationType.MONOCHROMATIC_IMAGE,
+        ComplicationType.ICON,
         ComplicationType.SMALL_IMAGE,
         ComplicationType.LONG_TEXT
       )
@@ -84,14 +84,14 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       arrayOf(
         ComplicationType.SHORT_TEXT,
         ComplicationType.RANGED_VALUE,
-        ComplicationType.MONOCHROMATIC_IMAGE,
+        ComplicationType.ICON,
         ComplicationType.SMALL_IMAGE
       )
     ),
     ComplicationSlot(
       "Background",
       4,
-      arrayOf(ComplicationType.PHOTO_IMAGE)
+      arrayOf(ComplicationType.LARGE_IMAGE)
     )
   )
   override val apk: String

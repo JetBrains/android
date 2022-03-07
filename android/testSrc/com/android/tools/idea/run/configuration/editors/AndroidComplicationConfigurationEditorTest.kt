@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
-import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -52,7 +51,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     val runConfigurationFactory = AndroidComplicationConfigurationType().configurationFactories[0]
     runConfiguration = Mockito.spy(AndroidComplicationConfiguration(project, runConfigurationFactory))
     settingsEditor = runConfiguration.configurationEditor
-    doReturn(listOf(ComplicationType.RANGED_VALUE, ComplicationType.SHORT_TEXT, ComplicationType.MONOCHROMATIC_IMAGE))
+    doReturn(listOf(ComplicationType.RANGED_VALUE, ComplicationType.SHORT_TEXT, ComplicationType.ICON))
       .`when`(runConfiguration).getTypesFromManifest()
   }
 
@@ -69,7 +68,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
         ComplicationSlot(
           "Right",
           2,
-          arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.MONOCHROMATIC_IMAGE)
+          arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.ICON)
         ))
       override val apk = ""
       override val appId = ""
@@ -126,7 +125,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     assertEquals(2, slotIdComboBox2.item)
 
     val slotTypeComboBox2 = slotsPanel.getTypeComboBoxForSlot(1)
-    assertThat(slotTypeComboBox2.items).containsExactly(ComplicationType.SHORT_TEXT, ComplicationType.MONOCHROMATIC_IMAGE)
+    assertThat(slotTypeComboBox2.items).containsExactly(ComplicationType.SHORT_TEXT, ComplicationType.ICON)
 
     assertThat(editor.isModified()).isTrue()
 
