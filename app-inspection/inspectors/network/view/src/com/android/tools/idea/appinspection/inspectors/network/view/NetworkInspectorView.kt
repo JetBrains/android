@@ -64,6 +64,8 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.TI
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.Y_AXIS_TOP_MARGIN
 import com.android.tools.idea.appinspection.inspectors.network.view.details.ConnectionDetailsView
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBPanel
@@ -157,7 +159,13 @@ class NetworkInspectorView(
     threadsViewScrollPane.border = JBUI.Borders.empty()
     connectionsTab.addTab("Connection View", connectionScrollPane)
     connectionsTab.addTab("Thread View", threadsViewScrollPane)
-    // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
+    if (StudioFlags.ENABLE_NETWORK_INTERCEPTION.get()) {
+      val rulesView = RulesTableView()
+      val rulesViewScrollPane = JBScrollPane(rulesView.component)
+      rulesViewScrollPane.border = JBUI.Borders.empty()
+      connectionsTab.addTab("Rules", rulesViewScrollPane)
+    }
+    // The toolbar overlays the tab panel, so we have to make sure we repaint the parent panel when switching tabs.
     connectionsTab.addChangeListener { mainPanel.repaint() }
     connectionsPanel.add(connectionsTab, CARD_CONNECTIONS)
     val infoPanel = JPanel(BorderLayout())

@@ -59,14 +59,6 @@ class ResponseTabContent(
     val headersComponent = httpDataComponentFactory.createHeaderComponent(HttpDataComponentFactory.ConnectionType.RESPONSE)
     panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
     panel.add(httpDataComponentFactory.createBodyComponent(componentsProvider, HttpDataComponentFactory.ConnectionType.RESPONSE))
-    if (ENABLE_NETWORK_INTERCEPTION.get()) {
-      val button = JButton("Intercept")
-      button.addActionListener {
-        val dialog: DialogWrapper = ResponseInterceptDialog(data, inspectorServices, scope)
-        dialog.show()
-      }
-      panel.add(button)
-    }
   }
 
   @VisibleForTesting
