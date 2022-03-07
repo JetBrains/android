@@ -1221,7 +1221,7 @@ public final class StudioFlags {
     COMPOSE, "preview.animation.coordination",
     "Enable animation coordination in Animation Inspector",
     "If enabled, animation coordination will be available in Animation Inspector timeline.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
