@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -24,10 +25,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
@@ -40,11 +43,14 @@ import com.android.tools.lint.model.LintModelLibrary;
 import com.android.tools.lint.model.LintModelModule;
 import com.android.tools.lint.model.LintModelModuleType;
 import com.android.tools.lint.model.LintModelVariant;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -56,6 +62,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.graph.Graph;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,6 +70,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -99,7 +107,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
     }
-    for (Module module : modules) {
+    for (Module module : Arrays.stream(modules).map(ModuleSystemUtil::getMainModule).distinct().collect(Collectors.toList())) {
       addProjects(client, module, files, moduleMap, libraryMap, projectMap, projects, false);
     }
 
@@ -190,13 +198,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
     // Prefer Android app modules
     for (AndroidFacet facet : facets) {
       if (facet.getConfiguration().isAppProject()) {
-        return facet.getModule();
+        return facet.getMainModule();
       }
     }
 
     // Resort to library modules if no app module depends directly on it
     if (!facets.isEmpty()) {
-      return facets.iterator().next().getModule();
+      return facets.iterator().next().getMainModule();
     }
 
     return null;
@@ -205,7 +213,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   private static void addAndroidModules(Set<AndroidFacet> androidFacets, Set<Module> seen, Graph<Module> graph, Module module) {
     Iterator<Module> iterator = graph.getOut(module);
     while (iterator.hasNext()) {
-      Module dep = iterator.next();
+      Module dep = getMainModule(iterator.next());
       AndroidFacet facet = AndroidFacet.getInstance(dep);
       if (facet != null) {
         androidFacets.add(facet);
@@ -240,9 +248,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (project == null) {
       // It's possible for the module to *depend* on Android code, e.g. in a Gradle
       // project there will be a top-level non-Android module
-      List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
-      for (AndroidFacet dependentFacet : dependentFacets) {
-        addProjects(client, dependentFacet.getModule(), files, moduleMap, libraryMap, projectMap, projects, true);
+      List<Module> dependentModules =
+        AndroidDependenciesCache.getAllAndroidDependencies(module, false).stream()
+          .map(AndroidFacet::getMainModule)
+          .distinct()
+          .collect(Collectors.toList());
+      for (Module dependentModule : dependentModules) {
+        addProjects(client, dependentModule, files, moduleMap, libraryMap, projectMap, projects, true);
       }
       return;
     }
@@ -261,14 +273,18 @@ public class AndroidLintIdeProject extends LintIdeProject {
     List<Project> dependencies = Lists.newArrayList();
     // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
     // (e.g. Java-only modules)
-    List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(module, true);
-    for (AndroidFacet dependentFacet : dependentFacets) {
-      Project p = moduleMap.get(dependentFacet.getModule());
+    List<Module> dependentModules =
+        AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream()
+          .map(AndroidFacet::getMainModule)
+          .distinct()
+          .collect(Collectors.toList());
+    for (Module dependentModule : dependentModules) {
+      Project p = moduleMap.get(dependentModule);
       if (p != null) {
         dependencies.add(p);
       }
       else {
-        addProjects(client, dependentFacet.getModule(), files, moduleMap, libraryMap, projectMap, dependencies, true);
+        addProjects(client, dependentModule, files, moduleMap, libraryMap, projectMap, dependencies, true);
       }
     }
 
@@ -354,6 +370,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
    */
   @Nullable
   public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
+
+    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleUtil.GRADLE_SYSTEM_ID, module)) {
+      String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+      if (!Strings.isNullOrEmpty(externalProjectPath)) {
+        return new File(externalProjectPath);
+      }
+    }
     File dir;
 
     if (facet != null) {
@@ -410,7 +433,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         p = new LintGradleLibraryProject(client, dir, dir, dependency, library);
         p.setIdeaProject(ideaProject);
         libraryMap.put(library, p);
-        projectMap.put(p, facet.getModule());
+        projectMap.put(p, facet.getMainModule());
         projects.add(p);
 
         if (files != null) {
@@ -447,13 +470,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
     protected final AndroidFacet myFacet;
 
     private LintAndroidProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
-      super(client, dir, referenceDir, facet.getModule());
+      super(client, dir, referenceDir, facet.getMainModule());
       myFacet = facet;
 
       gradleProject = false;
       library = myFacet.getConfiguration().isLibraryProject();
 
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getMainModule());
       if (platform != null) {
         buildSdk = platform.getApiLevel();
       }
@@ -467,7 +490,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @NonNull
     @Override
     public String getName() {
-      return myFacet.getModule().getName();
+      return myFacet.getHolderModule().getName();
     }
 
     @NonNull
