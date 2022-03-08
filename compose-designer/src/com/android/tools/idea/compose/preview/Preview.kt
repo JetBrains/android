@@ -288,7 +288,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider(
     PinnedPreviewElementManager.getPreviewElementProvider(project)) {
-    !(it.previewBodyPsi?.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
+    !(it.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
   }
 
   /**

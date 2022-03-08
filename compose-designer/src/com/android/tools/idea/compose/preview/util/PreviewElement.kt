@@ -401,6 +401,12 @@ interface PreviewElement {
   /** [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview */
   val previewBodyPsi: SmartPsiElementPointer<PsiElement>?
 
+  /** [PsiFile] containing this PreviewElement. null if there is not source file, like in synthetic preview elements */
+  val containingFile: PsiFile?
+    get() = runReadAction {
+      previewBodyPsi?.containingFile ?: previewElementDefinitionPsi?.containingFile
+    }
+
   /** Preview element configuration that affects how LayoutLib resolves the resources */
   val configuration: PreviewConfiguration
 }
@@ -544,9 +550,7 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
   override fun instances(): Sequence<PreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
-    val file = ReadAction.compute<PsiFile?, Throwable> {
-      basePreviewElement.previewBodyPsi?.containingFile
-    } ?: return sequenceOf()
+    val file = basePreviewElement.containingFile ?: return sequenceOf()
     if (parameterProviders.size > 1) {
       Logger.getInstance(ParametrizedPreviewElementTemplate::class.java).warn(
         "Currently only one ParameterProvider is supported, rest will be ignored")

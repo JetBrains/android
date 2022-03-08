@@ -39,5 +39,9 @@ fun TestWithProvider(@PreviewParameter(provider = TestProvider::class) name: Str
 
 @Preview
 @Composable
+fun TestWithProviderInExpression(@PreviewParameter(provider = TestProvider::class) name: String) = println(name)
+
+@Preview
+@Composable
 fun TestLorem(@PreviewParameter(provider = LoremIpsum::class) lorem: String) {
 }

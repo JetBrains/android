@@ -92,6 +92,18 @@ class ParametrizedPreviewTest {
       }
     }
 
+    run {
+      val elements = PreviewElementTemplateInstanceProvider(
+        StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                                .filter { it.displaySettings.name == "TestWithProviderInExpression" }))
+        .previewElements()
+      assertEquals(3, elements.count())
+
+      elements.forEach {
+        assertTrue(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get()?.renderResult?.isSuccess ?: false)
+      }
+    }
+
     // Test LoremIpsum default provider
     run {
       val elements = PreviewElementTemplateInstanceProvider(

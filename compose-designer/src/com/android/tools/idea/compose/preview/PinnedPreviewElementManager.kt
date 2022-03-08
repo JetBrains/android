@@ -49,7 +49,7 @@ private fun PsiElement.containingPath(): String? =
  * pointing to the [PreviewElement].
  */
 private fun PreviewElement.asPinnedElement(): PinnedElementReference? {
-  val containingFilePath = previewBodyPsi?.containingFile?.virtualFile?.path ?: return null
+  val containingFilePath = containingFile?.virtualFile?.path ?: return null
   return PinnedElementReference(containingFilePath, composableMethodFqn)
 }
 
