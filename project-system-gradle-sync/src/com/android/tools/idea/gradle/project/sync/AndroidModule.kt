@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
@@ -65,6 +66,27 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
     }
   }
 }
+
+/**
+ * The container class of modules we couldn't fetch using parallel Gradle TAPI API.
+ * For now this list has :
+ *  - All the non-Android modules
+ *  - The android modules using an older AGP version than the minimum supported for V2 sync
+ */
+@UsedInBuildAction
+sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject)
+
+/**
+ * The container class of Android modules that can be fetched using V2 sync.
+ */
+@UsedInBuildAction
+class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) : BasicIncompleteGradleModule(gradleProject)
+
+/**
+ * The container class of Android and non-Android modules that cannot be fetched using V2 nor parallel sync.
+ */
+@UsedInBuildAction
+class BasicNonV2IncompleteGradleModule(gradleProject: BasicGradleProject) : BasicIncompleteGradleModule(gradleProject)
 
 /**
  * The container class for Java module, containing its Android models handled by the Android plugin.

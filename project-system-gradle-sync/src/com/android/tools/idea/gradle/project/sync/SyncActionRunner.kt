@@ -25,8 +25,8 @@ internal interface GradleInjectedSyncActionRunner {
   val parallelActionsSupported: Boolean
 }
 
-internal fun createActionRunner(controller: BuildController, flags: GradleSyncStudioFlags): GradleInjectedSyncActionRunner {
-  return when (flags.studioFlagParallelSyncEnabled) {
+internal fun createActionRunner(controller: BuildController, studioFlagParallelSyncEnabled: Boolean): GradleInjectedSyncActionRunner {
+  return when (studioFlagParallelSyncEnabled) {
     true -> ParallelSyncActionRunner(controller)
     false -> SequentialSyncActionRunner(controller)
   }
