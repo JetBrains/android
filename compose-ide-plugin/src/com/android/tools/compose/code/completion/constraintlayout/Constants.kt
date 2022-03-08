@@ -16,8 +16,20 @@
 package com.android.tools.compose.code.completion.constraintlayout
 
 internal object KeyWords {
+  /**
+   * Name of the property within a MotionScene that contains several ConstraintSet declarations.
+   */
   const val ConstraintSets = "ConstraintSets"
+
+  /**
+   * Name of the property used to indicate that the containing ConstraintSet inherits its constraints from the ConstraintSet given by the
+   * `Extends` property value.
+   */
   const val Extends = "Extends"
+
+  /**
+   * Reserved ID for the containing layout. Typically referenced in constraint blocks.
+   */
   const val ParentId = "parent"
 }
 
