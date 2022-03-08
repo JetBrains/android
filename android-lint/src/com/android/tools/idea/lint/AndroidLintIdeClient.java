@@ -40,7 +40,7 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
+import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -254,7 +254,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     }
 
     if (GOOGLE_PLAY_SDK_INDEX_KEY.equals(name)) {
-      Path cacheDir = IdeGooglePlaySdkIndex.INSTANCE.getCacheDir();
+      Path cacheDir = IdeGooglePlaySdkIndexKt.getCacheDir();
       return cacheDir == null ? null : cacheDir.toFile();
     }
 
