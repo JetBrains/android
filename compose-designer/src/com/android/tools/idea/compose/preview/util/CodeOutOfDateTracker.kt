@@ -25,6 +25,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -34,7 +35,7 @@ import kotlin.concurrent.withLock
 /**
  * Interface for tracking build status.
  */
-interface CodeOutOfDateTracker {
+interface CodeOutOfDateTracker: ModificationTracker {
   /**
    * Call this method when an external event has caused the saved build to not be "usable" anymore. This will force a call to the
    * `needsRefreshCallback` passed to [create] at some point in the future.
@@ -60,6 +61,7 @@ object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
   override fun invalidateSavedBuildStatus() {}
   override fun needsRefreshOnSuccessfulBuild(): Boolean = false
   override fun buildWillTriggerRefresh(): Boolean = false
+  override fun getModificationCount(): Long = 0
 }
 
 private class CodeOutOfDateTrackerImpl constructor(module: Module,
@@ -177,6 +179,7 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
 
   @TestOnly
   override fun buildWillTriggerRefresh() = needsRefreshOnSuccessfulBuild || kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
+  override fun getModificationCount() = kotlinJavaModificationTracker.modificationCount
 
   override fun invalidateSavedBuildStatus() {
     previewFreshnessLock.withLock {

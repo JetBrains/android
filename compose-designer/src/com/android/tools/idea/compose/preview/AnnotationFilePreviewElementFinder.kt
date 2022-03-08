@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.getPsiFileSafely
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
@@ -37,6 +38,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CompletableDeferred
@@ -45,6 +47,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.await
 import org.jetbrains.concurrency.isRejected
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -162,7 +165,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       while (result == null && retries > 0) {
         retries--
         val promiseResult = runReadAction {
-          CachedValuesManager.getManager(project).getCachedValue(psiFile, findPreviewMethodsCachedValue(project, vFile, psiFile))
+          CachedValuesManager.getManager(project).getCachedValue(psiFile, findPreviewMethodsCachedValue(project, vFile))
         }
         try {
           result = promiseResult.await()
@@ -176,8 +179,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
 
   @JvmStatic
   private fun findPreviewMethodsCachedValue(project: Project,
-                                            vFile: VirtualFile,
-                                            psiFile: PsiFile): CachedValueProvider<CompletableDeferred<Collection<PreviewElement>>> =
+                                            vFile: VirtualFile): CachedValueProvider<CompletableDeferred<Collection<PreviewElement>>> =
     CachedValueProvider {
       // This Deferred should not be needed, the promise could be returned directly. However, it seems there is a compiler issue that
       // causes the findPreviewMethods to fail when using the "dist" build (not from source).
@@ -204,6 +206,9 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
           deferred.completeExceptionally(it)
         }
 
-      CachedValueProvider.Result.create(deferred, psiFile, PromiseModificationTracker(promise))
+      val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(project).forLanguages { lang ->
+        lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
+      }
+      CachedValueProvider.Result.create(deferred, kotlinJavaModificationTracker, PromiseModificationTracker(promise))
     }
 }
