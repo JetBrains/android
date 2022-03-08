@@ -21,12 +21,17 @@ import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunne
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.google.common.truth.Truth.assertThat
+import com.intellij.debugger.DebuggerManager
+import com.intellij.debugger.DebuggerManagerEx
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.testFramework.registerServiceInstance
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
@@ -174,6 +179,67 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Clear debug app
     assertThat(commands[5]).isEqualTo(clearDebugAppBroadcast)
     assertThat(commands[6]).isEqualTo(clearDebugAppAm)
+  }
+
+  @Test
+  fun testAttachingDebuggerFails() {
+    // Use DefaultRunExecutor, equivalent of pressing debug button.
+    val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
+
+    // Executor we test.
+    val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
+    val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
+    project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
+    Mockito.`when`(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
+
+    val commandHandlers = mapOf(
+      checkVersion to
+        "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+        "Broadcast completed: result=1, data=\"3\""
+    ).toCommandHandlers()
+
+    val runnableClientsService = RunnableClientsService(testRootDisposable)
+
+    val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
+      runnableClientsService.startClient(device, appId)
+      receiver.addOutput("Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+                         "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+    }
+
+    val processTerminatedLatch = CountDownLatch(2)
+    val unsetWatchFaceCommandHandler: CommandHandler = { device, receiver ->
+      runnableClientsService.stopClient(device, appId)
+      receiver.addOutput("Broadcast completed: result=1")
+      processTerminatedLatch.countDown()
+    }
+
+    val device = getMockDevice(
+      commandHandlers +
+      (setWatchFace to setWatchFaceCommandHandler) +
+      (unsetWatchFace to unsetWatchFaceCommandHandler)
+    )
+
+    Mockito.`when`(
+      device.forceStop(appId)
+    ).thenAnswer {
+      processTerminatedLatch.countDown()
+    }
+
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val appInstaller = TestApplicationInstaller(appId, app)
+    // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
+    // mocked DebuggerManagerEx to fail above.
+    try {
+      executor.doOnDevices(listOf(device)).blockingGet(30, TimeUnit.SECONDS)
+    } catch (e: Throwable){
+      if (e.cause !is ExecutionException || e.cause?.message != "Exception on debug start") {
+        throw  e
+      }
+    }
+    Mockito.verify(device, Mockito.atLeastOnce()).forceStop(appId)
   }
 
   @Test

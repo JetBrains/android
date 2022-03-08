@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.debug.attachJavaDebuggerToClient
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
 import com.intellij.execution.configurations.RunConfiguration
@@ -55,6 +56,9 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
       null,
       destroyRunningProcess
     )
-      .onError { destroyRunningProcess(client) }
+      .onError {
+        destroyRunningProcess(client)
+        ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
+      }
   }
 }
