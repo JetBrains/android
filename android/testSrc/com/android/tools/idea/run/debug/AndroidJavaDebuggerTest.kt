@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.run.debug
+
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.eq
@@ -22,9 +23,17 @@ import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.JavaCodeInsightTestCase
+import com.intellij.execution.Executor
+import com.intellij.execution.configurations.RunProfile
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.configurations.RunnerSettings
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder
+import com.intellij.execution.runners.GenericProgramRunner
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.Icon
 
 /**
  * Tests for [attachJavaDebuggerToClient], method will eventually replace all [AndroidJavaDebugger] code.
@@ -33,13 +42,15 @@ import org.mockito.Mockito
  */
 class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
   private val APP_PACKAGE = "com.android.example"
+
   private lateinit var client: Client
   private lateinit var runnableClientsService: RunnableClientsService
   private lateinit var executionEnvironment: ExecutionEnvironment
+
   override fun setUp() {
     super.setUp()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
-    executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
+    executionEnvironment = createFakeExecutionEnvironment()
     runnableClientsService = RunnableClientsService(testRootDisposable)
     client = runnableClientsService.startClient(Mockito.mock(IDevice::class.java), APP_PACKAGE)
   }
@@ -48,6 +59,24 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
     runnableClientsService.stop()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
     super.tearDown()
+  }
+
+  private fun createFakeExecutionEnvironment(): ExecutionEnvironment {
+    val runProfile = object : RunProfile {
+      override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? = null
+      override fun getName() = "myConfiguration"
+      override fun getIcon(): Icon? = null
+    }
+
+    val programRunner = object : GenericProgramRunner<RunnerSettings>() {
+      override fun canRun(executorId: String, profile: RunProfile): Boolean = true
+      override fun getRunnerId() = "FakeDebuggerRunner"
+    }
+
+    return ExecutionEnvironmentBuilder(project, DefaultDebugExecutor.getDebugExecutorInstance())
+      .runProfile(runProfile)
+      .runner(programRunner)
+      .build()
   }
 
   @Test
@@ -63,6 +92,7 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
     val onDebugProcessStarted: () -> Unit = {
       callbackCount++
     }
+
     val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment,
                                              onDebugProcessStarted = onDebugProcessStarted).blockingGet(1000)
     assertThat(session).isNotNull()
@@ -75,13 +105,13 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
     assertThat(session).isNotNull()
     assertThat(client.debuggerListenPort).isAtLeast(0)
     assertThat(client.clientData.pid).isAtLeast(0)
-    assertThat(session!!.sessionName).isEqualTo(
-      "Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})")
+    assertThat(session!!.sessionName).isEqualTo("Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})")
   }
 
   @Test
   fun testKillAppOnDestroy() {
     val mockDevice = client.device
+
     val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
@@ -92,6 +122,7 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
   @Test
   fun testVMExitedNotifierIsInvoked() {
     val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
+
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
     Mockito.verify(client, Mockito.times(1)).notifyVmMirrorExited()
