@@ -81,7 +81,9 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   }
 
   // When TreeSettings.showRecompositions is off, we will want to hide the Recomposition section:
-  private fun showRecompositions(model: InspectorPropertiesModel): Boolean {
-    return model.layoutInspector?.treeSettings?.showRecompositions ?: false
+  private fun showRecompositions(propertiesModel: InspectorPropertiesModel): Boolean {
+    val treeSettings = propertiesModel.layoutInspector?.treeSettings ?: return false
+    val model = propertiesModel.layoutInspector?.layoutInspectorModel ?: return false
+    return treeSettings.showRecompositions && (model.maxRecompositionCount > 0 || model.maxRecompositionSkips > 0)
   }
 }

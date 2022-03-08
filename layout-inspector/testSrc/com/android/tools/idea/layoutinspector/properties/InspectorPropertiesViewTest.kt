@@ -95,18 +95,7 @@ class InspectorPropertiesViewTest {
     val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
     val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
     assertThat(inspector.lines).hasSize(13)
-    assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
-    assertTable(inspector.lines[2], text)
-    assertThat(inspector.lines[3].title).isEqualTo("Layout")
-    assertTable(inspector.lines[4], width)
-    assertThat(inspector.lines[5].title).isEqualTo("All Attributes")
-    assertTable(inspector.lines[6], alpha, width, text)
-    assertThat(inspector.lines[7].title).isEqualTo("Parameters")
-    assertTable(inspector.lines[8], param)
-    assertThat(inspector.lines[9].title).isEqualTo("Merged Semantics")
-    assertTable(inspector.lines[10], semantic1)
-    assertThat(inspector.lines[11].title).isEqualTo("Declared Semantics")
-    assertTable(inspector.lines[12], semantic2)
+    checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
   }
 
   @Test
@@ -125,8 +114,46 @@ class InspectorPropertiesViewTest {
     val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
     val counts = InspectorPropertyItem(NAMESPACE_INTERNAL, "count", INT32, "7", RECOMPOSITIONS, null, id, context)
     val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
-    val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips), ::showRecompositions)
+    val propertiesView = createView(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips), ::showRecompositions)
+    val propertiesModel = propertiesView.model as InspectorPropertiesModel
+    var inspector = FakeInspectorPanel()
+    val tab = propertiesView.tabs.single()
+
+    // Check that all sections are available including the Recomposition setion
+    tab.attachToInspector(inspector)
     assertThat(inspector.lines).hasSize(15)
+    checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
+    assertThat(inspector.lines[13].title).isEqualTo("Recomposition")
+    assertTable(inspector.lines[14], counts, skips)
+
+    // Check that the Recomposition section is omitted if showRecompositions is off
+    val treeSettings = propertiesModel.layoutInspector!!.treeSettings
+    treeSettings.showRecompositions = false
+    inspector = FakeInspectorPanel()
+    tab.attachToInspector(inspector)
+    assertThat(inspector.lines).hasSize(13)
+    checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
+
+    // Check that the Recomposition section is omitted if the recomposition numbers are reset
+    treeSettings.showRecompositions = true
+    val model = propertiesModel.layoutInspector!!.layoutInspectorModel
+    model.maxRecompositionCount = 0
+    model.maxRecompositionSkips = 0
+    inspector = FakeInspectorPanel()
+    tab.attachToInspector(inspector)
+    assertThat(inspector.lines).hasSize(13)
+    checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
+  }
+
+  private fun checkStandardSections(
+    inspector: FakeInspectorPanel,
+    text: InspectorPropertyItem,
+    width: InspectorPropertyItem,
+    alpha: InspectorPropertyItem,
+    param: ParameterItem,
+    semantic1: ParameterItem,
+    semantic2: ParameterItem
+  ) {
     assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
     assertTable(inspector.lines[2], text)
     assertThat(inspector.lines[3].title).isEqualTo("Layout")
@@ -139,22 +166,28 @@ class InspectorPropertiesViewTest {
     assertTable(inspector.lines[10], semantic1)
     assertThat(inspector.lines[11].title).isEqualTo("Declared Semantics")
     assertTable(inspector.lines[12], semantic2)
-    assertThat(inspector.lines[13].title).isEqualTo("Recomposition")
-    assertTable(inspector.lines[14], counts, skips)
+  }
+
+  private fun createView(
+    properties: List<InspectorPropertyItem>,
+    customize: (InspectorPropertiesModel) -> Unit = {}
+  ): InspectorPropertiesView {
+    val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
+    properties.forEach { table.addProperty(it) }
+    val propertiesModel = InspectorPropertiesModel()
+    val propertiesView = InspectorPropertiesView(propertiesModel)
+    propertiesModel.properties = PropertiesTable.create(table)
+    customize(propertiesModel)
+    return propertiesView
   }
 
   private fun createInspector(
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {}
   ): FakeInspectorPanel {
-    val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
-    properties.forEach { table.addProperty(it) }
-    val propertiesModel = InspectorPropertiesModel()
-    val propertiesView = InspectorPropertiesView(propertiesModel)
+    val propertiesView = createView(properties, customize)
     val inspector = FakeInspectorPanel()
     val tab = propertiesView.tabs.single()
-    propertiesModel.properties = PropertiesTable.create(table)
-    customize(propertiesModel)
     tab.attachToInspector(inspector)
     return inspector
   }
@@ -163,6 +196,8 @@ class InspectorPropertiesViewTest {
     val model = model {}
     val settings = FakeTreeSettings()
     val layoutInspector = LayoutInspector(mock<InspectorClient>(), model, SessionStatistics(model, settings), settings)
+    model.maxRecompositionCount = 7
+    model.maxRecompositionSkips = 14
     propertiesModel.layoutInspector = layoutInspector
     settings.showRecompositions = true
   }
