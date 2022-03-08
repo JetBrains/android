@@ -33,8 +33,8 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
@@ -94,7 +94,7 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
   @Test
   fun testPerform() {
     val listener = TestListener()
-    val debugger = ReattachingConnectDebuggerTask(baseConnector, listener)
+    val debugger = ReattachingConnectDebuggerTask(baseConnector, masterAndroidProcessName = "", listener)
 
     // Verify that the base connector is not launched yet.
     assertThat(baseConnector.launchInvocations).isEqualTo(0)

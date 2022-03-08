@@ -52,7 +52,8 @@ internal class RunnableClientsService(testDisposable: Disposable) {
 
   fun stop() {
     deviceToRunnableClients.entries.forEach { (device, clients) ->
-      clients.keys.forEach { appId -> stopClient(device, appId) }
+      val appIds = clients.keys.toList()
+      appIds.forEach { appId -> stopClient(device, appId) }
     }
   }
 
