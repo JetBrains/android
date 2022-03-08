@@ -42,6 +42,12 @@ data class EditEvent(val file: PsiFile, val function: KtNamedFunction?) {
   fun isWithinFunction() = function != null
 }
 
+enum class EditState {
+  ERROR, PAUSED, IN_PROGRESS, UP_TO_DATE, DISABLED
+}
+
+data class EditStatus(val editState: EditState, val message: String)
+
 /**
  * Allows any component to listen to all method body edits of a project.
  */
@@ -56,12 +62,22 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
     operator fun invoke(method: EditEvent)
   }
 
+  fun interface EditStatusProvider {
+    operator fun invoke() : EditStatus
+  }
+
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
 
   private val deployMonitor: AndroidLiveEditDeployMonitor
 
+  private val editStatusProviders = mutableListOf<EditStatusProvider>()
+
   fun addOnEditListener(listener: EditListener) {
     onEditListeners.add(listener)
+  }
+
+  fun addEditStatusProvider(provider: EditStatusProvider) {
+    editStatusProviders.add(provider)
   }
 
   init {
@@ -74,6 +90,23 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
   companion object {
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
+
+    @JvmField
+    val DISABLED_STATUS = EditStatus(EditState.DISABLED, "")
+    @JvmField
+    val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.")
+  }
+
+  fun editStatus(): EditStatus {
+    var editStatus = DISABLED_STATUS
+    for (provider in editStatusProviders) {
+      val nextStatus = provider.invoke()
+      // TODO make this state transition more robust/centralized
+      if (nextStatus.editState.ordinal < editStatus.editState.ordinal) {
+        editStatus = nextStatus
+      }
+    }
+    return editStatus
   }
 
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {

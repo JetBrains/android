@@ -726,6 +726,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ContentManager"/>
     <applicationInitializedListener implementation="com.intellij.internal.statistic.updater.StatisticsStateCollectorsScheduler"/>
     <statistics.projectUsagesCollector implementation="com.intellij.internal.statistic.collectors.fus.fileTypes.FileTypeUsagesCollector"/>
+
+    <iw.actionProvider implementation="com.android.tools.idea.editors.liveedit.ui.LiveEditActionProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
