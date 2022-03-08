@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.RenderContext;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -44,6 +47,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CommonUsageTrackerImpl implements CommonUsageTracker {
   private static final Random sRandom = new Random();
+
+  /**
+   * We don't use the auto-generated id to log user's custom avd. All custom AVDs are tracked as a device which has "_custom_avd" id.
+   */
+  private static final String CUSTOM_AVD_ID = "_custom_avd";
 
   private final Executor myExecutor;
   private final WeakReference<DesignSurface> myDesignSurfaceRef;
@@ -194,7 +202,18 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
           .setErrorCount(errorCount)
           .setFidelityWarningCount(fidelityWarningCount);
       }
-
+      RenderContext context = result.getRenderContext();
+      if (context != null) {
+        Device device = context.getConfiguration().getDevice();
+        if (device != null) {
+          if (ConfigurationManager.isAvdDevice(device)) {
+            builder.setDeviceId(CUSTOM_AVD_ID);
+          }
+          else {
+            builder.setDeviceId(device.getId());
+          }
+        }
+      }
       event.setRenderResult(builder.build());
     });
   }
