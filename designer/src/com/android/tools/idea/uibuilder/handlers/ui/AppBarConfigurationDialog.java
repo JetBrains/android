@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -38,7 +39,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -51,8 +51,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -68,6 +68,8 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -82,6 +84,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -340,19 +343,10 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void generatePreviews() {
-    PsiFile expandedFile = generateXml(false);
-    PsiFile collapsedFile = generateXml(true);
     myExpandedPreviewFuture = cancel(myExpandedPreviewFuture);
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
-    Application application = ApplicationManager.getApplication();
-    myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(getProject()).waitForSmartMode();
-      updateExpandedImage(expandedFile);
-    });
-    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
-      DumbService.getInstance(getProject()).waitForSmartMode();
-      updateCollapsedImage(collapsedFile);
-    });
+    myExpandedPreviewFuture = updateExpandedImage();
+    myCollapsedPreviewFuture = updateCollapsedImage();
   }
 
   @Nullable
@@ -363,7 +357,9 @@ public class AppBarConfigurationDialog extends JDialog {
     return null;
   }
 
+  @WorkerThread
   private PsiFile generateXml(boolean collapsed) {
+    DumbService.getInstance(getProject()).waitForSmartMode();
     StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
     for (int i = 0; i < SAMPLE_REPETITION; i++) {
       text.append(SAMPLE_TEXT);
@@ -372,7 +368,7 @@ public class AppBarConfigurationDialog extends JDialog {
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
     Project project = getProject();
-    return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+    return ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
   }
 
   private void updatePreviewImages() {
@@ -578,69 +574,49 @@ public class AppBarConfigurationDialog extends JDialog {
     return content.getText();
   }
 
-  private void updateCollapsedImage(@NotNull PsiFile collapsedXmlFile) {
-    BufferedImage image = updateImage(collapsedXmlFile, myCollapsedPreview);
-    if (image != null) {
-      myCollapsedImage = image;
-    }
+  private CompletableFuture<Void> updateCollapsedImage() {
+    return CompletableFuture.supplyAsync(() -> generateXml(true), AppExecutorUtil.getAppExecutorService())
+      .thenCompose(file -> updateImage(file, myCollapsedPreview))
+      .thenAccept(image -> myCollapsedImage = image);
   }
 
-  private void updateExpandedImage(@NotNull PsiFile expandedXmlFile) {
-    BufferedImage image = updateImage(expandedXmlFile, myExpandedPreview);
-    if (image != null) {
-      myExpandedImage = image;
-    }
-    myLoadingPanel.stopLoading();
+  private CompletableFuture<Void> updateExpandedImage() {
+    return CompletableFuture.supplyAsync(() -> generateXml(false), AppExecutorUtil.getAppExecutorService())
+      .thenCompose(file -> updateImage(file, myExpandedPreview))
+      .thenAcceptAsync(image -> {
+        myExpandedImage = image;
+        myLoadingPanel.stopLoading();
+      }, EdtExecutorService.getInstance());
   }
 
-  @Nullable
-  private BufferedImage updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
-    BufferedImage image = null;
-    try {
-      image = renderImage(xmlFile);
-      if (image == null) {
-        return null;
-      }
-    }
-    catch (RuntimeException ex) {
-      getLogger().error(ex);
-    }
-    BufferedImage finalImage = image;
-    ApplicationManager.getApplication().invokeLater(() -> updatePreviewImage(finalImage, preview));
-    return image;
+  @NotNull
+  private CompletableFuture<BufferedImage> updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
+    return renderImage(xmlFile).whenCompleteAsync((image, ex) -> updatePreviewImage(image, preview), EdtExecutorService.getInstance());
   }
 
-  private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
+  private CompletableFuture<BufferedImage> renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = RenderService.getInstance(getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    final RenderTask task = renderService.taskBuilder(facet, myModel.getConfiguration())
-                                         .withLogger(logger)
-                                         .withPsiFile(xmlFile)
-                                         .buildSynchronously();
-    RenderResult result = null;
-    try {
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, myModel.getConfiguration())
+      .withLogger(logger)
+      .withPsiFile(xmlFile)
+      .build();
+    return taskFuture.thenCompose(task -> {
       if (task != null) {
         task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
         task.getContext().setFolderType(ResourceFolderType.LAYOUT);
-        result = Futures.getUnchecked(task.render());
+        return task.render().thenApply(result -> {
+          ImagePool.Image image = result.getRenderedImage();
+          if (!image.isValid() || image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+            return null;
+          }
+
+          return result.getRenderedImage().getCopy();
+        }).whenCompleteAsync((image, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService());
       }
-    } finally {
-      if (task != null) {
-        task.dispose();
-      }
-    }
-
-    if (result == null) {
       return null;
-    }
-
-    ImagePool.Image image = result.getRenderedImage();
-    if (!image.isValid() || image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
-      return null;
-    }
-
-    return result.getRenderedImage().getCopy();
+    });
   }
 
   private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
