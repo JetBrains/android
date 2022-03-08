@@ -172,8 +172,10 @@ class TimelinePanelTest {
     // Add callback listeners
     var firstElementMoved = false
     var secondElementMoved = false
+    var endOfDragCallback = 0
     slider.sliderUI.elements[0].state.addValueOffsetListener { firstElementMoved = true }
     slider.sliderUI.elements[1].state.addValueOffsetListener { secondElementMoved = true }
+    slider.dragEndListeners.add { endOfDragCallback++ }
     // Drag element
     ui.mouse.moveTo(55, 55)
     ui.mouse.drag(55, 55, 20, 120)
@@ -182,9 +184,11 @@ class TimelinePanelTest {
     assertEquals(0, slider.sliderUI.elements[1].offsetPx)
     assertTrue(firstElementMoved)
     assertFalse(secondElementMoved)
+    assertEquals(1, endOfDragCallback)
     // Drag element back
     ui.mouse.moveTo(75, 55)
     ui.mouse.drag(75, 55, -20, 120)
+    assertEquals(2, endOfDragCallback)
     // First element is back to its place.
     assertEquals(0, slider.sliderUI.elements[0].offsetPx)
   }

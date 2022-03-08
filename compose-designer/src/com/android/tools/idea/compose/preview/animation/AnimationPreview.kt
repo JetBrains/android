@@ -135,6 +135,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
     addResetListener {
       timeline.sliderUI.elements.forEach { it.reset() }
       animations.forEach { it.elementState.valueOffset = 0 }
+      updateTimelineMaximum()
       timeline.repaint()
     }
   }
@@ -156,7 +157,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
   private var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
     set(value) {
       field = value
-      clockControl.updateMaxDuration(value)
+      updateTimelineMaximum()
     }
 
   /** Create list of [TimelineElement] for selected [AnimationManager]s. */
@@ -291,11 +292,18 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
   private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
     // Set the timeline to 0
     setClockTime(0, longTimeout)
-    updateTimelineWindowSize(longTimeout)
+    updateMaxDuration(longTimeout)
     // Update the cached value manually to prevent the timeline to set the clock time to 0 using the short timeout.
     timeline.cachedVal = 0
     // Move the timeline slider to 0.
     UIUtil.invokeLaterIfNeeded { clockControl.jumpToStart() }
+  }
+
+  private fun updateTimelineMaximum() {
+    val timelineMax = animations.mapNotNull { it.timelineMaximumMs }.maxOrNull()?.toLong()
+                                ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
+    clockControl.updateMaxDuration(timelineMax)
+    updateTimelineElements()
   }
 
   /**
@@ -304,7 +312,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
    * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
    * iterations.
    */
-  private fun updateTimelineWindowSize(longTimeout: Boolean = false) {
+  private fun updateMaxDuration(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
     if (!executeOnRenderThread(longTimeout) {
@@ -410,6 +418,9 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
    *
    */
   private inner class AnimationManager(val animation: ComposeAnimation) {
+
+    val timelineMaximumMs: Int?
+      get() = currentTransition.endMillis?.let { max(it + elementState.valueOffset, it) }
 
     private val tabTitle = tabNames.createName(animation)
 
@@ -641,6 +652,9 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
       addComponentListener(object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) = updateTimelineElements()
       })
+      dragEndListeners.add {
+        updateTimelineMaximum()
+      }
     }
   }
 

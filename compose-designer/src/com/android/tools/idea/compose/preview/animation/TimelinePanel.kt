@@ -62,6 +62,8 @@ open class TimelinePanel(val previewState: AnimationPreviewState, val tracker: C
     zoomValue = z
   }
 
+  val dragEndListeners: MutableList<() -> Unit> = mutableListOf()
+
   open fun createSliderUI() = TimelineSliderUI(this)
 
   override fun updateUI() {
@@ -294,6 +296,9 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
         }
       )
       isDragging = false
+      if(activeElement?.status == TimelineElementStatus.Dragged) {
+        timeline.dragEndListeners.forEach { it() }
+      }
       activeElement?.status = TimelineElementStatus.Inactive
       activeElement = elements.firstOrNull { it.contains(e.point) }
       activeElement?.status = TimelineElementStatus.Hovered
