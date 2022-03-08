@@ -54,9 +54,8 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console, isDebug)
+    val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
-      terminatePreviousAppInstance(device)
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
@@ -126,9 +125,8 @@ private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> B
   }
 }
 
-class TileProcessHandler(private val tileName: String, private val console: ConsoleView, override val isDebug: Boolean)
-  : AndroidProcessHandlerForDevices() {
-  override fun stopSurface(device: IDevice) {
+class TileProcessHandler(private val tileName: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
+  override fun destroyProcessOnDevice(device: IDevice) {
     val receiver = CommandResultReceiver()
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
     device.executeShellCommand(removeTileCommand, console, receiver)

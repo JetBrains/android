@@ -18,7 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
@@ -93,13 +92,6 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
       throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
     }
     return devices
-  }
-
-  internal fun terminatePreviousAppInstance(device: IDevice) {
-    val terminator = ApplicationTerminator(device, appId)
-    if (!terminator.killApp()) {
-      throw ExecutionException("Could not terminate running app $appId")
-    }
   }
 
   private fun waitForDevice(deviceFuture: ListenableFuture<IDevice>): IDevice {
