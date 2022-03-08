@@ -593,6 +593,7 @@ class CoroutineUtilsTest {
     }
   }
 
+  @Suppress("UnstableApiUsage")
   @DelicateCoroutinesApi
   @Test
   fun `smart mode flow reports changes in status`() {
@@ -609,8 +610,10 @@ class CoroutineUtilsTest {
     runBlocking { connected.await() }
 
     val isDumb = arrayOf(true, true, false, true, false, true)
+    val dumbService = DumbServiceImpl.getInstance(project)
     isDumb.forEach {
-      runInEdtAndWait { DumbServiceImpl.getInstance(project).isDumb = it }
+      runInEdtAndWait { dumbService.isDumb = it }
+      while (dumbService.isDumb != it) Thread.sleep(250)
     }
 
     // We should see two switches to smart mode.
