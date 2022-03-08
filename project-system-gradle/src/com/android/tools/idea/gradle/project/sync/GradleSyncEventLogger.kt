@@ -96,8 +96,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       else -> syncEndedTimeStamp - syncSetupStartedTimeStamp
     }
     syncStats.gradleTimeMs = if (syncSetupStartedTimeStamp >= 0) syncSetupStartedTimeStamp - syncStartedTimeStamp else -1
-    syncStats.trigger = trigger
-    syncStats.syncType = syncType
+    syncStats.trigger = trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN
+    syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
 
