@@ -1439,17 +1439,17 @@ public final class StudioFlags {
   public static final Flag<Boolean> INCLUDE_LINKS_TO_SDK_INDEX = Flag.create(
     GOOGLE_PLAY_SDK_INDEX, "include.links.to.sdk.index", "Include links to SDK Index",
     "Whether or not links to Google Play SDK Index should be included in the SDK Index messages",
-    true
+    false
   );
   public static final Flag<Boolean> SHOW_SDK_INDEX_CRITICAL_ISSUES = Flag.create(
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.critical.issues", "Show SDK Index critical issues",
     "Whether or not critical issues from library authors should be shown",
-    true
+    false
   );
   public static final Flag<Boolean> SHOW_SDK_INDEX_POLICY_ISSUES = Flag.create(
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.policy.issues", "Show SDK Index policy issues",
     "Whether or not show issues when libraries are not policy complaint",
-    true
+    false
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
