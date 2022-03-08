@@ -31,6 +31,11 @@ internal object KeyWords {
    * Reserved ID for the containing layout. Typically referenced in constraint blocks.
    */
   const val ParentId = "parent"
+
+  /**
+   * Name of the Visibility property in a constraint block.
+   */
+  const val Visibility = "visibility"
 }
 
 /**
@@ -106,4 +111,10 @@ internal enum class DimBehavior(override val keyWord: String) : ConstraintLayout
   Wrap("wrap"),
   PreferWrap("preferWrap"),
   MatchParent("parent")
+}
+
+internal enum class VisibilityMode(override val keyWord: String): ConstraintLayoutKeyWord {
+  Visible("visible"),
+  Invisible("invisible"),
+  Gone("gone")
 }

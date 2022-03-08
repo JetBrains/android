@@ -30,6 +30,7 @@ import com.android.tools.compose.code.completion.constraintlayout.LiveTemplateFo
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
+import com.android.tools.compose.code.completion.constraintlayout.VisibilityMode
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithCaretInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithLiveTemplateInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithNewLineInsertHandler
@@ -150,6 +151,9 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
         result.addLookupElement(name = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
       }
     }
+    if (!existingFields.contains(KeyWords.Visibility)) {
+      result.addLookupElement(name = KeyWords.Visibility, format = JsonStringValueTemplate)
+    }
     result.addStringValueCompletions<SpecialAnchor>(existingFields)
     result.addNumericValueCompletions<Dimension>(existingFields)
     result.addNumericValueCompletions<RenderTransform>(existingFields)
@@ -214,6 +218,19 @@ internal object DimensionBehaviorProvider : BaseConstraintSetsCompletionProvider
     result: CompletionResultSet
   ) {
     DimBehavior.values().forEach { result.addLookupElement(name = it.keyWord) }
+  }
+}
+
+/**
+ * Provides the possible values for the [KeyWords.Visibility] property.
+ */
+internal object VisibilityModesProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    VisibilityMode.values().forEach { result.addLookupElement(name = it.keyWord) }
   }
 }
 

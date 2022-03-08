@@ -21,6 +21,7 @@ import com.android.tools.compose.code.completion.constraintlayout.provider.Const
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.DimensionBehaviorProvider
+import com.android.tools.compose.code.completion.constraintlayout.provider.VisibilityModesProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -99,6 +100,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
       jsonStringValue()
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, Dimension.values().map { it.keyWord }),
       DimensionBehaviorProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete Visibility mode values
+      jsonStringValue()
+        .withPropertyParentAtLevel(2, KeyWords.Visibility),
+      VisibilityModesProvider
     )
   }
 

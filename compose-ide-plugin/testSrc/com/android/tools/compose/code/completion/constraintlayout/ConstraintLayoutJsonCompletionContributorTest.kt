@@ -115,7 +115,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     myFixture.configureByText("myscene.json", content)
     myFixture.completeBasic()
     val lookupElements = myFixture.lookupElementStrings!!
-    assertThat(lookupElements).hasSize(18)
+    assertThat(lookupElements).hasSize(19)
     assertThat(lookupElements).containsNoDuplicates()
 
     assertThat(lookupElements).doesNotContain("start")
@@ -144,6 +144,29 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
     assertThat(lookupElements).hasSize(4)
     assertThat(lookupElements).containsExactly("spread", "wrap", "preferWrap", "parent")
+  }
+
+  @Test
+  fun completeVisibilityModes() {
+    @Language("JSON5")
+    val content =
+      """
+      {
+        ConstraintSets: {
+          start: {
+            id1: {
+              visibility: '$caret'
+            }
+          }
+        }
+      }
+    """.trimIndent()
+    myFixture.configureByText("myscene.json", content)
+    myFixture.completeBasic()
+    val lookupElements = myFixture.lookupElementStrings!!
+
+    assertThat(lookupElements).hasSize(3)
+    assertThat(lookupElements).containsExactly("visible", "invisible", "gone")
   }
 
   @Test
