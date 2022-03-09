@@ -23,8 +23,6 @@ import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.SerialNumber;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSection;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSectionCallback;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySection;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySectionCallback;
 import com.android.tools.idea.wearpairing.WearPairingManager;
@@ -36,7 +34,6 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -63,7 +60,6 @@ public final class PhysicalDeviceDetailsPanelTest {
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       future,
                                                                       section -> newSummarySectionCallback(section, latch),
-                                                                      DeviceSectionCallback::new,
                                                                       WearPairingManager.INSTANCE,
                                                                       false);
 
@@ -81,31 +77,6 @@ public final class PhysicalDeviceDetailsPanelTest {
   private static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
                                                                                             @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(new SummarySectionCallback(section), latch);
-  }
-
-  @Ignore
-  @Test
-  public void deviceSectionCallbackOnSuccess() throws InterruptedException {
-    // Arrange
-    ListenableFuture<PhysicalDevice> future = Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    CountDownLatch latch = new CountDownLatch(1);
-
-    // Act
-    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
-                                                                      future,
-                                                                      SummarySectionCallback::new,
-                                                                      section -> newDeviceSectionCallback(section, latch),
-                                                                      WearPairingManager.INSTANCE,
-                                                                      false);
-
-    // Assert
-    CountDownLatchAssert.await(latch);
-    assertEquals("Google Pixel 3", panel.getDeviceSection().myNameLabel.getText());
-  }
-
-  private static @NotNull FutureCallback<@NotNull PhysicalDevice> newDeviceSectionCallback(@NotNull DeviceSection section,
-                                                                                           @NotNull CountDownLatch latch) {
-    return new CountDownLatchFutureCallback<>(new DeviceSectionCallback(section), latch);
   }
 
   @Test
