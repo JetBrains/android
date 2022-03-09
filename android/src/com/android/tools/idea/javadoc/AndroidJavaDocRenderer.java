@@ -52,10 +52,11 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -1048,31 +1049,40 @@ public class AndroidJavaDocRenderer {
       }
       else {
         if (myConfiguration != null) {
-          RenderTask renderTask = ThemeEditorUtils.configureRenderTask(myModule, myConfiguration);
-
-          // Find intrinsic size.
-          int width = 100;
-          int height = 100;
-          if (isWebP) {
-            Dimension size = getSize(virtualFile);
-            if (size != null) {
-              width = size.width;
-              height = size.height;
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          assert facet != null;
+          final RenderService service = RenderService.getInstance(myModule.getProject());
+          RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
+          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration)
+            .withLogger(logger)
+            .build();
+          CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
+            if (renderTask == null) {
+              return CompletableFuture.completedFuture(null);
             }
-          }
+            renderTask.getLayoutlibCallback().setLogger(logger);
 
-          renderTask.setOverrideRenderSize(width, height);
+            // Find intrinsic size.
+            int width = 100;
+            int height = 100;
+            if (isWebP) {
+              Dimension size = getSize(virtualFile);
+              if (size != null) {
+                width = size.width;
+                height = size.height;
+              }
+            }
+
+            renderTask.setOverrideRenderSize(width, height);
+            return renderTask.renderDrawable(resolvedValue).whenComplete((image, ex) -> renderTask.dispose());
+          });
           BufferedImage image;
           try {
-            CompletableFuture<BufferedImage> future = renderTask.renderDrawable(resolvedValue);
             image = waitInterruptibly(future);
           }
           catch (InterruptedException | ExecutionException e) {
             renderError(builder, e.toString());
             return;
-          }
-          finally {
-            renderTask.dispose();
           }
           if (image != null) {
             // Need to write it somewhere.
