@@ -60,8 +60,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       future,
                                                                       section -> newSummarySectionCallback(section, latch),
-                                                                      WearPairingManager.INSTANCE,
-                                                                      false);
+                                                                      WearPairingManager.INSTANCE);
 
     // Assert
     CountDownLatchAssert.await(latch);
@@ -83,7 +82,7 @@ public final class PhysicalDeviceDetailsPanelTest {
   public void setInfoSectionPanelLayout() {
     // Act
     ListenableFuture<PhysicalDevice> future = Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, future, false);
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, future);
 
     // Assert
     Container sectionPanel = detailsPanel.getInfoSectionPanel();

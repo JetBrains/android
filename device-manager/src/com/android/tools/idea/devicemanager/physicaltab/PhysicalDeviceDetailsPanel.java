@@ -98,22 +98,19 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device, new AsyncDetailsBuilder(project, device).buildAsync(), true);
+    this(device, new AsyncDetailsBuilder(project, device).buildAsync());
   }
 
   @VisibleForTesting
-  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
-                             @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
-                             boolean addPairedDevices) {
-    this(device, future, SummarySectionCallback::new, WearPairingManager.INSTANCE, addPairedDevices);
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future) {
+    this(device, future, SummarySectionCallback::new, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
                              @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
                              @NotNull NewInfoSectionCallback<@NotNull SummarySection> newSummarySectionCallback,
-                             @NotNull WearPairingManager manager,
-                             boolean addPairedDevices) {
+                             @NotNull WearPairingManager manager) {
     super(device.getName());
     myOnline = device.isOnline();
 
@@ -124,7 +121,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myInfoSections.add(mySummarySection);
       InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
-      if (addPairedDevices && StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
         myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this);
       }
     }

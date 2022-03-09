@@ -60,7 +60,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setAvdInfo(avdInfo)
       .build();
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE, false);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
@@ -96,7 +96,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setAvdInfo(avdInfo)
       .build();
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE, false);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());

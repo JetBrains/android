@@ -89,7 +89,6 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
 
   @UiThread
   private void createUi() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
     removeAll();
 
     ToolbarDecorator toolbar;
