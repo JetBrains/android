@@ -33,7 +33,6 @@ fun createReattachingConnectDebuggerTaskWithMasterAndroidProcessName(baseConnect
                                                                      masterAndroidProcessName: String): ReattachingConnectDebuggerTask {
   return ReattachingConnectDebuggerTask(
     baseConnector,
-    masterAndroidProcessName,
     object : ReattachingConnectDebuggerTaskListener {
       override fun onStart(launchInfo: LaunchInfo,
                            device: IDevice,
