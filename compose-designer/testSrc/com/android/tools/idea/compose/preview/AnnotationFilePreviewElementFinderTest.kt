@@ -293,7 +293,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"named multipreview\")", it.previewElementDefinitionPsi?.element?.text)
+        assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
 
@@ -307,7 +307,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+        assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
 
@@ -599,7 +599,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
               if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
         }
       }
-      .sortByDisplayAndSourcePosition(false)
+      .sortByDisplayAndSourcePosition()
       .map { it.composableMethodFqn }
       .toTypedArray()
       .let {
@@ -624,8 +624,8 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         annotation class Annot2(){}
 
         @Composable
-        @Preview
         @Annot1
+        @Preview
         fun C() {
         }
 
@@ -644,6 +644,23 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         @Preview
         @Annot1
         fun TopA() {
+        }
+
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview // 10 previews, for testing lexicographic order with double-digit numbers in the names
+        annotation class Many() {}
+
+        @Composable
+        @Many
+        fun f(){
         }
       """.trimIndent())
 
@@ -665,14 +682,17 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
               if (it.displaySettings.name == "TopA") DisplayPositioning.TOP else it.displaySettings.displayPositioning)
         }
       }
-      .sortByDisplayAndSourcePosition(true)
+      .sortByDisplayAndSourcePosition()
       .map { it.displaySettings.name }
       .toTypedArray()
       .let {
         assertArrayEquals(arrayOf(
-          "C - Annot1 1", "C", "C - Annot3 1", // Previews of 'C'
-          "A - Annot1 1", "A - Annot2 1", "A - Annot3 1", "A", // Previews of 'A'
-          "TopA", "TopA - Annot1 1", "TopA - Annot3 1" // Previews of 'TopA'
+          "TopA", // Preview with top priority
+          "C - Annot1 1", "C - Annot3 1", "C", // Previews of 'C'
+          "A - Annot2 1", "A", "A - Annot1 1", "A - Annot3 1", // Previews of 'A'
+          "TopA - Annot1 1", "TopA - Annot3 1", // Previews of 'TopA'
+          "f - Many 01", "f - Many 02", "f - Many 03", "f - Many 04", "f - Many 05",
+          "f - Many 06", "f - Many 07", "f - Many 08", "f - Many 09", "f - Many 10", // Previews of 'f'
         ), it)
       }
   }

@@ -395,7 +395,10 @@ interface PreviewElement {
   /** Settings that affect how the [PreviewElement] is presented in the preview surface */
   val displaySettings: PreviewDisplaySettings
 
-  /** [SmartPsiElementPointer] to the preview element definition */
+  /** [SmartPsiElementPointer] to the preview element definition.
+   *  This means the annotation annotating the composable method, that
+   *  won't necessarily be a '@Preview' when Multipreview is enabled.
+   */
   val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
 
   /** [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview */
@@ -664,25 +667,14 @@ private val PreviewElement?.sourceOffset: Int
 
 private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
 private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySettings.displayPositioning }
+private val lexicographicalNameComparator = compareBy<PreviewElement> {it.displaySettings.name }
 
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
- * When [groupByComposable] is true, in order to group the Previews by their composable method, the first comparison
- * value will actually be the source code line number of these composable methods.
- * By default, the value of [groupByComposable] will be determined by the Multipreview flag, as grouping is needed for it.
+ * When Multipreview is enabled, different Previews may have the same [PreviewElement.previewElementDefinitionPsi] value,
+ * and those will be ordered lexicographically between them, as the actual Previews may be defined in different files and/or
+ * in a not structured way, so it is not possible to order them based on code source offsets.
  */
-fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(groupByComposable: Boolean = StudioFlags.COMPOSE_MULTIPREVIEW.get()):
-  List<T> = runReadAction {
-  sortedWith(
-    if (groupByComposable) {
-      var noOffsetFoundId = -1 // Used to differentiate composable methods of which is not possible to get an offset value
-      val composableOffset = this.distinctBy { it.composableMethodFqn }.associate {
-        it.composableMethodFqn to (it.previewBodyPsi?.element?.startOffset ?: noOffsetFoundId--)
-      }
-      compareBy<PreviewElement> { composableOffset[it.composableMethodFqn] }
-        .thenComparing(displayPriorityComparator)
-        .thenComparing(sourceOffsetComparator)
-    }
-    else displayPriorityComparator.thenComparing(sourceOffsetComparator)
-  )
+fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = runReadAction {
+  sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator).thenComparing(lexicographicalNameComparator))
 }

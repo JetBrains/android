@@ -104,32 +104,35 @@ internal fun hasPreviewElements(uMethod: UMethod) = getPreviewElements(uMethod).
 internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) = runReadAction {
   if (uMethod.isComposable()) {
     val visitedAnnotationClasses = mutableSetOf<String>()
-    uMethod.uAnnotations.asSequence().flatMap { it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName) }
+    uMethod.uAnnotations.asSequence().flatMap { it.getPreviewElements(visitedAnnotationClasses, uMethod, it, overrideGroupName) }
   }
   else emptySequence() // for non-composable methods, return an empty sequence
 }
 
 private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<String>,
                                            uMethod: UMethod? = getContainingComposableUMethod(),
+                                           rootAnnotation: UAnnotation,
                                            overrideGroupName: String? = null,
                                            parentAnnotationInfo: String? = null): Sequence<PreviewElement> = runReadAction {
   if (this.isPreviewAnnotation()) {
-    return@runReadAction sequenceOfNotNull(this.toPreviewElement(uMethod, overrideGroupName, parentAnnotationInfo))
+    return@runReadAction sequenceOfNotNull(this.toPreviewElement(uMethod, rootAnnotation, overrideGroupName, parentAnnotationInfo))
   }
   val annotationClassFqcn = (this.tryResolve() as? PsiClass)?.qualifiedName
   if (this.couldBeMultiPreviewAnnotation() && annotationClassFqcn != null && !visitedAnnotationClasses.contains(annotationClassFqcn)) {
     visitedAnnotationClasses.add(annotationClassFqcn)
-    var nDirectPreviews = 0
+
     val curAnnotationName = (this.tryResolve() as? PsiClass)!!.name
-    (this.tryResolve() as? PsiModifierListOwner)?.annotations
-      ?.mapNotNull { it.toUElementOfType() as? UAnnotation }
-      ?.asSequence()
-      ?.flatMap {
+    val annotations = (this.tryResolve() as? PsiModifierListOwner)?.annotations
+                        ?.mapNotNull { it.toUElementOfType() as? UAnnotation } ?: return@runReadAction emptySequence()
+    val nDirectPreviewsLen = annotations.count { it.isPreviewAnnotation() }.toString().length
+    var nxtDirectPreviewId = 1
+    annotations.asSequence().flatMap {
         if (it.isPreviewAnnotation()) {
-          it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName, "$curAnnotationName ${++nDirectPreviews}")
+          it.getPreviewElements(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName,
+                                buildParentAnnotationInfo(curAnnotationName, nxtDirectPreviewId++, nDirectPreviewsLen))
         }
         else {
-          it.getPreviewElements(visitedAnnotationClasses, uMethod, overrideGroupName)
+          it.getPreviewElements(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName)
         }
       }
     ?: emptySequence()
@@ -137,15 +140,18 @@ private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<
   else emptySequence()
 }
 
+private fun buildParentAnnotationInfo(name: String?, id: Int, idLength: Int) = "$name ${id.toString().padStart(idLength, '0')}"
+
 /**
  * Converts the [UAnnotation] to a [PreviewElement] if the annotation is a `@Preview` annotation or returns null
  * if it's not.
  */
 internal fun UAnnotation.toPreviewElement(uMethod: UMethod? = getContainingComposableUMethod(),
+                                          rootAnnotation: UAnnotation = this,
                                           overrideGroupName: String? = null,
                                           parentAnnotationInfo: String? = null) = runReadAction {
   if (this.isPreviewAnnotation()) {
-    uMethod?.let { previewAnnotationToPreviewElement(this, it, overrideGroupName, parentAnnotationInfo) }
+    uMethod?.let { previewAnnotationToPreviewElement(this, it, rootAnnotation, overrideGroupName, parentAnnotationInfo) }
   }
   else null
 }
@@ -209,6 +215,7 @@ private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<Stri
  */
 private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                               annotatedMethod: UMethod,
+                                              rootAnnotation: UAnnotation,
                                               overrideGroupName: String? = null,
                                               parentAnnotationInfo: String? = null): PreviewElement? {
   fun getPreviewName(nameParameter: String?) = when {
@@ -248,7 +255,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
   val composeLibraryNamespace = previewAnnotation.sourcePsi?.module.findComposeToolingNamespace()
   val basePreviewElement = SinglePreviewElementInstance(composableMethod,
                                                         displaySettings,
-                                                        previewAnnotation.toSmartPsiPointer(),
+                                                        rootAnnotation.toSmartPsiPointer(),
                                                         annotatedMethod.uastBody.toSmartPsiPointer(),
                                                         attributesToConfiguration(previewAnnotation, defaultValues),
                                                         composeLibraryNamespace)
