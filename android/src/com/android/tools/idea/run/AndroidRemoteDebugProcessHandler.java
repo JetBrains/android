@@ -28,8 +28,10 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.OutputStream;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +82,9 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
         // Delay notifying process detached by 1 second to avoid race condition with ITestRunListener#testRunEnded.
         // If you debug android instrumentation test process, the test process may terminate before Ddmlib calls
         // testRunEnded callback. This results in "test framework quits unexpected" error. b/150001290.
-        AppExecutorUtil.getAppScheduledExecutorService().schedule(() -> notifyProcessDetached(), 1, TimeUnit.SECONDS);
+        ScheduledFuture<?> future =
+          AppExecutorUtil.getAppScheduledExecutorService().schedule(() -> notifyProcessDetached(), 1, TimeUnit.SECONDS);
+        Disposer.register(myProject, () -> future.cancel(false));
       }
     };
     debugProcess.addDebugProcessListener(listener);
