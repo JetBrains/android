@@ -76,13 +76,15 @@ Controller::Controller(int socket_fd)
       accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       clipboard_listener_(this),
       clipboard_manager_(),  // Assigned on first use.
-      max_synced_clipboard_length_(0) {
+      max_synced_clipboard_length_(0),
+      setting_clipboard_(false) {
   assert(socket_fd > 0);
 }
 
 Controller::~Controller() {
   input_stream_.Close();
   StopClipboardSync();
+  clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
   if (thread_.joinable()) {
     thread_.join();
   }
@@ -301,25 +303,32 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
   int old_synced_clipboard_length = max_synced_clipboard_length_.exchange(message.get_max_synced_length());
   clipboard_manager_ = ClipboardManager::GetInstance(jni_);
-  clipboard_manager_->SetText(message.get_text());
+  setting_clipboard_ = true;
+  clipboard_manager_->SetText(jni_, message.get_text());
   if (old_synced_clipboard_length == 0) {
     clipboard_manager_->AddClipboardListener(&clipboard_listener_);
   }
+  setting_clipboard_ = false;
 }
 
 void Controller::StopClipboardSync() {
-  clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
   max_synced_clipboard_length_ = 0;
 }
 
 void Controller::OnPrimaryClipChanged() {
-  auto text = clipboard_manager_->GetText();
+  if (setting_clipboard_) {
+    return;
+  }
+  // Can't use jni_ because this method may be called on an arbitrary thread.
+  auto text = clipboard_manager_->GetText(Jvm::GetJni());
   int max_length = max_synced_clipboard_length_;
   if (!text.empty() && text.size() <= max_length * UTF8_MAX_BYTES_PER_CHARACTER && Utf8CharacterCount(text) <= max_length) {
-    ClipboardChangedMessage message(text);
+    ClipboardChangedMessage message(move(text));
     try {
       message.Serialize(output_stream_);
       output_stream_.Flush();
+    } catch (StreamClosedException& e) {
+      // The stream has been closed - ignore.
     } catch (EndOfFile& e) {
       // The socket has been closed - ignore.
     }

@@ -35,13 +35,28 @@ ClipboardManager* clipboard_manager_instance = nullptr;
 }  // namespace
 
 ClipboardManager::ClipboardManager(Jni jni)
-    : jni_(jni),
-      clipboard_manager_(ServiceManager::GetServiceAsInterface(jni, "clipboard", "android/content/IClipboard", /*allow_null =*/ true)),
+    : clipboard_manager_(ServiceManager::GetServiceAsInterface(jni, "clipboard", "android/content/IClipboard", /*allow_null =*/ true)),
       clipboard_listeners_(new vector<ClipboardListener*>()) {
   if (clipboard_manager_.IsNull()) {
     return;
   }
   package_name_ = JString(jni, PACKAGE_NAME).ToGlobal();
+
+  clip_data_class_ = jni.GetClass("android/content/ClipData");
+  new_plain_text_method_ = clip_data_class_.GetStaticMethodId(
+      "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;");
+  get_item_count_method_ = clip_data_class_.GetMethodId("getItemCount", "()I");
+  get_item_at_method_ = clip_data_class_.GetMethodId("getItemAt", "(I)Landroid/content/ClipData$Item;");
+  clip_data_class_.MakeGlobal();
+
+  JClass clip_data_item_class = jni.GetClass("android/content/ClipData$Item");
+  get_text_method_ = clip_data_item_class.GetMethodId("getText", "()Ljava/lang/CharSequence;");
+
+  JClass clipboard_listener_class = jni.GetClass("com/android/tools/screensharing/ClipboardListener");
+  jmethodID constructor = clipboard_listener_class.GetConstructorId("()V");
+  clipboard_listener_ = clipboard_listener_class.NewObject(constructor);
+  clipboard_listener_.MakeGlobal();
+
   int api_level = android_get_device_api_level();
   JClass clipboard_manager_class = clipboard_manager_.GetClass();
   const char* signature = api_level >= 29 ?
@@ -53,18 +68,13 @@ ClipboardManager::ClipboardManager(Jni jni)
   signature = api_level >= 29 ?
       "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;I)V" :
       "(Landroid/content/IOnPrimaryClipChangedListener;Ljava/lang/String;)V";
-  add_primary_clip_changed_listener_method_ = clipboard_manager_class.GetMethodId("addPrimaryClipChangedListener", signature);
+  jmethodID add_listener_method = clipboard_manager_class.GetMethodId("addPrimaryClipChangedListener", signature);
+  if (api_level >= 29) {
+    clipboard_manager_.CallVoidMethod(add_listener_method, clipboard_listener_.ref(), package_name_.ref(), USER_ID);
+  } else {
+    clipboard_manager_.CallVoidMethod(add_listener_method, clipboard_listener_.ref(), package_name_.ref());
+  }
   clipboard_manager_.MakeGlobal();
-
-  clip_data_class_ = jni.GetClass("android/content/ClipData");
-  new_plain_text_method_ = clip_data_class_.GetStaticMethodId(
-      "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;");
-  get_item_count_method_ = clip_data_class_.GetMethodId("getItemCount", "()I");
-  get_item_at_method_ = clip_data_class_.GetMethodId("getItemAt", "(I)Landroid/content/ClipData$Item;");
-  clip_data_class_.MakeGlobal();
-
-  JClass clip_data_item_class = jni.GetClass("android/content/ClipData$Item");
-  get_text_method_ = clip_data_item_class.GetMethodId("getText", "()Ljava/lang/CharSequence;");
 }
 
 ClipboardManager::~ClipboardManager() {
@@ -78,24 +88,28 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
   return clipboard_manager_instance;
 }
 
-string ClipboardManager::GetText() const {
+string ClipboardManager::GetText(Jni jni) const {
   JObject clip_data = android_get_device_api_level() >= 29 ?
-      clipboard_manager_.CallObjectMethod(jni_, get_primary_clip_method_, package_name_.ref(), USER_ID) :
-      clipboard_manager_.CallObjectMethod(jni_, get_primary_clip_method_, package_name_.ref());
+      clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref(), USER_ID) :
+      clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref());
   if (clip_data.IsNull() || clip_data.CallIntMethod(get_item_count_method_) == 0) {
     return "";
   }
   JObject item = clip_data.CallObjectMethod(get_item_at_method_, 0);
-  return item.CallObjectMethod(get_text_method_).ToString();
+  JObject text = item.CallObjectMethod(get_text_method_);
+  if (text.IsNull()) {
+    return "";
+  }
+  return text.ToString();
 }
 
-void ClipboardManager::SetText(const string& text) const {
-  JString jtext = JString(jni_, text.c_str());
-  JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni_, new_plain_text_method_, jtext.ref(), jtext.ref());
+void ClipboardManager::SetText(Jni jni, const string& text) const {
+  JString jtext = JString(jni, text.c_str());
+  JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni, new_plain_text_method_, jtext.ref(), jtext.ref());
   if (android_get_device_api_level() >= 29) {
-    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
+    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
   } else {
-    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
+    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
   }
 }
 
@@ -138,9 +152,9 @@ void ClipboardManager::OnPrimaryClipChanged() const {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_ClipboardListener_onPrimaryClipChanged(JNIEnv* jni_env, jobject thiz) {
+Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {
+  screensharing::Log::D("ClipboardListener.dispatchPrimaryClipChanged");
   if (screensharing::clipboard_manager_instance != nullptr) {
     screensharing::clipboard_manager_instance->OnPrimaryClipChanged();
   }
-  // TODO: implement onPrimaryClipChanged()
 }

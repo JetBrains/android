@@ -83,6 +83,7 @@ private:
   ClipboardListener clipboard_listener_;
   ClipboardManager* clipboard_manager_;  // Not owned.
   std::atomic<int> max_synced_clipboard_length_;
+  std::atomic<bool> setting_clipboard_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

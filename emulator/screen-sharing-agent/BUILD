@@ -52,7 +52,17 @@ android_cc_binary(
 )
 
 aidl_library(
-    name = "aidl_lib",
+    name = "aidl_lib1",
+    srcs = ["app/src/main/aidl/android/content/IOnPrimaryClipChangedListener.aidl"],
+    tags = ["no_windows"],
+    deps = [
+        "//prebuilts/studio/sdk:platforms/latest_jar",
+        "//tools/base/annotations",
+    ],
+)
+
+aidl_library(
+    name = "aidl_lib2",
     srcs = ["app/src/main/aidl/android/view/IRotationWatcher.aidl"],
     tags = ["no_windows"],
     deps = [
@@ -66,7 +76,8 @@ java_library(
     srcs = glob(["app/src/main/java/**/*.java"]),
     tags = ["no_windows"],
     deps = [
-        ":aidl_lib",
+        ":aidl_lib1",
+        ":aidl_lib2",
         "//prebuilts/studio/sdk:platforms/latest_jar",
     ],
 )

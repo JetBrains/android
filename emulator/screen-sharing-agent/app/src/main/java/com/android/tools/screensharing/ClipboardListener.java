@@ -15,13 +15,13 @@
  */
 package com.android.tools.screensharing;
 
-import android.content.ClipboardManager;
+import android.content.IOnPrimaryClipChangedListener;
 
 /**
- * Implementation of the {@link ClipboardManager.OnPrimaryClipChangedListener} interface
- * delegating to the native code.
+ * Implementation of the {@link IOnPrimaryClipChangedListener} interface delegating to the native
+ * code in clipboard_manager.cc.
  */
-public class ClipboardListener implements ClipboardManager.OnPrimaryClipChangedListener {
+public class ClipboardListener extends IOnPrimaryClipChangedListener.Stub {
   @Override
-  public native void onPrimaryClipChanged();
+  public native void dispatchPrimaryClipChanged();
 }

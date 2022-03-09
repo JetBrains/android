@@ -257,7 +257,12 @@ private:
 class ClipboardChangedMessage : ControlMessage {
 public:
   ClipboardChangedMessage(const std::string& text)
-      : ControlMessage(TYPE) {
+      : ControlMessage(TYPE),
+        text_(text) {
+  }
+  ClipboardChangedMessage(std::string&& text)
+      : ControlMessage(TYPE),
+        text_(text) {
   }
   virtual ~ClipboardChangedMessage() {};
 

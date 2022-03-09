@@ -42,8 +42,8 @@ public:
     return !clipboard_manager_.IsNull();
   }
 
-  std::string GetText() const;
-  void SetText(const std::string& text) const;
+  std::string GetText(Jni jni) const;
+  void SetText(Jni jni, const std::string& text) const;
   void AddClipboardListener(ClipboardListener* listener);
   void RemoveClipboardListener(ClipboardListener* listener);
 
@@ -52,13 +52,8 @@ public:
 private:
   ClipboardManager(Jni jni);
 
-  Jni jni_;
   JString package_name_;
-  // android.content.ClipboardManager class.
-  JObject clipboard_manager_;
-  jmethodID get_primary_clip_method_;
-  jmethodID set_primary_clip_method_;
-  jmethodID add_primary_clip_changed_listener_method_;
+  JObject clipboard_listener_;
   // android.content.ClipData class.
   JClass clip_data_class_;
   jmethodID new_plain_text_method_;
@@ -66,6 +61,10 @@ private:
   jmethodID get_item_at_method_;
   // android.content.ClipData.Item class.
   jmethodID get_text_method_;
+  // android.content.ClipboardManager class.
+  JObject clipboard_manager_;
+  jmethodID get_primary_clip_method_;
+  jmethodID set_primary_clip_method_;
   // Copy-on-write set of clipboard listeners.
   std::atomic<std::vector<ClipboardListener*>*> clipboard_listeners_;
 
