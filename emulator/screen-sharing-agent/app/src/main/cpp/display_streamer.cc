@@ -24,8 +24,8 @@
 #include <chrono>
 #include <cmath>
 
-#include "accessors/surface_control.h"
 #include "accessors/display_manager.h"
+#include "accessors/surface_control.h"
 #include "agent.h"
 #include "jvm.h"
 #include "log.h"
@@ -131,11 +131,11 @@ void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_tok
 }  // namespace
 
 DisplayStreamer::DisplayStreamer(int display_id, Size max_video_resolution, int socket_fd)
-    : display_id_(display_id),
+    : display_rotation_watcher_(this),
+      display_id_(display_id),
       max_video_resolution_(max_video_resolution),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
-      display_rotation_watcher_(this),
       stopped_(),
       video_orientation_(-1),
       running_codec_() {
