@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL
 import com.android.ddmlib.IDevice.PROP_BUILD_VERSION
@@ -56,8 +57,10 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
@@ -124,6 +127,7 @@ internal class LogcatMainPanel(
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
+  androidDebugBridgeConnector: AndroidDebugBridgeConnector = AndroidDebugBridgeConnectorImpl(),
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -194,11 +198,21 @@ internal class LogcatMainPanel(
     deviceContext.addListener(object : DeviceConnectionListener() {
       @UiThread
       override fun onDeviceConnected(device: IDevice) {
-        deviceManager?.let {
-          Disposer.dispose(it)
-        }
-        document.setText("")
-        deviceManager = LogcatDeviceManager.create(project, device, this@LogcatMainPanel, packageNamesProvider)
+        // We have the IDevice already but when moving to AdbLib DeviceComboBox, we will only have the serial number, so we need to find
+        // the IDevice corresponding to that serial using AndroidDebugBridge.
+        androidDebugBridgeConnector.addDebugBridgeChangeListener(object : IDebugBridgeChangeListener {
+          override fun bridgeChanged(bridge: com.android.ddmlib.AndroidDebugBridge?) {
+            val iDevice = androidDebugBridgeConnector.devices.find { it.isSameDevice(device) }
+            if (iDevice != null) {
+              deviceManager?.let {
+                Disposer.dispose(it)
+              }
+              document.setText("")
+              deviceManager = LogcatDeviceManager.create(project, iDevice, this@LogcatMainPanel, packageNamesProvider)
+            }
+            androidDebugBridgeConnector.removeDebugBridgeChangeListener(this)
+          }
+        })
       }
 
       @UiThread
@@ -442,5 +456,13 @@ private fun IDevice?.toSavedDevice(): SavedDevice? {
     )
     val avdName = if (avdData.isDone) avdData.get()?.name else null
     SavedDevice(serialNumber, name, isEmulator, avdName, properties)
+  }
+}
+
+private fun IDevice.isSameDevice(other: IDevice): Boolean {
+  return when {
+    !isEmulator -> serialNumber == other.serialNumber
+    avdData.isDone && other.avdData.isDone -> avdData.get().name == other.avdData.get().name
+    else -> false
   }
 }

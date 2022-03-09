@@ -41,8 +41,11 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
+import com.android.tools.idea.logcat.util.FakeAndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.run.ClearLogcatListener
@@ -106,8 +109,9 @@ class LogcatMainPanelTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule, LogcatFilterLanguageRule(), usageTrackerRule)
 
-  private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
+  private val mockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
+  private val androidDebugBridge = FakeAndroidDebugBridgeConnector()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
 
   @Before
@@ -283,7 +287,7 @@ class LogcatMainPanelTest {
   @Test
   fun isMessageViewEmpty_notEmptyLogcat() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+      logcatMainPanel(hyperlinkDetector = mockHyperlinkDetector)
     }
 
     logcatMainPanel.processMessages(listOf(logCatMessage()))
@@ -311,8 +315,9 @@ class LogcatMainPanelTest {
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
     val device = mockDevice("device1")
+    androidDebugBridge.mutableDevices.add(device)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also {
+      logcatMainPanel(androidDebugBridgeConnector = androidDebugBridge).also {
         it.deviceContext.fireDeviceSelected(device)
         it.editor.document.setText("not-empty")
       }
@@ -329,6 +334,8 @@ class LogcatMainPanelTest {
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
     val device1 = mockDevice("device1")
     val device2 = mockDevice("device2")
+    androidDebugBridge.mutableDevices.add(device1)
+    androidDebugBridge.mutableDevices.add(device2)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().also {
         it.deviceContext.fireDeviceSelected(device1)
@@ -350,7 +357,7 @@ class LogcatMainPanelTest {
   @Test
   fun hyperlinks_range() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+      logcatMainPanel(hyperlinkDetector = mockHyperlinkDetector)
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -358,8 +365,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(myMockHyperlinkDetector).detectHyperlinks(eq(0), eq(1))
-      verify(myMockHyperlinkDetector).detectHyperlinks(eq(1), eq(2))
+      verify(mockHyperlinkDetector).detectHyperlinks(eq(0), eq(1))
+      verify(mockHyperlinkDetector).detectHyperlinks(eq(1), eq(2))
     }
   }
 
@@ -370,7 +377,7 @@ class LogcatMainPanelTest {
   @Test
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector, logcatSettings = AndroidLogcatSettings(bufferSize = 1024))
+      logcatMainPanel(hyperlinkDetector = mockHyperlinkDetector, logcatSettings = AndroidLogcatSettings(bufferSize = 1024))
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -379,7 +386,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage(message = longMessage)))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(myMockHyperlinkDetector, times(2)).detectHyperlinks(eq(0), eq(1))
+      verify(mockHyperlinkDetector, times(2)).detectHyperlinks(eq(0), eq(1))
     }
   }
 
@@ -701,6 +708,7 @@ class LogcatMainPanelTest {
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
+    androidDebugBridgeConnector: AndroidDebugBridgeConnector = AndroidDebugBridgeConnectorImpl(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ): LogcatMainPanel =
     LogcatMainPanel(
@@ -713,7 +721,8 @@ class LogcatMainPanelTest {
       hyperlinkDetector,
       foldingDetector,
       packageNamesProvider,
-      zoneId
+      androidDebugBridgeConnector,
+      zoneId,
     ).also {
       Disposer.register(projectRule.project, it)
     }
