@@ -17,7 +17,6 @@ package com.android.tools.compose.code.completion.constraintlayout.provider
 
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
-import com.android.tools.compose.code.completion.constraintlayout.DimBehavior
 import com.android.tools.compose.code.completion.constraintlayout.Dimension
 import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
@@ -30,7 +29,6 @@ import com.android.tools.compose.code.completion.constraintlayout.LiveTemplateFo
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
-import com.android.tools.compose.code.completion.constraintlayout.VisibilityMode
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithCaretInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithLiveTemplateInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithNewLineInsertHandler
@@ -46,6 +44,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
+import kotlin.reflect.KClass
 
 /**
  * Completion provider that looks for the 'ConstraintSets' declaration and passes a model that provides useful functions for inheritors that
@@ -154,9 +153,9 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
     if (!existingFields.contains(KeyWords.Visibility)) {
       result.addLookupElement(name = KeyWords.Visibility, format = JsonStringValueTemplate)
     }
-    result.addStringValueCompletions<SpecialAnchor>(existingFields)
-    result.addNumericValueCompletions<Dimension>(existingFields)
-    result.addNumericValueCompletions<RenderTransform>(existingFields)
+    result.addEnumKeyWordsWithStringValueTemplate<SpecialAnchor>(existingFields)
+    result.addEnumKeyWordsWithNumericValueTemplate<Dimension>(existingFields)
+    result.addEnumKeyWordsWithNumericValueTemplate<RenderTransform>(existingFields)
   }
 }
 
@@ -179,7 +178,7 @@ internal object ConstraintIdsProvider : BaseConstraintSetsCompletionProvider() {
     getJsonPropertyParent(parameters)?.name?.let(possibleIds::remove)
 
     possibleIds.forEach { id ->
-      result.addLookupElement(id)
+      result.addLookupElement(name = id)
     }
   }
 }
@@ -207,30 +206,16 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
 }
 
 /**
- * Provides non-numeric dimension values.
+ * Provides plaint-text completion for each of the elements in the Enum.
  *
- * These are not a fixed dimension value, but instead, change the behavior of the dimension assigned of the widget.
+ * The provided values come from [ConstraintLayoutKeyWord.keyWord].
  */
-internal object DimensionBehaviorProvider : BaseConstraintSetsCompletionProvider() {
-  override fun addCompletions(
-    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
-    parameters: CompletionParameters,
-    result: CompletionResultSet
-  ) {
-    DimBehavior.values().forEach { result.addLookupElement(name = it.keyWord) }
-  }
-}
-
-/**
- * Provides the possible values for the [KeyWords.Visibility] property.
- */
-internal object VisibilityModesProvider : BaseConstraintSetsCompletionProvider() {
-  override fun addCompletions(
-    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
-    parameters: CompletionParameters,
-    result: CompletionResultSet
-  ) {
-    VisibilityMode.values().forEach { result.addLookupElement(name = it.keyWord) }
+internal class EnumValuesCompletionProvider<E>(private val enumClass: KClass<E>)
+  : CompletionProvider<CompletionParameters>() where E : Enum<E>, E : ConstraintLayoutKeyWord {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    enumClass.java.enumConstants.forEach {
+      result.addLookupElement(name = it.keyWord)
+    }
   }
 }
 
@@ -256,28 +241,28 @@ private fun CompletionResultSet.addLookupElement(name: String, tailText: String?
 /**
  * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a string for its value.
  */
-private inline fun <reified E> CompletionResultSet.addStringValueCompletions(
+private inline fun <reified E> CompletionResultSet.addEnumKeyWordsWithStringValueTemplate(
   existing: Set<String>
 ) where E : Enum<E>, E : ConstraintLayoutKeyWord {
-  addCompletions<E>(this, existing, JsonStringValueTemplate)
+  addEnumKeywords<E>(result = this, existing = existing, format = JsonStringValueTemplate)
 }
 
 /**
  * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a number for its value.
  */
-private inline fun <reified E> CompletionResultSet.addNumericValueCompletions(
+private inline fun <reified E> CompletionResultSet.addEnumKeyWordsWithNumericValueTemplate(
   existing: Set<String>
 ) where E : Enum<E>, E : ConstraintLayoutKeyWord {
-  addCompletions<E>(this, existing, JsonNumericValueTemplate)
+  addEnumKeywords<E>(result = this, existing = existing, format = JsonNumericValueTemplate)
 }
 
 /**
  * Helper function to simplify adding enum constant members to the completion result.
  */
-private inline fun <reified E> addCompletions(
+private inline fun <reified E> addEnumKeywords(
   result: CompletionResultSet,
-  existing: Set<String>,
-  format: InsertionFormat
+  existing: Set<String> = emptySet(),
+  format: InsertionFormat? = null
 ) where E : Enum<E>, E : ConstraintLayoutKeyWord {
   E::class.java.enumConstants.forEach { constant ->
     if (!existing.contains(constant.keyWord)) {
