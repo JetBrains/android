@@ -87,7 +87,7 @@
     </action>
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
-      <action id="Android.RunAndroidAvdManager" class="com.android.tools.idea.devicemanager.legacy.actions.RunAndroidAvdManagerAction"/>
+      <action id="Android.DeviceManager" class="com.android.tools.idea.devicemanager.DeviceManagerAction"/>
       <separator/>
       <action id="ResourceExplorer.open"
               text="Resource Manager"
@@ -102,7 +102,7 @@
     <group id="Android.MainToolBarActionGroup">
       <separator/>
       <reference id="Android.SyncProject" />
-      <reference id="Android.RunAndroidAvdManager"/>
+      <reference id="Android.DeviceManager"/>
       <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>

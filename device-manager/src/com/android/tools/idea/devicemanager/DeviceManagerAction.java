@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.legacy.actions;
+package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
-import com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -28,7 +27,7 @@ import icons.StudioIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class RunAndroidAvdManagerAction extends DumbAwareAction {
+final class DeviceManagerAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
@@ -69,7 +68,6 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     Project project = event.getProject();
 
     if (project == null) {
-      // TODO(qumeric): investigate if it is possible and let the user know if it is.
       return;
     }
 

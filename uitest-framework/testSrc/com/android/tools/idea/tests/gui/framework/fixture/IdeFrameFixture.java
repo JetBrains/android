@@ -616,7 +616,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public AvdManagerDialogFixture invokeAvdManager() {
     // The action button is prone to move during rendering so that robot.click() could miss.
     // So, we use component's click here directly.
-    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager", 30);
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager", 30);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() {

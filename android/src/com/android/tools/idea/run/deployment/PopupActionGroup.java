@@ -58,10 +58,8 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    // Action ID is from com.android.tools.idea.wearpairing.actions.WearDevicePairingAction.
     add(manager.getAction("Android.WearDevicePairing"));
-    // Action ID is from com.android.tools.idea.devicemanager.legacy.actions.Android.RunAndroidAvdManager.
-    add(manager.getAction("Android.RunAndroidAvdManager"));
+    add(manager.getAction("Android.DeviceManager"));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
 

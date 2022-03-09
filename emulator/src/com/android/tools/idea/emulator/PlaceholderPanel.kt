@@ -80,10 +80,10 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         if (emulatorLaunchesInToolWindow) {
           if (emulatorVersionIsSufficient) {
-            // Action id is from com.android.tools.idea.devicemanager.legacy.actions.RunAndroidAvdManagerAction.
-            val runAndroidAvdManagerAction = ActionManager.getInstance().getAction("Android.RunAndroidAvdManager")
+            // Action id is from com.android.tools.idea.devicemanager.DeviceManagerAction.
+            val deviceManagerAction = ActionManager.getInstance().getAction("Android.DeviceManager")
             val projectContext = SimpleDataContext.getProjectContext(project)
-            ActionUtil.invokeAction(runAndroidAvdManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
+            ActionUtil.invokeAction(deviceManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
           }
           else {
             val actionManager = ActionManager.getInstance()
