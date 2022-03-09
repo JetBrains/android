@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.legacy;
+package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.ddmlib.IDevice;
-import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class LegacyAvdManagerUtils {
-  public static @NotNull FutureCallback<@NotNull IDevice> newCallback(@Nullable Project project) {
-    return new ShowErrorDialogCallback<>("Device Manager",
-                                         "There was an unspecified error in the device manager. Please consult idea.log for more " +
-                                         "information.",
-                                         project);
+final class VirtualTabMessages {
+  private VirtualTabMessages() {
+  }
+
+  static void showErrorDialog(@NotNull Throwable throwable, @Nullable Project project) {
+    String message = throwable.getMessage();
+
+    if (message == null) {
+      message = "There was an unspecified error in the device manager. Please consult idea.log for more information.";
+    }
+
+    Messages.showErrorDialog(project, message, "Device Manager");
   }
 }

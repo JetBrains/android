@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
@@ -29,8 +28,6 @@ import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
-import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,6 +41,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +49,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.DefaultRowSorter;
-import javax.swing.JComponent;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -65,9 +62,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO Stop implementing AvdInfoProvider
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements AvdInfoProvider {
-  private final @NotNull VirtualDevicePanel myPanel;
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> {
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
 
@@ -114,7 +109,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      @NotNull NewSetDevices newSetDevices) {
     super(new VirtualDeviceTableModel(), VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
-    myPanel = panel;
     myAsyncSupplier = asyncSupplier;
     myNewSetDevices = newSetDevices;
 
@@ -147,11 +141,13 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
+    ActionListener listener = new BuildVirtualDeviceConfigurationWizardActionListener(this, project, this);
+
     // noinspection DialogTitleCapitalization
     getEmptyText()
       .appendLine("No virtual devices added. Create a virtual device to test")
       .appendLine("applications without owning a physical device.")
-      .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, new CreateAvdAction(this));
+      .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, listener);
 
     refreshAvds();
   }
@@ -209,11 +205,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return (VirtualDeviceTableModel)dataModel;
   }
 
-  @Override
-  public @Nullable AvdInfo getAvdInfo() {
-    return getSelectedDevice().map(VirtualDevice::getAvdInfo).orElse(null);
-  }
-
   @NotNull Optional<@NotNull VirtualDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
@@ -254,7 +245,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return convertColumnIndexToView(VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX);
   }
 
-  int sizeOnDiskViewColumnIndex() {
+  private int sizeOnDiskViewColumnIndex() {
     return convertColumnIndexToView(VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX);
   }
 
@@ -274,24 +265,8 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return convertColumnIndexToView(VirtualDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX);
   }
 
-  @Override
-  public void refreshAvds() {
+  void refreshAvds() {
     FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(getModel()));
-  }
-
-  @Override
-  public void refreshAvdsAndSelect(@Nullable AvdInfo device) {
-    refreshAvds();
-  }
-
-  @Override
-  public @Nullable Project getProject() {
-    return myPanel.getProject();
-  }
-
-  @Override
-  public @NotNull JComponent getAvdProviderComponent() {
-    return this;
   }
 
   // TODO: Remove together with the icon update side effect in getTableCellEditorComponent

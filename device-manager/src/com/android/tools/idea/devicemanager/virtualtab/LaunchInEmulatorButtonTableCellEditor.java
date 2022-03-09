@@ -28,7 +28,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -113,13 +112,7 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
     @Override
     public void onFailure(@NotNull Throwable throwable) {
       myButton.setEnabled(true);
-      String message = throwable.getMessage();
-
-      if (message == null) {
-        message = "There was an unspecified error in the device manager. Please consult idea.log for more information.";
-      }
-
-      Messages.showErrorDialog(myProject, message, "Device Manager");
+      VirtualTabMessages.showErrorDialog(throwable, myProject);
     }
   }
 
