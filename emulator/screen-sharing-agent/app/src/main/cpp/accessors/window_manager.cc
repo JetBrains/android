@@ -133,6 +133,7 @@ void WindowManager::OnRotationChanged(int32_t rotation) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(JNIEnv* jni_env, jobject thiz, jint rotation) {
+  screensharing::Log::D("RotationWatcher.onRotationChanged");
   if (screensharing::window_manager_instance != nullptr) {
     screensharing::window_manager_instance->OnRotationChanged(rotation);
   }
