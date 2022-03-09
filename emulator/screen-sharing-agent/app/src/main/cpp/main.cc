@@ -23,7 +23,7 @@ using namespace screensharing;
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thisClass, jobjectArray argArray) {
-  Log::I("Main.nativeMain");
+  Log::I("Screen sharing agent started");
   Jvm::Initialize(jni_env);
 
   int argc = jni_env->GetArrayLength(argArray);
@@ -38,6 +38,7 @@ Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thi
     Agent agent(args);
     agent.Run();
   }
+  Log::I("Screen sharing agent stopped");
   // Exit explicitly to bypass the final JVM cleanup that for some unclear reason sometimes crashes with SIGSEGV.
   exit(EXIT_SUCCESS);
 }

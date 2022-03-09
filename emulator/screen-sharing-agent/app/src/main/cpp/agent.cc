@@ -90,7 +90,6 @@ Agent::Agent(const vector<string>& args)
 Agent::~Agent() {
   delete controller_;
   delete display_streamer_;
-  Log::I("Screen sharing agent has stopped");
 }
 
 void Agent::Run() {
