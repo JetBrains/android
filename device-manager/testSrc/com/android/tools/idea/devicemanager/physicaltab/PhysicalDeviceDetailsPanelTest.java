@@ -28,7 +28,6 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPan
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import java.awt.Container;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -37,9 +36,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceDetailsPanelTest {
+  private final @NotNull AsyncDetailsBuilder myBuilder = Mockito.mock(AsyncDetailsBuilder.class);
+
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
@@ -53,12 +55,12 @@ public final class PhysicalDeviceDetailsPanelTest {
       .addAllAbis(Arrays.asList("arm64-v8a", "armeabi-v7a", "armeabi"))
       .build();
 
-    ListenableFuture<PhysicalDevice> future = Futures.immediateFuture(device);
+    Mockito.when(myBuilder.buildAsync()).thenReturn(Futures.immediateFuture(device));
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
-                                                                      future,
+                                                                      myBuilder,
                                                                       section -> newSummarySectionCallback(section, latch),
                                                                       WearPairingManager.INSTANCE);
 
@@ -80,9 +82,11 @@ public final class PhysicalDeviceDetailsPanelTest {
 
   @Test
   public void setInfoSectionPanelLayout() {
+    // Arrange
+    Mockito.when(myBuilder.buildAsync()).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
+
     // Act
-    ListenableFuture<PhysicalDevice> future = Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, future);
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, myBuilder);
 
     // Assert
     Container sectionPanel = detailsPanel.getInfoSectionPanel();

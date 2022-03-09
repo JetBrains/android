@@ -43,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class VirtualDevicePanel extends DevicePanel {
+  private final @Nullable Project myProject;
+
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private final @NotNull JButton myHelpButton;
@@ -56,6 +58,8 @@ public final class VirtualDevicePanel extends DevicePanel {
                      @NotNull Disposable parent,
                      @NotNull Function<@NotNull AvdInfoProvider, @NotNull ActionListener> createAvdActionProvider) {
     super(project);
+    myProject = project;
+
     initTable();
     myScrollPane = new JBScrollPane(myTable);
 
@@ -83,7 +87,7 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new));
+    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
 
   @VisibleForTesting

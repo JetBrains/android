@@ -26,7 +26,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
-import com.android.tools.idea.wearpairing.WearPairingManager;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +59,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setAvdInfo(avdInfo)
       .build();
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, null);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
@@ -96,7 +95,7 @@ public final class VirtualDeviceDetailsPanelTest {
       .setAvdInfo(avdInfo)
       .build();
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, WearPairingManager.INSTANCE);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(device, null);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());

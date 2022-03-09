@@ -263,6 +263,9 @@ public final class PhysicalDevicePanelTest {
   }
 
   private static @NotNull DetailsPanel newPhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device) {
-    return new PhysicalDeviceDetailsPanel(device, Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    AsyncDetailsBuilder builder = Mockito.mock(AsyncDetailsBuilder.class);
+    Mockito.when(builder.buildAsync()).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
+
+    return new PhysicalDeviceDetailsPanel(device, builder);
   }
 }

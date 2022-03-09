@@ -25,6 +25,7 @@ import com.android.tools.idea.devicemanager.PairedDevicesPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.project.Project;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JLabel;
@@ -54,12 +55,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
   }
 
-  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device) {
-    this(device, WearPairingManager.INSTANCE);
-  }
-
-  @VisibleForTesting
-  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @NotNull WearPairingManager manager) {
+  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @Nullable Project project) {
     super(device.getName());
     myDevice = device;
 
@@ -67,7 +63,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initPropertiesSection();
 
     myInfoSections.add(mySummarySection);
-    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
 
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
       if ((device.getType() == DeviceType.PHONE && device.getAndroidVersion().getApiLevel() >= 30 && device.getAvdInfo().hasPlayStore())

@@ -82,4 +82,8 @@ final class AsyncDetailsBuilder {
       .setStorageDevice(myExecutor.execute(device, "df /data").flatMap(StorageDevice::newStorageDevice).orElse(null))
       .build();
   }
+
+  @Nullable Project getProject() {
+    return myProject;
+  }
 }
