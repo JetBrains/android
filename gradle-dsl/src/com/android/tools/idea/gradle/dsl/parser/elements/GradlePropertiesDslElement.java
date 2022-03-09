@@ -756,7 +756,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return lastElement;
       }
 
-      if (Arrays.asList(EXISTING, TO_BE_ADDED, MOVED).contains(item.myElementState)) {
+      if (item.myElementState.isPhysicalInFile()) {
         GradleDslElement currentElement = item.myElement;
         // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
         // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
@@ -836,8 +836,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   protected boolean isStructurallyModified() {
-    Predicate<ElementList.ElementItem> predicate = e -> Arrays.asList(APPLIED, EXISTING, DEFAULT, HIDDEN).contains(e.myElementState);
-    return !myProperties.myElements.stream().allMatch(predicate);
+    Predicate<ElementList.ElementItem> predicate = e -> e.myElementState.isStructuralChange();
+    return myProperties.myElements.stream().anyMatch(predicate);
   }
 
   @Override
@@ -977,7 +977,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
     @NotNull
     private List<GradleDslElement> getElementsWhere(@NotNull Predicate<ElementItem> predicate) {
-      return myElements.stream().filter(e -> !Arrays.asList(TO_BE_REMOVED, HIDDEN).contains(e.myElementState))
+      return myElements.stream().filter(e -> e.myElementState.isSemanticallyRelevant())
                        .filter(predicate).map(e -> e.myElement).collect(Collectors.toList());
     }
 
@@ -986,7 +986,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       // We reduce to get the last element stored, this will be the one we want as it was added last and therefore must appear
       // later on in the file.
       GradleDslElement last = myElements.stream()
-        .filter(e -> !Arrays.asList(TO_BE_REMOVED, HIDDEN).contains(e.myElementState))
+        .filter(e -> e.myElementState.isSemanticallyRelevant())
         .filter(predicate).map(e -> e.myElement).reduce((first, second) -> second).orElse(null);
       if (last != null) {
         ModelEffectDescription effect = last.getModelEffect();
@@ -1010,7 +1010,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       GradleDslElement lastElement = null;
       for (ElementItem i : myElements) {
         // Skip removed or hidden elements.
-        if (Arrays.asList(TO_BE_REMOVED, HIDDEN).contains(i.myElementState)) {
+        if (!i.myElementState.isSemanticallyRelevant()) {
           continue;
         }
 
@@ -1067,7 +1067,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
           return i;
         }
         ElementItem item = myElements.get(i);
-        if (!Arrays.asList(APPLIED, TO_BE_REMOVED, HIDDEN).contains(item.myElementState)) {
+        if (item.myElementState.isPhysicalInFile()) {
           index--;
         }
       }
