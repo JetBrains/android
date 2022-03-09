@@ -16,10 +16,15 @@
 package org.jetbrains.android.refactoring;
 
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.tools.lint.checks.UnusedResourceDetector.KEY_RESOURCE_FIELD;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.ResValue;
 import com.android.tools.idea.lint.common.LintBatchResult;
@@ -40,6 +45,8 @@ import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -59,24 +66,22 @@ import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
-import java.util.stream.Collectors;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-
-import java.util.*;
-
-import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private final String myFilter;
@@ -84,7 +89,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private PsiElement[] myElements = PsiElement.EMPTY_ARRAY;
   private boolean myIncludeIds;
   private String myCachedCommandName = null;
-  private Map<PsiElement, GradleBuildModel> myBuildModelMap;
+  private final Map<PsiElement, GradleBuildModel> myBuildModelMap;
 
   public UnusedResourcesProcessor(@NotNull Project project, @NotNull Module[] modules, @Nullable String filter) {
     super(project, null);
@@ -95,13 +100,13 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @Override
   @NotNull
-  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo @NotNull [] usages) {
     return new UnusedResourcesUsageViewDescriptor(myElements);
   }
 
   @Override
   @NotNull
-  protected UsageInfo[] findUsages() {
+  protected UsageInfo @NotNull [] findUsages() {
     Map<Issue, Map<File, List<LintProblemData>>> map = computeUnusedMap();
     List<PsiElement> elements = computeUnusedDeclarationElements(map);
     myElements = elements.toArray(PsiElement.EMPTY_ARRAY);
@@ -114,7 +119,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<LintProblemData>>> map) {
-    final List<PsiElement> elements = Lists.newArrayList();
+    final List<PsiElement> elements = new ArrayList<>();
 
     // Make sure lint didn't put extra issues into the map
     for (Issue issue : Lists.newArrayList(map.keySet())) {
@@ -125,22 +130,64 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiManager manager = PsiManager.getInstance(myProject);
 
-    for (Issue issue : new Issue[]{UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS}) {
-      Map<File, List<LintProblemData>> fileListMap = map.get(issue);
-      if (fileListMap != null && !fileListMap.isEmpty()) {
-        Map<File, PsiFile> files = Maps.newHashMap();
-        for (File file : fileListMap.keySet()) {
+    Map<File, PsiFile> files = Maps.newHashMap();
+    Set<PsiFile> excludedFiles = new HashSet<>();
+    for (Map.Entry<Issue, Map<File, List<LintProblemData>>> entry : map.entrySet()) {
+      for (File file : entry.getValue().keySet()) {
+        if (!files.containsKey(file)) {
           VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
           if (virtualFile != null) {
             if (!virtualFile.isDirectory()) { // Gradle model errors currently don't have source positions
               PsiFile psiFile = manager.findFile(virtualFile);
               if (psiFile != null) {
                 files.put(file, psiFile);
+
+                // See whether the file with the warnings is in module that is not included
+                // in this scope. If so, record it into the list of excluded files such that
+                // we can skip removing these references later on.
+                Module module = ModuleUtilCore.findModuleForFile(psiFile);
+                if (module != null) {
+                  if (ArrayUtil.find(myModules, module) == -1) {
+                    excludedFiles.add(psiFile);
+                  }
+                }
               }
             }
           }
         }
+      }
+    }
 
+    // We cannot just skip removing references in modules outside of the scope.
+    // If an unused resource is referenced from outside the included scope,
+    // then deleting it partially would result in a broken project. Therefore,
+    // track which references appear in excluded files, which we'll then later
+    // use to also skip removing references in included scopes that are referenced
+    // from excluded files.
+    Set<String> excludedResources = new HashSet<>();
+    if (!excludedFiles.isEmpty()) {
+      for (Map.Entry<Issue, Map<File, List<LintProblemData>>> entry : map.entrySet()) {
+        Map<File, List<LintProblemData>> fileMap = entry.getValue();
+        for (File file : fileMap.keySet()) {
+          PsiFile psiFile = files.get(file);
+          if (excludedFiles.contains(psiFile)) {
+            List<LintProblemData> list = fileMap.get(file);
+            if (list != null) {
+              for (LintProblemData problem : list) {
+                String resource = getResource(problem);
+                if (resource != null) {
+                  excludedResources.add(resource);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (Issue issue : new Issue[]{UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS}) {
+      Map<File, List<LintProblemData>> fileListMap = map.get(issue);
+      if (fileListMap != null && !fileListMap.isEmpty()) {
         if (!files.isEmpty()) {
           for (File file : files.keySet()) {
             PsiFile psiFile = files.get(file);
@@ -150,11 +197,18 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
               continue;
             }
 
+            if (excludedFiles.contains(psiFile)) {
+              continue;
+            }
+
             if (!CommonRefactoringUtil.checkReadOnlyStatus(myProject, psiFile)) {
               continue;
             }
 
             List<LintProblemData> problems = fileListMap.get(file);
+            if (problems == null) {
+              continue;
+            }
 
             if (psiFile.getFileType().isBinary()) {
               // Delete the whole file
@@ -173,7 +227,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                 // file; see for example http://b.android.com/220069.)
                 if ((psiFile instanceof GroovyFile || psiFile instanceof KtFile) &&
                     (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS))) {
-                  GradleBuildModel gradleBuildModel = GradleBuildModel.parseBuildFile(psiFile.getVirtualFile(), myProject);
+                  GradleBuildModel gradleBuildModel = GradleModelProvider.getInstance().parseBuildFile(psiFile.getVirtualFile(), myProject);
+
                   // Get all the resValue declared within the android block.
                   AndroidModel androidElement = gradleBuildModel.android();
                   List<ResValue> resValues = androidElement.defaultConfig().resValues();
@@ -188,7 +243,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                     List<LintProblemData> lintProblems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
                     if (problems != null) {
                       for (LintProblemData problem : lintProblems) {
-                        String unusedResource = LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
+                        String unusedResource = getResource(problem);
                         if (unusedResource != null && unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
                           if (resValue.getModel().getPsiElement() != null) {
                             elements.add(resValue.getModel().getPsiElement());
@@ -215,7 +270,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                   }
 
                   // Delete ranges within the file
-                  addElementsInFile(elements, psiFile, problems);
+                  addElementsInFile(elements, psiFile, problems, excludedResources);
                 }
                 else {
                   // Unused non-value resource file: Delete the whole file
@@ -225,7 +280,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                 }
               }
               else {
-                addElementsInFile(elements, psiFile, problems);
+                addElementsInFile(elements, psiFile, problems, excludedResources);
               }
             }
           }
@@ -235,16 +290,26 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     return elements;
   }
 
-  private void addElementsInFile(List<PsiElement> elements, PsiFile psiFile, List<LintProblemData> problems) {
+  private static String getResource(LintProblemData problem) {
+    return LintFix.getString(problem.getQuickfixData(), KEY_RESOURCE_FIELD, null);
+  }
+
+  private void addElementsInFile(List<PsiElement> elements,
+                                 PsiFile psiFile,
+                                 List<LintProblemData> problems,
+                                 Set<String> excludedResources) {
     // Delete all the resources in the given file
     if (psiFile instanceof XmlFile) {
       List<Integer> starts = Lists.newArrayListWithCapacity(problems.size());
       for (LintProblemData problem : problems) {
+        if (excludedResources.contains(getResource(problem))) {
+          continue;
+        }
         if (matchesFilter(problem)) {
           starts.add(problem.getTextRange().getStartOffset());
         }
       }
-      starts.sort(Collections.<Integer>reverseOrder());
+      starts.sort(Collections.reverseOrder());
       for (Integer offset : starts) {
         if (psiFile.isValid()) {
           XmlAttribute attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute.class, false);
@@ -286,9 +351,21 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     try {
       LintBatchResult lintResult = new LintBatchResult(myProject, map, scope, issues);
       LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
-      LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
+      // Note: We pass in *all* modules in the project here, not just those in the scope of the
+      // resource refactoring. If you for example are running the unused resource refactoring on a
+      // library module, we want to only remove unused resources from the specific library
+      // module, but we still have to have lint analyze all modules such that it doesn't consider
+      // resources in the library as unused when they could be referenced from other modules.
+      // So, we'll analyze all modules with lint, and then in the UnusedResourceProcessor
+      // we'll filter the matches down to only those in the target modules when we're done.
+      List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
+      LintRequest request = new LintIdeRequest(client, myProject, null, modules, false);
       request.setScope(Scope.ALL);
       LintDriver lint = client.createDriver(request, LintIdeSupport.get().getIssueRegistry());
+      // Make sure we don't remove resources that are still referenced from
+      // tests (though these should probably be in a test resource source
+      // set instead.)
+      lint.setCheckTestSources(true);
       lint.analyze();
     }
     finally {
@@ -303,8 +380,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     if (myFilter != null) {
       List<LintProblemData> problems = fileListMap.get(file);
       for (LintProblemData problem : problems) {
-        String unusedResource = LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null);
-        if (myFilter.equals(unusedResource)) {
+        if (myFilter.equals(getResource(problem))) {
           return true;
         }
       }
@@ -314,10 +390,9 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   private boolean matchesFilter(@NotNull LintProblemData problem) {
-    return myFilter == null || myFilter.equals(LintFix.getString(problem.getQuickfixData(), UnusedResourceDetector.KEY_RESOURCE_FIELD, null));
+    return myFilter == null || myFilter.equals(getResource(problem));
   }
 
-  @SuppressWarnings("SpellCheckingInspection")
   @Override
   protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     return true;
@@ -328,7 +403,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void refreshElements(@NotNull PsiElement[] elements) {
+  protected void refreshElements(@NotNull PsiElement @NotNull [] elements) {
     System.arraycopy(elements, 0, myElements, 0, elements.length);
   }
 
@@ -347,7 +422,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void performRefactoring(@NotNull UsageInfo[] usages) {
+  protected void performRefactoring(@NotNull UsageInfo @NotNull [] usages) {
     try {
       for (UsageInfo usage : usages) {
         PsiElement element = usage.getElement();

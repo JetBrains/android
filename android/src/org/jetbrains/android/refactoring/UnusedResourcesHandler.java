@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringActionHandler;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,6 +82,13 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
       if (module != null) {
         moduleSet.add(module);
       }
+    }
+
+    // If you've only selected the root project, which isn't an Android module,
+    // analyze the whole project.
+    if (moduleSet.size() == 1 &&
+           AndroidFacet.getInstance(moduleSet.iterator().next()) == null) {
+      moduleSet.clear();
     }
 
     invoke(project, moduleSet.toArray(Module.EMPTY_ARRAY), null, false, false);
