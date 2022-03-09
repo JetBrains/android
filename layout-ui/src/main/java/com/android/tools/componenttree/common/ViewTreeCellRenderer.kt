@@ -217,24 +217,17 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       return unchanged
     }
 
-    private fun generateTooltip(): String {
-      val text = when {
-        id == null -> textValue.orEmpty()
-        textValue == null -> id.orEmpty()
-        else -> "$id: \"$textValue\""
-      }
-      if (text.isEmpty()) {
-        return tagName
-      }
-      else {
-        return """
+    // Only show tooltip if we have all 3 elements: id, text, tagName
+    private fun generateTooltip(): String? =
+      if (id.isNullOrEmpty() || textValue.isNullOrEmpty() || tagName.isEmpty())
+        null
+      else
+        """
         <html>
           $tagName<br/>
-          $text
+          $id: "$textValue"
         </html>
         """.trimIndent()
-      }
-    }
 
     private fun deriveFont(font: Font, attributes: SimpleTextAttributes): Font {
       if (font.style == attributes.fontStyle && !attributes.isSmaller) {

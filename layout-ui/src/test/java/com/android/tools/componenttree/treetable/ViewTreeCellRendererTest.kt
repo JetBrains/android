@@ -98,7 +98,7 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, null, null, Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("TextView", normal))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("TextView")
+    assertThat(component.toolTipText).isNull()
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("TextView")
   }
 
@@ -107,11 +107,7 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@id/textView", null, Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("textView", bold), Fragment(" - TextView", normal))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("""
-      <html>
-        TextView<br/>
-        textView
-      </html>""".trimIndent())
+    assertThat(component.toolTipText).isNull()
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("textView - TextView")
   }
 
@@ -120,11 +116,7 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, null, "Hello World", Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("TextView", normal), Fragment(" - \"Hello World\"", grey))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("""
-      <html>
-        TextView<br/>
-        Hello World
-      </html>""".trimIndent())
+    assertThat(component.toolTipText).isNull()
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("TextView - \"Hello World\"")
   }
 
