@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
@@ -25,11 +24,7 @@ import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
 import com.google.common.util.concurrent.Futures
-import com.intellij.openapi.application.ReadAction
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Assert
 import java.util.EnumSet
 import java.util.stream.Collectors
 
@@ -61,59 +56,39 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
   }
 
   fun testRenderHasResult() {
-    val result = renderAndResult(DUP_BOUNDS_LAYOUT)
-    val validatorResult = getValidatorResult(result)
-
-    assertNotNull(validatorResult)
-    assertTrue(validatorResult is ValidatorResult)
+    renderAndValidate(DUP_BOUNDS_LAYOUT) { validatorResult ->
+      assertNotNull(validatorResult)
+    }
   }
 
   fun testDupBounds() {
-    val result = renderAndResult(DUP_BOUNDS_LAYOUT)
-    val validatorResult = getValidatorResult(result)
-
-    val dupBounds = filter(validatorResult.issues, "DuplicateClickableBoundsCheck")
-    assertEquals(1, dupBounds.size)
+    renderAndValidate(DUP_BOUNDS_LAYOUT) { validatorResult ->
+      val dupBounds = filter(validatorResult.issues, "DuplicateClickableBoundsCheck")
+      assertEquals(1, dupBounds.size)
+    }
   }
 
   fun testTextContrastSimple() {
-    val result = renderAndResult(TEXT_COLOR_CONTRAST_SIMPLE)
-    val validatorResult = getValidatorResult(result)
-
-    val textContrast = filter(validatorResult.issues, "TextContrastCheck")
-    assertEquals(1, textContrast.size)
+    renderAndValidate(TEXT_COLOR_CONTRAST_SIMPLE) { validatorResult ->
+      val textContrast = filter(validatorResult.issues, "TextContrastCheck")
+      assertEquals(1, textContrast.size)
+    }
   }
 
   fun testTextContrastComplex() {
-    val result = renderAndResult(TEXT_COLOR_CONTRAST_COMPLEX)
-    val validatorResult = getValidatorResult(result)
-
-    val textContrast = filter(validatorResult.issues, "TextContrastCheck")
-    assertEquals(4, textContrast.size)
+    renderAndValidate(TEXT_COLOR_CONTRAST_COMPLEX) { validatorResult ->
+      val textContrast = filter(validatorResult.issues, "TextContrastCheck")
+      assertEquals(4, textContrast.size)
+    }
   }
 
-  private fun renderAndResult(layout: String): RenderResult {
+  private fun renderAndValidate(layout: String, validationChecks: (ValidatorResult) -> Unit) {
     val layoutFile = myFixture.addFileToProject("res/layout/layoutvalidator.xml", layout).virtualFile
     val layoutConfiguration = RenderTestUtil.getConfiguration(myModule, layoutFile)
-
-    val facet = myFacet
-    val module = facet.module
-    val psiFile = ReadAction.compute<PsiFile?, RuntimeException> { PsiManager.getInstance(module.project).findFile(layoutFile) }
-    Assert.assertNotNull(psiFile)
-    val renderService = RenderService.getInstance(module.project)
-    val logger = renderService.createLogger(facet)
-    val task = renderService.taskBuilder(facet, layoutConfiguration)
-      .withLogger(logger)
-      .withPsiFile(psiFile!!)
-      .disableSecurityManager()
-      .withLayoutScanner(true)
-      .buildSynchronously()
-    Assert.assertNotNull(task)
-    try {
-      return Futures.getUnchecked(task!!.render())
-    }
-    finally {
-      task!!.dispose()
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration, true) {
+      val result = Futures.getUnchecked(it.render())
+      val validatorResult = getValidatorResult(result)
+      validationChecks(validatorResult)
     }
   }
 
