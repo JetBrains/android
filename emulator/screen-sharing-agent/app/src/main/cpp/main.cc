@@ -34,6 +34,10 @@ Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thi
     args.push_back(arg.GetValue());
   }
 
-  Agent agent(args);
-  agent.Run();
+  {
+    Agent agent(args);
+    agent.Run();
+  }
+  // Exit explicitly to bypass the final JVM cleanup that for some unclear reason sometimes crashes with SIGSEGV.
+  exit(EXIT_SUCCESS);
 }
