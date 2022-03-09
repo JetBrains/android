@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
@@ -50,11 +51,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
 
 @RunWith(Parameterized::class)
 class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
@@ -161,16 +157,8 @@ class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      val generatedFilesSet = mutableSetOf<String>()
-      withContext(ioThread) {
-        @Suppress("BlockingMethodInNonBlockingContext")
-        Files.walkFileTree(File(outputPath).toPath(), object : SimpleFileVisitor<Path>() {
-          override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-            file?.let { generatedFilesSet.add(it?.fileName.toString()) }
-            @Suppress("BlockingMethodInNonBlockingContext")
-            return super.visitFile(file, attrs)
-          }
-        })
+      val generatedFilesSet = withContext(ioThread) {
+        File(outputPath).toPath().toFileNameSet()
       }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
     }

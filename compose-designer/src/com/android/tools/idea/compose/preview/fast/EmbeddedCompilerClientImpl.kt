@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.createFile
+import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
@@ -42,7 +43,6 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.idea.project.platform
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
@@ -52,16 +52,16 @@ import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
  * to compile fragments of code in-process similar to how Live Edit does for the emulator.
  */
 class EmbeddedCompilerClientImpl(private val project: Project, private val log: Logger) : CompilerDaemonClient {
-  private val _isRunning = AtomicBoolean(false)
+  private val daemonLock = Mutex()
   override val isRunning: Boolean
-    get() = _isRunning.get()
+    get() = daemonLock.holdsLock(this)
+
 
   /**
    * Compute the BindingContext of the input file that can be used for code generation.
@@ -136,7 +136,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
                                                          resolution.moduleDescriptor,
                                                          bindingContext,
                                                          input,
-                                                         compilerConfiguration);
+                                                         compilerConfiguration)
 
     if (useComposeIR) {
       generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
@@ -152,7 +152,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
       ))
     }
 
-    val generationState = generationStateBuilder.build();
+    val generationState = generationStateBuilder.build()
 
     try {
       KotlinCodegenFacade.compileCorrectFiles(generationState)
@@ -174,7 +174,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     // Given that the IDE already provide enough information about compilation errors, there is no
     // real need to surface any compilation exception. We will just print the true cause for the
     // exception for our own debugging purpose only.
-    var cause = e;
+    var cause = e
     while (cause.cause != null) {
       cause = cause.cause!!
 
@@ -205,7 +205,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     module: Module,
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult {
-    _isRunning.set(true)
+    daemonLock.lock(this)
     return try {
       val inputs = files.filterIsInstance<KtFile>().toList()
       try {
@@ -217,7 +217,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
       }
     }
     finally {
-      _isRunning.set(false)
+      daemonLock.unlock(this)
     }
   }
 
