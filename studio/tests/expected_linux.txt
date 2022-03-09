@@ -1959,6 +1959,7 @@ android-studio/plugins/android/lib/libandroid-core-proto.jar
 android-studio/plugins/android/lib/libapp-processes-proto.jar
 android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
+android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
