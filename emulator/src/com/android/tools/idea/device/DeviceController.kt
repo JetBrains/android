@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.launch
+import java.io.EOFException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -73,10 +74,15 @@ class DeviceController(
   private fun startReceivingMessages() {
     receiverScope.launch {
       while (true) {
-        suspendingInputStream.waitForData(1)
-        when (val message = ControlMessage.deserialize(inputStream)) {
-          is ClipboardChangedMessage -> onDeviceClipboardChanged(message)
-          else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
+        try {
+          suspendingInputStream.waitForData(1)
+          when (val message = ControlMessage.deserialize(inputStream)) {
+            is ClipboardChangedMessage -> onDeviceClipboardChanged(message)
+            else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
+          }
+        }
+        catch (_: EOFException) {
+          return@launch
         }
       }
     }
