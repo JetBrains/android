@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -29,6 +29,8 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.BorderLayout
+import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
@@ -37,7 +39,7 @@ import javax.swing.border.MatteBorder
 class BottomPanel(val previewState: AnimationPreviewState,
                   surface: DesignSurface,
                   private val tracker: ComposeAnimationEventTracker) : JPanel(
-  TabularLayout("*", "Fit,*,Fit")) {
+  BorderLayout()) {
 
   var clockTimeMs = 0
 
@@ -48,10 +50,14 @@ class BottomPanel(val previewState: AnimationPreviewState,
 
   init {
     border = MatteBorder(1, 0, 0, 0, JBColor.border())
+    val actions = listOf(ClockTimeLabel(), Separator()).let {
+      if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) it + ResetTimelineAction()
+      else it
+    }
     // West toolbar
-    val westToolbar = DefaultToolbarImpl(surface, "ResetCoordinationTimeline",
-                                         DefaultActionGroup(ClockTimeLabel(), Separator(), ResetTimelineAction()))
-    add(westToolbar, TabularLayout.Constraint(0, 0))
+    val westToolbar = DefaultToolbarImpl(surface, "ResetCoordinationTimeline", DefaultActionGroup(actions))
+    add(westToolbar, BorderLayout.WEST)
+    preferredSize = Dimension(width, InspectorLayout.BOTTOM_PANEL_HEIGHT)
   }
 
   private inner class ClockTimeLabel() : ToolbarLabelAction() {

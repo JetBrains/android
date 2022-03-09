@@ -19,12 +19,15 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.ParentTimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import javax.swing.JLabel
 import javax.swing.JSlider
 import kotlin.test.assertEquals
@@ -33,11 +36,27 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-
-class TimelinePanelTest {
+@RunWith(Parameterized::class)
+class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "Coordination drag is enabled: {0}")
+    fun enableCoordinationDrag() = listOf(true, false)
+  }
+
+  @Before
+  fun setUp() {
+    StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.override(enableCoordinationDrag)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.clearOverride()
+  }
 
   @Test
   fun `default labels and tick spacing`() = invokeAndWaitIfNeeded {
@@ -94,6 +113,8 @@ class TimelinePanelTest {
 
   @Test
   fun `hovering elements`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     slider.sliderUI.apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
@@ -119,6 +140,24 @@ class TimelinePanelTest {
     assertEquals(TimelineElementStatus.Inactive, slider.sliderUI.elements[1].status)
   }
 
+  @Test
+  fun `hovering elements is not enabled`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is disabled.
+    if (enableCoordinationDrag) return@invokeAndWaitIfNeeded
+    val slider = TestUtils.createTestSlider()
+    slider.sliderUI.apply {
+      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
+      elements.add(TestUtils.TestTimelineElement(50, 150, positionProxy))
+    }
+    val ui = FakeUi(slider.parent)
+    // Hover the first element.
+    ui.mouse.moveTo(55, 55)
+    assertNull(slider.sliderUI.activeElement)
+    // Hover the second element.
+    ui.mouse.moveTo(55, 155)
+    assertNull(slider.sliderUI.activeElement)
+  }
+
 
   @Test
   fun `dragging timeline`() = invokeAndWaitIfNeeded {
@@ -140,6 +179,8 @@ class TimelinePanelTest {
 
   @Test
   fun `pressing element`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     slider.sliderUI.apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
@@ -161,6 +202,8 @@ class TimelinePanelTest {
 
   @Test
   fun `dragging element`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     slider.sliderUI.apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
@@ -193,9 +236,41 @@ class TimelinePanelTest {
     assertEquals(0, slider.sliderUI.elements[0].offsetPx)
   }
 
+  @Test
+  fun `dragging element is not enabled`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is disabled.
+    if (enableCoordinationDrag) return@invokeAndWaitIfNeeded
+    val slider = TestUtils.createTestSlider()
+    slider.sliderUI.apply {
+      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
+      elements.add(TestUtils.TestTimelineElement(50, 100, positionProxy))
+    }
+    val ui = FakeUi(slider.parent)
+    // Nothing is selected.
+    assertNull(slider.sliderUI.activeElement)
+    // Add callback listeners
+    var firstElementMoved = false
+    var secondElementMoved = false
+    var endOfDragCallback = 0
+    slider.sliderUI.elements[0].state.addValueOffsetListener { firstElementMoved = true }
+    slider.sliderUI.elements[1].state.addValueOffsetListener { secondElementMoved = true }
+    slider.dragEndListeners.add { endOfDragCallback++ }
+    // Drag element
+    ui.mouse.moveTo(55, 55)
+    ui.mouse.drag(55, 55, 20, 120)
+    // Nothing has moved
+    assertEquals(0, slider.sliderUI.elements[0].offsetPx)
+    assertEquals(0, slider.sliderUI.elements[1].offsetPx)
+    assertFalse(firstElementMoved)
+    assertFalse(secondElementMoved)
+    assertEquals(0, endOfDragCallback)
+  }
+
 
   @Test
   fun `hovering group of elements`() = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     val ui = FakeUi(slider.parent)
     val child1 = TestUtils.TestTimelineElement(50, 50, slider.sliderUI.positionProxy)
@@ -227,6 +302,8 @@ class TimelinePanelTest {
 
   @Test
   fun `dragging element out of slider to the left`(): Unit = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     slider.sliderUI.apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
@@ -245,6 +322,8 @@ class TimelinePanelTest {
 
   @Test
   fun `dragging element out of slider to the right`(): Unit = invokeAndWaitIfNeeded {
+    // Only if coordination drag is enabled.
+    if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
     slider.sliderUI.apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))

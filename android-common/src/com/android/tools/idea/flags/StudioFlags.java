@@ -1224,6 +1224,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = Flag.create(
+    COMPOSE, "preview.animation.coordination.drag",
+    "Enable animation dragging in timeline for Animation Inspector",
+    "If enabled, animation dragging will be available in Animation Inspector timeline.",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
     COMPOSE, "preview.fast.reload.enabled", "Enable the Compose fast-reload preview",
     "If enabled, the preview enabled the fast-reload feature.",

@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.ui.JBColor
 import java.awt.BasicStroke
@@ -129,7 +130,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   /** Element currently hovered or dragged. */
   var activeElement: TimelineElement? = null
     private set(value) {
-      field = if (timeline.previewState.isCoordinationAvailable()) value else null
+      field = if (timeline.previewState.isCoordinationAvailable() && COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) value else null
     }
 
   /** Separate elements with a line. */

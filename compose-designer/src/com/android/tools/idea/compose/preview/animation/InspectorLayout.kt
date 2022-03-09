@@ -63,6 +63,9 @@ object InspectorLayout {
   /** Label offset from the curve. */
   const val LABEL_OFFSET = 10
 
+  /** Height of the [BottomPanel]. */
+  const val BOTTOM_PANEL_HEIGHT = 25
+
   val DASHED_STROKE: Stroke = BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
                                           floatArrayOf(JBUI.scale(3).toFloat()), 0f)
 
