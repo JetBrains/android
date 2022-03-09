@@ -58,11 +58,11 @@ class SuspendingNetworkChannelTest {
         serverChannel.accept().use { socketChannel ->
           steps[0].countDown()
           socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
-          socketChannel.read(inputBuffer)
+          assertThat(socketChannel.read(inputBuffer)).isEqualTo(8)
           steps[1].countDown()
           socketChannel.readFully(inputBuffer)
           steps[2].countDown()
-          socketChannel.write(ByteBuffer.wrap("12345678".toByteArray(UTF_8)))
+          assertThat(socketChannel.write(ByteBuffer.wrap("12345678".toByteArray(UTF_8)))).isEqualTo(8)
           steps[3].countDown()
           socketChannel.writeFully(ByteBuffer.wrap("abcdefghijkl".toByteArray(UTF_8)))
           steps[4].countDown()

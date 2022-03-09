@@ -27,6 +27,7 @@ import java.io.OutputStream
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
+import java.nio.channels.InterruptedByTimeoutException
 import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -46,7 +47,7 @@ class SuspendingChannelsTest {
   @Test
   fun testInputStream() {
     val buffer = ByteArray(20)
-    val steps = Array(3) { CountDownLatch(1) }
+    val steps = Array(4) { CountDownLatch(1) }
 
     val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(null))
     coroutineScope.launch {
@@ -61,6 +62,12 @@ class SuspendingChannelsTest {
           steps[1].countDown()
           stream.readNBytes(buffer, 4, 16)
           steps[2].countDown()
+          try {
+            stream.waitForData(1, 10, TimeUnit.MILLISECONDS)
+          }
+          catch (e: InterruptedByTimeoutException) {
+            steps[3].countDown()
+          }
         }
       }
     }
@@ -78,6 +85,7 @@ class SuspendingChannelsTest {
     out.writeAndFlush("ijkl".toByteArray(UTF_8))
     assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 4, 16) should return.
     assertThat(buffer.toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
+    assertThat(steps[3].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(1, 10, TimeUnit.MILLISECONDS) should throw.
   }
 
   @Test

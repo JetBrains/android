@@ -45,11 +45,12 @@ class SuspendingSocketChannel(
    * fill the buffer, but it is guaranteed to read at least one byte unless there is no remaining
    * space in the buffer, or the end of channel is reached.
    *
+   * @return The number of bytes read, possibly zero, or -1 if the channel has reached end-of-stream
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
    * @throws EOFException if the end of channel is reached before reading any bytes
    * @throws IOException if any I/O error occurs during the operation
    */
-  suspend fun read(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
+  suspend fun read(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS): Int {
     return suspendCancellableCoroutine { continuation ->
       // Ensure that the asynchronous operation is stopped if the coroutine is cancelled.
       closeOnCancel(continuation)
@@ -96,7 +97,7 @@ class SuspendingSocketChannel(
    * @throws InterruptedByTimeoutException if the timeout elapses before the operation completes
    * @throws IOException if any I/O error occurs during the operation
    */
-  suspend fun write(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
+  suspend fun write(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS): Int {
     return suspendCancellableCoroutine { continuation ->
       // Ensure that the asynchronous operation is stopped if the coroutine is cancelled.
       closeOnCancel(continuation)
@@ -130,22 +131,24 @@ class SuspendingSocketChannel(
     }
   }
 
-  private class CompletionHandlerAdapter(private val operation: Operation) : CompletionHandler<Int, CancellableContinuation<Unit>> {
+  private class CompletionHandlerAdapter(private val operation: Operation) : CompletionHandler<Int, CancellableContinuation<Int>> {
 
-    override fun completed(result: Int, continuation: CancellableContinuation<Unit>) {
+    override fun completed(result: Int, continuation: CancellableContinuation<Int>) {
       if (result == -1) {
         assert(operation == Operation.READ)
         continuation.resumeWithException(EOFException("Reached the end of channel"))
         return
       }
 
-      continuation.resume(Unit)
+      continuation.resume(result)
     }
 
-    override fun failed(e: Throwable, continuation: CancellableContinuation<Unit>) {
-      val message = if (operation == Operation.READ) "Error reading from asynchronous channel"
-          else "Error writing to asynchronous channel"
-      continuation.resumeWithException(IOException(message, e))
+    override fun failed(e: Throwable, continuation: CancellableContinuation<Int>) {
+      val exception = e as? InterruptedByTimeoutException ?:
+          IOException(if (operation == Operation.READ) "Error reading from asynchronous channel"
+                      else "Error writing to asynchronous channel",
+                      e)
+      continuation.resumeWithException(exception)
     }
   }
 
