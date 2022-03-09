@@ -25,4 +25,5 @@ public enum ElementState {
   APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
   DEFAULT, // These properties do not exist on file at all, but represent their default value.
   MOVED, // These properties should be moved.
+  HIDDEN, // These properties exist on file but are invisible to the model (for example due to postprocessing of toml files).
 }
