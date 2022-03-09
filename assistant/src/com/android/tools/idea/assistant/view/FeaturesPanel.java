@@ -41,10 +41,10 @@ import static com.android.tools.idea.assistant.view.TutorialChooser.NAVIGATION_K
  */
 public class FeaturesPanel extends JPanel implements ItemListener, ActionListener {
   private final List<String> myCardKeys = new ArrayList<>();
-  private JPanel myCards;
-  private CardLayout myCardLayout;
-  private AnalyticsProvider myAnalyticsProvider;
-  private Project myProject;
+  private final JPanel myCards;
+  private final CardLayout myCardLayout;
+  private final AnalyticsProvider myAnalyticsProvider;
+  private final Project myProject;
 
   /**
    * If non-null, the key of the currently open tutorial.
@@ -72,7 +72,8 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     boolean hideChooserAndNavigationalBar = false;
     if (featureList.size() == 1 && featureList.get(0).getTutorials().size() == 1) {
       hideChooserAndNavigationalBar = true;
-      getLog().debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
+      getLog().debug(
+        "Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
     }
     else {
       addCard(new TutorialChooser(this, bundle, myAnalyticsProvider, myProject), NAVIGATION_KEY);
