@@ -81,26 +81,35 @@ internal fun IDevice.getWearDebugSurfaceVersion(): Int {
     text = "Checking Wear OS Surface API version"
   }
 
-  val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
-  val resultReceiver = CommandResultReceiver()
-  val versionReceiver = VersionReceiver { indicator?.isCanceled == true }
-  val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
-  executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
+  val startTime = System.currentTimeMillis()
+  do {
+    val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
+    val resultReceiver = CommandResultReceiver()
+    val versionReceiver = VersionReceiver { indicator?.isCanceled == true }
+    val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
+    executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
 
-  var inferredVersion = versionReceiver.version
-  if (resultReceiver.resultCode == CommandResultReceiver.INVALID_ARGUMENT_CODE) {
-    // The version operation was not available initially.
-    inferredVersion = 0
-  } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      throw ExecutionException("Error while checking version, message: ${outputReceiver.getOutput()}")
-  }
+    val timeElapsed = System.currentTimeMillis() - startTime
+    if (resultReceiver.resultCode <= 0 && timeElapsed < 5_000) {
+      Thread.sleep(1_000)
+      continue // This can happen when checking the version after cold boot. Try again.
+    }
 
-  // 2 is the minimum for all surfaces. 2 means the watch supports both start and stop commands
-  if (inferredVersion < 2) {
-    throw ExecutionException("Device software is out of date, message: ${outputReceiver.getOutput()}")
-  }
+    var inferredVersion = versionReceiver.version
+    if (resultReceiver.resultCode == CommandResultReceiver.INVALID_ARGUMENT_CODE) {
+      // The version operation was not available initially.
+      inferredVersion = 0
+    } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+        throw ExecutionException("Error while checking version, message: ${outputReceiver.getOutput()}")
+    }
 
-  return inferredVersion
+    // 2 is the minimum for all surfaces. 2 means the watch supports both start and stop commands
+    if (inferredVersion < 2) {
+      throw ExecutionException("Device software is out of date, message: ${outputReceiver.getOutput()}")
+    }
+
+    return inferredVersion
+  } while (true) // Should not reach this point, as it will have return/throw above
 }
 
 internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, console: ConsoleView) {
