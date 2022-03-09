@@ -32,10 +32,11 @@ namespace screensharing {
 // See Base128OutputStream.
 class Base128InputStream {
 public:
-  Base128InputStream(int fd, size_t buffer_size);
+  Base128InputStream(int socket_fd, size_t buffer_size);
   ~Base128InputStream();
 
-  int Close();
+  // Shuts down the socket file descriptor for reading but doesn't close it.
+  void Close();
   uint8_t ReadByte();
   std::string ReadBytes();
   int16_t ReadInt16();

@@ -35,4 +35,7 @@ private:
 class EndOfFile : public IoException {
 };
 
+class StreamClosedException : public IoException {
+};
+
 }  // namespace screensharing

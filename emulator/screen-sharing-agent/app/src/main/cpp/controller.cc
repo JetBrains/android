@@ -16,6 +16,8 @@
 
 #include "controller.h"
 
+#include <unistd.h>
+
 #include <thread>
 
 #include "accessors/motion_event.h"
@@ -62,7 +64,8 @@ int Utf8CharacterCount(const string& str) {
 }  // namespace
 
 Controller::Controller(int socket_fd)
-    : input_stream_(socket_fd, BUFFER_SIZE),
+    : socket_fd_(socket_fd),
+      input_stream_(socket_fd, BUFFER_SIZE),
       output_stream_(socket_fd, BUFFER_SIZE),
       thread_(),
       input_manager_(),
@@ -78,14 +81,15 @@ Controller::Controller(int socket_fd)
 }
 
 Controller::~Controller() {
-  StopClipboardSync();
   input_stream_.Close();
+  StopClipboardSync();
   if (thread_.joinable()) {
     thread_.join();
   }
   delete input_manager_;
   delete pointer_helper_;
   delete key_character_map_;
+  close(socket_fd_);
 }
 
 void Controller::Start() {
@@ -136,9 +140,10 @@ void Controller::Run() {
       unique_ptr<ControlMessage> message = ControlMessage::Deserialize(input_stream_);
       ProcessMessage(*message);
     }
+  } catch (StreamClosedException& e) {
+    Log::D("Controller::Run: Command stream closed");
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
-    // Returning from the Run method.
   } catch (IoException& e) {
     Log::Fatal("%s", e.GetMessage().c_str());
   }

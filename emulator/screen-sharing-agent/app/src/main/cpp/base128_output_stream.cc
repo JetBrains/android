@@ -17,10 +17,12 @@
 #include "base128_output_stream.h"
 
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include <memory>
 
 #include "io_exception.h"
+#include "log.h"
 
 namespace screensharing {
 
@@ -35,16 +37,26 @@ Base128OutputStream::Base128OutputStream(int fd, size_t buffer_size)
 }
 
 Base128OutputStream::~Base128OutputStream() {
-  close(fd_);
-  delete [] buffer_;
+  Close();
 }
 
-int Base128OutputStream::Close() {
-  Flush();
-  return close(fd_);
+void Base128OutputStream::Close() {
+  if (buffer_ != nullptr) {
+    try {
+      Flush();
+    } catch (const IoException& e) {
+      Log::E("Unable to flush Base128OutputStream");
+    }
+    shutdown(fd_, SHUT_WR);
+    delete[] buffer_;
+    buffer_ = nullptr;
+  }
 }
 
 void Base128OutputStream::Flush() {
+  if (buffer_ == nullptr) {
+    throw StreamClosedException();
+  }
   while (offset_ > 0) {
     auto n = write(fd_, buffer_, offset_);
     if (n < 0) {
@@ -62,6 +74,9 @@ void Base128OutputStream::Flush() {
 }
 
 void Base128OutputStream::WriteByte(uint8_t byte) {
+  if (buffer_ == nullptr) {
+    throw StreamClosedException();
+  }
   if (offset_ == buffer_capacity_) {
     Flush();
   }

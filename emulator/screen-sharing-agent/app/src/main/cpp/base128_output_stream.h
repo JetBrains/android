@@ -34,7 +34,8 @@ public:
   Base128OutputStream(int fd, size_t buffer_size);
   ~Base128OutputStream();
 
-  int Close();
+  // Shuts down the socket file descriptor for writing but doesn't close it.
+  void Close();
   void Flush();
   void WriteByte(uint8_t byte);
   void WriteBytes(const std::string& bytes);

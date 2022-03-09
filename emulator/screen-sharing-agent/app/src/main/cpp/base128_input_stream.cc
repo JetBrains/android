@@ -17,15 +17,18 @@
 #include "base128_input_stream.h"
 
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include <memory>
+
+#include "log.h"
 
 namespace screensharing {
 
 using namespace std;
 
-Base128InputStream::Base128InputStream(int fd, size_t buffer_size)
-    : fd_(fd),
+Base128InputStream::Base128InputStream(int socket_fd, size_t buffer_size)
+    : fd_(socket_fd),
       buffer_(new uint8_t[buffer_size]),
       buffer_capacity_(buffer_size),
       offset_(0),
@@ -33,15 +36,21 @@ Base128InputStream::Base128InputStream(int fd, size_t buffer_size)
 }
 
 Base128InputStream::~Base128InputStream() {
-  close(fd_);
-  delete [] buffer_;
+  Close();
 }
 
-int Base128InputStream::Close() {
-  return close(fd_);
+void Base128InputStream::Close() {
+  if (buffer_ != nullptr) {
+    shutdown(fd_, SHUT_RD);
+    delete[] buffer_;
+    buffer_ = nullptr;
+  }
 }
 
 uint8_t Base128InputStream::ReadByte() {
+  if (buffer_ == nullptr) {
+    throw StreamClosedException();
+  }
   if (offset_ == data_end_) {
     auto n = read(fd_, buffer_, buffer_capacity_);
     if (n < 0) {

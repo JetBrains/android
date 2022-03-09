@@ -35,6 +35,7 @@ namespace screensharing {
 // Processes control socket commands.
 class Controller {
 public:
+  // The controller takes ownership of the socket file descriptor and closes it when destroyed.
   Controller(int socket_fd);
   ~Controller();
 
@@ -66,20 +67,21 @@ private:
   void OnPrimaryClipChanged();
 
   Jni jni_ = nullptr;
+  int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
   std::thread thread_;
-  InputManager* input_manager_;
-  PointerHelper* pointer_helper_;
+  InputManager* input_manager_;  // Owned.
+  PointerHelper* pointer_helper_;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
   int64_t motion_event_start_time_;
-  KeyCharacterMap* key_character_map_;
+  KeyCharacterMap* key_character_map_;  // Owned.
   ScopedSetting stay_on_;
   ScopedSetting accelerometer_rotation_;
 
   ClipboardListener clipboard_listener_;
-  ClipboardManager* clipboard_manager_;
+  ClipboardManager* clipboard_manager_;  // Not owned.
   std::atomic<int> max_synced_clipboard_length_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
