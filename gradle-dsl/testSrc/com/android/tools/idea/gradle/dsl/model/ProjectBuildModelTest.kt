@@ -396,11 +396,11 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun testVersionCatalogVariableResolution() {
+  fun testVersionCatalogCompactNotationVariableResolution() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     try {
       writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
-      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_TOML_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_COMPACT_NOTATION)
 
       val pbm = projectBuildModel
       val buildModel = pbm.projectBuildModel!!
@@ -448,7 +448,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     CONTEXT_AGP_VERSION("contextAgpVersion"),
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
-    VERSION_CATALOG_TOML_FILE("versionCatalogTomlFile"),
+    VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
