@@ -9,9 +9,11 @@ class WhenTest {
             View.MeasureSpec.AT_MOST -> {
             // something
         }
+
             View.MeasureSpec.EXACTLY -> {
                 TODO()
             }
+
             View.MeasureSpec.UNSPECIFIED -> {
                 TODO()
             }
