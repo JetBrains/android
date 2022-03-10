@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -129,8 +130,9 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     rootPanel.add(splitter, BorderLayout.CENTER)
 
     tree.addTreeSelectionListener {
+      val selectedNode = it?.newLeadSelectionPath?.lastPathComponent as? DesignerCommonIssueNode ?: return@addTreeSelectionListener
       if (sidePanelVisible) {
-        val sidePanel = createSidePanel(it?.newLeadSelectionPath?.lastPathComponent as? DesignerCommonIssueNode)
+        val sidePanel = createSidePanel(selectedNode)
         splitter.secondComponent = sidePanel
         splitter.revalidate()
       }
@@ -139,6 +141,11 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       val window = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
       if (window != null) {
         DataManager.getInstance().getDataContext(window.component).getData(DESIGN_SURFACE)?.let { surface ->
+          (selectedNode as? IssueNode)?.issue?.let { issue ->
+            if (issue.source is VisualLintIssueProvider.VisualLintIssueSource) {
+              surface.issueListener.onIssueSelected(issue)
+            }
+          }
           surface.revalidateScrollArea()
           surface.repaint()
         }

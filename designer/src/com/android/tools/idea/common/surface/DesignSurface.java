@@ -29,6 +29,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
@@ -287,6 +288,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
+  @NotNull
+  private final IssueListener myIssueListener;
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -386,7 +390,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
-    myIssuePanel = new IssuePanel(myIssueModel, new DesignSurfaceIssueListenerImpl(this));
+    myIssueListener = new DesignSurfaceIssueListenerImpl(this);
+    myIssuePanel = new IssuePanel(myIssueModel, myIssueListener);
 
     add(myLayeredPane);
 
@@ -1975,5 +1980,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
     if (file == null) return;
     UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
+  }
+
+  @NotNull
+  public IssueListener getIssueListener() {
+    return myIssueListener;
   }
 }
