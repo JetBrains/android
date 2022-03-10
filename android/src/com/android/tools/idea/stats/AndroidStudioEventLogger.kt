@@ -27,7 +27,6 @@ import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
 import java.util.concurrent.CompletableFuture
@@ -78,6 +77,13 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["file_type"] as? String)?.let { fileType = it }
         (data["plugin_type"] as? String)?.let { pluginType = it }
         (data["plugin_version"] as? String)?.let { pluginVersion = it }
+        eventType = when (eventId) {
+          "select" -> FileUsage.EventType.SELECT
+          "edit" -> FileUsage.EventType.EDIT
+          "open" -> FileUsage.EventType.OPEN
+          "close" -> FileUsage.EventType.CLOSE
+          else -> FileUsage.EventType.UNKNOWN_TYPE
+        }
       }.build()
     }.withProjectId(data))
   }
