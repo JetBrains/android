@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.literals.FastPreviewApplicationConfigurati
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.ui.EditorNotifications
 import icons.StudioIcons
 
 /**
@@ -43,6 +44,8 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
         .filterIsInstance<FastPreviewSurface>()
         .forEach { it.requestFastPreviewRefresh() }
     } else fastPreviewManager.disable()
+    // We have change the state of Fast Preview ,update notifications
+    EditorNotifications.getInstance(project).updateAllNotifications()
   }
 
   override fun update(e: AnActionEvent) {

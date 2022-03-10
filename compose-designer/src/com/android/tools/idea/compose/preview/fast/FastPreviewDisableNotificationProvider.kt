@@ -54,10 +54,12 @@ class FastPreviewDisableNotificationProvider : EditorNotifications.Provider<Edit
         }
         createActionLabel(message("fast.preview.disabled.notification.reenable.action.title")) {
           FastPreviewManager.getInstance(project).enable()
+          EditorNotifications.getInstance(project).updateNotifications(file)
         }
         createActionLabel(message("fast.preview.disabled.notification.stop.autodisable.action.title")) {
           FastPreviewManager.getInstance(project).allowAutoDisable = false
           FastPreviewManager.getInstance(project).enable()
+          EditorNotifications.getInstance(project).updateNotifications(file)
         }
       }
     }
