@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.editors.literals
 
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -27,8 +29,8 @@ import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
 data class EditEvent(val file: PsiFile, val function: KtNamedFunction?) {
@@ -56,6 +58,8 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
 
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
 
+  private val deployMonitor: AndroidLiveEditDeployMonitor
+
   fun addOnEditListener(listener: EditListener) {
     onEditListeners.add(listener)
   }
@@ -64,11 +68,16 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
     // TODO: Deactivate this when not needed.
     val listener = MyPsiListener(::onMethodBodyUpdated)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
+    deployMonitor = AndroidLiveEditDeployMonitor(this, project)
   }
 
   companion object {
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
+  }
+
+  fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
+    return deployMonitor.getCallback(packageName, device)
   }
 
   @com.android.annotations.Trace

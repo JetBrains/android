@@ -49,6 +49,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +107,7 @@ class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Runnable getCallback(Project project, String packageName, IDevice device) {
+  static Callable<?> getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
 
@@ -145,6 +148,8 @@ class AndroidLiveLiteralDeployMonitor {
 
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
+
+      return null;
     };
   }
 

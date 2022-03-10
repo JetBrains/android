@@ -21,9 +21,9 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
+import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -186,7 +186,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
 
         break;
       case APPLY_CODE_CHANGES:
@@ -196,7 +196,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         break;
       case DEPLOY:
         if (myLaunchOptions.isClearAppStorage()) {
@@ -209,7 +209,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }

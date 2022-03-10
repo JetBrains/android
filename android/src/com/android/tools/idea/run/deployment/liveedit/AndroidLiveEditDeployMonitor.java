@@ -43,6 +43,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -136,41 +138,48 @@ public class AndroidLiveEditDeployMonitor {
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
 
-  // Contains a map from all the active projects to each live edited file and their corresponding state information.
-  private static final Map<Project, Map<PsiFile, FunctionState>> ACTIVE_PROJECTS = new HashMap<>();
+  private final Project project;
+
+  private final EditsListener editsListener;
+
+  // A map of live edited files and their corresponding state information.
+  private final Map<PsiFile, FunctionState> functionStateMap = new HashMap<>();
 
   private static final HashSet<KtNamedFunction> functions = new HashSet<>();
 
-  private static class EditsListener implements Disposable {
-    private Project project;
-    private final String packageName;
+  private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
+
+  private class EditsListener implements Disposable {
+    private String packageName;
 
     @GuardedBy("queueLock")
     private final Object queueLock;
     private ArrayList<EditEvent> changedMethodQueue;
-    private final ScheduledExecutorService methodChangesExecutor;
 
-    private EditsListener(Project project, String packageName) {
-      this.project = project;
-      this.packageName = packageName;
+    private EditsListener() {
       this.queueLock = new Object();
       this.changedMethodQueue = new ArrayList<>();
-      this.methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     @Override
     public void dispose() {
-      ACTIVE_PROJECTS.remove(project);
       methodChangesExecutor.shutdownNow();
-      project = null;
     }
 
     // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
     public void onLiteralsChanged(EditEvent event) {
+      if (StringUtil.isEmpty(packageName)) {
+        return;
+      }
+
       synchronized (queueLock) {
         changedMethodQueue.add(event);
       }
       methodChangesExecutor.schedule(this::processChanges, LiveEditConfig.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+    }
+
+    private void setPackageName(String packageName) {
+      this.packageName = packageName;
     }
 
     private void processChanges() {
@@ -193,7 +202,15 @@ public class AndroidLiveEditDeployMonitor {
     }
   }
 
-  public static Runnable getCallback(Project project, String packageName, IDevice device) {
+  public AndroidLiveEditDeployMonitor(LiveEditService service, Project project) {
+    this.project = project;
+    this.editsListener = new EditsListener();
+
+    service.addOnEditListener(editsListener::onLiteralsChanged);
+    Disposer.register(service, editsListener);
+  }
+
+  public Callable<?> getCallback(String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
 
     // TODO: Don't use Live Literal's reporting
@@ -217,31 +234,26 @@ public class AndroidLiveEditDeployMonitor {
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
 
-    return () -> {
-      synchronized (ACTIVE_PROJECTS) {
-        // Don't create multiple listeners for the same project, or we'll get events several times.
-        if (!ACTIVE_PROJECTS.containsKey(project)) {
-          ACTIVE_PROJECTS.put(project, new HashMap<>());
-          LiveEditService service = LiveEditService.Companion.getInstance(project);
-          EditsListener listener = new EditsListener(project, packageName);
-          service.addOnEditListener(listener::onLiteralsChanged);
-          Disposer.register(service, listener);
-        } else {
-          // If we already have a listening for that project, just clear out the old states.
-          ACTIVE_PROJECTS.get(project).clear();
-        }
-      }
+    return () -> methodChangesExecutor
+      .schedule(
+        () -> {
+          editsListener.setPackageName(null);
+          functionStateMap.clear();
+          editsListener.setPackageName(packageName);
 
-      LiveLiteralsMonitorHandler.DeviceType deviceType;
-      if (device.isEmulator()) {
-        deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
-      }
-      else {
-        deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
-      }
+          LiveLiteralsMonitorHandler.DeviceType deviceType;
+          if (device.isEmulator()) {
+            deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+          }
+          else {
+            deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+          }
 
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
-    };
+          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
+        },
+        0L,
+        TimeUnit.NANOSECONDS)
+      .get();
   }
 
 
@@ -261,19 +273,18 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   @Trace
-  private static boolean handleChangedMethods(Project project,
-                                              String packageName,
-                                              List<EditEvent> changes) {
+  private boolean handleChangedMethods(Project project,
+                                       String packageName,
+                                       List<EditEvent> changes) {
     LOGGER.info("Change detected for project %s targeting app %s", project.getName(), packageName);
 
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
     // Perform bookkeeping of function locations.
-    Map<PsiFile, FunctionState> stateMap = ACTIVE_PROJECTS.get(project);
     for (EditEvent event : changes) {
-      stateMap.computeIfAbsent(event.getFile(), file -> new FunctionState());
-      stateMap.get(event.getFile()).updateFunction(event);
+      functionStateMap.computeIfAbsent(event.getFile(), file -> new FunctionState());
+      functionStateMap.get(event.getFile()).updateFunction(event);
     }
 
     ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
@@ -285,7 +296,7 @@ public class AndroidLiveEditDeployMonitor {
       checkJetpackCompose(project);
       List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
         change ->
-          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getFunction(), stateMap.get(change.getFile())))
+          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getFunction(), functionStateMap.get(change.getFile())))
         .collect(Collectors.toList());
       if (!new AndroidLiveEditCodeGenerator(project).compile(inputs, compiled)) {
         return false;
@@ -314,44 +325,42 @@ public class AndroidLiveEditDeployMonitor {
     return true;
   }
 
-  private static void pushUpdates(Project project,
+  private void pushUpdates(Project project,
                                   String packageName,
                                   String deployEventKey,
                                   List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates,
                                   LiveEditUpdateException exception) {
-    synchronized (ACTIVE_PROJECTS) {
-      List<AndroidSessionInfo> sessions = AndroidSessionInfo.findActiveSession(project);
-      if (sessions == null) {
-        LOGGER.info("No running session found for %s", packageName);
-        return;
-      }
+    List<AndroidSessionInfo> sessions = AndroidSessionInfo.findActiveSession(project);
+    if (sessions == null) {
+      LOGGER.info("No running session found for %s", packageName);
+      return;
+    }
 
-      for (AndroidSessionInfo session : sessions) {
-        @NotNull ExecutionTarget target = session.getExecutionTarget();
-        if (!(target instanceof AndroidExecutionTarget)) {
+    for (AndroidSessionInfo session : sessions) {
+      @NotNull ExecutionTarget target = session.getExecutionTarget();
+      if (!(target instanceof AndroidExecutionTarget)) {
+        continue;
+      }
+      for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
+        // We need to do this check once more. The reason is that we have one listener per project.
+        // That means a listener is in charge of multiple devices. If we are here this only means,
+        // at least one active device support live edits.
+        if (!supportLiveEdits(iDevice)) {
           continue;
         }
-        for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
-          // We need to do this check once more. The reason is that we have one listener per project.
-          // That means a listener is in charge of multiple devices. If we are here this only means,
-          // at least one active device support live edits.
-          if (!supportLiveEdits(iDevice)) {
-            continue;
-          }
 
-          AdbClient adb = new AdbClient(iDevice, LOGGER);
-          if (exception != null) {
-            onCompileFailCallBack(project, adb, packageName, deployEventKey, errorMessage(exception));
-            continue;
-          }
-
-          MetricsRecorder metrics = new MetricsRecorder();
-
-          Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-          LiveUpdateDeployer deployer = new LiveUpdateDeployer();
-
-          updates.forEach(update -> onCompileSuccessCallBack(project, adb, packageName, deployEventKey, deployer, installer, update));
+        AdbClient adb = new AdbClient(iDevice, LOGGER);
+        if (exception != null) {
+          onCompileFailCallBack(project, adb, packageName, deployEventKey, errorMessage(exception));
+          continue;
         }
+
+        MetricsRecorder metrics = new MetricsRecorder();
+
+        Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+        LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+
+        updates.forEach(update -> onCompileSuccessCallBack(project, adb, packageName, deployEventKey, deployer, installer, update));
       }
     }
   }
