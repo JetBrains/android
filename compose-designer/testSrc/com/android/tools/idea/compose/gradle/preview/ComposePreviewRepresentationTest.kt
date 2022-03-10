@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -24,7 +25,9 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
@@ -70,6 +73,8 @@ import kotlin.test.assertFalse
 class ComposePreviewRepresentationTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule
+  val resetFastPreviewFlag = RestoreFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
   private val project: Project
     get() = projectRule.project
   private val fixture: CodeInsightTestFixture
@@ -311,5 +316,22 @@ class ComposePreviewRepresentationTest {
     runInEdtAndWait { Disposer.dispose(composePreviewRepresentation) }
     refreshJob = runBlocking { composePreviewRepresentation.forceRefresh(true) }
     assertNull(refreshJob)
+  }
+  @Test
+  fun `fast preview request`() {
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
+    runWriteActionAndWait {
+      projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+      projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
+      projectRule.fixture.type("\nText(\"added during test execution\")")
+      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
+    }
+    runBlocking {
+      val result = composePreviewRepresentation.requestFastPreviewRefreshAsync()?.await()
+      ?: fail("fast preview refresh request was rejected")
+
+      assertTrue(result is CompilationResult.Success)
+    }
   }
 }

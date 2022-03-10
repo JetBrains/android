@@ -28,11 +28,11 @@ import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAct
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
-import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.fastCompileAsync
+import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
 import com.android.tools.idea.compose.preview.util.FpsCalculator
@@ -64,7 +64,6 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -73,7 +72,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
@@ -100,8 +98,10 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -776,7 +776,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
         }.collectLatest {
           if (FastPreviewManager.getInstance(project).isAvailable) {
-            if (requestFastPreviewRefresh()) return@collectLatest
+            requestFastPreviewRefreshAsync()?.let {
+              it.await() // Wait for this compilation to complete before processing any new ones
+              return@collectLatest
+            }
           }
 
           if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
@@ -1203,17 +1206,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private fun shouldQuickRefresh() =
     !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && renderedElements.count() == 1
 
-  override fun requestFastPreviewRefresh(): Boolean {
+  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>? {
     val currentStatus = status()
     if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
       psiFilePointer.element?.let {
-        fastCompileAsync(this@ComposePreviewRepresentation, it) {
-          forceRefresh()
+        return@requestFastPreviewRefreshAsync activationScope?.async {
+          val result = fastCompileAsync(this@ComposePreviewRepresentation, it).await()
+          if (result is CompilationResult.Success) {
+            forceRefresh()
+          }
+
+          return@async result
         }
-        return true
       }
     }
 
-    return false
+    return null
   }
 }

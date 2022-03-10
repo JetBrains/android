@@ -42,7 +42,7 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
       // Automatically refresh when re-enabling
       findComposePreviewManagersForContext(e.dataContext)
         .filterIsInstance<FastPreviewSurface>()
-        .forEach { it.requestFastPreviewRefresh() }
+        .forEach { it.requestFastPreviewRefreshAsync() }
     } else fastPreviewManager.disable()
     // We have change the state of Fast Preview ,update notifications
     EditorNotifications.getInstance(project).updateAllNotifications()

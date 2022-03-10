@@ -28,6 +28,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.time.withTimeout
@@ -52,13 +54,14 @@ private suspend fun PsiFile.saveIfNeeded() {
 }
 
 /**
- * Starts a new fast compilation for the current file in the Preview. [onSuccessCallback] will be invoked after the build
- * finishes successfully.
+ * Starts a new fast compilation for the current file in the Preview. The returned [CompletableDeferred] will complete
+ * with the result of the compilation.
  */
-fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile, onSuccessCallback: () -> Unit = {}) {
-  val contextModule = file.module ?: return
+fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile): Deferred<CompilationResult> {
+  val contextModule = file.module ?: return CompletableDeferred<CompilationResult>().apply { completeExceptionally(Throwable("No module")) }
   val project = file.project
   val stopWatch = Stopwatch.createStarted()
+  val deferred = CompletableDeferred<CompilationResult>()
   object : Task.Backgroundable(project, message("notification.compiling"), false) {
     override fun run(indicator: ProgressIndicator) {
       AndroidCoroutineScope(parentDisposable).async {
@@ -79,9 +82,10 @@ fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile, onSuccessCallb
           .notify(project)
         if (isSuccess) {
           ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
-          onSuccessCallback()
         }
+        deferred.complete(result)
       }.asCompletableFuture().join()
     }
   }.queue()
+  return deferred
 }

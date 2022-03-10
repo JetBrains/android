@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -39,7 +40,6 @@ import org.junit.Test
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertNotNull
 
 private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
@@ -404,5 +404,34 @@ internal class FastPreviewManagerTest {
     })
     Disposer.dispose(parentDisposable)
     assertFalse(manager.isDisposed)
+  }
+
+  @Test
+  fun `compiling state is true while processing a request`() {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty() {}
+    """.trimIndent())
+    val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val blockingDaemon = BlockingDaemonClient()
+    val manager = FastPreviewManager.getTestInstance(project,
+                                                     daemonFactory = { blockingDaemon },
+                                                     moduleRuntimeVersionLocator = { TEST_VERSION },
+                                                     maxCachedRequests = 0).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+
+    val compilationComplete = CompletableDeferred<Unit>()
+    assertFalse(manager.isCompiling)
+    scope.launch {
+      manager.compileRequest(file, projectRule.module)
+      compilationComplete.complete(Unit)
+    }
+    runBlocking {
+      blockingDaemon.firstRequestReceived.await()
+      assertTrue(manager.isCompiling)
+      blockingDaemon.complete()
+      compilationComplete.await()
+    }
+    assertFalse(manager.isCompiling)
   }
 }

@@ -343,7 +343,13 @@ class FastPreviewManager private constructor(
    * or fast preview is disabled.
    */
   val isAvailable: Boolean
-    get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode && !compilingMutex.isLocked
+    get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode
+
+  /**
+   * Returns true while there is a compilation request running of this project.
+   */
+  val isCompiling: Boolean
+    get() = compilingMutex.isLocked
 
   /**
    * Stops all the daemons managed by this [FastPreviewManager].

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.compose.preview.util.requestBuild
@@ -202,8 +203,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         text = if (previewStatus.hasSyntaxErrors) message("notification.syntax.errors") else message("notification.needs.build"),
         color = LightColors.RED)
 
-      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
-      previewStatus.isOutOfDate -> createBuildNotificationPanel(
+      // If FastPreview is available, the code is never out of date, only waiting to be compiled.
+      previewStatus.isOutOfDate && !FastPreviewManager.getInstance(project).isAvailable -> createBuildNotificationPanel(
         project,
         file,
         text = message("notification.preview.out.of.date"),
