@@ -295,7 +295,9 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
       }
     }
 
-  private val fileModificationTracker = ModificationTracker { elementPointer.containingFile?.modificationStamp ?: -1 }
+  private val fileModificationTracker = ModificationTracker {
+    elementPointer.containingFile?.let { if (it.isValid) it.modificationStamp else -1 } ?: -1
+  }
   private var lastFileModificationCount = 0L
   private var localModificationTracker = SimpleModificationTracker()
   override fun getModificationCount(): Long {
