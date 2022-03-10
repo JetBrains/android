@@ -704,6 +704,22 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginIdMethodCall() throws Exception {
+    isIrrelevantForKotlinScript("All plugin Dsl calls are method calls");
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_ID_METHOD_CALL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginDslMethodCall() throws Exception {
+    isIrrelevantForKotlinScript("All plugin Dsl calls are method calls");
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_DSL_METHOD_CALL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableMap.of("com.android.application", ImmutableMap.of("version", "7.1.0")), buildModel.plugins());
+  }
+
+  @Test
   public void testGetPsiElement() throws Exception {
     writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -771,6 +787,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithVersionAndApplySetVersionExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithVersionAndApplySetApplyExpected"),
     PLUGINS_DSL_PARSE_KOTLIN_FUNCTION("pluginsDslParseKotlinFunction"),
+    PLUGINS_BLOCK_ID_METHOD_CALL("pluginsBlockIdMethodCall"),
+    PLUGINS_BLOCK_DSL_METHOD_CALL("pluginsBlockDslMethodCall"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
     PLUGIN_REMOVE("pluginRemove"),

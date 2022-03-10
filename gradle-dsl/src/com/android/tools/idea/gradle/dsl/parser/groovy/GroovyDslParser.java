@@ -442,7 +442,8 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (referenceExpression == null) {
       return false;
     }
-    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement) {
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement ||
+        referenceExpression.getFirstChild() instanceof GrMethodCallExpression) {
       PsiElement operator = referenceExpression.getLastChild();
       if (operator.textMatches("version") || operator.textMatches("apply")) {
         // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
@@ -530,15 +531,22 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       parent.addParsedElement(pluginElement);
     }
     GrReferenceExpression referenceExpression = (GrReferenceExpression)statement.getFirstChild();
-    GrApplicationStatement innerApplicationStatement = (GrApplicationStatement)referenceExpression.getFirstChild();
-    boolean success = parseGrApplication(innerApplicationStatement, pluginElement);
+    PsiElement innerElement = referenceExpression.getFirstChild();
+    boolean success = false;
+    if (innerElement instanceof GrApplicationStatement) {
+      success = parseGrApplication((GrApplicationStatement)innerElement, pluginElement);
+    }
+    else if (innerElement instanceof GrMethodCallExpression) {
+      success = parseGrMethodCall((GrMethodCallExpression)innerElement, pluginElement);
+    }
+    if (!success) return false;
     PsiElement operator = referenceExpression.getLastChild();
     PsiElement operand = statement.getLastChild().getFirstChild();
     if (!(operand instanceof GrExpression)) return false;
     GrExpression value = (GrExpression) operand;
     GradleDslElement propertyElement = getExpressionElement(pluginElement, value, GradleNameElement.from(operator, this), value);
     pluginElement.addParsedElement(propertyElement);
-    return success;
+    return true;
   }
 
   @NotNull
