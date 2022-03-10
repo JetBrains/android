@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -35,7 +34,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -50,9 +49,11 @@ class LogcatToolWindowFactoryTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  @After
-  fun tearDown() {
-    StudioFlags.LOGCAT_V2_ENABLE.clearOverride()
+  private val settings = LogcatExperimentalSettings()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, projectRule.project)
   }
 
   @Test
@@ -62,7 +63,7 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun isApplicable_legacy() {
-    StudioFlags.LOGCAT_V2_ENABLE.override(false)
+    settings.logcatV2Enabled = false
 
     assertThat(LogcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
@@ -138,7 +139,7 @@ class LogcatToolWindowFactoryTest {
     // We have to use a mock because there is no clean way to clean up ColorSettingsPages
     val mockColorSettingsPages = mock<ColorSettingsPages>()
     ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
-    StudioFlags.LOGCAT_V2_ENABLE.override(false)
+    settings.logcatV2Enabled = false
 
     LogcatToolWindowFactory()
     AndroidLogcatToolWindowFactory()

@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ShowLogcatListener;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -64,7 +63,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   public AndroidLogcatToolWindowFactory() {
-    if (!StudioFlags.LOGCAT_V2_ENABLE.get()) {
+    if (!LogcatExperimentalSettings.getInstance().getLogcatV2Enabled()) {
       ColorSettingsPages.getInstance().registerPage(new AndroidLogcatColorPage());
     }
   }
@@ -78,7 +77,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return !StudioFlags.LOGCAT_V2_ENABLE.get() && AndroidEnvironmentUtils.isAndroidEnvironment(project);
+    return !LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() && AndroidEnvironmentUtils.isAndroidEnvironment(project);
   }
 
   @Override

@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatExperimentalSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
-import org.junit.After
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.replaceService
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,12 +30,16 @@ import org.junit.Test
  * Tests for [LogcatApplicationSettingsConfigurableProvider]
  */
 class LogcatApplicationSettingsConfigurableProviderTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  private val disposableRule = DisposableRule()
 
-  @After
-  fun tearDown() {
-    StudioFlags.LOGCAT_V2_ENABLE.clearOverride()
+  @get:Rule
+  val rule = RuleChain(ApplicationRule(), disposableRule)
+
+  private val settings = LogcatExperimentalSettings()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, disposableRule.disposable)
   }
 
   private val provider = LogcatApplicationSettingsConfigurableProvider()
@@ -48,7 +56,7 @@ class LogcatApplicationSettingsConfigurableProviderTest {
 
   @Test
   fun canCreateConfigurable_legacy() {
-    StudioFlags.LOGCAT_V2_ENABLE.override(false)
+    settings.logcatV2Enabled = false
 
     assertThat(provider.canCreateConfigurable()).isFalse()
   }

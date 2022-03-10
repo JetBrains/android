@@ -18,8 +18,8 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.isAndroidEnvironment
+import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -94,6 +94,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
 }
 
-private fun isLogcatV2Enabled() = StudioFlags.LOGCAT_V2_ENABLE.get()
+private fun isLogcatV2Enabled() = getInstance().logcatV2Enabled
 
 private fun Content.findLogcatPresenters(): List<LogcatPresenter> = TreeWalker(component).descendants().filterIsInstance<LogcatPresenter>()

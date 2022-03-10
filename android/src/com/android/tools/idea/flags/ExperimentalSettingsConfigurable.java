@@ -22,10 +22,13 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
+import com.android.tools.idea.logcat.LogcatExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -34,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.components.BrowserLink;
 import java.io.File;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -42,6 +46,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +68,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myBuildOnSaveCheckBox;
   private JLabel myBuildOnSaveLabel;
   private JLabel myPreviewPickerLabel;
+  private JCheckBox myEnableNewLogcatToolCheckBox;
+  private BrowserLink myLogcatLearnMoreBrowserLink;
 
   private Runnable myRestartCallback;
 
@@ -129,7 +136,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myAnimationPreviewCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           myBuildOnSaveCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled();
+           myBuildOnSaveCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled() ||
+           myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled();
   }
 
   private int getQualitySetting() {
@@ -147,6 +155,21 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     ComposeExperimentalConfiguration.getInstance().setAnimationPreviewEnabled(myAnimationPreviewCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setBuildOnSaveEnabled(myBuildOnSaveCheckBox.isSelected());
+
+    LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
+    if (myEnableNewLogcatToolCheckBox.isSelected() != logcatSettings.getLogcatV2Enabled()) {
+      logcatSettings.setLogcatV2Enabled(myEnableNewLogcatToolCheckBox.isSelected());
+
+      int result = Messages.showYesNoDialog(
+        AndroidBundle.message("android.logcat.enable.v2.restart.needed"),
+        IdeBundle.message("dialog.title.restart.ide"),
+        IdeBundle.message("dialog.action.restart.yes"),
+        AndroidBundle.message("android.logcat.enable.v2.restart.no"),
+        Messages.getWarningIcon());
+      if (result == Messages.YES) {
+        ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
+      }
+    }
   }
 
   @Override
@@ -294,6 +317,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myAnimationPreviewCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled());
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myBuildOnSaveCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled());
+    myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
+  }
+
+  private void createUIComponents() {
+    myLogcatLearnMoreBrowserLink = new BrowserLink("Learn more", "https://d.android.com/r/studio-ui/logcat/help");
   }
 
   public enum TraceProfileItem {

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.LogcatExperimentalSettings
 import com.intellij.openapi.options.ConfigurableProvider
 
 internal class LogcatApplicationSettingsConfigurableProvider : ConfigurableProvider() {
   override fun createConfigurable() = LogcatApplicationSettingsConfigurable(AndroidLogcatSettings.getInstance())
 
-  override fun canCreateConfigurable() = StudioFlags.LOGCAT_V2_ENABLE.get()
+  override fun canCreateConfigurable() = LogcatExperimentalSettings.getInstance().logcatV2Enabled
 }

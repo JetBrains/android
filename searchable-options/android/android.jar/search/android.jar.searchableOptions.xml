@@ -1241,6 +1241,11 @@
     <option name="animation" hit="Enable animation preview" />
     <option name="enable" hit="Enable animation preview" />
     <option name="preview" hit="Enable animation preview" />
+    <option name="enable" hit="Enable new Logcat tool window" />
+    <option name="logcat" hit="Enable new Logcat tool window" />
+    <option name="new" hit="Enable new Logcat tool window" />
+    <option name="tool" hit="Enable new Logcat tool window" />
+    <option name="window" hit="Enable new Logcat tool window" />
     <option name="experimental" hit="Experimental" />
     <option name="animation" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
     <option name="animations" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
@@ -1258,6 +1263,9 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
+    <option name="learn" hit="Learn more" />
+    <option name="more" hit="Learn more" />
+    <option name="logcat" hit="Logcat" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
