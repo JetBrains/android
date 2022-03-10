@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.LightColors
 import com.intellij.ui.components.JBLabel
 import java.awt.MouseInfo
 
@@ -40,7 +41,7 @@ class FastPreviewDisableNotificationProvider : EditorNotifications.Provider<Edit
     if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) return null
     log.debug("createNotificationPanel")
     return FastPreviewManager.getInstance(project).disableReason?.let { disableReason ->
-      EditorNotificationPanel().apply {
+      EditorNotificationPanel(LightColors.RED).apply {
         text = disableReason.title
         isFocusable = false
 
