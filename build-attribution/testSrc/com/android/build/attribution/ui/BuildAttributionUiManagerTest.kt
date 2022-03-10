@@ -83,12 +83,13 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(1)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    val buildAttributionUiEvent = buildAttributionEvents.first().studioEvent.buildAttributionUiEvent
-    Truth.assertThat(buildAttributionUiEvent.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-    Truth.assertThat(buildAttributionUiEvent.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED
+    ).inOrder()
   }
 
   fun testOnBuildFailureWhenTabClosed() {
@@ -114,13 +115,14 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(2)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK,
+    ).inOrder()
   }
 
   fun testShowNewReportAndOpenWithTabClick() {
@@ -131,13 +133,14 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(2)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK,
+    ).inOrder()
   }
 
   fun testContentTabClosed() {
@@ -149,13 +152,14 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabNotExist()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(2)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CLOSED)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CLOSED,
+    ).inOrder()
 
     // Verify state cleaned up
     Truth.assertThat(Disposer.isDisposed(buildAttributionTreeView)).isTrue()
@@ -176,38 +180,18 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabExist()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(6)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[0].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
-    }
-
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER)
-    }
-
-    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.CONTENT_REPLACED)
-    }
-
-    buildAttributionEvents[3].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CLOSED)
-    }
-
-    buildAttributionEvents[4].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER)
-    }
-
-    buildAttributionEvents[5].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId3)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId1 to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId1 to BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER,
+      buildSessionId2 to BuildAttributionUiEvent.EventType.CONTENT_REPLACED,
+      buildSessionId2 to BuildAttributionUiEvent.EventType.TAB_CLOSED,
+      buildSessionId2 to BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER,
+      buildSessionId3 to BuildAttributionUiEvent.EventType.TAB_CREATED,
+    ).inOrder()
   }
 
   fun testOnBuildFailureWhenOpened() {
@@ -225,23 +209,15 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(3)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[0].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
-    }
-
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId1)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER)
-    }
-
-    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId2)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.CONTENT_REPLACED)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId1 to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId1 to BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER,
+      buildSessionId2 to BuildAttributionUiEvent.EventType.CONTENT_REPLACED,
+    ).inOrder()
   }
 
   fun testReportTabSelectedAndUnselected() {
@@ -256,20 +232,16 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(4)
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK)
-    }
-    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_HIDDEN)
-    }
-    buildAttributionEvents[3].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK)
-    }
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
+
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_HIDDEN,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
+    ).inOrder()
   }
 
   fun testBuildOutputLinkClickAfterTabUnselected() {
@@ -284,20 +256,16 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(4)
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK)
-    }
-    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_HIDDEN)
-    }
-    buildAttributionEvents[3].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK)
-    }
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
+
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_HIDDEN,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
+    ).inOrder()
   }
 
   fun testBuildOutputLinkClickAfterTabClosed() {
@@ -309,20 +277,16 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabExist()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(4)
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CLOSED)
-    }
-    buildAttributionEvents[2].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
-    }
-    buildAttributionEvents[3].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK)
-    }
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
+
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CLOSED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
+    ).inOrder()
 
     // Verify manager state
     Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
@@ -342,13 +306,14 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(2)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON,
+    ).inOrder()
   }
 
   fun testRequestShowWhenReadyAfterDataExist() {
@@ -360,13 +325,14 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    Truth.assertThat(buildAttributionEvents).hasSize(2)
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
 
-    buildAttributionEvents[1].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON)
-    }
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON,
+    ).inOrder()
   }
 
   fun testProjectCloseBeforeAnyBuildFinished() {
@@ -391,13 +357,13 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabSelected()
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    // Should not report 'tab open' event as it was opened automatically
-    Truth.assertThat(buildAttributionEvents).hasSize(1)
-    buildAttributionEvents[0].studioEvent.buildAttributionUiEvent.let {
-      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
-      Truth.assertThat(it.eventType).isEqualTo(BuildAttributionUiEvent.EventType.TAB_CREATED)
-    }
+    val buildAttributionEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
+
+    Truth.assertThat(buildAttributionEvents).containsExactly(
+      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED
+    ).inOrder()
   }
 
   private fun openBuildAnalyzerTabFromAction() {
