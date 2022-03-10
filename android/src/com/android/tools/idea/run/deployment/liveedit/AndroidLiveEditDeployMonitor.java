@@ -19,7 +19,6 @@ import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.err
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.reportDeployerError;
 
 import com.android.annotations.Trace;
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.AdbClient;
@@ -49,17 +48,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension;
-import org.jetbrains.kotlin.psi.KtNamedFunction;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -133,7 +131,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction;
  * ensure that the same file is not re-compiled multiple times.
  */
 public class AndroidLiveEditDeployMonitor {
-
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
@@ -145,21 +142,13 @@ public class AndroidLiveEditDeployMonitor {
   // A map of live edited files and their corresponding state information.
   private final Map<PsiFile, FunctionState> functionStateMap = new HashMap<>();
 
-  private static final HashSet<KtNamedFunction> functions = new HashSet<>();
-
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
 
   private class EditsListener implements Disposable {
-    private String packageName;
+    private String applicationId;
 
-    @GuardedBy("queueLock")
-    private final Object queueLock;
-    private ArrayList<EditEvent> changedMethodQueue;
-
-    private EditsListener() {
-      this.queueLock = new Object();
-      this.changedMethodQueue = new ArrayList<>();
-    }
+    // Care should be given when modifying this field to preserve atomicity.
+    private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
 
     @Override
     public void dispose() {
@@ -168,35 +157,31 @@ public class AndroidLiveEditDeployMonitor {
 
     // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
     public void onLiteralsChanged(EditEvent event) {
-      if (StringUtil.isEmpty(packageName)) {
+      if (StringUtil.isEmpty(applicationId)) {
         return;
       }
 
-      synchronized (queueLock) {
-        changedMethodQueue.add(event);
-      }
+      changedMethodQueue.add(event);
       methodChangesExecutor.schedule(this::processChanges, LiveEditConfig.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
     }
 
-    private void setPackageName(String packageName) {
-      this.packageName = packageName;
+    private void setApplicationId(String applicationId) {
+      this.applicationId = applicationId;
     }
 
     private void processChanges() {
-      ArrayList<EditEvent> copy;
-      synchronized (queueLock) {
-        if (changedMethodQueue.isEmpty()) {
-          return;
-        }
-
-        copy = changedMethodQueue;
-        changedMethodQueue = new ArrayList<>();
+      if (changedMethodQueue.isEmpty()) {
+        return;
       }
 
-      if (!handleChangedMethods(project, packageName, copy)) {
-        synchronized (queueLock) {
-          changedMethodQueue.addAll(copy);
-        }
+      List<EditEvent> copy = new ArrayList<>();
+      changedMethodQueue.removeIf(e -> {
+        copy.add(e);
+        return true;
+      });
+
+      if (!handleChangedMethods(project, applicationId, copy)) {
+        changedMethodQueue.addAll(copy);
         methodChangesExecutor.schedule(this::processChanges, LiveEditConfig.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
       }
     }
@@ -210,11 +195,11 @@ public class AndroidLiveEditDeployMonitor {
     Disposer.register(service, editsListener);
   }
 
-  public Callable<?> getCallback(String packageName, IDevice device) {
+  public Callable<?> getCallback(String applicationId, IDevice device) {
     String deviceId = device.getSerialNumber();
 
     // TODO: Don't use Live Literal's reporting
-    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + applicationId);
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
@@ -228,18 +213,18 @@ public class AndroidLiveEditDeployMonitor {
     }
 
     if (!supportLiveEdits(device)) {
-      LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), packageName);
+      LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), applicationId);
       return null;
     }
 
-    LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
+    LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
 
     return () -> methodChangesExecutor
       .schedule(
         () -> {
-          editsListener.setPackageName(null);
+          editsListener.setApplicationId(null);
           functionStateMap.clear();
-          editsListener.setPackageName(packageName);
+          editsListener.setApplicationId(applicationId);
 
           LiveLiteralsMonitorHandler.DeviceType deviceType;
           if (device.isEmulator()) {
@@ -249,13 +234,12 @@ public class AndroidLiveEditDeployMonitor {
             deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
           }
 
-          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
+          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + applicationId, deviceType);
         },
         0L,
         TimeUnit.NANOSECONDS)
       .get();
   }
-
 
   private static void checkJetpackCompose(@NotNull Project project) {
     final List<IrGenerationExtension> pluginExtensions = IrGenerationExtension.Companion.getInstances(project);
@@ -290,7 +274,6 @@ public class AndroidLiveEditDeployMonitor {
     ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
     LiveEditUpdateException exception = null;
     try {
-
       // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
       // unclear BackendException
       checkJetpackCompose(project);
