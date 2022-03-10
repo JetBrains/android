@@ -25,7 +25,7 @@
   <depends>org.jetbrains.kotlin</depends>
   <depends>org.toml.lang</depends>
 
-  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
