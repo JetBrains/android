@@ -96,9 +96,6 @@ internal class AndroidExtraModelProviderWorker(
           }
           // Note: No more cases.
         }
-      // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
-      // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-      populateProjectSyncIssues(modules)
       modules.forEach { it.deliverModels(consumer) }
     }
     catch (e: AndroidSyncException) {
@@ -321,6 +318,10 @@ internal class AndroidExtraModelProviderWorker(
       syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
     )
 
+
+    // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
+    // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+    populateProjectSyncIssues(modules.filterIsInstance<AndroidModule>())
     return modules
   }
 
@@ -340,7 +341,7 @@ internal class AndroidExtraModelProviderWorker(
     syncOptions: NativeVariantsSyncActionOptions
   ): List<GradleModule> {
     val modelCache = ModelCache.create(false)
-    return actionRunner.runActions(
+    val nativeModules =  actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule? {
           val projectIdentifier = gradleProject.projectIdentifier
@@ -374,8 +375,12 @@ internal class AndroidExtraModelProviderWorker(
           return tryV2() ?: tryV1()
         }
       }.toList()
-    )
-      .filterNotNull()
+    ).filterNotNull()
+
+    // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
+    // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+    populateProjectSyncIssues(nativeModules)
+    return nativeModules
   }
 
   private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
