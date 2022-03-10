@@ -77,6 +77,17 @@ const val COMPOSE_INSPECTION_NOT_AVAILABLE = "Compose inspection is not availabl
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
 /**
+ * Result from [ComposeLayoutInspectorClient.getComposeables].
+ */
+class GetComposablesResult(
+  /** The response received from the agent */
+  val response: GetComposablesResponse,
+
+  /** This is true, if a recomposition count reset command was sent after the GetComposables command was sent. */
+  val pendingRecompositionCountReset: Boolean
+)
+
+/**
  * The client responsible for interacting with the compose layout inspector running on the target
  * device.
  *
@@ -150,9 +161,19 @@ class ComposeLayoutInspectorClient(
   }
 
   val parametersCache = ComposeParametersCache(this, model)
-  var lastGeneration = 0
 
-  suspend fun getComposeables(rootViewId: Long, newGeneration: Int): GetComposablesResponse {
+  /**
+   * The caller will supply a running (increasing) number, that can be used to coordinate the responses from
+   * varies commands.
+   */
+  private var lastGeneration = 0
+
+  /**
+   * The value of [lastGeneration] when the last recomposition reset command was sent.
+   */
+  private var lastGenerationReset = 0
+
+  suspend fun getComposeables(rootViewId: Long, newGeneration: Int): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     val response = messenger.sendCommand {
@@ -162,7 +183,7 @@ class ComposeLayoutInspectorClient(
       }.build()
     }
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-    return response.getComposablesResponse
+    return GetComposablesResult(response.getComposablesResponse, lastGenerationReset >= newGeneration)
   }
 
   suspend fun getParameters(rootViewId: Long, composableId: Long): GetParametersResponse {
@@ -210,6 +231,7 @@ class ComposeLayoutInspectorClient(
   }
 
   suspend fun updateSettings(): UpdateSettingsResponse {
+    lastGenerationReset = lastGeneration
     val response = messenger.sendCommand {
       updateSettingsCommand = UpdateSettingsCommand.newBuilder().apply {
         includeRecomposeCounts = treeSettings.showRecompositions

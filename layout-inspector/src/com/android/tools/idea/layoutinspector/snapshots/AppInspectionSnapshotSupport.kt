@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DisconnectedViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
@@ -28,7 +29,6 @@ import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.snapshots.Metadata
 import layoutinspector.snapshots.Snapshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -75,8 +75,8 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
         // should always be true
         if (windowInfo != null) {
           val composeInfo = allComposeInfo[windowInfo.layout.rootView.id]
-          val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout,
-                                                    composeInfo?.composables)
+          val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
+          val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
           val treeLoader = AppInspectionTreeLoader(model.project, metrics::logEvent, SkiaParserImpl({}))
           val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
@@ -123,7 +123,7 @@ fun saveAppInspectorSnapshot(
 fun saveAppInspectorSnapshot(
   path: Path,
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
-  composeInfo: Map<Long, Pair<GetComposablesResponse?, GetAllParametersResponse>>,
+  composeInfo: Map<Long, Pair<GetComposablesResult?, GetAllParametersResponse>>,
   snapshotMetadata: SnapshotMetadata,
   foldInfo: InspectorModel.FoldInfo?
 ) {
@@ -134,7 +134,7 @@ fun saveAppInspectorSnapshot(
       val (composables, composeParameters) = composableAndParameters
       Snapshot.ComposeInfo.newBuilder().apply {
         this.viewId = viewId
-        this.composables = composables
+        this.composables = composables?.response
         this.composeParameters = composeParameters
       }.build()
     })

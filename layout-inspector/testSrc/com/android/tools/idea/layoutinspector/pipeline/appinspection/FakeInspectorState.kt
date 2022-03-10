@@ -776,8 +776,9 @@ class FakeInspectorState(
     }
   }
 
-  fun createFakeComposeTree(withSemantics: Boolean = true) {
+  fun createFakeComposeTree(withSemantics: Boolean = true, latch: CommandLatch? = null) {
     composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
+      latch?.incomingCommand()
       LayoutInspectorComposeProtocol.Response.newBuilder().apply {
         getComposablesResponseBuilder.apply {
           if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {

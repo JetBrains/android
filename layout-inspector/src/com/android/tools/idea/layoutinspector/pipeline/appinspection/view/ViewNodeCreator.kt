@@ -20,7 +20,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeViewNodeCreator
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
@@ -29,16 +29,16 @@ private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidV
  * Helper class which handles the logic of converting a [LayoutInspectorViewProtocol.LayoutEvent] into
  * its corresponding [ViewNode]s.
  *
- * @param composeEvent If passed in, and the current view being processed is an AndroidComposeView, this will
+ * @param composeResult If passed in, and the current view being processed is an AndroidComposeView, this will
  *   be used to generate [ComposeViewNode] children.
  */
 class ViewNodeCreator(
   layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
-  composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?
+  composeResult: GetComposablesResult?
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
-  private val composeNodeCreator = composeEvent?.let { ComposeViewNodeCreator(it) }
+  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it) }
 
   /**
    * The collected capabilities based on the loaded data.

@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
@@ -47,7 +48,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.snapshots.Metadata
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
@@ -105,7 +105,7 @@ class ViewLayoutInspectorClient(
     val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResponse?
+    val composeEvent: GetComposablesResult?
   )
 
   companion object {
@@ -278,13 +278,14 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
+    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
 
     val data = Data(
       generation,
       currRoots,
       layoutEvent,
-      composablesResponse)
+      composablesResult
+    )
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }

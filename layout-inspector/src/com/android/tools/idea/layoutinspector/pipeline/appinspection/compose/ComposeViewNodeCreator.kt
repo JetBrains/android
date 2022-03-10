@@ -33,7 +33,9 @@ private val semanticsSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE, Capabilit
  * Helper class which handles the logic of using data from a [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to
  * create [ComposeViewNode]s.
  */
-class ComposeViewNodeCreator(response: GetComposablesResponse) {
+class ComposeViewNodeCreator(result: GetComposablesResult) {
+  private val response = result.response
+  private val pendingRecompositionCountReset = result.pendingRecompositionCountReset
   private val stringTable = StringTableImpl(response.stringsList)
   private val roots = response.rootsList.map { it.viewId to it.nodesList }.toMap()
   private var composeFlags = 0
@@ -100,8 +102,8 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
       null,
       "",
       0,
-      recomposeCount,
-      recomposeSkips,
+      if (pendingRecompositionCountReset) 0 else recomposeCount,
+      if (pendingRecompositionCountReset) 0 else recomposeSkips,
       stringTable[filename],
       packageHash,
       offset,
