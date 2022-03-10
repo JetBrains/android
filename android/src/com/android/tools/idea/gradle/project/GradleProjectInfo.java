@@ -42,11 +42,9 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Consumer;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -59,8 +57,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
-  @NotNull private final ProjectFileIndex myProjectFileIndex;
-
   private volatile boolean myNewProject;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
@@ -73,7 +69,6 @@ public class GradleProjectInfo {
 
   public GradleProjectInfo(@NotNull Project project) {
     myProject = project;
-    myProjectFileIndex = ProjectFileIndex.getInstance(myProject);
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
@@ -135,14 +130,6 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the project has Gradle facets.
-   * e.g. this is used to check if an opened Gradle project has already been imported or not yet.
-   */
-  public boolean hasGradleFacets() {
-    return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
-  }
-
-  /**
    * Indicates whether the project has a file which gradle could use to perform initialization, either of a "single project" or a
    * "multi-project" build.
    *
@@ -178,31 +165,6 @@ public class GradleProjectInfo {
       }
     });
     return modules.build();
-  }
-
-  /**
-   * Applies the given {@link Consumer} to each module in the project that contains an {@code AndroidFacet}.
-   *
-   * @param consumer the {@code Consumer} to apply.
-   */
-  public void forEachAndroidModule(@NotNull Consumer<AndroidFacet> consumer) {
-    ReadAction.run(() -> {
-      if (myProject.isDisposed()) {
-        return;
-      }
-
-      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && GradleFacet.getInstance(module) != null) {
-          consumer.consume(androidFacet);
-        }
-      }
-    });
-  }
-
-  @Nullable
-  public Module findModuleForFile(@NotNull VirtualFile file, boolean honorExclusion) {
-    return myProjectFileIndex.getModuleForFile(file, honorExclusion);
   }
 
   /**

@@ -26,10 +26,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -43,6 +41,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -290,8 +289,8 @@ public class GradleProjectSystemUtil {
    * module.
    */
   @Nullable
-  public static GradleAndroidModel findAndroidModelInModule(GradleProjectInfo info, @NotNull VirtualFile file, boolean honorExclusion) {
-    Module module = info.findModuleForFile(file, honorExclusion);
+  public static GradleAndroidModel findAndroidModelInModule(@NotNull Project project, @NotNull VirtualFile file, boolean honorExclusion) {
+    Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file, honorExclusion);
     if (module == null) {
       return null;
     }
@@ -314,8 +313,8 @@ public class GradleProjectSystemUtil {
    * module the file belongs to is not an Android module.
    */
   @Nullable
-  public static GradleAndroidModel findAndroidModelInModule(GradleProjectInfo info, @NotNull VirtualFile file) {
-    return findAndroidModelInModule(info, file, true /* ignore "excluded files */);
+  public static GradleAndroidModel findAndroidModelInModule(@NotNull Project project, @NotNull VirtualFile file) {
+    return findAndroidModelInModule(project, file, true /* ignore "excluded files */);
   }
 
   @NotNull

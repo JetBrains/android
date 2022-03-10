@@ -40,7 +40,7 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
   @Override
   public boolean isGeneratedSource(@NotNull VirtualFile file, @NotNull Project project) {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
-    GradleAndroidModel androidModel = GradleProjectSystemUtil.findAndroidModelInModule(projectInfo, file);
+    GradleAndroidModel androidModel = GradleProjectSystemUtil.findAndroidModelInModule(project, file);
     return isGeneratedSource(file, project, projectInfo, androidModel);
   }
 
