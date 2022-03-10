@@ -52,5 +52,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
     ],
 )
