@@ -46,10 +46,13 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -101,7 +104,7 @@ class ComposePreviewRepresentationTest {
     composePreviewRepresentation.onActivate()
 
     runBlocking {
-      composePreviewRepresentation.forceRefresh().join()
+      composePreviewRepresentation.forceRefresh()!!.join()
       previewView.updateVisibilityAndNotifications()
     }
     waitForRefreshToFinish()
@@ -298,5 +301,15 @@ class ComposePreviewRepresentationTest {
       projectRule.buildAndAssertIsSuccessful()
     }
     assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
+  }
+
+  @Test
+  fun `refresh returns null if ComposePreviewRepresentation is disposed`() {
+    var refreshJob = runBlocking { composePreviewRepresentation.forceRefresh(true) }
+    assertNotNull(refreshJob)
+
+    runInEdtAndWait { Disposer.dispose(composePreviewRepresentation) }
+    refreshJob = runBlocking { composePreviewRepresentation.forceRefresh(true) }
+    assertNull(refreshJob)
   }
 }

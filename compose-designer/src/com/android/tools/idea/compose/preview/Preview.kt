@@ -338,7 +338,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     previewElementProvider.instanceFilter = element
     composeWorkBench.hasComponentsOverlay = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(quickRefresh).invokeOnCompletion {
+    forceRefresh(quickRefresh)?.invokeOnCompletion {
       surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
       if (!isFromAnimationInspection) { // Currently it will re-create classloader and will be slower that switch from static
         InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
@@ -365,7 +365,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onInteractivePreviewStop()
     EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
     onStaticPreviewStart()
-    forceRefresh().invokeOnCompletion {
+    forceRefresh()?.invokeOnCompletion {
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     }
   }
@@ -423,7 +423,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           onAnimationInspectionStop()
           onStaticPreviewStart()
         }
-        forceRefresh().invokeOnCompletion {
+        forceRefresh()?.invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
           ActivityTracker.getInstance().inc()
         }
@@ -716,7 +716,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       launch(workerThread) {
         refreshFlow.collectLatest {
           refreshFlow.resetReplayCache() // Do not keep re-playing after we have received the element.
-          refresh(it).join()
+          refresh(it)?.join()
         }
       }
 
@@ -1035,7 +1035,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  private fun refresh(refreshRequest: RefreshRequest): Job {
+  private fun refresh(refreshRequest: RefreshRequest): Job? {
     val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug("Refresh triggered. quickRefresh: ${refreshRequest.quickRefresh}")
     val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
@@ -1048,7 +1048,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       "",
       true
     )
-    Disposer.register(this, refreshProgressIndicator)
+    if (!Disposer.tryRegister(this, refreshProgressIndicator)) return null
     // This is not launched in the activation scope to avoid cancelling the refresh mid-way when the user changes tabs.
     val refreshJob = launchWithProgress(refreshProgressIndicator, uiThread) {
       requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", refreshTrigger)
@@ -1187,7 +1187,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     invalidated.set(true)
   }
 
-  internal fun forceRefresh(quickRefresh: Boolean = false): Job {
+  internal fun forceRefresh(quickRefresh: Boolean = false): Job? {
     invalidate()
     return refresh(RefreshRequest(quickRefresh))
   }

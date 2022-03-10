@@ -80,7 +80,7 @@ class RenderErrorTest {
     composePreviewRepresentation.onActivate()
 
     runBlocking {
-      composePreviewRepresentation.forceRefresh().join()
+      composePreviewRepresentation.forceRefresh()!!.join()
       previewView.updateVisibilityAndNotifications()
       while (composePreviewRepresentation.status().isRefreshing) delay(500)
     }
