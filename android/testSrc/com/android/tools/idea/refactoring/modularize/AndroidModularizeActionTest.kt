@@ -17,9 +17,8 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -87,7 +86,7 @@ class AndroidModularizeActionTest {
     @Test
     fun `isAvailableInEditorOnly always false`() {
       val action = TestableAndroidModularizeAction()
-      assertThat(action.isAvailableInEditorOnly()).isFalse()
+      assertThat(action.isAvailableInEditorOnly).isFalse()
     }
   }
 
@@ -125,55 +124,12 @@ class AndroidModularizeActionTest {
     @Test
     fun `isAvailableForFile only for Java Android`() {
       val action = TestableAndroidModularizeAction()
-      val aUtils = mockStatic<AndroidUtils>()
-      aUtils.use {
+      mockStatic<AndroidUtils>().use {
         case.fileInfo?.let { fileInfo ->
           given(AndroidUtils.hasAndroidFacets(case.project)).thenReturn(fileInfo.hasAndroidFacets)
         }
         assertThat(action.isAvailableForFile(case.file)).isEqualTo(case.expected)
       }
-    }
-  }
-
-  /* This is a helper to handle a tricky bit of mocking used in a of couple tests.
-
-     Due to the @RunWith(Enclosed), tests are in nested classes, which prevents
-     them from accessing a function at the outer class level. Making them inner classes
-     could fix that, but then it would forbid companion objects, which are required
-     to use @RunWith(Parameterized). Thus, I settled on using a class both test
-     classes could inherit from. The class is abstract so that the Enclosed
-     runner doesn't complain about there not being a test in it.
-
-     Unfortunately, there are some difficulties with vanilla Mockito here due to some Kotlin features.
-     `project.getSyncManager()` is an extension method of AndroidProjectSystem, which normally
-     should be a static function under the hood, but AndroidProjectSystem uses @JvmName and
-     I can't find a way to specify the correct class to Mockito to get it to attach.
-     Thus, we need to sadly look at the implementation of the extension method and go deeper.
-
-     Ultimately, this turns into `ProjectSystemService.getInstance(<project>).projectSystem`.
-     The issue here is that `getInstance` is a companion object method, which I also can't
-     get Mockito to properly attach to. Thus, we have to go deeper _again_ :(
-
-     Finally, we end up at `project.getService(ProjectSystemService.class.java)`, which is a
-     normal method we can mock on something we already have (the project) and takes something else
-     that we need to mock anyway (ProjectSystemService due to the `projectSystem` property).
-     From there we can mock the `projectSystem` property to give a mock AndroidProjectSystem,
-     which we can mock the `getSyncManager` method to give a mock ProjectSystemSyncManager.
-     Since the extension function `getSyncManager` ends up expanding into the normal method version
-     this puts us back into the actual call chain in the SUT.
-
-     If we had one of the kotlin mockito extensions (like mockito-kotlin) then this could be avoidable.
-     Those are supposed to support mocking extension functions using a normal style, which would let us scrap this.
-     Hopefully, we can eventually adopt one of those and delete this mess,
-     but in the meantime we can hide it away here and pretend it doesn't exist.
-   */
-  abstract class CanMockProjectGetSyncManager {
-    protected fun mockProjectGetSyncManager(project: Project, syncManager: ProjectSystemSyncManager) {
-      val projSysServ = mock<ProjectSystemService>()
-      given(project.getService(ProjectSystemService::class.java)).thenReturn(projSysServ)
-      val androidProjSys = mock<AndroidProjectSystem>()
-      given(projSysServ.projectSystem).thenReturn(androidProjSys)
-      given(androidProjSys.getSyncManager()).thenReturn(syncManager)
     }
   }
 
@@ -185,15 +141,14 @@ class AndroidModularizeActionTest {
       val fileAvail: Boolean?,
       val numAvailElem: Int,
       val addUnavailElem: Boolean,
-    ) : CanMockProjectGetSyncManager() {
-      val project = lastSyncOk?.let {
-        val proj = mock<Project>()
-        val syncMang = mock<ProjectSystemSyncManager>()
-        mockProjectGetSyncManager(proj, syncMang)
-        val syncRes = mock<ProjectSystemSyncManager.SyncResult>()
-        given(syncMang.getLastSyncResult()).thenReturn(syncRes)
-        given(syncRes.isSuccessful).thenReturn(lastSyncOk)
-        proj
+    ) {
+      val project = lastSyncOk?.let { mock<Project>() }
+      val syncManager = lastSyncOk?.let {
+        mock<ProjectSystemSyncManager>().also {
+          val syncRes = mock<ProjectSystemSyncManager.SyncResult>()
+          given(it.getLastSyncResult()).thenReturn(syncRes)
+          given(syncRes.isSuccessful).thenReturn(lastSyncOk)
+        }
       }
       val file = fileAvail?.let {
         mock<PsiFile>()
@@ -265,22 +220,30 @@ class AndroidModularizeActionTest {
       mockStatic<BaseRefactoringAction>().use {
         given(BaseRefactoringAction.getPsiElementArray(dc)).thenReturn(case.elements)
 
-        // finally, we can actually do the test
-        assertThat(action.isEnabledOnDataContext(dc)).isEqualTo(case.expect)
+        val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
+        Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
+          // if there is a project then hook it up to a sync manager
+          case.project?.let {
+            given(it.getSyncManager()).thenReturn(case.syncManager!!)
+          }
+
+          // finally, we can actually do the test
+          assertThat(action.isEnabledOnDataContext(dc)).isEqualTo(case.expect)
+        }
       }
     }
   }
 
   @RunWith(Parameterized::class)
   class IsAvailableOnElementInEditorAndFileTest(val case: Case) {
-    data class Case(val lastSyncSuccessful: Boolean) : CanMockProjectGetSyncManager() {
+    data class Case(val lastSyncSuccessful: Boolean) {
+      val project = mock<Project>()
       val file = mock<PsiFile>().also {
-        val project = mock<Project>()
         given(it.project).thenReturn(project)
-        val syncManager = mock<ProjectSystemSyncManager>()
-        mockProjectGetSyncManager(project, syncManager)
+      }
+      val syncManager = mock<ProjectSystemSyncManager>().also {
         val syncResult = mock<ProjectSystemSyncManager.SyncResult>()
-        given(syncManager.getLastSyncResult()).thenReturn(syncResult)
+        given(it.getLastSyncResult()).thenReturn(syncResult)
         given(syncResult.isSuccessful).thenReturn(lastSyncSuccessful)
       }
     }
@@ -298,7 +261,12 @@ class AndroidModularizeActionTest {
     fun `isAvailableOnElementInEditorAndFile matches last sync status`() {
       val action = TestableAndroidModularizeAction()
 
-      assertThat(action.isAvailableOnElementInEditorAndFile(mock(), mock(), case.file, mock())).isEqualTo(case.lastSyncSuccessful)
+      val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
+      Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
+        given(case.project.getSyncManager()).thenReturn(case.syncManager)
+
+        assertThat(action.isAvailableOnElementInEditorAndFile(mock(), mock(), case.file, mock())).isEqualTo(case.lastSyncSuccessful)
+      }
     }
   }
 
@@ -333,8 +301,7 @@ class AndroidModularizeActionTest {
     @Test
     fun `getHandler is a AndroidModularizeHandler`() {
       val action = TestableAndroidModularizeAction()
-      val dc: DataContext = mock()
-      assertThat(action.getHandler(dc)).isInstanceOf(AndroidModularizeHandler::class.java)
+      assertThat(action.getHandler(mock())).isInstanceOf(AndroidModularizeHandler::class.java)
     }
   }
 }
