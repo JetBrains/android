@@ -257,6 +257,8 @@ public class GradleSyncTest {
   public void sdkSwitch() throws IOException {
     File secondSdkPath = getFilePathPropertyOrSkipTest("second.android.sdk.path", "the path of a secondary Android SDK", true);
 
+    GuiTestingService.getInstance().getGuiTestSuiteState().setSkipSdkMerge(true);
+
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();
 

@@ -24,14 +24,18 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -171,6 +175,10 @@ public class SdkSync {
           // Use project's SDK
           setIdeSdk(localProperties, projectAndroidSdkPath);
         }
+        if (GuiTestingService.getInstance().isGuiTestingMode() &&
+            !GuiTestingService.getInstance().getGuiTestSuiteState().isSkipSdkMerge()) {
+          mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
+        }
       });
     }
   }
@@ -242,6 +250,22 @@ public class SdkSync {
     catch (IOException e) {
       String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
       throw new ExternalSystemException(msg, e);
+    }
+  }
+
+  private static void mergeIfNeeded(@NotNull File sourceSdk, @NotNull File destSdk) {
+    if (SdkMerger.hasMergeableContent(sourceSdk, destSdk)) {
+      String msg = String.format("The Android SDK at\n\n%1$s\n\nhas packages not in your project's SDK at\n\n%2$s\n\n" +
+                                 "Would you like to copy into the project SDK?", sourceSdk.getPath(), destSdk.getPath());
+      int result = MessageDialogBuilder.yesNo("Merge SDKs", msg).yesText("Copy").noText("Do not copy").show();
+      if (result == Messages.YES) {
+        new Task.Backgroundable(null, "Merging Android SDKs", false) {
+          @Override
+          public void run(@NotNull ProgressIndicator indicator) {
+            SdkMerger.mergeSdks(sourceSdk, destSdk, indicator);
+          }
+        }.queue();
+      }
     }
   }
 
