@@ -116,7 +116,7 @@ class BasicCompileTest {
     // We can't really invoke any composable without the runtime libraries. At least we can check
     // to make sure the output isn't empty.
     Assert.assertTrue(output.classData.isNotEmpty())
-    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals("@androidx.compose.runtime.Composable ".length, output.offSet.start)
     Assert.assertEquals(81, output.offSet.end)
   }
 
@@ -125,7 +125,7 @@ class BasicCompileTest {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
     Assert.assertEquals("composableNested", output.methodName)
     Assert.assertEquals("(Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function3;", output.methodDesc)
-    Assert.assertEquals(0, output.offSet.start)
+    Assert.assertEquals("@androidx.compose.runtime.Composable ".length, output.offSet.start)
     Assert.assertEquals(126, output.offSet.end)
   }
 

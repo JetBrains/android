@@ -35,7 +35,7 @@ data class EditEvent(val file: PsiFile, val function: KtNamedFunction?) {
   // start and end offset can be changed by the editor so we need to record these
   // information on the first read event available. That's why it needs to be
   // done here.
-  var functionStartOffSet = function?.let {it.startOffset}
+  var functionStartOffSet = function?.let { it.funKeyword?.startOffset }
   var functionEndOffSet = function?.let {it.endOffset}
   fun isWithinFunction() = function != null
 }
