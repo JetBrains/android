@@ -23,6 +23,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
@@ -53,7 +54,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
-    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
+    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: IdeKotlinVersion): Boolean {
         val manipulator = KotlinGradleFacadeImpl.getManipulator(file, false)
         val module = ModuleUtil.findModuleForPsiElement(file)?: return false
         val sdk = ModuleRootManager.getInstance(module).sdk
@@ -78,7 +79,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-    override fun getStdlibArtifactName(sdk: Sdk?, version: String): String {
+    override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
         if (sdk != null && hasJreSpecificRuntime(version)) {
             val sdkVersion = sdk.version
             if (sdkVersion != null && sdkVersion.isAtLeast(JavaSdkVersion.JDK_1_8)) {

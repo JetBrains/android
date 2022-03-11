@@ -10,14 +10,13 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradle.inspections.KotlinGradleModelFacade
 import org.jetbrains.kotlin.idea.gradleJava.inspections.findModulesByNames
-import com.android.builder.model.Library
+import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 
 class AndroidGradleModelFacade : KotlinGradleModelFacade {
-    override fun getResolvedKotlinStdlibVersionByModuleData(moduleData: DataNode<*>, libraryIds: List<String>): String? {
+    override fun getResolvedKotlinStdlibVersionByModuleData(moduleData: DataNode<*>, libraryIds: List<String>): IdeKotlinVersion? {
         ExternalSystemApiUtil
                 .findAllRecursively(moduleData, AndroidProjectKeys.JAVA_MODULE_MODEL).asSequence()
                 .flatMap { it.data.jarLibraryDependencies.asSequence() }
@@ -25,7 +24,9 @@ class AndroidGradleModelFacade : KotlinGradleModelFacade {
                     val libraryName = it.name
                     for (libraryId in libraryIds) {
                         val prefix = "$libraryId-"
-                        if (libraryName.startsWith(prefix)) return libraryName.substringAfter(prefix)
+                        if (libraryName.startsWith(prefix)) {
+                            return IdeKotlinVersion.opt(libraryName.substringAfter(prefix))
+                        }
                     }
                 }
         return null
