@@ -60,7 +60,7 @@ private val LOG = Logger.getInstance(AnimationPreview::class.java)
  * therefore allows a detailed inspection of Compose animations.
  */
 class AnimationPreview(override val surface: DesignSurface) : JPanel(
-  TabularLayout("Fit,*", "Fit,*,Fit")), ComposeAnimationPreview {
+  TabularLayout("Fit,*", "Fit,*,30px")), ComposeAnimationPreview {
 
   private val tracker: (ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
     AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
