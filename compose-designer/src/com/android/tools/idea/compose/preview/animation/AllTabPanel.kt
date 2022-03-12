@@ -29,7 +29,7 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel : JPanel(TabularLayout("*", "Fit,*")) {
+class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
 
   //   ________________________________________________
   //   | [Playback control]                            |
@@ -79,7 +79,7 @@ class AllTabPanel : JPanel(TabularLayout("*", "Fit,*")) {
 
   fun addPlayback(playback: JComponent) {
     add(playback.apply { border = MatteBorder(0, 0, 1, 0, JBColor.border()) },
-        TabularLayout.Constraint(0, 0))
+        TabularLayout.Constraint(0, 1))
   }
 
   fun addCard(card: AnimationCard) {
@@ -105,7 +105,7 @@ class AllTabPanel : JPanel(TabularLayout("*", "Fit,*")) {
   }
 
   init {
-    add(scrollPane, TabularLayout.Constraint(1, 0))
+    add(scrollPane, TabularLayout.Constraint(1, 0, 2))
     isFocusable = false
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }

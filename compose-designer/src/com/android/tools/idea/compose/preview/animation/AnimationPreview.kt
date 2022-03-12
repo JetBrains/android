@@ -478,7 +478,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
     /** [Timeline] parent when animation in new tab is selected. */
     private val tabTimelineParent = JPanel(BorderLayout())
 
-    val tabComponent = JPanel(TabularLayout("Fit,*,Fit", "Fit,*")).apply {
+    val tabComponent = JPanel(TabularLayout("Fit,*,Fit", "30px,*")).apply {
       add(stateComboBoxInTab.component, TabularLayout.Constraint(0, 2))
       add(tabScrollPane, TabularLayout.Constraint(1, 0, 3))
       tabScrollPane.setViewportView(tabTimelineParent)

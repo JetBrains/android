@@ -41,7 +41,7 @@ import javax.swing.border.MatteBorder
  */
 class AnimationTabs(surface: DesignSurface) : JBTabsImpl(surface.project,
                                                          IdeFocusManager.getInstance(surface.project), surface.project) {
-  private val decoration = UiDecorator.UiDecoration(null, Insets(4, 10, 4, 2))
+  private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
 
 
   init {
@@ -80,7 +80,7 @@ class AnimationTabs(surface: DesignSurface) : JBTabsImpl(surface.project,
   private class CloseButton(actionListener: ActionListener?) : InplaceButton(
     IconButton(message("animation.inspector.action.close.tab"), AllIcons.Actions.Close, AllIcons.Actions.CloseHovered), actionListener) {
     init {
-      preferredSize = JBUI.size(24)
+      preferredSize = JBUI.size(16)
       minimumSize = preferredSize // Prevent layout phase from squishing this button
     }
   }
