@@ -18,4 +18,5 @@ package com.android.tools.idea.compose.preview.animation
 /** Describes availability of different features in Animation Preview. */
 interface AnimationPreviewState {
   fun isCoordinationAvailable(): Boolean = false
+  fun isCoordinationPanelOpened(): Boolean = true
 }

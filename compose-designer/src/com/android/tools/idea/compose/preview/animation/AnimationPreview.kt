@@ -69,6 +69,8 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
   private val previewState = object : AnimationPreviewState {
     override fun isCoordinationAvailable(): Boolean =
       animationClock?.coordinationIsSupported() == true
+
+    override fun isCoordinationPanelOpened(): Boolean = selectedAnimation == null
   }
 
   /**
@@ -134,7 +136,12 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
     }
     addResetListener {
       timeline.sliderUI.elements.forEach { it.reset() }
-      animations.forEach { it.elementState.valueOffset = 0 }
+      if (previewState.isCoordinationPanelOpened()) {
+        animations.forEach { it.elementState.valueOffset = 0 }
+      }
+      else {
+        selectedAnimation?.elementState?.valueOffset = 0
+      }
       updateTimelineMaximum()
       timeline.repaint()
     }

@@ -40,7 +40,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
-class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
+class BottomPanelTest(private val enableCoordinationDrag: Boolean, private val isCoordinationPanelOpened: Boolean) {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
@@ -49,8 +49,8 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
 
   companion object {
     @JvmStatic
-    @Parameterized.Parameters(name = "Coordination drag is enabled: {0}")
-    fun enableCoordinationDrag() = listOf(true, false)
+    @Parameterized.Parameters(name = "Coordination drag is enabled: {0}, coordination panel opened: {1}")
+    fun parameters() = listOf(arrayOf<Any>(true, true), arrayOf<Any>(true, false), arrayOf<Any>(false, true), arrayOf<Any>(false, false))
   }
 
   @Before
@@ -160,7 +160,10 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
 
   /** Create [BottomPanel] with 300x500 size. */
   private fun createBottomPanel(withCoordination: Boolean = true): BottomPanel {
-    val panel = BottomPanel(TestUtils.testPreviewState(withCoordination), surface) {}
+    val panel = BottomPanel(object : AnimationPreviewState {
+      override fun isCoordinationAvailable() = withCoordination
+      override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
+    }, surface) {}
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)
