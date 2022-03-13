@@ -45,7 +45,7 @@ public class BuildApkAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      List<Module> appModules = ProjectStructure.getInstance(project).getAppModules().stream()
+      List<Module> appModules = ProjectStructure.getInstance(project).getAppHolderModules().stream()
         .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
         .collect(Collectors.toList());
       if (!appModules.isEmpty()) {

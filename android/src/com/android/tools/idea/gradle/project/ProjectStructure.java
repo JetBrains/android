@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -101,6 +102,7 @@ public class ProjectStructure {
         .collect(Collectors.toList());
 
     for (Module module : modules) {
+      if (getHolderModule(module) != module) continue;
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
@@ -150,7 +152,7 @@ public class ProjectStructure {
   }
 
   @NotNull
-  public ImmutableList<Module> getAppModules() {
+  public ImmutableList<Module> getAppHolderModules() {
     synchronized (myLock) {
       return ImmutableList.copyOf(myAppModules);
     }

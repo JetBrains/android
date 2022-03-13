@@ -43,7 +43,7 @@ class ProjectStructureTest : PlatformTestCase() {
     )
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules.map { it.name }
+    val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsAllOf("app", "instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
     Truth.assertThat(agpPluginVersions.isEmpty).isFalse()
@@ -88,7 +88,7 @@ class ProjectStructureTest : PlatformTestCase() {
 
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules.map { it.name }
+    val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsExactly("app")
     // Verify that app and leaf modules are returned.
     val leafModules = projectStructure.leafModules.map { it.name }
