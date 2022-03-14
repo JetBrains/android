@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,14 @@ public class SkinLayoutDefinition {
 
   @NotNull
   public static SkinLayoutDefinition parseString(@NotNull String contents) {
-    return loadFromTokens(TOKEN_SPLITTER.split(contents).iterator());
+    StringBuilder contentsWithoutComments = new StringBuilder();
+    for (String line : Splitter.on('\n').split(contents)) {
+      if (!line.trim().startsWith("#")) {
+        contentsWithoutComments.append(line);
+        contentsWithoutComments.append('\n');
+      }
+    }
+    return loadFromTokens(TOKEN_SPLITTER.split(contentsWithoutComments.toString()).iterator());
   }
 
   private SkinLayoutDefinition(@NotNull Map<String, String> properties, @NotNull Map<String, SkinLayoutDefinition> children) {
