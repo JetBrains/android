@@ -21,6 +21,7 @@ import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
@@ -32,6 +33,7 @@ import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.data.ConfigurationUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
+import com.android.build.attribution.ui.data.DownloadsSummaryUIData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
@@ -176,6 +178,9 @@ class BuildAttributionUiManagerImpl(
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val jetifierData: JetifierUsageAnalyzerResult
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val downloadsData: DownloadsAnalyzer.Result
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
@@ -70,6 +71,7 @@ class MockUiData(
   override var annotationProcessors = mockAnnotationProcessorsData()
   override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
   override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
+  override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.Result(repositoryResults = emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,

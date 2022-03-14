@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.defaultTotalBuildDurationMs
 import com.android.build.attribution.ui.model.BuildOverviewPageModel
@@ -136,6 +137,76 @@ class BuildOverviewPageViewTest {
     Truth.assertThat(visibleText(textPane)).contains("The default garbage collector was used in this build running with JDK 11.")
   }
 
+  @Test
+  fun testDownloadsOverviewInfo() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.Result(repositoryResults = listOf(
+        DownloadsAnalyzer.RepositoryResult(
+          repository = DownloadsAnalyzer.KnownRepository.GOOGLE,
+          successRequestsCount = 5,
+          successRequestsTimeMs = 1000,
+          successRequestsBytesDownloaded = 300000,
+          missedRequestsCount = 0,
+          missedRequestsTimeMs = 0,
+          failedRequestsCount = 0,
+          failedRequestsTimeMs = 0,
+          failedRequestsBytesDownloaded = 0
+        ),
+        DownloadsAnalyzer.RepositoryResult(
+          repository = DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL,
+          successRequestsCount = 1,
+          successRequestsTimeMs = 500,
+          successRequestsBytesDownloaded = 10000,
+          missedRequestsCount = 1,
+          missedRequestsTimeMs = 10,
+          failedRequestsCount = 1,
+          failedRequestsTimeMs = 5,
+          failedRequestsBytesDownloaded = 0
+        )
+      ))
+    }
+    val model = BuildOverviewPageModel(mockData, warningSuppressions)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
+    val html = TreeWalker(infoPanel).descendants()
+      .filterIsInstance<JEditorPane>()
+      .mapNotNull { it.text }
+      .joinToString(separator = "\n")
+    val extracted = html.substring(html.indexOf("Files download:")).substringBeforeLast("</body>").trimEnd()
+    Truth.assertThat(extracted).isEqualTo("""
+      Files download: 1.5s <icon alt="<html>
+      This build had 8 network requests,<br/>
+      downloaded in total 310 kB in 1.5s.
+      </html>" src="AllIcons.General.ContextHelp"><br>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testInfoContentForNotActiveDownloadsAnalyzer() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.Result.analyzerNotActive
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  @Test
+  fun testInfoContentForEmptyDownloadsAnalyzer() {
+    val mockData = MockUiData().apply {
+      downloadsData = DownloadsAnalyzer.Result(emptyList())
+    }
+    verifyFileDownloadsInfoNotVisible(mockData)
+  }
+
+  private fun verifyFileDownloadsInfoNotVisible(mockData: MockUiData) {
+    val model = BuildOverviewPageModel(mockData, warningSuppressions)
+    val view = BuildOverviewPageView(model, mockHandlers)
+    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
+    val text = TreeWalker(infoPanel).descendants()
+      .mapNotNull { visibleText(it) }
+      .joinToString(separator = "\n")
+    Truth.assertThat(text).doesNotContain("Files download:")
+  }
+
   private fun visibleText(component: Component): String? = when (component) {
     is JLabel -> component.text
     is JEditorPane -> clearHtml(component.text)
@@ -143,7 +214,7 @@ class BuildOverviewPageViewTest {
     else -> null
   }
 
-  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
+  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html).also { println(it) }
     .trimIndent()
     .replace("\n","")
     .replace("<br>","\n")

@@ -62,6 +62,7 @@ class BuildAttributionReportBuilder(
       override val annotationProcessors = AnnotationProcessorsReportBuilder(buildAnalysisResult).build()
       override val confCachingData = buildAnalysisResult.getConfigurationCachingCompatibility()
       override val jetifierData = buildAnalysisResult.getJetifierUsageResult()
+      override val downloadsData = buildAnalysisResult.getDownloadsAnalyzerResult()
     }
   }
 

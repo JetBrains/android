@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.data
 
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -43,6 +44,7 @@ interface BuildAttributionReportUiData {
   val annotationProcessors: AnnotationProcessorsReport
   val confCachingData: ConfigurationCachingCompatibilityProjectResult
   val jetifierData: JetifierUsageAnalyzerResult
+  val downloadsData: DownloadsAnalyzer.Result
 }
 
 interface BuildSummary {
