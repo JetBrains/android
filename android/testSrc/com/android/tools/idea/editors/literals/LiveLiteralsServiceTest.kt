@@ -20,6 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -142,6 +143,7 @@ internal class LiveLiteralsServiceTest {
   }
 
   @Test
+  @Ignore("b/224534338")
   fun `listener notification`() {
     // Setup
     val latch = CountDownLatch(1)

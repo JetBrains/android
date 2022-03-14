@@ -23,6 +23,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Callable
@@ -36,6 +37,7 @@ class NonBlockingReadActionUtilTest {
   val projectRule = ProjectRule()
 
   @Test
+  @Ignore("b/224542619")
   fun waitInterruptibly() {
     val requestedReads = 50
     val reads = AtomicInteger(requestedReads)
