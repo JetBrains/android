@@ -72,7 +72,7 @@ include_file ::= '@' file {
   pin=1
 }
 flag ::= FLAG_TOKEN
-private rule_ ::= rule_with_class_specification | rule {recoverWhile=not_flag}
+private rule_ ::= rule_with_class_specification | rule_with_class_filter | rule {recoverWhile=not_flag}
 rule ::= flag (flag_argument ("," flag_argument)*)?
 rule_with_class_specification ::= flag  ("," keep_option_modifier)* class_specification_header class_specification_body?
 
@@ -82,6 +82,15 @@ file ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_S
 private file_list ::= file ((':'|';') file)*
 file_filter ::= file_list (',' file_list)*
 flag_argument ::= file_list ('(' file_filter ')')?
+
+flag_with_class_filter ::= "-dontnote"|"-dontwarn" {
+  elementType=flag
+}
+
+private rule_with_class_filter ::= flag_with_class_filter class_filter {
+  pin=1
+}
+private class_filter ::= class_name (',' class_name)*
 
 keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|allowoptimization|allowobfuscation
 
