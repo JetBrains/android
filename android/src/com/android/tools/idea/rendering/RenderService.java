@@ -39,7 +39,6 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -703,16 +702,6 @@ public class RenderService implements Disposable {
 
         return null;
       }, AppExecutorUtil.getAppExecutorService());
-    }
-
-    /**
-     * Builds a new {@link RenderTask}.
-     * @deprecated Use {@link RenderTaskBuilder#build}
-     */
-    @Deprecated
-    @Nullable
-    public RenderTask buildSynchronously() {
-      return Futures.getUnchecked(build());
     }
   }
 }

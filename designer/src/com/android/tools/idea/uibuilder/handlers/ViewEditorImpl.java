@@ -156,35 +156,37 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = RenderService.getInstance(module.getProject());
-    final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
-      .buildSynchronously();
-    if (task == null) {
-      return CompletableFuture.completedFuture(Collections.emptyMap());
-    }
+      .build();
 
     // Measure unweighted bounds
     XmlTag parentTag = parent.getTagDeprecated();
-    return task.measureChildren(parentTag, filter)
-      .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
-      .thenApply(map -> {
-        if (map == null) {
-          return Collections.emptyMap();
-        }
-
-        Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
-        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
-          ViewInfo viewInfo = entry.getValue();
-          viewInfo = RenderService.getSafeBounds(viewInfo);
-          Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
-          NlComponent child = tagToComponent.get(entry.getKey());
-          if (child != null) {
-            unweightedSizes.put(child, size);
+    return taskFuture.thenCompose(task -> {
+      if (task == null) {
+        return CompletableFuture.completedFuture(Collections.emptyMap());
+      }
+      return task.measureChildren(parentTag, filter)
+        .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
+        .thenApply(map -> {
+          if (map == null) {
+            return Collections.emptyMap();
           }
-        }
 
-        return unweightedSizes;
-      });
+          Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
+          for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+            ViewInfo viewInfo = entry.getValue();
+            viewInfo = RenderService.getSafeBounds(viewInfo);
+            Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
+            NlComponent child = tagToComponent.get(entry.getKey());
+            if (child != null) {
+              unweightedSizes.put(child, size);
+            }
+          }
+
+          return unweightedSizes;
+        });
+    });
   }
 
   @VisibleForTesting
