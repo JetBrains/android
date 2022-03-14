@@ -17,6 +17,6 @@ package com.android.tools.idea.compose.preview.util.device
 
 import com.intellij.lang.Language
 
-object DeviceSpecLanguage: Language("COMPOSE_PREVIEW_DEVICE_SPEC_LANGUAGE") {
+object DeviceSpecLanguage: Language("DeviceSpec") {
   override fun getDisplayName(): String = "Compose Preview Device specification"
 }

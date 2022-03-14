@@ -22,11 +22,11 @@ import javax.swing.Icon
 object DeviceSpecFileType : LanguageFileType(DeviceSpecLanguage) {
 
   override fun getName(): String {
-    return "Device Spec File Type"
+    return "DeviceSpecFile"
   }
 
   override fun getDescription(): String {
-    return "Device Spec"
+    return "Device spec"
   }
 
   override fun getDefaultExtension(): String {

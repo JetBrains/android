@@ -110,6 +110,15 @@
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
+    <fileType name="DeviceSpecFile"
+              language="DeviceSpec"
+              implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"
+              fieldName="INSTANCE"
+              extensions="pro"/>
+    <lang.parserDefinition language="DeviceSpec"
+                           implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
+    <languageInjector implementation="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjector"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
