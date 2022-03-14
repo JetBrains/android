@@ -65,16 +65,18 @@ class SyncVisualizationEditorChangeHandler(private val contentProvider: Visualiz
             toolWindow.stretchWidth(DEFAULT_WINDOW_WIDTH - width)
           }
           VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen = false
+          val visible = toolWindow.isVisible
           if (toolWindow.isAvailable) {
-            val visible = toolWindow.isVisible
+            // The tool window may become unavailable by tool window manager, for example, switching from a layout editor to a text editor.
+            // Here we want to trace the user-changed visibility, which only happens when tool window is available.
             VisualizationToolSettings.getInstance().globalState.isVisible = visible
-            if (!Disposer.isDisposed(form)) {
-              if (visible) {
-                form.activate()
-              }
-              else {
-                form.deactivate()
-              }
+          }
+          if (!Disposer.isDisposed(form)) {
+            if (visible) {
+              form.activate()
+            }
+            else {
+              form.deactivate()
             }
           }
         }
