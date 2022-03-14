@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading;
 
 import static com.android.tools.idea.rendering.classloading.ClassConverter.classVersionToJdk;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.findHighestMajorVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
@@ -45,6 +46,7 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
 import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;
 import java.util.Set;
@@ -86,6 +88,13 @@ public class ClassConverterTest extends TestCase {
     assertEquals(45, jdkToClassVersion("1.1"));
     assertEquals(55, jdkToClassVersion("11"));
     assertEquals(55, jdkToClassVersion("11.0.2+9-b159.56"));
+  }
+
+  public void testFindHighestMajorVersion() {
+    InconvertibleClassError v1 = new InconvertibleClassError(null, "foo1", 49, 0);
+    InconvertibleClassError v2 = new InconvertibleClassError(null, "foo2", 51, 0);
+    InconvertibleClassError v3 = new InconvertibleClassError(null, "foo3", 49, 0);
+    assertEquals(51, findHighestMajorVersion(Lists.newArrayList(v1, v2, v3)));
   }
 
   public void testGetCurrentClassVersion() {

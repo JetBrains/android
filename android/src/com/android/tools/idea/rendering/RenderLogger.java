@@ -106,6 +106,9 @@ public class RenderLogger implements IRenderLogger {
     public void addMissingClass(@NotNull String className) {}
 
     @Override
+    public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {}
+
+    @Override
     public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {}
 
     @Override
@@ -162,6 +165,7 @@ public class RenderLogger implements IRenderLogger {
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
+  private Map<String, Throwable> myClassesWithIncorrectFormat;
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
@@ -330,7 +334,7 @@ public class RenderLogger implements IRenderLogger {
       hasMessage = !myMessages.isEmpty();
     }
     return myHaveExceptions || hasMessage ||
-           myBrokenClasses != null || myMissingClasses != null ||
+           myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }
 
@@ -719,6 +723,16 @@ public class RenderLogger implements IRenderLogger {
   }
 
   /**
+   * Returns all the logged classes with incorrect format during rendering. If any of the {@link Throwable}s stack traces is
+   * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
+   * middle to indicate the exception stack trace has been summarized.
+   */
+  @NotNull
+  public Map<String, Throwable> getClassesWithIncorrectFormat() {
+    return myClassesWithIncorrectFormat != null ? myClassesWithIncorrectFormat : Collections.emptyMap();
+  }
+
+  /**
    * Returns all the logged broken classes during rendering. If any of the {@link Throwable}s stack traces is
    * longer than 100 elements, it will be summarized by only keeping the first 50 and last 50 elements and one element in the
    * middle to indicate the exception stack trace has been summarized.
@@ -743,6 +757,17 @@ public class RenderLogger implements IRenderLogger {
 
       logMessageToIdeaLog("Class not found " + className);
     }
+  }
+
+  @Override
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
+    if (myClassesWithIncorrectFormat == null) {
+      myClassesWithIncorrectFormat = new HashMap<>();
+    }
+    myClassesWithIncorrectFormat.put(className, exception);
+
+    logMessageToIdeaLog("Class with incorrect format " + className, exception);
   }
 
   @Override

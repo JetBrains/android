@@ -16,11 +16,13 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
+import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Lists;
@@ -402,6 +404,45 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+  }
+
+  public void testWrongClassFormat() {
+    LogOperation operation = (logger, render) -> {
+      // MANUALLY register errors
+      logger.addIncorrectFormatClass("com.example.unit.test.R",
+                                     new InconvertibleClassError(null, "com.example.unit.test.R", 51, 0));
+      logger.addIncorrectFormatClass("com.example.unit.test.MyButton",
+                                     new InconvertibleClassError(null, "com.example.unit.test.MyButton", 52, 0));
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(1, issues);
+
+    String incompatible = "";
+    String modules = "";
+    if (isBuiltByJdk7OrHigher(myModule)) {
+      incompatible = "The following modules are built with incompatible JDK:<BR/>" +
+                     myModule.getName() + "<BR/>";
+      modules = "<A HREF=\"runnable:1\">Change Java SDK to 1.6</A><BR/>";
+    }
+
+    assertHtmlEquals(
+      "Preview might be incorrect: unsupported class version.<BR/>" +
+      "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
+      "For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. " +
+      "Running on a higher JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views " +
+      "into a library which you compile with a lower JDK version.)<BR/>" +
+      "<BR/>" +
+      "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "<BR/>" +
+      "Classes with incompatible format:<DL>" +
+      "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)" +
+      "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)" +
+      "</DL>" +
+      incompatible +
+      "<A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>" +
+      modules, issues.get(0));
   }
 
   public void testSecurity() throws Exception {
