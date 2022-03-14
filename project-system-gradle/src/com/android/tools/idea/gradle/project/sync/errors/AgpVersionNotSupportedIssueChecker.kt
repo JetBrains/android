@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
+import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
@@ -54,9 +55,11 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
 
     val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
     val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
+    val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
     val (matcher, userMessage, url) = when {
       tooOldMatcher.find() -> Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
       incompatiblePreviewMatcher.find() -> Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
+      tooNewMatcher.find() -> Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
       else -> return null
     }
     val version = GradleVersion.tryParseAndroidGradlePluginVersion(matcher.group(1)) ?: return null
@@ -64,6 +67,15 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     logMetrics(issueData.projectPath)
 
     val buildIssueComposer = BuildIssueComposer(userMessage)
+
+    if (matcher == tooNewMatcher) {
+      return buildIssueComposer.apply {
+        addQuickFix(
+          "See Android Studio & AGP compatibility options.",
+          OpenLinkQuickFix(url)
+        )
+      }.composeBuildIssue()
+    }
 
     if (!AndroidGradleProjectResolver.shouldDisableForceUpgrades()) {
       fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project ->
@@ -101,6 +113,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
   companion object {
     private const val TOO_OLD_URL = "https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility"
     private const val PREVIEW_URL = "https://developer.android.com/studio/preview/features#agp-previews"
+    private const val TOO_NEW_URL = "https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility"
   }
 }
 

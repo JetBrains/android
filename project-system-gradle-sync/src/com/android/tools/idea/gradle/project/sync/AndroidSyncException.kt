@@ -39,6 +39,17 @@ class AgpVersionTooOld(agpVersion: GradleVersion) : AndroidSyncException(generat
   }
 }
 
+class AgpVersionTooNew(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+  companion object {
+    private const val LEFT = "The project is using an incompatible version (AGP "
+    private const val RIGHT = ") of the Android Gradle plugin. Latest supported version is AGP "
+    private fun generateMessage(agpVersion: GradleVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
+    val PATTERN: Pattern =
+      Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}${Pattern.quote(ANDROID_GRADLE_PLUGIN_VERSION)}")
+    val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
+  }
+}
+
 class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val A = "The project is using an incompatible preview version (AGP "

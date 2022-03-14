@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
@@ -334,6 +335,7 @@ fun computeGradlePluginUpgradeState(
       // X are released.)
       return GradlePluginUpgradeState(FORCE, seriesAcceptableStable ?: latestKnown)
     }
+    AFTER_MAXIMUM -> return GradlePluginUpgradeState(FORCE, latestKnown)
     COMPATIBLE -> Unit
   }
 

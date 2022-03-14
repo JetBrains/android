@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.variant
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
@@ -389,6 +390,7 @@ internal class AndroidExtraModelProviderWorker(
       // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.
       BEFORE_MINIMUM -> throw AgpVersionTooOld(agpVersion)
       DIFFERENT_PREVIEW -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion)
+      AFTER_MAXIMUM -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion)
       COMPATIBLE -> Unit
     }
   }

@@ -101,23 +101,33 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0-beta02", "7.1.0-alpha01", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
       {"7.0.0-beta02", "7.1.0", Arrays.asList("7.0.0", "7.0.1"), FORCE, "7.0.1"},
 
-      // If the latest known version is earlier than or equal to the current version, there should be no upgrade
+      // If the latest known version is equal to the current version, there should be no upgrade.
       {"7.0.0-alpha01", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha01"},
-      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0-alpha02"},
       {"7.0.0-beta01", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta01"},
-      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta02"},
-      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), NO_UPGRADE, "7.0.0-beta01"},
       {"7.0.0-rc01", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
-      {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
-      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
-      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc01"},
       {"7.0.0", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.1", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.1"},
-      {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
-      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
       // Even if the set of published versions contains later versions.
       {"7.0.0", "7.0.0", Collections.singletonList("7.0.1"), NO_UPGRADE, "7.0.0"},
+
+      // If the latest known version is earlier than the current version, but they are in the same rc/stable series, there should be no
+      // upgrade.
+      {"7.0.1", "7.0.0", Collections.emptyList(), NO_UPGRADE, "7.0.1"},
+      {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
+      {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
+
+      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series, there should be
+      // a downgrade.
+      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
+      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
+      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
+      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE, "7.0.0-beta02"},
+      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
+      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
+      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
+      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
 
       // Versions earlier than our minimum supported version should force an upgrade.
       {"3.1.0", "7.0.0", Collections.emptyList(), FORCE, "7.0.0"},

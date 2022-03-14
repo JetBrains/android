@@ -52,6 +52,23 @@ class AgpVersionNotSupportedIssueCheckerTest {
   }
 
   @Test
+  fun testCheckIssueTooNew() {
+    val expectedNotificationMessage = "The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin."
+    val error = "The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin. " +
+                "Latest supported version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}."
+
+    val issueData = GradleIssueData(":", Throwable(error), null, null)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
+    assertThat(buildIssue.description).contains(expectedNotificationMessage)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+      .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+  }
+
+  @Test
   fun testCheckIssueOldPreview() {
     val expectedNotificationMessage = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin."
     val error = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin. " +
