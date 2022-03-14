@@ -28,6 +28,8 @@ import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.time.Duration
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
@@ -142,4 +144,14 @@ internal fun Duration.toDisplayString(): String {
   val durationMs = toMillis()
   val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
   return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
+}
+
+/**
+ * Converts the [Throwable] stacktrace to a string.
+ */
+internal fun Throwable.toLogString(): String {
+  val exceptionStackWriter = StringWriter()
+  printStackTrace(PrintWriter(exceptionStackWriter))
+
+  return exceptionStackWriter.toString()
 }

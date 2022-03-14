@@ -46,6 +46,7 @@ sealed class CompilationResult {
    */
   data class RequestException(val e: Throwable? = null): CompilationResult()
 }
+
 /**
  * Interface to implement by specific implementations that can talk to compiler daemons.
  */

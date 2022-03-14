@@ -60,8 +60,8 @@ private suspend fun PsiFile.saveIfNeeded() {
 fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile): Deferred<CompilationResult> {
   val contextModule = file.module ?: return CompletableDeferred<CompilationResult>().apply { completeExceptionally(Throwable("No module")) }
   val project = file.project
-  val stopWatch = Stopwatch.createStarted()
   val deferred = CompletableDeferred<CompilationResult>()
+
   object : Task.Backgroundable(project, message("notification.compiling"), false) {
     override fun run(indicator: ProgressIndicator) {
       AndroidCoroutineScope(parentDisposable).async {
@@ -70,16 +70,7 @@ fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile): Deferred<Comp
         val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
           FastPreviewManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
         }
-        val durationString = stopWatch.elapsed().toDisplayString()
         val isSuccess = result == CompilationResult.Success
-        val buildMessage = if (isSuccess)
-          message("event.log.fast.preview.build.successful", durationString)
-        else
-          message("event.log.fast.preview.build.failed", durationString)
-        Notification(PREVIEW_NOTIFICATION_GROUP_ID,
-                     buildMessage,
-                     NotificationType.INFORMATION)
-          .notify(project)
         if (isSuccess) {
           ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
         }
