@@ -41,6 +41,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -142,7 +143,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   private class MyScreenshotPostprocessor(val skinDefinition: SkinDefinition) : ScreenshotPostprocessor {
 
-    override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?): BufferedImage {
+    override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
@@ -155,6 +156,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
         val displayRectangle = Rectangle(0, 0, w, h)
         skin.drawFrameAndMask(graphics, displayRectangle)
+        if (backgroundColor != null) {
+          graphics.color = backgroundColor
+          graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
+          graphics.fillRect(0, 0, image.width, image.height)
+        }
         graphics.dispose()
         return result
       }

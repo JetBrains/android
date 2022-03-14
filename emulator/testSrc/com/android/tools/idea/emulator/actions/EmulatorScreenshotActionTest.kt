@@ -83,13 +83,14 @@ class EmulatorScreenshotActionTest {
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
 
+    clipComboBox.selectFirstMatch("Display Shape")
     EdtInvocationManager.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     var image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithoutFrame")
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-    clipComboBox.selectedIndex = 2 // The first frame option (after "Rectangular" and "Display Shape")
+    clipComboBox.selectFirstMatch("Show Device Frame")
     EdtInvocationManager.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
@@ -108,6 +109,15 @@ class EmulatorScreenshotActionTest {
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
     return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+  }
+
+  private fun <E> JComboBox<E>.selectFirstMatch(text: String) {
+    for (i in 0 until model.size) {
+      if (model.getElementAt(i).toString() == text) {
+        selectedIndex = i
+        return
+      }
+    }
   }
 }
 

@@ -31,7 +31,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EdtInvocationManager.dispatchAllInvocationEvents
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -39,6 +38,7 @@ import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.EnumSet
+import javax.swing.JComboBox
 
 /**
  * Tests for [ScreenshotViewer].
@@ -101,19 +101,38 @@ class ScreenshotViewerTest {
     val screenshotImage = DeviceScreenshotImage(createImage(200, 180), 0, true)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
 
+    clipComboBox.selectFirstMatch("Display Shape")
     dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
-    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.WHITE.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(0)
+  }
+
+  @Test
+  fun testClipRoundScreenshotWithBackgroundColor() {
+    val screenshotImage = DeviceScreenshotImage(createImage(200, 180), 0, true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Rectangular")
+    dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
   }
 
   private fun createImage(width: Int, height: Int): BufferedImage {
     val image = ImageUtils.createDipImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
-    graphics.paint = Color.WHITE
+    graphics.paint = Color.RED
     graphics.fillRect(0, 0, image.width, image.height)
     graphics.dispose()
     return image
@@ -126,5 +145,14 @@ class ScreenshotViewerTest {
                                   listOf(testFrame), 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer
+  }
+
+  private fun <E> JComboBox<E>.selectFirstMatch(text: String) {
+    for (i in 0 until model.size) {
+      if (model.getElementAt(i).toString() == text) {
+        this.selectedIndex = i
+        return
+      }
+    }
   }
 }

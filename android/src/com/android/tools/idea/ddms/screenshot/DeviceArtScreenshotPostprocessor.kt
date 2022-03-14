@@ -20,6 +20,7 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtPainter
 import com.intellij.util.ui.ImageUtil.applyQualityRenderingHints
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
@@ -30,10 +31,10 @@ import kotlin.math.max
  */
 class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
   @Slow
-  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?): BufferedImage {
+  override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     screenshotImage as DeviceScreenshotImage
     if (framingOption == null) {
-      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image) else screenshotImage.image
+      return if (screenshotImage.isRoundScreen) circularClip(screenshotImage.image, backgroundColor) else screenshotImage.image
     }
     val frameDescriptor = (framingOption as DeviceArtFramingOption).deviceArtDescriptor
     val framedImage = DeviceArtPainter.createFrame(screenshotImage.image, frameDescriptor, false, false)
@@ -41,7 +42,7 @@ class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
   }
 
   @Suppress("UndesirableClassUsage")
-  private fun circularClip(image: BufferedImage): BufferedImage {
+  private fun circularClip(image: BufferedImage, backgroundColor: Color?): BufferedImage {
     val mask = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
     mask.createGraphics().apply {
       applyQualityRenderingHints(this)
@@ -55,6 +56,11 @@ class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
       drawImage(image, 0, 0, null)
       composite = AlphaComposite.getInstance(AlphaComposite.DST_IN)
       drawImage(mask, 0, 0, null)
+      if (backgroundColor != null) {
+        color = backgroundColor
+        composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
+        fillRect(0, 0, image.width, image.height)
+      }
       dispose()
     }
     return shapedImage
