@@ -20,10 +20,14 @@ import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -53,7 +57,8 @@ final class DeleteItem extends JBMenuItem {
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
       VirtualDevice device = editor.getDevice();
-      VirtualDeviceTable table = editor.getPanel().getTable();
+      VirtualDevicePanel devicePanel = editor.getPanel();
+      VirtualDeviceTable table = devicePanel.getTable();
 
       if (device.isOnline()) {
         showCannotDeleteRunningAvdDialog.accept(table);
@@ -64,8 +69,14 @@ final class DeleteItem extends JBMenuItem {
         return;
       }
 
-      getDefaultAvdManagerConnection.get().deleteAvd(device.getAvdInfo());
-      table.refreshAvds();
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        getDefaultAvdManagerConnection.get().deleteAvd(device.getAvdInfo());
+        UIUtil.invokeLaterIfNeeded(() -> {
+          if (!devicePanel.isDisposed()) {
+            table.refreshAvds();
+          }
+        });
+      });
     });
   }
 

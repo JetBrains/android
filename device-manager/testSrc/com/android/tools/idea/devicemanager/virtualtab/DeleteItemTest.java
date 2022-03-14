@@ -17,16 +17,26 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RuleChain;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
+@RunsInEdt
 public final class DeleteItemTest {
+  @Rule public final RuleChain myRule = new RuleChain(new ApplicationRule(), new EdtRule());
+
   private final @NotNull AvdInfo myAvd;
   private final @NotNull AvdManagerConnection myConnection;
   private final @NotNull VirtualDeviceTable myTable;
@@ -89,6 +99,8 @@ public final class DeleteItemTest {
 
     // Act
     item.doClick();
+    UIUtil.dispatchAllInvocationEvents();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     // Assert
     Mockito.verify(myConnection).deleteAvd(myAvd);

@@ -30,6 +30,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
   protected JTable myTable;
   protected JComponent myScrollPane;
   protected DetailsPanelPanel myDetailsPanelPanel;
+  private boolean isDisposed;
 
   protected DevicePanel(@Nullable Project project) {
     super(null);
@@ -50,6 +51,11 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
 
   @Override
   public final void dispose() {
+    isDisposed = true;
+  }
+
+  public boolean isDisposed() {
+    return isDisposed;
   }
 
   public final @Nullable Project getProject() {
