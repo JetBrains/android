@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -153,7 +152,6 @@ public class ViewLoader {
 
   @Nullable
   private Object loadClass(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs, boolean isView) {
-    assert myLogger != null;
     Class<?> aClass = myLoadedClasses.get(className);
 
     if (LOG.isDebugEnabled()) {
@@ -185,12 +183,6 @@ public class ViewLoader {
         }
       }
     }
-    catch (InconvertibleClassError e) {
-      myLogger.addIncorrectFormatClass(e.getClassName(), e);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(e);
-      }
-    }
     catch (LinkageError | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InstantiationException e) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(e);
@@ -202,13 +194,7 @@ public class ViewLoader {
         LOG.debug(e);
       }
       final Throwable cause = e.getCause();
-      if (cause instanceof InconvertibleClassError) {
-        InconvertibleClassError error = (InconvertibleClassError)cause;
-        myLogger.addIncorrectFormatClass(error.getClassName(), error);
-      }
-      else {
-        myLogger.addBrokenClass(className, cause);
-      }
+      myLogger.addBrokenClass(className, cause);
     }
     return null;
   }
@@ -340,7 +326,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  public Class<?> loadClass(@NotNull String className, boolean logError) throws InconvertibleClassError {
+  public Class<?> loadClass(@NotNull String className, boolean logError) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadClassB(%s)", anonymizeClassName(className)));
     }
@@ -464,15 +450,11 @@ public class ViewLoader {
         catch (ClassNotFoundException | NoClassDefFoundError e) {
           myLogger.setMissingResourceClass();
         }
-        catch (InconvertibleClassError e) {
-          assert rClassName != null;
-          myLogger.addIncorrectFormatClass(rClassName, e);
-        }
       });
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException, InconvertibleClassError {
+  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
