@@ -61,7 +61,7 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
 class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project,
                                val issueProvider: DesignerCommonIssueProvider<Any?>) : Disposable {
 
-  var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE)
+  var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
     set(value) {
       field = value
       setSidePanelVisibility(value)
