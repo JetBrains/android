@@ -164,7 +164,7 @@ private fun NlDesignSurface.logSurfaceStatus(log: Logger) {
                   | hasErrors=${renderLogger.hasErrors()}
                   | missingClasses=${renderLogger.missingClasses}
                   | messages=${renderLogger.messages.asLogString()}
-                  | exceptions=${renderLogger.brokenClasses.values + renderLogger.classesWithIncorrectFormat.values}
+                  | exceptions=${renderLogger.brokenClasses.values}
                 """.trimMargin())
       }
     }

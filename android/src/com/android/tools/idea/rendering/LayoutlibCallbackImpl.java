@@ -67,7 +67,6 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
@@ -875,16 +874,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull
   @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
-    try {
-      Class<?> aClass = myClassLoader.loadClass(name, false);
-      if (aClass != null) {
-        return aClass;
-      }
-      throw new ClassNotFoundException(name + " not found.");
+    Class<?> aClass = myClassLoader.loadClass(name, false);
+    if (aClass != null) {
+      return aClass;
     }
-    catch (InconvertibleClassError e) {
-      throw new ClassNotFoundException(name + " not found.", e);
-    }
+    throw new ClassNotFoundException(name + " not found.");
   }
 
   @Override

@@ -24,15 +24,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface IRenderLogger extends ILayoutLog {
   /** Empty logger producing no side effects. */
-  public static final IRenderLogger NULL_LOGGER = new IRenderLogger() {
+  IRenderLogger NULL_LOGGER = new IRenderLogger() {
     private final HtmlLinkManager myLinkManager = new HtmlLinkManager();
 
     @Override
     public void addMessage(@NotNull RenderProblem message) {
-    }
-
-    @Override
-    public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
     }
 
     @Override
@@ -62,20 +58,18 @@ public interface IRenderLogger extends ILayoutLog {
     }
   };
 
-  public void addMessage(@NotNull RenderProblem message);
+  void addMessage(@NotNull RenderProblem message);
 
-  public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception);
+  void addBrokenClass(@NotNull String className, @NotNull Throwable exception);
 
-  public void addBrokenClass(@NotNull String className, @NotNull Throwable exception);
+  void addMissingClass(@NotNull String className);
 
-  public void addMissingClass(@NotNull String className);
+  void setHasLoadedClasses();
 
-  public void setHasLoadedClasses();
+  void setResourceClass(@NotNull String resourceClass);
 
-  public void setResourceClass(@NotNull String resourceClass);
-
-  public void setMissingResourceClass();
+  void setMissingResourceClass();
 
   @NotNull
-  public HtmlLinkManager getLinkManager();
+  HtmlLinkManager getLinkManager();
 }
