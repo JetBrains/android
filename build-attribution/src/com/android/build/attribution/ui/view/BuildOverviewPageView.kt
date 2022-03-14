@@ -67,11 +67,7 @@ class BuildOverviewPageView(
       Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
       Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text, linksHandler).apply {
-      addHyperlinkListener {
-        if (it.eventType == EventType.ACTIVATED && it.description == "configuration-cache") actionHandlers.openConfigurationCacheWarnings()
-      }
-    })
+    add(htmlTextLabelWithFixedLines(text, linksHandler))
   }
 
   private val linksPanel = JPanel().apply {
