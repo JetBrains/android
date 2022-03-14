@@ -39,6 +39,7 @@ public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement
     visitor.visitClassSpecificationHeader(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);
