@@ -25,19 +25,17 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -47,6 +45,21 @@ import org.jetbrains.annotations.Nullable;
 
 public class RenderErrorContributorTest extends AndroidTestCase {
   public static final String BASE_PATH = "render/";
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   // Image paths will include full resource urls which depends on the test environment
   public static String stripImages(@NotNull String html) {
@@ -86,9 +99,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         continue;
       }
       Path path = target.getPath(IAndroidTarget.ANDROID_JAR);
-      if (path == null) {
-        continue;
-      }
       if (path.getParent() != null && path.getParent().getFileName().toString().equals(platformDir)) {
         return target;
       }
@@ -118,56 +128,45 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     @NotNull VirtualFile file,
     @Nullable LogOperation logOperation,
     boolean useDumbMode) {
-    assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNotNull(psiFile);
     assertNotNull(facet);
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    assertNotNull(configurationManager);
     IAndroidTarget target = getTestTarget(configurationManager);
     assertNotNull(target);
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    // TODO: Remove this after http://b.android.com/203392 is released
-    // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
-    configuration.setTheme("android:Theme.Material");
-
     RenderService renderService = RenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    RenderLogger.ignoreFidelityWarning("Font$Builder.nAddAxis is not supported.");
-    final RenderTask task = renderService.taskBuilder(facet, configuration)
-                                   .withLogger(logger)
-                                   .withPsiFile(psiFile)
-                                   .disableSecurityManager()
-                                   .buildSynchronously();
-    assertNotNull(task);
-    RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
-    assertNotNull(render);
+    List<RenderErrorModel.Issue> issues = Lists.newArrayList();
 
-    if (logOperation != null) {
-      logOperation.addErrors(logger, render);
-    }
+    RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {
+      RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
+      assertNotNull(render);
 
-    if (useDumbMode) {
-      DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
-    }
-
-    try {
-      // The error model must be created on a background thread.
-      Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
-        () -> RenderErrorModelFactory.createErrorModel(null, render, null));
-
-      return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
-    }
-    finally {
-      if (useDumbMode) {
-        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+      if (logOperation != null) {
+        logOperation.addErrors(logger, render);
       }
-      task.dispose();
-    }
+
+      if (useDumbMode) {
+        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
+      }
+
+      try {
+        // The error model must be created on a background thread.
+        Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+          () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+        Futures.getUnchecked(errorModel).getIssues().stream().sorted().forEachOrdered(issues::add);
+      }
+      finally {
+        if (useDumbMode) {
+          DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+        }
+      }
+    });
+    return issues;
   }
 
   public void testPanel() {
