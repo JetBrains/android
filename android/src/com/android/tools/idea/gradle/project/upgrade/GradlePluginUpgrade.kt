@@ -30,7 +30,9 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
-import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.NO_FORCE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -232,7 +234,7 @@ fun versionsShouldForcePluginUpgrade(
   current: GradleVersion,
   latestKnown: GradleVersion
 ) : Boolean {
-  return computeForcePluginUpgradeReason(current, latestKnown) != NO_FORCE
+  return computeAndroidGradlePluginCompatibility(current, latestKnown) != COMPATIBLE
 }
 
 /**
@@ -305,8 +307,8 @@ fun computeGradlePluginUpgradeState(
   latestKnown: GradleVersion,
   published: Set<GradleVersion>
 ): GradlePluginUpgradeState {
-  when (computeForcePluginUpgradeReason(current, latestKnown)) {
-    ForcePluginUpgradeReason.MINIMUM -> {
+  when (computeAndroidGradlePluginCompatibility(current, latestKnown)) {
+    BEFORE_MINIMUM -> {
       val minimum = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
       val earliestStable = published
         .filter { !it.isPreview }
@@ -318,7 +320,7 @@ fun computeGradlePluginUpgradeState(
         ?.maxOrNull()
       return GradlePluginUpgradeState(FORCE, earliestStable ?: latestKnown)
     }
-    ForcePluginUpgradeReason.PREVIEW -> {
+    DIFFERENT_PREVIEW -> {
       val seriesAcceptableStable = published
         .filter { !it.isPreview }
         .filter { GradleVersion(it.major, it.minor) == GradleVersion(current.major, current.minor) }
@@ -330,7 +332,7 @@ fun computeGradlePluginUpgradeState(
       // X are released.)
       return GradlePluginUpgradeState(FORCE, seriesAcceptableStable ?: latestKnown)
     }
-    NO_FORCE -> Unit
+    COMPATIBLE -> Unit
   }
 
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
