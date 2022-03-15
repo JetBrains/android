@@ -48,7 +48,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
       ContainerUtil.map(ReflectionUtil.collectFields(myRunConfiguration.getClass()), f -> f.getName()),
       "CLEAR_LOGCAT", "SHOW_LOGCAT_AUTOMATICALLY",
       "DEPLOY", "DEPLOY_APK_FROM_BUNDLE", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
-      "ACTIVITY_EXTRA_FLAGS", "MODE");
+      "ACTIVITY_EXTRA_FLAGS", "MODE", "CLEAR_APP_STORAGE");
   }
 
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() {

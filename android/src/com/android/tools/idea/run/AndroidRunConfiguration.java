@@ -40,7 +40,6 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
@@ -108,6 +107,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public String PM_INSTALL_OPTIONS = "";
   public boolean ALL_USERS = false;
   public boolean ALWAYS_INSTALL_WITH_PM = false;
+  public boolean CLEAR_APP_STORAGE = false;
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
   // Launch options
   public String ACTIVITY_EXTRA_FLAGS = "";
@@ -155,7 +155,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
       .setDeployAsInstant(DEPLOY_AS_INSTANT)
-      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM);
+      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM)
+      .setClearAppStorage(CLEAR_APP_STORAGE);
   }
 
   @NotNull

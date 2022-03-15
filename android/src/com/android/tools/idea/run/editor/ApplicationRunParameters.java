@@ -10,11 +10,11 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
 import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -72,6 +72,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
+  private JBCheckBox myClearAppStorageCheckbox;
 
 
   private final Project myProject;
@@ -222,6 +223,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
     myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
     myAlwaysInstallWithPmCheckbox.setSelected(configuration.ALWAYS_INSTALL_WITH_PM);
+    myClearAppStorageCheckbox.setSelected(configuration.CLEAR_APP_STORAGE);
 
     for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
@@ -266,6 +268,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
     configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
     configuration.ALWAYS_INSTALL_WITH_PM = myAlwaysInstallWithPmCheckbox.isSelected();
+    configuration.CLEAR_APP_STORAGE = myClearAppStorageCheckbox.isSelected();
 
     for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
