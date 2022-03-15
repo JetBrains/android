@@ -575,10 +575,11 @@ public class AvdManagerConnection {
     avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
     String avdName = avd.getDisplayName();
 
-    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
-    // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
-    // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
-    // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
+    // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux
+    //       and userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so,
+    //       delete them without showing this error. Either the emulator provides a command to do that, or we learn
+    //       about its internals (qemu/android/utils/filelock.c) and perform the same action here. If it is not stale,
+    //       then we should show this error and if possible, bring that window to the front.
     assert myAvdManager != null;
     if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
       myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
@@ -601,7 +602,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s", avdName), e));
     }
 
-    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
+    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise, show it.
     ProgressWindow p = hasQEMU2Installed()
                        ? new BackgroundableProcessIndicator(project, "Launching emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
                                                             "", "", false)
@@ -610,7 +611,7 @@ public class AvdManagerConnection {
     p.setDelayInMillis(0);
 
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
-    // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
+    // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
         p.start();
