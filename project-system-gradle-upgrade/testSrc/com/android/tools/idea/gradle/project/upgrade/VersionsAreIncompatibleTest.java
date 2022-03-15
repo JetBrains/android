@@ -29,10 +29,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link GradlePluginUpgrade#versionsShouldForcePluginUpgrade(GradleVersion, GradleVersion)}.
+ * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(GradleVersion, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
-public class ForcedPluginVersionUpgradeTest {
+public class VersionsAreIncompatibleTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
@@ -102,18 +102,18 @@ public class ForcedPluginVersionUpgradeTest {
 
   private static final GradleVersion unsupportedVersion = GradleVersion.parse("3.1.0");
 
-  public ForcedPluginVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = GradleVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;
   }
 
   @Test
-  public void shouldBeForcedToUpgradePluginVersion() {
+  public void testVersionsAreIncompatible() {
     assertTrue("adjust test cases for new GRADLE_PLUGIN_MINIMUM_VERSION", myCurrent.compareTo(GRADLE_PLUGIN_MINIMUM_VERSION) >= 0);
-    boolean forced = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(myCurrent, myRecommended);
-    assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
-    boolean forcedFromOldVersion = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(unsupportedVersion, myRecommended);
-    assertTrue("should force upgrade from old version " + unsupportedVersion + " to " + myRecommended + "?", forcedFromOldVersion);
+    boolean forced = GradlePluginUpgrade.versionsAreIncompatible(myCurrent, myRecommended);
+    assertEquals("are current " + myCurrent + " and latestKnown " + myRecommended + " compatible?", myForceUpgrade, forced);
+    boolean forcedFromOldVersion = GradlePluginUpgrade.versionsAreIncompatible(unsupportedVersion, myRecommended);
+    assertTrue("are unsupported " + unsupportedVersion + " and latestKnown " + myRecommended + " compatible?", forcedFromOldVersion);
   }
 }

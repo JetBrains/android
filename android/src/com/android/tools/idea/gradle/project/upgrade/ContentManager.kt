@@ -313,7 +313,7 @@ class ToolWindowModel(
     // Keep only versions that are no later than the latest version we support
     .filter { it <= latestKnownVersion }
     // Do not keep versions that would force an upgrade from on sync
-    .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
+    .filter { !versionsAreIncompatible(it, latestKnownVersion) }
     .toList()
     .sortedDescending()
 

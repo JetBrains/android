@@ -226,11 +226,13 @@ fun expireProjectUpgradeNotifications(project: Project?) {
 // **************************************************************************
 
 /**
- * Returns whether, given the [current] version of AGP and the [latestKnown] version to upgrade to (which should be the
- * version returned by [LatestKnownPluginVersionProvider] except for tests), we should force a plugin upgrade to that
- * recommended version.
+ * Returns whether, given the [current] version of AGP and the [latestKnown] version to Studio (which should be the
+ * version returned by [LatestKnownPluginVersionProvider] except for tests), we should consider the AGP version
+ * compatible with the running IDE.  If the versions are incompatible, we will have caused sync to fail; in most cases we
+ * will attempt to offer an upgrade, but some cases (e.g. a newer [current] than [latestKnown]) the user will be responsible
+ * for action to get the project to a working state.
  */
-fun versionsShouldForcePluginUpgrade(
+fun versionsAreIncompatible(
   current: GradleVersion,
   latestKnown: GradleVersion
 ) : Boolean {

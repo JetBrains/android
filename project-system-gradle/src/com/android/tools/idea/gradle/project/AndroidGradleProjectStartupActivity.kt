@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.versionsShouldForcePluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -270,7 +270,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     fun GradleAndroidModel.validate() =
       shouldDisableForceUpgrades() ||
       GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
-        !versionsShouldForcePluginUpgrade(agpVersion, latestKnown)
+        !versionsAreIncompatible(agpVersion, latestKnown)
       }
 
     /** Returns `null` if validation fails. */

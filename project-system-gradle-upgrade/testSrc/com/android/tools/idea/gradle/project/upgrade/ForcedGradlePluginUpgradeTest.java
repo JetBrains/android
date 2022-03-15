@@ -76,7 +76,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   public void testUpgradeNotNeeded() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
-    boolean upgraded = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
+    boolean upgraded = GradlePluginUpgrade.versionsAreIncompatible(GradleVersion.parse("3.0.0"), latestPluginVersion);
     assertFalse(upgraded);
     verifyNoInteractions(myAssistantInvoker);
     verifyNoInteractions(myProcessor);
