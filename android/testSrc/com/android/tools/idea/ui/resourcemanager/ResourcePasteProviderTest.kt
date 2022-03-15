@@ -47,6 +47,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 
 private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE,
                                                       "my_resource")
@@ -326,10 +327,10 @@ internal class ResourcePasteProviderTest {
     ))
 
   private fun createTransferable(resourceUrl: ResourceUrl) = object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
+    override fun getTransferData(flavor: DataFlavor?): Any = when (flavor) {
       RESOURCE_URL_FLAVOR -> resourceUrl
       DataFlavor.stringFlavor -> resourceUrl.toString()
-      else -> null
+      else -> throw UnsupportedFlavorException(flavor)
     }
 
     override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = true
