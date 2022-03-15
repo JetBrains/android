@@ -194,7 +194,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   private fun createSidePanel(node: DesignerCommonIssueNode?): JComponent? {
     val issueNode = node as? IssueNode ?: return null
 
-    val sidePanel = DesignerCommonIssueSidePanel(project, issueNode.issue, issueNode.getVirtualFile())
+    val sidePanel = DesignerCommonIssueSidePanel(project, issueNode.issue, issueNode.getVirtualFile(), this)
     val previewEditor = sidePanel.editor
     val navigable = issueNode.getNavigatable()
     if (previewEditor != null && navigable != null) {
