@@ -573,7 +573,7 @@ public class AvdManagerConnection {
     }
 
     avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
-    String avdName = avd.getName();
+    String avdName = avd.getDisplayName();
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
@@ -582,19 +582,10 @@ public class AvdManagerConnection {
     assert myAvdManager != null;
     if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
       myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
-      String baseFolder;
-      try {
-        baseFolder = myAvdManager.getBaseAvdFolder().toAbsolutePath().toString();
-      }
-      catch (Throwable e) {
-        baseFolder = "$HOME";
-      }
-
-      String message = String.format("AVD %1$s is already running.\n" +
-                                     "If that is not the case, delete the files at\n" +
-                                     "   %2$s/%1$s.avd/*.lock\n" +
-                                     "and try again.", avdName, baseFolder);
-
+      String message = String.format("AVD \"%1$s\" is already running.\n" +
+                                     "If that is not the case, delete\n" +
+                                     "%2$s and try again.",
+                                     avdName, avd.getDataFolderPath().resolve("*.lock"));
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
@@ -607,7 +598,7 @@ public class AvdManagerConnection {
     }
     catch (ExecutionException e) {
       IJ_LOG.error("Error launching emulator", e);
-      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s ", avdName), e));
+      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s", avdName), e));
     }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
