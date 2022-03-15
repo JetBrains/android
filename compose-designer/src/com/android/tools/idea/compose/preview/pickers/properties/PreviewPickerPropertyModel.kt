@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
@@ -39,6 +38,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.inspector.Previ
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
@@ -49,8 +49,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
@@ -80,9 +78,7 @@ internal class PreviewPickerPropertyModel private constructor(
 
   override val inspectorBuilder: PsiPropertiesInspectorBuilder = PreviewPropertiesInspectorBuilder(valuesProvider)
 
-  private val availableDevices = AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
-  } ?: emptyList()
+  private val availableDevices = getSdkDevices(module)
 
   override fun getData(dataId: String): Any? =
     when (dataId) {

@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.Locale
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
@@ -28,11 +28,11 @@ import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.ide.common.resources.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
@@ -43,8 +43,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
@@ -130,9 +128,7 @@ private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
  * Returns grouped devices from the DeviceManager.
  */
 private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
-  val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
-  } ?: emptyList()
+  val studioDevices = getSdkDevices(module)
   return groupDevices(studioDevices)
 }
 

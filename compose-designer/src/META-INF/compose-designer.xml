@@ -118,6 +118,9 @@
     <lang.parserDefinition language="DeviceSpec"
                            implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
     <languageInjector implementation="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjector"/>
+    <completion.contributor language="DeviceSpec"
+                            id="DeviceSpecContributor"
+                            implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecCompletionContributor"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 

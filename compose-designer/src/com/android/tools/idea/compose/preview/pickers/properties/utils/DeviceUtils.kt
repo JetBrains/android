@@ -19,6 +19,8 @@ import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
+import com.intellij.openapi.module.Module
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
@@ -33,6 +35,8 @@ import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AndroidSdkData
 import kotlin.math.sqrt
 
 /** Prefix used by device specs to find devices by id. */
@@ -164,4 +168,15 @@ internal fun Collection<Device>.findByIdOrName(
       null
     }
   }
+}
+
+/**
+ * Returns the [Device]s present in the Sdk.
+ *
+ * @see DeviceManager
+ */
+internal fun getSdkDevices(module: Module): List<Device> {
+  return AndroidFacet.getInstance(module)?.let { facet ->
+    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
+  } ?: emptyList()
 }
