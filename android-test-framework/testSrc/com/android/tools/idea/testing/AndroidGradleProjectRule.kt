@@ -18,13 +18,17 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.AssumptionViolatedException
 import org.junit.Ignore
+import org.junit.rules.RuleChain
+import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
 
@@ -150,3 +154,20 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
 private fun gradleModuleNotFound(gradlePath: String): Nothing =
   throw AssumptionViolatedException("No module with Gradle path: $gradlePath")
 
+class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
+  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  val project: Project get() = projectRule.project
+  val fixture: CodeInsightTestFixture get() = projectRule.fixture
+
+  @JvmOverloads
+  fun loadProject(
+    projectPath: String,
+    chosenModuleName: String? = null,
+    gradleVersion: String? = null,
+    agpVersion: String? = null,
+    kotlinVersion: String? = null,
+    ndkVersion: String? = null
+  ) = projectRule.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+}
+
+fun AndroidGradleProjectRule.onEdt(): EdtAndroidGradleProjectRule = EdtAndroidGradleProjectRule(this)
