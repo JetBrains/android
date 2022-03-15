@@ -106,6 +106,16 @@ class LaunchTaskRunnerTest {
       any())).thenReturn(listOf(failingTask))
   }
 
+  private fun setWarningLaunchTask(targetDevice: IDevice? = null) {
+    val warningTask = mock<LaunchTask>()
+    `when`(warningTask.shouldRun(any())).thenReturn(true)
+    `when`(warningTask.run(any())).thenReturn(LaunchResult.warning(""))
+    `when`(mockLaunchTasksProvider.getTasks(
+      targetDevice?.let { eq(targetDevice) } ?: any(),
+      any(),
+      any())).thenReturn(listOf(warningTask))
+  }
+
   private fun setSwapInfo() {
     `when`(mockExecutionEnvironment.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(SwapInfo(SwapInfo.SwapType.APPLY_CHANGES, null))
   }
@@ -128,6 +138,26 @@ class LaunchTaskRunnerTest {
   @Test
   fun runSucceeded() {
     val deviceFutures = createDeviceFutures()
+    val runner = createLaunchTaskRunner(deviceFutures)
+
+    runner.run(progressIndicator)
+
+    verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
+    // we should have two force-stop calls for APIs <= 25, which the mock IDevice is
+    verify(deviceFutures.get()[0].get(), times(2)).forceStop(any())
+    verify(mockProcessHandler, never()).detachDevice(any())
+    verify(mockProcessHandler, never()).detachProcess()
+    verify(mockProcessHandler, never()).destroyProcess()
+
+    verify(mockRunStats).endLaunchTasks()
+  }
+
+  @Test
+  fun runWithWarnings() {
+    // Ideally, we would like to assert that the warning text is emitted to the console and the notifications expose it, but the current
+    // test infra doesn't have mechanism to do that so all we can do is assert that the warnings do not fail the launch.
+    val deviceFutures = createDeviceFutures()
+    setWarningLaunchTask()
     val runner = createLaunchTaskRunner(deviceFutures)
 
     runner.run(progressIndicator)

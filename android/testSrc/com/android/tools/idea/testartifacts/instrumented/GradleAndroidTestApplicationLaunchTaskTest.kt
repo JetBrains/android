@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.util.LaunchStatus
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
@@ -74,7 +75,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -109,7 +110,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -144,7 +145,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -180,7 +181,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -216,7 +217,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),
@@ -250,7 +251,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(
       LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
       eq(mockProject),
       eq("taskId"),

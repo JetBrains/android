@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
@@ -108,7 +109,7 @@ class AndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(mockLaunchContext)
 
     requireNotNull(result)
-    assertThat(result.success).isTrue()
+    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
 
     verify(mockPrinter).stdout(eq("Running tests\n"))
     verify(mockProcessHandler).detachDevice(eq(mockDevice))

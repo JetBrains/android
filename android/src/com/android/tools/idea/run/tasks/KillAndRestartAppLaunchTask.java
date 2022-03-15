@@ -94,10 +94,10 @@ public class KillAndRestartAppLaunchTask implements LaunchTask {
     }
     else {
       LaunchResult result = new LaunchResult();
-      result.setSuccess(false);
+      result.setResult(LaunchResult.Result.ERROR);
       result.setErrorId("");
-      result.setError("Swap failed, need to rerun.");
-      result.setConsoleError("Swap failed, need to rerun.");
+      result.setMessage("Swap failed, need to rerun.");
+      result.setConsoleMessage("Swap failed, need to rerun.");
       result.addOnFinishedCallback(() -> {
         ActionManager manager = ActionManager.getInstance();
         String id;

@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
+import com.android.tools.idea.run.tasks.LaunchResult.Result;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -249,6 +251,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     if (notificationGroup == null) {
       notificationGroup = NotificationGroup.toolWindowGroup(groupId, launchContext.getExecutor().getId());
     }
+    int numWarnings = 0;
     for (LaunchTask task : launchTasks) {
       if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
         return false;
@@ -257,29 +260,43 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       if (task.shouldRun(launchContext)) {
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
-        LaunchResult result = task.run(launchContext);
-        myOnFinished.addAll(result.onFinishedCallbacks());
-        boolean success = result.getSuccess();
-        myStats.endLaunchTask(task, details, success);
-        if (!success) {
-          myErrorNotificationListener = result.getNotificationListener();
-          myError = result.getError();
-          launchContext.getConsolePrinter().stderr(result.getConsoleError());
+        LaunchResult launchResult = task.run(launchContext);
+        myOnFinished.addAll(launchResult.onFinishedCallbacks());
+        Result result = launchResult.getResult();
+        myStats.endLaunchTask(task, details, result != Result.ERROR);
+        if (result != Result.SUCCESS) {
+          myErrorNotificationListener = launchResult.getNotificationListener();
+          myError = launchResult.getMessage();
+          launchContext.getConsolePrinter().stderr(launchResult.getConsoleMessage());
 
           // Append a footer hyperlink, if one was provided.
-          if (result.getConsoleHyperlinkInfo() != null) {
-            myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
-                                     result.getConsoleHyperlinkInfo());
+          if (launchResult.getConsoleHyperlinkInfo() != null) {
+            myConsoleConsumer.accept(launchResult.getConsoleHyperlinkText() + "\n",
+                                     launchResult.getConsoleHyperlinkInfo());
           }
-
-          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR).setListener(myErrorNotificationListener)
+          String title;
+          NotificationType type;
+          if (result == Result.ERROR) {
+            title = "Error";
+            type = NotificationType.ERROR;
+          }
+          else {
+            title = "Warning";
+            type = NotificationType.WARNING;
+          }
+          notificationGroup.createNotification(title, launchResult.getMessage(), type).setListener(myErrorNotificationListener)
             .setImportant(true).notify(myProject);
 
           // Show the tool window when we have an error.
           RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
 
-          myStats.setErrorId(result.getErrorId());
-          return false;
+          if (result == Result.ERROR) {
+            myStats.setErrorId(launchResult.getErrorId());
+            return false;
+          }
+          else {
+            numWarnings++;
+          }
         }
 
         // Notify listeners of the deployment.
@@ -292,8 +309,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
-    notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION)
-      .setImportant(false).notify(myProject);
+    String content;
+    NotificationType notificationType;
+    if (numWarnings == 0) {
+      notificationType = NotificationType.INFORMATION;
+      content = AndroidBundle.message("android.launch.task.succeeded", launchType);
+    }
+    else {
+      notificationType = NotificationType.WARNING;
+      content = AndroidBundle.message("android.launch.task.succeeded.with.warnings", launchType, numWarnings);
+    }
+    notificationGroup.createNotification("", content, notificationType).setImportant(false).notify(myProject);
 
     return true;
   }
