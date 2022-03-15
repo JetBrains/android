@@ -636,8 +636,11 @@ public final class ResourceRepositoryManager implements Disposable {
         appResources.updateRoots(getLibraryResources());
       }
 
-      if (oldLibraryResourceMap != null) {
-        oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      // This condition should never be true, but exists to prevent the compiler from optimizing
+      // away oldLibraryResourceMap.
+      if (oldLibraryResourceMap != null && oldLibraryResourceMap.size() == Integer.MAX_VALUE) {
+        throw new AssertionError();
       }
     }
     catch (IllegalStateException e) {
