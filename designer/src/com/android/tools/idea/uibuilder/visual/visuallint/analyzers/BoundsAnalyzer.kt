@@ -32,12 +32,15 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
 
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
-    val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
+    val viewsToAnalyze = ArrayDeque(renderResult.rootViews.filterNot { isScrollingView(it) })
     while (viewsToAnalyze.isNotEmpty()) {
       val view = viewsToAnalyze.removeLast()
       val width = view.right - view.left
       val height = view.bottom - view.top
       view.children.forEach {
+        if (isScrollingView(it)) {
+          return@forEach
+        }
         viewsToAnalyze.addLast(it)
         if (isOutOfBounds(it, width, height)) {
           issues.add(createIssueContent(it))
@@ -64,5 +67,11 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
         .add("Fix this issue by adjusting the size or position of $viewName.")
     }
     return VisualLintIssueContent(view, summary, provider)
+  }
+
+  private fun isScrollingView(view: ViewInfo): Boolean {
+    return view.viewObject.javaClass.interfaces.any {
+      it.name == "androidx.core.view.ScrollingView" || it.name == "com.android.internal.widget.ScrollingView"
+    }
   }
 }
