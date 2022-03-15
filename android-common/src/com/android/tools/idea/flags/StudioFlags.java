@@ -1246,7 +1246,7 @@ public final class StudioFlags {
     COMPOSE, "preview.animation.coordination.drag",
     "Enable animation dragging in timeline for Animation Inspector",
     "If enabled, animation dragging will be available in Animation Inspector timeline.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
