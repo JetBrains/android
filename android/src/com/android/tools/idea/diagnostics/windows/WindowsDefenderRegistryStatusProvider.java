@@ -22,6 +22,7 @@ import com.sun.jna.platform.win32.WinReg;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -58,10 +59,10 @@ public class WindowsDefenderRegistryStatusProvider implements VirusCheckerStatus
     }
     catch (Win32Exception exception) {
       // If the exception is FileNotFound, the key doesn't exist, so just assume empty
-      if (exception.getErrorCode() != WinError.ERROR_FILE_NOT_FOUND) {
+      if (exception.getErrorCode() != WinError.ERROR_FILE_NOT_FOUND || exception.getErrorCode() != WinError.ERROR_ACCESS_DENIED) {
         throw new IOException("Error code " + exception.getErrorCode() + ": " + exception.getMessage(), exception);
       }
-      return new HashSet<>();
+      return Collections.emptySet();
     }
   }
 
