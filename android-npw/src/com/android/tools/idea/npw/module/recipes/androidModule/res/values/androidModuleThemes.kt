@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.MaterialColor.*
 
 const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
@@ -33,7 +34,7 @@ fun androidModuleThemesMaterial3(themeName: String) =
   <style name="$themeName" parent="Base.${themeName}" />
 </resources>"""
 
-fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
+fun androidModuleThemes(useAndroidX: Boolean, minSdk: ApiVersion, themeName: String = "Theme.App") =
   if (useAndroidX)
     """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->
@@ -47,7 +48,7 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
       <item name="colorSecondaryVariant">@color/${TEAL_700.colorName}</item>
       <item name="colorOnSecondary">@color/${BLACK.colorName}</item>
       <!-- Status bar color. -->
-      <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+      <item name="android:statusBarColor"${if (minSdk.api < 21) " tools:targetApi=\"21\"" else ""}>?attr/colorPrimaryVariant</item>
       <!-- Customize your theme here. -->
   </style>
 </resources>"""

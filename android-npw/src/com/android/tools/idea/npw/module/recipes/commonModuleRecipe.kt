@@ -42,7 +42,7 @@ fun RecipeExecutor.generateCommonModule(
   manifestXml: String,
   generateTests: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
+  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.apis.minApi, data.themesData.main.name),
   themesXmlNight: String? = null,
   themesXmlV29: String? = null,
   colorsXml: String? = androidModuleColors(),

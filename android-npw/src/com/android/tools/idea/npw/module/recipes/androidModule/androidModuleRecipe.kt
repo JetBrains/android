@@ -57,11 +57,11 @@ fun RecipeExecutor.generateAndroidModule(
     themesXml = if (isMaterial3)
       androidModuleThemesMaterial3(data.themesData.main.name)
     else
-      androidModuleThemes(useAndroidX, data.themesData.main.name),
+      androidModuleThemes(useAndroidX, data.apis.minApi, data.themesData.main.name),
     themesXmlNight = if (isMaterial3)
       androidModuleThemesNightMaterial3(data.themesData.main.name)
     else
-      androidModuleThemesNight(useAndroidX, data.themesData.main.name),
+      androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
     themesXmlV29 = if (isMaterial3 && data.apis.targetApi.api >= 29)
       androidModuleThemesMaterial3V29(data.themesData.main.name)
     else
