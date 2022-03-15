@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -103,6 +104,6 @@ public class CodeConversionFromJavaToKotlinTest {
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
-    kotlinEditor.getCurrentFileContents().contains(KOTLIN_FUN);
+    assertThat(kotlinEditor.getCurrentFileContents()).contains(KOTLIN_FUN);
   }
 }

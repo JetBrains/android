@@ -93,8 +93,7 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
       .expecting("The Java file is expecting opened because of break point is hit.")
       .until(() -> {
         try {
-          ideFrame.getEditor().getCurrentFileName().equals(JAVA_FILE_NAME);
-          return true;
+          return ideFrame.getEditor().getCurrentFileName().equals(JAVA_FILE_NAME);
         } catch (NullPointerException e) {
           return false;
         }
@@ -106,8 +105,7 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
       .expecting("The C file is expecting opened because of break point is hit.")
       .until(() -> {
         try {
-          ideFrame.getEditor().getCurrentFileName().equals(C_FILE_NAME);
-          return true;
+          return ideFrame.getEditor().getCurrentFileName().equals(C_FILE_NAME);
         }  catch (NullPointerException e) {
           return false;
         }

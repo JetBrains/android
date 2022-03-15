@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -62,7 +63,7 @@ public class ConversionTestUtil {
     // TODO: the following is a hack. See http://b/217805224 for removal of the hack
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    ideFrameFixture.getEditor().open("app/build.gradle").getCurrentFileContents().contains("compileSdk");
+    assertThat(ideFrameFixture.getEditor().open("app/build.gradle").getCurrentFileContents()).contains("compileSdk");
 
 
     String buildGradleContents = ideFrameFixture.getEditor()
