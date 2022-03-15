@@ -36,7 +36,7 @@ fun ColumnInfo.createBorder(): Border = with(insets) { JBUI.Borders.empty(top, l
  */
 class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer, JBLabel() {
   init {
-    horizontalAlignment = JLabel.RIGHT
+    horizontalAlignment = JLabel.CENTER
     border = columnInfo.createBorder()
   }
 
