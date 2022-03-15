@@ -1,0 +1,26 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+}
+
+sourceSets {
+    testEnv {
+        java {
+            java.srcDir file('src/testEnv/java')
+        }
+        jar { from sourceSets.testEnv.output }
+    }
+}
+
+configurations {
+    testEnv
+}
+
+dependencies {
+    implementation project(':network-kmm')
+    implementation project(':jarWrapperLib')
+}

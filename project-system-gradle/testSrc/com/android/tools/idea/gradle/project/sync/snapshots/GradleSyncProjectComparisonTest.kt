@@ -39,6 +39,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
@@ -77,6 +78,7 @@ import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -206,6 +208,13 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
         )
         assertIsEqualToSnapshot(text)
       }
+    }
+
+    @Ignore("Currently doesn't sync correctly due to an IDE error matching dependencies")
+    @Test
+    fun testNonStandardSourceSetDependencies() {
+      val text = importSyncAndDumpProject(NON_STANDARD_SOURCE_SET_DEPENDENCIES)
+      assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=74259
