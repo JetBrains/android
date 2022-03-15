@@ -23,10 +23,12 @@ import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.editors.literals.LiteralUsageReference
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -35,11 +37,13 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.kotlin.name.FqName
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -148,5 +152,16 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
     LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
     val (_, outputFiles) = compileAndListOutputFiles()
     assertTrue(outputFiles.isNotEmpty() && outputFiles.none { it.contains("LiveLiterals") })
+  }
+
+  @Test
+  fun `verify live literals constants are cleared`() = runBlocking {
+    ProjectConstantRemapper.getInstance(projectRule.project).addConstant(
+      null, LiteralUsageReference(FqName("test.constant"), "filename.kt", TextRange(1, 10), 10), 0, 0)
+    assertTrue(ProjectConstantRemapper.getInstance(projectRule.project).hasConstants())
+    val (result, outputFiles) = compileAndListOutputFiles()
+    assertTrue(result == CompilationResult.Success)
+    assertFalse("Constants should have been cleared after a successful build",
+                ProjectConstantRemapper.getInstance(projectRule.project).hasConstants())
   }
 }

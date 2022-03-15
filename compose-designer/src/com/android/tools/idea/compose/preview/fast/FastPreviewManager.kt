@@ -28,6 +28,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
@@ -464,6 +465,11 @@ class FastPreviewManager private constructor(
                  buildMessage,
                  if (isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
       .notify(project)
+
+    if (isSuccess) {
+      // The project has built successfully so we can drop the constants that we were keeping.
+      ProjectConstantRemapper.getInstance(project).clearConstants(null)
+    }
 
     return@withLock Pair(result, outputDir.toAbsolutePath().toString()).also {
       synchronized(requestTracker) {
