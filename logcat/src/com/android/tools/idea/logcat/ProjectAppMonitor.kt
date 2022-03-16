@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
@@ -28,7 +29,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.jetbrains.rd.util.concurrentMapOf
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
-import javax.annotation.concurrent.GuardedBy
 
 /**
  * Listens to [IDeviceChangeListener.deviceChanged] and [IClientChangeListener.clientChanged] and monitors project related client processes

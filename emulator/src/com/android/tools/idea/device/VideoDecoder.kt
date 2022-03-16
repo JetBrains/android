@@ -16,6 +16,7 @@
 package com.android.tools.idea.device
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.emulator.coerceAtMost
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.containers.ContainerUtil
@@ -75,7 +76,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.nio.channels.ClosedChannelException
 import java.util.function.Consumer
-import javax.annotation.concurrent.GuardedBy
 
 internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @Volatile var maxOutputSize: Dimension) {
 
