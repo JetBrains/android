@@ -123,6 +123,21 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable.selectCellAt(1, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
+    assertEquals("<string name=\"key3\" translatable=\"true\">Key 3 default</string>", myPanel.myXmlTextField.getText());
+  }
+
+  public void testXmlTag() {
+    myTable.selectCellAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    assertEquals("<string name=\"key1\">Key 1 default</string>", myPanel.myXmlTextField.getText());
+
+    myTable.selectCellAt(1, 6);
+    assertEquals("<string name=\"key2\" >Key 2 en-rGB</string>", myPanel.myXmlTextField.getText());
+
+    myTable.selectCellAt(2, 6);
+    assertEquals("", myPanel.myXmlTextField.getText());
+
+    myTable.selectCellAt(2, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    assertEquals("<string name=\"key3\" translatable=\"true\">Key 3 default</string>", myPanel.myXmlTextField.getText());
   }
 
   private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {

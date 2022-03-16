@@ -34,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTextField;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -58,6 +59,9 @@ public final class StringResourceViewPanel implements Disposable {
   private StringResourceTable myTable;
   private @Nullable Component myToolbar;
   private @Nullable Component myScrollPane;
+  private final @NotNull JComponent myXmlLabel;
+  @VisibleForTesting
+  final JTextComponent myXmlTextField;
   private final @NotNull Component myKeyLabel;
   private JTextComponent myKeyTextField;
   private final @NotNull Component myDefaultValueLabel;
@@ -81,6 +85,12 @@ public final class StringResourceViewPanel implements Disposable {
 
     initTable();
     initToolbar();
+
+    myXmlLabel = new JBLabel("XML:", SwingConstants.RIGHT);
+    myXmlTextField = new JBTextField();
+    myXmlTextField.setEnabled(false);
+    myXmlTextField.setName("xmlTextField");
+
     myKeyLabel = new JBLabel("Key:", SwingConstants.RIGHT);
     initKeyTextField();
     myDefaultValueLabel = new JBLabel("Default value:", SwingConstants.RIGHT);
@@ -185,7 +195,8 @@ public final class StringResourceViewPanel implements Disposable {
     myPanel = new JBPanel<>();
     GroupLayout layout = new GroupLayout(myPanel);
 
-    layout.linkSize(SwingConstants.HORIZONTAL, myKeyLabel, myDefaultValueLabel, myTranslationLabel);
+    layout.linkSize(SwingConstants.HORIZONTAL, myXmlLabel, myKeyLabel, myDefaultValueLabel, myTranslationLabel);
+    layout.linkSize(SwingConstants.VERTICAL, myXmlLabel, myXmlTextField);
     layout.linkSize(SwingConstants.VERTICAL, myKeyLabel, myKeyTextField);
     layout.linkSize(SwingConstants.VERTICAL, myDefaultValueLabel, myDefaultValueTextField);
     layout.linkSize(SwingConstants.VERTICAL, myTranslationLabel, myTranslationTextField);
@@ -193,6 +204,9 @@ public final class StringResourceViewPanel implements Disposable {
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(myToolbar)
       .addComponent(myScrollPane)
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myXmlLabel)
+                  .addComponent(myXmlTextField))
       .addGroup(layout.createSequentialGroup()
                   .addComponent(myKeyLabel)
                   .addComponent(myKeyTextField))
@@ -206,6 +220,9 @@ public final class StringResourceViewPanel implements Disposable {
     Group verticalGroup = layout.createSequentialGroup()
       .addComponent(myToolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
       .addComponent(myScrollPane)
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myXmlLabel)
+                  .addComponent(myXmlTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
       .addGroup(layout.createParallelGroup()
                   .addComponent(myKeyLabel)
                   .addComponent(myKeyTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -265,6 +282,7 @@ public final class StringResourceViewPanel implements Disposable {
     @Override
     public void selectedCellChanged() {
       if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
+        setTextAndEditable(myXmlTextField, "", false);
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
         setTextAndEditable(myTranslationTextField.getTextField(), "", false);
@@ -273,6 +291,7 @@ public final class StringResourceViewPanel implements Disposable {
         return;
       }
 
+      myXmlTextField.setEnabled(true);
       myKeyTextField.setEnabled(true);
       myDefaultValueTextField.setEnabled(true);
       myTranslationTextField.setEnabled(true);
@@ -280,10 +299,18 @@ public final class StringResourceViewPanel implements Disposable {
 
       int row = myTable.getSelectedModelRowIndex();
       int column = myTable.getSelectedModelColumnIndex();
-      Object locale = model.getLocale(column);
+      Locale locale = model.getLocale(column);
 
+      StringResourceKey key = model.getKey(row);
+      StringResourceData data = model.getData();
+      if (data == null) {
+        setTextAndEditable(myXmlTextField, "", false);
+      }
+      else {
+        setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
+      }
       // TODO: Keys are not editable; we want them to be refactor operations
-      setTextAndEditable(myKeyTextField, model.getKey(row).getName(), false);
+      setTextAndEditable(myKeyTextField, key.getName(), false);
 
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field

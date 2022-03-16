@@ -27,6 +27,7 @@ import com.android.tools.idea.res.PsiResourceItem;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -45,6 +46,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class StringResource {
   @NotNull
+  private final Project myProject;
+
+  @NotNull
   private final StringResourceKey myKey;
 
   @NotNull
@@ -62,7 +66,8 @@ public final class StringResource {
   private final StringResourceData myData;
 
   public StringResource(@NotNull StringResourceKey key, @NotNull StringResourceData data) {
-    Project project = data.getProject();
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    myProject = data.getProject();
     boolean translatable = true;
     ResourceItemEntry defaultValue = new ResourceItemEntry();
     StringResourceUnescaper unescaper = data.getUnescaper();
@@ -73,7 +78,7 @@ public final class StringResource {
         Logger.getInstance(StringResource.class).warn(item + " has an unexpected class " + item.getClass().getName());
       }
 
-      XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
+      XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
         translatable = false;
@@ -81,18 +86,19 @@ public final class StringResource {
 
       LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
 
+      String tagText = getTextOfTag(tag);
       if (qualifier == null) {
-        defaultValue = new ResourceItemEntry(item, unescaper);
+        defaultValue = new ResourceItemEntry(item, tagText, unescaper);
       }
       else {
-        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, unescaper));
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, tagText, unescaper));
       }
     }
 
     myKey = key;
 
     VirtualFile folder = key.getDirectory();
-    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, project);
+    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, myProject);
 
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
@@ -103,6 +109,15 @@ public final class StringResource {
   @NotNull
   StringResourceKey getKey() {
     return myKey;
+  }
+
+  @NotNull
+  String getTagText(@Nullable Locale locale) {
+    if (locale == null) {
+      return myDefaultValue.myTagText;
+    }
+    ResourceItemEntry resourceItemEntry = myLocaleToTranslationMap.get(locale);
+    return resourceItemEntry == null ? "" : resourceItemEntry.myTagText;
   }
 
   @NotNull
@@ -128,7 +143,7 @@ public final class StringResource {
           return false;
         }
 
-        myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
+        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper());
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -151,7 +166,7 @@ public final class StringResource {
     ResourceItem item = myData.getRepository().getDefaultValue(myKey);
     assert item != null;
 
-    myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
+    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper());
     return Futures.immediateFuture(true);
   }
 
@@ -215,7 +230,8 @@ public final class StringResource {
           return false;
         }
 
-        myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
+        myLocaleToTranslationMap
+          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper()));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -241,7 +257,8 @@ public final class StringResource {
     item = myData.getRepository().getTranslation(myKey, locale);
     assert item != null;
 
-    myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
+    myLocaleToTranslationMap
+      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper()));
     return Futures.immediateFuture(true);
   }
 
@@ -311,9 +328,16 @@ public final class StringResource {
     return item == null || item.myString.isEmpty();
   }
 
+  private static @NotNull String getTextOfTag(@Nullable XmlTag tag) {
+    return tag == null ? "" : tag.getText();
+  }
+
   private static final class ResourceItemEntry {
     @Nullable
     private final ResourceItem myResourceItem;
+
+    @NotNull
+    private final String myTagText;
 
     @NotNull
     private final String myString;
@@ -322,12 +346,14 @@ public final class StringResource {
 
     private ResourceItemEntry() {
       myResourceItem = null;
+      myTagText = "";
       myString = "";
       myStringValid = true;
     }
 
-    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull StringResourceUnescaper unescaper) {
+    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String tagText, @NotNull StringResourceUnescaper unescaper) {
       myResourceItem = resourceItem;
+      myTagText = tagText;
       ResourceValue value = resourceItem.getResourceValue();
 
       if (value == null) {
