@@ -21,9 +21,12 @@ import com.android.tools.idea.run.deployment.liveedit.backendCodeGen
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.createFile
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -43,16 +46,21 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
 
   private fun compileKtFiles(inputs: List<KtFile>, outputDirectory: Path) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
-    val resolution = runReadAction {
-      log.debug("fetchResolution")
-      KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
-    }
-    val bindingContext = runReadAction { analyze(inputs, resolution) }
+
+    ProgressManager.checkCanceled()
+    log.debug("fetchResolution")
+    val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
+
+    ProgressManager.checkCanceled()
+    log.debug("analyze")
+    val bindingContext = analyze(inputs, resolution)
 
     val languageVersionSettings = inputs.first().languageVersionSettings
-    val generationState = runReadAction {
-      backendCodeGen(project, resolution, bindingContext, inputs, AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
-    }
+
+    ProgressManager.checkCanceled()
+    log.debug("backCodeGen")
+    val generationState = backendCodeGen(project, resolution, bindingContext, inputs,
+                                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
     generationState.factory.asList().forEach {
       val path = outputDirectory.resolve(it.relativePath)
       path.createFile()
@@ -68,13 +76,20 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     daemonLock.lock(this)
     return try {
       val inputs = files.filterIsInstance<KtFile>().toList()
-      try {
-        compileKtFiles(inputs, outputDirectory = outputDirectory)
-        CompilationResult.Success
-      }
-      catch (t: Throwable) {
-        return CompilationResult.RequestException(t)
-      }
+      val result = CompletableDeferred<CompilationResult>()
+      ProgressManager.getInstance().runInReadActionWithWriteActionPriority(
+        {
+          try {
+            compileKtFiles(inputs, outputDirectory = outputDirectory)
+            result.complete(CompilationResult.Success)
+          }
+          catch (t: Throwable) {
+            result.complete(CompilationResult.RequestException(t))
+          }
+        },
+        ProgressWrapper.wrap(indicator)
+      )
+      result.await()
     }
     finally {
       daemonLock.unlock(this)
