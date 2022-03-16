@@ -319,4 +319,20 @@ public class StudioDownloaderTest {
     assertThat(InMemoryFileSystems.getExistingFolders(fs)).containsExactly(tmpPath.toString(),
                                                                            InMemoryFileSystems.getDefaultWorkingDirectory());
   }
+
+  @Test
+  public void testTemporaryFilesWithSymlink() throws Exception {
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
+    Path realTmpPath = Files.createDirectory(InMemoryFileSystems.getSomeRoot(fs).resolve("realTmp"));
+    Path tmpPath = Files.createSymbolicLink(InMemoryFileSystems.getSomeRoot(fs).resolve("tmp"), realTmpPath);
+    createServerContextThatReturnsCustomContent("blah");
+    StudioDownloader downloader = new StudioDownloader(new FakeSettingsController(false));
+    downloader.setDownloadIntermediatesLocation(tmpPath);
+    byte[] bytes = new byte[10];
+    try (BufferedInputStream is = new BufferedInputStream(
+      downloader.downloadAndStreamWithOptions(new URL(myUrl), new FakeProgressIndicator()))) {
+      assertEquals(4, is.read(bytes));
+      assertEquals("blah", new String(bytes).trim());
+    }
+  }
 }
