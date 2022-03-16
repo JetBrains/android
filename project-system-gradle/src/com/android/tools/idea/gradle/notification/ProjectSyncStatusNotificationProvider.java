@@ -266,7 +266,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @VisibleForTesting
   static class ComplicatedProjectNotificationPanel extends NotificationPanel {
-    private static final String TEXT = "Project uses Gradle Version Catalogs: IDE tools may not work as expected";
+    private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
 
     ComplicatedProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
       super(type, TEXT);
