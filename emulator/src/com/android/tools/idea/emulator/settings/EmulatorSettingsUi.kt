@@ -16,8 +16,10 @@
 package com.android.tools.idea.emulator.settings
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.emulator.DEFAULT_CAMERA_VELOCITY_CONTROLS
 import com.android.tools.idea.emulator.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.emulator.EmulatorSettings
+import com.android.tools.idea.emulator.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
@@ -38,6 +40,8 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
   private lateinit var launchInToolWindowCheckBox: JCheckBox
   private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
   private val snapshotAutoDeletionPolicyComboBoxModel = EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java)
+  private lateinit var cameraVelocityControlComboBox: ComboBox<CameraVelocityControls>
+  private val cameraVelocityControlComboBoxModel = EnumComboBoxModel(CameraVelocityControls::class.java)
 
   private val state = EmulatorSettings.getInstance()
 
@@ -63,22 +67,37 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
               .component
       }
     }
+    row {
+      cell(isVerticalFlow = true) {
+        label("Velocity control keys for virtual scene camera:")
+        cameraVelocityControlComboBox =
+          comboBox(cameraVelocityControlComboBoxModel,
+                   { cameraVelocityControlComboBoxModel.selectedItem },
+                   { cameraVelocityControlComboBoxModel.setSelectedItem(it) },
+                   renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it?.label })
+            .enableIf(launchInToolWindowCheckBox.selected)
+            .component
+      }
+    }
   }
 
   override fun isModified(): Boolean {
     return launchInToolWindowCheckBox.isSelected != state.launchInToolWindow ||
-           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy
+           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy ||
+           cameraVelocityControlComboBoxModel.selectedItem != state.cameraVelocityControls
   }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
     state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
     state.snapshotAutoDeletionPolicy = snapshotAutoDeletionPolicyComboBoxModel.selectedItem
+    state.cameraVelocityControls = cameraVelocityControlComboBoxModel.selectedItem
   }
 
   override fun reset() {
     launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
     snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(state.snapshotAutoDeletionPolicy)
+    cameraVelocityControlComboBoxModel.setSelectedItem(state.cameraVelocityControls)
   }
 
   @Nls

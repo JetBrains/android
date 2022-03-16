@@ -254,8 +254,7 @@ class EmulatorView(
       }
     }
 
-  private var virtualSceneCameraOperatingDisposable: Disposable? = null
-  private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
+  private var virtualSceneCameraVelocityController: VirtualSceneCameraVelocityController? = null
   private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
 
   init {
@@ -519,7 +518,8 @@ class EmulatorView(
   }
 
   private fun startOperatingVirtualSceneCamera() {
-    findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse or arrow keys")
+    val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
+    findNotificationHolderPanel()?.showNotification("Move camera with $keys keys, rotate with mouse or arrow keys")
     val glass = IdeGlassPaneUtil.find(this)
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
@@ -544,15 +544,15 @@ class EmulatorView(
       }
     }
 
-    val disposable = Disposer.newDisposable("Virtual scene camera operation")
-    virtualSceneCameraOperatingDisposable = disposable
-    glass.addMousePreprocessor(mouseListener, disposable)
-    glass.addMouseMotionPreprocessor(mouseListener, disposable)
+    val velocityController = VirtualSceneCameraVelocityController(emulator, EmulatorSettings.getInstance().cameraVelocityControls.keys)
+    virtualSceneCameraVelocityController = velocityController
+    glass.addMousePreprocessor(mouseListener, velocityController)
+    glass.addMouseMotionPreprocessor(mouseListener, velocityController)
   }
 
   private fun stopOperatingVirtualSceneCamera() {
-    virtualSceneCameraVelocityController.stop()
-    virtualSceneCameraOperatingDisposable?.let { Disposer.dispose(it) }
+    virtualSceneCameraVelocityController?.let(Disposer::dispose)
+    virtualSceneCameraVelocityController = null
     findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
     val glass = IdeGlassPaneUtil.find(this)
     glass.setCursor(null, this)
@@ -630,7 +630,7 @@ class EmulatorView(
           VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
           VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
           VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          else -> virtualSceneCameraVelocityController.keyPressed(event.keyCode)
+          else -> virtualSceneCameraVelocityController?.keyPressed(event.keyCode)
         }
         return
       }
@@ -678,9 +678,7 @@ class EmulatorView(
         virtualSceneCameraOperating = false
       }
 
-      if (virtualSceneCameraOperating) {
-        virtualSceneCameraVelocityController.keyReleased(event.keyCode)
-      }
+      virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
     }
   }
 

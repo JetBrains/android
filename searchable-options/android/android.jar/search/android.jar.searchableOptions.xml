@@ -752,6 +752,17 @@
     <option name="launch" hit="Launch in a tool window" />
     <option name="tool" hit="Launch in a tool window" />
     <option name="window" hit="Launch in a tool window" />
+    <option name="camera" hit="Velocity control keys for virtual scene camera:" />
+    <option name="control" hit="Velocity control keys for virtual scene camera:" />
+    <option name="for" hit="Velocity control keys for virtual scene camera:" />
+    <option name="keys" hit="Velocity control keys for virtual scene camera:" />
+    <option name="scene" hit="Velocity control keys for virtual scene camera:" />
+    <option name="velocity" hit="Velocity control keys for virtual scene camera:" />
+    <option name="virtual" hit="Velocity control keys for virtual scene camera:" />
+    <option name="for" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="keyboard" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="qwerty" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="wasdqe" hit="WASDQE (for QWERTY keyboard)" />
     <option name="configuration" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="current" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="encountering" hit="When encountering snapshots incompatible with the current configuration:" />
@@ -760,6 +771,10 @@
     <option name="the" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="azerty" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="for" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="keyboard" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="zqsdae" hit="ZQSDAE (for AZERTY keyboard)" />
   </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
     <option name="database" hit="Database Inspector" />

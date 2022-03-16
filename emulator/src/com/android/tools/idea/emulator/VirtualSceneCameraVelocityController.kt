@@ -16,12 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.Velocity
-import java.awt.event.KeyEvent.VK_A
-import java.awt.event.KeyEvent.VK_D
-import java.awt.event.KeyEvent.VK_E
-import java.awt.event.KeyEvent.VK_Q
-import java.awt.event.KeyEvent.VK_S
-import java.awt.event.KeyEvent.VK_W
+import com.intellij.openapi.Disposable
 
 /**
  * Controller that changes virtual camera velocity in response to pressing and releasing WASDQE keys.
@@ -33,10 +28,27 @@ import java.awt.event.KeyEvent.VK_W
  *   S - forward along Z axis
  *   W - backward along Z axis
  * ```
+ * For AZERTY keyboard the keys are ZQSDAE.
  */
-internal class VirtualSceneCameraVelocityController(private val emulator: EmulatorController) {
+internal class VirtualSceneCameraVelocityController(
+  private val emulator: EmulatorController,
+  private val controlKeys: String
+) : Disposable {
+
   private var pressedKeysMask = 0
   private val virtualSceneCameraVelocity = Velocity.newBuilder()
+
+  /**
+   * Stops the camera movement and releases all keys.
+   */
+  override fun dispose() {
+    // Stop the camera movement and release all keys.
+    pressedKeysMask = 0
+    if (virtualSceneCameraVelocity.x != 0F || virtualSceneCameraVelocity.y != 0F || virtualSceneCameraVelocity.z != 0F) {
+      virtualSceneCameraVelocity.clear()
+      emulator.setVirtualSceneCameraVelocity(Velocity.getDefaultInstance())
+    }
+  }
 
   /**
    * Notifies the controller that a key was pressed.
@@ -62,30 +74,19 @@ internal class VirtualSceneCameraVelocityController(private val emulator: Emulat
     }
   }
 
-  /**
-   * Stops the camera movement and releases all keys.
-   */
-  fun stop() {
-    pressedKeysMask = 0
-    if (virtualSceneCameraVelocity.x != 0F || virtualSceneCameraVelocity.y != 0F || virtualSceneCameraVelocity.z != 0F) {
-      virtualSceneCameraVelocity.clear()
-      emulator.setVirtualSceneCameraVelocity(Velocity.getDefaultInstance())
-    }
-  }
-
   private fun keyToMask(keyCode: Int): Int {
-    val index = CAMERA_VELOCITY_CONTROL_KEYS.indexOf(keyCode)
+    val index = controlKeys.indexOf(keyCode.toChar())
     return if (index >= 0) 1 shl index else 0
   }
 
   private fun updateCameraVelocity(mask: Int, deltaVelocity: Float) {
     when (mask) {
-      0x01 -> virtualSceneCameraVelocity.x += deltaVelocity
-      0x02 -> virtualSceneCameraVelocity.x -= deltaVelocity
-      0x04 -> virtualSceneCameraVelocity.y += deltaVelocity
-      0x08 -> virtualSceneCameraVelocity.y -= deltaVelocity
-      0x10 -> virtualSceneCameraVelocity.z += deltaVelocity
-      0x20 -> virtualSceneCameraVelocity.z -= deltaVelocity
+      0x08 -> virtualSceneCameraVelocity.x += deltaVelocity // D
+      0x02 -> virtualSceneCameraVelocity.x -= deltaVelocity // A
+      0x20 -> virtualSceneCameraVelocity.y += deltaVelocity // E
+      0x10 -> virtualSceneCameraVelocity.y -= deltaVelocity // Q
+      0x04 -> virtualSceneCameraVelocity.z += deltaVelocity // S
+      0x01 -> virtualSceneCameraVelocity.z -= deltaVelocity // W
       else -> throw IllegalArgumentException()
     }
     emulator.setVirtualSceneCameraVelocity(virtualSceneCameraVelocity.build())
@@ -93,4 +94,3 @@ internal class VirtualSceneCameraVelocityController(private val emulator: Emulat
 }
 
 private const val CAMERA_VELOCITY_UNIT = 1F
-private val CAMERA_VELOCITY_CONTROL_KEYS = intArrayOf(VK_D, VK_A, VK_E, VK_Q, VK_S, VK_W)
