@@ -31,6 +31,7 @@ import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.util.Collections.synchronizedMap
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicBoolean
@@ -42,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Client closes connection and "removed" from [DeploymentApplicationService] device when [stopClient] is invoked.
  */
 internal class RunnableClientsService(testDisposable: Disposable) {
-  private val deviceToRunnableClients: MutableMap<IDevice, MutableMap<String, RunnableClient>> = mutableMapOf()
+  private val deviceToRunnableClients: MutableMap<IDevice, MutableMap<String, RunnableClient>> = synchronizedMap(mutableMapOf())
   private val deploymentApplicationService = TestDeploymentApplicationService()
 
   init {
@@ -52,12 +53,13 @@ internal class RunnableClientsService(testDisposable: Disposable) {
 
   fun stop() {
     deviceToRunnableClients.entries.forEach { (device, clients) ->
-      clients.keys.forEach { appId -> stopClient(device, appId) }
+      val appIds = clients.keys.toList()
+      appIds.forEach { appId -> stopClient(device, appId) }
     }
   }
 
   fun startClient(device: IDevice, appId: String): Client {
-    val clients = deviceToRunnableClients.computeIfAbsent(device) { mutableMapOf() }
+    val clients = deviceToRunnableClients.computeIfAbsent(device) { synchronizedMap(mutableMapOf()) }
     val runnableClient = RunnableClient.start(device, appId)
     clients[appId] = runnableClient
     deploymentApplicationService.addClient(device, appId, runnableClient.client)
