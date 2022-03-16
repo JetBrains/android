@@ -784,7 +784,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     private static <T> InitParams<T> createParams(@NotNull Project project, @NotNull Disposable parentDisposable) {
       SideModel<T> model = new SideModel<>(project);
       return new InitParams<>(model,
-                              new ThreeComponentsSplitter(project),
+                              new ThreeComponentsSplitter(parentDisposable),
                               new MinimizedPanel<>(Side.LEFT, model),
                               new MinimizedPanel<>(Side.RIGHT, model));
     }
