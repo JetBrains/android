@@ -278,6 +278,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     })
   }
 
+  /**
+   * Whether the preview needs a full refresh or not.
+   */
+  private val invalidated = AtomicBoolean(true)
+
+  private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
+
   private val previewFreshnessTracker = CodeOutOfDateTracker.create(module, this) {
     invalidate()
     requestRefresh()
@@ -508,11 +515,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var renderedElements: List<PreviewElement> = emptyList()
 
   /**
-   * Whether the preview needs a full refresh or not.
-   */
-  private val invalidated = AtomicBoolean(true)
-
-  /**
    * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
    * is being refreshed. Even though [requestRefresh] guarantees that only at most a single refresh happens at any point in time,
    * there might be several simultaneous calls to [refresh] method and therefore we need a counter instead of boolean flag.
@@ -538,8 +540,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(5))
-
-  private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
 
   // region Lifecycle handling
 
