@@ -17,21 +17,44 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.resources.*;
-import com.android.sdklib.devices.*;
+import com.android.resources.Density;
+import com.android.resources.Keyboard;
+import com.android.resources.Navigation;
+import com.android.resources.ScreenOrientation;
+import com.android.sdklib.devices.ButtonType;
+import com.android.sdklib.devices.CameraLocation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Hardware;
+import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.Sensor;
+import com.android.sdklib.devices.Software;
+import com.android.sdklib.devices.State;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableDouble;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.double_.DoubleExpression;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Data class containing all properties needed to build a device.
@@ -67,7 +90,6 @@ public final class AvdDeviceData {
 
   private BoolProperty mySupportsLandscape = new BoolValueProperty();
   private BoolProperty mySupportsPortrait = new BoolValueProperty();
-  private BoolProperty myNotLong = new BoolValueProperty();
 
   private BoolProperty myHasBackCamera = new BoolValueProperty();
   private BoolProperty myHasFrontCamera = new BoolValueProperty();
@@ -291,11 +313,6 @@ public final class AvdDeviceData {
   }
 
   @NotNull
-  public BoolProperty notLong() {
-    return myNotLong;
-  }
-
-  @NotNull
   public BoolProperty supportsPortrait() {
     return mySupportsPortrait;
   }
@@ -403,7 +420,6 @@ public final class AvdDeviceData {
 
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
-    myNotLong.set(false);
     myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
@@ -504,9 +520,6 @@ public final class AvdDeviceData {
       if (state.getOrientation().equals(ScreenOrientation.LANDSCAPE)) {
         mySupportsLandscape.set(true);
       }
-      if (state.getHardware().getScreen().getRatio().equals(ScreenRatio.NOTLONG)) {
-        myNotLong.set(true);
-      }
     }
 
     myHasFrontCamera.set(defaultHardware.getCamera(CameraLocation.FRONT) != null);
@@ -545,24 +558,16 @@ public final class AvdDeviceData {
     // compute width and height to take orientation into account.
     int finalWidth, finalHeight;
 
-    if (myNotLong.get()) {
-      // The device is 'not long': its width and height are
-      // pretty similar. Accept the user's values directly.
-      finalWidth = width;
-      finalHeight = height;
+    // Update dimensions according to the orientation setting.
+    // Landscape should always be more wide than tall;
+    // portrait should be more tall than wide.
+    if (orientation == ScreenOrientation.LANDSCAPE) {
+      finalWidth = Math.max(width, height);
+      finalHeight = Math.min(width, height);
     }
     else {
-      // The height and width are significantly different.
-      // Landscape should always be more wide than tall;
-      // portrait should be more tall than wide.
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        finalWidth = Math.max(width, height);
-        finalHeight = Math.min(width, height);
-      }
-      else {
-        finalWidth = Math.min(width, height);
-        finalHeight = Math.max(width, height);
-      }
+      finalWidth = Math.min(width, height);
+      finalHeight = Math.max(width, height);
     }
     return new Dimension(finalWidth, finalHeight);
   }
