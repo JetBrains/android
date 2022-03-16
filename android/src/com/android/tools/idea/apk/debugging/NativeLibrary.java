@@ -61,9 +61,6 @@ public class NativeLibrary {
 
   public boolean hasDebugSymbols;
 
-  public NativeLibrary() {
-  }
-
   public NativeLibrary(@NotNull String name) {
     this.name = name;
   }

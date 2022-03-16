@@ -66,7 +66,7 @@ public class SourceFoldersTest extends PlatformTestCase {
   }
 
   public void testIsInSourceFolderForLibrary() {
-    NativeLibrary library = new NativeLibrary() {
+    NativeLibrary library = new NativeLibrary("test") {
       @Override
       @NotNull
       public List<String> getSourceFolderPaths() {
