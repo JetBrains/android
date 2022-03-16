@@ -476,7 +476,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {
     val buildModel = moduleGradleBuildModel ?: return
     buildModel.android().apply {
-      defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+      if (cppFlags.isNotBlank()) {
+        defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+      }
 
       externalNativeBuild().cmake().apply {
         path().setValue(cppPath)
