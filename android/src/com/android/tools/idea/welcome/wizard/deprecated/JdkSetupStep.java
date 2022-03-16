@@ -140,7 +140,9 @@ public class JdkSetupStep extends FirstRunWizardStep {
   private Path validateJdkPath(@NotNull Path file) {
     Path possiblePath = IdeSdks.getInstance().validateJdkPath(file);
     if (possiblePath != null) {
-      setJdkLocationComboBox(possiblePath);
+      if (!possiblePath.equals(file)) {
+        setJdkLocationComboBox(possiblePath);
+      }
       return possiblePath;
     }
     return null;

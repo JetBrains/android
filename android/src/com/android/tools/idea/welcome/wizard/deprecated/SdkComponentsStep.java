@@ -201,7 +201,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
     String path = myState.get(mySdkDownloadPathKey);
-    myAvailableSpace.setText(getDiskSpace(path));
+    myAvailableSpace.setText("Available disk space: " + getDiskSpace(path));
     long selected = getComponentsSize();
     myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
   }
@@ -297,6 +297,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
           // accessibility, so we need to call "setValueAt" manually.
           myTableModel.setValueAt(myCheckBox.isSelected(), myCheckBox.getRow(), 0);
         }
+        invokeUpdate(null);
       });
     }
 

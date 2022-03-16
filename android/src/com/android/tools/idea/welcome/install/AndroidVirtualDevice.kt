@@ -63,6 +63,8 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
   private lateinit var myProgressStep: ProgressStep
   private var myLatestVersion: AndroidVersion? = null
+  // After this we use x86-64 system images
+  private val MAX_X86_API_LEVEL = 30
 
   @Throws(WizardException::class)
   private fun getSystemImageDescription(sdkHandler: AndroidSdkHandler): SystemImageDescription {
@@ -103,9 +105,14 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   }
 
   @VisibleForTesting
-  fun getRequiredSysimgPath(isArm64HostOs: Boolean): String =
-    DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG,
-                               if (isArm64HostOs) SdkConstants.ABI_ARM64_V8A else SdkConstants.ABI_INTEL_ATOM)
+  fun getRequiredSysimgPath(isArm64HostOs: Boolean): String {
+    return DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG,
+                                      when {
+                                        isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
+                                        (myLatestVersion?.compareTo(MAX_X86_API_LEVEL, null) ?: -1) > 0 -> SdkConstants.ABI_INTEL_ATOM64
+                                        else ->  SdkConstants.ABI_INTEL_ATOM
+                                      } )
+  }
 
   override val requiredSdkPackages: Collection<String>
     get() {
