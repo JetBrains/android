@@ -33,8 +33,10 @@ class IsPartiallyHiddenTest: LayoutTestCase() {
               .withMockView()
               .children(
                 component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 200, 200)
                   .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
+                  .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
     ).build()
@@ -50,8 +52,10 @@ class IsPartiallyHiddenTest: LayoutTestCase() {
               .withMockView()
               .children(
                 component(SdkConstants.IMAGE_VIEW)
+                  .withBounds(0, 0, 200, 200)
                   .withMockView(),
                 component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
       ).build()
@@ -68,8 +72,10 @@ class IsPartiallyHiddenTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.IMAGE_VIEW)
                   .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
+                  .withBounds(0, 0, 200, 200)
                   .withMockView(),
                 component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
       ).build()
@@ -86,9 +92,49 @@ class IsPartiallyHiddenTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.TEXT_VIEW)
                   .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "25dp")
+                  .withBounds(0, 0, 200, 200)
                   .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
                   .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
+                  .withBounds(0, 0, 200, 200)
+                  .withMockView()
+              )
+      ).build()
+    assertFalse(isTextHidden(0, 1, model))
+  }
+
+  fun testTextHidden60Percent() {
+    // Text hidden because image is defined after text
+    val model =
+      model("is_hidden.xml",
+            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+              .withBounds(0, 0, 200, 200)
+              .withMockView()
+              .children(
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 100, 100)
+                  .withMockView(),
+                component(SdkConstants.IMAGE_VIEW)
+                  .withBounds(0, 0, 60, 100)
+                  .withMockView()
+              )
+      ).build()
+    assertTrue(isTextHidden(0, 1, model))
+  }
+
+  fun testTextHidden40Percent() {
+    // Text hidden because image is defined after text
+    val model =
+      model("is_hidden.xml",
+            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+              .withBounds(0, 0, 200, 200)
+              .withMockView()
+              .children(
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 100, 100)
+                  .withMockView(),
+                component(SdkConstants.IMAGE_VIEW)
+                  .withBounds(0, 0, 40, 100)
                   .withMockView()
               )
       ).build()
