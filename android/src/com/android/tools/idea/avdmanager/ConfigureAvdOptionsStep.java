@@ -1250,6 +1250,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
   }
 
+  private void toggleOrientationPanel() {
+    AvdDeviceData deviceData = getModel().getAvdDeviceData();
+    boolean showOrientation = deviceData.supportsPortrait().get() && deviceData.supportsLandscape().get();
+    myOrientationPanel.setVisible(showOrientation);
+  }
+
   private void toggleSystemOptionals(boolean useQemu2Changed) {
     boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
     myQemu2Panel.setVisible(showMultiCoreOption);
@@ -1371,6 +1377,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myOrientationToggle.setSelectedElement(orientation);
     }
 
+    toggleOrientationPanel();
     File customSkin = getModel().getAvdDeviceData().customSkinFile().getValueOrNull();
     File backupSkin = getModel().backupSkinFile().getValueOrNull();
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
