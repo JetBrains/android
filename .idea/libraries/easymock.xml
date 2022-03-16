@@ -1,12 +1,11 @@
 <component name="libraryTable">
-  <library name="easymock" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.easymock:easymock:4.0.2" />
+  <library name="easymock">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/easymock/easymock/4.0.2/easymock-4.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2/easymock-4.0.2.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/easymock/easymock/4.0.2/easymock-4.0.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2/easymock-4.0.2-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
