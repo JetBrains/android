@@ -32,6 +32,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
@@ -411,9 +412,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     PsiFile file = element != null ? element.getContainingFile() : null;
 
     if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
-      // TODO: namespaces
-      for (String id : IdeResourcesUtil.findIdsInFile(file)) {
-        result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
+      for (ResourceUrl url : IdeResourcesUtil.findIdUrlsInFile(file)) {
+        result.add(referenceTo(prefix, type.getName(), url.namespace, url.name, explicitResourceType));
       }
     }
     else {

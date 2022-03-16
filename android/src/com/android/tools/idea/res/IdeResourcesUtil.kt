@@ -884,17 +884,18 @@ fun clamp(i: Int, min: Int, max: Int): Int {
 }
 
 /**
- * Return all the IDs in an XML file.
+ * Return all ID URLs in an XML file.
  */
-fun findIdsInFile(file: PsiFile): Set<String> {
-  val ids = HashSet<String>()
+fun findIdUrlsInFile(file: PsiFile): Set<ResourceUrl> {
+  val ids = HashSet<ResourceUrl>()
   file.accept(object : PsiRecursiveElementVisitor() {
     override fun visitElement(element: PsiElement) {
       super.visitElement(element)
       if (element is XmlTag) {
-        val id = stripIdPrefix(element.getAttributeValue(ATTR_ID, SdkConstants.ANDROID_URI))
-        if (id.isNotEmpty()) {
-          ids.add(id)
+        val attrValue = element.getAttributeValue(ATTR_ID, SdkConstants.ANDROID_URI) ?: return
+        val url = ResourceUrl.parse(attrValue) ?: return
+        if (url.hasValidName()) {
+          ids.add((url))
         }
       }
     }

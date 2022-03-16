@@ -1,0 +1,8 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="10dp"
+android:layout_height="19dp">
+  <TextView
+    android:id="@android:id/title"
+    android:layout_alignBottom="@android:id/t<caret>">
+  </TextView>
+</RelativeLayout>

@@ -1337,6 +1337,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                                      "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText")
   }
 
+  fun testIdCompletion3() {
+    doTestCompletionVariantsContains("idcompl3.xml", "@android:id/title")
+  }
+
   fun testNestedScrollView() {
     myFixture.copyFileToProject("$myTestFolder/NestedScrollView.java", "src/android/support/v4/widget/NestedScrollView.java")
     toTestCompletion("nestedScrollView.xml", "nestedScrollView_after.xml")

@@ -20,7 +20,7 @@ import com.android.SdkConstants.RESOURCE_CLZ_ID
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.findIdsInFile
+import com.android.tools.idea.res.findIdUrlsInFile
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
@@ -52,7 +52,10 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
     genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?
   ): Array<Any> {
     val file = context?.file ?: return EMPTY_ARRAY
-    return findIdsInFile(file).stream().map { LookupElementBuilder.create(it) }.toArray()
+    return findIdUrlsInFile(file).stream().map { url ->
+      val name = (url.namespace?.let { "$it:" } ?: "") + url.name
+      LookupElementBuilder.create(name)
+    }.toArray()
   }
 
   override fun resolveReference(resourceReference: ResourceReference?, context: ConvertContext?): PsiElement? {
