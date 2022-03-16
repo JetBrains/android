@@ -36,37 +36,33 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
       psiElement!!.getIcon(Iconable.ICON_FLAG_VISIBILITY or Iconable.ICON_FLAG_READ_STATUS)
     }
 
-    val inheritedAttributes = textAttributes
-    if (psiElement is PsiFile) {
-      renderer.append(psiElement.name, inheritedAttributes)
-      renderQualifiers(getFolderConfiguration(psiElement), renderer, inheritedAttributes)
-      renderReferenceCount(renderer, inheritedAttributes)
-    } else if (psiElement is PsiClass) {
-      val psiClass: PsiClass = psiElement
-      renderer.append(if (psiClass.name == null) "<unknown>" else psiClass.name!!, inheritedAttributes)
-      renderReferenceCount(renderer, inheritedAttributes)
-    } else if (psiElement is XmlTag) {
-      // TODO: use a syntax highlighter? SyntaxHighlighterFactory.getSyntaxHighlighter(psiElement.getLanguage(), null, null)
-      renderer.append(psiElement.text, inheritedAttributes)
-    } else {
-      throw IllegalArgumentException("Unknown psiElement $psiElement")
+    when (psiElement) {
+      is PsiFile -> {
+        renderer.append(psiElement.name, textAttributes)
+        renderQualifiers(getFolderConfiguration(psiElement), renderer, textAttributes)
+        renderReferenceCount(renderer, textAttributes)
+      }
+      is PsiClass -> {
+        renderer.append(psiElement.name ?: "<unknown>", textAttributes)
+        renderReferenceCount(renderer, textAttributes)
+      }
+      is XmlTag -> {
+        // TODO: use a syntax highlighter? SyntaxHighlighterFactory.getSyntaxHighlighter(psiElement.getLanguage(), null, null)
+        renderer.append(psiElement.text, textAttributes)
+      }
+      else -> throw IllegalArgumentException("Unknown psiElement $psiElement")
     }
   }
 
-  companion object {
-    private fun renderQualifiers(
-      folderConfig: FolderConfiguration?,
-      renderer: ColoredTreeCellRenderer,
-      inheritedAttributes: SimpleTextAttributes,
-    ) {
-      val config = folderConfig!!.qualifierString
-      if (!StringUtil.isEmptyOrSpaces(config)) {
-        val derivedAttributes = SimpleTextAttributes(
-          inheritedAttributes.style or SimpleTextAttributes.STYLE_SMALLER,
-          inheritedAttributes.fgColor,
-        )
-        renderer.append(" ($config)", derivedAttributes)
-      }
+  private fun renderQualifiers(
+    config: FolderConfiguration?,
+    renderer: ColoredTreeCellRenderer,
+    attr: SimpleTextAttributes,
+  ) {
+    val qualifier = config!!.qualifierString
+    val derivedAttr = SimpleTextAttributes( attr.style or SimpleTextAttributes.STYLE_SMALLER, attr.fgColor)
+    if (!StringUtil.isEmptyOrSpaces(qualifier)) {
+      renderer.append(" ($qualifier)", derivedAttr)
     }
   }
 }
