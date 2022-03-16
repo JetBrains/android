@@ -13,76 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.refactoring.modularize;
+package com.android.tools.idea.refactoring.modularize
 
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Iconable;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.usageView.UsageInfo;
-import org.jetbrains.annotations.NotNull;
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.idea.res.getFolderConfiguration
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Iconable
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlTag
+import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.usageView.UsageInfo
+import javax.swing.Icon
 
-import javax.swing.*;
+class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyTreeNode(usageInfo, referenceCount) {
+  val psiElement = usageInfo.element
 
-public class UsageInfoTreeNode extends DependencyTreeNode {
-
-  private final PsiElement myPsiElement;
-
-  public UsageInfoTreeNode(@NotNull UsageInfo usageInfo, int referenceCount) {
-    super(usageInfo, referenceCount);
-    myPsiElement = usageInfo.getElement();
-  }
-
-  public PsiElement getPsiElement() {
-    return myPsiElement;
-  }
-
-  @Override
-  public void render(@NotNull ColoredTreeCellRenderer renderer) {
-    renderer.setIcon(ApplicationManager.getApplication().runReadAction(new Computable<Icon>() {
-      @Override
-      public Icon compute() {
-        return myPsiElement.getIcon(Iconable.ICON_FLAG_VISIBILITY | Iconable.ICON_FLAG_READ_STATUS);
-      }
-    }));
-
-    SimpleTextAttributes inheritedAttributes = getTextAttributes();
-    if (myPsiElement instanceof PsiFile) {
-      renderer.append(((PsiFile)myPsiElement).getName(), inheritedAttributes);
-      renderQualifiers(IdeResourcesUtil.getFolderConfiguration((PsiFile)myPsiElement), renderer, inheritedAttributes);
-      renderReferenceCount(renderer, inheritedAttributes);
+  override fun render(renderer: ColoredTreeCellRenderer) {
+    renderer.icon = ApplicationManager.getApplication().runReadAction<Icon> {
+      psiElement!!.getIcon(Iconable.ICON_FLAG_VISIBILITY or Iconable.ICON_FLAG_READ_STATUS)
     }
-    else if (myPsiElement instanceof PsiClass) {
-      PsiClass psiClass = (PsiClass)myPsiElement;
-      renderer.append(psiClass.getName() == null ? "<unknown>" : psiClass.getName(), inheritedAttributes);
-      renderReferenceCount(renderer, inheritedAttributes);
-    }
-    else if (myPsiElement instanceof XmlTag) {
+
+    val inheritedAttributes = textAttributes
+    if (psiElement is PsiFile) {
+      renderer.append(psiElement.name, inheritedAttributes)
+      renderQualifiers(getFolderConfiguration(psiElement), renderer, inheritedAttributes)
+      renderReferenceCount(renderer, inheritedAttributes)
+    } else if (psiElement is PsiClass) {
+      val psiClass: PsiClass = psiElement
+      renderer.append(if (psiClass.name == null) "<unknown>" else psiClass.name!!, inheritedAttributes)
+      renderReferenceCount(renderer, inheritedAttributes)
+    } else if (psiElement is XmlTag) {
       // TODO: use a syntax highlighter? SyntaxHighlighterFactory.getSyntaxHighlighter(psiElement.getLanguage(), null, null)
-      renderer.append(myPsiElement.getText(), inheritedAttributes);
-    }
-    else {
-      throw new IllegalArgumentException("Unknown psiElement " + myPsiElement);
+      renderer.append(psiElement.text, inheritedAttributes)
+    } else {
+      throw IllegalArgumentException("Unknown psiElement $psiElement")
     }
   }
 
-  private static void renderQualifiers(FolderConfiguration folderConfig,
-                                       ColoredTreeCellRenderer renderer,
-                                       SimpleTextAttributes inheritedAttributes) {
-    String config = folderConfig.getQualifierString();
-    if (!StringUtil.isEmptyOrSpaces(config)) {
-      SimpleTextAttributes derivedAttributes = new SimpleTextAttributes(
-        inheritedAttributes.getStyle() | SimpleTextAttributes.STYLE_SMALLER,
-        inheritedAttributes.getFgColor());
-      renderer.append(" (" + config + ")", derivedAttributes);
+  companion object {
+    private fun renderQualifiers(
+      folderConfig: FolderConfiguration?,
+      renderer: ColoredTreeCellRenderer,
+      inheritedAttributes: SimpleTextAttributes,
+    ) {
+      val config = folderConfig!!.qualifierString
+      if (!StringUtil.isEmptyOrSpaces(config)) {
+        val derivedAttributes = SimpleTextAttributes(
+          inheritedAttributes.style or SimpleTextAttributes.STYLE_SMALLER,
+          inheritedAttributes.fgColor,
+        )
+        renderer.append(" ($config)", derivedAttributes)
+      }
     }
   }
 }
