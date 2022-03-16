@@ -435,6 +435,28 @@ class GradleConnectedAndroidTestInvokerTest {
   }
 
   @Test
+  fun testTaskNamesCanHandleTheRootModuleOnlyProject() {
+    // This is a regression test for b/219164389.
+    `when`(mockModuleData.id).thenReturn("rootProjectName")
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration(), extraInstrumentationOptions = "")
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      eq(listOf(":connectedDebugAndroidTest")),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
   fun retryExecuteTaskAfterInstallationFailure() {
     `when`(mockGradleTaskManager.executeTasks(
       any(),
