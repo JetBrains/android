@@ -16,69 +16,98 @@
 package com.android.tools.idea.run.debug
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.JavaCodeInsightTestCase
+import com.intellij.debugger.DebuggerManager
+import com.intellij.debugger.DebuggerManagerEx
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.xdebugger.XDebuggerManager
+import junit.framework.Assert.fail
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Tests for [attachJavaDebuggerToClient], method will eventually replace all [AndroidJavaDebugger] code.
  *
  * See [StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER].
  */
-class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
+class AndroidJavaDebuggerTest {
   private val APP_PACKAGE = "com.android.example"
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  val project
+    get() = projectRule.project
 
   private lateinit var client: Client
   private lateinit var runnableClientsService: RunnableClientsService
   private lateinit var executionEnvironment: ExecutionEnvironment
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
     executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
-    runnableClientsService = RunnableClientsService(testRootDisposable)
+    runnableClientsService = RunnableClientsService(project)
     client = runnableClientsService.startClient(Mockito.mock(IDevice::class.java), APP_PACKAGE)
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
     runnableClientsService.stop()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
-    super.tearDown()
   }
 
   @Test
-  fun test() {
-    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment, null).blockingGet(1000)
+  fun testSessionCreated() {
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null).blockingGet(10, TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
 
   @Test
-  fun testCallback() {
+  fun testOnDebugProcessStartedCallback() {
     var callbackCount = 0
     val onDebugProcessStarted: () -> Unit = {
       callbackCount++
     }
 
-    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment,
-                                             onDebugProcessStarted = onDebugProcessStarted).blockingGet(1000)
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
+                                             onDebugProcessStarted = onDebugProcessStarted).blockingGet(10, TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(callbackCount).isEqualTo(1)
   }
 
   @Test
+  fun testOnDebugProcessDestroyCallback() {
+    val countDownLatch = CountDownLatch(1)
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
+                                             onDebugProcessDestroyed = { countDownLatch.countDown() }).blockingGet(10, TimeUnit.SECONDS)!!
+    session.debugProcess.processHandler.destroyProcess()
+    session.debugProcess.processHandler.waitFor()
+    if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
+      fail("Callback wasn't called")
+    }
+  }
+
+  @Test
   fun testSessionName() {
-    val session = attachJavaDebuggerToClientAndShowTab(myProject, client).blockingGet(1000)
+    val session = attachJavaDebuggerToClientAndShowTab(project, client).blockingGet(10, TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(client.debuggerListenPort).isAtLeast(0)
     assertThat(client.clientData.pid).isAtLeast(0)
@@ -87,22 +116,49 @@ class AndroidJavaDebuggerTest : JavaCodeInsightTestCase() {
   }
 
   @Test
-  fun testKillAppOnDestroy() {
-    val mockDevice = client.device
+  fun testCatchError() {
+    val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
+    project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
+    Mockito.`when`(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
+      ExecutionException("Test execution exception in test testCatchError"))
 
-    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
-    session.debugProcess.processHandler.destroyProcess()
-    session.debugProcess.processHandler.waitFor()
-    Thread.sleep(100)
-    Mockito.verify(mockDevice, Mockito.times(1)).forceStop(eq("com.android.example"))
+    try {
+      attachJavaDebuggerToClientAndShowTab(project, client).blockingGet(30, TimeUnit.SECONDS)
+      fail()
+    }
+    catch (e: Throwable) {
+      /**
+       * [e] is expected to be [java.util.concurrent.ExecutionException] for production code and
+       * [com.intellij.testFramework.TestLogger.TestLoggerAssertionError] for Unit tests.
+       **/
+      assertThat(e.cause).isInstanceOf(ExecutionException::class.java)
+      assertThat(e.cause!!.message).isEqualTo("Test execution exception in test testCatchError")
+    }
   }
 
   @Test
-  fun testVMExitedNotifierIsInvoked() {
-    val session = attachJavaDebuggerToClient(myProject, client, executionEnvironment).blockingGet(1000)!!
+  fun testKillAppOnDestroy() {
+    val mockDevice = client.device
+
+    val countDownLatch = CountDownLatch(1)
+    Mockito.`when`(mockDevice.forceStop(any())).then {
+      countDownLatch.countDown()
+    }
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment).blockingGet(10, TimeUnit.SECONDS)!!
+    session.debugProcess.processHandler.destroyProcess()
+    session.debugProcess.processHandler.waitFor()
+    if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
+      fail("Process wasn't killed")
+    }
+    Mockito.verify(mockDevice).forceStop(eq("com.android.example"))
+  }
+
+  @Test
+  fun testVMExitedNotifierIsInvokedOnDetach() {
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment).blockingGet(10, TimeUnit.SECONDS)!!
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
-    Mockito.verify(client, Mockito.times(1)).notifyVmMirrorExited()
+    Mockito.verify(client).notifyVmMirrorExited()
   }
 }
