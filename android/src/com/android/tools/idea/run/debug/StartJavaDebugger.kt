@@ -20,13 +20,16 @@ import com.android.ddmlib.Client
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine.JavaDebugProcess
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
@@ -35,7 +38,7 @@ import com.intellij.xdebugger.impl.XDebugSessionImpl
 import icons.StudioIcons.Common.ANDROID_HEAD
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.catchError
+import java.util.function.Function
 
 /**
  * Starts a new Java debugging session for given [Client].
@@ -54,13 +57,14 @@ fun attachJavaDebuggerToClient(
   onDebugProcessStarted: (() -> Unit)? = null,
   onDebugProcessDestroyed: ((Client) -> Unit)? = null,
 ): Promise<XDebugSessionImpl> {
-  return getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
+  val promise = AsyncPromise<XDebugSessionImpl>()
+  getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
     .then { starter ->
       val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
       session.debugProcess.processHandler.startNotify()
-      session as XDebugSessionImpl
+      promise.setResult(session as XDebugSessionImpl)
     }
-    // TODO: delete error handling when [StudioFlags.NEW_EXECUTION_FLOW_ENABLED] is enabled
+    // TODO: delete error handling when [StudioFlags.NEW_EXECUTION_FLOW_ENABLED] is enabled.
     .onError {
       if (it is ExecutionException) {
         showError(project, it, executionEnvironment.runProfile.name)
@@ -68,7 +72,9 @@ fun attachJavaDebuggerToClient(
       else {
         Logger.getInstance("attachJavaDebuggerToClient").error(it)
       }
+      promise.setError(it)
     }
+  return promise
 }
 
 /**
@@ -86,14 +92,13 @@ fun attachJavaDebuggerToClientAndShowTab(
   client: Client
 ): AsyncPromise<XDebugSession> {
   val sessionName = "Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
+  val promise = AsyncPromise<XDebugSession>()
 
-  return getDebugProcessStarter(project, client, null, null, null, true)
-    .thenAsync { starter ->
-      val promise = AsyncPromise<XDebugSession>()
+  getDebugProcessStarter(project, client, null, null, null, true)
+    .onSuccess { starter ->
       runInEdt {
         promise.setResult(XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, ANDROID_HEAD, null, false, starter))
       }
-      promise
     }
     .onError {
       if (it is ExecutionException) {
@@ -102,7 +107,9 @@ fun attachJavaDebuggerToClientAndShowTab(
       else {
         Logger.getInstance("attachJavaDebuggerToClientAndShowTab").error(it)
       }
-    } as AsyncPromise
+      promise.setError(it)
+    }
+  return promise
 }
 
 private fun getDebugProcessStarter(
@@ -128,7 +135,7 @@ private fun getDebugProcessStarter(
   val promise = AsyncPromise<XDebugProcessStarter>()
 
   runInEdt {
-    promise.catchError {
+    try {
       val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
                             ?: throw ExecutionException("Unable to start debugger session")
 
@@ -138,6 +145,15 @@ private fun getDebugProcessStarter(
         }
       })
     }
+    catch (e: ExecutionException) {
+      promise.setError(e)
+    }
   }
   return promise
+}
+
+private fun showError(project: Project, e: ExecutionException, sessionName: String) {
+  ExecutionUtil.handleExecutionError(project, ToolWindowId.DEBUG, e,
+                                     ExecutionBundle.message("error.running.configuration.message", sessionName),
+                                     e.message, Function.identity(), null)
 }

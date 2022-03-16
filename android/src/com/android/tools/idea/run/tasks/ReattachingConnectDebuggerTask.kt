@@ -19,19 +19,13 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
-import com.android.tools.idea.run.debug.startJavaReattachingDebugger
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 
 
@@ -43,7 +37,6 @@ import com.intellij.openapi.util.Disposer
  * the debugger. We listen for the start of a new test, waiting for a debugger, and reconnect.
  */
 class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
-                                     private val masterAndroidProcessName: String,
                                      private val listener: ReattachingConnectDebuggerTaskListener?) : ConnectDebuggerTask by base,
                                                                                                       ReattachingConnectDebuggerController {
   companion object {
@@ -54,7 +47,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
      * 1. Match our target name, and become available for debugging.
      * 2. Be available for debugging, and suddenly have its name changed to match.
      */
-    const val CHANGE_MASK = Client.CHANGE_DEBUGGER_STATUS or Client.CHANGE_NAME
+    private const val CHANGE_MASK = Client.CHANGE_DEBUGGER_STATUS or Client.CHANGE_NAME
   }
 
   /**
@@ -66,26 +59,6 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
 
   override fun perform(
     launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter): ProcessHandler? {
-    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get() && base is ConnectJavaDebuggerTask) {
-      val processHandler: ProcessHandler = status.processHandler
-      // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-      val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-
-      executeOnPooledThread {
-        startJavaReattachingDebugger(
-          base.myProject,
-          device,
-          masterAndroidProcessName,
-          base.myApplicationIds,
-          launchInfo.env,
-          androidTestResultListener as? ConsoleView,
-          processHandler::detachProcess
-        )
-          .then { runInEdt { it.showSessionTab() } }
-      }
-      return null
-    }
-
     // Unregister the previous listener just in case there is the old one.
     stop()
 
