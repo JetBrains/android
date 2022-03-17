@@ -15,30 +15,36 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.Density;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.FIGURE_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.STANDARD_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
+
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
-
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A preview component for displaying information about
@@ -354,15 +360,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      Density pixelDensity = myDeviceData.density().get();
-      if (pixelDensity == Density.NODPI) {
-        // We need to calculate the density
-        pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.deviceId().get(),
-                                                      myDeviceData.isTv().get(),
-                                                      myDeviceData.screenDpi().get(),
-                                                      myDeviceData.screenResolutionHeight().get());
-      }
-      g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
+      g2d.drawString("Density: " + myDeviceData.density().get().getResourceValue(), infoSegmentX, infoSegmentY);
       if (myDeviceData.isFoldable().get()) {
         infoSegmentY += stringHeight;
         if (myDeviceData.screenFoldedWidth2().get() == 0 &&

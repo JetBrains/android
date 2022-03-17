@@ -109,9 +109,27 @@ public final class AvdDeviceData {
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
-  private ObjectProperty<Density> myDensity = new ObjectValueProperty<Density>(Density.MEDIUM);
+  private ObjectProperty<Density> myDensity = new ObjectProperty<Density>() {
+    private Density myDensity = Density.MEDIUM;
+
+    @Override
+    protected void setDirectly(@NotNull Density value) {
+      myDensity = value;
+    }
+
+    @Override
+    public @NotNull Density get() {
+      if (myOriginalDpi == myScreenDpi.get()) {
+        return myDensity;
+      } else {
+        return AvdScreenData.getScreenDensity(myDeviceId.get(), isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
+      }
+    }
+  };
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
+
+  private double myOriginalDpi;
 
   private DoubleExpression myScreenDpi =
     // Every time the screen size is changed we calculate its dpi to validate it on the step
@@ -405,6 +423,8 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(5.0);
     myScreenResolutionWidth.set(1080);
     myScreenResolutionHeight.set(1920);
+    myOriginalDpi = AvdScreenData.calculateDpi(
+      myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
     myScreenFoldedWidth.set(0);
     myScreenFoldedHeight.set(0);
     myScreenFoldedWidth2.set(0);
@@ -483,6 +503,8 @@ public final class AvdDeviceData {
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
+    myOriginalDpi = AvdScreenData.calculateDpi(
+      myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
     myScreenFoldedXOffset.set(screen.getFoldedXOffset());
     myScreenFoldedYOffset.set(screen.getFoldedYOffset());
     myScreenFoldedWidth.set(screen.getFoldedWidth());

@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.*;
+import com.android.resources.Keyboard;
+import com.android.resources.KeyboardState;
+import com.android.resources.Navigation;
+import com.android.resources.NavigationState;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.State;
@@ -25,11 +29,10 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link WizardModel} that holds all properties in {@link Device} to be used in
@@ -55,9 +58,6 @@ public final class ConfigureDeviceModel extends WizardModel {
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
     }
-
-    // Clear device's density. This will cause us to calculate the most accurate setting based on the final screen size.
-    myDeviceData.density().set(Density.NODPI);
 
     if (device != null) {
       initBootProperties(device);

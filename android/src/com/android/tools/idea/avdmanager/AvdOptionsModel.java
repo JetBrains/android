@@ -45,8 +45,8 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -184,10 +184,7 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
 
         ScreenSize size = ScreenSize.getScreenSize(myAvdDeviceData.diagonalScreenSize().get());
-        Density density = AvdScreenData.getScreenDensity(myAvdDeviceData.deviceId().get(),
-                                                         myAvdDeviceData.isTv().get(),
-                                                         myAvdDeviceData.screenDpi().get(),
-                                                         myAvdDeviceData.screenResolutionHeight().get());
+        Density density = myAvdDeviceData.density().get();
         Storage vmHeapSize = EmulatedProperties.calculateDefaultVmHeapSize(size, density, myAvdDeviceData.isTv().get());
         myVmHeapStorage.set(vmHeapSize);
         if (myAvdDeviceData.getHasSdCard().get()) {

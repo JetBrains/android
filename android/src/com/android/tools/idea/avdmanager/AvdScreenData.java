@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.*;
+import com.android.resources.Density;
+import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenRound;
+import com.android.resources.ScreenSize;
+import com.android.resources.TouchScreen;
 import com.android.sdklib.devices.Multitouch;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.ScreenType;
@@ -158,7 +162,7 @@ public final class AvdScreenData {
 
     screen.setRatio(getScreenRatio(screenWidth, screenHeight));
 
-    Double dpi = myDeviceData.screenDpi().get();
+    double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {
       dpi = calculateDpi(screenWidth, screenHeight, screenDiagonal, myDeviceData.isScreenRound().get());
     }
@@ -167,7 +171,7 @@ public final class AvdScreenData {
     screen.setYdpi(dpi);
     screen.setXdpi(dpi);
 
-    screen.setPixelDensity( getScreenDensity(myDeviceData.deviceId().get(), myDeviceData.isTv().get(), dpi, screenHeight) );
+    screen.setPixelDensity(myDeviceData.density().get());
     return screen;
   }
 }

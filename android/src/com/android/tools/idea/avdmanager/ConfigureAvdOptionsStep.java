@@ -1290,10 +1290,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     Dimension dimension = getModel().getAvdDeviceData().getDeviceScreenDimension();
     String dimensionString = String.format(Locale.getDefault(), "%dx%d", dimension.width, dimension.height);
     AvdDeviceData deviceData = getModel().getAvdDeviceData();
-    String densityString = AvdScreenData.getScreenDensity(deviceData.deviceId().get(),
-                                                          deviceData.isTv().get(),
-                                                          deviceData.screenDpi().get(),
-                                                          dimension.height).getResourceValue();
+    String densityString = deviceData.density().get().getResourceValue();
     String result = Joiner.on(' ')
       .join(getModel().device().getValue().getDefaultHardware().getScreen().getDiagonalLength(), dimensionString, densityString);
     myDeviceDetails.setText(result);
