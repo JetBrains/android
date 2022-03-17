@@ -82,6 +82,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
@@ -397,6 +398,9 @@ public class RenderTask {
   private void clearClassLoader() {
     try {
       ModuleClassLoaderManager.get().release(myModuleClassLoader, this);
+    }
+    catch (AlreadyDisposedException e) {
+      // The project has already been disposed.
     }
     catch (Throwable t) {
       LOG.warn(t); // Failure detected here will most probably cause a memory leak
