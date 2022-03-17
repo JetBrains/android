@@ -25,7 +25,7 @@ import org.jetbrains.android.util.AndroidBundle
  *
  * If the app is installed on the device, executes `pm clear <package>`.
  */
-internal class ClearAppStorageTask(private val packageName: String) : LaunchTask {
+class ClearAppStorageTask(private val packageName: String) : LaunchTask {
   override fun getDescription(): String = AndroidBundle.message("android.launch.task.clear.app.data.description")
 
   override fun getDuration(): Int = CLEAR_APP_DATA
