@@ -76,11 +76,14 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
                                        @NotNull final Client client,
                                        @NotNull ProcessHandlerLaunchStatus launchStatus,
                                        @NotNull ProcessHandlerConsolePrinter printer) {
+    Logger logger = Logger.getInstance(ConnectJavaDebuggerTask.class);
+
     ProcessHandler processHandler = launchStatus.getProcessHandler();
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
 
     if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
+      logger.info("Attaching Java debugger");
       StartJavaDebuggerKt.attachJavaDebuggerToClient(
         myProject,
         client,
@@ -97,8 +100,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
     String debugPort = Integer.toString(client.getDebuggerListenPort());
     final int pid = client.getClientData().getPid();
-    Logger.getInstance(ConnectJavaDebuggerTask.class)
-      .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
+    logger.info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
     RunContentDescriptor descriptor = Preconditions.checkNotNull(processHandler.getUserData(AndroidSessionInfo.KEY)).getDescriptor();
 

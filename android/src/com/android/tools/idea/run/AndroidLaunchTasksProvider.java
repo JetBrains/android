@@ -274,6 +274,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                              androidDebuggerState);
     }
 
+    logger.warn("No debugger state present and cannot get debugger task");
     return null;
   }
 
