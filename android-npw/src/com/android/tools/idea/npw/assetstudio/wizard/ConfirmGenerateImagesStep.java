@@ -67,6 +67,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -151,6 +152,9 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     super(model, "Confirm Icon Path");
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
+
+    Collator collator = Collator.getInstance();
+    myTemplates.sort((t1, t2) -> collator.compare(t1.getName(), t2.getName()));
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
