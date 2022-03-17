@@ -183,20 +183,6 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       .mapNotNull { resolveToDeclaration(it, context.project) }
   }
 
-  /**
-   * Filters a collection of resources of the same type. If the collection contains non-ID
-   * resources, returns the whole collection. If the collection contains ID resources, returns
-   * a subset corresponding to ID definitions, unless this subset is empty, in which case
-   * returns all resources.
-   */
-  private fun Collection<ResourceItem>.filterDefinitions(project: Project): Collection<ResourceItem> {
-    if (size <= 1 || first().type != ResourceType.ID) {
-      return this // Nothing to filter out.
-    }
-    val definitions = filter { it.isIdDefinition(project) }
-    return definitions.ifEmpty { this }
-  }
-
   private fun getGotoDeclarationElementsFromDynamicFeatureModules(
     resourceReference: ResourceReference,
     context: PsiElement
@@ -260,4 +246,18 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   ): ResourceRepository? {
     return resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace)
   }
+}
+
+/**
+ * Filters a collection of resources of the same type. If the collection contains non-ID
+ * resources, returns the whole collection. If the collection contains ID resources, returns
+ * a subset corresponding to ID definitions, unless this subset is empty, in which case
+ * returns all resources.
+ */
+internal fun Collection<ResourceItem>.filterDefinitions(project: Project): Collection<ResourceItem> {
+  if (size <= 1 || first().type != ResourceType.ID) {
+    return this // Nothing to filter out.
+  }
+  val definitions = filter { it.isIdDefinition(project) }
+  return definitions.ifEmpty { this }
 }
