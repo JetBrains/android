@@ -116,10 +116,4 @@
     </value>
   </option>
 
-  <option name="LOGCAT_FILTER_VALUE">
-    <value>
-      <option name="BACKGROUND" value="E9F5E6"/>
-    </value>
-  </option>
-
 </list>

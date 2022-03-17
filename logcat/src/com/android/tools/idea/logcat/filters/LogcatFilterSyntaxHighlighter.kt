@@ -40,7 +40,7 @@ internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = nu
   KVALUE,
   STRING_KVALUE,
   REGEX_KVALUE,
-  VALUE,
+  VALUE(HighlighterColors.TEXT),
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   ;
 

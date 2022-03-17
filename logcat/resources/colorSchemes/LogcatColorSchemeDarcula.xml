@@ -119,11 +119,4 @@
       <option name="BACKGROUND" value="155221"/>
     </value>
   </option>
-
-  <option name="LOGCAT_FILTER_VALUE">
-    <value>
-      <option name="FOREGROUND" value="fefefefe"/>
-      <option name="BACKGROUND" value="155221"/>
-    </value>
-  </option>
 </list>
