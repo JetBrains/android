@@ -50,6 +50,17 @@ public class SyncNlModel extends NlModel {
     return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
   }
 
+  @NotNull
+  public static SyncNlModel create(@Nullable Disposable parent,
+                                   @NotNull Consumer<NlComponent> componentRegistrar,
+                                   @Nullable String displayName,
+                                   @Nullable String tooltip,
+                                   @NotNull AndroidFacet facet,
+                                   @NotNull VirtualFile file,
+                                   @NotNull Configuration configuration) {
+    return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
+  }
+
   private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar, @Nullable String displayName,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
