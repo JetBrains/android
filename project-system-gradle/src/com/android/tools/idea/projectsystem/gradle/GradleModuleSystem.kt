@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
@@ -371,7 +372,9 @@ class GradleModuleSystem(
     return GradleAndroidModel.get(module)?.androidProject?.agpFlags?.let(read)
   }
 
-  override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
+  override val usesCompose: Boolean
+    get() = StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.get() ||
+            readFromAgpFlags { it.usesCompose } ?: false
 
   override val codeShrinker: CodeShrinker?
     get() = when (GradleAndroidModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
