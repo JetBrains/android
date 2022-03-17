@@ -27,7 +27,4 @@ public interface AndroidSqlFunctionCallExpression extends AndroidSqlExpression {
   @NotNull
   List<AndroidSqlExpression> getExpressionList();
 
-  @NotNull
-  AndroidSqlFunctionName getFunctionName();
-
 }

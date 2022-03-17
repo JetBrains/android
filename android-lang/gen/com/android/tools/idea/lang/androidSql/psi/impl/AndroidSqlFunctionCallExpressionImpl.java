@@ -50,10 +50,4 @@ public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionIm
     return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlExpression.class);
   }
 
-  @Override
-  @NotNull
-  public AndroidSqlFunctionName getFunctionName() {
-    return findNotNullChildByClass(AndroidSqlFunctionName.class);
-  }
-
 }

@@ -148,6 +148,7 @@
                            implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlSyntaxHighlighterFactory"/>
+    <annotator language="RoomSql" implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlAnnotator" order="first"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlDefinedTableNameImpl"
                              implementationClass="com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.androidSql.psi.impl.AndroidSqlSelectedTableNameImpl"

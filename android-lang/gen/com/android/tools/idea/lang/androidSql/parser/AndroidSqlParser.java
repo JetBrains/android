@@ -21,7 +21,7 @@ package com.android.tools.idea.lang.androidSql.parser;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
-import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
+import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserUtil.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
@@ -2000,17 +2000,6 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     result = consumeTokens(builder, 0, INDEXED, BY);
     result = result && index_name(builder, level + 1);
     exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  /* ********************************************************** */
-  // name
-  public static boolean function_name(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_name")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder, level, _NONE_, FUNCTION_NAME, "<function name>");
-    result = name(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
@@ -4555,7 +4544,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(builder, level, "function_call_expression")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, FUNCTION_CALL_EXPRESSION, "<function call expression>");
-    result = function_name(builder, level + 1);
+    result = parseFunctionName(builder, level + 1);
     result = result && consumeToken(builder, LPAREN);
     result = result && function_call_expression_2(builder, level + 1);
     result = result && consumeToken(builder, RPAREN);

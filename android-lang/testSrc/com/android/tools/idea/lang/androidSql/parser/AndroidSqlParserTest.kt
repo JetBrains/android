@@ -702,6 +702,65 @@ class MiscParserTest : AndroidSqlParserTest() {
     )
   }
 
+  fun testTokenReplacement() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlInsertStatementImpl(INSERT_STATEMENT)
+          PsiElement(REPLACE)('REPLACE')
+          PsiElement(INTO)('INTO')
+          AndroidSqlSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+            AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+              PsiElement(IDENTIFIER)('books')
+          AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+            AndroidSqlSelectCoreImpl(SELECT_CORE)
+              AndroidSqlSelectCoreValuesImpl(SELECT_CORE_VALUES)
+                PsiElement(VALUES)('VALUES')
+                PsiElement(()('(')
+                AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                  PsiElement(NUMERIC_LITERAL)('1')
+                PsiElement(comma)(',')
+                AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                  PsiElement(NUMERIC_LITERAL)('2')
+                PsiElement(comma)(',')
+                AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                  PsiElement(NUMERIC_LITERAL)('3')
+                PsiElement())(')')
+      """.trimIndent(),
+      toParseTreeText("REPLACE INTO books VALUES(1,2,3)")
+    )
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  AndroidSqlFunctionCallExpressionImpl(FUNCTION_CALL_EXPRESSION)
+                    PsiElement(IDENTIFIER)('REPLACE')
+                    PsiElement(()('(')
+                    AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                      PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''a'')
+                    PsiElement(comma)(',')
+                    AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                      PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''b'')
+                    PsiElement(comma)(',')
+                    AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                      PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''aa'')
+                    PsiElement())(')')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('books')
+      """.trimIndent(),
+      toParseTreeText("SELECT REPLACE('a','b','aa') FROM books")
+    )
+  }
+
   fun testJoins() {
     assertEquals(
       """
@@ -806,8 +865,7 @@ class MiscParserTest : AndroidSqlParserTest() {
                                 AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
                                   AndroidSqlResultColumnImpl(RESULT_COLUMN)
                                     AndroidSqlFunctionCallExpressionImpl(FUNCTION_CALL_EXPRESSION)
-                                      AndroidSqlFunctionNameImpl(FUNCTION_NAME)
-                                        PsiElement(IDENTIFIER)('min')
+                                      PsiElement(IDENTIFIER)('min')
                                       PsiElement(()('(')
                                       AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
                                         AndroidSqlColumnNameImpl(COLUMN_NAME)
@@ -834,8 +892,7 @@ class MiscParserTest : AndroidSqlParserTest() {
                                 AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
                                   AndroidSqlResultColumnImpl(RESULT_COLUMN)
                                     AndroidSqlFunctionCallExpressionImpl(FUNCTION_CALL_EXPRESSION)
-                                      AndroidSqlFunctionNameImpl(FUNCTION_NAME)
-                                        PsiElement(IDENTIFIER)('max')
+                                      PsiElement(IDENTIFIER)('max')
                                       PsiElement(()('(')
                                       AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
                                         AndroidSqlColumnNameImpl(COLUMN_NAME)

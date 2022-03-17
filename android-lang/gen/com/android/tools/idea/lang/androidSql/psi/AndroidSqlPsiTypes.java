@@ -72,7 +72,6 @@ public interface AndroidSqlPsiTypes {
   IElementType FROM_CLAUSE = new AndroidSqlAstNodeType("FROM_CLAUSE");
   IElementType FROM_TABLE = new AndroidSqlAstNodeType("FROM_TABLE");
   IElementType FUNCTION_CALL_EXPRESSION = new AndroidSqlAstNodeType("FUNCTION_CALL_EXPRESSION");
-  IElementType FUNCTION_NAME = new AndroidSqlAstNodeType("FUNCTION_NAME");
   IElementType GROUP_BY_CLAUSE = new AndroidSqlAstNodeType("GROUP_BY_CLAUSE");
   IElementType INDEXED_COLUMN = new AndroidSqlAstNodeType("INDEXED_COLUMN");
   IElementType INSERT_COLUMNS = new AndroidSqlAstNodeType("INSERT_COLUMNS");
@@ -427,9 +426,6 @@ public interface AndroidSqlPsiTypes {
       }
       else if (type == FUNCTION_CALL_EXPRESSION) {
         return new AndroidSqlFunctionCallExpressionImpl(node);
-      }
-      else if (type == FUNCTION_NAME) {
-        return new AndroidSqlFunctionNameImpl(node);
       }
       else if (type == GROUP_BY_CLAUSE) {
         return new AndroidSqlGroupByClauseImpl(node);
