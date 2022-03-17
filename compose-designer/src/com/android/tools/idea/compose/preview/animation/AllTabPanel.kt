@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
@@ -69,7 +70,8 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
     this.setViewportView(splitter)
   }
 
-  private val cards = mutableListOf<AnimationCard>()
+  @VisibleForTesting
+  val cards = mutableListOf<AnimationCard>()
 
   fun addTimeline(timeline: JComponent) {
     splitter.secondComponent.add(timeline, BorderLayout.CENTER)

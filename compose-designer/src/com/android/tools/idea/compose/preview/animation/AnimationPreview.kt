@@ -147,7 +147,8 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
     }
   }
 
-  private val coordinationTab = AllTabPanel().apply {
+  @VisibleForTesting
+  val coordinationTab = AllTabPanel().apply {
     addPlayback(playbackControls.createToolbar())
   }
 
@@ -402,11 +403,11 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
 
   /** Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached animations.*/
   override fun invalidatePanel() {
-    tabbedPane.removeAllTabs()
-    animationsMap.clear()
-    animations.clear()
+    val allAnimations = animations.map { it.animation }
+    // Calling removeTab for all animations will properly remove the cards from AllTabPanel, animations from the animations list and
+    // animationsMap, and tabs from tabbedPane. It will also show the noAnimationsPanel when removing all tabs.
+    allAnimations.forEach { removeTab(it) }
     tabNames.clear()
-    showNoAnimationsPanel()
   }
 
   override fun dispose() {

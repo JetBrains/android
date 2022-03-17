@@ -446,12 +446,18 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
     assertNotNull(inspector.tabbedPane().parent)
     assertEquals(1, inspector.tabCount())
     assertNull(inspector.noAnimationsPanel())
+    if (enableCoordination) {
+      assertEquals(1, inspector.animationPreviewCardsCount())
+    }
 
     ComposePreviewAnimationManager.invalidate()
     UIUtil.pump() // Wait for the tab to be added on the UI
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane().parent)
     assertEquals(0, inspector.tabCount())
+    if (enableCoordination) {
+      assertEquals(0, inspector.animationPreviewCardsCount())
+    }
   }
 
   @Test
@@ -531,6 +537,10 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   private fun ComposeAnimationPreview.noAnimationsPanel() =
     TreeWalker(this.component).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
+
+  private fun ComposeAnimationPreview.animationPreviewCardsCount() = invokeAndWaitIfNeeded {
+    (this as? AnimationPreview)?.coordinationTab?.cards?.size ?: -1
+  }
 
   /**
    * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't break when the test tries to call them
