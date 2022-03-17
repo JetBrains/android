@@ -640,6 +640,8 @@ public class StudioIcons {
     public static final Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.svg"); // 16x16
     public static final Icon MODE_2D = load("/studio/icons/layout-inspector/mode-2d.svg"); // 16x16
     public static final Icon MODE_3D = load("/studio/icons/layout-inspector/mode-3d.svg"); // 16x16
+    public static final Icon RECOMPOSITION_COUNT = load("/studio/icons/layout-inspector/recomposition-count.svg"); // 16x16
+    public static final Icon RECOMPOSITION_SKIPPED = load("/studio/icons/layout-inspector/recomposition-skipped.svg"); // 16x16
     public static final Icon RESET_VIEW = load("/studio/icons/layout-inspector/reset-view.svg"); // 16x16
   }
 
