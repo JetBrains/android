@@ -170,7 +170,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val basicLookupElementFactory = BasicLookupElementFactory(nameExpression.project, InsertHandlerProvider(CallType.DOT, parameters.editor) { emptyList() })
 
     return LookupElementFactory(
-      basicLookupElementFactory, receiverTypes,
+      basicLookupElementFactory, parameters.editor, receiverTypes,
       callTypeAndReceiver.callType, inDescriptor, CollectRequiredTypesContextVariablesProvider()
     )
   }
