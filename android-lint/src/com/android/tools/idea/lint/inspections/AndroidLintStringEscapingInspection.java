@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.lint.checks.DuplicateResourceDetector;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.lint.checks.StringEscapeDetector;
 
 public class AndroidLintStringEscapingInspection extends AndroidLintInspectionBase {
   public AndroidLintStringEscapingInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.string.escaping"), DuplicateResourceDetector.STRING_ESCAPING);
+    super(AndroidLintBundle.message("android.lint.inspections.string.escaping"), StringEscapeDetector.STRING_ESCAPING);
   }
 }
