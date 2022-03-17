@@ -38,6 +38,7 @@ public class AndroidSqlSelectCoreImpl extends ASTWrapperPsiElement implements An
     visitor.visitSelectCore(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

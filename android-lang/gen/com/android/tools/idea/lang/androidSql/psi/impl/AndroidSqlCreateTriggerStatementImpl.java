@@ -38,6 +38,7 @@ public class AndroidSqlCreateTriggerStatementImpl extends ASTWrapperPsiElement i
     visitor.visitCreateTriggerStatement(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

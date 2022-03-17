@@ -38,6 +38,7 @@ public class AndroidSqlCreateIndexStatementImpl extends ASTWrapperPsiElement imp
     visitor.visitCreateIndexStatement(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

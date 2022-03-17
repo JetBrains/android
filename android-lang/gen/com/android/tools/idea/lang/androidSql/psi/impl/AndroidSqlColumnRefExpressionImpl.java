@@ -33,10 +33,12 @@ public class AndroidSqlColumnRefExpressionImpl extends AndroidSqlExpressionImpl 
     super(node);
   }
 
+  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
     visitor.visitColumnRefExpression(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

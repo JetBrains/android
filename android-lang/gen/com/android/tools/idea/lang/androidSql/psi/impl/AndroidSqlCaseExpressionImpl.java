@@ -33,10 +33,12 @@ public class AndroidSqlCaseExpressionImpl extends AndroidSqlExpressionImpl imple
     super(node);
   }
 
+  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
     visitor.visitCaseExpression(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

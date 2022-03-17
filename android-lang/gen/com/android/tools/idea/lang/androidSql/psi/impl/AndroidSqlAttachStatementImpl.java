@@ -38,6 +38,7 @@ public class AndroidSqlAttachStatementImpl extends ASTWrapperPsiElement implemen
     visitor.visitAttachStatement(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);

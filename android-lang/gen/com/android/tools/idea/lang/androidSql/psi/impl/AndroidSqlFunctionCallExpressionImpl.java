@@ -33,10 +33,12 @@ public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionIm
     super(node);
   }
 
+  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
     visitor.visitFunctionCallExpression(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);
