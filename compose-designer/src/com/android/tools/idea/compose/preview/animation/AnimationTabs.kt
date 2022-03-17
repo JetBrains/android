@@ -19,6 +19,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.popup.IconButton
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.InplaceButton
@@ -33,7 +34,10 @@ import java.awt.BorderLayout
 import java.awt.Insets
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import javax.swing.border.MatteBorder
 
 /**
@@ -88,6 +92,41 @@ class AnimationTabs(surface: DesignSurface) : JBTabsImpl(surface.project,
   override fun createTabBorder() = JBEditorTabsBorder(this)
 
   inner class FocusableTabLabel(tabs: JBTabsImpl, info: TabInfo) : TabLabel(tabs, info) {
+
+    init {
+      if (mouseListeners.size != 1) {
+        logger<FocusableTabLabel>().warn("FocusableTabLabel is expected to have a single MouseListener.")
+      }
+      mouseListeners.getOrNull(0)?.let {
+        val ignoreRightClickListener = object : MouseAdapter() {
+          override fun mouseClicked(e: MouseEvent?) {
+            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
+            it.mouseClicked(e)
+          }
+
+          override fun mousePressed(e: MouseEvent?) {
+            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
+            it.mousePressed(e)
+          }
+
+          override fun mouseReleased(e: MouseEvent?) {
+            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
+            it.mouseReleased(e)
+          }
+
+          override fun mouseEntered(e: MouseEvent?) {
+            it.mouseEntered(e)
+          }
+
+          override fun mouseExited(e: MouseEvent?) {
+            it.mouseExited(e)
+          }
+        }
+        removeMouseListener(it)
+        addMouseListener(ignoreRightClickListener)
+      }
+    }
+
     var isCreated = false
     override fun isFocusable(): Boolean {
       // Make sure label is focusable until it's marked as created.
