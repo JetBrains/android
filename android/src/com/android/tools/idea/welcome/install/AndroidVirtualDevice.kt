@@ -118,8 +118,16 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     get() {
       val result = mutableListOf<String>()
       if (myLatestVersion != null) {
-        result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG))
         result.add(getRequiredSysimgPath(IS_ARM64_HOST_OS))
+      }
+      return result
+    }
+
+  override val optionalSdkPackages: Collection<String>
+    get() {
+      val result = mutableListOf<String>()
+      if (myLatestVersion != null) {
+        result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG))
       }
       return result
     }

@@ -31,6 +31,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
@@ -253,6 +254,19 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
     myWasForcedVisible = mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.OK;
     return myWasForcedVisible;
+  }
+
+  @Override
+  public boolean commitStep() {
+    if (myRootNode.getAllChildren().stream().anyMatch(node ->
+      node instanceof InstallableComponent && !((InstallableComponent)node).getUnavailablePackages().isEmpty()
+    )) {
+      Messages.showWarningDialog(
+        "Some required components are not available.\n" +
+        "You can continue, but some functionality may not work correctly until they are installed.",
+        "Required Component Missing");
+    }
+    return true;
   }
 
   private void createUIComponents() {

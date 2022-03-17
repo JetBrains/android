@@ -40,6 +40,7 @@ abstract class InstallableComponent(
   private var userSelection: Boolean? = null // null means default component enablement is used
   private var isOptional = true
   private var isInstalled = false
+  private var isUnavailable = false
 
   @JvmField
   protected var sdkHandler: AndroidSdkHandler? = null
@@ -49,9 +50,16 @@ abstract class InstallableComponent(
    * or have an update available, if we're installing updates).
    */
   val packagesToInstall: Collection<UpdatablePackage>
-    get() = requiredSdkPackages
+    get() = requiredSdkPackages.plus(optionalSdkPackages)
       .mapNotNull { repositoryPackages.consolidatedPkgs[it] }
       .filter { p -> p.hasRemote() && (!p.hasLocal() || installUpdates && p.isUpdate) }
+
+  val unavailablePackages: Collection<String>
+    get() {
+      val installedPackages = requiredSdkPackages
+        .mapNotNull { repositoryPackages.consolidatedPkgs[it]?.local?.path }
+      return requiredSdkPackages.minus(packagesToInstall.map { it.path }).minus(installedPackages)
+    }
 
   protected val repositoryPackages: RepositoryPackages get() = sdkHandler!!.getSdkManager(PROGRESS_LOGGER).packages
 
@@ -59,6 +67,7 @@ abstract class InstallableComponent(
    * Gets the unfiltered collection of all packages required by this component.
    */
   protected abstract val requiredSdkPackages: Collection<String>
+  protected open val optionalSdkPackages: Collection<String> = listOf()
 
   // TODO: support patches if this is an update
   val downloadSize: Long
@@ -70,7 +79,11 @@ abstract class InstallableComponent(
 
   override val label: String
     get() {
-      val sizeLabel = if (isInstalled) "installed" else getSizeLabel(downloadSize)
+      val sizeLabel = when {
+        isInstalled -> "installed"
+        isUnavailable -> "unavailable"
+        else -> getSizeLabel(downloadSize)
+      }
       return "$name – ($sizeLabel)"
     }
 
@@ -98,10 +111,9 @@ abstract class InstallableComponent(
         else -> isSelectedByDefault()
       }
     )
-    isInstalled = checkInstalledPackages()
+    isInstalled = sdkHandler != null && packagesToInstall.isEmpty() && unavailablePackages.isEmpty()
+    isUnavailable = sdkHandler == null || unavailablePackages.isNotEmpty()
   }
-
-  private fun checkInstalledPackages(): Boolean = sdkHandler != null && packagesToInstall.isEmpty()
 
   override fun toggle(isSelected: Boolean) {
     if (isOptional) {
