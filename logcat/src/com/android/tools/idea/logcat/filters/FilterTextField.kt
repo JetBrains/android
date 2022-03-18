@@ -139,7 +139,13 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    addToRight(InlinePanel(clearButton, JSeparator(VERTICAL), favoriteButton))
+    val buttonPanel = InlinePanel(clearButton, JSeparator(VERTICAL), favoriteButton)
+    addToRight(buttonPanel)
+
+    if (initialText.isEmpty()) {
+      buttonPanel.isVisible = false
+    }
+
 
     // Set a border around the text field and buttons.
     // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work. It seems to need CompoundBorder.
@@ -164,6 +170,7 @@ internal class FilterTextField(
               listener.documentChanged(event)
             }
           }
+          buttonPanel.isVisible = textField.text.isNotEmpty()
         }
       })
       addKeyListener(object : KeyAdapter() {

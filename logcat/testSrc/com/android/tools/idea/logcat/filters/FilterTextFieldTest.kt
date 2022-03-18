@@ -54,7 +54,9 @@ import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
+import javax.swing.Icon
 import javax.swing.JLabel
+import javax.swing.JSeparator
 
 /**
  * Tests for [FilterTextField]
@@ -139,12 +141,11 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun pressEnter_addsToHistory_favorite() {
-    val filterTextField = filterTextField()
+    val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
 
-    filterTextField.text = "bar"
     fakeUi.clickOn(favoriteButton)
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
     textField.keyListeners.forEach { it.keyPressed(keyEvent) }
@@ -167,12 +168,11 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun loosesFocus_addsToHistory_favorite() {
-    val filterTextField = filterTextField()
+    val filterTextField = filterTextField(initialText = "foo")
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
 
-    filterTextField.text = "foo"
     fakeUi.clickOn(favoriteButton)
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
 
@@ -201,11 +201,10 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun addToHistory_favorite_logsUsage() {
-    val filterTextField = filterTextField()
+    val filterTextField = filterTextField(initialText = "foo")
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
 
-    filterTextField.text = "foo"
     fakeUi.clickOn(favoriteButton)
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
@@ -243,6 +242,64 @@ class FilterTextFieldTest {
     verify(documentListener).documentChanged(any())
   }
 
+  @RunsInEdt
+  @Test
+  fun emptyText_buttonPanelInvisible() {
+    val filterTextField = filterTextField(initialText = "")
+
+    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+
+    assertThat(favoriteButton.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
+    assertThat(separator.isShowing).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun nonEmptyText_buttonPanelVisible() {
+    val filterTextField = filterTextField(initialText = "foo")
+
+    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+
+    assertThat(favoriteButton.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
+    assertThat(separator.isShowing).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun textBecomesEmpty_buttonPanelInvisible() {
+    val filterTextField = filterTextField(initialText = "foo")
+    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+
+    filterTextField.text = ""
+
+    assertThat(favoriteButton.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
+    assertThat(separator.isShowing).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun textBecomesNotEmpty_buttonPanelVisible() {
+    val filterTextField = filterTextField(initialText = "")
+    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+
+    filterTextField.text = "foo"
+
+    assertThat(favoriteButton.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
+    assertThat(separator.isShowing).isTrue()
+  }
+
   private fun filterTextField(
     project: Project = projectRule.project,
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
@@ -258,3 +315,6 @@ class FilterTextFieldTest {
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
 }
+
+private fun FilterTextField.getButtonWithIcon(icon: Icon) =
+  TreeWalker(this).descendants().filterIsInstance<JLabel>().first { it.icon == icon }
