@@ -677,6 +677,14 @@ public final class StudioFlags {
     "Enables the named filters feature in the Logcat tool window",
     false
   );
+
+  public static final Flag<Boolean> DDMLIB_ABB_EXEC_INSTALL_ENABLE = Flag.create(
+    RUNDEBUG,
+    "ddmlib.abb.exec.install.enable",
+    "Allow DDMLib to use ABB_EXEC on install when device supports it.",
+    "Allow DDMLib to use ABB_EXEC on install instead of the 'legacy' EXEC/CMD or EXEC/PM combos. This only occurs if device and adb support abb_exec",
+    true
+  );
   //endregion
 
   //region Gradle Project System

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 
 import static com.android.tools.idea.run.tasks.LaunchResult.Result.ERROR;
 
+import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deploy.proto.Deploy;
@@ -135,6 +136,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Executor executor = launchContext.getExecutor();
     ConsolePrinter printer = launchContext.getConsolePrinter();
     AdbClient adb = new AdbClient(device, logger);
+
+    AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 
     AdbInstaller.Mode adbInstallerMode = AdbInstaller.Mode.DAEMON;
     if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
