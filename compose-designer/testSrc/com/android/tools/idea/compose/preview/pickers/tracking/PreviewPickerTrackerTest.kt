@@ -28,6 +28,10 @@ import com.android.sdklib.devices.State
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.configurations.Configuration
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import org.junit.Test
 import kotlin.math.sqrt
 import kotlin.test.assertEquals
@@ -74,13 +78,13 @@ internal class PreviewPickerTrackerTest {
     val registeredActions = tracker.lastActionsLogged.toList()
     assertEquals(6, registeredActions.size)
 
-    val registeredDeviceTypes = registeredActions.map { it.previewPickerModification.deviceType }
-    assertEquals(DeviceType.Custom, registeredDeviceTypes[0])
-    assertEquals(DeviceType.Tv, registeredDeviceTypes[1])
-    assertEquals(DeviceType.Auto, registeredDeviceTypes[2])
-    assertEquals(DeviceType.Wear, registeredDeviceTypes[3])
-    assertEquals(DeviceType.Phone, registeredDeviceTypes[4])
-    assertEquals(DeviceType.Generic, registeredDeviceTypes[5])
+    val registeredDeviceTypes = registeredActions.map { it.previewModification.closestDeviceType }
+    assertEquals(DeviceType.CUSTOM, registeredDeviceTypes[0])
+    assertEquals(DeviceType.TV, registeredDeviceTypes[1])
+    assertEquals(DeviceType.UNKNOWN_DEVICE_TYPE, registeredDeviceTypes[2])
+    assertEquals(DeviceType.WEAR, registeredDeviceTypes[3])
+    assertEquals(DeviceType.PHONE, registeredDeviceTypes[4])
+    assertEquals(DeviceType.GENERIC, registeredDeviceTypes[5])
   }
 
   @Test
@@ -97,18 +101,18 @@ internal class PreviewPickerTrackerTest {
     val registeredActions = tracker.lastActionsLogged.toList()
     assertEquals(3, registeredActions.size)
 
-    val registeredParameters = registeredActions.map { it.previewPickerModification.parameter }
-    assertEquals(PreviewParameter.NAME, registeredParameters[0])
-    assertEquals(PreviewParameter.UNKNOWN, registeredParameters[1])
-    assertEquals(PreviewParameter.UNKNOWN, registeredParameters[2])
+    val registeredParameters = registeredActions.map { it.previewModification.parameter }
+    assertEquals(PreviewPickerParameter.NAME, registeredParameters[0])
+    assertEquals(PreviewPickerParameter.UNKNOWN_PREVIEW_PICKER_PARAMETER, registeredParameters[1])
+    assertEquals(PreviewPickerParameter.UNKNOWN_PREVIEW_PICKER_PARAMETER, registeredParameters[2])
   }
 }
 
 private class TestTracker : PreviewPickerTracker() {
   var doLogUsageCallCount = 0
-  val lastActionsLogged = mutableListOf<PickerAction>()
+  val lastActionsLogged = mutableListOf<EditorPickerAction>()
 
-  override fun doLogUsageData(actions: List<PickerAction>) {
+  override fun doLogUsageData(actions: List<EditorPickerAction>) {
     doLogUsageCallCount++
     lastActionsLogged.clear()
     lastActionsLogged.addAll(actions)
@@ -130,16 +134,16 @@ private fun TestTracker.applyValidModifications(runnable: TrackerModificationsWr
  * A Class wrapper for [TestTracker] that only allows to register modifications.
  */
 private class TrackerModificationsWrapper(private val tracker: TestTracker) {
-  fun registerModification(name: String, value: PickerTrackableValue, device: Device?) =
+  fun registerModification(name: String, value: PreviewPickerValue, device: Device?) =
     tracker.registerModification(name, value, device)
 
   fun registerNameModificationWithDevice(isCustom: Boolean, isGeneric: Boolean, tagId: String) =
-    registerModification("name", PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, createDevice(isCustom, isGeneric, tagId))
+    registerModification("name", PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, createDevice(isCustom, isGeneric, tagId))
 
   fun registerModificationWithCustomDevice(parameterName: String) =
     registerModification(
       parameterName,
-      PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED,
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
       createDevice(isCustom = true, isGeneric = false, tagId = "tagId")
     )
 }

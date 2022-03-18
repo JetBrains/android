@@ -3,8 +3,8 @@ package com.android.tools.idea.compose.preview.pickers.properties
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditingValidation
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ThrowableComputable
@@ -54,7 +54,7 @@ internal open class PsiCallParameterPropertyItem(
     get() = SlowOperations.allowSlowOperations(ThrowableComputable { argumentExpression?.tryEvaluateConstantAsText() })
     set(value) {
       val newValue = value?.trim()?.nullize()
-      val trackable = if (newValue == null) PickerTrackableValue.DELETED else PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+      val trackable = if (newValue == null) PreviewPickerValue.CLEARED else PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
       if (newValue != this.value) {
         writeNewValue(newValue, false, trackable)
       }
@@ -64,10 +64,10 @@ internal open class PsiCallParameterPropertyItem(
    * Writes the [newValue] to the property's PsiElement, wrapped in double quotation marks when the property's type is String, unless
    * [writeAsIs] is True, in which case it will always be written as it is.
    *
-   * [trackableValue] should be an option that bests represents [newValue]. Use [PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED] if none of
-   * the options matches the meaning of the value, or [PickerTrackableValue.UNKNOWN] if the assigned value is unexpected.
+   * [trackableValue] should be an option that bests represents [newValue]. Use [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if none of
+   * the options matches the meaning of the value, or [PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE] if the assigned value is unexpected.
    */
-  fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PickerTrackableValue) {
+  fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PreviewPickerValue) {
     model.tracker.registerModification(name, trackableValue, CurrentDeviceKey.getData(model))
     if (newValue == null) {
       deleteParameter()

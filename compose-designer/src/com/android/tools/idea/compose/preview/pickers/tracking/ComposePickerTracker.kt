@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview.pickers.tracking
 
 import com.android.annotations.concurrency.Slow
 import com.android.sdklib.devices.Device
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.thisLogger
 
 /**
@@ -33,7 +35,7 @@ internal interface ComposePickerTracker {
    *
    * [device] should be the currently active [Device] in the preview when the change was made (right before the change is applied).
    */
-  fun registerModification(name: String, value: PickerTrackableValue, device: Device?)
+  fun registerModification(name: String, value: PreviewPickerValue, device: Device?)
 
   /**
    * Potentially slow, since some modification data will have to be converted to Studio Event objects (eg: the name of the modified field)
@@ -50,7 +52,7 @@ internal object NoOpTracker : ComposePickerTracker {
 
   override fun pickerClosed() {} // Do nothing
 
-  override fun registerModification(name: String, value: PickerTrackableValue, device: Device?) {} // Do nothing
+  override fun registerModification(name: String, value: PreviewPickerValue, device: Device?) {} // Do nothing
 
   override fun logUsageData() {} // Do nothing
 }
@@ -86,7 +88,7 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
 
   final override fun registerModification(
     name: String,
-    value: PickerTrackableValue,
+    value: PreviewPickerValue,
     device: Device?
   ) {
     if (!isPickerVisible) {
@@ -114,105 +116,19 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
   /**
    * Send tracking data.
    */
-  protected abstract fun doLogUsageData(actions: List<PickerAction>)
+  protected abstract fun doLogUsageData(actions: List<EditorPickerAction>)
 
   /**
    * Converts the basic data format: [PickerModification] to the data class used for tracking.
    */
-  protected abstract fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<PickerAction>
+  protected abstract fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<EditorPickerAction>
 
   /**
    * Holds basic data that will later be processed for tracking.
    */
   protected data class PickerModification(
     val propertyName: String,
-    val assignedValue: PickerTrackableValue,
+    val assignedValue: PreviewPickerValue,
     val deviceBeforeModification: Device?
   )
-}
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal data class PickerEvent(
-  val type: PickerType,
-  val actions: List<PickerAction>
-)
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal enum class PickerType {
-  UNKNOWN,
-  PREVIEW
-}
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal data class PickerAction(
-  val previewPickerModification: PreviewPickerModification
-)
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal data class PreviewPickerModification(
-  val parameter: PreviewParameter,
-  val deviceType: DeviceType,
-  val assignedValue: PickerTrackableValue
-)
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal enum class PreviewParameter {
-  UNKNOWN,
-  NAME,
-  GROUP,
-  API_LEVEL,
-  WIDTH,
-  HEIGHT,
-  LOCALE,
-  FONT_SCALE,
-  SHOW_SYSTEM_UI,
-  SHOW_BACKGROUND,
-  BACKGROUND_COLOR,
-  UI_MODE,
-  DEVICE,
-  DEVICE_WIDTH,
-  DEVICE_HEIGHT,
-  DEVICE_DIM_UNIT,
-  DEVICE_DENSITY,
-  DEVICE_ORIENTATION
-}
-
-// TODO(205184728): Replace once the studio_stats object has been updated with our tracking classes
-internal enum class DeviceType {
-  Unknown,
-  Phone,
-  Tablet,
-  Wear,
-  Tv,
-  Auto,
-  Generic,
-  Custom
-}
-
-// TODO(b/205184728): Replace once the studio_stats object has been updated with our tracking classes, those will have their own detailed
-//  javadoc
-internal enum class PickerTrackableValue {
-  /**  Based on proto enums requirement, for unexpected/erroneous input */
-  UNKNOWN,
-  DELETED,
-  UNSUPPORTED_OR_OPEN_ENDED,
-
-  /** For any non-standard/canonical device selected, eg: Any device manager device */
-  DEVICE_NOT_REF,
-  DEVICE_REF_PHONE,
-  DEVICE_REF_FOLDABLE,
-  DEVICE_REF_TABLET,
-  DEVICE_REF_DESKTOP,
-  UNIT_PIXELS,
-  UNIT_DP,
-  ORIENTATION_PORTRAIT,
-  ORIENTATION_LANDSCAPE,
-  DENSITY_LOW,
-  DENSITY_MEDIUM,
-  DENSITY_HIGH,
-  DENSITY_X_HIGH,
-  DENSITY_XX_HIGH,
-  DENSITY_XXX_HIGH,
-  UI_MODE_NOT_NIGHT,
-  UI_MODE_NIGHT,
 }

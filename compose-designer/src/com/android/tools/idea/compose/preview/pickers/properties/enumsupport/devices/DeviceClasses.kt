@@ -22,12 +22,12 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
 import com.android.tools.property.panel.api.EnumValue
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
@@ -80,7 +80,7 @@ internal class DeviceEnumValueBuilder {
     name: String,
     description: String?,
     immutableDeviceConfig: DeviceConfig,
-    trackableValue: PickerTrackableValue
+    trackableValue: PreviewPickerValue
   ): DeviceEnumValueBuilder = apply {
     val deviceSpec = immutableDeviceConfig.deviceSpec()
     val enumValue = PsiEnumValue.withTooltip(deviceSpec, name, description, trackableValue)
@@ -101,7 +101,7 @@ internal class DeviceEnumValueBuilder {
     val density = AvdScreenData.getScreenDensity(null, true, dpi, heightPx)
     val deviceSpec = DeviceConfig(width = widthPx, height = heightPx, dimUnit = DimUnit.px, dpi = density.dpiValue).deviceSpec()
     val display = overrideDisplayName ?: "${round(diagonalIn * 100) / 100}\" ${type.name} ${heightPx}p"
-    val enumValue = PsiEnumValue.indented(deviceSpec, display, PickerTrackableValue.DEVICE_NOT_REF)
+    val enumValue = PsiEnumValue.indented(deviceSpec, display, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[type]?.add(enumValue)
   }
 
@@ -110,7 +110,7 @@ internal class DeviceEnumValueBuilder {
   ): DeviceEnumValueBuilder = apply {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
     val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, dpi = density.dpiValue, shape = shape).deviceSpec()
-    val enumValue = PsiEnumValue.indented(deviceSpec, shape.display, PickerTrackableValue.DEVICE_NOT_REF)
+    val enumValue = PsiEnumValue.indented(deviceSpec, shape.display, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
@@ -148,7 +148,7 @@ internal class DeviceEnumValueBuilder {
     id: String,
     type: DeviceClass
   ): DeviceEnumValueBuilder = apply {
-    val enumValue = PsiEnumValue.indented("$DEVICE_BY_ID_PREFIX$id", displayName, PickerTrackableValue.DEVICE_NOT_REF)
+    val enumValue = PsiEnumValue.indented("$DEVICE_BY_ID_PREFIX$id", displayName, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[type]?.add(enumValue)
   }
 
@@ -163,7 +163,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues.keys.forEach { type ->
       val values = deviceEnumValues[type]
       if (values?.isNotEmpty() == true) {
-        if(enumValues.isNotEmpty()) enumValues.add(EnumValue.SEPARATOR)
+        if (enumValues.isNotEmpty()) enumValues.add(EnumValue.SEPARATOR)
         enumValues.add(EnumValue.header(type.display, type.icon))
         values.forEach(enumValues::add)
       }
@@ -173,10 +173,10 @@ internal class DeviceEnumValueBuilder {
 
   private fun addDefaultsIfMissing() {
     if (!deviceEnumValues.contains(DeviceClass.Canonical) || deviceEnumValues[DeviceClass.Canonical]?.isEmpty() == true) {
-      addCanonical("Phone", DEVICE_CLASS_PHONE_TOOLTIP, ReferencePhoneConfig, PickerTrackableValue.DEVICE_REF_PHONE)
-      addCanonical("Foldable", DEVICE_CLASS_FOLDABLE_TOOLTIP, ReferenceFoldableConfig, PickerTrackableValue.DEVICE_REF_FOLDABLE)
-      addCanonical("Tablet", DEVICE_CLASS_TABLET_TOOLTIP, ReferenceTabletConfig, PickerTrackableValue.DEVICE_REF_TABLET)
-      addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, ReferenceDesktopConfig, PickerTrackableValue.DEVICE_REF_DESKTOP)
+      addCanonical("Phone", DEVICE_CLASS_PHONE_TOOLTIP, ReferencePhoneConfig, PreviewPickerValue.DEVICE_REF_PHONE)
+      addCanonical("Foldable", DEVICE_CLASS_FOLDABLE_TOOLTIP, ReferenceFoldableConfig, PreviewPickerValue.DEVICE_REF_FOLDABLE)
+      addCanonical("Tablet", DEVICE_CLASS_TABLET_TOOLTIP, ReferenceTabletConfig, PreviewPickerValue.DEVICE_REF_TABLET)
+      addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, ReferenceDesktopConfig, PreviewPickerValue.DEVICE_REF_DESKTOP)
     }
     if (!deviceEnumValues.contains(DeviceClass.Wear) || deviceEnumValues[DeviceClass.Wear]?.isEmpty() == true) {
       addWearDevice(Shape.Square)

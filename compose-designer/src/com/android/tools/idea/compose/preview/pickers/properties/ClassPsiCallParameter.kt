@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -62,7 +62,7 @@ internal class ClassPsiCallParameter(
    *
    * fqValue -> android.content.res.Configuration.UI_MODE_TYPE_NORMAL
    */
-  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String, trackableValue: PickerTrackableValue) {
+  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String, trackableValue: PreviewPickerValue) {
     val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {

@@ -26,14 +26,14 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiM
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
-import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.EdtRule
@@ -347,28 +347,28 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(14, testTracker.valuesRegistered.size)
     var index = 0
     // Device
-    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
 
     // Orientation
-    assertEquals(PickerTrackableValue.ORIENTATION_PORTRAIT, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.ORIENTATION_LANDSCAPE, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.ORIENTATION_PORTRAIT, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.ORIENTATION_LANDSCAPE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
 
     // Density
-    assertEquals(PickerTrackableValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DENSITY_X_HIGH, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DENSITY_XXX_HIGH, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DENSITY_X_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DENSITY_XXX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
 
     // DimensionUnit
-    assertEquals(PickerTrackableValue.UNIT_DP, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.UNIT_PIXELS, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNIT_DP, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNIT_PIXELS, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
 
     // Width/Height
-    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
+    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
   }
 
   @RunsInEdt
@@ -407,16 +407,16 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     assertEquals(8, testTracker.valuesRegistered.size)
     var index = 0
-    assertEquals(PickerTrackableValue.DEVICE_REF_PHONE, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_REF_FOLDABLE, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_REF_TABLET, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_REF_DESKTOP, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_PHONE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_FOLDABLE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_TABLET, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_DESKTOP, testTracker.valuesRegistered[index++])
 
     // Non-reference devices
-    assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index++])
-    assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index])
+    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
+    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index])
   }
 
   @RunsInEdt
@@ -437,9 +437,9 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     nightModeUndefined.select(uiModeProperty)
 
     assertEquals(3, testTracker.valuesRegistered.size)
-    assertEquals(PickerTrackableValue.UI_MODE_NIGHT, testTracker.valuesRegistered[0])
-    assertEquals(PickerTrackableValue.UI_MODE_NOT_NIGHT, testTracker.valuesRegistered[1])
-    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[2])
+    assertEquals(PreviewPickerValue.UI_MODE_NIGHT, testTracker.valuesRegistered[0])
+    assertEquals(PreviewPickerValue.UI_MODE_NOT_NIGHT, testTracker.valuesRegistered[1])
+    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[2])
   }
 
   @RunsInEdt
@@ -571,10 +571,10 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 }
 
 private class TestTracker : ComposePickerTracker {
-  val valuesRegistered = mutableListOf<PickerTrackableValue>()
+  val valuesRegistered = mutableListOf<PreviewPickerValue>()
   val devicesRegistered = mutableListOf<Device?>()
 
-  override fun registerModification(name: String, value: PickerTrackableValue, device: Device?) {
+  override fun registerModification(name: String, value: PreviewPickerValue, device: Device?) {
     valuesRegistered.add(value)
     devicesRegistered.add(device)
   }

@@ -28,10 +28,10 @@ import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findByIdOrName
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackerHelper
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -78,7 +78,7 @@ internal class DeviceParameterPropertyItem(
       newValue.toIntOrNull()?.let {
         config.width = it
       }
-      PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_HEIGHT,
@@ -88,7 +88,7 @@ internal class DeviceParameterPropertyItem(
       newValue.toIntOrNull()?.let {
         config.height = it
       }
-      PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DIM_UNIT,
@@ -98,7 +98,7 @@ internal class DeviceParameterPropertyItem(
       newUnit?.let {
         config.dimUnit = newUnit
         newUnit.trackableValue
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DENSITY,
@@ -109,7 +109,7 @@ internal class DeviceParameterPropertyItem(
       newDpi?.let {
         config.dpi = newDpi
         PickerTrackerHelper.densityBucketOfDeviceConfig(config)
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_ORIENTATION,
@@ -119,7 +119,7 @@ internal class DeviceParameterPropertyItem(
       newOrientation?.let {
         config.orientation = newOrientation
         newOrientation.trackableValue
-      } ?: PickerTrackableValue.UNKNOWN
+      } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
     },
   )
 
@@ -139,7 +139,7 @@ internal class DeviceParameterPropertyItem(
     defaultValue: String?,
     inputValidation: EditingValidation = { EDITOR_NO_ERROR },
     private val getter: (MutableDeviceConfig) -> String,
-    private val setter: (MutableDeviceConfig, String) -> PickerTrackableValue
+    private val setter: (MutableDeviceConfig, String) -> PreviewPickerValue
   ) : MemoryParameterPropertyItem(
     name, defaultValue, inputValidation
   ) {

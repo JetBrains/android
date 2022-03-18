@@ -18,15 +18,15 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 import com.android.SdkConstants
 import com.android.tools.idea.compose.preview.pickers.properties.ClassPsiCallParameter
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallParameterPropertyItem
-import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
+import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 
 /**
  * Base interface for psi pickers, to support tracking assigned values.
  */
 internal interface PsiEnumValue : EnumValue {
-  val trackableValue: PickerTrackableValue
+  val trackableValue: PreviewPickerValue
 
   override fun select(property: PropertyItem): Boolean =
     if (property is PsiCallParameterPropertyItem) {
@@ -38,10 +38,10 @@ internal interface PsiEnumValue : EnumValue {
     }
 
   companion object {
-    fun withTooltip(value: String, display: String, description: String?, trackingValue: PickerTrackableValue) =
+    fun withTooltip(value: String, display: String, description: String?, trackingValue: PreviewPickerValue) =
       DescriptionEnumValue(value, display, trackingValue, description)
 
-    fun indented(value: String, display: String, trackingValue: PickerTrackableValue) =
+    fun indented(value: String, display: String, trackingValue: PreviewPickerValue) =
       object : PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
         override val indented: Boolean = true
       }
@@ -54,7 +54,7 @@ internal interface PsiEnumValue : EnumValue {
 internal open class PsiEnumValueImpl(
   override val value: String?,
   override val display: String,
-  override val trackableValue: PickerTrackableValue
+  override val trackableValue: PreviewPickerValue
 ) : PsiEnumValue
 
 /**
@@ -85,9 +85,9 @@ internal interface BaseClassEnumValue : EnumValue {
 
   /**
    * One of the supported tracking options that best represents the value assigned by this instance, use
-   * [PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
+   * [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
    */
-  val trackableValue: PickerTrackableValue
+  val trackableValue: PreviewPickerValue
 
 
   override val value: String?
@@ -169,8 +169,8 @@ internal class UiModeWithNightMaskEnumValue(
     return@run ((uiModeTypeResolvedValue.toIntOrNull() ?: 0) or nightModeValue).toString()
   }
 
-  override val trackableValue: PickerTrackableValue =
-    if (isNight) PickerTrackableValue.UI_MODE_NIGHT else PickerTrackableValue.UI_MODE_NOT_NIGHT
+  override val trackableValue: PreviewPickerValue =
+    if (isNight) PreviewPickerValue.UI_MODE_NIGHT else PreviewPickerValue.UI_MODE_NOT_NIGHT
 
   override val indented: Boolean = true
 
@@ -247,7 +247,7 @@ internal enum class UiMode(
   VR("UI_MODE_TYPE_VR_HEADSET", "Vr", "7");
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
-  override val trackableValue: PickerTrackableValue = PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+  override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**
@@ -270,7 +270,7 @@ internal enum class Device(
   PIXEL_5("PIXEL_5", "Pixel 5", "id:pixel_5");
 
   override val fqClass: String = "androidx.compose.ui.tooling.preview.Devices" // We assume this class for pre-defined Devices
-  override val trackableValue: PickerTrackableValue = PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
+  override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**
@@ -298,7 +298,7 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 internal data class DescriptionEnumValue(
   override val value: String,
   override val display: String,
-  override val trackableValue: PickerTrackableValue,
+  override val trackableValue: PreviewPickerValue,
   val description: String?
 ) : PsiEnumValue {
   override val indented: Boolean = true
