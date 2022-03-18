@@ -54,7 +54,6 @@ import javax.swing.JComponent;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
-import javax.swing.SortOrder;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -189,7 +188,16 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     sorter.setSortable(VirtualDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, false);
     sorter.setSortable(VirtualDeviceTableModel.EDIT_MODEL_COLUMN_INDEX, false);
     sorter.setSortable(VirtualDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX, false);
-    sorter.setSortKeys(Collections.singletonList(new SortKey(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, SortOrder.ASCENDING)));
+    VirtualTabState tabState = VirtualTabPersistentStateComponent.getInstance().getState();
+    sorter.setSortKeys(Collections.singletonList(new SortKey(tabState.getSortColumn(), tabState.getSortOrder())));
+
+    sorter.addRowSorterListener(event -> {
+      List<? extends SortKey> keys = sorter.getSortKeys();
+      if (!keys.isEmpty()) {
+        SortKey key = keys.get(0);
+        VirtualTabPersistentStateComponent.getInstance().loadState(new VirtualTabState(key.getColumn(), key.getSortOrder()));
+      }
+    });
 
     return sorter;
   }

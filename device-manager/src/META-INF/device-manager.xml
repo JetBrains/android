@@ -19,5 +19,7 @@
                 anchor="right"
                 icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
                 factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.devicemanager.virtualtab.VirtualTabPersistentStateComponent" />
   </extensions>
 </idea-plugin>

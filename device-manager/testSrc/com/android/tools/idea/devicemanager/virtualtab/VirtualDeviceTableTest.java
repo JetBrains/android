@@ -25,12 +25,14 @@ import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTable.SetDevices;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.testFramework.ApplicationRule;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,6 +40,8 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTableTest {
+  @Rule
+  public ApplicationRule rule = new ApplicationRule();
   private final @NotNull VirtualDevicePanel myPanel = Mockito.mock(VirtualDevicePanel.class);
   private final CountDownLatch myLatch = new CountDownLatch(1);
 
