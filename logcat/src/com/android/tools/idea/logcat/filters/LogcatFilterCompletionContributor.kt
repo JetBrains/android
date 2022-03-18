@@ -27,7 +27,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.completion.CompletionUtilCore
+import com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.PlatformPatterns.or
@@ -59,9 +59,8 @@ private const val LEVEL_KEY = "level:"
 
 private const val AGE_KEY = "age:"
 
-private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
-
-private val KEYS_LOOKUP_BUILDERS = KEYS.map(String::toLookupElement)
+private val KEYS = STRING_KEYS + LEVEL_KEY + AGE_KEY
+private val ALL_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
 
 private val LEVEL_LOOKUPS = Log.LogLevel.values().map { it.name.toLookupElement(suffix = " ") }
 
@@ -97,7 +96,8 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                    return
                  }
                }
-               result.addAllElements(KEYS_LOOKUP_BUILDERS)
+               result.addAllElements(
+                 if (text == DUMMY_IDENTIFIER_TRIMMED) KEYS.map(String::toLookupElement) else ALL_KEYS.map(String::toLookupElement))
                if (hasAndroidProject(parameters.editor)) {
                  result.addElement(MY_PACKAGE.toLookupElement())
                }
@@ -146,7 +146,7 @@ private fun CompletionParameters.getPackageNames() =
 
 private fun CompletionParameters.getRealTextLength(): Int {
   val text = position.text
-  val len = text.indexOf(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+  val len = text.indexOf(DUMMY_IDENTIFIER_TRIMMED)
   return if (len < 0) text.length else len
 }
 

@@ -38,7 +38,9 @@ private val STRING_KEYS = listOf(
   "message",
   "package",
   "tag",
-).map(String::getKeyVariants).flatten()
+)
+
+private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
 private val KEYS = STRING_KEYS + "level:" + "age:" + "package:mine "
 
@@ -64,7 +66,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withoutWhitespace() {
-    for (key in STRING_KEYS + "age:") {
+    for (key in ALL_STRING_KEYS + "age:") {
       fixture.configure("$key$caret")
 
       fixture.completeBasic()
@@ -81,7 +83,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_afterKey_withWhitespace() {
-    for (key in STRING_KEYS + "age:") {
+    for (key in ALL_STRING_KEYS + "age:") {
       fixture.configure("$key  $caret")
 
       fixture.completeBasic()
