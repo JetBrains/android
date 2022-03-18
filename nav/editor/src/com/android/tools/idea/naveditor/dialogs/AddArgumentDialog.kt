@@ -389,7 +389,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
       realComponent.setTypeAndLog(type, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       var newDefaultValue = defaultValue
-      if (!isArray && newDefaultValue != null && !newDefaultValue.isEmpty()
+      if (!isArray && !newDefaultValue.isNullOrEmpty()
           && dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")) {
         newDefaultValue += "L"
       }
