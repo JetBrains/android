@@ -37,7 +37,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   @Override
   public @NotNull List<@NotNull JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
-    Optional<JComponent> optionalItem = newUnpairDeviceItem(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION);
+    Optional<JComponent> optionalItem = newViewPairedDevicesItem(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION);
 
     items.add(MenuItems.newViewDetailsItem(myPanel));
     optionalItem.ifPresent(item -> items.add(new Separator()));

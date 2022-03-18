@@ -149,7 +149,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       case PHONE:
       case WEAR_OS:
         items.add(newPairDeviceItem());
-        newUnpairDeviceItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
+        newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
         items.add(new Separator());
 
         break;

@@ -75,7 +75,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
     return item;
   }
 
-  protected final @NotNull Optional<@NotNull JComponent> newUnpairDeviceItem(@NotNull EventKind kind) {
+  protected final @NotNull Optional<@NotNull JComponent> newViewPairedDevicesItem(@NotNull EventKind kind) {
     String key = myDevice.getKey().toString();
     List<PhoneWearPair> pairs = myManager.getPairsForDevice(key);
 
@@ -83,7 +83,8 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
       return Optional.empty();
     }
 
-    AbstractButton item = new JBMenuItem("Unpair Device");
+    boolean enabled = StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get();
+    AbstractButton item = new JBMenuItem(enabled ? "View Paired Device(s)" : "Unpair Device");
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -92,7 +93,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+      if (enabled) {
         myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
       }
       else {
