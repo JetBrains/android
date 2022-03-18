@@ -50,7 +50,9 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
 
     // Verify that AndroidGradleExecutionConsoleManager is NOT used for execute task task.
     ExternalSystemTask executeTaskTask = createExternalSystemTask(ExternalSystemExecuteTaskTask.class);
+/* b/226462466
     assertThat(getConsoleManagerFor(executeTaskTask)).isNotInstanceOf(AndroidGradleExecutionConsoleManager.class);
+b/226462466 */
   }
 
   public void testGetHyperLinkInfo() {
