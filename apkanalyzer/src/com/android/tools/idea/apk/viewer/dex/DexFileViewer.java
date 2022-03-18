@@ -299,6 +299,10 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
         LOGGING_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ", "),
                                                 MessageType.INFO).notify(myProject);
       }
+      else if (loaded.isEmpty()) {
+        BALLOON_NOTIFICATION.createNotification("APK Analyzer encountered problems loading: " + StringUtil.join(errors, ", "),
+                                                MessageType.WARNING).notify(myProject);
+      }
       else {
         BALLOON_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
                                                 + "There were problems loading: " + StringUtil.join(errors, ", "),
