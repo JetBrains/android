@@ -96,7 +96,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
   private boolean myUserEditedPath = false;
   private PathValidator.Result mySdkDirectoryValidationResult;
-  private boolean myWasVisible = false;
+  private boolean myWasForcedVisible = false;
   private boolean myLoading;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
@@ -235,9 +235,10 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
   @Override
   public boolean isStepVisible() {
-    if (myWasVisible) {
-      // If we showed it once (e.g. if we had a invalid path on the standard setup path) we want to be sure it shows again (e.g. if we
-      // fix the path and then go backward and forward). Otherwise the experience is confusing.
+    if (myWasForcedVisible) {
+      // If we showed it once due to a validation error (e.g. if we had a invalid path on the standard setup path),
+      // we want to be sure it shows again (e.g. if we fix the path and then go backward and forward). Otherwise the experience is
+      // confusing.
       return true;
     }
     else if (myMode.hasValidSdkLocation()) {
@@ -245,14 +246,13 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     }
 
     if (myState.getNotNull(myKeyCustomInstall, true)) {
-      myWasVisible = true;
       return true;
     }
 
     validate();
 
-    myWasVisible = mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.OK;
-    return myWasVisible;
+    myWasForcedVisible = mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.OK;
+    return myWasForcedVisible;
   }
 
   private void createUIComponents() {
