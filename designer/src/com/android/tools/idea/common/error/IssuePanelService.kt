@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -107,7 +108,11 @@ class IssuePanelService(private val project: Project) {
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issuePanel = DesignerCommonIssuePanel(project, project, DesignToolsIssueProvider(project))
+      val issueProvider = DesignToolsIssueProvider(project)
+      val issuePanel = DesignerCommonIssuePanel(project, project, issueProvider)
+      issueProvider.registerUpdateListener {
+        updateSharedIssuePanelTabName()
+      }
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
@@ -244,7 +249,8 @@ class IssuePanelService(private val project: Project) {
   private fun updateSharedIssuePanelTabName() {
     val tab = sharedIssueTab ?: return
     val count = sharedIssuePanel?.issueProvider?.getFilteredIssues()?.distinct()?.size
-    tab.displayName = createTabName(getSharedIssuePanelTabTitle(), count)
+    // This change the ui text, run it in the UI thread.
+    runInEdt { tab.displayName = createTabName(getSharedIssuePanelTabTitle(), count) }
   }
 
   /**
@@ -407,7 +413,7 @@ private fun createTabName(title: String, issueCount: Int?): String {
   }
   return HtmlBuilder()
     .append(title)
-    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText(issueCount.toString()))
+    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
     .wrapWithHtmlBody()
     .toString()
 }
