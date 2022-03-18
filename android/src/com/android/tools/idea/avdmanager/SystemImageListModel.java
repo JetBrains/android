@@ -27,21 +27,20 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
@@ -51,18 +50,17 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -288,7 +286,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     }
 
     private class SystemImageDescriptionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
-      private SystemImageDescription image;
+      private final SystemImageDescription image;
 
       SystemImageDescriptionRenderer(SystemImageDescription o) {
         image = o;
@@ -296,7 +294,8 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
+        JPanel panel = new JPanel(flowLayout);
         JBLabel label = new JBLabel((String)value);
         if (isSelected) {
           if (image.isRemote()) {
@@ -340,24 +339,30 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           });
         }
         panel.add(label);
+
+        // Add a download button if applicable
         if (image.isRemote() && column == 0) {
-          final JBLabel link = new JBLabel("Download");
+          final JBLabel link = new JBLabel(AllIcons.Actions.Download);
           link.setBackground(table.getBackground());
           link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-          link.setForeground(JBColor.BLUE);
-          Font font = link.getFont();
-          if (isSelected) {
-            Map<TextAttribute, Integer> attrs = Maps.newHashMap();
-            attrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-            font = font.deriveFont(attrs);
-          }
-          link.setFont(font);
           link.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
               downloadImage(image);
             }
           });
+
+          // We want the download button to always show and not be cut off
+          int columnWidth = table.getColumnModel().getColumn(0).getWidth();
+          double extraWidth = link.getPreferredSize().getWidth() + flowLayout.getHgap() * 3;
+          if (label.getPreferredSize().getWidth() + extraWidth > columnWidth) {
+            Dimension labelSize = new Dimension((int)(columnWidth - extraWidth), (int)label.getPreferredSize().getHeight());
+            label.setMinimumSize(labelSize);
+            label.setMaximumSize(labelSize);
+            label.setPreferredSize(labelSize);
+            label.setSize(labelSize);
+          }
+
           panel.add(link);
         }
         return panel;
