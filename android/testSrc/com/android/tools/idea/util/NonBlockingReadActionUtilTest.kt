@@ -37,7 +37,6 @@ class NonBlockingReadActionUtilTest {
   val projectRule = ProjectRule()
 
   @Test
-  @Ignore("b/224542619")
   fun waitInterruptibly() {
     val requestedReads = 50
     val reads = AtomicInteger(requestedReads)

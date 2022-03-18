@@ -211,7 +211,6 @@ class LiteralsTest {
   }
 
   @Test
-  @Ignore("b/224534338")
   fun `find literals in a kotlin method`() {
     val literalsManager = LiteralsManager()
     val file = populateKotlinFile().configureEditor()
