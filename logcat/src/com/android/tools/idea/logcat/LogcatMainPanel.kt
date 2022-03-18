@@ -188,6 +188,8 @@ internal class LogcatMainPanel(
     addToLeft(toolbar.component)
     addToCenter(editor.component)
 
+    editor.gutterComponentEx.isVisible = false
+
     deviceContext.addListener(object : DeviceConnectionListener() {
       @UiThread
       override fun onDeviceConnected(device: IDevice) {
