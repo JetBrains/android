@@ -21,10 +21,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.ui.ComponentUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
@@ -125,6 +125,6 @@ fun canShowBelow(parentComponent: JComponent,
                  location: Point,
                  content: JComponent): Boolean {
   val relativePoint = RelativePoint(parentComponent, location)
-  val windowBounds = UIUtil.getWindow(parentComponent)?.bounds ?: emptyRectangle
+  val windowBounds = ComponentUtil.getWindow(parentComponent)?.bounds ?: emptyRectangle
   return relativePoint.screenPoint.y + content.preferredSize.height < windowBounds.y + windowBounds.height
 }
