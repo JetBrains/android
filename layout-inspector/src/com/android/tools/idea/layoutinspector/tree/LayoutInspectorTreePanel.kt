@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
@@ -133,7 +134,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withColumn(createIntColumn<TreeViewNode>(
         "Skips",
         { (it.view as? ComposeViewNode)?.recomposeSkips },
-        foreground = JBColor.lightGray,
+        foreground = JBColor(Gray._192, Gray._128),
         maxInt = { inspectorModel?.maxRecompositionSkips ?: 0 },
         minInt = { 0 },
         headerRenderer = createSkipsHeader())
