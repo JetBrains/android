@@ -45,7 +45,24 @@ sealed class CompilationResult {
    * [e] will contain the exception if available.
    */
   data class RequestException(val e: Throwable? = null): CompilationResult()
+
+  /**
+   * The compilation request was aborted. This usually means it was cancelled by a condition that can be retried.
+   */
+  data class CompilationAborted(val e: Throwable? = null): CompilationResult()
 }
+
+/**
+ * True if this is a [CompilationResult.Success].
+ */
+val CompilationResult.isSuccess: Boolean
+  get() = this == CompilationResult.Success
+
+/**
+ * True if this is not a success result. [isSuccess] will be false.
+ */
+val CompilationResult.isError: Boolean
+  get() = !isSuccess
 
 /**
  * Interface to implement by specific implementations that can talk to compiler daemons.

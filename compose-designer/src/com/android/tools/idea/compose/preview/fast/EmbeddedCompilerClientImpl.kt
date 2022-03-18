@@ -31,7 +31,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -102,7 +101,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
 
       if (readActionExecuted)
         result.await()
-      else CompilationResult.RequestException(Throwable("Unable to start read action"))
+      else CompilationResult.CompilationAborted(Throwable("Unable to start read action"))
     }
     finally {
       daemonLock.unlock(this)

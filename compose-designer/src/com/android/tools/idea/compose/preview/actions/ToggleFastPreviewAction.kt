@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
+import com.android.tools.idea.compose.preview.fast.ManualDisabledReason
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
@@ -43,7 +44,7 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
       findComposePreviewManagersForContext(e.dataContext)
         .filterIsInstance<FastPreviewSurface>()
         .forEach { it.requestFastPreviewRefreshAsync() }
-    } else fastPreviewManager.disable()
+    } else fastPreviewManager.disable(ManualDisabledReason)
     // We have change the state of Fast Preview ,update notifications
     EditorNotifications.getInstance(project).updateAllNotifications()
   }

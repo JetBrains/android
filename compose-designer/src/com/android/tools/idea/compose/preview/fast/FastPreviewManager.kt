@@ -82,6 +82,11 @@ data class DisableReason(val title: String, val description: String? = null, val
 }
 
 /**
+ * A [DisableReason] to be used when calling [FastPreviewManager.disable] if it was disabled by the user.
+ */
+val ManualDisabledReason = DisableReason("User disabled")
+
+/**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
  * The daemons are indexed based on the runtime version passed when calling [getOrCreateDaemon].
  *
@@ -439,9 +444,8 @@ class FastPreviewManager private constructor(
       CompilationResult.DaemonStartFailure(t)
     }
     val durationString = Duration.ofMillis(System.currentTimeMillis() - startTime).toDisplayString()
-    val isSuccess = result == CompilationResult.Success
     log.info("Compiled in $durationString (result=$result, id=$requestId)")
-    if (!isSuccess && allowAutoDisable) {
+    if (result.isError && allowAutoDisable) {
       val reason = when (result) {
         is CompilationResult.RequestException -> DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
                                                                description = result.e?.message,
@@ -451,22 +455,23 @@ class FastPreviewManager private constructor(
         is CompilationResult.DaemonError -> DisableReason(
           title = message("fast.preview.disabled.reason.unable.compile.compiler.error"),
           description = message("fast.preview.disabled.reason.unable.compile.compiler.error.description"))
-        else -> null
+        is CompilationResult.CompilationAborted -> null
+        is CompilationResult.Success -> throw IllegalStateException("Result is not an error, no disable reason")
       }
-      disable(reason)
+      if (reason != null) disable(reason)
     }
 
     // Notify any error/success into the event log
-    val buildMessage = if (isSuccess)
+    val buildMessage = if (result.isSuccess)
       message("event.log.fast.preview.build.successful", durationString)
     else
       message("event.log.fast.preview.build.failed", durationString)
     Notification(PREVIEW_NOTIFICATION_GROUP_ID,
                  buildMessage,
-                 if (isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
+                 if (result.isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
       .notify(project)
 
-    if (isSuccess) {
+    if (result.isSuccess) {
       // The project has built successfully so we can drop the constants that we were keeping.
       ProjectConstantRemapper.getInstance(project).clearConstants(null)
     }
@@ -506,11 +511,11 @@ class FastPreviewManager private constructor(
   /**
    * Disables the Fast Preview. Optionally, receive a reason to be disabled that might be displayed to the user.
    */
-  fun disable(reason: DisableReason? = null) {
+  fun disable(reason: DisableReason) {
     val newReason = disableReason != reason
     disableReason = reason
 
-    if (newReason && reason?.hasLongDescription == true) {
+    if (newReason && reason != ManualDisabledReason && reason.hasLongDescription) {
       // Log long description to the event log.
       Notification(PREVIEW_NOTIFICATION_GROUP_ID,
                    message("fast.preview.disabled.reason.unable.compile.compiler.error"),

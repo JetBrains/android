@@ -21,6 +21,8 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.isError
+import com.android.tools.idea.compose.preview.fast.isSuccess
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.literals.LiteralUsageReference
@@ -112,6 +114,8 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     fastPreviewManager.compileRequest(psiMainFile, module).let { (result, outputPath) ->
       assertEquals(CompilationResult.Success, result)
+      assertTrue(result.isSuccess)
+      assertFalse(result.isError)
       ModuleClassLoaderOverlays.getInstance(module).overlayPath = File(outputPath).toPath()
 
       result to File(outputPath).toPath().toFileNameSet()
