@@ -102,6 +102,9 @@ class DeviceMenuAction2Test {
         Nexus 6 (411 × 731 dp, 560dpi)
         Nexus 6P (411 × 731 dp, 560dpi)
         Nexus 5X (411 × 731 dp, 420dpi)
+        Small Desktop (1366 × 768 dp, mdpi)
+        Medium Desktop (1920 × 1080 dp, xhdpi)
+        Large Desktop (1920 × 1080 dp, mdpi)
     ------------------------------------------------------
     Wear
     Wear OS Small Round (192 × 192 dp, xhdpi)

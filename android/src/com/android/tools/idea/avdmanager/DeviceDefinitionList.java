@@ -85,10 +85,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_WEAR = "Wear OS Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
+  private static final String DEFAULT_DESKTOP = "Medium Desktop";
   private static final String TV = "TV";
   private static final String WEAR = "Wear OS";
   private static final String AUTOMOTIVE = "Automotive";
-  private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, TV, AUTOMOTIVE);
+  private static final String DESKTOP = "Desktop";
+  private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, DESKTOP, TV, AUTOMOTIVE);
 
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -279,6 +281,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     updateDefaultDevice(TV, DEFAULT_TV);
     updateDefaultDevice(WEAR, DEFAULT_WEAR);
     updateDefaultDevice(AUTOMOTIVE, DEFAULT_AUTOMOTIVE);
+    updateDefaultDevice(DESKTOP, DEFAULT_DESKTOP);
   }
 
   private Device updateDefaultDevice(String type, String deviceDisplayName) {
@@ -434,6 +437,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   public static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isAutomotive(d)) {
       return AUTOMOTIVE;
+    } else if (HardwareConfigHelper.isDesktop(d)) {
+      return DESKTOP;
     } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return TV;
     } else if (HardwareConfigHelper.isWear(d)) {
