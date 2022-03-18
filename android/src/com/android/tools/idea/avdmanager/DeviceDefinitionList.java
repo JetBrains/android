@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -87,6 +88,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String TV = "TV";
   private static final String WEAR = "Wear OS";
   private static final String AUTOMOTIVE = "Automotive";
+  private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, TV, AUTOMOTIVE);
 
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -415,9 +417,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       }
       myDeviceCategoryMap.get(category).add(d);
     }
-    Set<String> categories = myDeviceCategoryMap.keySet();
-    String[] categoryArray = ArrayUtil.toStringArray(categories);
-    myCategoryModel.setItems(Lists.newArrayList(categoryArray));
+    ArrayList<String> categories = Lists.newArrayList(myDeviceCategoryMap.keySet());
+    categories.sort(Comparator.comparing(category -> {
+      int index = CATEGORY_ORDER.indexOf(category);
+      return index >= 0 ? index : Integer.MAX_VALUE;
+    }));
+    myCategoryModel.setItems(categories);
   }
 
   /**
