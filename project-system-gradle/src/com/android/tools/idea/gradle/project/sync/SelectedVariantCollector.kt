@@ -18,21 +18,23 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPathCore
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-class SelectedVariantCollector(project: Project) {
-  private val facetManager = ProjectFacetManager.getInstance(project)
+class SelectedVariantCollector(private val project: Project) {
 
   fun collectSelectedVariants(): SelectedVariants {
-    return SelectedVariants(facetManager.getFacets(AndroidFacet.ID).mapNotNull { it.findSelectedVariant() }.associateBy { it.moduleId })
+    return SelectedVariants(
+      project.getAndroidFacets().mapNotNull { it.findSelectedVariant() }.associateBy { it.moduleId }
+    )
   }
 
   private fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
+    val module = holderModule
     val moduleId = module.getModuleId() ?: return null
     val androidModuleModel = GradleAndroidModel.get(this)
     val ndkModuleModel = NdkModuleModel.get(module)

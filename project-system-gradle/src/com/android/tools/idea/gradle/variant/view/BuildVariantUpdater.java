@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isHolderModule;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 
@@ -53,6 +55,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -234,13 +237,17 @@ public class BuildVariantUpdater {
   }
 
   /**
-   * Finds all need-to-update facets and change the selected variant in facets recursively.
-   * If the target variant exists, change selected variant in ModuleModel as well.
+   * Updates the selected variant (and maybe abi) in the properties of an AndroidFacet attached to the holder module of the given module.
    *
-   * @return true if the target variant exists.
+   * <p>Note: Does not update any android facets attached to source set modules. They will be updated when the new selection is propagated
+   *          by Gradle sync.
    */
   private static boolean findAndUpdateAffectedFacets(@NotNull Module moduleToUpdate,
                                                      @NotNull VariantAndAbi variantToSelect) {
+    if (!isHolderModule((moduleToUpdate))) {
+      throw new IllegalArgumentException(String.format("%s module is not a holder module",
+                                                       moduleToUpdate.getName()));
+    }
     AndroidFacet androidFacet = AndroidFacet.getInstance(moduleToUpdate);
     if (androidFacet == null) {
       throw new IllegalStateException(
@@ -268,6 +275,7 @@ public class BuildVariantUpdater {
         }
       }
     }
+
     androidFacet.getProperties().SELECTED_BUILD_VARIANT = variantName;
     return true;
   }
