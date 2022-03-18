@@ -28,7 +28,6 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -37,9 +36,8 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -110,7 +108,7 @@ public class ProjectStructure {
 
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
-          pluginVersionsInProject.add(gradlePath, androidModel);
+          pluginVersionsInProject.add(androidModel);
           if (isApp(module)) {
             appModules.add(module);
           }
@@ -185,58 +183,31 @@ public class ProjectStructure {
   }
 
   public static class AndroidPluginVersionsInProject {
-    @NotNull private final Map<String, GradleVersion> myAgpVersionsPerModule = new HashMap<>();
+    @NotNull private final Set<GradleVersion> myAgpVersions = new HashSet<>();
 
     void copy(@NotNull AndroidPluginVersionsInProject other) {
-      myAgpVersionsPerModule.putAll(other.myAgpVersionsPerModule);
+      myAgpVersions.addAll(other.myAgpVersions);
     }
 
-    void add(@NotNull String gradlePath, @NotNull AndroidModuleModel androidModel) {
+    void add(@NotNull AndroidModuleModel androidModel) {
       GradleVersion modelVersion = androidModel.getAgpVersion();
       if (modelVersion != null) {
-        add(gradlePath, modelVersion);
+        add(modelVersion);
       }
     }
 
     @VisibleForTesting
-    void add(@NotNull String gradlePath, @NotNull GradleVersion modelVersion) {
-      myAgpVersionsPerModule.put(gradlePath, modelVersion);
+    void add(@NotNull GradleVersion modelVersion) {
+      myAgpVersions.add(modelVersion);
     }
 
     void clear() {
-      myAgpVersionsPerModule.clear();
-    }
-
-    public boolean haveVersionsChanged(@NotNull AndroidPluginVersionsInProject other) {
-      // If it's empty it could be because this is the first sync.
-      if (!other.isEmpty()) {
-        if (myAgpVersionsPerModule.size() != other.myAgpVersionsPerModule.size()) {
-          return true;
-        }
-        for (Map.Entry<String, GradleVersion> entry : myAgpVersionsPerModule.entrySet()) {
-          String modulePath = entry.getKey();
-          GradleVersion otherAgpVersion = other.myAgpVersionsPerModule.get(modulePath);
-          if (otherAgpVersion == null || entry.getValue().compareTo(otherAgpVersion) != 0) {
-            return true;
-          }
-        }
-      }
-      return false;
+      myAgpVersions.clear();
     }
 
     @NotNull
     public List<GradleVersion> getAllVersions() {
-      return myAgpVersionsPerModule.values().stream().distinct().collect(Collectors.toList());
-    }
-
-    boolean isEmpty() {
-      return myAgpVersionsPerModule.isEmpty();
-    }
-
-    @VisibleForTesting
-    @NotNull
-    ImmutableMap<String, GradleVersion> getInternalMap() {
-      return ImmutableMap.copyOf(myAgpVersionsPerModule);
+      return new ArrayList<>(myAgpVersions);
     }
   }
 }

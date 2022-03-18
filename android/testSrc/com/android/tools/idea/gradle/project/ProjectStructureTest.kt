@@ -46,13 +46,9 @@ class ProjectStructureTest : PlatformTestCase() {
     val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsAllOf("app", "instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
-    Truth.assertThat(agpPluginVersions.isEmpty).isFalse()
     // Verify that the AGP versions were recorded correctly.
-    val internalMap = agpPluginVersions.internalMap
-    Truth.assertThat(internalMap).containsEntry(":app", GradleVersion.parse("3.0"))
-    Truth.assertThat(internalMap).containsEntry(":instantApp", GradleVersion.parse("3.1"))
-    Truth.assertThat(internalMap).containsEntry(":androidLib", GradleVersion.parse("2.3.1"))
-    Truth.assertThat(internalMap).doesNotContainKey(":javaLib")
+    val allVersions = agpPluginVersions.allVersions
+    Truth.assertThat(allVersions).containsExactly(GradleVersion.parse("3.0"), GradleVersion.parse("3.1"),  GradleVersion.parse("2.3.1"))
   }
 
   fun testLeafModulesAreRecorded() {
