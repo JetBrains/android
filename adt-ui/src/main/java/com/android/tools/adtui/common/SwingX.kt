@@ -22,7 +22,8 @@ import kotlin.math.min
  * Represents an x position in swing space
  * Corresponds to the [SwingCoordinate] attribute
  */
-inline class SwingX(val value: Float) {
+@JvmInline
+value class SwingX(val value: Float) {
   operator fun plus(rhs: SwingLength) = SwingX(value + rhs.value)
   operator fun minus(rhs: SwingLength) = SwingX(value - rhs.value)
   operator fun minus(rhs: SwingX) = SwingLength(value - rhs.value)

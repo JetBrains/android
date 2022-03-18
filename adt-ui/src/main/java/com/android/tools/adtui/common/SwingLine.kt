@@ -20,7 +20,8 @@ import java.awt.geom.Line2D
  * Represents a line in swing space running between the points
  * defined by x1, y1 and x2, y2
  */
-inline class SwingLine(override val value: Line2D.Float) : SwingShape {
+@JvmInline
+value class SwingLine(override val value: Line2D.Float) : SwingShape {
   constructor(x1: SwingX, y1: SwingY, x2: SwingX, y2: SwingY) : this(Line2D.Float(x1.value, y1.value, x2.value, y2.value))
 
   val x1: SwingX

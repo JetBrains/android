@@ -21,7 +21,8 @@ import java.awt.geom.Point2D
  * Represents a point position in swing space
  * defined by [SwingX] and [SwingY] coordinates
  */
-inline class SwingPoint(val value: Point2D.Float) {
+@JvmInline
+value class SwingPoint(val value: Point2D.Float) {
   constructor(x: SwingX, y: SwingY) : this(Point2D.Float(x.value, y.value))
 
   val x: SwingX

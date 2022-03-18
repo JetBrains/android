@@ -24,7 +24,8 @@ import kotlin.math.min
  * Represents the distance between two points in swing space
  * Corresponds to the [SwingCoordinate] attribute
  */
-inline class SwingLength(val value: Float) {
+@JvmInline
+value class SwingLength(val value: Float) {
   operator fun plus(rhs: SwingLength) = SwingLength(value + rhs.value)
   operator fun minus(rhs: SwingLength) = SwingLength(value - rhs.value)
   operator fun unaryMinus() = SwingLength(-value)
