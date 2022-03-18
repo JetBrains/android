@@ -18,6 +18,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
   public static final String KOTLIN_MULTIPLATFORM = "projects/kotlinMultiplatform";
+  public static final String LIGHT_SYNC_REFERENCE = "projects/lightSyncReference";
   public static final String LINKED = "projects/linked";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";

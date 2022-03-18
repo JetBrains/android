@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MAIN_IN_ROOT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
@@ -348,6 +349,12 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     @Test
     fun testApiDependency() {
       val text = importSyncAndDumpProject(projectDir = API_DEPENDENCY)
+      assertIsEqualToSnapshot(text)
+    }
+
+    @Test
+    fun testLightSyncReference() {
+      val text = importSyncAndDumpProject(projectDir = LIGHT_SYNC_REFERENCE)
       assertIsEqualToSnapshot(text)
     }
   }
