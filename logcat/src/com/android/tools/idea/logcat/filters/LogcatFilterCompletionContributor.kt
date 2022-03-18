@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
+import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
@@ -101,6 +102,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                if (hasAndroidProject(parameters.editor)) {
                  result.addElement(MY_PACKAGE.toLookupElement())
                }
+               result.addLookupAdvertisement(LogcatBundle.message("logcat.filter.completion.hint"))
              }
            })
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.KVALUE),
