@@ -193,7 +193,7 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : De
 
   override fun updatePresentation(presentation: PresentationData) {
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-    presentation.setIcon(AllIcons.Nodes.Folder)
+    presentation.setIcon(AllIcons.FileTypes.Xml)
     val count = issues.size
     if (count > 0) {
       val text = "  Has $count issue${if (count == 1) "" else "s"}"

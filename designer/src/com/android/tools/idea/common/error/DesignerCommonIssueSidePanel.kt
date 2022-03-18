@@ -15,33 +15,34 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
+import com.intellij.profile.codeInspection.ui.readHTML
+import com.intellij.profile.codeInspection.ui.toHTML
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.JBHtmlEditorKit
+import com.intellij.ui.components.Link
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Font
-import javax.swing.JEditorPane
+import java.io.File
+import javax.swing.BoxLayout
 import javax.swing.JPanel
-import javax.swing.JTextPane
 import javax.swing.ScrollPaneConstants
-import javax.swing.text.Element
-import javax.swing.text.MutableAttributeSet
-import javax.swing.text.html.HTMLEditorKit
-import javax.swing.text.html.StyleSheet
 
 /**
  * The side panel to show the detail of issue and its source code if available
@@ -56,10 +57,11 @@ class DesignerCommonIssueSidePanel(private val project: Project,
 
   init {
     Disposer.register(parentDisposable, this)
-    splitter.firstComponent = DesignerCommonIssueDetailPanel(issue)
+    splitter.firstComponent = DesignerCommonIssueDetailPanel(project, issue)
 
     editor = createEditor()
     if (editor != null) {
+      editor.setBorder(JBUI.Borders.empty())
       splitter.secondComponent = editor.component
       splitter.setResizeEnabled(true)
     }
@@ -85,61 +87,64 @@ class DesignerCommonIssueSidePanel(private val project: Project,
 /**
  * The side panel to show the details of issue detail in [DesignerCommonIssuePanel].
  */
-private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout()) {
-  private val content = JPanel(BorderLayout())
-  private val errorTitle: JBLabel = JBLabel()
-  private val errorDescription: JTextPane = JTextPane()
+@Suppress("DialogTitleCapitalization")
+private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : JPanel() {
 
   init {
-    background = primaryContentBackground
+    border = JBUI.Borders.empty(18, 12, 0, 0)
+    layout = BorderLayout()
 
-    val scrollPanel = JBScrollPane(content,
-                                   ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    add(scrollPanel, BorderLayout.CENTER)
-    content.border = JBUI.Borders.empty(4)
-    content.background = primaryContentBackground
+    val title = JBLabel().apply {
+      text = issue.summary
+      font = font.deriveFont(Font.BOLD)
+    }
+    add(title, BorderLayout.NORTH)
 
-    content.add(errorTitle, BorderLayout.NORTH)
-    content.add(errorDescription, BorderLayout.CENTER)
+    val contentPanel = JPanel()
+    contentPanel.layout = BorderLayout()
+    val scrollPane = JBScrollPane(contentPanel,
+                                  ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                  ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    scrollPane.border = JBUI.Borders.empty(12, 0, 0, 0)
+    add(scrollPane, BorderLayout.CENTER)
 
-    errorTitle.font = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD)
-    errorTitle.background = primaryContentBackground
+    val descriptionEditorPane = DescriptionEditorPane()
+    descriptionEditorPane.alignmentX = LEFT_ALIGNMENT
+    contentPanel.add(descriptionEditorPane, BorderLayout.NORTH)
 
-    errorDescription.editorKit = IssueHTMLEditorKit()
-    errorDescription.addHyperlinkListener(issue.hyperlinkListener)
-    errorDescription.font = UIUtil.getToolTipFont()
-    errorDescription.background = primaryContentBackground
-    errorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-    errorDescription.isEditable = false
-    errorDescription.text = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
-                                            UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
+    val description = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
+                                      UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
+    descriptionEditorPane.readHTML(descriptionEditorPane.toHTML(description, false))
 
-    background = UIUtil.getEditorPaneBackground()
-  }
+    if (issue is VisualLintRenderIssue) {
+      val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
+      affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
 
-  private fun updateImageSize(html: String, size: Int): String {
-    return html.replace("(<img .+ width=)[0-9]+( height=)[0-9]+".toRegex(), "$1$size$2$size")
+      val projectBasePath = project.basePath
+      if (projectBasePath != null) {
+        // Find the files and filter duplicated files. It is possible more than one NlModel are created by same file.
+        val relatedFiles = issue.models.map { it.virtualFile }.distinct()
+        if (relatedFiles.isNotEmpty()) {
+          affectedFilePanel.add(JBLabel("Affected Files:").apply {
+            font = font.deriveFont(Font.BOLD)
+            alignmentX = Component.LEFT_ALIGNMENT
+            border = JBUI.Borders.empty(4, 0)
+          })
+        }
+        for (file in relatedFiles) {
+          val pathToDisplay = FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: continue
+          val link = Link(pathToDisplay, null) {
+            OpenFileDescriptor(project, file).navigateInEditor(project, true)
+            alignmentX = LEFT_ALIGNMENT
+          }
+          affectedFilePanel.add(link)
+        }
+      }
+      contentPanel.add(affectedFilePanel, BorderLayout.CENTER)
+    }
   }
 }
 
-private class IssueHTMLEditorKit : HTMLEditorKit() {
-  var style = createStyleSheet()
-  fun createStyleSheet(): StyleSheet {
-    val style = StyleSheet()
-    style.addStyleSheet(JBHtmlEditorKit.createStyleSheet())
-    style.addRule("body { font-family: Sans-Serif; }")
-    style.addRule("code { font-size: 100%; font-family: monospace; }") // small by Swing's default
-    style.addRule("small { font-size: small; }") // x-small by Swing's default
-    style.addRule("a { text-decoration: none;}")
-    return style
-  }
-
-  override fun getStyleSheet(): StyleSheet {
-    return style
-  }
-
-  override fun createInputAttributes(element: Element, set: MutableAttributeSet) {
-    // Do Nothing, the super implementation stripped out the <BR/> tags, but we need them.
-  }
+private fun updateImageSize(html: String, size: Int): String {
+  return html.replace("(<img .+ width=)[0-9]+( height=)[0-9]+".toRegex(), "$1$size$2$size")
 }
