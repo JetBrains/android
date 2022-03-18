@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
  */
 object FloatValidator : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
-    if (editedValue == null || editedValue.isBlank()) return EDITOR_NO_ERROR
+    if (editedValue.isNullOrBlank()) return EDITOR_NO_ERROR
     val trimmedValue = editedValue.trim()
 
     val numberValue = trimmedValue.toFloatOrNull()

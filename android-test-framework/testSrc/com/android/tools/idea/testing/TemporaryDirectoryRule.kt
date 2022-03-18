@@ -65,7 +65,7 @@ class TemporaryDirectoryRule : ExternalResource() {
     fun createVirtualFile(parent: VirtualFile, exactFileName: String, data: String?): VirtualFile {
       return WriteAction.computeAndWait<VirtualFile, IOException> {
         val result = parent.createChildData(TemporaryDirectoryRule::class.java, exactFileName)
-        if (data != null && data.isNotEmpty()) {
+        if (!data.isNullOrEmpty()) {
           result.setBinaryContent(data.toByteArray(Charsets.UTF_8))
         }
         result

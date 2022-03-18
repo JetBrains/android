@@ -147,7 +147,7 @@ internal class DeclaredDependenciesPanel(
   override fun getSelection(): PsBaseDependency? = dependenciesTable.selectionIfSingle
 
   override fun setSelection(selection: Collection<PsBaseDependency>?): ActionCallback {
-    if (selection == null || selection.isEmpty()) {
+    if (selection.isNullOrEmpty()) {
       dependenciesTable.clearSelection()
     }
     else {

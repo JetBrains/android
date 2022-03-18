@@ -247,7 +247,7 @@ class GradleModuleSystem(
     val versionNameWithSuffix = variant.versionNameWithSuffix
     val versionNameSuffix = variant.versionNameSuffix
     return when {
-      versionNameWithSuffix != null && versionNameWithSuffix.isNotEmpty() -> versionNameWithSuffix
+      !versionNameWithSuffix.isNullOrEmpty() -> versionNameWithSuffix
       versionNameSuffix.isNullOrEmpty() -> null
       else -> facet.getPrimaryManifestXml()?.versionName.orEmpty() + versionNameSuffix
     }

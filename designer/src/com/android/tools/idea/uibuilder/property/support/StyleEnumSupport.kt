@@ -97,7 +97,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
 
   private fun determineHeaderFromLibraryName(libraryName: String?) =
     when {
-      libraryName == null || libraryName.isEmpty() -> PROJECT_HEADER
+      libraryName.isNullOrEmpty() -> PROJECT_HEADER
       libraryName.contains("appcompat") -> APPCOMPAT_HEADER
       else -> LIBRARY_HEADER
     }

@@ -81,7 +81,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
         ?.mapNotNull { docElement ->
           val id = docElement.findStringAttribute("id")
           val latestVersion = docElement.findStringAttribute("latestVersion")?.let { GradleVersion.tryParse(it) }
-          if (id == null || id.isEmpty() || latestVersion == null) return@mapNotNull null
+          if (id.isNullOrEmpty() || latestVersion == null) return@mapNotNull null
           id.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(MavenCentralRepository.name, it[0], it[1], latestVersion) }
         }
       ?: listOf()
