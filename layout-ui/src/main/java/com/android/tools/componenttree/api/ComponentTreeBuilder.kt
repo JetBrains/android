@@ -20,6 +20,7 @@ import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
+import com.android.tools.componenttree.treetable.UpperRightCorner
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.designer.componentTree.ComponentTreeBuilder
 import com.intellij.openapi.diagnostic.Logger
@@ -29,6 +30,7 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import java.awt.GraphicsEnvironment
 import javax.swing.JComponent
+import javax.swing.ScrollPaneConstants
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
@@ -204,6 +206,7 @@ class ComponentTreeBuilder {
 
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
+    scrollPane.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, UpperRightCorner())
     scrollPane.border = JBUI.Borders.empty()
     return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel, table)
   }

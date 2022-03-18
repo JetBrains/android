@@ -18,6 +18,7 @@ package com.android.tools.componenttree.treetable
 import com.android.tools.componenttree.api.ColumnInfo
 import com.intellij.ui.JBColor
 import com.intellij.util.IJSwingUtilities
+import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
@@ -62,6 +63,8 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
     reorderingAllowed = false
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = TreeTableHeaderTraversalPolicy(this)
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     val mouseListener = HoverMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
