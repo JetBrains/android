@@ -784,52 +784,68 @@ public class AidlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // INTERFACE_KEYWORD dotted_name SEMICOLON
-  //      |   INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
+  // [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name SEMICOLON
+  //      |   [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
   public static boolean interface_declaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interface_declaration")) return false;
-    if (!nextTokenIs(b, INTERFACE_KEYWORD)) return false;
+    if (!nextTokenIs(b, "<interface declaration>", INTERFACE_KEYWORD, ONEWAY_KEYWORD)) return false;
     boolean r;
-    Marker m = enter_section_(b);
+    Marker m = enter_section_(b, l, _NONE_, INTERFACE_DECLARATION, "<interface declaration>");
     r = interface_declaration_0(b, l + 1);
     if (!r) r = interface_declaration_1(b, l + 1);
-    exit_section_(b, m, INTERFACE_DECLARATION, r);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // INTERFACE_KEYWORD dotted_name SEMICOLON
+  // [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name SEMICOLON
   private static boolean interface_declaration_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interface_declaration_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, INTERFACE_KEYWORD);
+    r = interface_declaration_0_0(b, l + 1);
+    r = r && consumeToken(b, INTERFACE_KEYWORD);
     r = r && dotted_name(b, l + 1);
     r = r && consumeToken(b, SEMICOLON);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
+  // [ONEWAY_KEYWORD]
+  private static boolean interface_declaration_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "interface_declaration_0_0")) return false;
+    consumeToken(b, ONEWAY_KEYWORD);
+    return true;
+  }
+
+  // [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
   private static boolean interface_declaration_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interface_declaration_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, INTERFACE_KEYWORD);
+    r = interface_declaration_1_0(b, l + 1);
+    r = r && consumeToken(b, INTERFACE_KEYWORD);
     r = r && dotted_name(b, l + 1);
     r = r && consumeToken(b, LBRACE);
-    r = r && interface_declaration_1_3(b, l + 1);
+    r = r && interface_declaration_1_4(b, l + 1);
     r = r && consumeToken(b, RBRACE);
     exit_section_(b, m, null, r);
     return r;
   }
 
+  // [ONEWAY_KEYWORD]
+  private static boolean interface_declaration_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "interface_declaration_1_0")) return false;
+    consumeToken(b, ONEWAY_KEYWORD);
+    return true;
+  }
+
   // interface_member*
-  private static boolean interface_declaration_1_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "interface_declaration_1_3")) return false;
+  private static boolean interface_declaration_1_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "interface_declaration_1_4")) return false;
     while (true) {
       int c = current_position_(b);
       if (!interface_member(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "interface_declaration_1_3", c)) break;
+      if (!empty_element_parsed_guard_(b, "interface_declaration_1_4", c)) break;
     }
     return true;
   }

@@ -182,8 +182,8 @@ private parcelable_member ::= variable_declaration | constant_declaration | decl
 constant_declaration ::= CONST_KEYWORD type_element name_component ASSIGN const_expr SEMICOLON
 
 interface_declaration
-     ::= INTERFACE_KEYWORD dotted_name SEMICOLON
-     |   INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
+     ::= [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name SEMICOLON
+     |   [ONEWAY_KEYWORD] INTERFACE_KEYWORD dotted_name LBRACE interface_member* RBRACE
 {
   pin=2
 }

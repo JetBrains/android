@@ -19,14 +19,14 @@ import static com.android.SdkConstants.DOT_TXT;
 
 import com.android.tools.idea.lang.LangTestDataKt;
 import com.google.common.base.Charsets;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.rt.execution.junit.FileComparisonFailure;
 import com.intellij.testFramework.ParsingTestCase;
-
 import java.io.File;
 import kotlin.io.FilesKt;
 
+/**
+ * Tests for Aidl.bnf.
+ */
 public class AidlParserTest extends ParsingTestCase {
   // If set to true, on test failures the test will rewrite the expected
   // text files in place; this makes it more convenient to update the
@@ -64,6 +64,10 @@ public class AidlParserTest extends ParsingTestCase {
   }
 
   public void testIAidlInterface() {
+    checkNoErrors();
+  }
+
+  public void testIWorkManagerImplCallback() {
     checkNoErrors();
   }
 
