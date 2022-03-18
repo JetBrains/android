@@ -99,7 +99,7 @@ class IdeResourceNameValidator private constructor(
   fun doesResourceExist(name: String): Boolean = existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
 
   override fun getErrorText(inputString: String?): String? {
-    if (inputString == null || inputString.isBlank()) {
+    if (inputString.isNullOrBlank()) {
       return "Enter a new name"
     }
 

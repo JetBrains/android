@@ -95,7 +95,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
 fun StringParameter.validateStringType(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
 ): Collection<Constraint> {
-  if (value == null || value.isEmpty()) {
+  if (value.isNullOrEmpty()) {
     return if (NONEMPTY in constraints) listOf(NONEMPTY)
     else listOf()
   }
@@ -191,7 +191,7 @@ fun StringParameter.uniquenessSatisfied(
 private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
 
 fun existsResourceFile(module: Module?, resourceType: ResourceType, name: String?): Boolean {
-  if (name == null || name.isEmpty() || module == null) {
+  if (name.isNullOrEmpty() || module == null) {
     return false
   }
   val facet = module.androidFacet ?: return false
@@ -201,7 +201,7 @@ fun existsResourceFile(module: Module?, resourceType: ResourceType, name: String
 fun existsResourceFile(
   sourceProvider: SourceProvider?, module: Module?, resourceFolderType: ResourceFolderType, resourceType: ResourceType, name: String?
 ): Boolean {
-  if (name == null || name.isEmpty() || sourceProvider == null) {
+  if (name.isNullOrEmpty() || sourceProvider == null) {
     return false
   }
   val facet = module?.androidFacet

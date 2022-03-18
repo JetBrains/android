@@ -34,7 +34,7 @@ val IntegerStrictValidator = createIntegerValidator(IntegerValidatorType.STRICT)
  * Creates an [EditingValidation] instance that validates for positive (>0) integer numbers.
  */
 private fun createIntegerValidator(type: IntegerValidatorType): EditingValidation = validator@{ editedValue: String? ->
-  if (editedValue == null || editedValue.isBlank()) return@validator EDITOR_NO_ERROR
+  if (editedValue.isNullOrBlank()) return@validator EDITOR_NO_ERROR
   val trimmedValue = editedValue.trim()
 
   val numberValue =

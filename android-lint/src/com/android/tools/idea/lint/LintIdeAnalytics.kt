@@ -171,7 +171,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
           val gradleModel = model.androidProject
           val lintOptions = gradleModel.lintOptions
           val overrides = lintOptions.severityOverrides
-          if (overrides != null && !overrides.isEmpty()) {
+          if (!overrides.isNullOrEmpty()) {
             for ((id, severity) in overrides.entries) {
               recordSeverityOverride(map, id, severity.toAnalyticsSeverity())
             }

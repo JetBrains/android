@@ -54,7 +54,7 @@ internal fun computeAttributeMap(
     val attributeName = item.name.stringValue
     val attributeValue = item.stringValue
 
-    if (attributeName == null || attributeName.isEmpty() || attributeValue == null) {
+    if (attributeName.isNullOrEmpty() || attributeValue == null) {
       continue
     }
     val localName = attributeName.substringAfterLast(':')

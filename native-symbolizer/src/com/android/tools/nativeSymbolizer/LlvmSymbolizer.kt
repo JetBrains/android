@@ -62,7 +62,7 @@ class LlvmSymbolizer(private val symbolizerExe: String,
         var responseLine: String?
         while (true) {
           responseLine = holder.stdout.readLine()
-          if (responseLine == null || responseLine.isEmpty()) {
+          if (responseLine.isNullOrEmpty()) {
             break
           }
           response.add(responseLine)

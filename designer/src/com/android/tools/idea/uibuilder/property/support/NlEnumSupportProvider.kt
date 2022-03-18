@@ -125,7 +125,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
         return null
       }
     }
-    if (values == null || values.isEmpty()) {
+    if (values.isNullOrEmpty()) {
       return null
     }
 

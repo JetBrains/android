@@ -1936,13 +1936,13 @@ fun getReferredResourceOrManifestField(
   localOnly: Boolean
 ): ReferredResourceFieldInfo? {
   val resFieldName = exp.referenceName
-  if (resFieldName == null || resFieldName.isEmpty()) {
+  if (resFieldName.isNullOrEmpty()) {
     return null
   }
   var qExp: PsiExpression = exp.qualifierExpression as? PsiReferenceExpression ?: return null
   val resClassReference = qExp as PsiReferenceExpression
   val resClassName = resClassReference.referenceName
-  if (resClassName == null || resClassName.isEmpty() || className != null && className != resClassName) {
+  if (resClassName.isNullOrEmpty() || className != null && className != resClassName) {
     return null
   }
   qExp = resClassReference.qualifierExpression ?: return null
