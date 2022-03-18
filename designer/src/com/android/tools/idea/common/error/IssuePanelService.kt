@@ -159,10 +159,22 @@ class IssuePanelService(private val project: Project) {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       // If the shared issue panel is initialized after opening editor, the message bus misses the file editor event.
       // This may happen when opening a project. Make sure the initial status is correct here.
-      val visibleAfterInit = FileEditorManager.getInstance(project).selectedEditors.any {
+      val isDesignFile = FileEditorManager.getInstance(project).selectedEditors.any {
         isDesignEditor(it) || (it.file?.let { file -> isComposeFile(file) } ?: false)
       }
-      setSharedIssuePanelVisibility(visibleAfterInit)
+      if (isDesignFile) {
+        // If the selected file is not a design file, just keeps the default status of problems pane.
+        // Otherwise we need to make it selected the issue panel tab, no matter if the problems pane is open or not.
+        if (problemsViewWindow.isVisible) {
+          setSharedIssuePanelVisibility(true)
+        }
+        else {
+          problemsViewWindow.hide {
+            updateSharedIssuePanelTabName()
+            selectSharedIssuePanelTab()
+          }
+        }
+      }
     }
   }
 
