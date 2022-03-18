@@ -19,6 +19,7 @@ package org.jetbrains.android.intentions;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -54,7 +55,6 @@ import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -192,7 +192,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     assert facet != null;
 
-    final String aPackage = getPackage(facet);
+    final String aPackage = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
     if (aPackage == null) {
       Messages.showErrorDialog(project, AndroidBundle.message("package.not.found.error"), CommonBundle.getErrorTitle());
       return;
@@ -414,13 +414,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(file, marker.getStartOffset(), marker.getEndOffset());
       }
     });
-  }
-
-  @Nullable
-  private static String getPackage(@NotNull AndroidFacet facet) {
-    Manifest manifest = Manifest.getMainManifest(facet);
-    if (manifest == null) return null;
-    return manifest.getPackage().getValue();
   }
 
   @Nullable
