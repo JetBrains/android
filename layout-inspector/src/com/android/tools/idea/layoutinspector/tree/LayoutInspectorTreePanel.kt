@@ -73,8 +73,8 @@ fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
-private const val ICON_BORDER = 10
-private const val ICON_HORIZONTAL_PADDING = 10
+private const val ICON_VERTICAL_BORDER = 5
+private const val ICON_HORIZONTAL_BORDER = 10
 private const val TEXT_HORIZONTAL_BORDER = 5
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
@@ -184,12 +184,12 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
     val header = JBLabel("Recomposition counts").apply {
-      border = JBUI.Borders.empty(ICON_BORDER, TEXT_HORIZONTAL_BORDER)
+      border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, TEXT_HORIZONTAL_BORDER)
       font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     }
     val reset = CommonHyperLinkLabel().apply {
       text = "Reset"
-      border = JBUI.Borders.empty(ICON_BORDER)
+      border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, ICON_HORIZONTAL_BORDER)
       hyperLinkListeners.add(::resetRecompositionCounts)
       cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
       toolTipText = "Click to reset recomposition counts"
@@ -204,14 +204,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createCountsHeader() =
-    createIconHeader(StudioIcons.LayoutEditor.Palette.STACK_VIEW, "Number of times this composable has been recomposed")
+    createIconHeader(StudioIcons.LayoutInspector.RECOMPOSITION_COUNT, "Number of times this composable has been recomposed")
 
   private fun createSkipsHeader() =
-    createIconHeader(StudioIcons.LayoutEditor.Properties.GONE, "Number of times recomposition for this component has been skipped")
+    createIconHeader(StudioIcons.LayoutInspector.RECOMPOSITION_SKIPPED, "Number of times recomposition for this component has been skipped")
 
   private fun createIconHeader(icon: Icon, toolTipText: String? = null) : TableCellRenderer {
     val label = JBLabel(icon)
-    label.border = JBUI.Borders.empty(ICON_BORDER, ICON_HORIZONTAL_PADDING)
+    label.border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, ICON_HORIZONTAL_BORDER)
     label.toolTipText = toolTipText
     return TableCellRenderer { _, _, _, _, _, _ -> label }
   }
