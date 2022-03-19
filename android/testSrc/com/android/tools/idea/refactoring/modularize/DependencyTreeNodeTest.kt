@@ -41,16 +41,6 @@ class DependencyTreeNodeTest {
                    .defaultAnswer(CALLS_REAL_METHODS)) // call real methods when not mocked out
 
   @Test
-  fun `reference count defaults to zero`() {
-    val userObject = mock<Any>()
-
-    // We're testing the 1-arg constructor here so we won't use the helper
-    val node = Mockito.mock(DependencyTreeNode::class.java, withSettings().useConstructor(userObject).defaultAnswer(CALLS_REAL_METHODS))
-
-    assertThat(node.referenceCount).isEqualTo(0)
-  }
-
-  @Test
   fun `text attributes are regular when node is checked`() {
     val node = spyDependencyTreeNode(mock(), Random.nextInt())
     given(node.isChecked).thenReturn(true)

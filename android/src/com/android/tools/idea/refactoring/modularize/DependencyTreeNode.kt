@@ -19,9 +19,7 @@ import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 
-abstract class DependencyTreeNode
-  @JvmOverloads
-  constructor(
+abstract class DependencyTreeNode(
   userObject: Any?,
   val referenceCount: Int = 0,
 ) : CheckedTreeNode(userObject) {
