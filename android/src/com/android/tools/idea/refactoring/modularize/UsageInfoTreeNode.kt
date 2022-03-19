@@ -18,13 +18,15 @@ package com.android.tools.idea.refactoring.modularize
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.res.getFolderConfiguration
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Iconable
+import com.intellij.openapi.util.Iconable.ICON_FLAG_READ_STATUS
+import com.intellij.openapi.util.Iconable.ICON_FLAG_VISIBILITY
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
 import com.intellij.usageView.UsageInfo
 import javax.swing.Icon
 
@@ -33,7 +35,7 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
 
   override fun render(renderer: ColoredTreeCellRenderer) {
     renderer.icon = ApplicationManager.getApplication().runReadAction<Icon> {
-      psiElement!!.getIcon(Iconable.ICON_FLAG_VISIBILITY or Iconable.ICON_FLAG_READ_STATUS)
+      psiElement!!.getIcon(ICON_FLAG_VISIBILITY or ICON_FLAG_READ_STATUS)
     }
 
     when (psiElement) {
@@ -54,15 +56,10 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
     }
   }
 
-  private fun renderQualifiers(
-    config: FolderConfiguration?,
-    renderer: ColoredTreeCellRenderer,
-    attr: SimpleTextAttributes,
-  ) {
+  private fun renderQualifiers(config: FolderConfiguration?, renderer: ColoredTreeCellRenderer, attr: SimpleTextAttributes) {
     val qualifier = config!!.qualifierString
-    val derivedAttr = SimpleTextAttributes( attr.style or SimpleTextAttributes.STYLE_SMALLER, attr.fgColor)
     if (!StringUtil.isEmptyOrSpaces(qualifier)) {
-      renderer.append(" ($qualifier)", derivedAttr)
+      renderer.append(" ($qualifier)", SimpleTextAttributes(attr.style or STYLE_SMALLER, attr.fgColor))
     }
   }
 }

@@ -246,8 +246,8 @@ class UsageInfoTreeNodeTest {
     mockStatic<ApplicationManager>().use {
       given(ApplicationManager.getApplication()).thenReturn(mock())
 
-      val `JVM class containing getFolderConfiruation` = Class.forName("com.android.tools.idea.res.IdeResourcesUtil")
-      Mockito.mockStatic(`JVM class containing getFolderConfiruation`).use {
+      val `JVM class containing getFolderConfiguration` = Class.forName("com.android.tools.idea.res.IdeResourcesUtil")
+      Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
         given(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
 
         mockStatic<StringUtil>().use {
