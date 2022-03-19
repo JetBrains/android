@@ -13,46 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.refactoring.modularize;
+package com.android.tools.idea.refactoring.modularize
 
-import com.intellij.ui.CheckedTreeNode;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 
-public abstract class DependencyTreeNode extends CheckedTreeNode {
+abstract class DependencyTreeNode
+  @JvmOverloads
+  constructor(
+  userObject: Any?,
+  val referenceCount: Int = 0,
+) : CheckedTreeNode(userObject) {
 
-  private static final SimpleTextAttributes STRIKEOUT_ATTRIBUTES =
-    new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT | SimpleTextAttributes.STYLE_ITALIC, null);
+  abstract fun render(renderer: ColoredTreeCellRenderer)
 
-  private final int myReferenceCount;
+  val textAttributes: SimpleTextAttributes
+    get() = if (isChecked()) SimpleTextAttributes.REGULAR_ATTRIBUTES else STRIKEOUT_ATTRIBUTES
 
-  public DependencyTreeNode(Object userObject) {
-    this(userObject, 0);
-  }
-
-  public DependencyTreeNode(Object userObject, int referenceCount) {
-    super(userObject);
-    myReferenceCount = referenceCount;
-  }
-
-  public int getReferenceCount() {
-    return myReferenceCount;
-  }
-
-  public abstract void render(@NotNull ColoredTreeCellRenderer renderer);
-
-  @NotNull
-  public SimpleTextAttributes getTextAttributes() {
-    return isChecked() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : STRIKEOUT_ATTRIBUTES;
-  }
-
-  public void renderReferenceCount(@NotNull  ColoredTreeCellRenderer renderer, SimpleTextAttributes inheritedAttributes) {
-    if (myReferenceCount > 1) {
-      SimpleTextAttributes derivedAttributes = new SimpleTextAttributes(
-        inheritedAttributes.getStyle() | SimpleTextAttributes.STYLE_ITALIC | SimpleTextAttributes.STYLE_SMALLER,
-        inheritedAttributes.getFgColor());
-      renderer.append(" (" + myReferenceCount + " usages)", derivedAttributes);
+  fun renderReferenceCount(renderer: ColoredTreeCellRenderer, inheritedAttributes: SimpleTextAttributes) {
+    if (referenceCount > 1) {
+      val derivedAttributes = SimpleTextAttributes(
+        inheritedAttributes.style or SimpleTextAttributes.STYLE_ITALIC or SimpleTextAttributes.STYLE_SMALLER,
+        inheritedAttributes.fgColor,
+      )
+      renderer.append(" ($referenceCount usages)", derivedAttributes)
     }
+  }
+
+  companion object {
+    private val STRIKEOUT_ATTRIBUTES = SimpleTextAttributes(
+      SimpleTextAttributes.STYLE_STRIKEOUT or SimpleTextAttributes.STYLE_ITALIC,
+      null,
+    )
   }
 }
