@@ -66,7 +66,6 @@ import com.android.resources.base.ResourceSerializationUtil;
 import com.android.resources.base.ResourceSourceFile;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
@@ -98,7 +97,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNameHelper;
-import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
@@ -372,10 +370,29 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private void commitToRepositoryWithoutLock(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> itemsByType) {
     ResourceUpdateTracer.log(() -> getSimpleId(this) + ".commitToRepositoryWithoutLock");
     for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : itemsByType.entrySet()) {
-      for (ResourceItem item : entry.getValue().values()) {
-        ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Committing " + item.getType() + '/' + item.getName());
+      if (ResourceUpdateTracer.isTracingActive()) {
+        for (ResourceItem item : entry.getValue().values()) {
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Committing " + item.getType() + '/' + item.getName());
+        }
       }
-      getOrCreateMap(entry.getKey()).putAll(entry.getValue());
+      ListMultimap<String, ResourceItem> map = getOrCreateMap(entry.getKey());
+      map.putAll(entry.getValue());
+      // Dump resource trace if some strings exist only in non-default locale.
+      // Such situation may happen either due to use action, or due to a missed resource update.
+      if (ResourceUpdateTracer.isTracingActive() && entry.getKey() == ResourceType.STRING) {
+        for (String name : entry.getValue().keySet()) {
+          List<ResourceItem> items = map.get(name);
+          if (!items.isEmpty()) {
+            ResourceItem item = items.get(0);
+            FolderConfiguration configuration = item.getConfiguration();
+            if (configuration.getLocaleQualifier() != null) {
+              ResourceUpdateTracer.dumpTrace(
+                  "Resource " + item.getReferenceToSelf().getResourceUrl() + " is missing in the default locale");
+              break;
+            }
+          }
+        }
+      }
     }
   }
 

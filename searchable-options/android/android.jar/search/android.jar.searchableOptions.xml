@@ -613,6 +613,9 @@
     <option name="literals" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="the" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="toggle" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
+    <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
+    <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
     <option name="connections" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="device" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="troubleshoot" path="ActionManager" hit="Troubleshoot Device Connections" />

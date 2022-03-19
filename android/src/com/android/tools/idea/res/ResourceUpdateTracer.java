@@ -40,7 +40,7 @@ public class ResourceUpdateTracer {
   private static final Logger LOG = Logger.getInstance(ResourceUpdateTracer.class);
 
   static {
-    if (StudioFlags.RESOURCE_REPOSITORY_TRACE_UPDATES.get()) {
+    if (ResourceUpdateTraceSettings.getInstance().getEnabled()) {
       startTracing();
     }
   }
