@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
@@ -64,6 +65,10 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
 
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
+    if (e.project?.let { FastPreviewManager.getInstance(it) }?.isEnabled == true) {
+      presentation.isEnabledAndVisible = false
+      return
+    }
     val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
     templateText?.let { presentation.text = "$it${getBuildAndRefreshShortcut().asString()}" }
