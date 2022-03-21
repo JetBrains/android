@@ -71,8 +71,8 @@ class AnimationCard(previewState: AnimationPreviewState,
     border = JBUI.Borders.empty(0, 0, 0, 8)
   }
 
-  private val secondRow = JPanel(TabularLayout("30px,*,Fit")).apply {
-    border = JBUI.Borders.empty(0, 25, 0, 8)
+  private val secondRow = JPanel(TabularLayout("Fit,Fit,*")).apply {
+    border = JBUI.Borders.empty(0, 0, 0, 8)
   }
 
   fun getCurrentHeight() =
@@ -91,8 +91,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   }
 
   fun addStateComponent(component: JComponent) {
-    secondRow.add(component, TabularLayout.Constraint(0, 2))
-
+    secondRow.add(component, TabularLayout.Constraint(0, 1))
   }
 
   init {
@@ -100,7 +99,7 @@ class AnimationCard(previewState: AnimationPreviewState,
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
-    val lockToolbar = DefaultToolbarImpl(surface, "LockUnlockAnimationCard", LockAction(previewState, state, tracker))
+    val lockToolbar = SingleButtonToolbar(surface, "LockUnlockAnimationCard", LockAction(previewState, state, tracker))
     secondRow.add(lockToolbar, TabularLayout.Constraint(0, 0))
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))

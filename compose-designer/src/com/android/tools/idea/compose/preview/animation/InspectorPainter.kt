@@ -49,13 +49,20 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 
 /** [ActionToolbarImpl] with enabled navigation. */
-class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnAction) : ActionToolbarImpl(place, DefaultActionGroup(action),
-                                                                                                      true) {
+open class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnAction)
+  : ActionToolbarImpl(place, DefaultActionGroup(action), true) {
   init {
     targetComponent = surface
     ActionToolbarUtil.makeToolbarNavigable(this)
   }
 }
+
+internal class SingleButtonToolbar(surface: DesignSurface, place: String, action: AnAction) : DefaultToolbarImpl(surface, place, action) {
+  // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
+  // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
+  override fun getPreferredSize() = JBUI.size(30, 30)
+}
+
 
 /**
  * Graphics elements corresponding to painting the inspector in [AnimationInspectorPanel].
@@ -348,6 +355,14 @@ object InspectorPainter {
 
     /** Create models for comboBoxes in this component. */
     fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>>
+
+    /** Update the given combo box width to be as wide as the longest model value that can be set. */
+    fun updatePreferredWidth(comboBox: ComboBox<Any>, model: DefaultComboBoxModel<Any>) {
+      val longestTextWidth = (0 until model.size).maxOfOrNull {
+        comboBox.getFontMetrics(component.font).stringWidth(model.getElementAt(it).toString())
+      } ?: return
+      comboBox.setMinimumAndPreferredWidth(JBUI.scale(longestTextWidth + 35)) // longest width + margin (that includes the dropdown arrow)
+    }
   }
 
   /** Wrapper around multiple StateComboBox with shared state. */
@@ -401,13 +416,14 @@ object InspectorPainter {
         arrayOf(message("animation.inspector.animated.visibility.combobox.placeholder.message"))
       )
     }
-
     override fun updateStates(states: Set<Any>) {
       model = DefaultComboBoxModel(states.toTypedArray())
     }
 
     override fun setModels(models: List<DefaultComboBoxModel<Any>>) {
-      model = models.first()
+      val onlyModel = models.single()
+      model = onlyModel
+      updatePreferredWidth(this, onlyModel)
     }
 
     override fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>> =
@@ -445,7 +461,7 @@ object InspectorPainter {
   (private val surface: DesignSurface,
    private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
    private val callback: (stateComboBox: StateComboBox) -> Unit) :
-    StateComboBox, JPanel(TabularLayout("Fit,Fit,Fit,Fit")) {
+    StateComboBox, JPanel(TabularLayout("Fit,Fit-,Fit,Fit-")) {
     //  StartEndComboBox component displays:
     //
     //   Swap button to switch states.
@@ -474,14 +490,7 @@ object InspectorPainter {
       startStateComboBox.model = DefaultComboBoxModel(states)
       endStateComboBox.model = DefaultComboBoxModel(states)
 
-      val swapStatesActionToolbar = object : ActionToolbarImpl("Swap States", DefaultActionGroup(SwapStartEndStatesAction()), true) {
-        // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
-        // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
-        override fun getPreferredSize() = JBUI.size(30, 30)
-      }.apply {
-        targetComponent = surface
-        ActionToolbarUtil.makeToolbarNavigable(this)
-      }
+      val swapStatesActionToolbar = SingleButtonToolbar(surface, "Swap States", SwapStartEndStatesAction())
       add(swapStatesActionToolbar, TabularLayout.Constraint(0, 0))
       add(startStateComboBox, TabularLayout.Constraint(0, 1))
       add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 2))
@@ -512,7 +521,9 @@ object InspectorPainter {
 
     override fun setModels(models: List<DefaultComboBoxModel<Any>>) {
       startStateComboBox.model = models[0]
+      updatePreferredWidth(startStateComboBox, models[0])
       endStateComboBox.model = models[1]
+      updatePreferredWidth(endStateComboBox, models[1])
     }
 
     override fun createModels(states: Set<Any>): List<DefaultComboBoxModel<Any>> =
