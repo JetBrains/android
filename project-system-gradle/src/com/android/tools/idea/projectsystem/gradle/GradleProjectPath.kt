@@ -22,10 +22,12 @@ import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.execution.GradleRunnerUtil
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.io.IOException
 
@@ -45,6 +47,9 @@ data class GradleProjectPath(
   val path: String get() = core.path
 }
 
+val GradleProjectPathCore.buildRootDir: File get() = File(buildRoot)
+val GradleProjectPath.buildRootDir: File get() = File(buildRoot)
+
 internal fun Module.getGradleProjectPathCore(useCanonicalPath: Boolean = false): GradleProjectPathCore? {
   // The external system projectId is:
   // <projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
@@ -54,7 +59,15 @@ internal fun Module.getGradleProjectPathCore(useCanonicalPath: Boolean = false):
   // NOTE: The project name uniqualization is performed by Gradle and may be version dependent. It should not be assumed to match
   //       any Gradle project name or any Gradle included build name.
   val externalSystemProjectId = ExternalSystemApiUtil.getExternalProjectId(this) ?: return null
-  val gradleProjectPath = ":" + externalSystemProjectId.substringAfter(':', "")
+
+  val idWithoutIncludedBuildPrefix = ":" + externalSystemProjectId.substringAfter(':', "")
+
+  val gradleProjectPath =
+    if (getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY)
+      idWithoutIncludedBuildPrefix.substringBeforeLast(":")
+    else
+      idWithoutIncludedBuildPrefix
+
   val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null).let {
     if (useCanonicalPath) {
       try {
