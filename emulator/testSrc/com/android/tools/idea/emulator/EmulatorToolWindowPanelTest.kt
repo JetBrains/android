@@ -523,12 +523,12 @@ class EmulatorToolWindowPanelTest {
     val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
                                                        "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
-      ui.keyboard.press(key.toInt())
+      ui.keyboard.press(key.code)
 
       var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
-      ui.keyboard.release(key.toInt())
+      ui.keyboard.release(key.code)
       call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo("")
