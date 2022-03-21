@@ -85,9 +85,9 @@ public class RecordingBuffer {
   @Slow
   public Path dumpZipTo(Path directory) {
     if (currentFreezeEvent != null) {
-      recordings[latest].stop();
       currentFreezeEvent.commit();
       currentFreezeEvent = null;
+      recordings[latest].stop();
     }
     if (recordings[latest] != null) {
       File dumpDir = null;
