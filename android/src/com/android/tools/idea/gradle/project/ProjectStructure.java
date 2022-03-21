@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
@@ -23,7 +22,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,7 +31,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -63,10 +60,6 @@ public class ProjectStructure {
   @NotNull
   private final List<Module> myLeafModules = new ArrayList<>();
 
-  @GuardedBy("myLock")
-  @NotNull
-  private final Ref<ModuleFinder> myModuleFinderRef = new Ref<>(EMPTY);
-
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
     return project.getService(ProjectStructure.class);
@@ -83,8 +76,6 @@ public class ProjectStructure {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     Module[] modules = moduleManager.getModules();
-    ModuleFinder moduleFinder = new ModuleFinder(myProject);
-
 
     Set<Module> accessibleModules = Arrays.stream(modules)
       .filter(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, it))
@@ -103,9 +94,6 @@ public class ProjectStructure {
       if (getHolderModule(module) != module) continue;
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
-        String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-        moduleFinder.addModule(module, gradlePath);
-
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           pluginVersionsInProject.add(androidModel);
@@ -125,8 +113,6 @@ public class ProjectStructure {
 
       myAppModules.clear();
       myAppModules.addAll(appModules);
-
-      myModuleFinderRef.set(moduleFinder);
     }
   }
 
@@ -166,19 +152,11 @@ public class ProjectStructure {
     }
   }
 
-  @NotNull
-  public ModuleFinder getModuleFinder() {
-    synchronized (myLock) {
-      return myModuleFinderRef.get();
-    }
-  }
-
   public void clearData() {
     synchronized (myLock) {
       myPluginVersionsInProject.clear();
       myAppModules.clear();
       myLeafModules.clear();
-      myModuleFinderRef.set(EMPTY);
     }
   }
 

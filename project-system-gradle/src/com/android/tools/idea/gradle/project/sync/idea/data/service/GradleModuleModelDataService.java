@@ -17,9 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EXTRA_BUILD_PARTICIPANT_FROM_BUILD_SRC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.BUILD_SRC_NAME;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -28,8 +25,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -38,9 +33,6 @@ import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
-import org.jetbrains.plugins.gradle.util.GradleModuleDataKt;
 
 /**
  * Applies Gradle settings to the modules of an Android project.
@@ -75,10 +67,6 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
         myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModelDataNode.getData());
       }
     }
-    // Create extra build participant for modules from build src. This will be used to locate the IDE module from dependency module in ModuleFinder.
-    // For example, if module A -> B, and B comes from buildSrc. Then the dependency A has will be [PathToBuildSrcFolder]:[GradlePathOfModuleB].
-    // In this case, a build participant will be created, which has [PathToBuildSrcFolder] as the project path, and [PathToModuleB] as one of the projects.
-    populateExtraBuildParticipantFromBuildSrc(toImport, project);
   }
 
   @Override
@@ -91,57 +79,5 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
       ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
       removeAllFacets(facetModel, GradleFacet.getFacetTypeId());
     }
-  }
-
-  private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
-                                                                @NotNull Project project) {
-    if (toImport.isEmpty()) {
-      return;
-    }
-    // Find root project based on the first node, since all DataNode in the collection should belong to the same project.
-    DataNode<ProjectData> projectDataDataNode = findProjectDataNode(toImport.iterator().next());
-    if (projectDataDataNode != null) {
-      BuildParticipant participant = getParticipant(projectDataDataNode);
-      if (!participant.getProjects().isEmpty()) {
-        project.putUserData(EXTRA_BUILD_PARTICIPANT_FROM_BUILD_SRC, participant);
-      }
-    }
-  }
-
-  /**
-   * Get BuildParticipant from buildSrc of the given project data node.
-   * If buildSrc doesn't exist, it returns a {@link BuildParticipant} without projects.
-   */
-  @NotNull
-  private static BuildParticipant getParticipant(@NotNull DataNode<ProjectData> projectDataDataNode) {
-    BuildParticipant participant = new BuildParticipant();
-    participant.setRootProjectName(projectDataDataNode.getData().getExternalName());
-    for (DataNode<ModuleData> moduleNode : getChildren(projectDataDataNode, ProjectKeys.MODULE)) {
-      if (GradleModuleDataKt.isBuildSrcModule(moduleNode.getData())) {
-        String moduleFolder = moduleNode.getData().getLinkedExternalProjectPath();
-        participant.getProjects().add(moduleFolder);
-        if (BUILD_SRC_NAME.equals(moduleNode.getData().getExternalName())) {
-          participant.setRootPath(moduleFolder);
-        }
-      }
-    }
-    return participant;
-  }
-
-  /**
-   * Find the ProjectData DataNode from GradleModuleModel.
-   * DataNode structure:
-   * ProjectData - ModuleData - GradleModuleModel.
-   */
-  @Nullable
-  private static DataNode<ProjectData> findProjectDataNode(@NotNull DataNode<GradleModuleModel> gradleModuleDataNode) {
-    DataNode<?> moduleDataNode = gradleModuleDataNode.getParent();
-    if (moduleDataNode != null) {
-      DataNode<?> projectDataNode = moduleDataNode.getParent();
-      if (projectDataNode != null) {
-        return projectDataNode.getDataNode(ProjectKeys.PROJECT);
-      }
-    }
-    return null;
   }
 }

@@ -21,6 +21,8 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.createFullTaskName;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getBuildRootDir;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPathCore;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.Arrays.stream;
@@ -39,6 +41,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPathCore;
 import com.android.utils.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
@@ -140,7 +143,9 @@ public class GradleTaskFinder {
         module = moduleAndGradleProjectPath.getFirst();
         String gradlePath = moduleAndGradleProjectPath.getSecond();
         findAndAddGradleBuildTasks(module, gradlePath, buildMode, moduleTasks, testCompileType);
-        Path keyPath = ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
+        GradleProjectPathCore gradleProjectPathCore = getGradleProjectPathCore(module, false);
+        if (gradleProjectPathCore == null) continue;
+        Path keyPath = getBuildRootDir(gradleProjectPathCore).toPath();
         if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
           // Clean only if other tasks are needed
           cleanTasks.put(keyPath, createFullTaskName(gradlePath, CLEAN_TASK_NAME));

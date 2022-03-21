@@ -43,7 +43,6 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.nio.file.Path;
@@ -75,14 +74,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     myCloseable = MockitoAnnotations.openMocks(this);
   }
 
-  private GradleBuildInvoker createBuildInvoker(boolean isConfigured) {
+  private GradleBuildInvoker createBuildInvoker() {
     myModules = new Module[]{getModule()};
-
-    // If the project is configured, don't mock the GradleTaskFinder.
-    if (!isConfigured) {
-      ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleTaskFinder.class, myTaskFinder,
-                                          getTestRootDisposable());
-    }
     return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
 
@@ -101,7 +94,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanUp() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     // Invoke method to test.
     buildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
@@ -113,8 +109,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -127,8 +125,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserDoesNotTerminateSession() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -141,8 +141,10 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserCancelsBuild() {
-    GradleBuildInvoker buildInvoker = createBuildInvoker(false);
-    setUpTasksForSourceGeneration();
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
@@ -173,7 +175,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     buildInvoker.compileJava(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
@@ -215,7 +217,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
@@ -239,7 +241,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         Objects.requireNonNull(gradleModule(myProject, ":app")),
@@ -263,7 +265,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    GradleBuildInvoker buildInvoker = createBuildInvoker(true);
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
 
     GradleBuildInvoker.Request request = GradleBuildInvoker.Request.builder(
       myProject,
