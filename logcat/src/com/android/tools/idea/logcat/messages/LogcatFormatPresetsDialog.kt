@@ -16,6 +16,8 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions.Companion.DEFAULT_COMPACT
+import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions.Companion.DEFAULT_STANDARD
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
@@ -25,7 +27,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
 import java.awt.event.ActionEvent
@@ -34,6 +38,7 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.SwingConstants
 
 /**
  * A variant of [LogcatFormatDialogBase] that controls the Standard & Compact formatting presets.
@@ -76,6 +81,11 @@ internal class LogcatFormatPresetsDialog(
             }
           }
         }
+        component(ActionLink(LogcatBundle.message("logcat.format.presets.dialog.restore.default")) { restoreDefault() })
+          .constraints(CCFlags.growX)
+          .applyToComponent {
+            horizontalAlignment = SwingConstants.TRAILING
+          }
         styleComboBox.applyToComponent {
           addItemListener {
             if (it.stateChange == ItemEvent.DESELECTED) {
@@ -109,6 +119,14 @@ internal class LogcatFormatPresetsDialog(
         }
       }
     }
+  }
+
+  private fun restoreDefault() {
+    val formattingOptions = when (styleComboBoxComponent.item!!) {
+      STANDARD -> DEFAULT_STANDARD
+      COMPACT -> DEFAULT_COMPACT
+    }
+    applyToComponents(formattingOptions)
   }
 
   override fun onComponentsChanged(isUserAction: Boolean) {

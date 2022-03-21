@@ -34,20 +34,10 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
   var defaultFormatting: FormattingOptions.Style = FormattingOptions.Style.STANDARD
 
   @OptionTag(converter = FormattingOptionsConverter::class)
-  var standardFormattingOptions: FormattingOptions = FormattingOptions(
-    TimestampFormat(TimestampFormat.Style.DATETIME, enabled = true),
-    ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = true),
-    TagFormat(maxLength = 23, hideDuplicates = false, enabled = true),
-    AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
-  )
+  var standardFormattingOptions: FormattingOptions = DEFAULT_STANDARD
 
   @OptionTag(converter = FormattingOptionsConverter::class)
-  var compactFormattingOptions = FormattingOptions(
-    TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
-    ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = false),
-    TagFormat(maxLength = 23, hideDuplicates = false, enabled = false),
-    AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
-  )
+  var compactFormattingOptions: FormattingOptions = DEFAULT_COMPACT
 
   override fun getState(): AndroidLogcatFormattingOptions = this
 
@@ -61,6 +51,20 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
       ApplicationManager.getApplication().getService(AndroidLogcatFormattingOptions::class.java)
 
     fun getDefaultOptions() = getInstance().defaultFormatting.formattingOptions
+
+    val DEFAULT_STANDARD = FormattingOptions(
+      TimestampFormat(TimestampFormat.Style.DATETIME, enabled = true),
+      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = true),
+      TagFormat(maxLength = 23, hideDuplicates = false, enabled = true),
+      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
+    )
+
+    val DEFAULT_COMPACT = FormattingOptions(
+      TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
+      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = false),
+      TagFormat(maxLength = 23, hideDuplicates = false, enabled = false),
+      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
+    )
   }
 
   private class FormattingOptionsStyleConverter : Converter<FormattingOptions.Style>() {

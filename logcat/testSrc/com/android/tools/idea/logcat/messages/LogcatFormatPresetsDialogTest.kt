@@ -29,10 +29,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,6 +56,8 @@ class LogcatFormatPresetsDialogTest {
   @Before
   fun setUp() {
     enableHeadlessDialogs(projectRule.project)
+    ApplicationManager.getApplication()
+      .replaceService(AndroidLogcatFormattingOptions::class.java, AndroidLogcatFormattingOptions(), projectRule.project)
   }
 
   private val applyAction = MockitoKt.mock<LogcatFormatDialogBase.ApplyAction>()
@@ -325,6 +329,39 @@ class LogcatFormatPresetsDialogTest {
                 .setPreset(Preset.STANDARD)
                 .build())
             .build())
+    }
+  }
+
+  @Test
+  fun restoreDefault_standard() {
+    val dialog = LogcatFormatPresetsDialog(projectRule.project, STANDARD, STANDARD, applyAction)
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      dialog.applyToComponents(COMPACT.formattingOptions)
+
+      val restoreDefault = it.getButton("Restore default")
+
+      restoreDefault.doClick()
+
+      val formattingOptions = FormattingOptions()
+      dialog.applyToFormattingOptions(formattingOptions)
+      assertThat(formattingOptions).isEqualTo(AndroidLogcatFormattingOptions.DEFAULT_STANDARD)
+    }
+  }
+
+  @Test
+  fun restoreDefault_compact() {
+    val dialog = LogcatFormatPresetsDialog(projectRule.project, COMPACT, COMPACT, applyAction)
+
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      dialog.applyToComponents(STANDARD.formattingOptions)
+
+      val restoreDefault = it.getButton("Restore default")
+
+      restoreDefault.doClick()
+
+      val formattingOptions = FormattingOptions()
+      dialog.applyToFormattingOptions(formattingOptions)
+      assertThat(formattingOptions).isEqualTo(AndroidLogcatFormattingOptions.DEFAULT_COMPACT)
     }
   }
 }
