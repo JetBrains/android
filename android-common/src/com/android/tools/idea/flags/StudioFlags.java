@@ -117,11 +117,6 @@ public final class StudioFlags {
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",
     false);
 
-  public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
-    PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
-    "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
-    true);
-
   public static final Flag<Boolean> PROFILER_PERFORMANCE_MONITORING = Flag.create(
     PROFILER, "performance.monitoring", "Enable Profiler Performance Monitoring Options",
     "Toggles if profiler performance metrics options are enabled.",

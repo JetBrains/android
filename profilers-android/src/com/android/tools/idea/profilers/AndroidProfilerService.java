@@ -138,7 +138,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setMem(
         Agent.AgentConfig.MemoryConfig.newBuilder()
           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-          .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
+          .setTrackGlobalJniRefs(true)
           .setSamplingRate(
             Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
           .build())

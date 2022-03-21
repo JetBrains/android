@@ -75,15 +75,12 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   private val methodIdMap = TLongObjectHashMap<AllocationStack.StackFrame>()
   private val threadIdMap = TIntObjectHashMap<ThreadId>()
   private val jniMemoryRegionMap = TreeMap<Long, Memory.MemoryMap.MemoryRegion>()
-  private val enableJniRefsTracking = stage.studioProfilers.ideServices.featureConfig.isJniReferenceTrackingEnabled
   private val heapSets = mutableListOf(HeapSet(this, CaptureObject.DEFAULT_HEAP_NAME, 0),  // default
                                        HeapSet(this, CaptureObject.IMAGE_HEAP_NAME, 1),  // image
                                        HeapSet(this, CaptureObject.ZYGOTE_HEAP_NAME, 2),  // zygote
                                        HeapSet(this, CaptureObject.APP_HEAP_NAME, 3)) // app
     .also {
-      if (enableJniRefsTracking) {
-        it.add(HeapSet(this, CaptureObject.JNI_HEAP_NAME, CaptureObject.JNI_HEAP_ID))
-      }
+      it.add(HeapSet(this, CaptureObject.JNI_HEAP_NAME, CaptureObject.JNI_HEAP_ID))
     }
   private val aspectObserver = AspectObserver()
   private var contextEndTimeNs = Long.MIN_VALUE
@@ -352,23 +349,21 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
     }
 
   private fun queryJniReferencesSnapshot(snapshotTimeNs: Long, snapshotList: MutableList<InstanceObject>) {
-    if (enableJniRefsTracking) {
-      querySnapshot(snapshotTimeNs, snapshotList, jniReferenceEventAdapter) { event, instanceMap ->
-        when (event.eventType) {
-          JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF -> {
-            // New global ref - create an InstanceObject. This might be removed later if there is a corresponding DELETE_GLOBAL_REF event.
-            // If JNI reference object can't be constructed, it is most likely because allocation for underlying java object was not
-            // reported. We don't have anything to show and ignore this reference.
-            event.getOrCreateJniRefObject()?.let { refObject ->
-              refObject.setAllocEvent(event)
-              instanceMap[refObject.refValue] = refObject
-            }
+    querySnapshot(snapshotTimeNs, snapshotList, jniReferenceEventAdapter) { event, instanceMap ->
+      when (event.eventType) {
+        JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF -> {
+          // New global ref - create an InstanceObject. This might be removed later if there is a corresponding DELETE_GLOBAL_REF event.
+          // If JNI reference object can't be constructed, it is most likely because allocation for underlying java object was not
+          // reported. We don't have anything to show and ignore this reference.
+          event.getOrCreateJniRefObject()?.let { refObject ->
+            refObject.setAllocEvent(event)
+            instanceMap[refObject.refValue] = refObject
           }
-          JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF -> instanceMap.remove(event.refValue)?.let { refObject ->
-            // If the referencing instance object is still around, remove the added JNI ref.
-            if (this.instanceMap.containsKey(event.objectTag)) {
-              this.instanceMap[event.objectTag].removeJniRef(refObject as JniReferenceInstanceObject)
-            }
+        }
+        JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF -> instanceMap.remove(event.refValue)?.let { refObject ->
+          // If the referencing instance object is still around, remove the added JNI ref.
+          if (this.instanceMap.containsKey(event.objectTag)) {
+            this.instanceMap[event.objectTag].removeJniRef(refObject as JniReferenceInstanceObject)
           }
         }
       }
@@ -430,36 +425,34 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
                                       allocationList: MutableList<InstanceObject>,
                                       deallocationList: MutableList<InstanceObject>,
                                       resetInstance: Boolean) {
-    if (enableJniRefsTracking) {
-      queryDelta(startTimeNs, endTimeNs, jniReferenceEventAdapter) { event ->
-        // If JNI reference object can't be constructed, it is most likely because allocation for underlying java object was not
-        // reported. We don't have anything to show and ignore this reference.
-        event.getOrCreateJniRefObject()?.let { refObject ->
-          when (event.eventType) {
-            JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF -> {
-              if (resetInstance) {
-                refObject.setAllocationTime(Long.MIN_VALUE)
-              }
-              else {
-                refObject.setAllocEvent(event)
-              }
-              allocationList.add(refObject)
+    queryDelta(startTimeNs, endTimeNs, jniReferenceEventAdapter) { event ->
+      // If JNI reference object can't be constructed, it is most likely because allocation for underlying java object was not
+      // reported. We don't have anything to show and ignore this reference.
+      event.getOrCreateJniRefObject()?.let { refObject ->
+        when (event.eventType) {
+          JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF -> {
+            if (resetInstance) {
+              refObject.setAllocationTime(Long.MIN_VALUE)
             }
-            JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF -> {
-              if (resetInstance) {
-                refObject.setAllocationTime(Long.MAX_VALUE)
-              }
-              else {
-                refObject.deallocTime = event.timestamp
-                if (event.hasBacktrace()) {
-                  refObject.setDeallocationBacktrace(event.backtrace)
-                }
-                refObject.setDeallocThreadId(lookupThreadId(event.threadId))
-              }
-              deallocationList.add(refObject)
+            else {
+              refObject.setAllocEvent(event)
             }
-            else -> assert(false)
+            allocationList.add(refObject)
           }
+          JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF -> {
+            if (resetInstance) {
+              refObject.setAllocationTime(Long.MAX_VALUE)
+            }
+            else {
+              refObject.deallocTime = event.timestamp
+              if (event.hasBacktrace()) {
+                refObject.setDeallocationBacktrace(event.backtrace)
+              }
+              refObject.setDeallocThreadId(lookupThreadId(event.threadId))
+            }
+            deallocationList.add(refObject)
+          }
+          else -> assert(false)
         }
       }
     }

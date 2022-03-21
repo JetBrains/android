@@ -24,7 +24,6 @@ public interface FeatureConfig {
   boolean isCustomEventVisualizationEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isJankDetectionUiEnabled();
-  boolean isJniReferenceTrackingEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isProfileableEnabled();

@@ -389,11 +389,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isJniReferenceTrackingEnabled() {
-      return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
-    }
-
-    @Override
     public boolean isMemoryCSVExportEnabled() {
       return StudioFlags.PROFILER_MEMORY_CSV_EXPORT.get();
     }
