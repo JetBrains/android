@@ -155,7 +155,7 @@ fun Module.getModuleSystem(): AndroidModuleSystem {
  * Returns the instance of [AndroidModuleSystem] that applies to the given [AndroidFacet].
  */
 fun AndroidFacet.getModuleSystem(): AndroidModuleSystem {
-  return module.project.getProjectSystem().getModuleSystem(module)
+  return module.getModuleSystem()
 }
 
 /**
