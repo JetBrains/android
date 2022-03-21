@@ -59,9 +59,9 @@
       <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
               icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.wear1.button" class="com.android.tools.idea.emulator.actions.Wear1ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="First" description="Press the first button"/>
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
       <action id="android.emulator.wear2.button" class="com.android.tools.idea.emulator.actions.Wear2ButtonAction"
-              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Second" description="Press the second button"/>
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button"/>
       <action id="android.emulator.sleep" class="com.android.tools.idea.emulator.actions.PalmAction"
               icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
       <action id="android.emulator.tilt" class="com.android.tools.idea.emulator.actions.TiltAction"

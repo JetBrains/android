@@ -98,6 +98,8 @@
     <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
+    <option name="button" path="ActionManager" hit="Button 1" />
+    <option name="button" path="ActionManager" hit="Button 2" />
     <option name="a" path="ActionManager" hit="Change display size to match a typical desktop" />
     <option name="change" path="ActionManager" hit="Change display size to match a typical desktop" />
     <option name="desktop" path="ActionManager" hit="Change display size to match a typical desktop" />
@@ -232,7 +234,6 @@
     <option name="or" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="separate" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
-    <option name="first" path="ActionManager" hit="First" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
@@ -544,7 +545,6 @@
     <option name="running" path="ActionManager" hit="Running devices" />
     <option name="manager" path="ActionManager" hit="SDK Manager" />
     <option name="sdk" path="ActionManager" hit="SDK Manager" />
-    <option name="second" path="ActionManager" hit="Second" />
     <option name="build" path="ActionManager" hit="Select Build Variant..." />
     <option name="select" path="ActionManager" hit="Select Build Variant..." />
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />

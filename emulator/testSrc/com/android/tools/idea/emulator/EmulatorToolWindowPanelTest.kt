@@ -227,14 +227,14 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "WearToolbarActions1", 0.08)
 
     // Check Wear1ButtonAction.
-    var button = ui.getComponent<ActionButton> { it.action.templateText == "First" }
+    var button = ui.getComponent<ActionButton> { it.action.templateText == "Button 1" }
     ui.mouseClickOn(button)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
 
     // Check Wear2ButtonAction.
-    button = ui.getComponent { it.action.templateText == "Second" }
+    button = ui.getComponent { it.action.templateText == "Button 2" }
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -286,8 +286,8 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
 
     // Check toolbar buttons.
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "First" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNotNull()
 
@@ -320,8 +320,8 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
 
     // Check that the buttons specific to Wear OS 3 are hidden.
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "First" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
 
