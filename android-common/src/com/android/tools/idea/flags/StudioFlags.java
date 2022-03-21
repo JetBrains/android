@@ -107,11 +107,6 @@ public final class StudioFlags {
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
 
-  public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
-    PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
-    "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
-    true);
-
   public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = Flag.create(
     PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",

@@ -409,11 +409,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isStartupCpuProfilingEnabled() {
-      return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
-    }
-
-    @Override
     public boolean isUnifiedPipelineEnabled() {
       return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
     }

@@ -110,11 +110,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldProceedYesNoDialog = false;
 
   /**
-   * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myStartupCpuProfilingEnabled = false;
-
-  /**
    * Whether the new pipeline is used or the old one for devices / processes / sessions.
    */
   private boolean myEventsPipelineEnabled = false;
@@ -270,11 +265,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isCustomEventVisualizationEnabled() {
         return myCustomEventVisualizationEnabled;
-      }
-
-      @Override
-      public boolean isStartupCpuProfilingEnabled() {
-        return myStartupCpuProfilingEnabled;
       }
 
       @Override
@@ -443,10 +433,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableJankDetectionUi(boolean enabled) {
     myIsJankDetectionUiEnabled = enabled;
-  }
-
-  public void enableStartupCpuProfiling(boolean enabled) {
-    myStartupCpuProfilingEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {

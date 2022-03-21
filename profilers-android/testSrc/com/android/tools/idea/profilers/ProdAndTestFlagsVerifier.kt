@@ -38,7 +38,6 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
 
     val KNOWN_DIVERGENCES = mapOf(
       "isEnergyProfilerEnabled" to "b/162495674",
-      "isStartupCpuProfilingEnabled" to "b/162493986",
       "isUnifiedPipelineEnabled" to "b/162494995")
   }
 

@@ -30,7 +30,6 @@ public interface FeatureConfig {
 
   boolean isProfileableBuildsEnabled();
 
-  boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.

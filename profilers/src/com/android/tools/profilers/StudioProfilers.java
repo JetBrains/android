@@ -725,10 +725,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
   private boolean startupCpuProfilingStarted() {
-    if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
-      return false;
-    }
-
     List<Cpu.CpuTraceInfo> traceInfoList =
       CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession, myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled());
     if (!traceInfoList.isEmpty()) {

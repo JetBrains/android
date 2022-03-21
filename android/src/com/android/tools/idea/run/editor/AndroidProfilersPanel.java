@@ -141,7 +141,7 @@ public class AndroidProfilersPanel {
   public void applyTo(ProfilerState state) {
     state.ADVANCED_PROFILING_ENABLED = myAdvancedProfilingCheckBox.isSelected();
 
-    state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myCpuRecordingRadio.isSelected();
+    state.STARTUP_CPU_PROFILING_ENABLED = myCpuRecordingRadio.isSelected();
     assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
     state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
