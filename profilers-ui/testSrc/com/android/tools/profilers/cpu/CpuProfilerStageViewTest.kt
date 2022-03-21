@@ -236,7 +236,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     // We're not reusing |myStage| because we want to test the stage with the enabled feature flag.
     // Once the new recording workflow is stable and the flag is removed, we should remove the entire block.
     run {
-      myIdeServices.enableCpuNewRecordingWorkflow(true)
       myStage = CpuProfilerStage(myStage.studioProfilers)
       myStage.enter()
     }

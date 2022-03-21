@@ -294,10 +294,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     myProfilerConfigModel.updateProfilingConfigurations();
     setupRecordingOptions();
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuNewRecordingWorkflowEnabled()) {
-      // In the new recording workflow it is always expanded mode.
-      setProfilerMode(ProfilerMode.EXPANDED);
-    }
+    setProfilerMode(ProfilerMode.EXPANDED);
   }
 
   @Override

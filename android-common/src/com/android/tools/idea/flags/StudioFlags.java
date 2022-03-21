@@ -123,12 +123,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> PROFILER_CPU_NEW_RECORDING_WORKFLOW = Flag.create(
-    PROFILER, "cpu.new.recording.workflow", "Enable new CPU recording workflow",
-    "Shows recording options and status of the ongoing recording in the method trace pane.",
-    true
-  );
-
   public static final Flag<Boolean> PROFILER_JANK_DETECTION_UI = Flag.create(
     PROFILER, "jank.ui", "Enable jank detection UI",
     "Add a track in the display group showing frame janks.",

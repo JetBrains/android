@@ -120,11 +120,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEventsPipelineEnabled = false;
 
   /**
-   * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
-   */
-  private boolean myCpuNewRecordingWorkflowEnabled = false;
-
-  /**
    * Whether custom event visualization should be visible
    */
   private boolean myCustomEventVisualizationEnabled = false;
@@ -242,11 +237,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public boolean isCpuNewRecordingWorkflowEnabled() {
-        return myCpuNewRecordingWorkflowEnabled;
-      }
-
       @Override
       public boolean isEnergyProfilerEnabled() {
         return myEnergyProfilerEnabled;
@@ -471,10 +461,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableEventsPipeline(boolean enabled) {
     myEventsPipelineEnabled = enabled;
-  }
-
-  public void enableCpuNewRecordingWorkflow(boolean enabled) {
-    myCpuNewRecordingWorkflowEnabled = enabled;
   }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }

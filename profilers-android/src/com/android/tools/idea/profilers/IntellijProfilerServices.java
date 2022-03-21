@@ -374,11 +374,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
     @Override
-    public boolean isCpuNewRecordingWorkflowEnabled() {
-      return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
-    }
-
-    @Override
     public boolean isEnergyProfilerEnabled() {
       return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
     }
