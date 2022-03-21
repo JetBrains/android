@@ -78,7 +78,6 @@ class LogcatFormatActionTest {
       .containsExactly(
         LogcatFormatPresetAction.Standard::class,
         LogcatFormatPresetAction.Compact::class,
-        LogcatFormatCustomViewAction::class,
         Separator::class,
         LogcatFormatModifyViewsAction::class,
       ).inOrder()

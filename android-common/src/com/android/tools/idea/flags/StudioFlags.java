@@ -685,6 +685,14 @@ public final class StudioFlags {
     "Allow DDMLib to use ABB_EXEC on install instead of the 'legacy' EXEC/CMD or EXEC/PM combos. This only occurs if device and adb support abb_exec",
     true
   );
+
+  public static final Flag<Boolean> LOGCAT_V2_CUSTOM_FORMAT_ACTION = Flag.create(
+    RUNDEBUG,
+    "logcat.v2.custom.format.action",
+    "Enable Logcat custom format action",
+    "Enables the custom format action in the Logcat tool window action bar",
+    false
+  );
   //endregion
 
   //region Gradle Project System
