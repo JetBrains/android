@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
+package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
-import com.google.common.collect.ImmutableList
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer.isPartiallyHidden
 
-class OverlapAnalyzerTest: LayoutTestCase() {
+class IsPartiallyHiddenTest: LayoutTestCase() {
 
   fun testTextHiddenIndex() {
     // Text hidden because image is defined after text
@@ -33,16 +34,13 @@ class OverlapAnalyzerTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 200, 200)
-                  .withMockView(android.widget.TextView::class.java),
+                  .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
                   .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
     ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
-    assertEquals("TextView is covered by ImageView", issues[0].message)
+    assertTrue(isTextHidden(0, 1, model))
   }
 
   fun testTextShownIndex() {
@@ -58,12 +56,10 @@ class OverlapAnalyzerTest: LayoutTestCase() {
                   .withMockView(),
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 200, 200)
-                  .withMockView(android.widget.TextView::class.java)
+                  .withMockView()
               )
       ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    assertFalse(isTextHidden(1, 0, model))
   }
 
   fun testTextHiddenElevation() {
@@ -80,13 +76,10 @@ class OverlapAnalyzerTest: LayoutTestCase() {
                   .withMockView(),
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 200, 200)
-                  .withMockView(android.widget.TextView::class.java)
+                  .withMockView()
               )
       ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
-    assertEquals("TextView is covered by ImageView", issues[0].message)
+    assertTrue(isTextHidden(1, 0, model))
   }
 
   fun testTextShownElevation() {
@@ -100,16 +93,14 @@ class OverlapAnalyzerTest: LayoutTestCase() {
                 component(SdkConstants.TEXT_VIEW)
                   .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "25dp")
                   .withBounds(0, 0, 200, 200)
-                  .withMockView(android.widget.TextView::class.java),
+                  .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
                   .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
                   .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
       ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    assertFalse(isTextHidden(0, 1, model))
   }
 
   fun testTextHidden60Percent() {
@@ -122,15 +113,13 @@ class OverlapAnalyzerTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 100, 100)
-                  .withMockView(android.widget.TextView::class.java),
+                  .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
                   .withBounds(0, 0, 60, 100)
                   .withMockView()
               )
       ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
+    assertTrue(isTextHidden(0, 1, model))
   }
 
   fun testTextHidden40Percent() {
@@ -143,14 +132,19 @@ class OverlapAnalyzerTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 100, 100)
-                  .withMockView(android.widget.TextView::class.java),
+                  .withMockView(),
                 component(SdkConstants.IMAGE_VIEW)
                   .withBounds(0, 0, 40, 100)
                   .withMockView()
               )
       ).build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    assertFalse(isTextHidden(0, 1, model))
+  }
+
+  private fun isTextHidden(textIndex: Int, imageIndex: Int, model: NlModel): Boolean {
+    val text = model.getRoot().children[textIndex].viewInfo!!
+    val image = model.getRoot().children[imageIndex].viewInfo!!
+
+    return isPartiallyHidden(text, textIndex, image, imageIndex, model)
   }
 }

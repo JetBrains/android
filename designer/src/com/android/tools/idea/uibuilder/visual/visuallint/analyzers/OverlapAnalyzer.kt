@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Rectangle
 
 /**
@@ -55,6 +56,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     val children = view.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
     for (i in children.indices) {
       val firstView = children[i]
+      // TODO: Can't create unit test due to this check. Figure out a way around later.
       if (firstView.viewObject !is TextView) {
         continue
       }
@@ -82,7 +84,8 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
    * Given two view infos, and their respective indices in layout, figure out of [firstViewInfo] is being overlapped by [secondViewInfo]
    * and if the ratio of the area of the overlap region to the area of the [firstViewInfo] is bigger than [OVERLAP_RATIO_THRESHOLD].
    */
-  private fun isPartiallyHidden(firstViewInfo: ViewInfo, i: Int, secondViewInfo: ViewInfo, j: Int, model: NlModel): Boolean {
+  @VisibleForTesting
+  fun isPartiallyHidden(firstViewInfo: ViewInfo, i: Int, secondViewInfo: ViewInfo, j: Int, model: NlModel): Boolean {
     if (!isFirstViewUnderneath(firstViewInfo, i, secondViewInfo, j, model)) {
       return false
     }

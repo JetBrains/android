@@ -18,19 +18,16 @@ package com.android.tools.idea.uibuilder;
 import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
@@ -109,12 +106,5 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
-  }
-
-  @NotNull
-  protected RenderResult getRenderResultWithRootViews(ImmutableList<ViewInfo> rootViews) {
-    RenderResult result = Mockito.mock(RenderResult.class);
-    when(result.getRootViews()).thenReturn(rootViews);
-    return result;
   }
 }
