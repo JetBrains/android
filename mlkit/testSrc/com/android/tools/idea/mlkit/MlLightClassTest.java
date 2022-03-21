@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import static com.android.tools.idea.mlkit.MlProjectTestUtil.setupTestMlProject;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.map;
 
@@ -833,18 +834,18 @@ public class MlLightClassTest extends AndroidTestCase {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
     myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
 
-    MlModuleService mlkitService = MlModuleService.getInstance(myModule);
+    MlModuleService mlkitService = MlModuleService.getInstance(getMainModule(myModule));
     List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
     List<String> classNameList = map(lightClasses, psiClass -> psiClass.getName());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
-    assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
+    assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(getMainModule(myModule));
   }
 
   public void testFallbackApisAreDeprecated() {
     setupProject(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
 
-    MlModuleService mlkitService = MlModuleService.getInstance(myModule);
+    MlModuleService mlkitService = MlModuleService.getInstance(getMainModule(myModule));
     List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
     assertThat(lightClasses).hasSize(1);
 
