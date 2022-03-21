@@ -57,6 +57,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintExifInterfaceInspectio
 import com.android.tools.idea.lint.inspections.AndroidLintExportedContentProviderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedReceiverInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedServiceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintExtraTextInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGradleDeprecatedInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGridLayoutInspection
 import com.android.tools.idea.lint.inspections.AndroidLintHardcodedTextInspection
@@ -245,6 +246,11 @@ class AndroidLintTest : AndroidTestCase() {
       sb.append(action.text).append("\n")
     }
     return sb.toString()
+  }
+
+  fun testExtraText() {
+    deleteManifest()
+    doTestHighlighting(AndroidLintExtraTextInspection(), "AndroidManifest.xml", "xml")
   }
 
   fun testHardcodedString() {
