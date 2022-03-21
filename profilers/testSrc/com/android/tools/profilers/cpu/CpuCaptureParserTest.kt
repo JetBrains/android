@@ -460,8 +460,6 @@ class CpuCaptureParserTest {
   @Test
   fun inputValidationExceptionIsPropagatedForExpectedTraceType() {
     val services = FakeIdeProfilerServices()
-    services.enableUseTraceProcessor(true)
-
     val parser = CpuCaptureParser(services)
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
@@ -491,7 +489,6 @@ class CpuCaptureParserTest {
   @Test
   fun internalExceptionOnTraceProcessorIsPropagated_forExpectedTraceType() {
     val services = FakeIdeProfilerServices()
-    services.enableUseTraceProcessor(true)
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
     fakeTraceProcessorService.forceFailLoadTrace = true
 
@@ -521,7 +518,6 @@ class CpuCaptureParserTest {
   @Test
   fun internalExceptionOnTraceProcessorIsPropagated_forUnknownTraceType() {
     val services = FakeIdeProfilerServices()
-    services.enableUseTraceProcessor(true)
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
     fakeTraceProcessorService.forceFailLoadTrace = true
 

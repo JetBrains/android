@@ -43,19 +43,6 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
   }
 
   override fun parse(file: File, traceId: Long): CpuCapture {
-    if (ideProfilerServices.featureConfig.isUseTraceProcessor) {
-      return parseUsingTraceProcessor(file, traceId)
-    } else {
-      return parseUsingTrebuchet(file, traceId)
-    }
-  }
-
-  private fun parseUsingTrebuchet(file: File, traceId: Long): CpuCapture {
-    val atraceParser = AtraceParser(Cpu.CpuTraceType.PERFETTO, mainProcessSelector)
-    return atraceParser.parse(file, traceId)
-  }
-
-  private fun parseUsingTraceProcessor(file: File, traceId: Long): CpuCapture {
     // We only allow one instance running here, because TPD currently doesn't handle the multiple loaded traces case (since we can only see
     // one in the UI), so any attempt of doing so (like double clicking very fast in the UI to trigger two parses) might lead to a race
     // condition and end up with a failure.

@@ -419,11 +419,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isUseTraceProcessor() {
-      return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
-    }
-
-    @Override
     public boolean isCustomEventVisualizationEnabled() {
       return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
     }

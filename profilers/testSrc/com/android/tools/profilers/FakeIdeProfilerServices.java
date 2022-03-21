@@ -125,11 +125,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether we use TraceProcessor to parse Perfetto traces.
-   */
-  private boolean myUseTraceProcessor = true;
-
-  /**
    * Whether we support profileable processes
    */
   private boolean myProfileableEnabled = true;
@@ -285,11 +280,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
-      }
-
-      @Override
-      public boolean isUseTraceProcessor() {
-        return myUseTraceProcessor;
       }
     };
   }
@@ -464,10 +454,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
-
-  public void enableUseTraceProcessor(boolean enabled) {
-    myUseTraceProcessor = enabled;
-  }
 
   public void enableProfileable(boolean enabled) {
     myProfileableEnabled = enabled;
