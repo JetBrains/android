@@ -114,7 +114,8 @@ class ConflictSet private constructor(
           .asSequence()
           .flatMap { module ->
             GradleAndroidModel.get(module)
-              ?.getModuleDependencies().orEmpty()
+              ?.getModuleDependencies()
+              .orEmpty()
               .mapNotNull {
                 val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 val targetModule =
@@ -146,10 +147,11 @@ class ConflictSet private constructor(
 
     private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleDependency> {
       val variant = selectedVariant
-      return variant.mainArtifact.level2Dependencies.moduleDependencies.asSequence() +
-        variant.androidTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-        variant.testFixturesArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-        variant.unitTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty()
+      val allModuleDependencies = variant.mainArtifact.level2Dependencies.moduleDependencies.asSequence() +
+                                  variant.androidTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.testFixturesArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.unitTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty()
+      return allModuleDependencies.distinct()
     }
   }
 }
