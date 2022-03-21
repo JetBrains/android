@@ -130,7 +130,13 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     rootPanel.add(splitter, BorderLayout.CENTER)
 
     tree.addTreeSelectionListener {
-      val selectedNode = it?.newLeadSelectionPath?.lastPathComponent as? DesignerCommonIssueNode ?: return@addTreeSelectionListener
+      val newSelectedNode = it?.newLeadSelectionPath?.lastPathComponent
+      if (newSelectedNode == null) {
+        splitter.secondComponent = null
+        splitter.revalidate()
+        return@addTreeSelectionListener
+      }
+      val selectedNode = newSelectedNode as? DesignerCommonIssueNode ?: return@addTreeSelectionListener
       if (sidePanelVisible) {
         val sidePanel = createSidePanel(selectedNode)
         splitter.secondComponent = sidePanel
