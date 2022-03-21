@@ -226,7 +226,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HyperlinkListener hyperLinkListener = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         String url = e.getDescription();
-        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, null, null);
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, false, null);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);

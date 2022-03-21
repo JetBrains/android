@@ -115,8 +115,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RenderErrorContributor {
   private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
-  private static final Key<CachedValue<Set<String>>> VIEWS_CACHE_KEY =
-    new Key<>(RenderErrorContributor.class.getName() + ".VIEWS_CACHE");
 
   // These priorities can be used to promote certain issues to the top of the list
   protected static final int HIGH_PRIORITY = 100;
@@ -129,15 +127,23 @@ public class RenderErrorContributor {
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
   private final HtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
-  private final RenderResult myResult;
+  @NotNull private final Module myModule;
+  @NotNull protected final PsiFile mySourceFile;
+  @NotNull private final RenderLogger myLogger;
+  @Nullable private final RenderContext myRenderContext;
+  private final boolean myHasRequestedCustomViews;
   private final DataContext myDataContext;
   private final EditorDesignSurface myDesignSurface;
 
   protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
-    myResult = result;
-
+    // To get rid of memory leak, get needed RenderResult attributes to avoid referencing RenderResult.
+    myModule = result.getModule();
+    mySourceFile = result.getSourceFile();
+    myLogger = result.getLogger();
+    myRenderContext = result.getRenderContext();
+    myHasRequestedCustomViews = result.hasRequestedCustomViews();
     myDesignSurface = surface;
-    myLinkManager = myResult.getLogger().getLinkManager();
+    myLinkManager = result.getLogger().getLinkManager();
     myLinkHandler = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         JEditorPane pane = (JEditorPane)e.getSource();
@@ -148,7 +154,7 @@ public class RenderErrorContributor {
           return;
         }
 
-        performClick(myResult, e.getDescription());
+        performClick(e.getDescription());
       }
     };
 
@@ -359,11 +365,8 @@ public class RenderErrorContributor {
   }
 
   @VisibleForTesting
-  public void performClick(@NotNull RenderResult result, @NotNull String url) {
-    Module module = result.getModule();
-    PsiFile file = result.getSourceFile();
-
-    myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
+  public void performClick(@NotNull String url) {
+    myLinkManager.handleUrl(url, myModule, mySourceFile, myDataContext, true, myDesignSurface);
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -393,7 +396,7 @@ public class RenderErrorContributor {
           .newline().newline();
       }
     }
-    else if (myResult.hasRequestedCustomViews()) {
+    else if (myHasRequestedCustomViews) {
       boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == JavaFileType.INSTANCE);
       if (hasJavaErrors) {
         summary = "Compilation errors";
@@ -545,8 +548,8 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderContext() != null ?
-                                      myResult.getRenderContext().getConfiguration().getRealTarget() :
+              IAndroidTarget target = myRenderContext != null ?
+                                      myRenderContext.getConfiguration().getRealTarget() :
                                       null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
@@ -641,7 +644,7 @@ public class RenderErrorContributor {
     });
   }
 
-  private void reportTagResourceFormat(@NotNull RenderResult result, @NotNull RenderProblem message) {
+  private void reportTagResourceFormat(@NotNull RenderProblem message) {
     Object clientData = message.getClientData();
     if (!(clientData instanceof String[])) {
       return;
@@ -651,7 +654,7 @@ public class RenderErrorContributor {
       return;
     }
 
-    RenderContext renderContext = result.getRenderContext();
+    RenderContext renderContext = myRenderContext;
     if (renderContext == null) {
       return;
     }
@@ -664,7 +667,7 @@ public class RenderErrorContributor {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getSourceFile().getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
@@ -716,7 +719,7 @@ public class RenderErrorContributor {
       if (tag != null) {
         switch (tag) {
           case ILayoutLog.TAG_RESOURCES_FORMAT:
-            reportTagResourceFormat(myResult, message);
+            reportTagResourceFormat(message);
             continue;
           case ILayoutLog.TAG_RTL_NOT_ENABLED:
             reportRtlNotEnabled(logger);
@@ -1155,7 +1158,7 @@ public class RenderErrorContributor {
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
                          JavaPsiFacade.getInstance(project).findClass(className, scope);
-          String layoutName = myResult.getSourceFile().getName();
+          String layoutName = mySourceFile.getName();
           boolean separate = false;
           if (clz != null) {
             // TODO: Should instead find all R.layout elements
@@ -1233,8 +1236,8 @@ public class RenderErrorContributor {
   }
 
   public Collection<RenderErrorModel.Issue> reportIssues() {
-    RenderLogger logger = myResult.getLogger();
-    RenderContext renderContext = myResult.getRenderContext();
+    RenderLogger logger = myLogger;
+    RenderContext renderContext = myRenderContext;
 
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
@@ -1242,7 +1245,7 @@ public class RenderErrorContributor {
       reportRelevantCompilationErrors(logger);
       reportMissingSizeAttributes(logger,
                                   renderContext,
-                                  (myResult.getSourceFile() instanceof XmlFile) ? (XmlFile)myResult.getSourceFile() : null);
+                                  (mySourceFile instanceof XmlFile) ? (XmlFile)mySourceFile : null);
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
@@ -1252,10 +1255,6 @@ public class RenderErrorContributor {
     myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler));
 
     return getIssues();
-  }
-
-  protected RenderResult getResult() {
-    return myResult;
   }
 
   protected HtmlLinkManager getLinkManager() {
