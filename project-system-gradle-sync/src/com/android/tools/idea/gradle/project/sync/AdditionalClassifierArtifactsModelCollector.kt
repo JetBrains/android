@@ -29,7 +29,7 @@ internal fun getAdditionalClassifierArtifactsModel(
 ) {
   actionRunner.runActions(
     inputModules.map { module ->
-      fun(controller: BuildController) {
+      ActionToRun(fun(controller: BuildController) {
         if (module.agpVersion?.isAtLeast(3, 5, 0) != true) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
@@ -50,7 +50,7 @@ internal fun getAdditionalClassifierArtifactsModel(
               parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
             }
         }
-      }
+      }, canRunInParallel = true)
     }
   )
 }

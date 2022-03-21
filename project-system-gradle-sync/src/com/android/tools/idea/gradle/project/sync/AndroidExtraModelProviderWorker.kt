@@ -74,8 +74,7 @@ internal class AndroidExtraModelProviderWorker(
   private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
   private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(
     controller)
-  private val maybeParallelActionRunner = createActionRunner(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
-  private val sequentialActionRunner = createActionRunner(controller, false)
+  private val actionRunner = SyncActionRunner(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
   private var canFetchV2Models: Boolean? = null
   private val modelCache: ModelCache by lazy {
     ModelCache.create(canFetchV2Models ?: error("Unable to determine which modelCache should be used"), buildFolderPaths)
@@ -86,13 +85,15 @@ internal class AndroidExtraModelProviderWorker(
       val modules: List<GradleModule> =
         when (syncOptions) {
           is SyncProjectActionOptions -> {
-            populateAndroidModels(syncOptions, getBasicIncompleteGradleModules())
+            val modules = getBasicIncompleteGradleModules()
+            canFetchV2Models = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>().isNotEmpty()
+            populateAndroidModels(syncOptions, modules)
           }
           is NativeVariantsSyncActionOptions -> {
             consumer.consume(
               buildModels.first(),
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
-              sequentialActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
+              actionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
             )
             fetchNativeVariantsAndroidModels(syncOptions)
@@ -193,9 +194,9 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
-    return maybeParallelActionRunner.runActions(
+    return actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
-        fun(controller: BuildController): BasicIncompleteGradleModule {
+        ActionToRun(fun(controller: BuildController): BasicIncompleteGradleModule {
           // Request V2 models if flag is enabled.
           if (syncOptions.flags.studioFlagUseV2BuilderModels) {
             // First request the Versions model to make sure we can fetch V2 models.
@@ -208,7 +209,7 @@ internal class AndroidExtraModelProviderWorker(
           }
           // We cannot request V2 models.
           return BasicNonV2IncompleteGradleModule(gradleProject)
-        }
+        }, canRunInParallel = true)
       }.toList()
     )
   }
@@ -236,30 +237,14 @@ internal class AndroidExtraModelProviderWorker(
     val buildNameMap =
       (buildModels
          .mapNotNull { build ->
-           maybeParallelActionRunner.runAction { controller -> controller.findModel(build.rootProject, BuildMap::class.java) }
+           actionRunner.runAction { controller -> controller.findModel(build.rootProject, BuildMap::class.java) }
          }
          .flatMap { buildNames -> buildNames.buildIdMap.entries.map { it.key to it.value } } +
        (":" to buildFolderPaths.buildRootDirectory!!)
       )
         .toMap()
 
-    val canFetchModelsInParallel = basicIncompleteModules
-      .filterIsInstance<BasicV2AndroidModuleGradleProject>()
-      .all {
-        canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp))
-      }
-
-    canFetchV2Models = basicIncompleteModules.filterIsInstance<BasicV2AndroidModuleGradleProject>().isNotEmpty()
-
-    val v2AndroidModules = fetchV2AndroidModulesAction(
-      basicIncompleteModules.filterIsInstance<BasicV2AndroidModuleGradleProject>(), buildNameMap, canFetchModelsInParallel
-    )
-
-    val otherGradleModules  =
-      fetchGradleModulesSequentialAction(basicIncompleteModules.filterIsInstance<BasicNonV2IncompleteGradleModule>(), buildNameMap)
-
-    // Merge models requested through parallel Sync and not.
-    val modules: List<GradleModule> = v2AndroidModules + otherGradleModules
+    val modules = fetchGradleModulesAction(basicIncompleteModules, buildNameMap)
 
     modules.filterIsInstance<AndroidModule>().forEach { androidModulesById[it.id] = it }
 
@@ -276,16 +261,16 @@ internal class AndroidExtraModelProviderWorker(
         // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
         // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
         // e.g the ones that should be selected by the IDE.
-        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions, canFetchModelsInParallel, ::getVariantNameResolver)
+        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions, ::getVariantNameResolver)
       }
       is AllVariantsSyncActionOptions -> {
-        syncAllVariants(modules.filterIsInstance<AndroidModule>(), syncOptions, canFetchModelsInParallel, ::getVariantNameResolver)
+        syncAllVariants(modules.filterIsInstance<AndroidModule>(), ::getVariantNameResolver)
       }
     }
 
     // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
     getAdditionalClassifierArtifactsModel(
-      maybeParallelActionRunner,
+      actionRunner,
       modules.filterIsInstance<AndroidModule>(),
       syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
       syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
@@ -294,92 +279,77 @@ internal class AndroidExtraModelProviderWorker(
 
     // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
     // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-    populateProjectSyncIssues(modules.filterIsInstance<AndroidModule>(), canFetchModelsInParallel)
+    populateProjectSyncIssues(modules.filterIsInstance<AndroidModule>())
 
     return modules
   }
 
-  private fun fetchGradleModulesSequentialAction(
-    basicIncompleteGradleModules: List<BasicNonV2IncompleteGradleModule>,
+  private fun fetchGradleModulesAction(
+    incompleteBasicModules: List<BasicIncompleteGradleModule>,
     buildNameMap: Map<String, File>
   ): List<GradleModule> {
+    return actionRunner.runActions(
+      incompleteBasicModules.map {
+        ActionToRun(
+          fun(controller: BuildController): GradleModule {
+            if (it is BasicV2AndroidModuleGradleProject) {
+              val basicAndroidProject = controller.findNonParameterizedV2Model(it.gradleProject, BasicAndroidProject::class.java)
+              val androidProject = controller.findNonParameterizedV2Model(it.gradleProject, V2AndroidProject::class.java)
+              val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
 
-    return sequentialActionRunner.runActions(
-      basicIncompleteGradleModules.map {
-        fun(controller: BuildController): GradleModule {
-          val androidProject = controller.findParameterizedAndroidModel(
-            it.gradleProject,
-            AndroidProject::class.java,
-            shouldBuildVariant = false
-          )
-          if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
-            val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
+              if (basicAndroidProject != null && androidProject != null && androidDsl != null)  {
+                val androidProjectResult =
+                  AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions, androidDsl)
 
-            val nativeModule = controller.getNativeModuleFromGradle(it.gradleProject, syncAllVariantsAndAbis = false)
-            val nativeAndroidProject: NativeAndroidProject? =
-              if (nativeModule == null)
-                controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
-              else null
+                // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
+                val nativeModule = controller.getNativeModuleFromGradle(it.gradleProject, syncAllVariantsAndAbis = false)
+                val nativeAndroidProject: NativeAndroidProject? =
+                  if (nativeModule == null)
+                    controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
+                  else null
 
-            return createAndroidModule(
+                return createAndroidModule(
+                  it.gradleProject,
+                  androidProjectResult,
+                  nativeAndroidProject,
+                  nativeModule,
+                  buildNameMap,
+                  modelCache
+                )
+              }
+            }
+
+            val androidProject = controller.findParameterizedAndroidModel(
               it.gradleProject,
-              androidProjectResult,
-              nativeAndroidProject,
-              nativeModule,
-              buildNameMap,
-              modelCache
+              AndroidProject::class.java,
+              shouldBuildVariant = false
             )
-          }
+            if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
+              val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
 
-          val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
-          val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
-          return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
-        }
+              val nativeModule = controller.getNativeModuleFromGradle(it.gradleProject, syncAllVariantsAndAbis = false)
+              val nativeAndroidProject: NativeAndroidProject? =
+                if (nativeModule == null)
+                  controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
+                else null
+
+              return createAndroidModule(
+                it.gradleProject,
+                androidProjectResult,
+                nativeAndroidProject,
+                nativeModule,
+                buildNameMap,
+                modelCache
+              )
+            }
+
+            val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
+            val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
+            return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
+          },
+          canRunInParallel = it is BasicV2AndroidModuleGradleProject && canFetchV2Models == true)
       }.toList()
     )
-  }
-
-  private fun fetchV2AndroidModulesAction(
-    v2IncompleteBasicModules: List<BasicV2AndroidModuleGradleProject>,
-    buildNameMap: Map<String, File>,
-    canFetchV2inParallel: Boolean
-  ): List<AndroidModule> {
-    val v2ModelActionRunner  =  when (canFetchV2inParallel) {
-      true -> maybeParallelActionRunner
-      false -> sequentialActionRunner
-    }
-    return v2ModelActionRunner.runActions(
-      v2IncompleteBasicModules.map {
-        fun(controller: BuildController): AndroidModule? {
-          val basicAndroidProject = controller.findNonParameterizedV2Model(it.gradleProject, BasicAndroidProject::class.java)
-          val androidProject = controller.findNonParameterizedV2Model(it.gradleProject, V2AndroidProject::class.java)
-          val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
-
-          if (basicAndroidProject != null && androidProject != null && androidDsl != null)  {
-            val androidProjectResult =
-              AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions, androidDsl)
-
-            // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-            val nativeModule = controller.getNativeModuleFromGradle(it.gradleProject, syncAllVariantsAndAbis = false)
-            val nativeAndroidProject: NativeAndroidProject? =
-              if (nativeModule == null)
-                controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
-              else null
-
-            return createAndroidModule(
-              it.gradleProject,
-              androidProjectResult,
-              nativeAndroidProject,
-              nativeModule,
-              buildNameMap,
-              modelCache
-            )
-          }
-
-          return null
-        }
-      }.toList()
-    ).filterNotNull()
   }
 
   private fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
@@ -399,9 +369,9 @@ internal class AndroidExtraModelProviderWorker(
     syncOptions: NativeVariantsSyncActionOptions
   ): List<GradleModule> {
     val modelCache = ModelCache.create(false)
-    val nativeModules = maybeParallelActionRunner.runActions(
+    val nativeModules = actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
-        fun(controller: BuildController): GradleModule? {
+        ActionToRun(fun(controller: BuildController): GradleModule? {
           val projectIdentifier = gradleProject.projectIdentifier
           val moduleId = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, projectIdentifier.projectPath)
           val variantName = syncOptions.moduleVariants[moduleId] ?: return null
@@ -431,27 +401,22 @@ internal class AndroidExtraModelProviderWorker(
           }
 
           return tryV2() ?: tryV1()
-        }
+        }, canRunInParallel = false)
       }.toList()
     ).filterNotNull()
 
-    populateProjectSyncIssues(nativeModules, false)
+    populateProjectSyncIssues(nativeModules)
 
     return nativeModules
   }
 
-  private fun populateProjectSyncIssues(androidModules: List<GradleModule>, canFetchModelsInParallel: Boolean) {
+  private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
     if (androidModules.isEmpty()) return
-    val syncIssuesActionRunner = when (canFetchModelsInParallel) {
-      true -> maybeParallelActionRunner
-      false -> sequentialActionRunner
-    }
 
-    syncIssuesActionRunner.runActions(
+    actionRunner.runActions(
       androidModules.map { module ->
-        fun(controller: BuildController) {
-          val syncIssues = if (syncOptions.flags.studioFlagUseV2BuilderModels && (module is AndroidModule) &&
-                               canFetchV2Models(module.agpVersion)) {
+        ActionToRun(fun(controller: BuildController) {
+          val syncIssues = if (syncOptions.flags.studioFlagUseV2BuilderModels && (module is AndroidModule) && canFetchV2Models == true) {
             // Request V2 sync issues.
             controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
           } else {
@@ -475,7 +440,8 @@ internal class AndroidExtraModelProviderWorker(
           if (syncIssues != null) {
             module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues)
           }
-        }
+        },
+                    canRunInParallel = module is AndroidModule && canFetchV2Models == true && canUseParallelSync(module.agpVersion))
       }
     )
   }
@@ -571,15 +537,9 @@ internal class AndroidExtraModelProviderWorker(
   fun chooseSelectedVariants(
     inputModules: List<AndroidModule>,
     syncOptions: SingleVariantSyncActionOptions,
-    canFetchModelsInParallel: Boolean,
     getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver
   ) {
     if (inputModules.isEmpty()) return
-    val variantActionRunner = when (canFetchModelsInParallel) {
-      true -> maybeParallelActionRunner
-      false -> sequentialActionRunner
-      else -> error("Cannot determine if parallel model fetching can be used or not")
-    }
     val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations(inputModules, syncOptions)
 
     // When re-syncing a project without changing the selected variants it is likely that the selected variants won't in the end.
@@ -589,11 +549,11 @@ internal class AndroidExtraModelProviderWorker(
       when {
         !syncOptions.flags.studioFlagParallelSyncEnabled -> emptyMap()
         !syncOptions.flags.studioFlagParallelSyncPrefetchVariantsEnabled -> emptyMap()
-        !variantActionRunner.parallelActionsSupported -> emptyMap()
+        !actionRunner.parallelActionsSupported -> emptyMap()
         // TODO(b/181028873): Predict changed variants and build models in parallel.
         syncOptions.moduleIdWithVariantSwitched != null -> emptyMap()
         else -> {
-          variantActionRunner
+          actionRunner
             .runActions(allModulesToSetUp.map {
               getVariantAndModuleDependenciesAction(
                 it,
@@ -621,7 +581,7 @@ internal class AndroidExtraModelProviderWorker(
           modules.filter { visitedModules.add(it.id) }
         }
         else {
-          // Otherwise take the next module from the main queue and follow its dependencies.
+          // Otherwise, take the next module from the main queue and follow its dependencies.
           val moduleConfiguration = allModulesToSetUp.removeFirst()
           if (!visitedModules.add(moduleConfiguration.id)) emptyList() else listOf(moduleConfiguration)
         }
@@ -632,7 +592,8 @@ internal class AndroidExtraModelProviderWorker(
           val prefetchedModel = preResolvedVariants[moduleConfiguration]
           if (prefetchedModel != null) {
             // Return an action that simply returns the `prefetchedModel`.
-            fun(_: BuildController) = prefetchedModel
+            val action = (fun(_: BuildController) = prefetchedModel)
+            ActionToRun(action = action, canRunInParallel = false)
           }
           else {
             getVariantAndModuleDependenciesAction(
@@ -643,15 +604,17 @@ internal class AndroidExtraModelProviderWorker(
           }
         }
 
-      val preModuleDependencies = variantActionRunner.runActions(actions)
+      val preModuleDependencies = actionRunner.runActions(actions)
 
       // TODO(b/220325253): Kotlin parallel model fetching is broken.
-      sequentialActionRunner.runActions(preModuleDependencies.mapNotNull { syncResult ->
-        fun(controller: BuildController) {
+      actionRunner.runActions(preModuleDependencies.mapNotNull { syncResult ->
+        ActionToRun(fun(controller: BuildController) {
           if (syncResult == null) return
-          syncResult.module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
-          syncResult.module.kaptGradleModel = controller.findKaptGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
-        }
+          syncResult.module.kotlinGradleModel =
+            controller.findKotlinGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
+          syncResult.module.kaptGradleModel =
+            controller.findKaptGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
+        }, canRunInParallel = false)
       }
       )
 
@@ -722,19 +685,12 @@ internal class AndroidExtraModelProviderWorker(
 
   fun syncAllVariants(
     inputModules: List<AndroidModule>,
-    syncOptions: AllVariantsSyncActionOptions,
-    canFetchModelsInParallel: Boolean,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
   ) {
     if (inputModules.isEmpty()) return
-    val variantActionRunner = when (canFetchModelsInParallel) {
-      true -> maybeParallelActionRunner
-      false -> sequentialActionRunner
-      else -> error("Cannot determine if parallel model fetching can be used or not")
-    }
 
     val variants =
-      variantActionRunner
+      actionRunner
         .runActions(inputModules.flatMap { module ->
           module.allVariantNames.orEmpty().map { variant ->
             getVariantAction(ModuleConfiguration(module.id, variant, abi = null), variantNameResolvers)
@@ -744,13 +700,13 @@ internal class AndroidExtraModelProviderWorker(
         .groupBy { it.module }
 
     // TODO(b/220325253): Kotlin parallel model fetching is broken.
-    sequentialActionRunner.runActions(variants.entries.map { (module, result) ->
-      fun(controller: BuildController) {
+    actionRunner.runActions(variants.entries.map { (module, result) ->
+      ActionToRun(fun(controller: BuildController) {
         result.map {
           module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, it.ideVariant.name)
           module.kaptGradleModel = controller.findKaptGradleModelForAndroidProject(module.findModelRoot, it.ideVariant.name)
         }
-      }
+      }, canRunInParallel = false)
     })
 
     variants.entries.forEach { (module, result) ->
@@ -848,23 +804,23 @@ internal class AndroidExtraModelProviderWorker(
     moduleConfiguration: ModuleConfiguration,
     selectedVariants: SelectedVariants,
     getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver
-  ): (BuildController) -> SyncVariantResult? {
-    val getVariantAction = getVariantAction(moduleConfiguration, getVariantNameResolver)
-    return fun(controller: BuildController): SyncVariantResult? {
-      val syncVariantResultCore = getVariantAction(controller) ?: return null
+  ): ActionToRun<SyncVariantResult?> {
+    val getVariantActionToRun = getVariantAction(moduleConfiguration, getVariantNameResolver)
+    return ActionToRun(fun(controller: BuildController): SyncVariantResult? {
+      val syncVariantResultCore = getVariantActionToRun.action(controller) ?: return null
       return SyncVariantResult(
         syncVariantResultCore,
         syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants),
       )
-    }
+    }, canRunInParallel = getVariantActionToRun.canRunInParallel)
   }
 
   private fun getVariantAction(
     moduleConfiguration: ModuleConfiguration,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
-  ): (BuildController) -> SyncVariantResultCore? {
-    val module = androidModulesById[moduleConfiguration.id] ?: return { null }
-    return fun(controller: BuildController): SyncVariantResultCore {
+  ): ActionToRun<SyncVariantResultCore?> {
+    val module = androidModulesById[moduleConfiguration.id] ?: return ActionToRun({ null }, false)
+    return ActionToRun(fun(controller: BuildController): SyncVariantResultCore {
       val abiToRequest: String?
       val nativeVariantAbi: NativeVariantAbiResult?
       val ideVariant: IdeVariantCoreImpl = module.variantFetcher(controller, variantNameResolvers, module, moduleConfiguration)
@@ -891,7 +847,7 @@ internal class AndroidExtraModelProviderWorker(
         nativeVariantAbi,
         getUnresolvedDependencies()
       )
-    }
+    }, canRunInParallel = canFetchV2Models == true && canUseParallelSync(module.agpVersion))
   }
 
 

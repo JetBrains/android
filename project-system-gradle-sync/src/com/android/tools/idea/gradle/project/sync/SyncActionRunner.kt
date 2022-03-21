@@ -15,52 +15,45 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.AndroidProject
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 
 internal interface GradleInjectedSyncActionRunner {
-  fun <T> runActions(actions: List<(BuildController) -> T>): List<T>
+  fun <T> runActions(actionsToRun: List<ActionToRun<T>>): List<T>
   fun <T> runAction(action: (BuildController) -> T): T
+}
+
+data class ActionToRun<T>(val action: (BuildController) -> T, val canRunInParallel: Boolean)
+
+class SyncActionRunner(
+  private val controller: BuildController,
   val parallelActionsSupported: Boolean
-}
-
-internal fun createActionRunner(controller: BuildController, studioFlagParallelSyncEnabled: Boolean): GradleInjectedSyncActionRunner {
-  return when (studioFlagParallelSyncEnabled) {
-    true -> ParallelSyncActionRunner(controller)
-    false -> SequentialSyncActionRunner(controller)
-  }
-}
-
-private class ParallelSyncActionRunner(private val controller: BuildController) : GradleInjectedSyncActionRunner {
-  override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
-    return when (actions.size) {
+  ): GradleInjectedSyncActionRunner {
+  override fun <T> runActions(actionsToRun: List<ActionToRun<T>>): List<T> {
+    return when (actionsToRun.size) {
       0 -> emptyList()
-      1 -> listOf(runAction(actions[0]))
+      1 -> listOf(runAction(actionsToRun[0].action))
       else ->
-        @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
-        controller.run(actions.map { action -> BuildAction { action(it) } }) as List<T>
+        if (parallelActionsSupported) {
+          val indexedActions = actionsToRun.mapIndexed { index, action -> index to action}.toMap()
+          val parallelActions = indexedActions.filter { it.value.canRunInParallel }
+          val sequentialAction = indexedActions.filter { !it.value.canRunInParallel }
+          val executionResults =
+            parallelActions.keys.zip(
+              @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
+              controller.run(parallelActions.map { indexedActionToRun -> BuildAction { indexedActionToRun.value.action(it) } }) as List<T>
+            ).toMap() +
+            sequentialAction.map { it.key to runAction(it.value.action) }.toMap()
+
+          executionResults.toSortedMap().values.toList()
+        }
+      else {
+          actionsToRun.map { runAction(it.action) }
+        }
     }
   }
 
   override fun <T> runAction(action: (BuildController) -> T): T {
     return action(controller)
   }
-
-  @Suppress("UnstableApiUsage")
-  override val parallelActionsSupported: Boolean
-    get() = controller.getCanQueryProjectModelInParallel(AndroidProject::class.java)
-}
-
-private class SequentialSyncActionRunner(private val controller: BuildController) : GradleInjectedSyncActionRunner {
-  override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
-    return actions.map { runAction(it) }
-  }
-
-  override fun <T> runAction(action: (BuildController) -> T): T {
-    return action(controller)
-  }
-
-  override val parallelActionsSupported: Boolean
-    get() = false
 }
