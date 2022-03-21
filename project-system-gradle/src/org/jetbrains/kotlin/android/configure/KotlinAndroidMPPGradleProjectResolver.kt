@@ -74,7 +74,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
-      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets) {
+      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets + kotlinSourceSet.additionalVisibleSourceSets) {
         val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
         androidGradleSourceSetDataNode.createChild(
           ProjectKeys.MODULE_DEPENDENCY,
@@ -118,7 +118,7 @@ private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<Gradle
  * there might be `androidAndroidTest` and `androidAndroidTestDebug`.
  */
 private fun IdeModuleSourceSet.getRootKotlinSourceSet(compilation: KotlinCompilation): KotlinSourceSet? {
-  val sourceSetName = compilation.disambiguationClassifier.orEmpty().appendCapitalized(sourceSetName)
+  val sourceSetName = compilation.disambiguationClassifier.orEmpty().appendCapitalized(kmpSourceSetSuffix())
   return compilation.declaredSourceSets.singleOrNull { it.name == sourceSetName }
 }
 
@@ -127,4 +127,11 @@ private fun IdeModuleSourceSet.androidCompilationNameSuffix() = when (this) {
   IdeModuleSourceSet.ANDROID_TEST -> "AndroidTest"
   IdeModuleSourceSet.UNIT_TEST -> "UnitTest"
   IdeModuleSourceSet.TEST_FIXTURES -> "TestFixtures"
+}
+
+private fun IdeModuleSourceSet.kmpSourceSetSuffix() = when (this) {
+  IdeModuleSourceSet.MAIN -> "main"
+  IdeModuleSourceSet.ANDROID_TEST -> "androidTest"
+  IdeModuleSourceSet.UNIT_TEST -> "test"
+  IdeModuleSourceSet.TEST_FIXTURES -> "testFixtures"
 }

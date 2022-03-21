@@ -820,6 +820,7 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
         Classes
@@ -1178,6 +1179,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
         Classes
             -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.unitTest
