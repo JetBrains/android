@@ -20,6 +20,8 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import java.io.IOException;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -869,5 +871,72 @@ public class RenderSecurityManagerTest {
     }
   }
 
+  /**
+   * Regression test for b/223219330.
+   */
+  @Test
+  public void testLogDir() {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    try {
+      manager.setActive(true, myCredential);
 
+      String logPath = PathManager.getLogPath();
+      assertNotNull(logPath);
+
+      manager.checkPermission(new FilePermission(logPath, "read,write"));
+      manager.checkPermission(new FilePermission(logPath + separator, "read,write"));
+      manager.checkPermission(new FilePermission(logPath + separator + "fake.log", "read,write"));
+
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+  @Test
+  public void testLogException() {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    try {
+      manager.setActive(true, myCredential);
+
+      String logPath = PathManager.getLogPath();
+      assertNotNull(logPath);
+
+      Logger.Factory oldFactory = Logger.getFactory();
+      try {
+        TestLoggerWithPropertyAccess loggerWithPropertyAccess = new TestLoggerWithPropertyAccess(Logger.getInstance(RenderSecurityManager.class));
+        Logger.setFactory(category -> loggerWithPropertyAccess);
+        Logger.getInstance(RenderSecurityManagerTest.class).error("test", new TestException());
+      } catch (Throwable t) {
+        // We expect the actual cause to be the TestException if the sandboxing is working correctly. If not, it will throw a security
+        // exception.
+        assertTrue("Unexpected exception " + t, t.getCause() instanceof TestException);
+      } finally {
+        Logger.setFactory(oldFactory);
+      }
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  @Test
+  public void testSystemPropertiesAccess() {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    try {
+      manager.setActive(true, myCredential);
+
+      try {
+        //noinspection ResultOfMethodCallIgnored
+        System.getProperties();
+        fail("Expected to throw RenderSecurityException");
+      } catch (RenderSecurityException ignore) {
+        // Expected to throw a security exception.
+      }
+    }
+    finally {
+      manager.dispose(myCredential);
+    }
+  }
+
+  private static class TestException extends Throwable { }
 }

@@ -17,10 +17,17 @@ package com.android.tools.idea.rendering
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.concurrency.OnDemandExecutorService
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.SupervisorJob
+import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -271,5 +278,23 @@ class RenderExecutorTest {
       forceShutdown = true
       executor.shutdown()
     }
+  }
+
+  @Test
+  fun testActionTimeout2() {
+    val executor = RenderExecutor.create()
+
+    val future = executor.runAsyncActionWithTimeout(
+      queueingTimeout =10, queueingTimeoutUnit = TimeUnit.SECONDS,
+      actionTimeout = 10, actionTimeoutUnit = TimeUnit.SECONDS) {
+      runBlocking {
+        CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler).launch {
+          throw IllegalArgumentException()
+        }
+      }
+      println("Done")
+    }
+
+    future.join()
   }
 }

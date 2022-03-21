@@ -92,6 +92,9 @@ public class RenderSecurityManager extends SecurityManager {
   private final String mIndexRootPath;
   private final String mCachePath;
 
+  /** Root of the path where IntelliJ stores the logs. */
+  private final String mLogRootPath;
+
   private boolean mAllowSetSecurityManager;
   private boolean mDisabled;
   private final String mSdkPath;
@@ -144,6 +147,7 @@ public class RenderSecurityManager extends SecurityManager {
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
     mIndexRootPath = PathManager.getIndexRoot().toString();
+    mLogRootPath = PathManager.getLogPath();
     mCachePath = PathManager.getSystemPath() + "/caches/";
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
@@ -324,7 +328,13 @@ public class RenderSecurityManager extends SecurityManager {
   @Override
   public void checkPropertiesAccess() {
     if (isRelevant() && !RenderPropertiesAccessUtil.isPropertyAccessAllowed()) {
-      throw RenderSecurityException.create("Property", null);
+      boolean isWithinLogger = Arrays.stream(this.getClassContext())
+        .anyMatch(
+          (clazz) -> "Logger".equals(clazz.getSimpleName()) && "com.intellij.openapi.diagnostic.Logger".equals(clazz.getCanonicalName()));
+
+      if (!isWithinLogger) {
+        throw RenderSecurityException.create("Property", null);
+      }
     }
   }
 
@@ -425,6 +435,8 @@ public class RenderSecurityManager extends SecurityManager {
     return isTempDirPath(path) ||
            // When loading classes, IntelliJ might sometimes drop a corruption marker
            path.startsWith(mIndexRootPath) ||
+           // When rotating the logs, IntelliJ might need to write or update the log.
+           path.startsWith(mLogRootPath) ||
            // When loading classes, IntelliJ might try to update cache hashes for the loaded files
            path.startsWith(mCachePath);
   }
