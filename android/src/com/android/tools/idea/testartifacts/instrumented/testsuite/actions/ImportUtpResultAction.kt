@@ -203,7 +203,9 @@ private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
 
 private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
   val resultProto = try {
-    TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream)
+    file.inputStream.use {
+      TestSuiteResultProto.TestSuiteResult.parseFrom(it)
+    }
   } catch (e: IOException) {
     null
   } ?: return null
