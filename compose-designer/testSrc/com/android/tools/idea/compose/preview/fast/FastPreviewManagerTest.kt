@@ -374,7 +374,7 @@ internal class FastPreviewManagerTest {
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
       assertEquals(
-        "DisableReason(title=Unable to compile using Fast Preview, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
+        "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
         manager.disableReason.toString())
       manager.enable()
       assertNull(manager.disableReason)

@@ -142,23 +142,23 @@
           <text value="Popup with editing tools for @Preview annotation from the Editor gutter"/>
         </properties>
       </component>
-      <component id="ae675" class="javax.swing.JCheckBox" binding="myBuildOnSaveCheckBox">
+      <component id="ae675" class="javax.swing.JCheckBox" binding="myFastPreviewEnabledCheckbox">
         <constraints>
           <grid row="13" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="180" height="25"/>
           </grid>
         </constraints>
         <properties>
-          <text value="Build preview on save"/>
+          <text value="Enable Live Edit for Preview"/>
         </properties>
       </component>
-      <component id="bcf4f" class="javax.swing.JLabel" binding="myBuildOnSaveLabel">
+      <component id="bcf4f" class="javax.swing.JLabel" binding="myFastPreviewEnabledLabel">
         <constraints>
           <grid row="14" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="false"/>
-          <text value="Builds the preview on save to allow for faster preview refresh"/>
+          <text value="Enables the Live Edit for Preview automatically refreshing after changing the preview files"/>
         </properties>
       </component>
       <component id="41cf9" class="com.intellij.ui.TitledSeparator">
