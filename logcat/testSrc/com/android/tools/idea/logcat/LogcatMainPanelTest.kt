@@ -59,6 +59,7 @@ import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
@@ -129,16 +130,19 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
-    assertThat(toolbar.actions.mapNotNull { it.templatePresentation.text }).containsExactly(
+    assertThat(toolbar.actions.map { if (it is Separator) "-" else it.templatePresentation.text }).containsExactly(
       "Clear Logcat",
       "Scroll to the End (clicking on a particular line stops scrolling and keeps that line visible)",
-      "Soft-Wrap",
-      "Configure Logcat Formatting Options",
       "Previous Occurrence",
       "Next Occurrence",
+      "Soft-Wrap",
+      "-",
+      "Configure Logcat Formatting Options",
+      "-",
       "Screen Capture",
       "Screen Record",
-    )
+      "-", // ActionManager.createActionToolbar() seems to add a separator at the end
+    ).inOrder()
     toolbar.actions.forEach {
       assertThat(it).isInstanceOf(DumbAware::class.java)
     }

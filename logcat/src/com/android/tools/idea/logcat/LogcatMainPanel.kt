@@ -73,6 +73,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
@@ -345,12 +346,14 @@ internal class LogcatMainPanel(
         @Suppress("DialogTitleCapitalization")
         templatePresentation.text = LogcatBundle.message("logcat.scroll.to.end.action.text")
       })
+      add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
+      add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(object : ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE) {
         override fun getEditor(e: AnActionEvent) = this@LogcatMainPanel.editor
       })
+      add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
-      add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
-      add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
+      add(Separator.create())
       add(DeviceScreenshotAction(project, deviceContext))
       add(ScreenRecorderAction(project, deviceContext))
     }
