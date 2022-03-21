@@ -72,7 +72,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   }
 
   private val secondRow = JPanel(TabularLayout("Fit,Fit,*")).apply {
-    border = JBUI.Borders.empty(0, 0, 0, 8)
+    border = JBUI.Borders.empty(0, 25, 0, 8)
   }
 
   fun getCurrentHeight() =
