@@ -37,6 +37,7 @@ import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -123,6 +124,8 @@ class BuildAttributionUiManagerImpl(
           }
         }
       })
+    ApplicationManager.getApplication().messageBus.connect(this)
+      .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
 
   override fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
@@ -182,6 +185,18 @@ class BuildAttributionUiManagerImpl(
     }
     if (reportUiData.shouldAutoOpenTab()) {
       openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+    }
+  }
+
+  @UiThread
+  private fun reInitReportUI() {
+    val content = buildContent
+    if (content != null && content.isValid) {
+      buildAttributionView?.let { view ->
+        (view as? NewViewComponentContainer)?.reInitUi()
+        content.component.removeAll()
+        content.component.add(view.component, BorderLayout.CENTER)
+      }
     }
   }
 
@@ -272,13 +287,16 @@ private class NewViewComponentContainer(
   issueReporter: TaskIssueReporter,
   uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
-  val view: BuildAnalyzerComboBoxView
+  private val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
+  private val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
+  private var view = createView()
 
-  init {
-    val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
-    val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
-    view = BuildAnalyzerComboBoxView(model, controller, this)
+  fun reInitUi() {
+    Disposer.dispose(view)
+    view = createView()
   }
+
+  private fun createView() = BuildAnalyzerComboBoxView(model, controller).also { view -> Disposer.register(this, view) }
 
   override fun getPreferredFocusableComponent(): JComponent = component
 

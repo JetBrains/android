@@ -47,9 +47,10 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Before
   fun setUp() {
-    view = BuildAnalyzerComboBoxView(model, mockHandlers, disposableRule.disposable).apply {
+    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
       wholePanel.size = Dimension(600, 200)
     }
+    disposableRule.register { view }
   }
 
   @Test
