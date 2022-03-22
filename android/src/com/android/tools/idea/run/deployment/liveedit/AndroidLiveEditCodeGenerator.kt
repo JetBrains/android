@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -156,6 +157,10 @@ fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContex
   if (useComposeIR) {
     // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
     compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
+
+    // We don't support INVOKE_DYNAMIC in the interpeter at the moment.
+    compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+    compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
   }
 
   val generationStateBuilder = GenerationState.Builder(project,
