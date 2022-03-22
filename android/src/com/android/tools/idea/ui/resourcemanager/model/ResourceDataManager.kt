@@ -31,7 +31,6 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
-import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
