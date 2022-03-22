@@ -2357,7 +2357,6 @@ Android Studio Preview.app/Contents/plugins/coverage/lib/coverage_rt.jar
 Android Studio Preview.app/Contents/plugins/coverage/lib/jacoco.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/layoutlib.jar
-Android Studio Preview.app/Contents/plugins/design-tools/resources/kotlin-compiler-daemon-1.1.0-fallback.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/build.prop
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/AndroidClock.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/CarroisGothicSC-Regular.ttf

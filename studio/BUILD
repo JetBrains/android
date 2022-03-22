@@ -348,7 +348,6 @@ studio_plugin(
     resources = {
         "resources": [
             "//prebuilts/studio/layoutlib:layoutlib",
-            "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         ],
     },
     deps = [
