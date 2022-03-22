@@ -156,7 +156,7 @@ public class ProjectStructure {
   }
 
   @Nullable
-  private static Module getHolder(@NotNull Module module) {
+  public static Module getHolder(@NotNull Module module) {
     if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return null;
     if (GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY.equals(ExternalSystemApiUtil.getExternalModuleType(module))) {
       String moduleName = module.getName();
@@ -176,6 +176,11 @@ public class ProjectStructure {
     String moduleId = ExternalSystemApiUtil.getExternalProjectId(module);
     if (moduleId == null) return false;
     return "main".equals(StringsKt.substringAfterLast(moduleId, ":", ""));
+  }
+
+  public static boolean isAndroidOrJavaHolderModule(@NotNull Module module) {
+    if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return false;
+    return ExternalSystemApiUtil.getExternalModuleType(module) == null;
   }
 
   public static class AndroidPluginVersionsInProject {
