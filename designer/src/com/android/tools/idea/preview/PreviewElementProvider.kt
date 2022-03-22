@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -36,31 +33,9 @@ interface PreviewElementProvider<P: PreviewElement> {
   suspend fun previewElements(): Sequence<P>
 }
 
-/**
- * Interface to be implemented by classes providing instances of [ComposePreviewElement] as [ComposePreviewElementInstance].
- */
-interface PreviewElementInstanceProvider: PreviewElementProvider<ComposePreviewElementInstance> {
-  /**
-   * Returns a [Sequence] of [ComposePreviewElementInstance]s.
-   */
-  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance>
+class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) : PreviewElementProvider<P> {
+  override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
-
-/**
- * [PreviewElementProvider] that does not contain [ComposePreviewElement]s.
- */
-object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
-  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = emptySequence()
-}
-
-/**
- * Returns the list of available group names in this [PreviewElementProvider]. If this provider does any filtering, the groups
- * returned here will be the ones after the filtering is applied.
- */
-fun Sequence<ComposePreviewElement>.groupNames(): Set<String> =
-  mapNotNull { it.displaySettings.group }
-    .filter { it.isNotBlank() }
-    .toSet()
 
 /**
  * A [PreviewElementProvider] that applies a filter to the result.

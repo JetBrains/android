@@ -1013,6 +1013,22 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/preview/PreviewElementDebugLogger.kt"
+            line="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
             line="656"/>
     </issue>

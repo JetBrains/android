@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
+import com.android.tools.idea.preview.FilteredPreviewElementProvider
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.google.common.annotations.VisibleForTesting
 
 /**

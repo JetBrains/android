@@ -18,10 +18,9 @@ package com.android.tools.idea.compose.gradle.preview.util
 import com.android.tools.idea.compose.preview.calcComposeElementsAffinity
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.matchElementsToModels
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.matchElementsToModels
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -91,7 +90,7 @@ class UtilsTest {
 
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
-        listOf<ComposePreviewElementInstance>(element1, element2, element3),
+        listOf(element1, element2, element3),
         modelsToElements::get,
         ::calcComposeElementsAffinity)
 
@@ -105,9 +104,9 @@ class UtilsTest {
         model3 to element3,
       )
 
-      val result = matchElementsToModels(
+      val result = matchElementsToModels<ComposePreviewElementInstance, Any>(
         listOf(model2, model3),
-        listOf<ComposePreviewElementInstance>(element1, element2, element3),
+        listOf(element1, element2, element3),
         modelsToElements::get,
         ::calcComposeElementsAffinity
       )
@@ -124,7 +123,7 @@ class UtilsTest {
 
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
-        listOf<ComposePreviewElementInstance>(element2, element3),
+        listOf(element2, element3),
         modelsToElements::get,
         ::calcComposeElementsAffinity)
 
@@ -140,7 +139,7 @@ class UtilsTest {
 
       val result = matchElementsToModels(
         listOf(model1, model2, model3),
-        listOf<ComposePreviewElementInstance>(element1, element2, element3),
+        listOf(element1, element2, element3),
         modelsToElements::get,
         ::calcComposeElementsAffinity)
 
@@ -155,7 +154,7 @@ class UtilsTest {
 
       val result = matchElementsToModels(
         listOf(model1, model2),
-        listOf<ComposePreviewElementInstance>(element1, element2),
+        listOf(element1, element2),
         modelsToElements::get,
         ::calcComposeElementsAffinity)
 
@@ -165,7 +164,7 @@ class UtilsTest {
     run {
       val result = matchElementsToModels(
         listOf<Any>(),
-        listOf<ComposePreviewElementInstance>(element1),
+        listOf(element1),
         { null },
         ::calcComposeElementsAffinity)
 

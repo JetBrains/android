@@ -17,7 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
-import com.intellij.openapi.util.SimpleModificationTracker
+import com.android.tools.idea.preview.FilteredPreviewElementProvider
+import com.android.tools.idea.preview.StaticPreviewProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -44,30 +45,5 @@ class ComposePreviewElementProviderTest {
     // Now remove all elements with the word Preview
     filterWord = "Preview"
     assertEquals("internal.com.sample.TestClass.AMethod", filtered.previewElements().single().composableMethodFqn)
-  }
-
-  @Test
-  fun testMemoized() = runBlocking {
-    var staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
-      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
-      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
-      SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
-    ))
-
-    val modificationTracker = SimpleModificationTracker()
-    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<ComposePreviewElementInstance> {
-      override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> = staticPreviewProvider.previewElements()
-    }, modificationTracker)
-
-    // Before the first refresh, the list is empty
-    assertEquals(3, memoized.previewElements().count())
-
-    staticPreviewProvider = StaticPreviewProvider(listOf(
-      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1")
-    ))
-    // Updated the source but did not "refresh" by chaging the modification stamp
-    assertEquals(3, memoized.previewElements().count())
-    modificationTracker.incModificationCount()
-    assertEquals(1, memoized.previewElements().count())
   }
 }

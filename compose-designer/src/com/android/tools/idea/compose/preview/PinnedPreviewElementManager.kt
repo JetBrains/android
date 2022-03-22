@@ -2,11 +2,12 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.preview.util.DisplayPositioning
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.DisplayPositioning
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ReadAction

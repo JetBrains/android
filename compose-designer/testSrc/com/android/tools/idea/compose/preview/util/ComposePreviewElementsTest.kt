@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.idea.compose.preview.calcComposeElementsAffinity
+import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertArrayEquals

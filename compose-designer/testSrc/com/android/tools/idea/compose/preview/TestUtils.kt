@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.BuildListener
@@ -77,10 +76,6 @@ internal fun UFile.method(name: String): UMethod? =
   declaredMethods()
     .filter { it.name == name }
     .singleOrNull()
-
-internal class StaticPreviewProvider<P : ComposePreviewElement>(private val collection: Collection<P>) : PreviewElementProvider<P> {
-  override suspend fun previewElements(): Sequence<P> = collection.asSequence()
-}
 
 /**
  * Returns the [HighlightInfo] description adding the relative line number

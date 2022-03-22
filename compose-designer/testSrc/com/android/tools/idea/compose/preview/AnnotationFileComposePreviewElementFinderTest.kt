@@ -17,14 +17,14 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.util.DisplayPositioning
 import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.DisplayPositioning
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl

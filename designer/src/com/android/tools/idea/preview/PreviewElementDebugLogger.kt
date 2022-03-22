@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.asLogString
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.diagnostic.Logger
@@ -28,7 +27,7 @@ import java.util.UUID
  * [PreviewElement] descendant features that might be used for logging. The users are supposed to inherit from the
  * [PreviewElementDebugLogger] and implement [logPreviewElement] for the specified [PreviewElement] descendant.
  */
-internal abstract class PreviewElementDebugLogger<T : PreviewElement>(private val log: Logger) {
+abstract class PreviewElementDebugLogger<T : PreviewElement>(private val log: Logger) {
   private val refreshId = UUID.randomUUID().toString()
   protected val stopwatch = StopWatch()
 

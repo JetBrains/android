@@ -27,12 +27,13 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -215,7 +216,7 @@ class ComposePreviewViewImplTest {
                                                   composePreviewManager: ComposePreviewManager,
                                                   surface: NlDesignSurface = previewView.mainSurface) {
     runBlocking(workerThread) {
-      surface.updatePreviewsAndRefresh(
+      surface.updateComposePreviewsAndRefresh(
         false,
         previewProvider,
         Logger.getInstance(ComposePreviewViewImplTest::class.java),

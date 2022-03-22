@@ -29,6 +29,7 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.preview.PreviewDisplaySettings
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
