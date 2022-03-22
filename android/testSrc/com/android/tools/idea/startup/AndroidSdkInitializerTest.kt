@@ -20,6 +20,7 @@ import com.android.SdkConstants.FD_PLATFORMS
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnLinux
+import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.SystemProperties
@@ -27,6 +28,8 @@ import org.jetbrains.android.sdk.AndroidSdkType
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.io.File
 
 class AndroidSdkInitializerTest {
@@ -44,7 +47,8 @@ class AndroidSdkInitializerTest {
         SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath,
         SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath,
       ),
-      AndroidSdkType())
+      AndroidSdkType(),
+      getAndroidStudioIde())
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
@@ -54,7 +58,8 @@ class AndroidSdkInitializerTest {
       mapOf(
         SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath,
       ),
-      AndroidSdkType())
+      AndroidSdkType(),
+      getAndroidStudioIde())
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
@@ -64,7 +69,49 @@ class AndroidSdkInitializerTest {
   @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun `getAndroidSdkPathOrDefault() should fallback to default`() {
-    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(emptyMap(), AndroidSdkType())
+    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
+      emptyMap(),
+      AndroidSdkType(),
+      getAndroidStudioIde())
+    when {
+      SystemInfo.isWindows ->
+        Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
+      SystemInfo.isMac ->
+        Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
+      else -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Android/Sdk"))
+    }
+  }
+
+  @Test
+  fun `getAndroidSdkPathOrDefault() for game tools should prioritize ANDROID_HOME over ANDROID_SDK_ROOT`() {
+    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
+      mapOf(
+        SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath,
+        SdkConstants.ANDROID_SDK_ROOT_ENV to alternativeSdk.absolutePath,
+      ),
+      AndroidSdkType(),
+      getGameToolsIde())
+    Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
+  }
+
+  @Test
+  fun `getAndroidSdkPathOrDefault() for game tools should prioritize ANDROID_SDK_ROOT over default`() {
+    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
+      mapOf(
+        SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath,
+      ),
+      AndroidSdkType(),
+      getGameToolsIde())
+    Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
+  }
+
+  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
+  @Test
+  fun `getAndroidSdkPathOrDefault() for game tools should return default if no env var set`() {
+    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
+      emptyMap(),
+      AndroidSdkType(),
+      getGameToolsIde())
     when {
       SystemInfo.isWindows ->
         Truth.assertThat(foundSdk).isEqualTo(File(System.getenv("LOCALAPPDATA")).resolve("Android/Sdk"))
@@ -77,5 +124,19 @@ class AndroidSdkInitializerTest {
   private fun File.asFakeSdk(): File {
     resolve(FD_PLATFORMS).mkdirs()
     return this
+  }
+
+  private fun getAndroidStudioIde(): IdeInfo {
+    val mockIdeInfo = mock(IdeInfo::class.java)
+    `when`(mockIdeInfo.isGameTools).thenReturn(false)
+    `when`(mockIdeInfo.isAndroidStudio).thenReturn(true)
+    return mockIdeInfo;
+  }
+
+  private fun getGameToolsIde(): IdeInfo {
+    val mockIdeInfo = mock(IdeInfo::class.java)
+    `when`(mockIdeInfo.isGameTools).thenReturn(true)
+    `when`(mockIdeInfo.isAndroidStudio).thenReturn(false)
+    return mockIdeInfo;
   }
 }
