@@ -734,6 +734,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_DSL_TOML_SUPPORT = Flag.create(
     GRADLE_IDE, "gradle.dsl.toml", "Parse TOML files", "Parse TOML files to support use of Version Catalogs.", true);
 
+  public static final Flag<Boolean> GRADLE_DSL_TOML_WRITE_SUPPORT = Flag.create(
+    GRADLE_IDE, "gradle.dsl.toml.write", "Write TOML files", "Write changes to TOML Version Catalog files.", false);
+
   //endregion
 
   //region Database Inspector
