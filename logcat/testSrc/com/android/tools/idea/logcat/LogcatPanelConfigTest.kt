@@ -55,4 +55,5 @@ private fun logcatPanelConfig(
   device: SavedDevice? = null,
   formattingConfig: FormattingConfig = FormattingConfig.Preset(STANDARD),
   filter: String = "",
-) = LogcatPanelConfig(device, formattingConfig, filter)
+  isSoftWrap: Boolean = false,
+) = LogcatPanelConfig(device, formattingConfig, filter, isSoftWrap)

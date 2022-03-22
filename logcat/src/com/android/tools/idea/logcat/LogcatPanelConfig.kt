@@ -43,6 +43,7 @@ internal data class LogcatPanelConfig(
   var device: SavedDevice?,
   var formattingConfig: FormattingConfig,
   var filter: String,
+  var isSoftWrap: Boolean,
 ) {
 
   companion object {

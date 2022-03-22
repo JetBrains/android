@@ -73,7 +73,6 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
@@ -172,9 +171,13 @@ internal class LogcatMainPanel(
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
 
   init {
-    editor.installPopupHandler(object : ContextMenuPopupHandler() {
-      override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
-    })
+    editor.apply {
+      installPopupHandler(object : ContextMenuPopupHandler() {
+        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
+      })
+      gutterComponentEx.isVisible = false
+      settings.isUseSoftWraps = state?.isSoftWrap ?: false
+    }
 
     toolbar.targetComponent = this
 
@@ -187,8 +190,6 @@ internal class LogcatMainPanel(
     addToTop(headerPanel)
     addToLeft(toolbar.component)
     addToCenter(editor.component)
-
-    editor.gutterComponentEx.isVisible = false
 
     deviceContext.addListener(object : DeviceConnectionListener() {
       @UiThread
@@ -273,7 +274,8 @@ internal class LogcatMainPanel(
       LogcatPanelConfig(
         deviceContext.selectedDevice?.toSavedDevice(),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
-        headerPanel.getFilterText()))
+        headerPanel.getFilterText(),
+        editor.settings.isUseSoftWraps))
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {

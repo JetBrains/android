@@ -437,12 +437,17 @@ class LogcatMainPanelTest {
   @Test
   fun appliesState() {
     val logcatMainPanel = logcatMainPanel(
-      state = LogcatPanelConfig(device = null, FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))), "filter"))
+      state = LogcatPanelConfig(
+        device = null,
+        FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
+        "filter",
+        isSoftWrap = true))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow testing.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
+    assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isTrue()
   }
 
   @RunsInEdt
@@ -453,6 +458,7 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isInstanceOf(ProjectAppFilter::class.java)
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("package:mine")
+    assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isFalse()
   }
 
   @RunsInEdt
@@ -625,7 +631,8 @@ class LogcatMainPanelTest {
     logcatMainPanel(state = LogcatPanelConfig(
       device = null,
       formattingConfig = FormattingConfig.Preset(COMPACT),
-      "foo"))
+      "filter",
+      isSoftWrap = false))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()
@@ -658,7 +665,8 @@ class LogcatMainPanelTest {
     logcatMainPanel(state = LogcatPanelConfig(
       device = null,
       formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(20, hideDuplicates = false, enabled = true))),
-      "foo"))
+      "filter",
+      isSoftWrap = false))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()

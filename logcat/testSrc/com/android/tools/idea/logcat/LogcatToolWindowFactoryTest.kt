@@ -101,7 +101,8 @@ class LogcatToolWindowFactoryTest {
     val logcatPanelConfig = LogcatPanelConfig(
       device = null,
       FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
-      "filter")
+      "filter",
+      isSoftWrap = false)
 
     val logcatMainPanel = LogcatToolWindowFactory()
       .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = LogcatPanelConfig.toJson(logcatPanelConfig))
