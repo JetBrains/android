@@ -77,7 +77,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() {
+  public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
     IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 

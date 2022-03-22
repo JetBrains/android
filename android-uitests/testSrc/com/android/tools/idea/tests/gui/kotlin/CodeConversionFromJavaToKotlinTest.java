@@ -22,6 +22,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.timing.Wait;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +46,7 @@ public class CodeConversionFromJavaToKotlinTest {
   private final static String JAVA_CODE =
     String.format("(\n\n%s(?:.*\n)*%s)", START_LINE, END_LINE);
   private final static String JAVA_METHOD =
+    "\n" +
     "// --- START COPY HERE ---\n" +
     "public int dummyFun(int a, int b) {\n" +
     "   int p = a - b;\n" +
@@ -52,9 +55,9 @@ public class CodeConversionFromJavaToKotlinTest {
     "// --- END COPY HERE ---";
   private final static String KOTLIN_FUN =
     "    fun dummyFun(a: Int, b: Int): Int {\n" +
-    "        val p = a - b\n" +
-    "        return p\n" +
+    "        return a - b\n" +
     "    }";
+  private final static String FILE_NAME = "app/src/main/java/com/android/javatokotlincode/MainActivity.kt";
 
   /**
    * Verifies Copy pasting a block of code from java file to kotlin file converts the code to
@@ -94,16 +97,23 @@ public class CodeConversionFromJavaToKotlinTest {
     */
 
     EditorFixture kotlinEditor = ideFrameFixture.getEditor()
-      .open("app/src/main/java/com/android/javatokotlincode/MainActivity.kt",
+      .open(FILE_NAME,
             EditorFixture.Tab.EDITOR)
       .moveBetween("setContentView(R.layout.activity_main)\n    }", "");
 
     kotlinEditor.pasteText(JAVA_METHOD);
 
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Code From Java"))
-      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+      .withTimeout(SECONDS.toMillis(90)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
-    assertThat(kotlinEditor.getCurrentFileContents()).contains(KOTLIN_FUN);
+    guiTest.robot().waitForIdle();
+
+    String fileContent = ideFrameFixture.getEditor()
+      .closeFile(FILE_NAME)
+      .open(FILE_NAME)
+      .getCurrentFileContents();
+
+    assertThat(fileContent).contains(KOTLIN_FUN);
   }
 }
