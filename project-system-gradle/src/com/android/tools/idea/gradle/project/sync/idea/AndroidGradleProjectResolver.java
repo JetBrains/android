@@ -750,7 +750,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       // or contain an imcomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
       AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
       if (artifacts != null) {
-        new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
+        return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
       }
 
       // Then check to see whether we already have the library cached.
