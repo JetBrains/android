@@ -354,6 +354,7 @@ studio_plugin(
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
+            "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
         ],

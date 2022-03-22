@@ -1260,6 +1260,20 @@ public final class StudioFlags {
     false);
   //endregion
 
+  // region Wear surfaces
+  private static final FlagGroup WEAR_SURFACES = new FlagGroup(FLAGS, "wear.surfaces", "Wear Surfaces");
+
+  public static final Flag<Boolean> GLANCE_APP_WIDGET_PREVIEW = Flag.create(
+    WEAR_SURFACES, "glance.preview.appwidget.enabled", "Enable Glance AppWidget preview",
+    "If enabled, a preview for annotated glance app widget composable functions is displayed",
+    false);
+
+  public static final Flag<Boolean> GLANCE_TILE_PREVIEW = Flag.create(
+    WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
+    "If enabled, a preview for annotated glance tile composable functions is displayed",
+    false);
+  // endregion
+
   // region App Inspection
   private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(

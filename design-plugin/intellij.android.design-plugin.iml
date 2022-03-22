@@ -12,6 +12,7 @@
     <orderEntry type="module" module-name="intellij.android.compose-designer" />
     <orderEntry type="module" module-name="intellij.android.designer.customview" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.glance-designer" />
     <orderEntry type="library" name="layoutlib" level="project" />
   </component>
 </module>

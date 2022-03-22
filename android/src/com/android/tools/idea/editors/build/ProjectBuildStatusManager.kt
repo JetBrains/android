@@ -226,6 +226,8 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
           // Only update the status if we are still in NotReady.
           if (projectBuildStatus === ProjectBuildStatus.NotReady) {
             // Set the initial state of the project and initialize the modification count.
+            // TODO(b/239802877): here we essentially change the build status, therefore we need a callback to inform the parent, the
+            // callback should probably do the same as what the parent does on runWhenSmartAndSyncedOnEdt
             projectBuildStatus = newState
           }
         }
