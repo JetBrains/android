@@ -104,7 +104,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -714,7 +716,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       // Flow to collate and process requestRefresh requests.
       launch(workerThread) {
-        refreshFlow.collectLatest {
+        refreshFlow.conflate().collect { // Collect the latest RefreshRequest and skip the previous ones that were not processed yet.
           refreshFlow.resetReplayCache() // Do not keep re-playing after we have received the element.
           refresh(it)?.join()
         }
