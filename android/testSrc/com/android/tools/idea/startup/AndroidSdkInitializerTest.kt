@@ -20,21 +20,10 @@ import com.android.SdkConstants.FD_PLATFORMS
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnLinux
-import com.android.utils.PathUtils.toSystemIndependentPath
 import com.google.common.truth.Truth
-import com.intellij.core.CoreApplicationEnvironment
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.VirtualFileManagerListener
-import com.intellij.openapi.vfs.impl.VirtualFileManagerImpl
-import com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import com.intellij.util.SystemProperties
 import org.jetbrains.android.sdk.AndroidSdkType
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -45,22 +34,11 @@ class AndroidSdkInitializerTest {
   @get:Rule
   val tempDir = TemporaryFolder()
 
-  val selectedSdk by lazy { tempDir.root.resolve("selectedSdk").asFakeSdk() }
-  val alternativeSdk by lazy { tempDir.root.resolve("alternativeSdk").asFakeSdk() }
-  private val myDisposable = Disposer.newDisposable()
-
-  @Before
-  fun setUp() {
-    // Application is needed to read the ddms.cfg file inside a read action.
-    val instance = MockApplication.setUp(myDisposable)
-    CoreApplicationEnvironment.registerApplicationExtensionPoint(ExtensionPointName("com.intellij.virtualFileManagerListener"),
-                                                                 VirtualFileManagerListener::class.java)
-    instance.registerService(VirtualFileManager::class.java, VirtualFileManagerImpl(listOf(CoreLocalFileSystem())))
-  }
+  private val selectedSdk by lazy { tempDir.root.resolve("selectedSdk").asFakeSdk() }
+  private val alternativeSdk by lazy { tempDir.root.resolve("alternativeSdk").asFakeSdk() }
 
   @Test
-  fun `getAndroidSdkPathOrDefault() should prefer ANDROID_HOME over ANDROID_SDK_ROOT and DDMS config`() {
-    setUpDdmsCfg(alternativeSdk)
+  fun `getAndroidSdkPathOrDefault() should prefer ANDROID_HOME over ANDROID_SDK_ROOT and default`() {
     val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
       mapOf(
         SdkConstants.ANDROID_HOME_ENV to selectedSdk.absolutePath,
@@ -71,20 +49,12 @@ class AndroidSdkInitializerTest {
   }
 
   @Test
-  fun `getAndroidSdkPathOrDefault() should prefer ANDROID_SDK_ROOT over DDMS config`() {
-    setUpDdmsCfg(alternativeSdk)
+  fun `getAndroidSdkPathOrDefault() should prefer ANDROID_SDK_ROOT over default`() {
     val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
       mapOf(
         SdkConstants.ANDROID_SDK_ROOT_ENV to selectedSdk.absolutePath,
       ),
       AndroidSdkType())
-    Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
-  }
-
-  @Test
-  fun `getAndroidSdkPathOrDefault() should get from DDMS config`() {
-    setUpDdmsCfg(selectedSdk)
-    val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(emptyMap(), AndroidSdkType())
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
@@ -101,28 +71,6 @@ class AndroidSdkInitializerTest {
       SystemInfo.isMac ->
         Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Library/Android/sdk"))
       else -> Truth.assertThat(foundSdk).isEqualTo(File(SystemProperties.getUserHome()).resolve("Android/Sdk"))
-    }
-  }
-
-  @After
-  fun tearDown() {
-    // This file is useful for users migrating from Eclipse. It's never useful for Android Studio developers, so deleting it
-    // in test environment (under studio-master-dev or in a bazel sandbox) is OK. On the other hand, we need to delete it so
-    // the presence of this file won't interfere launching dev instances of studio.
-    val ddmsCfg = File(SystemProperties.getUserHome()).resolve(".android/ddms.cfg")
-    if (ddmsCfg.exists()) {
-      ddmsCfg.delete()
-    }
-
-    Disposer.dispose(myDisposable)
-  }
-
-  private fun setUpDdmsCfg(sdkPath: File) {
-    File(SystemProperties.getUserHome()).resolve(".android").apply {
-      mkdirs()
-      resolve("ddms.cfg").writeText("""
-        lastSdkPath=${toSystemIndependentPath(sdkPath.toPath())}
-      """.trimIndent())
     }
   }
 

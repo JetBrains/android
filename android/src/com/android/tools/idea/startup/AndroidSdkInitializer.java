@@ -173,7 +173,6 @@ public class AndroidSdkInitializer implements Runnable {
    * <p><ul>
    * <li>ANDROID_HOME_ENV</li>
    * <li>ANDROID_SDK_ROOT_ENV</li>
-   * <li>path saved in the very-obsolete ddms.cfg</li>
    * <li>the platform-specific default path</li>
    * </ul></p>
    *
@@ -198,7 +197,6 @@ public class AndroidSdkInitializer implements Runnable {
       }
     }
     LOG.info("Unable to locate SDK within the Android studio installation.");
-
     return getAndroidSdkOrDefault(System.getenv(), AndroidSdkType.getInstance());
   }
 
@@ -211,8 +209,6 @@ public class AndroidSdkInitializer implements Runnable {
                               () -> env.get(SdkConstants.ANDROID_HOME_ENV));
     sdkLocationCandidates.put(SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable",
                               () -> env.get(SdkConstants.ANDROID_SDK_ROOT_ENV));
-    sdkLocationCandidates.put("Last SDK used by Android tools",
-                              AndroidSdkInitializer::getLastSdkPathUsedByAndroidTools);
 
     String sdkPath;
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
@@ -238,31 +234,5 @@ public class AndroidSdkInitializer implements Runnable {
     }
     LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
     return FilePaths.stringToFile(ANDROID_SDK_DEFAULT_INSTALL_DIR);
-  }
-
-  /**
-   * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
-   * or property doesn't exist.
-   * <p>
-   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle. This method duplicates some
-   * functionality of {@link com.android.prefs.AbstractAndroidLocations} since we don't want any file system writes to happen during this process.
-   */
-  @Nullable
-  private static String getLastSdkPathUsedByAndroidTools() {
-    String userHome = SystemProperties.getUserHome();
-    if (userHome == null) {
-      return null;
-    }
-    File file = new File(new File(userHome, ".android"), "ddms.cfg");
-    if (!file.exists()) {
-      return null;
-    }
-    try {
-      Properties properties = getProperties(file);
-      return properties.getProperty("lastSdkPath");
-    }
-    catch (IOException e) {
-      return null;
-    }
   }
 }
