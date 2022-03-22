@@ -238,7 +238,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
   @Test
   fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
-    assumeFalse(StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get());
+    assumeFalse(StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get())
 
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
@@ -268,7 +268,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", apiLevel = 29),
       phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", hasPlayStore = false),
       phoneDevice.copy(deviceID = "id5", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
-      phoneDevice
+      phoneDevice,
+      wearDevice.copy(deviceID = "id6", apiLevel = 25),
     ))
     fakeUi.layoutAndDispatchEvents()
 
@@ -293,7 +294,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
 
     // Assert that list was sorted. Enabled first, disabled last.
-    arrayOf("id5", "id1", "id3", "id4").forEachIndexed { index, id ->
+    arrayOf("id5", "id1", "id3", "id4", "id6").forEachIndexed { index, id ->
       assertThat(phoneList.model.getElementAt(index).deviceID).isEqualTo(id)
     }
 
@@ -303,6 +304,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
     assertThat(getListItemTooltip(2)).contains("Wear pairing requires API level >= 30")
     assertThat(getListItemTooltip(3)).contains("Wear pairing requires Google Play")
+    assertThat(getListItemTooltip(4)).contains("Wear pairing requires API level >= 28")
   }
 
   private fun createDeviceListStepUi(wizardAction: WizardAction = WizardActionTest()): FakeUi {

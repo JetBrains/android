@@ -18,12 +18,10 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
-import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.legacy.LegacyAvdManagerUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
@@ -160,26 +158,10 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
   private @NotNull JComponent newPairDeviceItem() {
     JComponent item = newPairDeviceItem(EventKind.VIRTUAL_PAIR_DEVICE_ACTION);
-
     VirtualDevice device = getDevice();
-    boolean wearOs = device.getType().equals(DeviceType.WEAR_OS);
 
-    if (wearOs) {
-      item.setEnabled(true);
-      item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.ok"));
-    }
-    else if (device.getAndroidVersion().getApiLevel() < 30) {
-      item.setEnabled(false);
-      item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.requires.api"));
-    }
-    else if (!device.getAvdInfo().hasPlayStore()) {
-      item.setEnabled(false);
-      item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.requires.play"));
-    }
-    else {
-      item.setEnabled(true);
-      item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.ok"));
-    }
+    item.setEnabled(device.isPairable());
+    item.setToolTipText(device.getPairingMessage());
 
     return item;
   }

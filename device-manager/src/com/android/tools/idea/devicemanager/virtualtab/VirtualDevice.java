@@ -22,6 +22,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +104,16 @@ public final class VirtualDevice extends Device {
     }
   }
 
+  private static final class PairingState {
+    private final boolean myPairable;
+    private final @Nullable String myMessage;
+
+    private PairingState(boolean pairable, @Nullable String message) {
+      myPairable = pairable;
+      myMessage = message;
+    }
+  }
+
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
 
@@ -134,6 +145,37 @@ public final class VirtualDevice extends Device {
 
   long getSizeOnDisk() {
     return mySizeOnDisk;
+  }
+
+  boolean isPairable() {
+    return newPairingState().myPairable;
+  }
+
+  @Nullable String getPairingMessage() {
+    return newPairingState().myMessage;
+  }
+
+  private @NotNull PairingState newPairingState() {
+    switch (myType) {
+      case PHONE:
+        if (myAndroidVersion.getApiLevel() < 30) {
+          return new PairingState(false, AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.requires.api", 30));
+        }
+
+        if (!myAvdInfo.hasPlayStore()) {
+          return new PairingState(false, AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.requires.play"));
+        }
+
+        return new PairingState(true, AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.ok"));
+      case WEAR_OS:
+        if (myAndroidVersion.getApiLevel() < 28) {
+          return new PairingState(false, AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.requires.api", 28));
+        }
+
+        return new PairingState(true, AndroidWearPairingBundle.message("wear.assistant.device.list.tooltip.ok"));
+      default:
+        return new PairingState(false, null);
+    }
   }
 
   public @NotNull AvdInfo getAvdInfo() {

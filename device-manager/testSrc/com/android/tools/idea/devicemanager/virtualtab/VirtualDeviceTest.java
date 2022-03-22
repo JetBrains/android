@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -94,5 +96,47 @@ public final class VirtualDeviceTest {
     assertEquals(new VirtualDeviceName("Automotive_1024p_landscape_API_30"), device.getKey());
     assertEquals("x86", device.getCpuArchitecture());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR, device.getIcon());
+  }
+
+  @Test
+  public void newPairingStateCaseWearOsApiLevelIsLessThan28() {
+    // Arrange
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_26"))
+      .setType(DeviceType.WEAR_OS)
+      .setName("Wear OS Small Round API 26")
+      .setTarget("Android 8.0 Android Wear")
+      .setCpuArchitecture("x86")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
+      .build();
+
+    // Act
+    boolean pairable = device.isPairable();
+    Object message = device.getPairingMessage();
+
+    // Assert
+    assertFalse(pairable);
+    assertEquals("Wear pairing requires API level >= 28", message);
+  }
+
+  @Test
+  public void newPairingStateDefault() {
+    // Arrange
+    VirtualDevice device = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Android_TV_4K_API_31"))
+      .setType(DeviceType.TV)
+      .setName("Android TV (4K) API 31")
+      .setTarget("Android 12.0 Google TV")
+      .setCpuArchitecture("x86")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
+      .build();
+
+    // Act
+    boolean pairable = device.isPairable();
+    Object message = device.getPairingMessage();
+
+    // Assert
+    assertFalse(pairable);
+    assertNull(message);
   }
 }

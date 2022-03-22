@@ -86,6 +86,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
       .setName("Wear OS Small Round API 28")
       .setTarget("Android 9.0 Wear OS")
       .setCpuArchitecture("x86")
+      .setAndroidVersion(new AndroidVersion(28))
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 

@@ -419,6 +419,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
 
 private fun PairingDevice.isDisabled(): Boolean {
   return state == ConnectionState.DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
+         || isEmulator && isWearDevice && apiLevel < 28
 }
 
 private fun PairingDevice.getTooltip(): String? {
@@ -429,7 +430,8 @@ private fun PairingDevice.getTooltip(): String? {
   }
 
   return when {
-    isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
+    isEmulator && isWearDevice && apiLevel < 28 -> message("wear.assistant.device.list.tooltip.requires.api", 28)
+    isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api", 30)
     isEmulator && !isWearDevice && !hasPlayStore -> message("wear.assistant.device.list.tooltip.requires.play")
     else -> null
   }
