@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.jfr;
 
+import com.intellij.openapi.util.registry.Registry;
 import jdk.jfr.Event;
 import jdk.jfr.Label;
 import jdk.jfr.Name;
@@ -24,4 +25,7 @@ import jdk.jfr.Name;
 public class FreezeEvent extends Event {
     @Label("Truncated")
     public boolean truncated;
+
+    @Label("Start Offset")
+    public int startOffsetMs = Registry.intValue("performance.watcher.unresponsive.interval.ms", 0);
 }
