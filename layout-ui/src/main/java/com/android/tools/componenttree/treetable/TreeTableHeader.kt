@@ -109,6 +109,11 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
 
   override fun updateUI() {
     setUI(TreeTableHeaderUI())
+    // In case the render components are cached, update them now:
+    columnModel.columns.asSequence().forEach {
+      val component = it.headerRenderer?.getTableCellRendererComponent(table, null, false, false, 0, it.modelIndex)
+      IJSwingUtilities.updateComponentTreeUI(component)
+    }
   }
 
   override fun getToolTipText(event: MouseEvent): String? {

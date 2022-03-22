@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.stdui.CommonHyperLinkLabel
+import com.android.tools.adtui.stdui.SmallTextLabel
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.api.ComponentTreeBuilder
@@ -184,9 +185,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
-    val header = JBLabel("Recomposition counts").apply {
+    val header = SmallTextLabel("Recomposition counts").apply {
       border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, TEXT_HORIZONTAL_BORDER)
-      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     }
     val reset = CommonHyperLinkLabel().apply {
       text = "Reset"
