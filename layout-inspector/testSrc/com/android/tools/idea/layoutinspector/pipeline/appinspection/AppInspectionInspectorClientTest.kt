@@ -571,8 +571,8 @@ class AppInspectionInspectorClientTest {
       assertThat(composeView.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
       val surface = composeView.children.single() as ComposeViewNode
       assertThat(surface.qualifiedName).isEqualTo("Surface")
-      assertThat(surface.recomposeCount).isEqualTo(7)
-      assertThat(surface.recomposeSkips).isEqualTo(14)
+      assertThat(surface.recompositions.count).isEqualTo(7)
+      assertThat(surface.recompositions.skips).isEqualTo(14)
     }
   }
 
@@ -737,8 +737,8 @@ class AppInspectionInspectorClientTest {
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     var node = inspectorRule.inspectorModel[-2] as ComposeViewNode
-    assertThat(node.recomposeCount).isEqualTo(7)
-    assertThat(node.recomposeSkips).isEqualTo(14)
+    assertThat(node.recompositions.count).isEqualTo(7)
+    assertThat(node.recompositions.skips).isEqualTo(14)
 
     // Enable the latch such that the GetComposables response is delayed below.
     commandLatch.enabled = true
@@ -758,8 +758,8 @@ class AppInspectionInspectorClientTest {
 
     // The recomposition counts should be 0 even if the counts were read as non-zero.
     node = inspectorRule.inspectorModel[-2] as ComposeViewNode
-    assertThat(node.recomposeCount).isEqualTo(0)
-    assertThat(node.recomposeSkips).isEqualTo(0)
+    assertThat(node.recompositions.count).isEqualTo(0)
+    assertThat(node.recompositions.skips).isEqualTo(0)
   }
 
   private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {

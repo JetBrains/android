@@ -122,7 +122,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     var countX = 0f
     var labelY = 0f
     var borderWidth = 0f
-    val count = (owner as? ComposeViewNode)?.recomposeCount ?: 0
+    val count = (owner as? ComposeViewNode)?.recompositions?.count ?: 0
     var showCount = isSelected && treeSettings.showRecompositions && count > 0
 
     // Draw the label background if necessary (the white border of the label and the label background).

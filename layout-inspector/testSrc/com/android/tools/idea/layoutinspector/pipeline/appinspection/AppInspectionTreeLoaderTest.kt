@@ -299,29 +299,29 @@ class AppInspectionTreeLoaderTest {
       val cNode2 = node5.children[0] as ComposeViewNode
       assertThat(cNode2.drawId).isEqualTo(-2)
       assertThat(cNode2.qualifiedName).isEqualTo("Surface")
-      assertThat(cNode2.recomposeCount).isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
-      assertThat(cNode2.recomposeSkips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode2.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
+      assertThat(cNode2.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode2.children.map { it.drawId }).containsExactly(-3L)
 
       val cNode3 = cNode2.children[0] as ComposeViewNode
       assertThat(cNode3.drawId).isEqualTo(-3)
       assertThat(cNode3.qualifiedName).isEqualTo("Button")
-      assertThat(cNode3.recomposeCount).isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
-      assertThat(cNode3.recomposeSkips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode3.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
+      assertThat(cNode3.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode3.children.map { it.drawId }).containsExactly(-4L)
 
       val cNode4 = cNode3.children[0] as ComposeViewNode
       assertThat(cNode4.drawId).isEqualTo(-4)
       assertThat(cNode4.qualifiedName).isEqualTo("Text")
-      assertThat(cNode4.recomposeCount).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-      assertThat(cNode4.recomposeSkips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode4.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode4.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode4.children).isEmpty()
 
       val cNode5 = node5.children[1] as ComposeViewNode
       assertThat(cNode5.drawId).isEqualTo(-5)
       assertThat(cNode5.qualifiedName).isEqualTo("Text")
-      assertThat(cNode5.recomposeCount).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode5.recomposeSkips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode5.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode5.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode5.children).isEmpty()
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)

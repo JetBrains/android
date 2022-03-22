@@ -84,6 +84,6 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel): Boolean {
     val treeSettings = propertiesModel.layoutInspector?.treeSettings ?: return false
     val model = propertiesModel.layoutInspector?.layoutInspectorModel ?: return false
-    return treeSettings.showRecompositions && (model.maxRecompositionCount > 0 || model.maxRecompositionSkips > 0)
+    return treeSettings.showRecompositions && !model.maxRecomposition.isEmpty
   }
 }

@@ -82,11 +82,11 @@ fun addInternalProperties(
 }
 
 private fun ComposeViewNode.addComposeProperties(table: PropertiesTable<InspectorPropertyItem>, lookup: ViewNodeAndResourceLookup) {
-  if (recomposeCount > 0 || recomposeSkips > 0) {
+  if (!recompositions.isEmpty) {
     // Do not show the "Recomposition" section in the properties panel for nodes without any counts.
     // This includes inlined composables for which we are unable to get recomposition counts for.
-    add(table, "count", Type.INT32, recomposeCount.toString(), RECOMPOSITIONS, drawId, lookup)
-    add(table, "skips", Type.INT32, recomposeSkips.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(table, "count", Type.INT32, recompositions.count.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(table, "skips", Type.INT32, recompositions.skips.toString(), RECOMPOSITIONS, drawId, lookup)
   }
 }
 

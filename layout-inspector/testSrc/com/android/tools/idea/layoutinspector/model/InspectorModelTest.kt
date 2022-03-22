@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.io.readImage
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
@@ -25,7 +24,6 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
 import org.junit.Assert.assertEquals
@@ -190,8 +188,8 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
-    assertThat(model.maxRecompositionCount).isEqualTo(35)
-    assertThat(model.maxRecompositionSkips).isEqualTo(52)
+    assertThat(model.maxRecomposition.count).isEqualTo(35)
+    assertThat(model.maxRecomposition.skips).isEqualTo(52)
     assertTrue(isModified)
     assertNull(model.selection)
     assertNull(model.hoveredNode)

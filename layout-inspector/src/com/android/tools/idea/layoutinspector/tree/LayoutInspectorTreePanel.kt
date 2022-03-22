@@ -126,17 +126,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withHeaderRenderer(createTreeHeaderRenderer())
       .withColumn(createIntColumn<TreeViewNode>(
         "Counts",
-        { (it.view as? ComposeViewNode)?.recomposeCount },
+        { (it.view as? ComposeViewNode)?.recompositions?.count },
         leftDivider = true,
-        maxInt = { inspectorModel?.maxRecompositionCount ?: 0 },
+        maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createCountsHeader())
       )
       .withColumn(createIntColumn<TreeViewNode>(
         "Skips",
-        { (it.view as? ComposeViewNode)?.recomposeSkips },
+        { (it.view as? ComposeViewNode)?.recompositions?.skips },
         foreground = JBColor(Gray._192, Gray._128),
-        maxInt = { inspectorModel?.maxRecompositionSkips ?: 0 },
+        maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
         minInt = { 0 },
         headerRenderer = createSkipsHeader())
       )

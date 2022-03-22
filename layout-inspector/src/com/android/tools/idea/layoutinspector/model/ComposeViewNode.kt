@@ -52,6 +52,35 @@ fun packageNameHash(packageName: String): Int =
   packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
 /**
+ * The recomposition counts for a [ComposeViewNode] or a combination of nodes.
+ * @param count the number of recompositions
+ * @param skips the number of times that recomposition was skipped
+ */
+class RecompositionData(var count: Int, var skips: Int) {
+  val isEmpty: Boolean
+    get() = count == 0 && skips == 0
+
+  fun reset() {
+    count = 0
+    skips = 0
+  }
+
+  fun maxOf(node: ViewNode) {
+    (node as? ComposeViewNode)?.let { maxOf(it.recompositions) }
+  }
+
+  private fun maxOf(other: RecompositionData) {
+    count = maxOf(count, other.count)
+    skips = maxOf(skips, other.skips)
+  }
+
+  fun update(newNumbers: RecompositionData) {
+    count = newNumbers.count
+    skips = newNumbers.skips
+  }
+}
+
+/**
  * A view node represents a composable in the view hierarchy as seen on the device.
  */
 class ComposeViewNode(
@@ -68,10 +97,10 @@ class ComposeViewNode(
   layoutFlags: Int,
 
   /** The number of times this node was recomposed (i.e. the composable method called) since last reset. */
-  var recomposeCount: Int,
+  recomposeCount: Int,
 
   /** The number of times this node was skipped (i.e. the composable method was not called when it might have been) since last reset. */
-  var recomposeSkips: Int,
+  recomposeSkips: Int,
 
   /** The filename of where the code for this composable resides. This name not contain a path. */
   var composeFilename: String,
@@ -88,6 +117,8 @@ class ComposeViewNode(
   /** Flags as defined byh the FLAG_* constants above. */
   var composeFlags: Int
 ): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags) {
+
+  val recompositions = RecompositionData(recomposeCount, recomposeSkips)
 
   override val isSystemNode: Boolean
     get() = composeFlags.hasFlag(FLAG_SYSTEM_DEFINED) ||
@@ -106,8 +137,7 @@ class ComposeViewNode(
     treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
 
   fun resetRecomposeCounts() {
-    recomposeCount = 0
-    recomposeSkips = 0
+    recompositions.reset()
   }
 
   @Suppress("NOTHING_TO_INLINE")

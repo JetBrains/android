@@ -45,15 +45,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   var lastGeneration = 0
   var updating = false
 
-  /**
-   * The highest recomposeCount found among the ComposeViewNodes in this model.
-   */
-  var maxRecompositionCount = 0
-
-  /**
-   * The highest recomposeSkips found among the ComposeViewNodes in this model.
-   */
-  var maxRecompositionSkips = 0
+  val maxRecomposition = RecompositionData(0, 0)
 
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
@@ -196,8 +188,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   }
 
   fun resetRecompositionCounts() {
-    maxRecompositionCount = 0
-    maxRecompositionSkips = 0
+    maxRecomposition.reset()
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
     updatePropertiesPanel()
   }
@@ -255,8 +246,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         idLookup.clear()
         val allNodes = root.flatten().toSet()
         hiddenNodes.removeIf { !allNodes.contains(it) }
-        maxRecompositionCount = root.flatten().maxOfOrNull { (it as? ComposeViewNode)?.recomposeCount ?: 0 } ?: 0
-        maxRecompositionSkips = root.flatten().maxOfOrNull { (it as? ComposeViewNode)?.recomposeSkips ?: 0 } ?: 0
+        maxRecomposition.reset()
+        root.flatten().forEach { maxRecomposition.maxOf(it) }
       }
       root.calculateTransitiveBounds()
       modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
@@ -362,8 +353,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
         oldNode.composeFlags = newNode.composeFlags
-        oldNode.recomposeCount = newNode.recomposeCount
-        oldNode.recomposeSkips = newNode.recomposeSkips
+        oldNode.recompositions.update(newNode.recompositions)
       }
 
       oldNode.children.clear()

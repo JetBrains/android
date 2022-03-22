@@ -800,10 +800,10 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
       selectionUpdate++
     }
 
-    assertThat(compose1.recomposeCount).isEqualTo(7)
-    assertThat(compose1.recomposeSkips).isEqualTo(14)
-    assertThat(compose2.recomposeCount).isEqualTo(9)
-    assertThat(compose2.recomposeSkips).isEqualTo(33)
+    assertThat(compose1.recompositions.count).isEqualTo(7)
+    assertThat(compose1.recompositions.skips).isEqualTo(14)
+    assertThat(compose2.recompositions.count).isEqualTo(9)
+    assertThat(compose2.recompositions.skips).isEqualTo(33)
 
     setToolContext(tree, inspector)
     val table = tree.focusComponent as JTable
@@ -818,10 +818,10 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
     updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
 
-    assertThat(compose1.recomposeCount).isEqualTo(0)
-    assertThat(compose1.recomposeSkips).isEqualTo(0)
-    assertThat(compose2.recomposeCount).isEqualTo(0)
-    assertThat(compose2.recomposeSkips).isEqualTo(0)
+    assertThat(compose1.recompositions.count).isEqualTo(0)
+    assertThat(compose1.recompositions.skips).isEqualTo(0)
+    assertThat(compose2.recompositions.count).isEqualTo(0)
+    assertThat(compose2.recompositions.skips).isEqualTo(0)
     assertThat(selectionUpdate).isEqualTo(1)
     assertThat(updateSettingsCommands).isEqualTo(2)
     assertThat(lastUpdateSettingsCommand?.includeRecomposeCounts).isTrue()
