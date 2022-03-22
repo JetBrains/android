@@ -22,7 +22,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
-import org.jetbrains.kotlin.types.UnresolvedType
+import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.typeUtil.TypeNullability
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
@@ -169,10 +169,10 @@ class KotlinTypeUtilsKtTest {
       typeStr = "test.safeargs.MyCustomType",
       defaultValue = null,
       moduleDescriptor = moduleDescriptor
-    ) as UnresolvedType
+    ) as ErrorType
 
     assertThat(type.nullability()).isEqualTo(TypeNullability.NOT_NULL)
-    assertThat(type.presentableName).isEqualTo("test.safeargs.MyCustomType")
+    assertThat(type.debugMessage).isEqualTo("test.safeargs.MyCustomType")
   }
 
   @Test
@@ -183,8 +183,8 @@ class KotlinTypeUtilsKtTest {
       moduleDescriptor = moduleDescriptor
     )
 
-    val elementType = builtIn.getArrayElementType(type) as UnresolvedType
-    assertThat(elementType.presentableName).isEqualTo("test.safeargs.MyCustomType")
+    val elementType = builtIn.getArrayElementType(type) as ErrorType
+    assertThat(elementType.debugMessage).isEqualTo("test.safeargs.MyCustomType")
   }
 
   /**

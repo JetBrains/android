@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
-import org.jetbrains.kotlin.types.ErrorType
+import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 
@@ -114,7 +114,7 @@ internal fun ResolutionScope.classesInScope(nameFilter: (String) -> Boolean = { 
 
 private fun KotlinType.asString(): String {
   return when (this) {
-    is ErrorType -> presentableName
+    is ErrorType -> debugMessage
     else -> fqName!!.asString()
   }
 }
