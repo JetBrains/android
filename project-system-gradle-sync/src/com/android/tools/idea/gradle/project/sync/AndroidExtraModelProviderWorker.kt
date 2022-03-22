@@ -105,8 +105,7 @@ internal class AndroidExtraModelProviderWorker(
   inner class SyncProjectActionWorker(
     private val syncOptions: SyncProjectActionOptions,
     private val canFetchV2Models: Boolean,
-  )
-  {
+  ) {
     private val modelCache: ModelCache = ModelCache.create(canFetchV2Models, buildFolderPaths)
     private val actionRunner = if (syncOptions.flags.studioFlagParallelSyncEnabled) maybeParallelActionRunner else safeActionRunner
 
@@ -184,22 +183,27 @@ internal class AndroidExtraModelProviderWorker(
     ): List<GradleModule> {
       return actionRunner.runActions(
         incompleteBasicModules.map {
-          ActionToRun(
-            fun(controller: BuildController): GradleModule {
-              if (it is BasicV2AndroidModuleGradleProject) {
-                val basicAndroidProject = controller.findNonParameterizedV2Model(it.gradleProject, BasicAndroidProject::class.java)
-                val androidProject = controller.findNonParameterizedV2Model(it.gradleProject, V2AndroidProject::class.java)
-                val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
+          when (it) {
+            is BasicV2AndroidModuleGradleProject ->
+              ActionToRun(
+                fun(controller: BuildController): GradleModule {
+                  val basicAndroidProject = controller.findNonParameterizedV2Model(it.gradleProject, BasicAndroidProject::class.java)
+                                            ?: error("Cannot get BasicAndroidProject model for ${it.gradleProject}")
+                  val androidProject = controller.findNonParameterizedV2Model(it.gradleProject, V2AndroidProject::class.java)
+                                       ?: error("Cannot get V2AndroidProject model for ${it.gradleProject}")
+                  val androidDsl = controller.findNonParameterizedV2Model(it.gradleProject, AndroidDsl::class.java)
+                                   ?: error("Cannot get AndroidDsl model for ${it.gradleProject}")
 
-                if (basicAndroidProject != null && androidProject != null && androidDsl != null)  {
                   val androidProjectResult =
-                    AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions, androidDsl)
+                    AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, it.versions,
+                                                   androidDsl)
 
                   // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                   val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
                   val nativeAndroidProject: NativeAndroidProject? =
                     if (nativeModule == null)
-                      controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
+                      controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
+                                                               shouldBuildVariant = false)
                     else null
 
                   return createAndroidModule(
@@ -210,43 +214,47 @@ internal class AndroidExtraModelProviderWorker(
                     buildNameMap,
                     modelCache
                   )
-                }
-              }
+                },
+                canRunInParallel = true)
+            is BasicNonV2IncompleteGradleModule ->
+              ActionToRun(
+                fun(controller: BuildController): GradleModule {
+                  val androidProject = controller.findParameterizedAndroidModel(
+                    it.gradleProject,
+                    AndroidProject::class.java,
+                    shouldBuildVariant = false
+                  )
+                  if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
+                    val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
 
-              val androidProject = controller.findParameterizedAndroidModel(
-                it.gradleProject,
-                AndroidProject::class.java,
-                shouldBuildVariant = false
-              )
-              if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
-                val androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
+                    val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
+                    val nativeAndroidProject: NativeAndroidProject? =
+                      if (nativeModule == null)
+                        controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
+                                                                 shouldBuildVariant = false)
+                      else null
 
-                val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
-                val nativeAndroidProject: NativeAndroidProject? =
-                  if (nativeModule == null)
-                    controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = false)
-                  else null
+                    return createAndroidModule(
+                      it.gradleProject,
+                      androidProjectResult,
+                      nativeAndroidProject,
+                      nativeModule,
+                      buildNameMap,
+                      modelCache
+                    )
+                  }
 
-                return createAndroidModule(
-                  it.gradleProject,
-                  androidProjectResult,
-                  nativeAndroidProject,
-                  nativeModule,
-                  buildNameMap,
-                  modelCache
-                )
-              }
-
-              val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
-              val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
-              return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
-            },
-            canRunInParallel = it is BasicV2AndroidModuleGradleProject && canFetchV2Models == true)
+                  val kotlinGradleModel = controller.findModel(it.gradleProject, KotlinGradleModel::class.java)
+                  val kaptGradleModel = controller.findModel(it.gradleProject, KaptGradleModel::class.java)
+                  return JavaModule(it.gradleProject, kotlinGradleModel, kaptGradleModel)
+                },
+                canRunInParallel = false)
+          }
         }.toList()
       )
     }
 
-    fun syncAllVariants(
+    private fun syncAllVariants(
       inputModules: List<AndroidModule>,
       variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
     ) {
@@ -273,7 +281,7 @@ internal class AndroidExtraModelProviderWorker(
       })
 
       variants.entries.forEach { (module, result) ->
-        module.allVariants = result.map {it.ideVariant}
+        module.allVariants = result.map { it.ideVariant }
       }
     }
 
@@ -424,7 +432,8 @@ internal class AndroidExtraModelProviderWorker(
 
         abiToRequest = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
         nativeVariantAbi = abiToRequest?.let {
-          controller.findNativeVariantAbiModel(modelCache, module, variantName, it) } ?: NativeVariantAbiResult.None
+          controller.findNativeVariantAbiModel(modelCache, module, variantName, it)
+        } ?: NativeVariantAbiResult.None
 
         fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
           val unresolvedDependencies = mutableListOf<IdeUnresolvedDependency>()
@@ -442,7 +451,7 @@ internal class AndroidExtraModelProviderWorker(
           nativeVariantAbi,
           getUnresolvedDependencies()
         )
-      }, canRunInParallel = canFetchV2Models == true && canUseParallelSync(module.agpVersion))
+      }, canRunInParallel = canFetchV2Models && canUseParallelSync(module.agpVersion))
     }
   }
 
@@ -748,7 +757,7 @@ internal class AndroidExtraModelProviderWorker(
              )
         .mapNotNull { moduleDependency ->
           val dependencyProject = moduleDependency.projectPath
-          val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
+          val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
           val dependencyVariant = moduleDependency.variant
           if (dependencyVariant != null) {
             ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
@@ -780,11 +789,12 @@ internal class AndroidExtraModelProviderWorker(
     class V2(val selectedAbiName: String) : NativeVariantAbiResult()
     object None : NativeVariantAbiResult()
 
-    val abi: String? get() = when(this) {
-      is V1 -> variantAbi.abi
-      is V2 -> selectedAbiName
-      None -> null
-    }
+    val abi: String?
+      get() = when (this) {
+        is V1 -> variantAbi.abi
+        is V2 -> selectedAbiName
+        None -> null
+      }
   }
 
   /**
@@ -857,7 +867,8 @@ private fun createAndroidModule(
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project ->
       if (nativeAndroidProject != null) {
         error("V2 models do not compatible with NativeAndroidProject. Please check your configuration.")
-      } else {
+      }
+      else {
         null
       }
   }
@@ -922,7 +933,7 @@ fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreI
     configuration: ModuleConfiguration
   ): IdeVariantCoreImpl? {
     // In V2, we get the variants from AndroidModule.v2Variants.
-    val variant = v2Variants?.firstOrNull { it.name == configuration.variant }
+    val variant = v2Variants.firstOrNull { it.name == configuration.variant }
                   ?: error("Resolved variant '${configuration.variant}' does not exist.")
 
     // Request VariantDependencies model for the variant's dependencies.
