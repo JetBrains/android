@@ -46,11 +46,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
+import org.junit.Ignore;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
+@Ignore("b/224754645")
 public class BuildBundleActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AndroidNotification myAndroidNotification;

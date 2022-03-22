@@ -24,11 +24,13 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.testFramework.PlatformTestCase
+import org.junit.Ignore
 import java.io.File
 
 /**
  * Tests for [ProjectStructure].
  */
+@Ignore("b/224754645")
 class ProjectStructureTest : PlatformTestCase() {
 
   fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1 Java library.
@@ -67,7 +69,7 @@ class ProjectStructureTest : PlatformTestCase() {
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that app and leaf modules are returned. note, that empty holder modules are included. We can't skip them at this stage.
     // They are ignored when we attempt to find Gradle tasks to run.
-    val leafModules = projectStructure.leafModules.map { it.name }
+    val leafModules = projectStructure.leafHolderModules.map { it.name }
     Truth.assertThat(leafModules)
       .containsExactly("testLeafModulesAreRecorded", "app", "instantApp", "leaf1", "leaf2", "leaf3")
   }
@@ -87,7 +89,7 @@ class ProjectStructureTest : PlatformTestCase() {
     val appModules = projectStructure.appHolderModules.map { it.name }
     Truth.assertThat(appModules).containsExactly("app")
     // Verify that app and leaf modules are returned.
-    val leafModules = projectStructure.leafModules.map { it.name }
+    val leafModules = projectStructure.leafHolderModules.map { it.name }
     Truth.assertThat(leafModules).containsExactly("testLeafModulesContainsBaseAndFeatureModules", "app", "feature1", "feature2")
   }
 
