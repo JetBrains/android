@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.testFramework.ApplicationRule;
-import com.intellij.testFramework.EdtRule;
-import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.RuleChain;
-import com.intellij.testFramework.RunsInEdt;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
-@RunsInEdt
 public final class DeleteItemTest {
-  @Rule public final RuleChain myRule = new RuleChain(new ApplicationRule(), new EdtRule());
+  @Rule public final TestRule myRule = new ApplicationRule();
 
   private final @NotNull AvdInfo myAvd;
   private final @NotNull AvdManagerConnection myConnection;
@@ -90,21 +90,24 @@ public final class DeleteItemTest {
   }
 
   @Test
-  public void deleteItem() {
+  public void deleteItem() throws Exception {
     // Arrange
     AbstractButton item = new DeleteItem(myEditor,
                                          DeleteItemTest::showCannotDeleteRunningAvdDialog,
                                          (device, component) -> true,
                                          () -> myConnection);
+    CountDownLatch tableRefreshed = new CountDownLatch(1);
+    Mockito.doAnswer((Answer<Object>)invocation -> {
+      tableRefreshed.countDown();
+      return null;
+    }).when(myTable).refreshAvds();
 
     // Act
     item.doClick();
-    UIUtil.dispatchAllInvocationEvents();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     // Assert
+    assertThat(tableRefreshed.await(1, TimeUnit.SECONDS)).isTrue();
     Mockito.verify(myConnection).deleteAvd(myAvd);
-    Mockito.verify(myTable).refreshAvds();
   }
 
   private static void showCannotDeleteRunningAvdDialog(@NotNull Component component) {
