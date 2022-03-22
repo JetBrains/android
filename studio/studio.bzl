@@ -540,7 +540,7 @@ def _android_studio_os(ctx, platform, out):
     overrides += [(platform_prefix, so_extras)]
 
     licenses = []
-    for p in ctx.attr.plugins:
+    for p in ctx.attr.plugins + ctx.attr.platform.extra_plugins:
         plugin_zips = platform.get(p[PluginInfo])
         if len(plugin_zips) != 1:
             fail("Expected exactly one plugin zip; instead found: " + str(plugin_zips))
@@ -804,6 +804,7 @@ def _intellij_platform_impl(ctx):
             files_win = depset(plugins_win),
             mappings = {},
         ),
+        extra_plugins = ctx.attr.extra_plugins,
         platform_info = struct(
             mac_bundle_name = ctx.attr.mac_bundle_name,
         ),
@@ -812,6 +813,7 @@ def _intellij_platform_impl(ctx):
 _intellij_platform = rule(
     attrs = {
         "exports": attr.label_list(providers = [JavaInfo]),
+        "extra_plugins": attr.label_list(providers = [PluginInfo]),
         "data": attr.label_list(allow_files = True),
         "studio_data": attr.label(),
         "compress": attr.bool(),
@@ -829,6 +831,7 @@ def intellij_platform(
         name,
         src,
         spec,
+        extra_plugins,
         **kwargs):
     jvm_import(
         name = name + "_jars",
@@ -842,6 +845,7 @@ def intellij_platform(
     _intellij_platform(
         name = name,
         exports = [":" + name + "_jars"],
+        extra_plugins = extra_plugins,
         compress = is_release(),
         mac_bundle_name = spec.mac_bundle_name,
         studio_data = name + ".data",
