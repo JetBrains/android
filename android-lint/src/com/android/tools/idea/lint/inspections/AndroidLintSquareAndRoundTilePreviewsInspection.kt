@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lint.inspections
 
-import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.TileProviderDetector
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintTileProviderPermissionsInspection: AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.tile.provider.permissions"),
-  TileProviderDetector.TILE_PROVIDER_PERMISSIONS)
+class AndroidLintSquareAndRoundTilePreviewsInspection : AndroidLintInspectionBase(
+  message("android.lint.inspections.square.and.round.tile.previews"), TileProviderDetector.SQUARE_AND_ROUND_TILE_PREVIEWS
+)
