@@ -613,38 +613,46 @@ internal class AndroidExtraModelProviderWorker(
     if (androidModules.isEmpty()) return
 
     safeActionRunner.runActions(
-      androidModules.map { module ->
-        ActionToRun(
-          fun(controller: BuildController) {
-            val syncIssues = if (syncOptions.flags.studioFlagUseV2BuilderModels && (module is AndroidModule) && canFetchV2Models == true) {
-              // Request V2 sync issues.
-              controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
-            }
-            else {
-              controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
-            }
+      androidModules.mapNotNull { module ->
+        when (module) {
+          is AndroidModule.V1, is NativeVariantsAndroidModule ->
+            ActionToRun(
+              fun(controller: BuildController) {
+                val syncIssues =
+                  controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
 
-            // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
-            val v2UnresolvedDependenciesIssues = if (module is AndroidModule) {
-              module.unresolvedDependencies.map {
-                IdeSyncIssueImpl(
-                  message = "Unresolved dependencies",
-                  data = it.name,
-                  multiLineMessage = it.cause?.lines(),
-                  severity = IdeSyncIssue.SEVERITY_ERROR,
-                  type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
-                )
-              }
-            }
-            else {
-              emptyList()
-            }
+                if (syncIssues != null) {
+                  module.setSyncIssues(syncIssues)
+                }
+              },
+              canRunInParallel = false
+            )
 
-            if (syncIssues != null) {
-              module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues)
-            }
-          },
-          canRunInParallel = module is AndroidModule && canFetchV2Models == true && canUseParallelSync(module.agpVersion))
+          is AndroidModule.V2 ->
+            ActionToRun(
+              fun(controller: BuildController) {
+                val syncIssues =
+                  controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
+
+                // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
+                val v2UnresolvedDependenciesIssues = module.unresolvedDependencies.map {
+                  IdeSyncIssueImpl(
+                    message = "Unresolved dependencies",
+                    data = it.name,
+                    multiLineMessage = it.cause?.lines(),
+                    severity = IdeSyncIssue.SEVERITY_ERROR,
+                    type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
+                  )
+                }
+
+                if (syncIssues != null) {
+                  module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues)
+                }
+              },
+              canRunInParallel = canUseParallelSync(module.agpVersion)
+            )
+          is JavaModule -> null
+        }
       }
     )
   }
