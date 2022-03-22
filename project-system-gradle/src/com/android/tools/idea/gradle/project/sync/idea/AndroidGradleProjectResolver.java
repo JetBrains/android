@@ -515,16 +515,16 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @SuppressLint("NewApi")
   private void createAndSetupTestDataNode(@NotNull DataNode<ModuleData> moduleDataNode,
-                                          @NotNull GradleAndroidModel GradleAndroidModel) {
+                                          @NotNull GradleAndroidModel gradleAndroidModel) {
     // Get the unit test task for the current module.
-    String testTaskName = getTasksFromAndroidModuleData(GradleAndroidModel);
+    String testTaskName = getTasksFromAndroidModuleData(gradleAndroidModel);
     ModuleData moduleData = moduleDataNode.getData();
     String gradlePath = GradleProjectResolverUtil.getGradlePath(moduleData);
     String compositeBuildGradlePath = GradleModuleDataKt.getCompositeBuildGradlePath(moduleData);
     String fullGradlePath = compositeBuildGradlePath + gradlePath;
 
     Set<String> sourceFolders = new HashSet<>();
-    for (IdeSourceProvider sourceProvider : GradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
+    for (IdeSourceProvider sourceProvider : gradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
       for (File sourceFolder : getAllSourceFolders(sourceProvider)) {
         sourceFolders.add(sourceFolder.getPath());
       }
