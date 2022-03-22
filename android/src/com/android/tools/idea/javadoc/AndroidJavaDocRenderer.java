@@ -98,6 +98,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -304,7 +305,6 @@ public class AndroidJavaDocRenderer {
       LocalResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
-      boolean hasGradleModel = false;
       int rank = 0;
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
@@ -521,9 +521,7 @@ public class AndroidJavaDocRenderer {
       if (myResourceResolver == null && createIfNecessary) {
         if (myConfiguration != null) {
           myResourceResolver = myConfiguration.getResourceResolver();
-          if (myResourceResolver != null) {
-            return myResourceResolver;
-          }
+          return myResourceResolver;
         }
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -600,7 +598,7 @@ public class AndroidJavaDocRenderer {
             ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
-            if (resourceValue != null && resourceValue.getValue() != null) {
+            if (resourceValue.getValue() != null) {
               return resourceValue.getValue();
             }
           }
@@ -609,7 +607,7 @@ public class AndroidJavaDocRenderer {
           ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
-          if (resourceValue != null && resourceValue.getValue() != null) {
+          if (resourceValue.getValue() != null) {
             return resourceValue.getValue();
           } else if (resourceValue instanceof StyleResourceValue) {
             return resourceValue.getResourceUrl().toString();
@@ -1369,11 +1367,9 @@ public class AndroidJavaDocRenderer {
 
       if (rank != itemInfo.rank) return false;
       if (!configuration.equals(itemInfo.configuration)) return false;
-      if (flavor != null ? !flavor.equals(itemInfo.flavor) : itemInfo.flavor != null) return false;
+      if (!Objects.equals(flavor, itemInfo.flavor)) return false;
       if (!folder.equals(itemInfo.folder)) return false;
-      if (value != null ? !value.equals(itemInfo.value) : itemInfo.value != null) return false;
-
-      return true;
+      return Objects.equals(value, itemInfo.value);
     }
 
     @Override
