@@ -166,6 +166,20 @@ class MessageProcessorTest {
     }
   }
 
+  @Test
+  fun appendMessages_emptyMessages() = runBlocking {
+    val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1")
+    val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2")
+    val messageProcessor = messageProcessor(fakeLogcatPresenter)
+    val batch = listOf(message1, message2)
+    messageProcessor.logcatFilter = StringFilter("no-such-line", LINE)
+    messageProcessor.appendMessages(batch)
+
+    messageProcessor.onIdle {
+      assertThat(fakeLogcatPresenter.lineBatches).isEmpty()
+    }
+  }
+
   private fun messageProcessor(
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
     formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit = messageFormatter,
