@@ -33,7 +33,7 @@ internal abstract class BaseJsonElementModel<E: JsonElement>(element: E) {
  *
  * Populates some common fields and provides useful function while avoiding holding to PsiElement instances.
  */
-internal abstract class BaseJsonPropertyModel(element: JsonProperty): BaseJsonElementModel<JsonProperty>(element) {
+internal open class BaseJsonPropertyModel(element: JsonProperty): BaseJsonElementModel<JsonProperty>(element) {
   /**
    * [List] of all the children of this element that are [JsonProperty].
    */

@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.json.json5.Json5FileType
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 import org.junit.After
@@ -49,9 +50,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintSetFields() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -65,9 +64,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val items = myFixture.lookupElementStrings!!
     assertThat(items).hasSize(2)
     assertThat((items[0])).isEqualTo("id2")
@@ -76,9 +73,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeExtendsValue() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -89,18 +84,14 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     assertThat(myFixture.lookupElementStrings!!).hasSize(1)
     assertThat(myFixture.lookupElementStrings!![0]).isEqualTo("start")
   }
 
   @Test
   fun completeConstraintBlockFields() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -111,9 +102,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements = myFixture.lookupElementStrings!!
     assertThat(lookupElements).hasSize(19)
     assertThat(lookupElements).containsNoDuplicates()
@@ -125,9 +114,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeDimensionBehaviors() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -137,9 +124,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(4)
@@ -148,9 +133,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeVisibilityModes() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -160,9 +143,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -171,9 +152,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintIdsInArray() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -185,9 +164,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -196,9 +173,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintIdsInSpecialAnchors() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -210,9 +185,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -221,9 +194,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeAnchorsInConstraintArray() {
-    @Language("JSON5")
-    var content: String =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -233,16 +204,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements1 = myFixture.lookupElementStrings!!
     assertThat(lookupElements1).hasSize(4)
     assertThat(lookupElements1).containsExactly("end", "left", "right", "start")
 
-    content =
-      //language=json5
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -252,9 +219,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene2.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     val lookupElements2 = myFixture.lookupElementStrings!!
     assertThat(lookupElements2).hasSize(3)
     assertThat(lookupElements2).containsExactly("top", "bottom", "baseline")
@@ -262,9 +227,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun constraintAnchorHandlerResult() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -274,9 +237,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     myFixture.checkResult(
       // language=JSON5
       """
@@ -295,9 +256,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completionHandlerResult() {
-    @Language("JSON5")
-    val content =
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -308,9 +267,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent()
-    myFixture.configureByText("myscene.json", content)
-    myFixture.completeBasic()
+    """.trimIndent())
     myFixture.checkResult(
       //language=JSON5
       """{
@@ -326,10 +283,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
   }
 }""")
 
-    myFixture.configureByText(
-      "myscene2.json",
-      // language=JSON5
-      """
+    myFixture.completeJson5Text("""
       {
         ConstraintSets: {
           start: {
@@ -338,7 +292,6 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
         }
       }
     """.trimIndent())
-    myFixture.completeBasic()
     myFixture.checkResult(
       // language=JSON5
       """{
@@ -349,4 +302,26 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
   }
 }""")
   }
+
+  @Test
+  fun completeTransitionFields() {
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            from: "start",
+            $caret
+          }
+        }
+      }
+    """.trimIndent())
+
+    val lookupElements = myFixture.lookupElementStrings!!
+    assertThat(lookupElements).containsExactly("to", "KeyFrames", "pathMotionArc", "onSwipe")
+  }
+}
+
+private fun CodeInsightTestFixture.completeJson5Text(@Language("JSON5") text: String) {
+  configureByText(Json5FileType.INSTANCE, text)
+  completeBasic()
 }

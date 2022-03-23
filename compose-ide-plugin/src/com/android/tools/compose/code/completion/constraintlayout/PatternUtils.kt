@@ -35,6 +35,7 @@ internal fun jsonStringValue() =
   PlatformPatterns.psiElement(JsonElementTypes.SINGLE_QUOTED_STRING).withParent<JsonStringLiteral>()
 
 internal fun PsiElementPattern<*, *>.withConstraintSetsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.ConstraintSets)
+internal fun PsiElementPattern<*, *>.withTransitionsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.Transitions)
 
 internal fun PsiElementPattern<*, *>.insideConstraintArray() =
   withSuperParent(2, psiElement<JsonArray>())

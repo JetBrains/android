@@ -21,6 +21,7 @@ import com.android.tools.compose.code.completion.constraintlayout.provider.Const
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.EnumValuesCompletionProvider
+import com.android.tools.compose.code.completion.constraintlayout.provider.TransitionFieldsProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -38,6 +39,9 @@ private const val CONSTRAINT_SET_LIST_PROPERTY_DEPTH = BASE_DEPTH_FOR_LITERAL_IN
 /** Depth for a literal of a property of a ConstraintSet. With respect to the ConstraintSets root element. */
 private const val CONSTRAINT_SET_PROPERTY_DEPTH = CONSTRAINT_SET_LIST_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
+/** Depth for a literal of a property of a Transition. With respect to the Transitions root element. */
+private const val TRANSITION_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEPTH
+
 /** Depth for a literal of a property of a Constraints block. With respect to the ConstraintSets root element. */
 internal const val CONSTRAINT_BLOCK_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
 
@@ -49,6 +53,7 @@ internal const val CONSTRAINT_BLOCK_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEP
  */
 class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
   init {
+    // region ConstraintSets
     extend(
       CompletionType.BASIC,
       // Complete field names in ConstraintSets
@@ -107,6 +112,17 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, KeyWords.Visibility),
       EnumValuesCompletionProvider(VisibilityMode::class)
     )
+    //endregion
+
+    //region Transitions
+    extend(
+      CompletionType.BASIC,
+      // Complete fields of a Transition block
+      jsonPropertyName()
+        .withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
+      TransitionFieldsProvider
+    )
+    //endregion
   }
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {

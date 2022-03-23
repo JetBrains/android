@@ -25,6 +25,8 @@ import com.android.tools.compose.code.completion.constraintlayout.KeyWords
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
+import com.android.tools.compose.code.completion.constraintlayout.TransitionField
+import com.android.tools.compose.code.completion.constraintlayout.provider.model.BaseJsonPropertyModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintsModel
@@ -61,14 +63,6 @@ internal abstract class BaseConstraintSetsCompletionProvider : CompletionProvide
     parameters: CompletionParameters,
     result: CompletionResultSet
   )
-
-  /**
-   * From the element being invoked, returns the [JsonProperty] parent that also includes the [JsonProperty] from which completion is
-   * triggered.
-   */
-  protected fun getJsonPropertyParent(parameters: CompletionParameters): JsonProperty? =
-    parameters.position.parentOfType<JsonProperty>(withSelf = true)?.parentOfType<JsonProperty>(withSelf = false)
-
 
   /**
    * Finds the [JsonProperty] for the 'ConstraintSets' declaration and returns its model.
@@ -200,6 +194,33 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
 }
 
 /**
+ * Provides completion for the fields of a `Transition`.
+ *
+ * @see TransitionField
+ */
+internal object TransitionFieldsProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    val transitionPropertyModel = getJsonPropertyParent(parameters)?.let { BaseJsonPropertyModel(it) }
+    val existing = transitionPropertyModel?.declaredFieldNames?.toHashSet() ?: emptySet()
+    TransitionField.values().forEach {
+      if (existing.contains(it.keyWord)) {
+        // skip
+        return@forEach
+      }
+      when (it) {
+        TransitionField.OnSwipe,
+        TransitionField.KeyFrames -> {
+          result.addLookupElement(lookupString = it.keyWord, format = JsonNewObjectTemplate)
+        }
+        else -> {
+          result.addLookupElement(lookupString = it.keyWord, format = JsonStringValueTemplate)
+        }
+      }
+    }
+  }
+}
+
+/**
  * Provides plaint-text completion for each of the elements in the Enum.
  *
  * The provided values come from [ConstraintLayoutKeyWord.keyWord].
@@ -212,6 +233,13 @@ internal class EnumValuesCompletionProvider<E>(private val enumClass: KClass<E>)
     }
   }
 }
+
+/**
+ * From the element being invoked, returns the [JsonProperty] parent that also includes the [JsonProperty] from which completion is
+ * triggered.
+ */
+private fun getJsonPropertyParent(parameters: CompletionParameters): JsonProperty? =
+  parameters.position.parentOfType<JsonProperty>(withSelf = true)?.parentOfType<JsonProperty>(withSelf = false)
 
 /**
  * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a string for its value.

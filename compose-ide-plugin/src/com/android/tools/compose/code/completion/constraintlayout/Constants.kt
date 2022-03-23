@@ -22,6 +22,11 @@ internal object KeyWords {
   const val ConstraintSets = "ConstraintSets"
 
   /**
+   * Name of the property within a MotionScene that contains several Transition declarations.
+   */
+  const val Transitions = "Transitions"
+
+  /**
    * Name of the property used to indicate that the containing ConstraintSet inherits its constraints from the ConstraintSet given by the
    * `Extends` property value.
    */
@@ -117,4 +122,12 @@ internal enum class VisibilityMode(override val keyWord: String): ConstraintLayo
   Visible("visible"),
   Invisible("invisible"),
   Gone("gone")
+}
+
+internal enum class TransitionField(override val keyWord: String): ConstraintLayoutKeyWord {
+  From("from"),
+  To("to"),
+  PathArc("pathMotionArc"),
+  KeyFrames("KeyFrames"),
+  OnSwipe("onSwipe")
 }
