@@ -176,7 +176,7 @@ class EmulatorToolWindowPanel(
     displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
     val emulatorView = primaryDisplayPanel.displayView
     primaryEmulatorView = emulatorView
-    mainToolbar.setTargetComponent(emulatorView)
+    mainToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
       mainToolbar.updateActionsImmediately()
     }
@@ -254,7 +254,7 @@ class EmulatorToolWindowPanel(
     centerPanel.removeAll()
     displayPanels.clear()
     primaryEmulatorView = null
-    mainToolbar.setTargetComponent(this)
+    mainToolbar.targetComponent = this
     clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
@@ -275,7 +275,7 @@ class EmulatorToolWindowPanel(
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
     toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
     makeToolbarNavigable(toolbar)
-    toolbar.setTargetComponent(this)
+    toolbar.targetComponent = this
     return toolbar
   }
 
