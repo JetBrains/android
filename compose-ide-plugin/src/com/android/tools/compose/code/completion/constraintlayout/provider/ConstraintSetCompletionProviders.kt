@@ -35,6 +35,7 @@ import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonProperty
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
@@ -48,7 +49,7 @@ import kotlin.reflect.KClass
  */
 internal abstract class BaseConstraintSetsCompletionProvider : CompletionProvider<CompletionParameters>() {
   final override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-    val constraintSetsModel = createConstraintSetsModel(parameters.position)
+    val constraintSetsModel = createConstraintSetsModel(initialElement = parameters.position)
     if (constraintSetsModel != null) {
       ProgressManager.checkCanceled()
       addCompletions(constraintSetsModel, parameters, result)
@@ -66,21 +67,28 @@ internal abstract class BaseConstraintSetsCompletionProvider : CompletionProvide
 
   /**
    * Finds the [JsonProperty] for the 'ConstraintSets' declaration and returns its model.
+   *
+   * The `ConstraintSets` property is expected to be a property of the root [JsonObject].
    */
   private fun createConstraintSetsModel(initialElement: PsiElement): ConstraintSetsPropertyModel? {
-    // The most immediate JsonProperty, including the initialElement if applicable
-    val closestProperty = initialElement.parentOfType<JsonProperty>(true) ?: return null
-    var current = closestProperty
-    var constraintSetsCandidate = current.parentOfType<JsonProperty>(withSelf = false)
-    while (constraintSetsCandidate != null && constraintSetsCandidate.name != KeyWords.ConstraintSets) {
-      // TODO(b/207030860): Consider creating the model even if there's no property that is explicitly called 'ConstraintSets'
-      //    ie: imply that the root JsonObject is the ConstraintSets object, with the downside that figuring out the correct context would
-      //    be much more difficult
-      current = constraintSetsCandidate
-      constraintSetsCandidate = current.parentOfType<JsonProperty>(withSelf = false)
+    // Start with the closest JsonObject towards the root
+    var currentJsonObject: JsonObject? = initialElement.parentOfType<JsonObject>(withSelf = true) ?: return null
+    lateinit var topLevelJsonObject: JsonObject
+
+    // Then find the top most JsonObject while checking for cancellation
+    while (currentJsonObject != null) {
+      topLevelJsonObject = currentJsonObject
+      currentJsonObject = currentJsonObject.parentOfType<JsonObject>(withSelf = false)
+
       ProgressManager.checkCanceled()
     }
-    return constraintSetsCandidate?.let { ConstraintSetsPropertyModel(it) }
+
+    // The last non-null JsonObject is the topmost, the ConstraintSets property is expected within this element
+    val constraintSetsProperty = topLevelJsonObject.findProperty(KeyWords.ConstraintSets) ?: return null
+    // TODO(b/207030860): Consider creating the model even if there's no property that is explicitly called 'ConstraintSets'
+    //    ie: imply that the root JsonObject is the ConstraintSets object, with the downside that figuring out the correct context would
+    //    be much more difficult
+    return ConstraintSetsPropertyModel(constraintSetsProperty)
   }
 }
 
