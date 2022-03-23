@@ -794,7 +794,7 @@ public class AvdManagerConnection {
                                                             @NotNull AvdInfo info,
                                                             @NotNull AccelerationErrorCode code) {
     if (code.getSolution().equals(SolutionCode.NONE)) {
-      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+      return Futures.immediateFailedFuture(new RuntimeException(code.getProblem() + "\n\n" + code.getSolutionMessage() + '\n'));
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
