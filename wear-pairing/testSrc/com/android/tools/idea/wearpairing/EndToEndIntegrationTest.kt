@@ -121,8 +121,6 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       FakeUi(it.contentPane).apply {
         waitLabelText(message("wear.assistant.device.list.title"))
         clickButton("Next")
-        waitLabelText(message("wear.assistant.device.connection.start.device.title"))
-        waitLabelText(message("wear.assistant.device.connection.connecting.device.top.label"))
         waitLabelText(message("wear.assistant.device.connection.pairing.success.title"))
         clickButton("Finish")
       }

@@ -140,7 +140,6 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
     assertThat(wizard.canGoForward().get()).isFalse()
 
-    fakeUi.waitForHeader("Starting devices")
     waitForCondition(fakeUi, 5) {
       invokeStrategy.updateAllSteps()
       wizard.canGoForward().get()
