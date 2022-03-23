@@ -165,7 +165,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
     focusComponent.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
-        if (Character.isAlphabetic(event.keyChar.toInt())) {
+        if (Character.isAlphabetic(event.keyChar.code)) {
           toolWindowCallback?.startFiltering(event.keyChar.toString())
         }
       }

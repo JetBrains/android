@@ -49,7 +49,7 @@ const val FLAG_HAS_UNMERGED_SEMANTICS = LayoutInspectorComposeProtocol.Composabl
 
 // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
 fun packageNameHash(packageName: String): Int =
-  packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
+  packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
 /**
  * A view node represents a composable in the view hierarchy as seen on the device.
