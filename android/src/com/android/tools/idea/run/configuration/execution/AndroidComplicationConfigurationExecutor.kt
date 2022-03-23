@@ -64,7 +64,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < COMPLICATION_MIN_DEBUG_SURFACE_VERSION) {
-        throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version)
+        throw SurfaceVersionException(COMPLICATION_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
       }
       if (version < COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION) {
         console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))

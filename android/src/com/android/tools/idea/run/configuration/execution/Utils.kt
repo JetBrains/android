@@ -33,6 +33,7 @@ import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.AsyncPromise
@@ -100,12 +101,13 @@ internal fun IDevice.getWearDebugSurfaceVersion(): Int {
       // The version operation was not available initially.
       inferredVersion = 0
     } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-        throw ExecutionException("Error while checking version, message: ${outputReceiver.getOutput()}")
+      Logger.getInstance("WearUtils").warn("Error while checking version, message: ${outputReceiver.getOutput()}")
+        throw ExecutionException("Error while checking version")
     }
 
     // 2 is the minimum for all surfaces. 2 means the watch supports both start and stop commands
     if (inferredVersion < 2) {
-      throw ExecutionException("Device software is out of date, message: ${outputReceiver.getOutput()}")
+      throw SurfaceVersionException(2, inferredVersion, isEmulator)
     }
 
     return inferredVersion

@@ -60,7 +60,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
-        throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version)
+        throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
       }
       if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
         console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))

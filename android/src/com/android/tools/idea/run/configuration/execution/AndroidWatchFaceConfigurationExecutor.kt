@@ -59,7 +59,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       processHandler.addDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
-        throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version)
+        throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
       }
       val app = installWatchFace(device, applicationInstaller)
       if (isDebug) {

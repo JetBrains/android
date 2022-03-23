@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver.INVALID_ARGUMENT_CODE
 import com.intellij.execution.ExecutionException
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 
@@ -35,6 +34,17 @@ class UtilsTest : AndroidTestCase() {
     }
 
     assertEquals(version, device.getWearDebugSurfaceVersion())
+  }
+
+  fun testWearDebugSurfaceVersionWhenInvalidResult() {
+    val device = getMockDevice { request ->
+      when (request) {
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
+          "Broadcast completed: result=0"
+        else -> "Unknown request: $request"
+      }
+    }
+    assertThrows(ExecutionException::class.java, "Error while checking version") { device.getWearDebugSurfaceVersion() }
   }
 
   fun testWearDebugSurfaceVersionWhenMissingVersionOp() {
