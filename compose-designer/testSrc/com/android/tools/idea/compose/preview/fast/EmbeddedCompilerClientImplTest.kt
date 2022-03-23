@@ -59,7 +59,7 @@ internal class EmbeddedCompilerClientImplTest {
       assertEquals("""
         SourceKt.class
         app_debug.kotlin_module
-      """.trimIndent(), outputDirectory.toFileNameSet().joinToString("\n"))
+      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
     }
   }
 
@@ -98,7 +98,7 @@ internal class EmbeddedCompilerClientImplTest {
             assertEquals("""
               SourceKt.class
               app_debug.kotlin_module
-            """.trimIndent(), outputDirectory.toFileNameSet().joinToString("\n"))
+            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
           }
         }
       }
