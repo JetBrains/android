@@ -319,6 +319,45 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     val lookupElements = myFixture.lookupElementStrings!!
     assertThat(lookupElements).containsExactly("to", "KeyFrames", "pathMotionArc", "onSwipe")
   }
+
+  @Test
+  fun completeTransitionFromAndTo() {
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          a: {},
+          b: {},
+          c: {},
+          d: {},
+        },
+        Transitions: {
+          default: {
+            from: '$caret',
+            to: 'a'
+          }
+        }
+      }
+    """.trimIndent())
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("a", "b", "c", "d")
+
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          e: {},
+          f: {},
+          g: {},
+          h: {},
+        },
+        Transitions: {
+          default: {
+            from: 'e',
+            to: '$caret'
+          }
+        }
+      }
+    """.trimIndent())
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("e", "f", "g", "h")
+  }
 }
 
 private fun CodeInsightTestFixture.completeJson5Text(@Language("JSON5") text: String) {

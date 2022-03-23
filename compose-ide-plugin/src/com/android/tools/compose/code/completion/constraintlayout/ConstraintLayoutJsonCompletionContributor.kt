@@ -122,6 +122,16 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         .withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
       TransitionFieldsProvider
     )
+    extend(
+      CompletionType.BASIC,
+      // Complete existing ConstraintSet names for `from` and `to` Transition properties
+      jsonStringValue()
+        .withPropertyParentAtLevel(BASE_DEPTH_FOR_LITERAL_IN_PROPERTY, listOf(TransitionField.From.keyWord, TransitionField.To.keyWord))
+        .withTransitionsParentAtLevel(TRANSITION_PROPERTY_DEPTH),
+      // TODO(b/207030860): Guarantee that provided names for 'from' or 'to' are distinct from each other,
+      //  ie: both shouldn't reference the same ConstraintSet
+      ConstraintSetNamesProvider
+    )
     //endregion
   }
 
