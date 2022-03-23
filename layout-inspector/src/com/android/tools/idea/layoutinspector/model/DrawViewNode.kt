@@ -56,7 +56,7 @@ private fun getEmphasizedLineOutlineStroke(scale: Double) = BasicStroke(getEmpha
 private fun getEmphasizedImageLineOutlineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderOutlineThickness, scale)
 private fun getSelectedLineStroke(scale: Double) = getEmphasizedLineStroke(scale)
 private fun getSelectedImageLineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
-fun getFoldStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
+fun getFoldStroke(scale: Double) = getDashedStroke(::getFoldThickness, scale)
 private fun getNormalLineStroke(scale: Double) = BasicStroke(getNormalBorderThickness(scale))
 private fun getNormalImageLineStroke(scale: Double) = getDashedStroke(::getNormalBorderThickness, scale)
 
