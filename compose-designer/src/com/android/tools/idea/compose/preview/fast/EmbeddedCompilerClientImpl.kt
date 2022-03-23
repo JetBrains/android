@@ -36,6 +36,27 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
+ * Retries the [retryBlock] [retryTimes] or until it does not throw an exception.
+ *
+ * Every retry will wait 50ms * number of retries with a maximum of 200ms per retry.
+ */
+private fun <T> retry(retryTimes: Int = 3, retryBlock: () -> T): T {
+  var lastException: Throwable? = null
+  repeat(retryTimes) {
+    ProgressManager.checkCanceled()
+    try {
+      return retryBlock()
+    } catch (t: Throwable) {
+      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn(t)
+      lastException = t
+    }
+    ProgressManager.checkCanceled()
+    Thread.sleep((50 * it).coerceAtMost(200).toLong())
+  }
+  lastException?.let { throw it } ?: throw IllegalStateException()
+}
+
+/**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
  * to compile fragments of code in-process similar to how Live Edit does for the emulator.
  */
@@ -53,7 +74,10 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
 
     ProgressManager.checkCanceled()
     log.debug("analyze")
-    val bindingContext = analyze(inputs, resolution)
+    // Retry is a temporary workaround for b/224875189
+    val bindingContext = retry {
+      analyze(inputs, resolution)
+    }
 
     val languageVersionSettings = inputs.first().languageVersionSettings
 
