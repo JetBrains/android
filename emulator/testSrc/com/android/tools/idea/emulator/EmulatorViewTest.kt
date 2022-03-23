@@ -47,9 +47,9 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
@@ -249,13 +249,25 @@ class EmulatorViewTest {
     val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
     assertThat(tabEvent).isNotNull()
 
-    // Check clockwise rotation.
+    // Check clockwise rotation in a zoomed-in state.
+    view.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo(
+      // Available space is slightly wider on Mac due to a narrower scrollbar.
+      if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
+    assertThat(view.canZoomOut()).isTrue()
+    assertThat(view.canZoomToFit()).isTrue()
     emulatorViewRule.executeAction("android.emulator.rotate.right", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
+    getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
+    assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
+    assertThat(view.canZoomToFit()).isFalse()
     assertAppearance(ui, "EmulatorView2")
 
     // Check mouse input in portrait orientation.

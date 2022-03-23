@@ -29,6 +29,7 @@ import com.intellij.openapi.project.ex.ProjectEx
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -119,6 +120,17 @@ internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int {
   }
   val shift = (toRange + fromRange / 2) / (2 * fromRange)
   return (shift + toLong() * (toRange - 2 * shift) / (fromRange - 1)).toInt()
+}
+
+/**
+ * Checks if the ratio between [width1] and [height1] is the same as the ratio between
+ * [width2] and [height2] within the given relative [tolerance].
+ */
+internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: Int, tolerance: Double): Boolean {
+  val a = width1.toDouble() * height2
+  val b = width2.toDouble() * height1
+  val d = a - b
+  return abs(d) <= tolerance * abs(a + b) / 2
 }
 
 /**
