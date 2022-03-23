@@ -49,7 +49,7 @@ typealias IdeVariantFetcher = (
 ) -> IdeVariantCoreImpl?
 
 @UsedInBuildAction
-abstract class GradleModule(val gradleProject: BasicGradleProject) {
+sealed class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
   abstract val variantNameResolver: VariantNameResolver
   val findModelRoot: Model get() = gradleProject
@@ -80,7 +80,8 @@ sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject)
  * The container class of Android modules that can be fetched using V2 sync.
  */
 @UsedInBuildAction
-class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) : BasicIncompleteGradleModule(gradleProject)
+class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) :
+  BasicIncompleteGradleModule(gradleProject)
 
 /**
  * The container class of Android and non-Android modules that cannot be fetched using V2 nor parallel sync.
@@ -112,7 +113,7 @@ class JavaModule(
  */
 @UsedInBuildAction
 @VisibleForTesting
-class AndroidModule constructor(
+sealed class AndroidModule constructor(
   val agpVersion: GradleVersion?,
   val buildName: String?,
   val buildNameMap: Map<String, File>?,
@@ -132,7 +133,7 @@ class AndroidModule constructor(
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
     return nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
-      ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
+           ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
   }
 
 
@@ -168,8 +169,9 @@ class AndroidModule constructor(
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
     val selectedVariantName =
       syncedVariant?.name
-        ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
-        ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
+      ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
+      ?: throw AndroidSyncException(
+        "No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject.patchForKapt(kaptGradleModel),
@@ -188,6 +190,64 @@ class AndroidModule constructor(
       additionalClassifierArtifacts?.deliver()
     }
   }
+
+  class V1(
+    agpVersion: GradleVersion?,
+    buildName: String?,
+    buildNameMap: Map<String, File>?,
+    gradleProject: BasicGradleProject,
+    androidProject: IdeAndroidProjectImpl,
+    /** All configured variant names if supported by the AGP version. */
+    allVariantNames: Set<String>?,
+    defaultVariantName: String?,
+    variantFetcher: IdeVariantFetcher,
+    variantNameResolver: VariantNameResolver,
+    /** Old V1 native model. It's only set if [nativeModule] is not set. */
+    nativeAndroidProject: IdeNativeAndroidProject?,
+    /** New V2 native model. It's only set if [nativeAndroidProject] is not set. */
+    nativeModule: IdeNativeModule?
+  ) : AndroidModule(
+    agpVersion = agpVersion,
+    buildName = buildName,
+    buildNameMap = buildNameMap,
+    gradleProject = gradleProject,
+    androidProject = androidProject,
+    /** All configured variant names if supported by the AGP version. */
+    allVariantNames = allVariantNames,
+    defaultVariantName = defaultVariantName,
+    variantFetcher = variantFetcher,
+    variantNameResolver = variantNameResolver,
+    /** Old V1 model. It's only set if [nativeModule] is not set. */
+    nativeAndroidProject = nativeAndroidProject,
+    /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
+    nativeModule = nativeModule
+  )
+
+  class V2(
+    agpVersion: GradleVersion?,
+    buildName: String?,
+    buildNameMap: Map<String, File>?,
+    gradleProject: BasicGradleProject,
+    androidProject: IdeAndroidProjectImpl,
+    allVariantNames: Set<String>,
+    defaultVariantName: String?,
+    variantFetcher: IdeVariantFetcher,
+    variantNameResolver: VariantNameResolver,
+    nativeModule: IdeNativeModule?
+  ) : AndroidModule(
+    agpVersion = agpVersion,
+    buildName = buildName,
+    buildNameMap = buildNameMap,
+    gradleProject = gradleProject,
+    androidProject = androidProject,
+    allVariantNames = allVariantNames,
+    defaultVariantName = defaultVariantName,
+    variantFetcher = variantFetcher,
+    variantNameResolver = variantNameResolver,
+    /** Old V1 model. Not used with V2. */
+    nativeAndroidProject = null,
+    nativeModule = nativeModule
+  )
 }
 
 private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)

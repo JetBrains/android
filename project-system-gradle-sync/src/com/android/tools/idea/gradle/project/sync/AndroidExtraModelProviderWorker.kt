@@ -200,16 +200,10 @@ internal class AndroidExtraModelProviderWorker(
 
                   // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                   val nativeModule = controller.findNativeModuleModel(it.gradleProject, syncAllVariantsAndAbis = false)
-                  val nativeAndroidProject: NativeAndroidProject? =
-                    if (nativeModule == null)
-                      controller.findParameterizedAndroidModel(it.gradleProject, NativeAndroidProject::class.java,
-                                                               shouldBuildVariant = false)
-                    else null
 
                   return createAndroidModule(
                     it.gradleProject,
                     androidProjectResult,
-                    nativeAndroidProject,
                     nativeModule,
                     buildNameMap,
                     modelCache
@@ -847,7 +841,7 @@ private fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssue
 
 private fun createAndroidModule(
   gradleProject: BasicGradleProject,
-  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult,
+  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project,
   nativeAndroidProject: NativeAndroidProject?,
   nativeModule: NativeModule?,
   buildNameMap: Map<String, File>,
@@ -859,22 +853,12 @@ private fun createAndroidModule(
   val allVariantNames = androidProjectResult.allVariantNames
   val defaultVariantName: String? = androidProjectResult.defaultVariantName
 
-  val ideNativeAndroidProject = when (androidProjectResult) {
-    is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
-      nativeAndroidProject?.let {
-        modelCache.nativeAndroidProjectFrom(it, androidProjectResult.ndkVersion)
-      }
-    is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project ->
-      if (nativeAndroidProject != null) {
-        error("V2 models do not compatible with NativeAndroidProject. Please check your configuration.")
-      }
-      else {
-        null
-      }
+  val ideNativeAndroidProject = nativeAndroidProject?.let {
+    modelCache.nativeAndroidProjectFrom(it, androidProjectResult.ndkVersion)
   }
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
-  val androidModule = AndroidModule(
+  val androidModule = AndroidModule.V1(
     agpVersion = agpVersion,
     buildName = androidProjectResult.buildName,
     buildNameMap = buildNameMap,
@@ -885,6 +869,41 @@ private fun createAndroidModule(
     variantNameResolver = androidProjectResult.variantNameResolver,
     variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeAndroidProject = ideNativeAndroidProject,
+    nativeModule = ideNativeModule
+  )
+
+  val syncIssues = androidProjectResult.syncIssues
+  // It will be overridden if we receive something here but also a proper sync issues model later.
+  if (syncIssues != null) androidModule.setSyncIssues(syncIssues.toSyncIssueData())
+
+  return androidModule
+}
+
+private fun createAndroidModule(
+  gradleProject: BasicGradleProject,
+  androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project,
+  nativeModule: NativeModule?,
+  buildNameMap: Map<String, File>,
+  modelCache: ModelCache
+): AndroidModule {
+  val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
+
+  val ideAndroidProject = androidProjectResult.ideAndroidProject
+  val allVariantNames = androidProjectResult.allVariantNames
+  val defaultVariantName: String? = androidProjectResult.defaultVariantName
+
+  val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
+
+  val androidModule = AndroidModule.V2(
+    agpVersion = agpVersion,
+    buildName = androidProjectResult.buildName,
+    buildNameMap = buildNameMap,
+    gradleProject = gradleProject,
+    androidProject = ideAndroidProject,
+    allVariantNames = allVariantNames,
+    defaultVariantName = defaultVariantName,
+    variantNameResolver = androidProjectResult.variantNameResolver,
+    variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeModule = ideNativeModule
   )
 
