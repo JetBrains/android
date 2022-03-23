@@ -58,7 +58,7 @@ object CompilerLiveLiteralsManager {
   /**
    * Finds the list of Live Literals declared by the compiler in the given `.class` file.
    */
-  fun findLiteralsInClass(classContents: ByteArray): List<CompilerLiteralDefinition> {
+  private fun findLiteralsInClass(classContents: ByteArray): List<CompilerLiteralDefinition> {
     val reader = ClassReader(classContents)
     val result = mutableListOf<CompilerLiteralDefinition>()
     // This uses the LiveLiteralsFinder to check all the annotations and retrieve the metadata. Because here we are not
@@ -99,7 +99,15 @@ object CompilerLiveLiteralsManager {
         }
 
       val literalDefinitions = runReadAction {
-        liveLiteralClasses.flatMap { findLiteralsInClass(it) }
+        liveLiteralClasses.flatMap {
+          try {
+            findLiteralsInClass(it)
+          }
+          catch (t: Throwable) {
+            log.warn("Unable to parse class for literals", t)
+            emptyList()
+          }
+        }
       }
 
       return@withContext object : Finder {
