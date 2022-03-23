@@ -43,6 +43,7 @@ import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.util.ArrayDeque
 import java.util.function.Predicate
+import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
 
@@ -141,7 +142,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   private fun dump(component: Component, prefix: String) {
     System.err.println("$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
                        "[${component.size.getWidth()}x${component.size.getHeight()}]" +
-                       if (isMouseTarget(component)) " {*}" else "")
+                       if (isMouseTarget(component)) " {*}" else "" +
+                       if (component is JLabel) " text: " + component.text else "")
     if (component is Container) {
       for (i in 0 until component.componentCount) {
         dump(component.getComponent(i), "$prefix  ")
