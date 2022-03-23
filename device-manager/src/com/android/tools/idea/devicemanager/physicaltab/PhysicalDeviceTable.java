@@ -37,8 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.swing.DefaultRowSorter;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
@@ -134,20 +132,6 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     }
 
     return Optional.of(getDeviceAt(viewRowIndex));
-  }
-
-  @VisibleForTesting
-  @NotNull Object getData() {
-    return IntStream.range(0, getRowCount())
-      .mapToObj(this::getRowAt)
-      .collect(Collectors.toList());
-  }
-
-  @VisibleForTesting
-  private @NotNull Object getRowAt(int viewRowIndex) {
-    return IntStream.range(0, getColumnCount())
-      .mapToObj(viewColumnIndex -> getValueAt(viewRowIndex, viewColumnIndex))
-      .collect(Collectors.toList());
   }
 
   @Override
