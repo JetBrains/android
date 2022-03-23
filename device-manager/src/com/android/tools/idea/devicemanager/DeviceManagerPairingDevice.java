@@ -87,4 +87,35 @@ final class DeviceManagerPairingDevice extends Device {
   public boolean isOnline() {
     return myOnline;
   }
+
+  @Override
+  public int hashCode() {
+    int hashCode = myKey.hashCode();
+
+    hashCode = 31 * hashCode + myType.hashCode();
+    hashCode = 31 * hashCode + myIcon.hashCode();
+    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
+    hashCode = 31 * hashCode + myTarget.hashCode();
+    hashCode = 31 * hashCode + myAndroidVersion.hashCode();
+
+    return hashCode;
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof DeviceManagerPairingDevice)) {
+      return false;
+    }
+
+    DeviceManagerPairingDevice device = (DeviceManagerPairingDevice)object;
+
+    return myKey.equals(device.myKey) &&
+           myType.equals(device.myType) &&
+           myIcon.equals(device.myIcon) &&
+           myName.equals(device.myName) &&
+           myOnline == device.myOnline &&
+           myTarget.equals(device.myTarget) &&
+           myAndroidVersion.equals(device.myAndroidVersion);
+  }
 }
