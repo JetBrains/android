@@ -20,13 +20,19 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.tree.LeafState
+import java.util.stream.Stream
 
 internal data class TestIssue(override val summary: String = "",
                               override val description: String = "",
                               override val severity: HighlightSeverity = HighlightSeverity.WARNING,
                               override val source: IssueSource = EmptyIssueSource,
-                              override val category: String = "")
-  : Issue()
+                              override val category: String = "",
+                              val fixList: List<Fix> = emptyList())
+  : Issue() {
+
+  override val fixes: Stream<Fix>
+    get() = fixList.stream()
+}
 
 internal object EmptyIssueSource : IssueSource {
   override val file: VirtualFile? = null
