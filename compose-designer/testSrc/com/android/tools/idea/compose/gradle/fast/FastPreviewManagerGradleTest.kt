@@ -53,7 +53,7 @@ import org.junit.runners.Parameterized
 import java.io.File
 
 @RunWith(Parameterized::class)
-class FastPreviewManagerTest(useEmbeddedCompiler: Boolean) {
+class FastPreviewManagerGradleTest(useEmbeddedCompiler: Boolean) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic

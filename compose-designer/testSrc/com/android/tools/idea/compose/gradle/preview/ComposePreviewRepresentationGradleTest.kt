@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import kotlin.test.assertFalse
 
-class ComposePreviewRepresentationTest {
+class ComposePreviewRepresentationGradleTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   @get:Rule
