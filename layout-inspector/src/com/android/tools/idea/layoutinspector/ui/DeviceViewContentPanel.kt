@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -306,8 +307,13 @@ class DeviceViewContentPanel(
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
     if (!drawInfo.isCollapsed &&
-        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings, treeSettings)
+        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode ||
+         (treeSettings.showRecompositions &&
+          (view as? ComposeViewNode)?.recompositions?.hasHighlight == true &&
+          inspectorModel.maxHighlight != 0f)
+        )
+    ) {
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, viewSettings, treeSettings)
     }
     if (viewSettings.drawFold && model.hitRects.isNotEmpty() && (
         // nothing is selected or hovered: draw on the root

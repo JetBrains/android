@@ -47,6 +47,8 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.BorderLayout
 import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
@@ -86,7 +88,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         val processes = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processDiscovery, edtExecutor)
         Disposer.register(workbench, processes)
-        val model = InspectorModel(project)
+        val executor = Executors.newScheduledThreadPool(1)
+        Disposer.register(workbench) {
+          executor.shutdown()
+          executor.awaitTermination(3, TimeUnit.SECONDS)
+        }
+        val model = InspectorModel(project, executor)
         model.setProcessModel(processes)
 
         processes.addSelectedProcessListeners {

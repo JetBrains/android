@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -26,16 +27,22 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
+
+const val DECREASE_FACTOR = 1.4f
+const val DECREASE_DELAY = 500L
+val DECREASE_TIMEUNIT = TimeUnit.MILLISECONDS
 
 enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 
 /** Callback taking (oldWindow, newWindow, isStructuralChange */
 typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
 
-class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
+class InspectorModel(val project: Project, val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
@@ -45,7 +52,11 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   var lastGeneration = 0
   var updating = false
 
+  /** After an [update] this will hold the max value for counts, skips, and highlightCount */
   val maxRecomposition = RecompositionData(0, 0)
+
+  /** Holds the highest highlightCount seen since last time all highlight counts were zero */
+  var maxHighlight = 0f
 
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
@@ -189,6 +200,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   fun resetRecompositionCounts() {
     maxRecomposition.reset()
+    maxHighlight = 0f
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
     updatePropertiesPanel()
   }
@@ -248,12 +260,33 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         hiddenNodes.removeIf { !allNodes.contains(it) }
         maxRecomposition.reset()
         root.flatten().forEach { maxRecomposition.maxOf(it) }
+        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
+            scheduler != null && maxHighlight < maxRecomposition.highlightCount) {
+          if (maxHighlight == 0f) {
+            scheduler.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
+          }
+          maxHighlight = maxRecomposition.highlightCount
+        }
       }
       root.calculateTransitiveBounds()
       modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
     }
     finally {
       updating = false
+    }
+  }
+
+  private fun decreaseHighlights() {
+    val max = ViewNode.writeAccess {
+      root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull { it.recompositions.decreaseHighlights() }
+    }
+    windows.values.forEach { window ->
+      modificationListeners.forEach { it(window, window, false) }
+    }
+    if (max != 0f) {
+      scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
+    } else {
+      maxHighlight = 0f
     }
   }
 

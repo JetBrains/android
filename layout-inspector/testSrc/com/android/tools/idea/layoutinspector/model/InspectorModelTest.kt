@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.flags.junit.SetFlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
@@ -33,6 +37,7 @@ import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
 import kotlin.test.fail
@@ -40,6 +45,9 @@ import kotlin.test.fail
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
+  @get:Rule
+  val highlightFlag = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
+
   @Test
   fun testUpdatePropertiesOnly() {
     val model = model {
@@ -373,6 +381,90 @@ class InspectorModelTest {
     model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
 
     verify(mockListener).invoke(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+  }
+
+  @Test
+  fun testHighlightCounts() {
+    val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+
+    val model = model(scheduler = scheduler) {
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 0, composeSkips = 0) {
+          compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 0, composeSkips = 0)
+        }
+      }
+    }
+    val compose1 = model[COMPOSE1] as ComposeViewNode
+    val compose2 = model[COMPOSE2] as ComposeViewNode
+
+    // Receive an update from the device with recomposition counts:
+    val window1 = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 4, composeSkips = 0) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 1, composeSkips = 0)
+      }
+    }
+    model.update(window1, listOf(ROOT), 0)
+
+    // Check recomposition counts and highlight counts:
+    assertThat(model.maxHighlight).isEqualTo(4.0f)
+    assertThat(compose1.recompositions.count).isEqualTo(4)
+    assertThat(compose1.recompositions.highlightCount).isEqualTo(4.0f)
+    assertThat(compose2.recompositions.count).isEqualTo(1)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(1f)
+
+    // Advance timer to the next highlight decrease:
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isEqualTo(4.0f)
+    assertThat(compose1.recompositions.count).isEqualTo(4)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.86f)
+    assertThat(compose2.recompositions.count).isEqualTo(1)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
+
+    // Receive another update from the device:
+    val window2 = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+      compose(COMPOSE1, "Button", "button.kt", 123, composeCount = 10, composeSkips = 2) {
+        compose(COMPOSE2, "Text", "text.kt", 234, composeCount = 7, composeSkips = 2)
+      }
+    }
+    model.update(window2, listOf(ROOT), 0)
+
+    // Check recomposition counts and highlight counts:
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.count).isEqualTo(10)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(8.86f)
+    assertThat(compose2.recompositions.count).isEqualTo(7)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(6f)
+
+    // Advance timer and check:
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(6.33f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(4.29f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(4.52f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(3.06f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(3.23f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(2.19f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(2.31f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.56f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.65f)
+    assertThat(compose2.recompositions.highlightCount).isWithin(0.01f).of(1.12f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isWithin(0.01f).of(8.86f)
+    assertThat(compose1.recompositions.highlightCount).isWithin(0.01f).of(1.18f)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+    assertThat(model.maxHighlight).isEqualTo(0f)
+    assertThat(compose1.recompositions.highlightCount).isEqualTo(0f)
+    assertThat(compose2.recompositions.highlightCount).isEqualTo(0f)
   }
 
   private fun children(view: ViewNode): List<ViewNode> =

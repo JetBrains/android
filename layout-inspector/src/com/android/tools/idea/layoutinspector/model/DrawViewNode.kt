@@ -19,13 +19,13 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_MITER
 import java.awt.Color
+import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.Rectangle
@@ -44,7 +44,8 @@ private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(sc
 
 private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
 private val SELECTED_LINE_COLOR = Color(24, 134, 247)
-private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
+private val NORMAL_LINE_COLOR = Gray.get(128, 128)
+private val FAINT_LINE_COLOR = Gray.get(212, 128)
 private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 
 fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
@@ -82,7 +83,7 @@ sealed class DrawViewNode(owner: ViewNode) {
     get() = true
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
-  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean,
+  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, model: InspectorModel,
                            viewSettings: DeviceViewSettings, treeSettings: TreeSettings)
 
   open fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> = sequenceOf()
@@ -102,6 +103,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     g2: Graphics2D,
     isSelected: Boolean,
     isHovered: Boolean,
+    model: InspectorModel,
     viewSettings: DeviceViewSettings,
     treeSettings: TreeSettings
   ) {
@@ -122,15 +124,18 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     var countX = 0f
     var labelY = 0f
     var borderWidth = 0f
-    val count = (owner as? ComposeViewNode)?.recompositions?.count ?: 0
-    var showCount = isSelected && treeSettings.showRecompositions && count > 0
+    val composeView = owner as? ComposeViewNode
+    val composeCount = composeView?.recompositions?.count ?: 0
+    val highlightCount = composeView?.recompositions?.highlightCount ?: 0f
+    var showCount = isSelected && treeSettings.showRecompositions && composeCount > 0
+    val showHighlight = treeSettings.showRecompositions && highlightCount > 0f && model.maxHighlight != 0f
 
     // Draw the label background if necessary (the white border of the label and the label background).
     if (isSelected && viewSettings.drawLabel) {
       g2.font = g2.font.deriveFont(getLabelFontSize(viewSettings.scaleFraction))
       val fontMetrics = g2.fontMetrics
       val textWidth = fontMetrics.stringWidth(owner.unqualifiedName).toFloat()
-      val countWidth = if (showCount) fontMetrics.stringWidth(count.toString()).toFloat() else 0f
+      val countWidth = if (showCount) fontMetrics.stringWidth(composeCount.toString()).toFloat() else 0f
 
       val border = if (viewSettings.drawBorders || !viewSettings.drawUntransformedBounds) {
         bounds
@@ -181,12 +186,16 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         g2.color = EMPHASIZED_LINE_COLOR
         g2.stroke = getEmphasizedLineStroke(viewSettings.scaleFraction)
       }
+      showHighlight -> {
+        g2.color = highlightColor(model, highlightCount)
+        g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
+      }
       else -> {
-        g2.color = NORMAL_LINE_COLOR
+        g2.color = if (treeSettings.showRecompositions) FAINT_LINE_COLOR else NORMAL_LINE_COLOR
         g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
       }
     }
-    if (viewSettings.drawBorders || isHovered || (isSelected && !viewSettings.drawUntransformedBounds)) {
+    if (viewSettings.drawBorders || isHovered || showHighlight || (isSelected && !viewSettings.drawUntransformedBounds)) {
       g2.draw(bounds)
     }
     if (viewSettings.drawUntransformedBounds) {
@@ -200,10 +209,29 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
                     labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
 
       if (showCount) {
-        g2.drawString(count.toString(), countX + borderWidth,
+        g2.drawString(composeCount.toString(), countX + borderWidth,
                       labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
       }
     }
+
+    // Draw gradient for recomposition highlights
+    if (showHighlight) {
+      val rect = bounds.bounds2D
+      g2.paint = GradientPaint(
+        rect.x.toFloat(), rect.y.toFloat(), heatmapColor(model, highlightCount),
+        (rect.x + rect.width).toFloat(), (rect.y + rect.height).toFloat(), heatmapColor(model, 0f))
+      g2.fill(bounds)
+    }
+  }
+
+  private fun highlightColor(model: InspectorModel, highlightCount: Float): Color {
+    val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
+    return Color(255, 0, 0, alpha)
+  }
+
+  private fun heatmapColor(model: InspectorModel, highlightCount: Float): Color {
+    val alpha = ((highlightCount * 128f) / model.maxHighlight).toInt().coerceIn(8, 128)
+    return Color(255, 0, 0, alpha)
   }
 
   /**
@@ -278,6 +306,7 @@ class DrawViewImage(@get:VisibleForTesting val image: Image, owner: ViewNode, pr
     g2: Graphics2D,
     isSelected: Boolean,
     isHovered: Boolean,
+    model: InspectorModel,
     viewSettings: DeviceViewSettings,
     treeSettings: TreeSettings
   ) {
@@ -324,6 +353,7 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     g2: Graphics2D,
     isSelected: Boolean,
     isHovered: Boolean,
+    model: InspectorModel,
     viewSettings: DeviceViewSettings,
     treeSettings: TreeSettings
   ) {

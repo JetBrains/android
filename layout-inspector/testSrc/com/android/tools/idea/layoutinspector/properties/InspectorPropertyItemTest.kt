@@ -50,7 +50,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   @Before
   fun setUp() {
     val project = projectRule.project
-    model = model(project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
+    model = model(project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     model!!.resourceLookup.dpi = 560
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import java.awt.Shape
@@ -55,14 +56,19 @@ fun packageNameHash(packageName: String): Int =
  * The recomposition counts for a [ComposeViewNode] or a combination of nodes.
  * @param count the number of recompositions
  * @param skips the number of times that recomposition was skipped
+ * @param highlightCount a number that expresses relative recent counts for image highlighting
  */
-class RecompositionData(var count: Int, var skips: Int) {
+class RecompositionData(var count: Int, var skips: Int, var highlightCount: Float = 0f) {
   val isEmpty: Boolean
-    get() = count == 0 && skips == 0
+    get() = count == 0 && skips == 0 && highlightCount == 0f
+
+  val hasHighlight: Boolean
+    get() = highlightCount > 0f
 
   fun reset() {
     count = 0
     skips = 0
+    highlightCount = 0f
   }
 
   fun maxOf(node: ViewNode) {
@@ -72,11 +78,20 @@ class RecompositionData(var count: Int, var skips: Int) {
   private fun maxOf(other: RecompositionData) {
     count = maxOf(count, other.count)
     skips = maxOf(skips, other.skips)
+    highlightCount = maxOf(highlightCount, other.highlightCount)
   }
 
   fun update(newNumbers: RecompositionData) {
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get()) {
+      highlightCount += maxOf(0, newNumbers.count - count)
+    }
     count = newNumbers.count
     skips = newNumbers.skips
+  }
+
+  fun decreaseHighlights(): Float {
+    highlightCount = if (highlightCount > DECREASE_FACTOR) highlightCount / DECREASE_FACTOR else 0f
+    return highlightCount
   }
 }
 

@@ -767,6 +767,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.counts", "Enable recomposition counts",
     "Enable gathering and display of recomposition counts in the layout inspector.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.highlights", "Enable recomposition highlights",
+    "Enable recomposition highlights on the image in the layout inspector.", false);
   //endregion
 
   //region Embedded Emulator

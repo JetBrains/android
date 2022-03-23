@@ -43,6 +43,7 @@ import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -179,8 +180,6 @@ class DeviceViewContentPanelTest {
     }
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
-    var graphics = generatedImage.createGraphics()
-
     val settings = EditorDeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -189,87 +188,83 @@ class DeviceViewContentPanelTest {
                                        disposable.disposable)
     panel.setSize(120, 200)
 
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.scalePercent = 50
-    graphics = generatedImage.createGraphics()
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 3
     settings.scalePercent = 100
     panel.model.rotate(0.3, 0.2)
-    graphics = generatedImage.createGraphics()
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 1
-    graphics = generatedImage.createGraphics()
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 15
-    graphics = generatedImage.createGraphics()
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
 
     panel.model.layerSpacing = 3
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
-    graphics = generatedImage.createGraphics()
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
     model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
-    graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = ImageDiffTestUtil.getDefaultFont()
-
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     treeSettings.showRecompositions = true
-    graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = ImageDiffTestUtil.getDefaultFont()
-
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_count.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    model[COMPOSE1]?.qualifiedName = "LongName" // hides the recomposition count
-    graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = ImageDiffTestUtil.getDefaultFont()
-
-    panel.paint(graphics)
+    val compose1 = model[COMPOSE1] as ComposeViewNode
+    compose1.qualifiedName = "LongName" // hides the recomposition count
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_label_hides_count.png"), generatedImage, 0.2)
-    model[COMPOSE1]?.qualifiedName = "Text"
+    compose1.qualifiedName = "Text"
 
     settings.drawBorders = false
-    graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = ImageDiffTestUtil.getDefaultFont()
-
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     model.hoveredNode = windowRoot
-    graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
-    graphics.font = ImageDiffTestUtil.getDefaultFont()
-
-    panel.paint(graphics)
+    paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD_TEXT)
+
+    model.setSelection(null, SelectionOrigin.INTERNAL)
+    settings.drawBorders = true
+    model.hoveredNode = null
+    model.maxHighlight = 17f
+    compose1.recompositions.highlightCount = 17f
+
+    paint(panel, generatedImage)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight1.png"), generatedImage, DIFF_THRESHOLD_TEXT)
+
+    compose1.recompositions.highlightCount = 7f
+    paint(panel, generatedImage)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight2.png"), generatedImage, DIFF_THRESHOLD_TEXT)
+
+    settings.drawBorders = false
+    paint(panel, generatedImage)
+    ImageDiffUtil.assertImageSimilar(
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight3.png"), generatedImage, DIFF_THRESHOLD_TEXT)
   }
 
   @Test
@@ -1162,6 +1157,13 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildAboveSibling.png"), generatedImage,
                                      DIFF_THRESHOLD)
+  }
+
+  private fun paint(panel: DeviceViewContentPanel, on: BufferedImage) {
+    val graphics = on.createGraphics()
+    // Set the font such that it will be the same across platforms
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
+    panel.paint(graphics)
   }
 }
 

@@ -139,7 +139,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testHasLinkPanel() {
-    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
@@ -191,7 +191,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun createEditors(): JPanel {
-    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)

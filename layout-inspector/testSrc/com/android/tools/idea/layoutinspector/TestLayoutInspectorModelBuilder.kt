@@ -30,8 +30,8 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
-import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
@@ -41,10 +41,15 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
+import java.util.concurrent.ScheduledExecutorService
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
-fun model(project: Project = mock(), treeSettings: TreeSettings = FakeTreeSettings(), body: InspectorModelDescriptor.() -> Unit) =
-  InspectorModelDescriptor(project).also(body).build(treeSettings)
+fun model(
+  project: Project = mock(),
+  treeSettings: TreeSettings = FakeTreeSettings(),
+  scheduler: ScheduledExecutorService? = null,
+  body: InspectorModelDescriptor.() -> Unit
+) = InspectorModelDescriptor(project, scheduler).also(body).build(treeSettings)
 
 fun window(windowId: Any,
            rootViewDrawId: Long,
@@ -195,7 +200,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   }
 }
 
-class InspectorModelDescriptor(val project: Project) {
+class InspectorModelDescriptor(val project: Project, private val scheduler: ScheduledExecutorService?) {
   private var root: InspectorViewDescriptor? = null
 
   fun view(drawId: Long,
@@ -227,7 +232,7 @@ class InspectorModelDescriptor(val project: Project) {
          imageType, body)
 
   fun build(treeSettings: TreeSettings): InspectorModel {
-    val model = InspectorModel(project)
+    val model = InspectorModel(project, scheduler)
     val windowRoot = root?.build() ?: return model
     val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) { _, window ->
       ViewNode.writeAccess {
