@@ -102,6 +102,9 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
 
+    ConversionTestUtil.changeKotlinVersion(guiTest);
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
+
     ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(120), "Build", "Rebuild Project");
   }
 

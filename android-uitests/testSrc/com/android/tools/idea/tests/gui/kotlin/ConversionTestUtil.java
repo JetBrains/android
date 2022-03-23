@@ -122,6 +122,13 @@ public class ConversionTestUtil {
     ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
       .clickOkAndWaitDialogDisappear();
 
+    changeKotlinVersion(guiTest);
+  }
+
+  @NotNull
+  protected static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
     // The Kotlin plugin version chosen is done with a network request. This does not work
     // in an environment where network access is unavailable. We need to handle setting

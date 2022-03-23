@@ -83,6 +83,8 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
 
+    ConversionTestUtil.changeKotlinVersion(guiTest);
+
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
@@ -95,6 +97,8 @@ public class NewJavaProjectToKotlinProjectConversionTest {
     IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
+
+    ConversionTestUtil.changeKotlinVersion(guiTest);
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
