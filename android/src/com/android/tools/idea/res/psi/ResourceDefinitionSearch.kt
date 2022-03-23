@@ -35,8 +35,9 @@ class ResourceDefinitionSearch : QueryExecutorBase<PsiElement, DefinitionsScoped
     val repository = resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace) ?: return
     for (resource in repository.getResources(resourceReference).filterDefinitions(project)) {
       val declaration = ResourceRepositoryToPsiResolver.resolveToDeclaration(resource, project)
-      if (declaration != null && !consumer.process(declaration)) {
-        return
+      if (declaration != null) {
+        consumer.process(declaration)
+        break
       }
     }
   }

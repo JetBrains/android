@@ -17,11 +17,13 @@ package com.android.tools.idea.res.psi
 
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.search.searches.DefinitionsScopedSearch
+import com.intellij.codeInsight.navigation.GotoImplementationHandler
+import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
 
 /**
- * Tests for [ResourceDefinitionSearch].
+ * Tests for [ResourceDefinitionSearch] that is used for *Navigate > Implementation(s)*.
  */
 class ResourceDefinitionSearchTest : AndroidTestCase() {
 
@@ -44,14 +46,20 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
           int n = R.string.app_<caret>name;
         }
       }
-    """.trimIndent()).virtualFile
+      """.trimIndent()).virtualFile
 
     ResourceRepositoryManager.getAppResources(myFacet)
     myFixture.configureFromExistingVirtualFile(file)
 
-    val element = myFixture.elementAtCaret
-    val psiElements = DefinitionsScopedSearch.search(element).findAll()
-    assertThat(psiElements).hasSize(1)
+    val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
+    val psiElements = gotoData.targets
+    assertThat(psiElements).hasLength(1)
     assertThat(psiElements.first().parent.parent.text).isEqualTo("<string name=\"app_name\">My Application</string>")
+  }
+
+  private class TestGotoImplementationHandler : GotoImplementationHandler() {
+    public override fun createDataForSource(editor: Editor, offset: Int, source: PsiElement): GotoData {
+      return super.createDataForSource(editor, offset, source)
+    }
   }
 }
