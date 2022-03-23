@@ -2,6 +2,11 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
     PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
+            main                          : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+            unitTest                      : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
+            androidTest                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
         LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
@@ -15,8 +20,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : ideSetupTask1
-            - AfterSyncTask               : ideSetupTask2
+            - AfterSyncTask               : generateDebugSources
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -24,7 +28,11 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             ResFolderRelativePath         : /res
             - ResFoldersRelativePath      : file://<TEMP>/res
             - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
-            - TestResFoldersRelativePath  :  [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             ProjectType                   : 0
@@ -46,31 +54,113 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<TEMP>
+            JavaSource                    : file://<TEMP>/gen
+            JavaSource                    : file://<TEMP>/src
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
+            main                          : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+            unitTest                      : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
+            androidTest                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase:androidTest
+        LinkedProjectPath             : <TEMP>
+        RootProjectPath               : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/androidTestDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+    MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
+            main                          : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+            unitTest                      : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
+            androidTest                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase:main
+        LinkedProjectPath             : <TEMP>
+        RootProjectPath               : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<TEMP>
+            EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/build [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<TEMP>/res
             JavaResource                  : file://<TEMP>/res
         CONENT_ENTRY                  : file://<TEMP>/src
             JavaSource                    : file://<TEMP>/src
         CONENT_ENTRY                  : file://<TEMP>/src/debug [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/aidl [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/assets [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/custom [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/java [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/kotlin [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/ml [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/renderscript [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/res [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/resources [-]
-        CONENT_ENTRY                  : file://<TEMP>/src/debug/shaders [-]
         CONENT_ENTRY                  : file://<TEMP>/srcKotlin [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/custom [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/ml [-]
-        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/renderscript [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
@@ -79,3 +169,38 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+    MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
+            main                          : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main
+            unitTest                      : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest
+            androidTest                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase:unitTest
+        LinkedProjectPath             : <TEMP>
+        RootProjectPath               : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<TEMP>/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main

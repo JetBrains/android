@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.actions;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
-import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.notification.NotificationType.ERROR;
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -46,13 +44,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
-import org.junit.Ignore;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-@Ignore("b/224754645")
 public class BuildBundleActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AndroidNotification myAndroidNotification;

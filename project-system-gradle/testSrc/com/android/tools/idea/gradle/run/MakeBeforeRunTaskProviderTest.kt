@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
@@ -39,7 +40,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
@@ -91,7 +91,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         )
       }.toTypedArray()
     )
-    myModules = ModuleManager.getInstance(project).modules
+    myModules = ProjectStructure.getInstance(project).leafHolderModules.toTypedArray()
     myRunConfiguration = RunConfigurationGradleContext(
       androidFacet = project.gradleModule(modules.first().first)?.androidFacet!!,
       isTestConfiguration = false,

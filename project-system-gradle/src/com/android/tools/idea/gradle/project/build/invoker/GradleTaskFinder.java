@@ -25,6 +25,7 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPathCore;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Arrays.stream;
 import static java.util.stream.Stream.concat;
 
@@ -131,8 +132,8 @@ public class GradleTaskFinder {
     }
 
     for (Module module : allModules) {
-      String modulePath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectId();
-      if (modulePath != null && modulePath.endsWith(":" + BUILD_SRC_FOLDER_NAME)) {
+      String moduleFilePath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectPath();
+      if (moduleFilePath != null && (toSystemIndependentName(moduleFilePath).endsWith("/" + BUILD_SRC_FOLDER_NAME))) {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }

@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
+import com.android.tools.idea.testing.nameProperties
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
@@ -156,27 +157,6 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     Truth.assertThat(expectedTextV2Filtered).isEqualTo(expectedTextV1Filtered)
   }
 
-  private fun Sequence<String>.nameProperties(): Sequence<Pair<String, String>> = sequence {
-    val context = mutableListOf<Pair<Int, String>>()
-    var previousIndentation = -1
-    for (line in this@nameProperties) {
-      val propertyName = line.trimStart().removePrefix("- ").substringBefore(' ', line).trim()
-      val indentation = line.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) line.length else it }
-      when {
-        indentation > previousIndentation -> context.add(indentation to propertyName)
-        indentation == previousIndentation -> context[context.size - 1] = indentation to propertyName
-        else -> {
-          while (context.size > 1 && context[context.size - 1].first > indentation) {
-            context.removeLast()
-          }
-          context[context.size - 1] = indentation to propertyName
-        }
-      }
-      previousIndentation = indentation
-      yield(context.map { it.second }.joinToString(separator = "/") to line)
-    }
-  }
-
   private fun String.filterOutProperties(): String =
     this
       .splitToSequence('\n')
@@ -190,6 +170,8 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       .joinToString(separator = "\n")
 
 }
+
+private fun Sequence<String>.nameProperties() = nameProperties(this)
 
 /**
  * we skip:

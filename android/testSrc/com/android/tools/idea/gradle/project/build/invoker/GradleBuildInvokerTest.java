@@ -187,8 +187,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
-      ":lib:ideSetupTask1",
-      ":lib:ideSetupTask2",
+      ":lib:generateDebugSources",
       ":lib:ideUnitTestSetupTask1",
       ":lib:ideUnitTestSetupTask2",
       ":lib:ideAndroidTestSetupTask1",
@@ -196,8 +195,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ":lib:compileDebugUnitTestSources",
       ":lib:compileDebugAndroidTestSources",
       ":lib:compileDebugSources",
-      ":app:ideSetupTask1",
-      ":app:ideSetupTask2",
+      ":app:generateDebugSources",
       ":app:ideUnitTestSetupTask1",
       ":app:ideUnitTestSetupTask2",
       ":app:ideAndroidTestSetupTask1",

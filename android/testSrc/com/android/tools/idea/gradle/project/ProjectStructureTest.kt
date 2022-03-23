@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -24,13 +24,11 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.testFramework.PlatformTestCase
-import org.junit.Ignore
 import java.io.File
 
 /**
  * Tests for [ProjectStructure].
  */
-@Ignore("b/224754645")
 class ProjectStructureTest : PlatformTestCase() {
 
   fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1 Java library.
@@ -46,7 +44,8 @@ class ProjectStructureTest : PlatformTestCase() {
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
     val appModules = projectStructure.appHolderModules.map { it.name }
-    Truth.assertThat(appModules).containsAllOf("app", "instantApp")
+    Truth.assertThat(appModules)
+      .containsAllOf("testAppModulesAndAgpVersionsAreRecorded.app", "testAppModulesAndAgpVersionsAreRecorded.instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
     // Verify that the AGP versions were recorded correctly.
     val allVersions = agpPluginVersions.allVersions
@@ -71,7 +70,12 @@ class ProjectStructureTest : PlatformTestCase() {
     // They are ignored when we attempt to find Gradle tasks to run.
     val leafModules = projectStructure.leafHolderModules.map { it.name }
     Truth.assertThat(leafModules)
-      .containsExactly("testLeafModulesAreRecorded", "app", "instantApp", "leaf1", "leaf2", "leaf3")
+      .containsExactly(
+        "testLeafModulesAreRecorded.app",
+        "testLeafModulesAreRecorded.instantApp",
+        "testLeafModulesAreRecorded.leaf1",
+        "testLeafModulesAreRecorded.leaf2"
+      )
   }
 
   fun testLeafModulesContainsBaseAndFeatureModules() {
@@ -87,10 +91,14 @@ class ProjectStructureTest : PlatformTestCase() {
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
     val appModules = projectStructure.appHolderModules.map { it.name }
-    Truth.assertThat(appModules).containsExactly("app")
+    Truth.assertThat(appModules).containsExactly("testLeafModulesContainsBaseAndFeatureModules.app")
     // Verify that app and leaf modules are returned.
     val leafModules = projectStructure.leafHolderModules.map { it.name }
-    Truth.assertThat(leafModules).containsExactly("testLeafModulesContainsBaseAndFeatureModules", "app", "feature1", "feature2")
+    Truth.assertThat(leafModules).containsExactly(
+      "testLeafModulesContainsBaseAndFeatureModules.app",
+      "testLeafModulesContainsBaseAndFeatureModules.feature1",
+      "testLeafModulesContainsBaseAndFeatureModules.feature2"
+    )
   }
 
   private fun javaModule(gradlePath: String, buildable: Boolean = true) = JavaModuleModelBuilder(gradlePath, buildable)

@@ -140,3 +140,25 @@ data class ProjectViewSettings(
 )
 
 fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
+
+fun nameProperties(snapshotLines: Sequence<String>): Sequence<Pair<String, String>> = sequence {
+  val context = mutableListOf<Pair<Int, String>>()
+  var previousIndentation = -1
+  for (line in snapshotLines) {
+    val propertyName = line.trimStart().removePrefix("- ").substringBefore(' ', line).trim()
+    val indentation = line.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) line.length else it }
+    when {
+      indentation > previousIndentation -> context.add(indentation to propertyName)
+      indentation == previousIndentation -> context[context.size - 1] = indentation to propertyName
+      else -> {
+        while (context.size > 1 && context[context.size - 1].first > indentation) {
+          context.removeLast()
+        }
+        context[context.size - 1] = indentation to propertyName
+      }
+    }
+    previousIndentation = indentation
+    yield(context.map { it.second }.joinToString(separator = "/") to line)
+  }
+}
+

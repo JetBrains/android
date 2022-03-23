@@ -43,13 +43,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
-import org.junit.Ignore;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-@Ignore("b/224754645")
 public class BuildApkActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   private BuildApkAction myAction;

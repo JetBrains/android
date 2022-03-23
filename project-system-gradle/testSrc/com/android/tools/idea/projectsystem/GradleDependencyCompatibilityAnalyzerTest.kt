@@ -231,9 +231,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEqualTo("""
       Version incompatibility between:
-      -   com.acme.pie:pie:1.0.0-alpha1 in module app
+      -   com.acme.pie:pie:1.0.0-alpha1 in module testTwoArtifactsWithConflictingDependenciesInDifferentModules.app
       and:
-      -   com.google.android.material:material:1.3.0 in module library1
+      -   com.google.android.material:material:1.3.0 in module testTwoArtifactsWithConflictingDependenciesInDifferentModules.library1
 
       With the dependency:
       -   androidx.core:core:2.0.0
@@ -486,7 +486,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       )
     )
 
-    myModule = project.gradleModule(":app")
+    myModule = project.gradleModule(":app")?.getMainModule()
 
     analyzer = GradleDependencyCompatibilityAnalyzer(
       moduleSystem = myModule.getModuleSystem() as GradleModuleSystem,

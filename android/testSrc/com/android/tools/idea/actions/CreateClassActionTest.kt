@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.ide.IdeView
@@ -49,7 +50,7 @@ class CreateClassActionTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val facet
-    get() = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+    get() = FacetManager.getInstance(projectRule.module.getMainModule()).getFacetByType(AndroidFacet.ID)!!
 
   @Test
   fun testGetDestinationDirectoryIdeHasOneDirectory() {

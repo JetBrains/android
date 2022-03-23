@@ -99,6 +99,11 @@ class AndroidProjectRule private constructor(
   private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
 
   /**
+   * When not null and the project is initialized from an instance of [AndroidModel] is called to prepare source code.
+   */
+  private val prepareProjectSourcesWith: ((File) -> Unit)? = null,
+
+  /**
    * Name of the fixture used to create the project directory when not
    * using a light fixture.
    *
@@ -174,7 +179,25 @@ class AndroidProjectRule private constructor(
      * [androidProjectBuilder].
      */
     @JvmStatic
-    fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
+    fun withAndroidModels(
+      prepareProjectSources: ((dir: File) -> Unit)? = null,
+      vararg projectModuleBuilders: ModuleModelBuilder
+    ): AndroidProjectRule = AndroidProjectRule(
+      initAndroid = false,
+      lightFixture = false,
+      withAndroidSdk = false,
+      prepareProjectSourcesWith = prepareProjectSources,
+      projectModuleBuilders = projectModuleBuilders.toList()
+    )
+
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
+     * [androidProjectBuilder].
+     */
+    @JvmStatic
+    fun withAndroidModels(
+      vararg projectModuleBuilders: ModuleModelBuilder
+    ): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
       lightFixture = false,
       withAndroidSdk = false,
@@ -247,6 +270,7 @@ class AndroidProjectRule private constructor(
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         val basePath = File(fixture.tempDirPath)
+        prepareProjectSourcesWith?.let { it(basePath) }
         if (projectModuleBuilders.isNotEmpty()) {
           setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
         }

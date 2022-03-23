@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.util.concurrent.Futures
@@ -265,7 +266,7 @@ class GradleDependencyCompatibilityAnalyzer(
 
     while (found == null) {
       try {
-        analyzer.addExplicitDependency(candidate, moduleSystem.module)
+        analyzer.addExplicitDependency(candidate, moduleSystem.module.getHolderModule())
         baseAnalyzer.copy(analyzer)
         found = candidate
       }

@@ -71,6 +71,7 @@ class AndroidProjectBuilderTest {
         .build()
     val model = builder(
       "projectName",
+      ":app",
       File("/root"),
       File("/root/app"),
       "99.99-agp"
