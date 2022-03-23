@@ -547,7 +547,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
         val dependencies = buildModel.dependencies()
         val artifacts = dependencies.artifacts()
         assertSize(1, artifacts)
-        artifacts[0].version().setValue("2.3.4")
+        artifacts[0].version().resultModel.setValue("2.3.4")
         applyChangesAndReparse(pbm)
       }
 
@@ -558,6 +558,38 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       assertEquals("com.example:example:2.3.4", artifacts[0].compactNotation())
       verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_BUILD_FILE)
       verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_MAP_NOTATION_EXPECTED)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testWriteVersionCatalogMapVersionRefNotation() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_MAP_VERSION_REF_NOTATION)
+
+      val pbm = projectBuildModel
+      let {
+        val buildModel = pbm.projectBuildModel!!
+        val dependencies = buildModel.dependencies()
+        val artifacts = dependencies.artifacts()
+        assertSize(1, artifacts)
+        artifacts[0].version().resultModel.setValue("2.3.4")
+        applyChangesAndReparse(pbm)
+      }
+
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val artifacts = dependencies.artifacts()
+      assertSize(1, artifacts)
+      assertEquals("com.example:example:2.3.4", artifacts[0].compactNotation())
+      verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_BUILD_FILE)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_MAP_VERSION_REF_NOTATION_EXPECTED)
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
@@ -607,6 +639,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_MAP_NOTATION_EXPECTED("versionCatalogMapNotationExpected.toml"),
     VERSION_CATALOG_MODULE_NOTATION("versionCatalogModuleNotation.toml"),
     VERSION_CATALOG_MAP_VERSION_REF_NOTATION("versionCatalogMapVersionRefNotation.toml"),
+    VERSION_CATALOG_MAP_VERSION_REF_NOTATION_EXPECTED("versionCatalogMapVersionRefNotationExpected.toml"),
     VERSION_CATALOG_MODULE_VERSION_REF_NOTATION("versionCatalogModuleVersionRefNotation.toml"),
     VERSION_CATALOG_PLUGINS_NOTATION("versionCatalogPluginsNotation.toml"),
     ;
