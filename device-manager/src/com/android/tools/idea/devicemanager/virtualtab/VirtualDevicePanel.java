@@ -23,7 +23,6 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
@@ -49,7 +48,7 @@ public final class VirtualDevicePanel extends DevicePanel {
     myProject = project;
 
     initTable();
-    myScrollPane = new JBScrollPane(myTable);
+    initScrollPane();
 
     myCreateButton = new JButton("Create device");
     myCreateButton.addActionListener(new BuildVirtualDeviceConfigurationWizardActionListener(myCreateButton,

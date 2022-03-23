@@ -28,7 +28,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBDimension;
@@ -119,7 +118,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
     initSeparator();
     initHelpButton();
     initTable();
-    myScrollPane = new JBScrollPane(myTable);
+    initScrollPane();
     initDetailsPanelPanel();
     layOut();
 
