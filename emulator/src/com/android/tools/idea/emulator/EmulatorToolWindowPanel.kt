@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
@@ -282,10 +283,12 @@ class EmulatorToolWindowPanel(
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
+    @AnyThread
     override fun displayConfigurationChanged() {
       refreshDisplayConfiguration()
     }
 
+    @AnyThread
     fun refreshDisplayConfiguration() {
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
         override fun onNext(response: DisplayConfigurations) {
@@ -317,6 +320,7 @@ class EmulatorToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
+      mainToolbar.updateActionsImmediately()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
