@@ -60,7 +60,7 @@ import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
 import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
 
 internal class AndroidExtraModelProviderWorker(
-  controller: BuildController,
+  controller: BuildController, // NOTE: Do not make it a property. [controller] should be accessed via [SyncActionRunner]'s only.
   private val syncOptions: SyncActionOptions,
   private val buildModels: List<GradleBuild>, // Always not empty.
   private val consumer: ProjectImportModelProvider.BuildModelConsumer
@@ -68,7 +68,8 @@ internal class AndroidExtraModelProviderWorker(
   private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
   private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(
     controller)
-  private val actionRunner = SyncActionRunner(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
+  private val safeActionRunner = SyncActionRunner(controller, parallelActionsSupported = false)
+  private val maybeParallelActionRunner = SyncActionRunner(controller, syncOptions.flags.studioFlagParallelSyncEnabled)
 
   fun populateBuildModels() {
     try {
@@ -83,7 +84,7 @@ internal class AndroidExtraModelProviderWorker(
             consumer.consume(
               buildModels.first(),
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
-              actionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
+              safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
             )
             NativeVariantsSyncActionWorker(syncOptions).fetchNativeVariantsAndroidModels()
@@ -107,6 +108,8 @@ internal class AndroidExtraModelProviderWorker(
   )
   {
     private val modelCache: ModelCache = ModelCache.create(canFetchV2Models, buildFolderPaths)
+    private val actionRunner = if (syncOptions.flags.studioFlagParallelSyncEnabled) maybeParallelActionRunner else safeActionRunner
+
 
     /**
      * Requests Android project models for the given [buildModels]
@@ -446,6 +449,9 @@ internal class AndroidExtraModelProviderWorker(
   inner class NativeVariantsSyncActionWorker(
     private val syncOptions: NativeVariantsSyncActionOptions
   ) {
+    // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
+    private val actionRunner = safeActionRunner
+
     fun fetchNativeVariantsAndroidModels(): List<GradleModule> {
       val modelCache = ModelCache.create(false)
       val nativeModules = actionRunner.runActions(
@@ -567,7 +573,7 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
-    return actionRunner.runActions(
+    return safeActionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         ActionToRun(fun(controller: BuildController): BasicIncompleteGradleModule {
           // Request V2 models if flag is enabled.
@@ -603,7 +609,7 @@ internal class AndroidExtraModelProviderWorker(
   private fun populateProjectSyncIssues(androidModules: List<GradleModule>, canFetchV2Models: Boolean = false) {
     if (androidModules.isEmpty()) return
 
-    actionRunner.runActions(
+    safeActionRunner.runActions(
       androidModules.map { module ->
         ActionToRun(
           fun(controller: BuildController) {

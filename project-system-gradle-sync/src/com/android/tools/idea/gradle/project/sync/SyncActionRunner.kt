@@ -47,7 +47,7 @@ class SyncActionRunner(
 
           executionResults.toSortedMap().values.toList()
         }
-      else {
+        else {
           actionsToRun.map { runAction(it.action) }
         }
     }
