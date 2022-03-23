@@ -17,6 +17,8 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.fileEditor.FileEditorManager
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -79,5 +81,21 @@ class DesignToolsIssueProviderTest {
 
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
     assertEquals(1, provider.getFilteredIssues().size)
+  }
+
+  @Test
+  fun testFileClosed() {
+    val messageBus = rule.project.messageBus
+    val provider = DesignToolsIssueProvider(rule.project)
+
+    runInEdt {
+      val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "")
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), listOf(TestIssue()))
+      assertEquals(1, provider.getFilteredIssues().size)
+
+      FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
+
+      assertEquals(0, provider.getFilteredIssues().size)
+    }
   }
 }
