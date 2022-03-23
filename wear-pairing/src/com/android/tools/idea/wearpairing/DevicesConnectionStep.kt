@@ -53,6 +53,7 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
@@ -138,6 +139,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       deviceStateListener.releaseAll()
       bindings.releaseAll()
     }
+  }
+
+  private suspend fun forceDispose() {
+    runningJob?.cancelAndJoin()
+    backgroundJob?.cancelAndJoin()
+    dispose()
   }
 
   private fun startStepFlow() {
@@ -774,8 +781,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   private fun showDeviceError(header: String, description: String, errorMessage: String) {
-    dispose()
-    coroutineScope.launch(ioThread) {
+    coroutineScope.launch(uiThread) {
+      forceDispose()
       val body = createWarningPanel(errorMessage)
       body.add(
         JButton(message("wear.assistant.connection.alert.button.try.again")).apply { addActionListener { wizardAction.restart(project) } },
