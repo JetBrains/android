@@ -121,7 +121,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
       if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
-        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this);
+        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
       }
     }
     else {

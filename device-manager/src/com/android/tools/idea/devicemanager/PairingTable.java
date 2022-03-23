@@ -15,19 +15,33 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import java.util.Optional;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class PairingTable extends JBTable {
-  PairingTable() {
+  private final @NotNull Object myKey;
+  private final @Nullable Project myProject;
+
+  PairingTable(@NotNull Key key, @Nullable Project project) {
     super(new PairingTableModel());
+
+    myKey = key;
+    myProject = project;
 
     setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
+
+    getEmptyText()
+      .appendLine("Device is not paired to companion device.")
+      .appendLine("Pair device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, event -> pairDevice());
 
     tableHeader.setReorderingAllowed(false);
     tableHeader.setResizingAllowed(false);
@@ -39,6 +53,10 @@ final class PairingTable extends JBTable {
                        Tables.getPreferredColumnWidth(PairingTable.this, statusViewColumnIndex(), JBUIScale.scale(65)),
                        JBUIScale.scale(20));
     });
+  }
+
+  private void pairDevice() {
+    new WearDevicePairingWizard().show(myProject, myKey.toString());
   }
 
   private int deviceViewColumnIndex() {

@@ -65,7 +65,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
 
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
-      myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this);
+      myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this, project);
     }
 
     if (myPropertiesSection != null) {

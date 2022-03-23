@@ -20,7 +20,6 @@ import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class Pairing {
   private final @NotNull PhoneWearPair myPair;
@@ -57,6 +56,8 @@ final class Pairing {
 
   @NotNull String getStatus() {
     switch (myPair.getPairingStatus()) {
+      case UNKNOWN:
+        return "Unknown";
       case OFFLINE:
         return "Offline";
       case CONNECTING:
@@ -68,20 +69,5 @@ final class Pairing {
       default:
         throw new AssertionError(myPair.getPairingStatus());
     }
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * myPair.hashCode() + myOtherDevice.hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof Pairing)) {
-      return false;
-    }
-
-    Pairing pairing = (Pairing)object;
-    return myPair.equals(pairing.myPair) && myOtherDevice.equals(pairing.myOtherDevice);
   }
 }

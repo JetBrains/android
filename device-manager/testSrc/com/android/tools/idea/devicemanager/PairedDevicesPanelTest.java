@@ -15,174 +15,104 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
 
-import com.android.tools.adtui.stdui.EmptyStatePanel;
-import com.android.tools.adtui.swing.FakeUi;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
-import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
-import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.EdtRule;
-import com.intellij.testFramework.RunsInEdt;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.table.JBTable;
-import icons.StudioIcons;
-import java.awt.Component;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
-import java.util.function.Predicate;
-import javax.swing.Icon;
-import javax.swing.JTable;
+import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
-@Ignore("http://b/223246111")
 @RunWith(JUnit4.class)
 public final class PairedDevicesPanelTest {
-  @Rule
-  public final TestRule myEdtRule = new EdtRule();
+  private final PairingDevice myPixel4Api31 = new PairingDevice("Pixel_4_API_31",
+                                                                "Pixel 4 API 31",
+                                                                31,
+                                                                true,
+                                                                false,
+                                                                true,
+                                                                ConnectionState.DISCONNECTED);
 
-  private Disposable myParent;
-  private WearPairingManager myWearPairingManager;
+  private final PairingDevice myWearOsSmallRoundApi28 = new PairingDevice("Wear_OS_Small_Round_API_28",
+                                                                          "Wear OS Small Round API 28",
+                                                                          28,
+                                                                          true,
+                                                                          true,
+                                                                          true,
+                                                                          ConnectionState.DISCONNECTED);
 
-  @Before
-  public void initParent() {
-    myParent = Disposer.newDisposable("PairedDevicesPanelTest");
-  }
+  private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
 
-  @Before
-  public void mockWearPairingManager() {
-    myWearPairingManager = mock(WearPairingManager.class);
-  }
+  @Test
+  public void removeButtonDoesntThrowExceptionWhenSelectionIsEmpty() {
+    // Arrange
+    Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
+      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
 
-  @Before
-  public void setUpActionManager() {
-    ActionManagerEx actionManager = mock(ActionManagerImpl.class);
-    when(actionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean())).thenCallRealMethod();
-    when(actionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean())).thenCallRealMethod();
+    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
+                                                      Mockito.mock(Disposable.class),
+                                                      null,
+                                                      myManager);
 
-    MockApplication mockApplication = new MockApplication(myParent);
-    mockApplication.registerService(ActionManager.class, actionManager);
+    AbstractButton button = panel.getRemoveButton();
 
-    ApplicationManager.setApplication(mockApplication, myParent);
-  }
-
-  @After
-  public void disposeOfParent() {
-    Disposer.dispose(myParent);
+    // Act
+    button.doClick();
   }
 
   @Test
-  @RunsInEdt
-  public void emptyTableForNoPairedDevice() throws Exception {
+  public void reloadPairingsAdd() {
     // Arrange
-    FakeUi fakeUi = createFakeUi(new SerialNumber("86UX00F4R"));
+    Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
+      .thenReturn(Collections.emptyList())
+      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
+
+    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
+                                                      Mockito.mock(Disposable.class),
+                                                      null,
+                                                      myManager);
 
     // Act
-    EmptyStatePanel emptyStatePanel = fakeUi.findComponent(EmptyStatePanel.class, (Predicate<EmptyStatePanel>)panel -> true);
+    panel.reloadPairings();
 
     // Assert
-    assertThat(emptyStatePanel).isNotNull();
-    assertThat(emptyStatePanel.getReasonText()).isEqualTo("Device is not paired to companion device.");
+    Object device = new DeviceManagerPairingDevice.Builder()
+      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_28"))
+      .setType(DeviceType.WEAR_OS)
+      .setIcon(DeviceType.WEAR_OS.getVirtualIcon())
+      .setName("Wear OS Small Round API 28")
+      .setTarget("Android 9.0")
+      .setAndroidVersion(new AndroidVersion(28))
+      .build();
+
+    assertEquals(Collections.singletonList(Arrays.asList(device, "Unknown")), TestTables.getData(panel.getTable()));
   }
 
   @Test
-  @RunsInEdt
-  public void oneRowColumnForSinglePairing() throws Exception {
-    // Arrange
-    Key phoneKey = new SerialNumber("86UX00F4R");
-    PairingDevice phoneDevice = new PairingDevice(phoneKey.toString(), "My Phone", 30, false, false, true, ConnectionState.ONLINE);
-    PairingDevice wearDevice = new PairingDevice("WearId", "My Wear", 30, false, true, true, ConnectionState.ONLINE);
+  public void reloadPairingsRemove() {
+    Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
+      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)))
+      .thenReturn(Collections.emptyList());
 
-    PhoneWearPair phoneWearPair = new PhoneWearPair(phoneDevice, wearDevice);
-    phoneWearPair.setPairingStatus(PairingState.CONNECTED);
-    when(myWearPairingManager.getPairsForDevice(phoneKey.toString())).thenReturn(Collections.singletonList(phoneWearPair));
-
-    FakeUi fakeUi = createFakeUi(phoneKey);
+    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
+                                                      Mockito.mock(Disposable.class),
+                                                      null,
+                                                      myManager);
 
     // Act
-    JTable table = fakeUi.findComponent(JTable.class, (Predicate<JTable>)t -> true);
+    panel.reloadPairings();
 
     // Assert
-    assertThat(table).isNotNull();
-    assertThat(table.getColumnCount()).isEqualTo(2);
-    assertThat(table.getRowCount()).isEqualTo(1);
-    assertThat(table.getColumnName(0)).isEqualTo("Device");
-    assertThat(table.getColumnName(1)).isEqualTo("Status");
-    assertThat(table.getModel().getValueAt(0, 1)).isEqualTo("Connected");
-  }
-
-  @Test
-  @RunsInEdt
-  public void cellRender() throws Exception {
-    // Arrange
-    Key phoneKey = new SerialNumber("86UX00F4R");
-    PairingDevice phoneDevice = new PairingDevice(phoneKey.toString(), "My Phone", 30, false, false, true, ConnectionState.ONLINE);
-    PairingDevice wearDevice = new PairingDevice("WearId", "My Wear", 30, false, true, true, ConnectionState.ONLINE);
-
-    PhoneWearPair phoneWearPair = new PhoneWearPair(phoneDevice, wearDevice);
-    phoneWearPair.setPairingStatus(PairingState.CONNECTING);
-    when(myWearPairingManager.getPairsForDevice(phoneKey.toString())).thenReturn(Collections.singletonList(phoneWearPair));
-
-    FakeUi fakeUi = createFakeUi(phoneKey);
-    JTable table = fakeUi.findComponent(JBTable.class, (Predicate<JBTable>)t -> true);
-    assert table != null;
-    Component tableCell = table.getCellRenderer(0, 0).getTableCellRendererComponent(table, table.getValueAt(0, 0), false, true, 0, 0);
-    tableCell.setSize(640, 100);
-    FakeUi fakeTableCellUi = new FakeUi(tableCell);
-
-    // Act
-    Object iconLabel = findLabelWithIcon(fakeTableCellUi, StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
-    Object onlineLabel = findLabelWithIcon(fakeTableCellUi, StudioIcons.Avd.STATUS_DECORATOR_ONLINE);
-    Object nameLabel = findLabelWithText(fakeTableCellUi, "My Wear");
-    Object line2Label = findLabelWithText(fakeTableCellUi, "Android 11.0");
-
-    // Assert
-    assertThat(table.getModel().getValueAt(0, 1)).isEqualTo("Connecting");
-    assertThat(iconLabel).isNotNull();
-    assertThat(onlineLabel).isNotNull();
-    assertThat(nameLabel).isNotNull();
-    assertThat(line2Label).isNotNull();
-  }
-
-  private static @Nullable JBLabel findLabelWithIcon(@NotNull FakeUi fakeUi, @NotNull Icon icon) {
-    return fakeUi.findComponent(JBLabel.class, (Predicate<JBLabel>)label -> Objects.equals(label.getIcon(), icon));
-  }
-
-  private static @Nullable JBLabel findLabelWithText(@NotNull FakeUi fakeUi, @NotNull String text) {
-    return fakeUi.findComponent(JBLabel.class, (Predicate<JBLabel>)label -> Objects.equals(label.getText(), text));
-  }
-
-  private @NotNull FakeUi createFakeUi(@NotNull Key key) throws InterruptedException {
-    PairedDevicesPanel pairedDevicesPanel = new PairedDevicesPanel(key, myParent, myWearPairingManager);
-    pairedDevicesPanel.setSize(640, 480);
-
-    FakeUi fakeUi = new FakeUi(pairedDevicesPanel);
-    fakeUi.layoutAndDispatchEvents();
-
-    return fakeUi;
+    assertEquals(Collections.emptyList(), TestTables.getData(panel.getTable()));
   }
 }

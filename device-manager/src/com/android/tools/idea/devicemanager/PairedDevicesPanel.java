@@ -16,164 +16,194 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.stdui.ActionData;
-import com.android.tools.adtui.stdui.EmptyStatePanel;
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
-import com.intellij.ide.DataManager;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionToolbarPosition;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI.CurrentTheme.Table;
-import java.awt.BorderLayout;
+import com.intellij.ui.components.JBScrollPane;
+import java.awt.Component;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import kotlin.Unit;
-import kotlin.coroutines.CoroutineContext;
+import javax.swing.AbstractButton;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
+import javax.swing.JTable;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implements Disposable, PairingStatusChangedListener {
-  private final @NotNull Key myDeviceId;
+  private final @NotNull Key myKey;
+  private final @Nullable Project myProject;
   private final @NotNull WearPairingManager myManager;
 
-  public PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent) {
-    this(deviceId, parent, WearPairingManager.INSTANCE);
+  private @Nullable AbstractButton myAddButton;
+  private AbstractButton myRemoveButton;
+  private PairingTable myTable;
+  private final @NotNull Component myScrollPane;
+
+  @UiThread
+  public PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project) {
+    this(key, parent, project, WearPairingManager.INSTANCE);
   }
 
+  @UiThread
   @VisibleForTesting
-  PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent, @NotNull WearPairingManager pairingManager) {
-    super(new BorderLayout());
+  PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project, @NotNull WearPairingManager manager) {
+    super(null);
 
-    myDeviceId = deviceId;
-    myManager = pairingManager;
+    myKey = key;
+    myProject = project;
+    myManager = manager;
 
-    createUi();
+    initAddButton();
+    initRemoveButton();
+    initTable();
+    myScrollPane = new JBScrollPane(myTable);
+    layOut();
+
     myManager.addDevicePairingStatusChangedListener(this);
     Disposer.register(parent, this);
   }
 
+  @UiThread
   @Override
   public void dispose() {
     myManager.removeDevicePairingStatusChangedListener(this);
   }
 
-  @Override
-  public void pairingStatusChanged(@NotNull PhoneWearPair phoneWearPair) {
-    if (phoneWearPair.contains(myDeviceId.toString())) {
-      ApplicationManager.getApplication().invokeLater(this::createUi, ModalityState.any());
-    }
-  }
+  @UiThread
+  private void initAddButton() {
+    myAddButton = new CommonButton(AllIcons.General.Add);
 
-  @Override
-  public void pairingDeviceRemoved(@NotNull PhoneWearPair phoneWearPair) {
-    if (phoneWearPair.contains(myDeviceId.toString())) {
-      ApplicationManager.getApplication().invokeLater(this::createUi, ModalityState.any());
-    }
+    myAddButton.setToolTipText("Add");
+    myAddButton.addActionListener(event -> new WearDevicePairingWizard().show(myProject, myKey.toString()));
   }
 
   @UiThread
-  private void createUi() {
-    removeAll();
+  private void initRemoveButton() {
+    myRemoveButton = new CommonButton(AllIcons.General.Remove);
 
-    ToolbarDecorator toolbar;
-    List<PhoneWearPair> phoneWearPairList = myManager.getPairsForDevice(myDeviceId.toString());
-    if (phoneWearPairList.isEmpty()) {
-      toolbar = new EmptyStateToolbarDecorator()
-        .setRemoveAction(button -> {
-        }) // Add remove button
-        .setRemoveActionUpdater(event -> false); // Disable remove button
-    }
-    else {
-      List<Pairing> pairings = phoneWearPairList.stream()
-        .map(pair -> new Pairing(pair, myDeviceId))
-        .collect(Collectors.toList());
+    myRemoveButton.setEnabled(false);
+    myRemoveButton.setToolTipText("Remove");
 
-      PairingTable table = new PairingTable();
-      table.getModel().setPairings(pairings);
-
-      toolbar = ToolbarDecorator.createDecorator(table)
-        .setRemoveAction(button -> unpair(table.getSelectedPairing().orElseThrow(AssertionError::new).getPair()));
-    }
-
-    toolbar
-      .setToolbarPosition(ActionToolbarPosition.TOP)
-      .setAddAction(button -> pairDevice(CommonDataKeys.PROJECT.getData(button.getDataContext())));
-
-    add(toolbar.createPanel(), BorderLayout.CENTER);
-
-    if (getParent() != null) {
-      revalidate();
-    }
+    myRemoveButton.addActionListener(event -> remove());
   }
 
-  private final class EmptyStateToolbarDecorator extends ToolbarDecorator {
-    private @Nullable JComponent myEmptyStatePanel;
-
-    protected @NotNull JComponent getComponent() {
-      ActionData data = new ActionData("Pair device", this::pairDevice);
-
-      myEmptyStatePanel = new EmptyStatePanel("Device is not paired to companion device.", null, data);
-      myEmptyStatePanel.setBackground(Table.BACKGROUND);
-
-      return myEmptyStatePanel;
-    }
-
-    @SuppressWarnings("SameReturnValue")
-    private @NotNull Unit pairDevice() {
-      PairedDevicesPanel.this.pairDevice(CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(myEmptyStatePanel)));
-      return Unit.INSTANCE;
-    }
-
-    @Override
-    protected void updateButtons() {
-    }
-
-    @Override
-    protected void installDnDSupport() {
-    }
-
-    @Override
-    protected boolean isModelEditable() {
-      return false;
-    }
-  }
-
-  private void pairDevice(@Nullable Project project) {
-    new WearDevicePairingWizard().show(project, myDeviceId.toString());
-  }
-
-  private void unpair(@NotNull PhoneWearPair phoneWearPair) {
-    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
-      .build();
-
-    DeviceManagerUsageTracker.log(event);
-
+  @UiThread
+  private void remove() {
     try {
-      CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-      BuildersKt.runBlocking(context, (scope, continuation) ->
-        myManager.removePairedDevices(phoneWearPair, true, continuation)
-      );
+      BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(), (scope, completion) -> {
+        PhoneWearPair pair = myTable.getSelectedPairing().orElseThrow(AssertionError::new).getPair();
+        return myManager.removePairedDevices(pair, true, completion);
+      });
     }
     catch (InterruptedException exception) {
       Thread.currentThread().interrupt();
       Logger.getInstance(PairedDevicesPanel.class).warn(exception);
     }
+  }
+
+  @UiThread
+  private void initTable() {
+    myTable = new PairingTable(myKey, myProject);
+
+    myTable.getSelectionModel().addListSelectionListener(event -> {
+      if (event.getValueIsAdjusting()) {
+        return;
+      }
+
+      myRemoveButton.setEnabled(myTable.getSelectedRowCount() != 0);
+    });
+
+    reloadPairings();
+  }
+
+  @UiThread
+  private void layOut() {
+    GroupLayout layout = new GroupLayout(this);
+
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myAddButton)
+                  .addComponent(myRemoveButton))
+      .addComponent(myScrollPane);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myAddButton)
+                  .addComponent(myRemoveButton))
+      .addComponent(myScrollPane);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
+  }
+
+  /**
+   * Called by an AndroidIoManager coroutine thread
+   */
+  @WorkerThread
+  @Override
+  public void pairingStatusChanged(@NotNull PhoneWearPair pair) {
+    if (pair.contains(myKey.toString())) {
+      ApplicationManager.getApplication().invokeLater(this::reloadPairings, ModalityState.any());
+    }
+  }
+
+  @UiThread
+  @Override
+  public void pairingDeviceRemoved(@NotNull PhoneWearPair pair) {
+    if (pair.contains(myKey.toString())) {
+      reloadPairings();
+    }
+  }
+
+  @UiThread
+  @VisibleForTesting
+  void reloadPairings() {
+    Collection<PhoneWearPair> pairs = myManager.getPairsForDevice(myKey.toString());
+
+    if (pairs.isEmpty()) {
+      Logger.getInstance(PairedDevicesPanel.class).info("No pairs");
+    }
+    else {
+      Logger logger = Logger.getInstance(PairedDevicesPanel.class);
+      int i = 1;
+
+      for (Object pair : pairs) {
+        logger.info(i++ + " " + pair);
+      }
+    }
+
+    List<Pairing> pairings = pairs.stream()
+      .map(pair -> new Pairing(pair, myKey))
+      .collect(Collectors.toList());
+
+    myTable.getModel().setPairings(pairings);
+  }
+
+  @VisibleForTesting
+  @NotNull AbstractButton getRemoveButton() {
+    return myRemoveButton;
+  }
+
+  @VisibleForTesting
+  @NotNull JTable getTable() {
+    return myTable;
   }
 }
