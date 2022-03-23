@@ -280,7 +280,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     override fun handleInsert(context: InsertionContext) {
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
-      if (insertModifier) {
+      // Compose plugin inserts Modifier if completion character is '\n', doesn't happened with '\t'. Looks like a bug.
+      if (insertModifier && context.completionChar != '\n') {
         context.document.insertString(context.startOffset, callOnModifierObject)
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, context.startOffset + callOnModifierObject.length)
         psiDocumentManager.commitAllDocuments()
