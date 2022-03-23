@@ -21,7 +21,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -100,7 +99,7 @@ public class ComponentHelpAction extends AnAction {
         className.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
         className.startsWith(ANDROIDX_PKG_PREFIX) ||
         className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
-      return DEFAULT_ANDROID_REFERENCE_PREFIX + StringUtil.replaceChar(className, '.', '/') + ".html";
+      return DEFAULT_ANDROID_REFERENCE_PREFIX + className.replace('.', '/') + ".html";
     }
     return null;
   }
