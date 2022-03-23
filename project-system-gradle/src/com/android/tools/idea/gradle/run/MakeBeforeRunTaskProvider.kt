@@ -190,13 +190,15 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       val ndkModel = get(module!!)
       val androidModel = GradleAndroidModel.get(module)
       if (ndkModel != null && androidModel != null) {
-        val selectedVariantName = androidModel.selectedVariant.name
-        val availableAbis = ndkModel.syncedVariantAbis
-          .filter { it.variant == selectedVariantName }
-          .map { it.abi }
-          .toSet()
-        if (!availableAbis.containsAll(abis!!)) {
-          return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED
+        if (ndkModel.ndkModel.needsAbiSyncBeforeRun) {
+          val selectedVariantName = androidModel.selectedVariant.name
+          val availableAbis = ndkModel.syncedVariantAbis
+            .filter { it.variant == selectedVariantName }
+            .map { it.abi }
+            .toSet()
+          if (!availableAbis.containsAll(abis!!)) {
+            return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED
+          }
         }
       }
     }

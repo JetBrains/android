@@ -40,6 +40,7 @@ interface INdkModel {
   val buildSystems: Collection<String>
   val defaultNdkVersion: String
   val ndkVersion: String
+  val needsAbiSyncBeforeRun: Boolean
 }
 
 sealed class NdkModel : INdkModel
@@ -175,6 +176,8 @@ data class V1NdkModel(
   @Transient
   override val ndkVersion: String = androidProject.ndkVersion
 
+  override val needsAbiSyncBeforeRun: Boolean get() = true
+
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
   fun findToolchain(toolchainName: String): IdeNativeToolchain? = toolchainsByName[toolchainName]
   fun findSettings(settingsName: String): IdeNativeSettings? = settingsByName[settingsName]
@@ -234,6 +237,8 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
 
   @Transient
   override val ndkVersion: String = nativeModule.ndkVersion
+
+  override val needsAbiSyncBeforeRun: Boolean get() = false
 }
 
 private fun File.readIndexFile(): Set<File> = when {
