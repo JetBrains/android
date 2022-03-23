@@ -60,15 +60,16 @@ class BuildAttributionManagerImpl(
     val buildSessionId = UUID.randomUUID().toString()
     val buildRequestHolder = BuildRequestHolder(request)
     val attributionFileDir = getAgpAttributionFileDir(request)
+    var agpVersion: GradleVersion? = null
 
-    return BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
-      val agpVersion = analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
+    BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
+      analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
+          agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder)
           analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
-          attributionData?.buildInfo?.agpVersion
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
@@ -81,8 +82,9 @@ class BuildAttributionManagerImpl(
         BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
         buildSessionId
       )
-      BasicBuildAttributionInfo(agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion) })
     }
+
+    return BasicBuildAttributionInfo(agpVersion)
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
