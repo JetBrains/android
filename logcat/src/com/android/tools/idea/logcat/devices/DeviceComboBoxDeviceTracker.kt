@@ -21,10 +21,10 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -119,7 +119,7 @@ internal class DeviceComboBoxDeviceTracker(
           }
         }
       }
-    }.flowOn(diskIoThread)
+    }.flowOn(Dispatchers.IO)
   }
 
   private suspend fun DeviceInfo.toDevice(): Device {
