@@ -28,7 +28,7 @@ class IssuePanelSplitter(
     content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
 
   init {
-    val issuePanel = IssuePanelService.getInstance(surface.project).getIssuePanel(surface)
+    val issuePanel = if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) null else surface.issuePanel
     issuePanel?.addEventListener(createIssueEventListener(issuePanel))
     setHonorComponentsMinimumSize(true)
     firstComponent = content
