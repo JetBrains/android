@@ -103,7 +103,7 @@ class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
   private val executor = Executors.newCachedThreadPool()
   private val popupRule = PopupRule()
-  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor)
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, diskIoThreadExecutor = executor)
   private val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
