@@ -400,8 +400,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
       }
       // Append PROFILING_MODE if set by profilers.
-      if (StudioFlags.PROFILEABLE_BUILDS.get() && configuration.profilingMode != ProfilerState.ProfilingMode.NOT_SET) {
-        arguments.add(AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, configuration.profilingMode.value))
+      if (StudioFlags.PROFILEABLE_BUILDS.get() && configuration.profilingMode.shouldInjectProjectProperty()) {
+        arguments.add(
+          AndroidGradleSettings.createProjectProperty(ProfilerState.PROFILING_MODE_PROPERTY_NAME, configuration.profilingMode.value))
       }
       return arguments
     }

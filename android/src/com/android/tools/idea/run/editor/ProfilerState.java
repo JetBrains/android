@@ -64,19 +64,37 @@ public class ProfilerState {
    * When set, the profiling mode is passed to Android Gradle Plugin when building the app. Supported on AGP 7.3.0+.
    */
   public enum ProfilingMode {
-    NOT_SET(""),
-    DEBUGGABLE("debuggable"),
-    PROFILEABLE("profileable");
+    NOT_SET("", false, false),
+    DEBUGGABLE("debuggable", true, true),
+    PROFILEABLE("profileable", true, true);
 
     private final String myValue;
+    private final boolean myShouldInjectProjectProperty;
+    private final boolean myShouldAutoSignApk;
 
-    ProfilingMode(@NotNull String value) {
+    ProfilingMode(@NotNull String value, boolean shouldInjectProjectProperty, boolean shouldAutoSignApk) {
       myValue = value;
+      myShouldInjectProjectProperty = shouldInjectProjectProperty;
+      myShouldAutoSignApk = shouldAutoSignApk;
     }
 
     @NotNull
     public String getValue() {
       return myValue;
+    }
+
+    /**
+     * @return true if the mode should inject project property override to the build system.
+     */
+    public boolean shouldInjectProjectProperty() {
+      return myShouldInjectProjectProperty;
+    }
+
+    /**
+     * @return true if the mode should automatically sign the built APK with the debug key.
+     */
+    public boolean shouldAutoSignApk() {
+      return myShouldAutoSignApk;
     }
   }
   @NotNull public ProfilingMode PROFILING_MODE = ProfilingMode.NOT_SET;
