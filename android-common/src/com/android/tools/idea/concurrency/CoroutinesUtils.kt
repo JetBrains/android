@@ -91,7 +91,9 @@ object AndroidDispatchers {
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
-   * [CoroutineDispatcher] that dispatches to a disk IO thread.
+   * [CoroutineDispatcher] that dispatches to a disk IO thread. Please notice that the disk IO
+   * thread pool is very limited and should not be used for anything except local disk IO.
+   * For socket IO and inter-process communication please use [kotlinx.coroutines.Dispatchers.IO].
    *
    * @see AndroidExecutors.diskIoThreadExecutor
    */
