@@ -155,7 +155,7 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
   fun `disabled live literals does not generate LiveLiterals classes`() = runBlocking {
     LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
     val (_, outputFiles) = compileAndListOutputFiles()
-    assertTrue(outputFiles.isNotEmpty() && outputFiles.none { it.contains("LiveLiterals") })
+    assertTrue(outputFiles.isNotEmpty() && outputFiles.none { it.endsWith(".class") && it.contains("LiveLiterals") })
   }
 
   @Test

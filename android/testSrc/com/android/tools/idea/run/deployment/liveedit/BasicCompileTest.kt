@@ -31,7 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
@@ -69,6 +68,9 @@ class BasicCompileTest {
                                                                 "lambda() \n" +
                                                                 "return capture \n" +
                                                                 "}")
+
+    files["HasInternalVar.kt"] = projectRule.fixture.configureByText("HasInternalVar.kt",
+                                                                     "internal var x = 1\n fun getNum() = x")
   }
 
   @Test
@@ -132,6 +134,14 @@ class BasicCompileTest {
   @Test
   fun crossFileReference() {
     compile(files["CallA.kt"], "callA")
+  }
+
+  @Test
+  fun internalVar() {
+    var output = compile(files["HasInternalVar.kt"], "getNum").singleOutput()
+    Assert.assertTrue(output.classData.isNotEmpty())
+    var returnedValue = invokeStatic("getNum", loadClass(output))
+    Assert.assertEquals(1, returnedValue)
   }
 
   private fun compile(file: PsiFile?, functionName: String, state: FunctionState = FunctionState()) : List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {

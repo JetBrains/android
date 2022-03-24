@@ -58,7 +58,7 @@ internal class EmbeddedCompilerClientImplTest {
       assertTrue(result.toString(), result is CompilationResult.Success)
       assertEquals("""
         SourceKt.class
-        app_debug.kotlin_module
+        light_idea_test_case.kotlin_module
       """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
     }
   }
@@ -97,7 +97,7 @@ internal class EmbeddedCompilerClientImplTest {
             assertTrue(result.toString(), result is CompilationResult.Success)
             assertEquals("""
               SourceKt.class
-              app_debug.kotlin_module
+              light_idea_test_case.kotlin_module
             """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
           }
         }

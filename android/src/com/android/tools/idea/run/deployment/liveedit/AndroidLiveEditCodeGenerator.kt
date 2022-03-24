@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
@@ -150,8 +151,7 @@ fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContex
   val compilerConfiguration = CompilerConfiguration()
   compilerConfiguration.languageVersionSettings = langVersion
 
-  // TODO: Resolve this using the project itself, somehow.
-  compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, "app_debug")
+  compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, input[0].module!!.name)
 
   val useComposeIR = LiveEditConfig.getInstance().useEmbeddedCompiler
   if (useComposeIR) {
