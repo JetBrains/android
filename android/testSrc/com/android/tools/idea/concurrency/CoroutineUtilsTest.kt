@@ -96,14 +96,15 @@ class CoroutineUtilsTest {
     workerExecutor = createExecutor(WORKER_THREAD)
     ioExecutor = createExecutor(IO_THREAD)
     testExecutors = AndroidExecutors({ _, code -> uiExecutor.execute(code) }, workerExecutor, ioExecutor)
-    ApplicationManager.getApplication().replaceService(AndroidExecutors::class.java, testExecutors, projectRule.project)
+    ApplicationManager.getApplication().replaceService(AndroidExecutors::class.java, testExecutors, projectRule.testRootDisposable)
   }
 
   @After
   fun tearDown() {
-    uiExecutor.shutdown()
-    workerExecutor.shutdown()
-    ioExecutor.shutdown()
+    listOf(uiExecutor, workerExecutor, ioExecutor).forEach {
+      it.shutdown()
+      it.awaitTermination(5, TimeUnit.SECONDS)
+    }
   }
 
   @Test
