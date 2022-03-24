@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
+import java.time.Duration
 
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
@@ -68,6 +69,8 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       indicator?.checkCanceled()
       indicator?.text = "Installing app"
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
+      // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
+      Thread.sleep(Duration.ofSeconds(2).toMillis())
       val tileIndex = setWatchTile(app, mode, indicator, console)
       val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
       val showTileReceiver = CommandResultReceiver()
