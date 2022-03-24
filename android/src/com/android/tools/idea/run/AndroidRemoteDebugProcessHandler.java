@@ -16,7 +16,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
@@ -33,7 +32,8 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.OutputStream;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,12 +53,12 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
   private final Project myProject;
   private final Client myClient;
   private final boolean myDetachIsDefault;
-  private final @Nullable Consumer<Client> myFinishAndroidProcessCallback;
+  private final Function1<? super Client, Unit> myFinishAndroidProcessCallback;
 
   public AndroidRemoteDebugProcessHandler(Project project,
                                           Client client,
                                           boolean detachIsDefault,
-                                          @Nullable Consumer<Client> finishAndroidProcessCallback) {
+                                          Function1<? super Client, Unit> finishAndroidProcessCallback) {
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
@@ -103,27 +103,8 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
    * Terminates the process when ProcessHandler is stopped via {@link ProcessHandler#destroyProcess()} instead of shutting down target vm.
    */
   private void terminateAndroidProcess() {
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      String processName = myClient.getClientData().getClientDescription();
-
-      if (processName == null) {
-        return;
-      }
-      IDevice device = myClient.getDevice();
-
-      Client currentClient = device.getClient(processName);
-      if (currentClient != null && currentClient.getClientData().getPid() != myClient.getClientData().getPid()) {
-        // a new process has been launched for the same package name, we aren't interested in killing this
-        return;
-      }
-
-      if (myFinishAndroidProcessCallback != null) {
-        myFinishAndroidProcessCallback.accept(myClient);
-      }
-      else {
-        new ApplicationTerminator(device, processName).killApp();
-      }
-    });
+    ApplicationManager.getApplication()
+      .executeOnPooledThread(() -> TerminateAndroidProcessKt.terminateAndroidProcess(myClient, myFinishAndroidProcessCallback));
   }
 
   @Override
