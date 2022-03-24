@@ -77,7 +77,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
 
   /**
    * Logcat messages from all target devices are redirected to [notifyTextAvailable]. When all target processes terminate on
-   * all devices, it invokes [destroyProcess] to terminate android process handler.
+   * all devices, it invokes [notifyProcessTerminated] to terminate android process handler.
    */
   private val myMonitorManager = androidProcessMonitorManagerFactory(
     targetApplicationId,
@@ -88,7 +88,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     object : AndroidProcessMonitorManagerListener {
       override fun onAllTargetProcessesTerminated() {
         if (autoTerminate) {
-          destroyProcess()
+          notifyProcessTerminated(0)
         }
       }
     })
