@@ -75,7 +75,7 @@ internal object PreviewAnnotationCheck {
 
     val configString = deviceValue.substringAfter(Preview.DeviceSpec.PREFIX)
 
-    val result = doCheckDeviceParams(listParameters(configString))
+    val result = doCheckDeviceParams(listParameters(configString), DeviceSpecRule.Legacy)
     synchronized(PreviewAnnotationCheck) {
       annotationEntry.putUserData(PreviewCheckResultKey, Pair(deviceValue, result))
     }
@@ -123,43 +123,60 @@ private fun listParameters(configString: String): Collection<Pair<String, String
  *
  * [CheckResult.proposedFix] is a proposed string to fix the issues found, based on the original input.
  */
-private fun doCheckDeviceParams(originalParams: Collection<Pair<String, String>>): CheckResult {
+private fun doCheckDeviceParams(originalParams: Collection<Pair<String, String>>, rule: CheckRule): CheckResult {
+  val issues = mutableListOf<IssueReason>()
+
+  // Set of parameters confirmed in the original parameter list
+  val appliedParams = mutableSetOf<String>()
+
+  // Set of parameters present more than once
+  val repeated = mutableSetOf<String>()
+
+  // Simplified set used to confirm required parameters, we'll remove elements from this set as they appear on the original parameters
+  // collection, so if this Set is not empty at the end, there are missing parameters
+  val requiredParamsCheckList = rule.requiredParameters.map { it.name }.toMutableSet()
+
+  // Create a mapping of all supported parameters with their respective rules
+  val namesToParamRule = mutableListOf<ParameterRule>().apply {
+    addAll(rule.requiredParameters)
+    addAll(rule.optionalParameters)
+  }.associateBy { it.name }
+
   // A copy based on the original collection that removes any unsupported parameter, this may be modified to represent a complete and
   // correct param-value map
   val fixableParams =
-    originalParams.filter { enumValueOfOrNull<DeviceSpecParameter>(it.first) != null }.associate { it }.toMutableMap()
+    originalParams.filter { namesToParamRule.contains(it.first) }.associate { it }.toMutableMap()
 
-  val issues = mutableListOf<IssueReason>()
-
-  // Used to keep track of required parameters that must be present, removed as we confirm that they are, so if the set is not empty at the
-  // end, whe know that the remaining parameters are missing
-  val paramsToFind = DeviceSpecParameter.values().toMutableSet()
-
-  val repeated = mutableSetOf<DeviceSpecParameter>()
   originalParams.forEach { (paramName, value) ->
-    @Suppress("MoveVariableDeclarationIntoWhen") // The suggested pattern is harder to read/understand
-    val deviceParam = enumValueOfOrNull<DeviceSpecParameter>(paramName)
-    if (deviceParam == null) {
+    if (!namesToParamRule.contains(paramName)) {
+      // Unsupported parameter for the current CheckRule
       issues.add(Unknown(paramName))
     }
     else {
-      if (!paramsToFind.remove(deviceParam)) {
-        // The parameter was applied at least once already, so it is now repeated
-        repeated.add(deviceParam)
+      if (appliedParams.contains(paramName)) {
+        // If we've already traversed this parameter, it's repeated
+        repeated.add(paramName)
         return@forEach
       }
-      // Check the value's correctness of valid parameters
-      if (!deviceParam.valueCheck(value)) {
-        fixableParams[deviceParam.name] = deviceParam.defaultValue
-        issues.add(BadType(paramName, deviceParam.expectedType))
+      else {
+        appliedParams.add(paramName)
+        requiredParamsCheckList.remove(paramName)
+      }
+
+      val paramRule = namesToParamRule[paramName]!!
+      if (!paramRule.valueCheck(value)) {
+        // If the value is not valid, update the fixable params mapping with a correct value, and register the issue
+        fixableParams[paramName] = paramRule.defaultValue
+        issues.add(BadType(paramName, paramRule.expectedType))
       }
     }
   }
-  repeated.forEach { issues.add(Repeated(it.name)) }
+  repeated.forEach{ issues.add(Repeated(it)) }
 
-  paramsToFind.forEach { remainingParameter ->
-    fixableParams[remainingParameter.name] = remainingParameter.defaultValue
-    issues.add(Missing(remainingParameter.name))
+  requiredParamsCheckList.forEach { missingParamName ->
+    // Add missing parameters with their default value, and register the issue
+    fixableParams[missingParamName] = namesToParamRule[missingParamName]!!.defaultValue
+    issues.add(Missing(missingParamName))
   }
   return CheckResult(issues, fixableParams.buildDeviceSpecString())
 }
@@ -173,10 +190,10 @@ private fun doCheckDeviceParams(originalParams: Collection<Pair<String, String>>
  */
 @Suppress("EnumEntryName") // For convenience, to have case-sensitive correct enum values by EnumValue.name
 private enum class DeviceSpecParameter(
-  val expectedType: SupportedType,
-  val defaultValue: String,
-  val valueCheck: (String) -> Boolean
-) {
+  override val expectedType: SupportedType,
+  override val defaultValue: String,
+  override val valueCheck: (String) -> Boolean
+): ParameterRule {
   shape(SupportedType.Shape, Preview.DeviceSpec.DEFAULT_SHAPE.name, { enumValueOfOrNull<Shape>(it) != null }),
   width(SupportedType.Integer, Preview.DeviceSpec.DEFAULT_WIDTH_PX.toString(), { it.toIntOrNull() != null }),
   height(SupportedType.Integer, Preview.DeviceSpec.DEFAULT_HEIGHT_PX.toString(), { it.toIntOrNull() != null }),
@@ -246,4 +263,52 @@ private fun Map<String, String>.buildDeviceSpecString(): String {
     separator = Preview.DeviceSpec.SEPARATOR.toString()
   )
   return result.toString()
+}
+
+/**
+ * A [ParameterRule] defines the logic to verify a parameter value correctness.
+ */
+private interface ParameterRule {
+  /**
+   * Name of the parameter
+   */
+  val name: String
+
+  /**
+   * Describes the expected type of value. Eg: Value should be an Integer
+   *
+   * @see SupportedType
+   */
+  val expectedType: SupportedType
+
+  /**
+   * The default value, used to provide a correction option.
+   */
+  val defaultValue: String
+
+  /**
+   * A lambda that evaluates the [String] value associated with this parameter. Returns false if the [String] does not represent a valid
+   * value for this parameter.
+   */
+  val valueCheck: (String) -> Boolean
+}
+
+/**
+ * A [CheckRule] is a set of required and optional [ParameterRule]s. All parameters will be checked against these rules for correctness.
+ *
+ * Required parameters are those that need to be present.
+ *
+ * Optional parameters may not be present. This means that missing parameters from this list will not generate a [Missing] issue.
+ */
+private interface CheckRule {
+  val requiredParameters: List<ParameterRule>
+  val optionalParameters: List<ParameterRule>
+}
+
+private enum class DeviceSpecRule(
+  override val requiredParameters: List<ParameterRule>,
+  override val optionalParameters: List<ParameterRule> = emptyList()
+): CheckRule {
+  Legacy(DeviceSpecParameter.values().toList())
+  // TODO(b/220006785): Add rule(s) for new DeviceSpec language
 }
