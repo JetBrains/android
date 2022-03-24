@@ -43,6 +43,7 @@ iml_module(
         "//tools/adt/idea/emulator/native:libimage_converter.prebuilt",
         "//tools/adt/idea/emulator/testData",
     ],
+    test_friends = ["//tools/adt/idea/emulator:intellij.android.emulator"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
