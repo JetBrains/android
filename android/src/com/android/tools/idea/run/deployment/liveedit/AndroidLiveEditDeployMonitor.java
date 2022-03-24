@@ -49,6 +49,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -416,6 +418,11 @@ public class AndroidLiveEditDeployMonitor {
         update.getClassData(),
         update.getSupportClasses(), useDebugMode);
 
+
+    if (useDebugMode) {
+      writeDebugToTmp(update.getClassName().replaceAll("/", ".")+ ".class", update.getClassData());
+    }
+
     String deviceId = adb.getSerial() + "#" + packageName;
     LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, deployEventKey);
 
@@ -428,6 +435,21 @@ public class AndroidLiveEditDeployMonitor {
       deviceId, deployEventKey,results.stream().map(
         r -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, r.msg))
         .collect(Collectors.toList()));
+  }
+
+  private static void writeDebugToTmp(String name, byte[] data) {
+    String tmpPath = System.getProperty("java.io.tmpdir");
+    if (tmpPath == null) {
+      return;
+    }
+    Path path = Paths.get(tmpPath, name);
+    try {
+      Files.write(path, data);
+      LOGGER.info("Wrote debug file at '%s'", path.toAbsolutePath());
+    }
+    catch (IOException e) {
+      LOGGER.info("Unable to write debug file '%s'", path.toAbsolutePath());
+    }
   }
 
   private static void onCompileFailCallBack(
