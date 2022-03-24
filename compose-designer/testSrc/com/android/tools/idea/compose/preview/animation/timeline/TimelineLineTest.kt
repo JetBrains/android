@@ -34,15 +34,15 @@ class TimelineLineTest {
     }
     slider.sliderUI.apply {
       val line = TimelineLine(ElementState(), 50, 150, 50, positionProxy)
-      assertFalse(line.contains(30, 80))
-      assertTrue(line.contains(51, 80))
-      assertTrue(line.contains(150, 80))
-      assertFalse(line.contains(160, 80))
+      assertFalse(line.contains(30, 85))
+      assertTrue(line.contains(51, 85))
+      assertTrue(line.contains(150, 85))
+      assertFalse(line.contains(160, 85))
       line.move(-100)
-      assertFalse(line.contains(30 - 100, 80))
-      assertTrue(line.contains(50 - 100, 80))
-      assertTrue(line.contains(150 - 100, 80))
-      assertFalse(line.contains(160 - 100, 80))
+      assertFalse(line.contains(30 - 100, 85))
+      assertTrue(line.contains(50 - 100, 85))
+      assertTrue(line.contains(150 - 100, 85))
+      assertFalse(line.contains(160 - 100, 85))
     }
   }
 

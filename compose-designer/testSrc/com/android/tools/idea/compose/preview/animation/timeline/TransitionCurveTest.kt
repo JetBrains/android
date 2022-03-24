@@ -40,10 +40,10 @@ class TransitionCurveTest {
 
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurveOne = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                    rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+                                                    rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
                                                     positionProxy = slider.sliderUI.positionProxy)
     val transitionCurveTwo = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                    rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET + transitionCurveOne.height,
+                                                    rowMinY = InspectorLayout.timelineHeaderHeightScaled() + transitionCurveOne.height,
                                                     positionProxy = slider.sliderUI.positionProxy)
 
 
@@ -65,7 +65,7 @@ class TransitionCurveTest {
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to null, 2 to property, 3 to null))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                 rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+                                                 rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
                                                  positionProxy = slider.sliderUI.positionProxy)
     slider.sliderUI.elements.add(transitionCurve)
     // Uncomment to preview ui.
@@ -79,7 +79,7 @@ class TransitionCurveTest {
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property, 2 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                 rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+                                                 rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
                                                  positionProxy = slider.sliderUI.positionProxy)
     transitionCurve.timelineUnits = listOf(null, null, ComposeUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
     slider.sliderUI.elements.add(transitionCurve)
@@ -94,7 +94,7 @@ class TransitionCurveTest {
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                 rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+                                                 rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
                                                  positionProxy = slider.sliderUI.positionProxy)
     transitionCurve.timelineUnits = listOf(
       ComposeUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
@@ -110,7 +110,7 @@ class TransitionCurveTest {
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve = TransitionCurve.create(state = ElementState(), transition = transition,
-                                                 rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+                                                 rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
                                                  positionProxy = slider.sliderUI.positionProxy)
     transitionCurve.timelineUnits = listOf(
       ComposeUnit.TimelineUnit("Property One", ComposeUnit.IntSize(0, 0)),

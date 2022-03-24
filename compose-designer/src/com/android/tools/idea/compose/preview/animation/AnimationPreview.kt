@@ -171,7 +171,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
   /** Create list of [TimelineElement] for selected [AnimationManager]s. */
   private fun createTimelineElements(tabs: Collection<AnimationManager>) {
     executeOnRenderThread(false) {
-      var minY = InspectorLayout.TIMELINE_TOP_OFFSET
+      var minY = InspectorLayout.timelineHeaderHeightScaled()
       // Call once to update all sizes as all curves / lines required it.
       timeline.revalidate()
       invokeLater {
@@ -195,7 +195,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
               curve
             }
             else TimelineLine(tab.elementState, tab.currentTransition, minY, timeline.sliderUI.positionProxy)
-            minY += line.height
+            minY += line.heightScaled()
             tab.card.setDuration(tab.currentTransition.duration)
             line
           }.toMutableList()

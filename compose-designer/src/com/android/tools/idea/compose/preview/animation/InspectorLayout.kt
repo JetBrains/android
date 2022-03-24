@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import android.annotation.SuppressLint
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Stroke
@@ -28,34 +29,53 @@ object InspectorLayout {
   /** Size of the outline padding. */
   const val OUTLINE_PADDING = 1
 
-  /** Height of the line. */
-  const val LINE_HEIGHT = 8
+  fun outlinePaddingScaled() = JBUI.scale(OUTLINE_PADDING)
 
-  /** Half height of the line. */
-  const val LINE_HALF_HEIGHT: Int = LINE_HEIGHT / 2
+  /** Height of the line. */
+  private const val LINE_HEIGHT = 8
+
+  /** Scaled height of the line. */
+  fun lineHeightScaled() = JBUI.scale(LINE_HEIGHT)
+
+  /** Scaled half height of the line. */
+  fun lineHalfHeightScaled(): Int = JBUI.scale(LINE_HEIGHT / 2)
 
   /** Height of one row for line. */
   const val TIMELINE_LINE_ROW_HEIGHT = 75
 
+  /** Height of one row for line. */
+  fun timelineLineRowHeightScaled() = JBUI.scale(TIMELINE_LINE_ROW_HEIGHT)
+
   /** Height of one row for curve. */
   const val TIMELINE_CURVE_ROW_HEIGHT = 75
+
+  /** Scaled height of one row for curve. */
+  fun timelineCurveRowHeightScaled() = JBUI.scale(TIMELINE_CURVE_ROW_HEIGHT)
 
   /** Offset from the top of the row to the curve. */
   const val CURVE_TOP_OFFSET = 10
 
   /** Offset from the bottom of the row to the curve. */
-  const val CURVE_BOTTOM_OFFSET = 35
+  private const val CURVE_BOTTOM_OFFSET = 42
 
-  /** Offset from the top of timeline to the first animation curve. */
-  const val TIMELINE_TOP_OFFSET = 25
+  /** Scaled offset from the bottom of the row to the curve. */
+  fun curveBottomOffset() = JBUI.scale(CURVE_BOTTOM_OFFSET)
 
   /**
    * Height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
    */
-  const val TIMELINE_HEADER_HEIGHT = 25
+  private const val TIMELINE_HEADER_HEIGHT = 25
+
+  /**
+   * Scaled height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
+   */
+  fun timelineHeaderHeightScaled() = JBUI.scale(TIMELINE_HEADER_HEIGHT)
 
   /** Vertical margin for labels.  */
-  const val TIMELINE_LABEL_VERTICAL_MARGIN = 5
+  private const val TIMELINE_LABEL_VERTICAL_MARGIN = 5
+
+  /** Scaled vertical margin for labels. */
+  fun timelineLabelVerticalMarginScaled() = JBUI.scale(TIMELINE_LABEL_VERTICAL_MARGIN)
 
   /** Number of ticks per label in the timeline. */
   const val TIMELINE_TICKS_PER_LABEL = 5
@@ -66,10 +86,13 @@ object InspectorLayout {
   /** Height of the [BottomPanel]. */
   const val BOTTOM_PANEL_HEIGHT = 25
 
-  val DASHED_STROKE: Stroke = BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
+  @SuppressLint("JbUiStored")
+  private var strokeWidth: Float = JBUI.scale(1).toFloat()
+
+  val DASHED_STROKE: Stroke = BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
                                           floatArrayOf(JBUI.scale(3).toFloat()), 0f)
 
-  val SIMPLE_STROKE = BasicStroke(1f)
+  val SIMPLE_STROKE = BasicStroke(strokeWidth)
 
   /** Vertical line showing the lock position. */
   val LOCK_STROKE = BasicStroke(3f)

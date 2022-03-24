@@ -131,8 +131,8 @@ object InspectorPainter {
     g.drawLine(curveInfo.minX, curveInfo.y, curveInfo.maxX, curveInfo.y)
     if (curveInfo.linkedToNextCurve) {
       g.stroke = DASHED_STROKE
-      g.drawLine(curveInfo.minX, curveInfo.y, curveInfo.minX, curveInfo.y + rowHeight - Diamond.DIAMOND_SIZE)
-      g.drawLine(curveInfo.maxX, curveInfo.y, curveInfo.maxX, curveInfo.y + rowHeight - Diamond.DIAMOND_SIZE)
+      g.drawLine(curveInfo.minX, curveInfo.y, curveInfo.minX, curveInfo.y + rowHeight - Diamond.diamondSize())
+      g.drawLine(curveInfo.maxX, curveInfo.y, curveInfo.maxX, curveInfo.y + rowHeight - Diamond.diamondSize())
       g.stroke = SIMPLE_STROKE
     }
     g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
@@ -256,7 +256,7 @@ object InspectorPainter {
     fun paintThumbForHorizSlider(g: Graphics2D, x: Int, y: Int, height: Int) {
       g.color = THUMB_COLOR
       g.stroke = SIMPLE_STROKE
-      g.drawLine(x, y, x, y + height);
+      g.drawLine(x, y, x, y + height)
       // The scrubber handle should have the following shape:
       //         ___
       //        |   |
@@ -303,12 +303,12 @@ object InspectorPainter {
     // where (x, y) is the center of the diamond
     private fun xArray(size: Int) = intArrayOf(x, x + size, x, x - size)
     private fun yArray(size: Int) = intArrayOf(y - size, y, y + size, y)
-    private val diamond = Polygon(xArray(DIAMOND_SIZE), yArray(DIAMOND_SIZE), 4)
-    private val diamondOutline = Polygon(xArray(DIAMOND_SIZE + 1), yArray(DIAMOND_SIZE + 1), 4)
+    private val diamond = Polygon(xArray(diamondSize()), yArray(diamondSize()), 4)
+    private val diamondOutline = Polygon(xArray(diamondSize() + 1), yArray(diamondSize() + 1), 4)
 
     companion object {
       /** Size of the diamond shape used as the graph size limiter. */
-      const val DIAMOND_SIZE = 6
+      fun diamondSize() = JBUI.scale(6)
     }
 
     /**

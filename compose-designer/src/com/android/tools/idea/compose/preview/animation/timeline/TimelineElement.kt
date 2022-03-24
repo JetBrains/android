@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.res.clamp
+import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Point
 
@@ -75,6 +76,7 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
 
   var offsetPx: Int = 0
   abstract var height: Int
+  fun heightScaled(): Int = JBUI.scale(height)
 
   open var locked: Boolean
     get() = state.locked

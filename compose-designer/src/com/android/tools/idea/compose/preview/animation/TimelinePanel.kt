@@ -21,8 +21,10 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import java.awt.BasicStroke
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.ComponentAdapter
@@ -78,8 +80,11 @@ open class TimelinePanel(val previewState: AnimationPreviewState, val tracker: C
 
   override fun getPreferredSize(): Dimension {
     return Dimension(zoomValue * width - 50,
-                     InspectorLayout.TIMELINE_TOP_OFFSET + sliderUI.elements.sumOf { it.height })
+                     InspectorLayout.timelineHeaderHeightScaled() + sliderUI.elements.sumOf { it.heightScaled() })
   }
+
+  override fun getFont(): Font = UIUtil.getFont(UIUtil.FontSize.SMALL, null)
+
 
   private fun updateMajorTicks() {
     if (width == cachedSliderWidth && maximum == cachedMax) return
@@ -145,7 +150,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   final override fun getThumbSize(): Dimension {
     val originalSize = super.getThumbSize()
     return if (slider.parent == null) originalSize
-    else Dimension(originalSize.width, slider.parent.height - InspectorLayout.TIMELINE_HEADER_HEIGHT)
+    else Dimension(originalSize.width, slider.parent.height - InspectorLayout.timelineHeaderHeightScaled())
   }
 
   final override fun calculateTickRect() {
@@ -153,14 +158,14 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     tickRect.x = thumbRect.x
     tickRect.y = thumbRect.y
     tickRect.width = thumbRect.width
-    tickRect.height = thumbRect.height + InspectorLayout.TIMELINE_HEADER_HEIGHT
+    tickRect.height = thumbRect.height + InspectorLayout.timelineHeaderHeightScaled()
   }
 
   final override fun calculateLabelRect() {
     super.calculateLabelRect()
     labelRect.x = 0
     labelRect.y = 0
-    labelRect.y = InspectorLayout.TIMELINE_LABEL_VERTICAL_MARGIN
+    labelRect.y = InspectorLayout.timelineLabelVerticalMarginScaled()
   }
 
   final override fun paintTrack(g: Graphics) {
@@ -180,7 +185,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     g as Graphics2D
     g.color = JBColor.border()
     g.stroke = BasicStroke(1f)
-    val borderHeight = InspectorLayout.TIMELINE_HEADER_HEIGHT
+    val borderHeight = InspectorLayout.timelineHeaderHeightScaled()
     g.drawLine(-5, borderHeight, slider.width + 5, borderHeight)
   }
 
@@ -188,7 +193,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     InspectorPainter.Thumb.paintThumbForHorizSlider(
       g as Graphics2D,
       x = thumbRect.x + thumbRect.width / 2,
-      y = thumbRect.y + InspectorLayout.TIMELINE_HEADER_HEIGHT,
+      y = InspectorLayout.timelineHeaderHeightScaled(),
       height = thumbRect.height)
   }
 
@@ -202,26 +207,26 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     else {
       InspectorColors.TIMELINE_BACKGROUND_COLOR
     }
-    g.fillRect(0, InspectorLayout.TIMELINE_HEADER_HEIGHT, slider.width, slider.height - InspectorLayout.TIMELINE_HEADER_HEIGHT)
+    g.fillRect(0, InspectorLayout.timelineHeaderHeightScaled(), slider.width, slider.height - InspectorLayout.timelineHeaderHeightScaled())
 
-    var totalHeight = InspectorLayout.TIMELINE_HEADER_HEIGHT
+    var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
       if (element.locked) {
         g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
-        g.fillRect(0, totalHeight, slider.width, element.height)
+        g.fillRect(0, totalHeight, slider.width, element.heightScaled())
       }
-      totalHeight += element.height
+      totalHeight += element.heightScaled()
     }
     // Add vertical ticks.
     g.color = InspectorColors.TIMELINE_TICK_COLOR
     val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
     for (tick in 0..slider.maximum step tickIncrement) {
       val xPos = xPositionForValue(tick)
-      g.drawLine(xPos, InspectorLayout.TIMELINE_HEADER_HEIGHT, xPos, tickRect.height)
+      g.drawLine(xPos, InspectorLayout.timelineHeaderHeightScaled(), xPos, tickRect.height)
     }
-    totalHeight = InspectorLayout.TIMELINE_HEADER_HEIGHT
+    totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
-      totalHeight += element.height
+      totalHeight += element.heightScaled()
       g.drawLine(0, totalHeight, slider.width, totalHeight)
     }
   }
@@ -233,19 +238,19 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   private fun paintLocks(g: Graphics2D) {
     g.color = InspectorColors.LOCK_COLOR
     g.stroke = InspectorLayout.LOCK_STROKE
-    var totalHeight = InspectorLayout.TIMELINE_HEADER_HEIGHT
+    var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
       if (element.locked) {
         val lockedValue = element.state.lockedValue
         g.drawLine(xPositionForValue(lockedValue), totalHeight + 2,
-                   xPositionForValue(lockedValue), totalHeight + element.height - 2)
+                   xPositionForValue(lockedValue), totalHeight + element.heightScaled() - 2)
       }
-      totalHeight += element.height
+      totalHeight += element.heightScaled()
     }
     else elements.firstOrNull()?.also {
       if (it.locked) {
         val lockedValue = it.state.lockedValue
-        g.drawLine(xPositionForValue(lockedValue), InspectorLayout.TIMELINE_HEADER_HEIGHT + 2,
+        g.drawLine(xPositionForValue(lockedValue), InspectorLayout.timelineHeaderHeightScaled() + 2,
                    xPositionForValue(lockedValue), slider.height - 2)
       }
     }

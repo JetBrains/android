@@ -38,12 +38,12 @@ class PropertyCurveTest {
       .build()!!
 
     val propertyCurveOne = PropertyCurve.create(
-      ElementState(), property, InspectorLayout.TIMELINE_TOP_OFFSET, 0, slider.sliderUI.positionProxy).also {
+      ElementState(), property, InspectorLayout.timelineHeaderHeightScaled(), 0, slider.sliderUI.positionProxy).also {
       it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2))
     }
 
     val propertyCurveTwo = PropertyCurve.create(
-      ElementState(), property, InspectorLayout.TIMELINE_TOP_OFFSET + propertyCurveOne.height,
+      ElementState(), property, InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
       1, slider.sliderUI.positionProxy)
 
     slider.sliderUI.elements.add(propertyCurveOne)

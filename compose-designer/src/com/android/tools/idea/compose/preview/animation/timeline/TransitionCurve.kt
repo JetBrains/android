@@ -32,7 +32,7 @@ class TransitionCurve private constructor(state : ElementState, private val prop
       var currentMinY = rowMinY
       val curves = transition.properties.values.filterNotNull().mapIndexed { index, it ->
         val curve = PropertyCurve.create(state, it, currentMinY, index, positionProxy)
-        currentMinY += curve.height
+        currentMinY += curve.heightScaled()
         curve
       }
       return TransitionCurve(state, curves, positionProxy)

@@ -41,7 +41,7 @@ class ComponentCurveTest {
     val componentCurve = ComponentCurve.create(
       state = ElementState(),
       property = property, componentId = 0,
-      rowMinY = InspectorLayout.TIMELINE_TOP_OFFSET,
+      rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
       positionProxy = slider.sliderUI.positionProxy, colorIndex = 0)
     slider.sliderUI.elements.add(componentCurve)
     val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.

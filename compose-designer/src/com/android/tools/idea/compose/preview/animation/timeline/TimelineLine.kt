@@ -17,7 +17,10 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.idea.compose.preview.animation.InspectorColors
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
-import com.android.tools.idea.compose.preview.animation.InspectorLayout.OUTLINE_PADDING
+import com.android.tools.idea.compose.preview.animation.InspectorLayout.lineHalfHeightScaled
+import com.android.tools.idea.compose.preview.animation.InspectorLayout.lineHeightScaled
+import com.android.tools.idea.compose.preview.animation.InspectorLayout.outlinePaddingScaled
+import com.android.tools.idea.compose.preview.animation.InspectorLayout.timelineLineRowHeightScaled
 import com.android.tools.idea.compose.preview.animation.TimelinePanel
 import com.android.tools.idea.compose.preview.animation.Transition
 import java.awt.Graphics2D
@@ -36,7 +39,8 @@ import java.awt.RenderingHints
 class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, positionProxy: PositionProxy) :
   TimelineElement(state, minX, maxX, positionProxy) {
 
-  private val minY = rowMinY + (InspectorLayout.TIMELINE_LINE_ROW_HEIGHT - InspectorLayout.LINE_HEIGHT) / 2
+  /** Middle of the row. */
+  private val middleY = rowMinY + timelineLineRowHeightScaled() / 2
 
   constructor(state: ElementState, transition: Transition, maxY: Int, positionProxy: PositionProxy)
     : this(state, transition.startMillis?.let { positionProxy.xPositionForValue(it) } ?: (positionProxy.minimumXPosition()),
@@ -45,10 +49,10 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
 
 
   private val rectNoOffset = Rectangle(
-    minX - InspectorLayout.LINE_HALF_HEIGHT - OUTLINE_PADDING,
-    minY - InspectorLayout.LINE_HALF_HEIGHT - OUTLINE_PADDING,
-    maxX - minX + InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING,
-    InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING)
+    minX - lineHalfHeightScaled() - outlinePaddingScaled(),
+    middleY - lineHalfHeightScaled() - outlinePaddingScaled(),
+    maxX - minX + lineHeightScaled() + 2 * outlinePaddingScaled(),
+    lineHeightScaled() + 2 * outlinePaddingScaled())
 
   override var height: Int = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
@@ -66,10 +70,10 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
       if (offsetPx != 0) {
         color = InspectorColors.LINE_COLOR
         stroke = InspectorLayout.DASHED_STROKE
-        drawRoundRect(rectNoOffset.x, rectNoOffset.y + OUTLINE_PADDING,
-                      rectNoOffset.width, rectNoOffset.height - 2 * OUTLINE_PADDING,
-                      InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING,
-                      InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING)
+        drawRoundRect(rectNoOffset.x, rectNoOffset.y + outlinePaddingScaled(),
+                      rectNoOffset.width, rectNoOffset.height - 2 * outlinePaddingScaled(),
+                      lineHeightScaled() + 2 * outlinePaddingScaled(),
+                      lineHeightScaled() + 2 * outlinePaddingScaled())
         stroke = InspectorLayout.SIMPLE_STROKE
       }
       val yOffset = if (status == TimelineElementStatus.Dragged) -2 else 0
@@ -80,15 +84,16 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
         rectNoOffset.height)
       if (status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered) {
         color = InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
-        drawRoundRect(rect.x - OUTLINE_PADDING, rect.y - OUTLINE_PADDING, rect.width + 2 * OUTLINE_PADDING,
-                      rect.height + 2 * OUTLINE_PADDING,
-                      InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING, InspectorLayout.LINE_HEIGHT + 2 * OUTLINE_PADDING)
+        stroke = InspectorLayout.SIMPLE_STROKE
+        drawRoundRect(rect.x - outlinePaddingScaled(), rect.y - outlinePaddingScaled(), rect.width + 2 * outlinePaddingScaled(),
+                      rect.height + 2 * outlinePaddingScaled(),
+                      lineHeightScaled() + 2 * outlinePaddingScaled(), lineHeightScaled() + 2 * outlinePaddingScaled())
       }
       color = InspectorColors.LINE_COLOR
       fillRoundRect(rect.x, rect.y, rect.width, rect.height,
-                    InspectorLayout.LINE_HEIGHT, InspectorLayout.LINE_HEIGHT)
-      paintCircle(this, minX + offsetPx, minY + yOffset)
-      paintCircle(this, maxX + offsetPx, minY + yOffset)
+                    lineHeightScaled(), lineHeightScaled())
+      paintCircle(this, minX + offsetPx, middleY + yOffset)
+      paintCircle(this, maxX + offsetPx, middleY + yOffset)
     }
   }
 
@@ -100,12 +105,12 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
   private fun paintCircle(g: Graphics2D, x: Int, y: Int) {
     g.apply {
       color = InspectorColors.LINE_CIRCLE_OUTLINE_COLOR
-      fillOval(x - InspectorLayout.LINE_HALF_HEIGHT,
-               y - InspectorLayout.LINE_HALF_HEIGHT,
-               InspectorLayout.LINE_HEIGHT, InspectorLayout.LINE_HEIGHT)
+      fillOval(x - lineHalfHeightScaled(),
+               y - lineHalfHeightScaled(),
+               lineHeightScaled(), lineHeightScaled())
       color = InspectorColors.LINE_CIRCLE_COLOR
-      fillOval(x - InspectorLayout.LINE_HALF_HEIGHT + OUTLINE_PADDING, y - InspectorLayout.LINE_HALF_HEIGHT + OUTLINE_PADDING,
-               InspectorLayout.LINE_HEIGHT - 2 * OUTLINE_PADDING, InspectorLayout.LINE_HEIGHT - 2 * OUTLINE_PADDING)
+      fillOval(x - lineHalfHeightScaled() + outlinePaddingScaled(), y - lineHalfHeightScaled() + outlinePaddingScaled(),
+               lineHeightScaled() - 2 * outlinePaddingScaled(), lineHeightScaled() - 2 * outlinePaddingScaled())
     }
   }
 }

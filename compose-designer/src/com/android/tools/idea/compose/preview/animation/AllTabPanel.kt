@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JComponent
@@ -48,7 +49,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
   private val splitter = JBSplitter(0.4f).apply {
     // Cards
     firstComponent = JPanel(TabularLayout("*")).apply {
-      this.border = MatteBorder(InspectorLayout.TIMELINE_TOP_OFFSET, 0, 0, 0, InspectorColors.TIMELINE_BACKGROUND_COLOR)
+      this.border = MatteBorder(InspectorLayout.timelineHeaderHeightScaled(), 0, 0, 0, InspectorColors.TIMELINE_BACKGROUND_COLOR)
     }
     // Timeline
     secondComponent = JPanel(BorderLayout()).apply {
@@ -58,7 +59,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
   }
 
   private fun updateDimension() {
-    val preferredHeight = InspectorLayout.TIMELINE_TOP_OFFSET + cards.sumOf { it.getCurrentHeight() }
+    val preferredHeight = InspectorLayout.timelineHeaderHeightScaled() + JBUI.scale(cards.sumOf { it.getCurrentHeight() })
     splitter.firstComponent.preferredSize = Dimension(splitter.firstComponent.width, preferredHeight)
     splitter.secondComponent.preferredSize = Dimension(splitter.secondComponent.width, preferredHeight)
   }

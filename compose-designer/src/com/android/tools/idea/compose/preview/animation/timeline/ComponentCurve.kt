@@ -64,7 +64,7 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
         val minX = positionProxy.xPositionForValue(property.startMs)
         val maxX = positionProxy.xPositionForValue(property.endMs)
         val minY = rowMinY + InspectorLayout.CURVE_TOP_OFFSET
-        val maxY = rowMinY + InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT - InspectorLayout.CURVE_BOTTOM_OFFSET
+        val maxY = rowMinY + InspectorLayout.timelineLineRowHeightScaled() - InspectorLayout.curveBottomOffset()
         curve.moveTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
         when {
           isZeroDuration -> {
@@ -93,7 +93,7 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
   }
 
   @VisibleForTesting
-  val curveBaseY = rowMinY + InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT - InspectorLayout.CURVE_BOTTOM_OFFSET
+  val curveBaseY = rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
   private var startDiamond = Diamond(minX, curveBaseY, colorIndex)
   private var endDiamond = Diamond(maxX, curveBaseY, colorIndex)
   private val startDiamondNoOffset = Diamond(minX, curveBaseY, colorIndex)
@@ -161,8 +161,8 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
     g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
     if (component.linkToNext) {
       g.stroke = InspectorLayout.DASHED_STROKE
-      g.drawLine(minX + offsetPx, curveBaseY, minX + offsetPx, curveBaseY + height - Diamond.DIAMOND_SIZE)
-      g.drawLine(maxX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY + height - Diamond.DIAMOND_SIZE)
+      g.drawLine(minX + offsetPx, curveBaseY, minX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
+      g.drawLine(maxX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
       g.stroke = InspectorLayout.SIMPLE_STROKE
     }
     g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
@@ -181,12 +181,12 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
       g.stroke = InspectorLayout.DASHED_STROKE
       g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
       if (offsetPx > 0) {
-        g.drawLine(minX + Diamond.DIAMOND_SIZE + 1, curveBaseY, minX + offsetPx - Diamond.DIAMOND_SIZE - 1, curveBaseY)
+        g.drawLine(minX + Diamond.diamondSize() + 1, curveBaseY, minX + offsetPx - Diamond.diamondSize() - 1, curveBaseY)
         startDiamondNoOffset.paintOutline(g)
       }
       else if (offsetPx < 0) {
-        g.drawLine(maxX - Diamond.DIAMOND_SIZE - 1, curveBaseY,
-                   maxX + offsetPx + Diamond.DIAMOND_SIZE + 1,
+        g.drawLine(maxX - Diamond.diamondSize() - 1, curveBaseY,
+                   maxX + offsetPx + Diamond.diamondSize() + 1,
                    curveBaseY)
         endDiamondNoOffset.paintOutline(g)
       }
