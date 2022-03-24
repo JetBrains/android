@@ -50,7 +50,7 @@ internal fun getAdditionalClassifierArtifactsModel(
               parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
             }
         }
-      }, canRunInParallel = true)
+      })  // No known incompatibilities if Gradle is compatible.
     }
   )
 }
