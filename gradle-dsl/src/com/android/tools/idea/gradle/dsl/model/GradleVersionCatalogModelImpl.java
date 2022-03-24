@@ -20,10 +20,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
-  protected @NotNull GradleVersionCatalogFile myGradleVersionCatalogFile;
 
   GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile versionCatalogFile) {
     super(versionCatalogFile);
-    myGradleVersionCatalogFile = versionCatalogFile;
   }
 }
