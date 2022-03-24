@@ -27,10 +27,10 @@ import com.intellij.psi.PsiFile
  * This is necessary because Android resource references in XML start with the '@' symbol, which is not included in the default
  * implementation for Java identifiers, @see [TargetElementUtil.isIdentifierPart], but remains part of the resource reference.
  */
-class AndroidXmlTargetElementEvaluatorEx : XmlTargetElementEvaluator(), TargetElementEvaluatorEx{
+class AndroidXmlTargetElementEvaluatorEx : XmlTargetElementEvaluator(), TargetElementEvaluatorEx {
   override fun isIdentifierPart(file: PsiFile, text: CharSequence, offset: Int): Boolean {
-    val character = text?.get(offset) ?: return false
-     return if (file?.androidFacet != null) {
+    val character = text[offset]
+     return if (file.androidFacet != null) {
       Character.isJavaIdentifierPart(character) || character == '@'
     } else {
       Character.isJavaIdentifierPart(character)
