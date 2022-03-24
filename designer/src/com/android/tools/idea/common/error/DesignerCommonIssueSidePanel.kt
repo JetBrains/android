@@ -109,6 +109,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     add(scrollPane, BorderLayout.CENTER)
 
     val descriptionEditorPane = DescriptionEditorPane()
+    descriptionEditorPane.addHyperlinkListener(issue.hyperlinkListener)
     descriptionEditorPane.alignmentX = LEFT_ALIGNMENT
     contentPanel.add(descriptionEditorPane, BorderLayout.NORTH)
 
