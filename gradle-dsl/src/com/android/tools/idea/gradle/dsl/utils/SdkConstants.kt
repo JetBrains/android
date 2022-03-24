@@ -27,4 +27,6 @@ const val FN_GRADLE_PROPERTIES = "gradle.properties"
 const val FN_SETTINGS_GRADLE = "settings.gradle"
 const val FN_SETTINGS_GRADLE_KTS = "settings.gradle.kts"
 
+const val EXT_VERSIONS_TOML = "versions.toml"
+
 const val GRADLE_PATH_SEPARATOR = ":"
