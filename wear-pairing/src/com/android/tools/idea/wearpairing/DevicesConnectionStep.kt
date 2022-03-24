@@ -545,13 +545,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showUiInstallCompanionAppInstructions(phoneDevice: IDevice, wearDevice: IDevice) {
     showUiInstallCompanionApp(
       phoneDevice = phoneDevice,
-      scanningLink = message("wear.assistant.device.connection.wear.os.skip"),
-      scanningListener = {
-        check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-        runningJob = coroutineScope.launch(ioThread) {
-          goToNextStep()
-        }
-      },
       wearDevice = wearDevice
     )
 
