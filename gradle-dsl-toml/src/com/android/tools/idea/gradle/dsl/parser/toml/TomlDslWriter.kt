@@ -23,23 +23,56 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
+import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
+import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlPsiFactory
+import org.toml.lang.psi.TomlTable
 
 class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, TomlDslNameConverter {
   override fun getContext(): BuildModelContext = context
 
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
-  override fun createDslElement(element: GradleDslElement): PsiElement? = null
   override fun deleteDslElement(element: GradleDslElement): Unit = Unit
-  override fun createDslLiteral(literal: GradleDslLiteral): PsiElement? = null
   override fun deleteDslLiteral(literal: GradleDslLiteral): Unit = Unit
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = null
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = Unit
-  override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? = null
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = Unit
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = Unit
+
+  override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? = createDslElement(expressionMap)
+
+  override fun createDslElement(element: GradleDslElement): PsiElement? {
+    element.psiElement?.let { return it }
+    val parentPsiElement = ensureParentPsi(element) ?: return null
+    val project = parentPsiElement.project
+    val factory = TomlPsiFactory(project)
+
+    val externalNameInfo = maybeTrimForParent(element, this)
+
+    val psi = when (element.parent) {
+      is GradleVersionCatalogFile -> factory.createTable(externalNameInfo.externalNameParts[0])
+      else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+    }
+
+    val anchor = getAnchorPsi(parentPsiElement, element.anchor)
+
+    val addedElement = parentPsiElement.addAfter(psi, anchor)
+    addedElement.addAfter(factory.createNewline(), null)
+
+    when (addedElement) {
+      is TomlKeyValue -> element.psiElement = addedElement.value
+      is TomlTable -> element.psiElement = addedElement
+    }
+
+    return element.psiElement
+  }
+
+  override fun createDslLiteral(literal: GradleDslLiteral) = createDslElement(literal)
 
   override fun applyDslLiteral(literal: GradleDslLiteral) {
     val psiElement = literal.psiElement ?: return
@@ -49,5 +82,11 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     literal.setExpression(element)
     literal.reset()
     literal.commit()
+  }
+
+  private fun ensureParentPsi(element: GradleDslElement) = element.parent?.create()
+
+  private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
+    return anchorDsl?.let{ findLastPsiElementIn(it) } ?: parent
   }
 }

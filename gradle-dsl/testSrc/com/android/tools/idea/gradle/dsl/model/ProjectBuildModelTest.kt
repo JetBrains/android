@@ -597,6 +597,29 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testVersionCatalogCreateVersionProperty() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("")
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogModel!!
+      val versions = vcModel.versions()
+      versions.findProperty("foo").setValue("1.2.3")
+      applyChanges(pbm)
+
+      verifyFileContents(myBuildFile, "")
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_CREATE_VERSION_PROPERTY_EXPECTED)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -642,6 +665,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_MAP_VERSION_REF_NOTATION_EXPECTED("versionCatalogMapVersionRefNotationExpected.toml"),
     VERSION_CATALOG_MODULE_VERSION_REF_NOTATION("versionCatalogModuleVersionRefNotation.toml"),
     VERSION_CATALOG_PLUGINS_NOTATION("versionCatalogPluginsNotation.toml"),
+    VERSION_CATALOG_CREATE_VERSION_PROPERTY_EXPECTED("versionCatalogCreateVersionPropertyExpected.toml"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

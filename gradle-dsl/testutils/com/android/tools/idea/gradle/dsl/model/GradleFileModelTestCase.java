@@ -317,6 +317,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     saveFileUnderWrite(myVersionCatalogFile, loadText(virtualTestFile));
   }
 
+  protected void writeToVersionCatalogFile(@NotNull String text) throws IOException {
+    saveFileUnderWrite(myVersionCatalogFile, text);
+  }
+
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     assumeTrue(testFile.exists());

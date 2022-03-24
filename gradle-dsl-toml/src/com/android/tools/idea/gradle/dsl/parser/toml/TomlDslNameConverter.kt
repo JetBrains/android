@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -53,4 +55,7 @@ interface TomlDslNameConverter: GradleDslNameConverter {
 
     return "versions.$name"
   }
+
+  @JvmDefault
+  override fun externalNameForParent(modelName: String, context: GradleDslElement) = ExternalNameInfo(modelName, UNKNOWN)
 }
