@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.idea.compose.annotator.check.common.BadType
+import com.android.tools.idea.compose.annotator.check.common.CheckRule
+import com.android.tools.idea.compose.annotator.check.common.Failure
+import com.android.tools.idea.compose.annotator.check.common.IssueReason
+import com.android.tools.idea.compose.annotator.check.common.Missing
+import com.android.tools.idea.compose.annotator.check.common.ParameterRule
+import com.android.tools.idea.compose.annotator.check.common.Repeated
+import com.android.tools.idea.compose.annotator.check.common.Unknown
+import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -171,7 +177,7 @@ private fun doCheckDeviceParams(originalParams: Collection<Pair<String, String>>
       }
     }
   }
-  repeated.forEach{ issues.add(Repeated(it)) }
+  repeated.forEach { issues.add(Repeated(it)) }
 
   requiredParamsCheckList.forEach { missingParamName ->
     // Add missing parameters with their default value, and register the issue
@@ -179,26 +185,6 @@ private fun doCheckDeviceParams(originalParams: Collection<Pair<String, String>>
     issues.add(Missing(missingParamName))
   }
   return CheckResult(issues, fixableParams.buildDeviceSpecString())
-}
-
-/**
- * Supported Device spec parameters, the name of each enum value matches a parameter in the spec string.
- *
- * @param expectedType The expected value type, may contain values that the parameter should match
- * @param defaultValue A value that may be used when the parameter's value is missing or needs to be corrected
- * @param valueCheck A function that can check if the given string is a correct possible value
- */
-@Suppress("EnumEntryName") // For convenience, to have case-sensitive correct enum values by EnumValue.name
-private enum class DeviceSpecParameter(
-  override val expectedType: SupportedType,
-  override val defaultValue: String,
-  override val valueCheck: (String) -> Boolean
-): ParameterRule {
-  shape(SupportedType.Shape, Preview.DeviceSpec.DEFAULT_SHAPE.name, { enumValueOfOrNull<Shape>(it) != null }),
-  width(SupportedType.Integer, Preview.DeviceSpec.DEFAULT_WIDTH_PX.toString(), { it.toIntOrNull() != null }),
-  height(SupportedType.Integer, Preview.DeviceSpec.DEFAULT_HEIGHT_PX.toString(), { it.toIntOrNull() != null }),
-  unit(SupportedType.DimUnit, Preview.DeviceSpec.DEFAULT_UNIT.name, { enumValueOfOrNull<DimUnit>(it) != null }),
-  dpi(SupportedType.Integer, Preview.DeviceSpec.DEFAULT_DPI.toString(), { it.toIntOrNull() != null }),
 }
 
 /**
@@ -215,41 +201,6 @@ internal data class CheckResult(
 }
 
 /**
- * Base class for Issues found in the annotation.
- *
- * @param parameterName name of the parameter associated with the issue
- */
-internal sealed class IssueReason(
-  open val parameterName: String
-)
-
-/** Used when the existing value doesn't match the expected type for the parameter it's assigned to. */
-internal class BadType(parameterName: String, val expected: SupportedType) : IssueReason(parameterName)
-
-/** For parameters not found that are expected to be present. */
-internal class Missing(parameterName: String) : IssueReason(parameterName)
-
-/** For parameters included more than once. */
-internal class Repeated(parameterName: String) : IssueReason(parameterName)
-
-/** For parameters found that are not expected/supported. */
-internal class Unknown(parameterName: String) : IssueReason(parameterName)
-
-/** Represents issues external to the contents of the annotation (e.g: Failed to read the annotation content).  */
-internal class Failure(val failureMessage: String) : IssueReason("")
-
-/**
- * Describes a supported type of value.
- *
- * @param acceptableValues List of all supported values, empty if it does not require to match a specific value
- */
-internal enum class SupportedType(val acceptableValues: List<String>) {
-  Integer(emptyList()),
-  Shape(com.android.tools.idea.compose.preview.pickers.properties.Shape.values().map { it.name }),
-  DimUnit(com.android.tools.idea.compose.preview.pickers.properties.DimUnit.values().map { it.name })
-}
-
-/**
  * Returns the map in a format that matches a string that describes a device based on screen specifications differentiated by the 'spec:'
  * prefix, where every name-value pair is comma (,) separated and are expressed as a value assignment (<name>=<value>).
  *
@@ -263,52 +214,4 @@ private fun Map<String, String>.buildDeviceSpecString(): String {
     separator = Preview.DeviceSpec.SEPARATOR.toString()
   )
   return result.toString()
-}
-
-/**
- * A [ParameterRule] defines the logic to verify a parameter value correctness.
- */
-private interface ParameterRule {
-  /**
-   * Name of the parameter
-   */
-  val name: String
-
-  /**
-   * Describes the expected type of value. Eg: Value should be an Integer
-   *
-   * @see SupportedType
-   */
-  val expectedType: SupportedType
-
-  /**
-   * The default value, used to provide a correction option.
-   */
-  val defaultValue: String
-
-  /**
-   * A lambda that evaluates the [String] value associated with this parameter. Returns false if the [String] does not represent a valid
-   * value for this parameter.
-   */
-  val valueCheck: (String) -> Boolean
-}
-
-/**
- * A [CheckRule] is a set of required and optional [ParameterRule]s. All parameters will be checked against these rules for correctness.
- *
- * Required parameters are those that need to be present.
- *
- * Optional parameters may not be present. This means that missing parameters from this list will not generate a [Missing] issue.
- */
-private interface CheckRule {
-  val requiredParameters: List<ParameterRule>
-  val optionalParameters: List<ParameterRule>
-}
-
-private enum class DeviceSpecRule(
-  override val requiredParameters: List<ParameterRule>,
-  override val optionalParameters: List<ParameterRule> = emptyList()
-): CheckRule {
-  Legacy(DeviceSpecParameter.values().toList())
-  // TODO(b/220006785): Add rule(s) for new DeviceSpec language
 }

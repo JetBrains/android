@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.idea.compose.annotator.check.common.BadType
+import com.android.tools.idea.compose.annotator.check.common.Failure
+import com.android.tools.idea.compose.annotator.check.common.IssueReason
+import com.android.tools.idea.compose.annotator.check.common.Missing
+import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValueType
+import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
+import com.android.tools.idea.compose.annotator.check.common.Repeated
+import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.compose.preview.BasePreviewAnnotationInspection
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -113,15 +121,14 @@ private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer:
 
   parametersByType.entries.forEach { entry ->
     @Suppress("MoveVariableDeclarationIntoWhen") // The suggested pattern is harder to read/understand
-    val supportedType = entry.key
-    when (supportedType) {
-      SupportedType.Integer -> {
-        val messagePostfix = message("picker.preview.annotator.lint.error.type.integer")
+    val expectedType = entry.key
+    when (expectedType) {
+      is OpenEndedValueType -> {
+        val messagePostfix = message("picker.preview.annotator.lint.error.type.open", expectedType.valueTypeName)
         entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }
-      SupportedType.Shape,
-      SupportedType.DimUnit -> {
-        val valuesExamples = supportedType.acceptableValues.joinToString(", ")
+      is MultipleChoiceValueType -> {
+        val valuesExamples = expectedType.acceptableValues.joinToString(", ")
         val messagePostfix = message("picker.preview.annotator.lint.error.type.options", valuesExamples)
         entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.idea.compose.annotator.check.common.BadType
+import com.android.tools.idea.compose.annotator.check.common.Failure
+import com.android.tools.idea.compose.annotator.check.common.Missing
+import com.android.tools.idea.compose.annotator.check.common.Repeated
+import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
