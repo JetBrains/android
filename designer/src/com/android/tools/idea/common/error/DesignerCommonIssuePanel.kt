@@ -42,7 +42,6 @@ import com.intellij.util.EditSourceOnEnterKeyHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
-import org.jdesktop.swingx.calendar.DateSelectionModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -60,7 +59,7 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
  * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
  */
 class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project,
-                               val issueProvider: DesignerCommonIssueProvider<Any?>) : Disposable {
+                               val issueProvider: DesignerCommonIssueProvider<Any>) : Disposable {
 
   var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
     set(value) {

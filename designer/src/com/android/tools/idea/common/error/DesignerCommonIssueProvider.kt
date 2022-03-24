@@ -30,7 +30,7 @@ interface DesignerCommonIssueProvider<T> : Disposable {
   fun registerUpdateListener(listener: Runnable)
 }
 
-class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any?> {
+class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any> {
 
   private val fileEditorManager: FileEditorManager
 
