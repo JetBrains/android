@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.annotator.check.device
 import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValueType
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 
 /**
@@ -34,3 +35,23 @@ internal val ExpectedShape = MultipleChoiceValueType(Shape.values().map { it.nam
  * Value should be a unit used in dimension. Ie: "px", "dp".
  */
 internal val ExpectedDimUnit = MultipleChoiceValueType(DimUnit.values().map { it.name })
+
+/**
+ * Value should be a boolean, either 'true' or 'false'.
+ */
+internal val ExpectedStrictBoolean = MultipleChoiceValueType(listOf(true.toString(), false.toString()))
+
+/**
+ * Value should be either 'landscape' or 'portrait'.
+ */
+internal val ExpectedOrientation = MultipleChoiceValueType(Orientation.values().map { it.name })
+
+/**
+ * Value should be an Integer with a unit suffix. Eg: 120dp
+ */
+internal val ExpectedIntegerWithUnit = OpenEndedValueType("Integer(dp/px)")
+
+/**
+ * Value should be a Float with a unit suffix. Eg: 120.1dp
+ */
+internal val ExpectedFloatWithUnit = OpenEndedValueType("Float(dp/px)")

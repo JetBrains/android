@@ -121,6 +121,45 @@ internal class PreviewAnnotationCheckTest {
   }
 
   @Test
+  fun testAnnotationWithDeviceSpecLanguageIssues() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    val vFile = rule.fixture.addFileToProject(
+      "test.kt",
+      // language=kotlin
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:width=100,isRound=no")
+        @Composable
+        fun myFun() {}
+""".trimIndent()).virtualFile
+
+    val annotationEntry = runWriteActionAndWait {
+      rule.fixture.openFileInEditor(vFile)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
+    }
+    assertNotNull(annotationEntry)
+
+    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    assertEquals(3, result.issues.size)
+    assertEquals(
+      listOf(
+        BadType::class,
+        BadType::class,
+        Missing::class
+      ),
+      result.issues.map { it::class }
+    )
+    assertEquals(
+      "spec:width=1080px,isRound=false,height=1920px",
+      result.proposedFix
+    )
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
+
+  @Test
   fun testFailure() {
     val vFile = rule.fixture.addFileToProject(
       "test.kt",

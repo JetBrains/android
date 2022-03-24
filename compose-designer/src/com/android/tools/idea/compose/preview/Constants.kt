@@ -68,10 +68,18 @@ object Preview {
     internal const val PARAMETER_UNIT = "unit"
     internal const val PARAMETER_DPI = "dpi"
 
+    // region DeviceSpec Language only
+    internal const val PARAMETER_IS_ROUND = "isRound"
+    internal const val PARAMETER_CHIN_SIZE = "chinSize"
+    internal const val PARAMETER_ORIENTATION = "orientation"
+    // endregion
+
     internal const val DEFAULT_WIDTH_PX = 1080
     internal const val DEFAULT_HEIGHT_PX = 1920
     internal val DEFAULT_SHAPE = Shape.Normal
     internal val DEFAULT_UNIT = DimUnit.px
     internal const val DEFAULT_DPI = 480
+    internal const val DEFAULT_IS_ROUND = false
+    internal const val DEFAULT_CHIN_SIZE = 0
   }
 }

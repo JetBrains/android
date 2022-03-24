@@ -81,7 +81,13 @@ internal object PreviewAnnotationCheck {
 
     val configString = deviceValue.substringAfter(Preview.DeviceSpec.PREFIX)
 
-    val result = doCheckDeviceParams(listParameters(configString), DeviceSpecRule.Legacy)
+    val rule = if (configString.contains(Preview.DeviceSpec.PARAMETER_SHAPE) || !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
+      DeviceSpecRule.Legacy
+    }
+    else {
+      DeviceSpecRule.LanguageBased
+    }
+    val result = doCheckDeviceParams(listParameters(configString), rule)
     synchronized(PreviewAnnotationCheck) {
       annotationEntry.putUserData(PreviewCheckResultKey, Pair(deviceValue, result))
     }

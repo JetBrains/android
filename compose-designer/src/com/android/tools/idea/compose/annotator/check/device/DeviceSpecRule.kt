@@ -24,8 +24,17 @@ internal enum class DeviceSpecRule(
 ) : CheckRule {
   Legacy(
     requiredParameters = listOf(
-      LegacyParameterRule.shape, LegacyParameterRule.width, LegacyParameterRule.height, LegacyParameterRule.unit, LegacyParameterRule.dpi),
+      LegacyParameterRule.shape, LegacyParameterRule.width, LegacyParameterRule.height, LegacyParameterRule.unit, LegacyParameterRule.dpi
+    ),
     optionalParameters = emptyList()
+  ),
+  LanguageBased(
+    requiredParameters = listOf(
+      LanguageParameterRule.width, LanguageParameterRule.height
+    ),
+    optionalParameters = listOf(
+      LanguageParameterRule.round, LanguageParameterRule.orientation, LanguageParameterRule.chinSize, LanguageParameterRule.dpi
+    )
   )
-  // TODO(b/220006785): Add rule(s) for new DeviceSpec language
+  // TODO(b/220006785): Add another rule for spec:parent=<device_id>
 }
