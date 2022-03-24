@@ -52,7 +52,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
   override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     val runnable = Runnable {
-      AndroidExecutors.getInstance().ioThreadExecutor.execute {
+      AndroidExecutors.getInstance().diskIoThreadExecutor.execute {
         var changesDone = false
         val currentAgpVersion =
           GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)

@@ -25,8 +25,8 @@ import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -108,7 +108,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
                     private val usageLogReporter: UsageLogReporter
                     = RetentionUsageLogReporterImpl,
                     private val executor: Executor
-                    = AndroidExecutors.getInstance().ioThreadExecutor) {
+                    = AndroidExecutors.getInstance().diskIoThreadExecutor) {
   private inner class RetentionPanel : JPanel(), DataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+)(.tar(.gz)?)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)

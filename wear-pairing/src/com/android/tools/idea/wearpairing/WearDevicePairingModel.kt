@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -41,7 +41,7 @@ class WearDevicePairingModel : WizardModel() {
   override fun dispose() {
     val wear = selectedWearDevice.valueOrNull
     if (wear != null && removePairingOnCancel.get()) {
-      GlobalScope.launch(ioThread) {
+      GlobalScope.launch(diskIoThread) {
         WearPairingManager.removeAllPairedDevices(wear.deviceID)
       }
     }

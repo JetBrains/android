@@ -17,8 +17,7 @@ package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.analytics.UsageTracker.log
-import com.android.tools.idea.adb.AdbFileProvider.Companion.fromProject
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
@@ -69,7 +68,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.datatransfer.StringSelection
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
@@ -628,7 +626,7 @@ class DeviceExplorerController(
       }
       tracker.processDirectory()
 
-      withContext(ioThread) {
+      withContext(diskIoThread) {
         // Ensure directory is created locally
         FileUtils.mkdirs(localDirectoryPath.toFile())
       }
@@ -1196,7 +1194,7 @@ class DeviceExplorerController(
     private suspend fun chooseSaveAsFilePath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
-      val baseDir = withContext(ioThread) {
+      val baseDir = withContext(diskIoThread) {
         FileUtils.mkdirs(localPath.parent.toFile())
         VfsUtil.findFileByIoFile(localPath.parent.toFile(), true)
             ?: throw Exception("Unable to locate file \"${localPath.parent}\"")
@@ -1212,7 +1210,7 @@ class DeviceExplorerController(
     private suspend fun chooseSaveAsDirectoryPath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
-      val localDir = withContext(ioThread) {
+      val localDir = withContext(diskIoThread) {
         FileUtils.mkdirs(localPath.toFile())
         VfsUtil.findFileByIoFile(localPath.toFile(), true)
         ?: throw Exception("Unable to locate directory \"${localPath.parent}\"")

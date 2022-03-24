@@ -17,8 +17,7 @@ package com.android.tools.idea.explorer.fs
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AdbCommandRejectedException
-import com.android.tools.idea.adb.AdbFileProvider
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.explorer.DeviceExplorerFileManager
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
@@ -77,7 +76,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     localDestinationDirectory: Path
   ): Map<String, VirtualFile> {
     val entries = mapPathsToEntries(deviceFileSystem, onDevicePaths)
-    val entryToDeferredFile = withContext(ioThread) {
+    val entryToDeferredFile = withContext(diskIoThread) {
       entries.associate { entry ->
         val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
         FileUtils.mkdirs(localPath.parent.toFile())

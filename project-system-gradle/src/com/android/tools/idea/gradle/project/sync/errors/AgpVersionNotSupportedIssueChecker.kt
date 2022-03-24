@@ -42,7 +42,6 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
-import java.util.regex.Pattern
 
 /**
  * IssueChecker to handle projects with incompatible (too old or mismatched preview) AGP versions.
@@ -136,7 +135,7 @@ class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : DescribedBuildI
  * Helper method to trigger the forced upgrade prompt and then request a sync if it was successful.
  */
 private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion, future: CompletableFuture<Unit>? = null) {
-  AndroidExecutors.getInstance().ioThreadExecutor.execute {
+  AndroidExecutors.getInstance().diskIoThreadExecutor.execute {
     val success = performForcedPluginUpgrade(project, currentAgpVersion)
     if (success) {
       val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)

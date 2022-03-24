@@ -28,7 +28,7 @@ import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -54,11 +54,11 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
-import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
+import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
@@ -113,7 +113,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
       })
 
-      AndroidCoroutineScope(this).launch(ioThread) {
+      AndroidCoroutineScope(this).launch(diskIoThread) {
         val gradleVersionValue = determineGradlePluginVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
 

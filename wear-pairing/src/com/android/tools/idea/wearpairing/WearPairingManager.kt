@@ -27,7 +27,7 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
@@ -193,7 +193,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
-    runningJob = GlobalScope.launch(ioThread) {
+    runningJob = GlobalScope.launch(diskIoThread) {
       for (operation in updateDevicesChannel) {
         try {
           updateListAndForwardState()

@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
@@ -151,7 +151,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     model.removePairingOnCancel.set(true)
 
     dispose() // Cancel any previous jobs and error listeners
-    runningJob = coroutineScope.launch(ioThread) {
+    runningJob = coroutineScope.launch(diskIoThread) {
       if (model.selectedPhoneDevice.valueOrNull == null || model.selectedWearDevice.valueOrNull == null) {
         showUI(header = message("wear.assistant.device.connection.error.title"),
                description = message("wear.assistant.device.connection.error.subtitle"))
@@ -222,12 +222,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private fun showIncompatibleCompanionAppError(phoneDevice: IDevice, wearDevice: IDevice) {
     dispose()
-    coroutineScope.launch(ioThread) {
+    coroutineScope.launch(diskIoThread) {
       val body = createWarningPanel(message("wear.assistant.device.connection.wear.os.wear3"))
       body.add(
         LinkLabel<Unit>("Retry", null) { _, _ ->
           check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-          runningJob = coroutineScope.launch(ioThread) {
+          runningJob = coroutineScope.launch(diskIoThread) {
             companionAppStep(phoneDevice, wearDevice)
           }
         },
@@ -238,7 +238,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   private fun showDeviceGmscoreNeedsUpdate(deviceName: String) {
-    coroutineScope.launch(ioThread) {
+    coroutineScope.launch(diskIoThread) {
       val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error", deviceName), StudioIcons.Common.ERROR)
       body.add(
         LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ ->
@@ -334,7 +334,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private fun waitForPairingSuccessOnBackground(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice) {
     check(backgroundJob?.isActive != true) // There can only be a single background job at any time
-    backgroundJob = coroutineScope.launch(ioThread) {
+    backgroundJob = coroutineScope.launch(diskIoThread) {
       try {
         while (phoneWearPair.pairingStatus != PairingState.CONNECTED &&
                WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
@@ -574,7 +574,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     scanningLink = message("wear.assistant.device.connection.check.again"),
     scanningListener = {
       check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-      runningJob = coroutineScope.launch(ioThread) {
+      runningJob = coroutineScope.launch(diskIoThread) {
         showWaitForCompanionAppInstall(phoneDevice, wearDevice, launchPlayStore = false)
       }
     },
@@ -592,7 +592,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       buttonLabel = message("wear.assistant.device.connection.install.wear.os.button"),
       buttonListener = {
         runningJob?.cancel()
-        runningJob = coroutineScope.launch(ioThread) {
+        runningJob = coroutineScope.launch(diskIoThread) {
           showWaitForCompanionAppInstall(phoneDevice, wearDevice, launchPlayStore = true)
         }
       },
@@ -619,7 +619,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       buttonLabel = message("wear.assistant.device.connection.open.companion.button"),
       buttonListener = {
         runningJob?.cancel()
-        runningJob = coroutineScope.launch(ioThread) {
+        runningJob = coroutineScope.launch(diskIoThread) {
           showWaitForPairingSetup(phoneWearPair, phoneDevice, wearDevice, launchCompanionApp = true)
         }
       },
@@ -642,7 +642,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       buttonLabel = buttonLabel,
       buttonListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-        runningJob = coroutineScope.launch(ioThread) {
+        runningJob = coroutineScope.launch(diskIoThread) {
           showPairing(phoneWearPair, phoneDevice, wearDevice)
         }
       },
@@ -652,7 +652,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       scanningLink = scanningLink,
       scanningListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-        runningJob = coroutineScope.launch(ioThread) {
+        runningJob = coroutineScope.launch(diskIoThread) {
           showUiPairingAppInstructions(phoneWearPair, phoneDevice, wearDevice)
         }
       },
@@ -725,7 +725,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
       check(runningJob?.isActive != true) // This is a button callback. No job should be running at this point.
       dispose() // Stop listening for device connection lost
-      runningJob = coroutineScope.launch(ioThread) {
+      runningJob = coroutineScope.launch(diskIoThread) {
         try {
           showUI(header = message("wear.assistant.factory.reset.title"), body = warningPanel)
 
@@ -754,7 +754,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     scanningLink = message("wear.assistant.device.connection.check.again"),
     scanningListener = {
       check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-      runningJob = coroutineScope.launch(ioThread) {
+      runningJob = coroutineScope.launch(diskIoThread) {
         showWaitForPairingSetup(phoneWearPair, phoneDevice, wearDevice, launchCompanionApp = false)
       }
     }

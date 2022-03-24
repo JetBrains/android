@@ -21,7 +21,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.intellij.openapi.project.Project
@@ -119,7 +119,7 @@ internal class DeviceComboBoxDeviceTracker(
           }
         }
       }
-    }.flowOn(ioThread)
+    }.flowOn(diskIoThread)
   }
 
   private suspend fun DeviceInfo.toDevice(): Device {

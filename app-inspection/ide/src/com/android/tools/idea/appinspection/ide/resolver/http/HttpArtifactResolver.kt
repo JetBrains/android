@@ -34,7 +34,7 @@ class HttpArtifactResolver(
 ) : ArtifactResolver {
   private val tmpDir = fileService.getOrCreateTempDir("http-tmp")
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-    return withContext(AndroidDispatchers.ioThread) {
+    return withContext(AndroidDispatchers.diskIoThread) {
       try {
         downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), artifactCoordinate.getTmpFile(), null,
                                             ConsoleProgressIndicator())

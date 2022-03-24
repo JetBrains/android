@@ -37,14 +37,14 @@ object DeviceConnection
 private val LOG get() = logger<DeviceConnection>()
 
 suspend fun IDevice.executeShellCommand(cmd: String) {
-  withContext(AndroidDispatchers.ioThread) {
+  withContext(AndroidDispatchers.diskIoThread) {
     runCatching {
       executeShellCommand(cmd, NullOutputReceiver())
     }
   }
 }
 
-suspend fun IDevice.runShellCommand(cmd: String): String = withContext(AndroidDispatchers.ioThread) {
+suspend fun IDevice.runShellCommand(cmd: String): String = withContext(AndroidDispatchers.diskIoThread) {
   val outputReceiver = CollectingOutputReceiver()
   runCatching {
     executeShellCommand(cmd, outputReceiver)

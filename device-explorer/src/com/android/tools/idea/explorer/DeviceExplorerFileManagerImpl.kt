@@ -16,7 +16,7 @@
 package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.explorer.DeviceExplorerFilesUtils.findFile
@@ -83,7 +83,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
     localPath: Path,
     progress: DownloadProgress
   ): VirtualFile {
-    withContext(ioThread) {
+    withContext(diskIoThread) {
       FileUtils.mkdirs(localPath.parent.toFile())
     }
     return withWriteSafeContextWithCurrentModality {

@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
@@ -157,7 +157,7 @@ class FastPreviewManagerGradleTest(useEmbeddedCompiler: Boolean) {
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      val generatedFilesSet = withContext(ioThread) {
+      val generatedFilesSet = withContext(diskIoThread) {
         File(outputPath).toPath().toFileNameSet()
       }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))

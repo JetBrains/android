@@ -18,7 +18,7 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.NullOutputReceiver
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +50,7 @@ class NonInteractivePairing private constructor(private val phone: IDevice,
   }
 
   private fun startPairing() {
-    logReaderJob = CoroutineScope(ioThread).launch {
+    logReaderJob = CoroutineScope(diskIoThread).launch {
       try {
         phone.executeShellCommand("logcat -T 1", this@NonInteractivePairing, 0, TimeUnit.MILLISECONDS)
       }

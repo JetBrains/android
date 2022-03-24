@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.directoryWorkUnits
 import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.fileWorkUnits
@@ -110,7 +110,7 @@ class FileTransferWorkEstimator {
     path: Path,
     progress: FileTransferWorkEstimatorProgress
   ): FileTransferWorkEstimate = coroutineScope {
-    withContext(ioThread) {
+    withContext(diskIoThread) {
       val workEstimate = FileTransferWorkEstimate()
       estimateUploadWorkWorker(path.toFile(), workEstimate, progress)
       workEstimate

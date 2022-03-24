@@ -23,8 +23,8 @@ import com.intellij.openapi.application.ModalityState
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 
 /**
@@ -50,7 +50,7 @@ class AndroidExecutorsRule(
             `when`(androidExecutors.workerThreadExecutor).thenReturn(workerThreadExecutor)
           }
           if (ioThreadExecutor != null) {
-            `when`(androidExecutors.ioThreadExecutor).thenReturn(ioThreadExecutor)
+            `when`(androidExecutors.diskIoThreadExecutor).thenReturn(ioThreadExecutor)
           }
           if (uiThreadExecutor != null) {
             `when`(androidExecutors.uiThreadExecutor).thenReturn(uiThreadExecutor)

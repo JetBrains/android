@@ -41,11 +41,11 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
-import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.FakeAndroidDebugBridgeConnector
+import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.run.ClearLogcatListener
@@ -81,9 +81,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -305,7 +305,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.clearMessageView()
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
@@ -325,7 +325,7 @@ class LogcatMainPanelTest {
 
     projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device)
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
   }
@@ -345,7 +345,7 @@ class LogcatMainPanelTest {
 
     projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2)
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEqualTo("not-empty")
   }

@@ -16,10 +16,8 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbLibHost
-import com.android.adblib.AdbLogger
 import com.android.adblib.AdbLoggerFactory
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineDispatcher
 
 /**
@@ -33,7 +31,7 @@ internal class AndroidAdbLibHost : AdbLibHost() {
   }
 
   override val ioDispatcher: CoroutineDispatcher
-    get() = AndroidDispatchers.ioThread
+    get() = AndroidDispatchers.diskIoThread
 
   override fun close() {
     // Nothing to do

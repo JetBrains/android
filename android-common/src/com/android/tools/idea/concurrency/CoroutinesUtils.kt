@@ -91,11 +91,11 @@ object AndroidDispatchers {
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
-   * [CoroutineDispatcher] that dispatches to an IO thread.
+   * [CoroutineDispatcher] that dispatches to a disk IO thread.
    *
-   * @see AndroidExecutors.ioThreadExecutor
+   * @see AndroidExecutors.diskIoThreadExecutor
    */
-  val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
+  val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
 private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")

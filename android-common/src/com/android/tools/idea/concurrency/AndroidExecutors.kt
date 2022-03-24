@@ -42,12 +42,12 @@ class AndroidExecutors @NonInjectable constructor(
    *
    * @see AndroidIoManager
    */
-  val ioThreadExecutor: Executor
+  val diskIoThreadExecutor: Executor
 ) {
   constructor() : this(
     uiThreadExecutor = { modalityState, code -> ApplicationManager.getApplication().invokeLater(code, modalityState) },
     workerThreadExecutor = AppExecutorUtil.getAppExecutorService(),
-    ioThreadExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+    diskIoThreadExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
   )
 
   companion object {

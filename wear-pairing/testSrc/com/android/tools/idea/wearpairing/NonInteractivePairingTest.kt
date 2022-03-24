@@ -55,7 +55,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
     }.`when`(device).executeShellCommand(ArgumentMatchers.anyString(),
                                          ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.any())
     val executors: AndroidExecutors = MockitoKt.mock()
-    Mockito.`when`(executors.ioThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
+    Mockito.`when`(executors.diskIoThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
     project.registerServiceInstance(AndroidExecutors::class.java, executors)
   }
 
