@@ -154,11 +154,16 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
     pendingActionsQueueLock.withLock {
       pendingActionsQueue.add(future)
       // We have reached the maximum, evict overflow
-      if (maxQueueingTasks > 0) {
+      return@withLock if (maxQueueingTasks > 0) {
+        val evictedTasks = mutableListOf<CompletableFuture<*>>()
         while (pendingActionsQueue.size > maxQueueingTasks) {
-          pendingActionsQueue.remove().completeExceptionally(EvictedException("Max number ($maxQueueingTasks) of render actions reached"))
+          evictedTasks.add(pendingActionsQueue.remove())
         }
-      }
+        evictedTasks
+      } else emptyList()
+    }.forEach {
+      // Complete all the evicted tasks
+      it.completeExceptionally(EvictedException("Max number ($maxQueueingTasks) of render actions reached"))
     }
     renderingExecutor.execute {
       // Clear the interrupted state
