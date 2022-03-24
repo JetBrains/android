@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.util.UUID
@@ -43,14 +44,18 @@ import java.util.UUID
 class BuildAttributionManagerImpl(
   val project: Project
 ) : BuildAttributionManager {
+  private val log: Logger get() = Logger.getInstance("Build Analyzer")
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
+
+  private var eventsProcessingFailedFlag: Boolean = false
 
   @get:VisibleForTesting
   val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
   private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart() {
+    eventsProcessingFailedFlag = false
     analyzersWrapper.onBuildStart()
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
@@ -69,19 +74,29 @@ class BuildAttributionManagerImpl(
           agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder)
-          analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
+          if (!eventsProcessingFailedFlag) {
+            // If there was an error in events processing already there is no need to continue.
+            analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
+            analyticsManager.logAnalyzersData(analyzersProxy)
+            BuildAttributionUiManager.getInstance(project).showNewReport(
+              BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
+              buildSessionId
+            )
+          }
+        }
+        catch (t: Throwable) {
+          eventsProcessingFailedFlag = true
+          log.error("Error during post-build analysis", t)
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+          if (eventsProcessingFailedFlag) {
+            //TODO (b/184273397): report in metrics
+            //TODO (b/184273397): currently show general failure state, same as for failed build. Adjust in further refactorings.
+            BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+          }
         }
       }
-
-      analyticsManager.logAnalyzersData(analyzersProxy)
-
-      BuildAttributionUiManager.getInstance(project).showNewReport(
-        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
-        buildSessionId
-      )
     }
 
     return BasicBuildAttributionInfo(agpVersion)
@@ -95,14 +110,23 @@ class BuildAttributionManagerImpl(
   }
 
   override fun statusChanged(event: ProgressEvent?) {
-    if (event == null) return
+    if (eventsProcessingFailedFlag) return
+    try {
+      if (event == null) return
 
-    analyzersWrapper.receiveEvent(event)
+      analyzersWrapper.receiveEvent(event)
+    }
+    catch (t: Throwable) {
+      eventsProcessingFailedFlag = true
+      log.error("Error during build events processing", t)
+    }
   }
 
   override fun openResultsTab() = BuildAttributionUiManager.getInstance(project)
     .openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
 
-  override fun shouldShowBuildOutputLink(): Boolean = !ConfigurationCacheTestBuildFlowRunner.getInstance(project)
-    .runningFirstConfigurationCacheBuild
+  override fun shouldShowBuildOutputLink(): Boolean = !(
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningFirstConfigurationCacheBuild
+    || eventsProcessingFailedFlag
+                                                       )
 }
