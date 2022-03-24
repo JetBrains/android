@@ -27,8 +27,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import kotlinx.coroutines.asExecutor
+import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
@@ -46,6 +48,10 @@ class NetworkInspectorModel(
 
   // If null, means no connection to show in the details pane.
   var selectedConnection: HttpData? = null
+    private set
+
+  // If null, means no rule to show in the details pane.
+  var selectedRule: RulesTableModel.RuleInfo? = null
     private set
 
   val aspect = AspectModel<NetworkInspectorAspect>()
@@ -82,13 +88,40 @@ class NetworkInspectorModel(
 
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
+   * Setting a non-null connection will deselect [selectedRule].
    */
   fun setSelectedConnection(data: HttpData?): Boolean {
     if (selectedConnection == data) {
       return false
     }
     selectedConnection = data
+    if (data != null && selectedRule != null) {
+      selectedRule = null
+      aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
+    }
     aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
     return true
+  }
+
+  /**
+   * Sets the active interception rule, or clears the previously selected one if given rule is null.
+   * Setting a non-null rule will deselect [selectedConnection].
+   */
+  fun setSelectedRule(rule: RulesTableModel.RuleInfo?): Boolean {
+    if (selectedRule == rule) {
+      return false
+    }
+    selectedRule = rule
+    if (rule != null && selectedConnection != null) {
+      selectedConnection = null
+      aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
+    }
+    aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
+    return true
+  }
+
+  fun resetSelection() {
+    setSelectedRule(null)
+    setSelectedConnection(null)
   }
 }

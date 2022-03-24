@@ -32,5 +32,11 @@ enum class NetworkInspectorAspect {
    * Aspect associated with a single, focused connection. The connection may be `null`, which
    * means that currently no connection is selected (perhaps recently deselected).
    */
-  SELECTED_CONNECTION
+  SELECTED_CONNECTION,
+
+  /**
+   * Aspect associated with a single, focused rule. The rule may be `null`, which
+   * means that currently no rule is selected (perhaps recently deselected).
+   */
+  SELECTED_RULE
 }

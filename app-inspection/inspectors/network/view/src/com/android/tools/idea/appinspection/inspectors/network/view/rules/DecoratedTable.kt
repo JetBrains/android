@@ -27,9 +27,10 @@ import javax.swing.JPanel
  */
 class DecoratedTable<Item>(model: ListTableModel<Item>) {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
+  val table: TableView<Item>
 
   init {
-    val table = TableView(model)
+    table = TableView(model)
     val decorator = ToolbarDecorator.createDecorator(table)
     component.add(decorator.createPanel().apply {
       border = BorderFactory.createEmptyBorder()

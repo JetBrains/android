@@ -65,8 +65,8 @@ import javax.swing.JTextPane
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private const val FAKE_RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n"
 
-private val DEFAULT_DATA = createFakeHttpData(1, 10000, 25000, 50000, 100000, 100000,
-                                              responseFields = FAKE_RESPONSE_HEADERS, url = "dumbUrl", trace = FAKE_TRACE, method = "GET")
+val DEFAULT_DATA = createFakeHttpData(1, 10000, 25000, 50000, 100000, 100000,
+                                      responseFields = FAKE_RESPONSE_HEADERS, url = "dumbUrl", trace = FAKE_TRACE, method = "GET")
 
 /**
  * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in sorted order.
@@ -134,7 +134,7 @@ class ConnectionDetailsViewTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
-    detailsView = inspectorView.connectionDetails
+    detailsView = inspectorView.detailsPanel.connectionDetailsView
     disposable = Disposer.newDisposable()
   }
 
@@ -191,20 +191,6 @@ class ConnectionDetailsViewTest {
     }
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.OK_EXIT_CODE)
     client.verifyInterceptResponse(DEFAULT_DATA.url, newText)
-  }
-
-  @Test
-  fun viewIsVisibleWhenDataIsNotNull() {
-    detailsView.isVisible = false
-    detailsView.setHttpData(DEFAULT_DATA)
-    assertThat(detailsView.isVisible).isTrue()
-  }
-
-  @Test
-  fun viewIsNotVisibleWhenDataIsNull() {
-    detailsView.isVisible = true
-    detailsView.setHttpData(null)
-    assertThat(detailsView.isVisible).isFalse()
   }
 
   @Test
