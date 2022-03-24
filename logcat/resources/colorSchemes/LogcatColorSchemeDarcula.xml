@@ -95,28 +95,28 @@
   <option name="LOGCAT_FILTER_KEY">
     <value>
       <option name="FOREGROUND" value="fefefefe"/>
-      <option name="BACKGROUND" value="155221"/>
+      <option name="BACKGROUND" value="4D694C"/>
     </value>
   </option>
 
   <option name="LOGCAT_FILTER_KVALUE">
     <value>
       <option name="FOREGROUND" value="fefefefe"/>
-      <option name="BACKGROUND" value="155221"/>
+      <option name="BACKGROUND" value="4D694C"/>
     </value>
   </option>
 
   <option name="LOGCAT_FILTER_STRING_KVALUE">
     <value>
       <option name="FOREGROUND" value="fefefefe"/>
-      <option name="BACKGROUND" value="155221"/>
+      <option name="BACKGROUND" value="4D694C"/>
     </value>
   </option>
 
   <option name="LOGCAT_FILTER_REGEX_KVALUE">
     <value>
       <option name="FOREGROUND" value="fefefefe"/>
-      <option name="BACKGROUND" value="155221"/>
+      <option name="BACKGROUND" value="4D694C"/>
     </value>
   </option>
 </list>
