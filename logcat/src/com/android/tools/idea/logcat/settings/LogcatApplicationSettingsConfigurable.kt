@@ -18,9 +18,12 @@ package com.android.tools.idea.logcat.settings
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtilRt.LARGE_FOR_CONTENT_LOADING
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.EditorTextField
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.GridBag
@@ -45,6 +48,18 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   }
 
   @VisibleForTesting
+  internal val defaultFilterTextField = EditorTextField(ProjectManager.getInstance().defaultProject, LogcatFilterFileType).apply {
+    text = logcatSettings.defaultFilter
+    isEnabled = !logcatSettings.mostRecentlyUsedFilterIsDefault
+  }
+
+  @VisibleForTesting
+  internal val mostRecentlyUsedFilterIsDefaultCheckbox = JCheckBox(LogcatBundle.message("logcat.settings.default.filter.mru")).apply {
+    isSelected = logcatSettings.mostRecentlyUsedFilterIsDefault
+    addActionListener { defaultFilterTextField.isEnabled = !isSelected }
+  }
+
+  @VisibleForTesting
   internal val cyclicBufferSizeWarningLabel = JLabel()
 
   @VisibleForTesting
@@ -59,11 +74,16 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
       }
     })
     val gridBag = GridBag().anchor(NORTHWEST)
-    add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next())
+    add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
     add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-    add(cycleBufferSizeTextField, gridBag.next())
+    add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
     add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
     add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
+
+    add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
+    add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+    add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+    add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).anchor(WEST))
 
     if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get()) {
       add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
@@ -90,11 +110,15 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     val bufferSizeKb = getBufferSizeKb()
     return (bufferSizeKb != null && isValidBufferSize(bufferSizeKb) && bufferSizeKb != logcatSettings.bufferSize / 1024)
            || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
+           || defaultFilterTextField.text != logcatSettings.defaultFilter
+           || mostRecentlyUsedFilterIsDefaultCheckbox.isSelected != logcatSettings.mostRecentlyUsedFilterIsDefault
   }
 
   override fun apply() {
     logcatSettings.bufferSize = getBufferSizeKb()?.times(1024) ?: return
     logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
+    logcatSettings.defaultFilter = defaultFilterTextField.text
+    logcatSettings.mostRecentlyUsedFilterIsDefault = mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
 
     LogcatToolWindowFactory.logcatPresenters.forEach {
       it.applyLogcatSettings(logcatSettings)

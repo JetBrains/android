@@ -21,6 +21,9 @@ import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtilRt.LARGE_FOR_CONTENT_LOADING
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -29,9 +32,10 @@ import org.mockito.Mockito.verify
 /**
  * Tests for [LogcatApplicationSettingsConfigurable]
  */
+@RunsInEdt
 class LogcatApplicationSettingsConfigurableTest {
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val rule = RuleChain(ApplicationRule(), EdtRule())
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -92,7 +96,7 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
-  fun apply() {
+  fun apply_appliesToLogcatPresenters() {
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     val mockLogcatPresenter = mock<LogcatPresenter>()
     LogcatToolWindowFactory.logcatPresenters.add(mockLogcatPresenter)
@@ -101,6 +105,28 @@ class LogcatApplicationSettingsConfigurableTest {
 
     verify(mockLogcatPresenter).applyLogcatSettings(logcatSettings)
     LogcatToolWindowFactory.logcatPresenters.remove(mockLogcatPresenter)
+  }
+
+  @Test
+  fun apply() {
+    val logcatSettings = AndroidLogcatSettings(
+      bufferSize = 100 * 1024,
+      defaultFilter = "foo",
+      mostRecentlyUsedFilterIsDefault = false,
+      namedFiltersEnabled = false)
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    configurable.cycleBufferSizeTextField.text = "200"
+    configurable.defaultFilterTextField.text = "bar"
+    configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
+    configurable.enableNamedFiltersCheckbox.isSelected = true
+
+    configurable.apply()
+
+    assertThat(logcatSettings).isEqualTo(AndroidLogcatSettings(
+      bufferSize = 200 * 1024,
+      defaultFilter = "bar",
+      mostRecentlyUsedFilterIsDefault = true,
+      namedFiltersEnabled = true))
   }
 
   @Test
@@ -115,6 +141,28 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
+  fun isModified_defaultFilter() {
+    logcatSettings.defaultFilter = "foo"
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    configurable.defaultFilterTextField.text = "bar"
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_mostRecentlyUsedFilterIsDefault() {
+    logcatSettings.mostRecentlyUsedFilterIsDefault = false
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
   fun isModified_namedFilters() {
     logcatSettings.namedFiltersEnabled = false
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
@@ -123,6 +171,36 @@ class LogcatApplicationSettingsConfigurableTest {
     configurable.enableNamedFiltersCheckbox.isSelected = true
 
     assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun mostRecentlyUsedFilterIsDefaultIsTrue_defaultFilterTextFieldIsDisabled() {
+    logcatSettings.mostRecentlyUsedFilterIsDefault = true
+
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.defaultFilterTextField.isEnabled).isFalse()
+  }
+
+  @Test
+  fun mostRecentlyUsedFilterIsDefaultIsFalse_defaultFilterTextFieldIsEnabled() {
+    logcatSettings.mostRecentlyUsedFilterIsDefault = false
+
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.defaultFilterTextField.isEnabled).isTrue()
+  }
+
+  @Test
+  fun mostRecentlyUsedFilterIsDefaultIsToggle_defaultFilterTextFieldIsEnabledToggled() {
+    logcatSettings.mostRecentlyUsedFilterIsDefault = false
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    configurable.mostRecentlyUsedFilterIsDefaultCheckbox.doClick()
+    assertThat(configurable.defaultFilterTextField.isEnabled).isFalse()
+
+    configurable.mostRecentlyUsedFilterIsDefaultCheckbox.doClick()
+    assertThat(configurable.defaultFilterTextField.isEnabled).isTrue()
   }
 
   private fun logcatApplicationSettingsConfigurable(logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings())

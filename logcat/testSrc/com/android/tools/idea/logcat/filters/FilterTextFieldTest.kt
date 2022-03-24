@@ -300,6 +300,16 @@ class FilterTextFieldTest {
     assertThat(separator.isShowing).isTrue()
   }
 
+  @RunsInEdt
+  @Test
+  fun textChanges_setAsMostRecent() {
+    val filterTextField = filterTextField(initialText = "foo")
+
+    filterTextField.text = "bar"
+
+    assertThat(AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed).isEqualTo("bar")
+  }
+
   private fun filterTextField(
     project: Project = projectRule.project,
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,

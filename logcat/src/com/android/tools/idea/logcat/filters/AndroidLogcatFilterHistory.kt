@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -33,6 +34,7 @@ private const val MAX_HISTORY_SIZE = 20
 internal class AndroidLogcatFilterHistory(
   var favorites: MutableList<String> = mutableListOf(),
   var nonFavorites: MutableList<String> = mutableListOf(),
+  var mostRecentlyUsed: String = AndroidLogcatSettings.getInstance().defaultFilter,
   @Transient
   private val maxNonFavoriteItems: Int = MAX_HISTORY_SIZE,
 ) : PersistentStateComponent<AndroidLogcatFilterHistory> {

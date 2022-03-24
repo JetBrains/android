@@ -35,6 +35,7 @@ import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
+import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
@@ -550,6 +551,29 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isInstanceOf(ProjectAppFilter::class.java)
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("package:mine")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun defaultFilter() {
+    AndroidLogcatSettings.getInstance().defaultFilter = "foo"
+
+    val logcatMainPanel = logcatMainPanel(state = null)
+
+    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("foo")
+  }
+
+  @RunsInEdt
+  @Test
+  fun defaultFilter_mostRecentlyUsed() {
+    val androidLogcatSettings = AndroidLogcatSettings.getInstance()
+    androidLogcatSettings.defaultFilter = "foo"
+    androidLogcatSettings.mostRecentlyUsedFilterIsDefault = true
+    AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed = "bar"
+
+    val logcatMainPanel = logcatMainPanel(state = null)
+
+    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("bar")
   }
 
   @RunsInEdt

@@ -20,7 +20,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
@@ -29,11 +31,12 @@ import org.junit.Test
 /**
  * Tests for [LogcatApplicationSettingsConfigurableProvider]
  */
+@RunsInEdt
 class LogcatApplicationSettingsConfigurableProviderTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule)
+  val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
 
   private val settings = LogcatExperimentalSettings()
 

@@ -22,10 +22,13 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 private const val DEFAULT_BUFFER_SIZE = 1024 * 1024
+private const val DEFAULT_FILTER = "package:mine"
 
 @State(name = "AndroidLogcatSettings", storages = [Storage("androidLogcatSettings.xml")])
 internal data class AndroidLogcatSettings(
   var bufferSize: Int = DEFAULT_BUFFER_SIZE,
+  var defaultFilter: String = DEFAULT_FILTER,
+  var mostRecentlyUsedFilterIsDefault: Boolean = false,
   var namedFiltersEnabled: Boolean = false,
 ) : PersistentStateComponent<AndroidLogcatSettings> {
 

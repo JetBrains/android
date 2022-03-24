@@ -1020,11 +1020,25 @@
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
     <option name="kb" hit=" KB" />
+    <option name="default" hit="Default filter for new Logcat windows:" />
+    <option name="filter" hit="Default filter for new Logcat windows:" />
+    <option name="for" hit="Default filter for new Logcat windows:" />
+    <option name="logcat" hit="Default filter for new Logcat windows:" />
+    <option name="new" hit="Default filter for new Logcat windows:" />
+    <option name="windows" hit="Default filter for new Logcat windows:" />
     <option name="logcat" hit="Logcat" />
     <option name="buffer" hit="Logcat cycle buffer size:" />
     <option name="cycle" hit="Logcat cycle buffer size:" />
     <option name="logcat" hit="Logcat cycle buffer size:" />
     <option name="size" hit="Logcat cycle buffer size:" />
+    <option name="as" hit="Use most-recently-used filter as the default" />
+    <option name="default" hit="Use most-recently-used filter as the default" />
+    <option name="filter" hit="Use most-recently-used filter as the default" />
+    <option name="most" hit="Use most-recently-used filter as the default" />
+    <option name="recently" hit="Use most-recently-used filter as the default" />
+    <option name="the" hit="Use most-recently-used filter as the default" />
+    <option name="use" hit="Use most-recently-used filter as the default" />
+    <option name="used" hit="Use most-recently-used filter as the default" />
   </configurable>
   <configurable id="device.file.explorer" configurable_name="Device File Explorer">
     <option name="device" hit="Device File Explorer" />
