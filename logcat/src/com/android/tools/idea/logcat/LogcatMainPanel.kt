@@ -25,7 +25,6 @@ import com.android.ddmlib.IDevice.PROP_DEVICE_MODEL
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
@@ -57,10 +56,10 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
@@ -374,7 +373,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun clearMessageView() {
-    AndroidCoroutineScope(this, ioThread).launch {
+    AndroidCoroutineScope(this, workerThread).launch {
       deviceManager?.clearLogcat()
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {

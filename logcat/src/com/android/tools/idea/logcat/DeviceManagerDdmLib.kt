@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
@@ -23,7 +22,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors

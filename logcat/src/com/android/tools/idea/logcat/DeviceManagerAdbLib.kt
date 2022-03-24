@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
@@ -30,7 +29,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -107,7 +105,6 @@ internal class DeviceManagerAdbLib(
     }
 
     // Waits for the job to finish, since we need to block the calling thread
-    @Suppress("ConvertLambdaToReference")
     runBlocking { job.join() }
   }
 
