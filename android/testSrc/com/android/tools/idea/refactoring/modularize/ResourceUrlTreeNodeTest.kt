@@ -20,13 +20,21 @@ import com.android.testutils.MockitoKt.mock
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
+import org.mockito.quality.Strictness
 import org.mockito.Mockito.`when` as given
 
 class ResourceUrlTreeNodeTest {
+
+  @Rule
+  @JvmField
+  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Test
   fun `render sets icon to Android file`() {

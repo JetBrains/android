@@ -32,12 +32,16 @@ import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.miniStdLib.letIf
+import org.junit.Rule
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
+import org.mockito.quality.Strictness
 import org.mockito.Mockito.`when` as given
 
 /**
@@ -50,6 +54,10 @@ import org.mockito.Mockito.`when` as given
  */
 @RunWith(Enclosed::class)
 class AndroidModularizeActionTest {
+
+  @Rule
+  @JvmField
+  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   /*
   The overridden methods of AndroidModularizeAction are

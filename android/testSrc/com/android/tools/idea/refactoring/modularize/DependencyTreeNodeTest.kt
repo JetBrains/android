@@ -21,6 +21,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.BitUtil
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.CALLS_REAL_METHODS
@@ -29,10 +30,17 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when` as given
 import org.mockito.Mockito.withSettings
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
+import org.mockito.quality.Strictness
 import java.awt.Color
 import kotlin.random.Random
 
 class DependencyTreeNodeTest {
+
+  @Rule
+  @JvmField
+  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   // We can't use the nice Mockito.spy(<class>) syntax because there's no nullary constructor
   private fun spyDependencyTreeNode(userObject: Any, referenceCount: Int): DependencyTreeNode =
