@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.util.device
 
 import com.android.tools.idea.compose.annotator.registerLanguageExtensionPoint
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.caret
@@ -26,6 +27,7 @@ import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +41,7 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Before
   fun setup() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     fixture.registerLanguageExtensionPoint(LanguageParserDefinitions.INSTANCE, DeviceSpecParserDefinition(), DeviceSpecLanguage)
     val ep = ApplicationManager.getApplication().extensionArea.getExtensionPoint<CompletionContributorEP>(CompletionContributor.EP.name)
     ep.registerExtension(
@@ -51,10 +54,14 @@ internal class DeviceSpecCompletionContributorTest {
     }
   }
 
+  @After
+  fun teardown() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
 
   @Test
   fun providedDeviceInId() {
-    fixture.completeDeviceSpec( "id:Nexus 7$caret")
+    fixture.completeDeviceSpec("id:Nexus 7$caret")
 
     assertEquals(2, fixture.lookupElementStrings!!.size)
     assertEquals("Nexus 7", fixture.lookupElementStrings!![0])
@@ -73,18 +80,58 @@ internal class DeviceSpecCompletionContributorTest {
   @Test
   fun nothingProvided() {
     // Currently, not supported in name
-    fixture.completeDeviceSpec( "name:Nexus 7$caret")
+    fixture.completeDeviceSpec("name:Nexus 7$caret")
     fixture.checkResult("name:Nexus 7")
     assertEquals(0, fixture.lookupElementStrings!!.size)
 
     // No such thing as id=<device_id>
-    fixture.completeDeviceSpec( "spec:id=Nexus 7$caret")
+    fixture.completeDeviceSpec("spec:id=Nexus 7$caret")
     fixture.checkResult("spec:id=Nexus 7")
     assertEquals(0, fixture.lookupElementStrings!!.size)
 
     // No such thing as parent:<device_id>
-    fixture.completeDeviceSpec( "parent:Nexus 7$caret")
+    fixture.completeDeviceSpec("parent:Nexus 7$caret")
     fixture.checkResult("parent:Nexus 7")
+    assertEquals(0, fixture.lookupElementStrings!!.size)
+  }
+
+  @Test
+  fun prefixCompletion() {
+    // Blank, should provide all possible options
+    fixture.completeDeviceSpec("$caret")
+    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
+    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![1])
+    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
+    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
+
+    // 'pix' should only match the default device (pixel_5)
+    fixture.completeDeviceSpec("pix$caret")
+    assertEquals(1, fixture.lookupElementStrings!!.size)
+    assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
+
+    // completion for 'id' prefix
+    fixture.completeDeviceSpec("id$caret") // Note that 'id' also matches 'width' in the full 'spec:...' definition
+    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
+    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![1])
+    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
+    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
+
+    // completion for 'spec' prefix
+    fixture.completeDeviceSpec("spe$caret")
+    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![0])
+    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![1])
+    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![3])
+
+    // no completion when within a parameter
+    fixture.completeDeviceSpec("spec:width=300dp,spe$caret")
+    assertEquals(0, fixture.lookupElementStrings!!.size)
+    fixture.completeDeviceSpec("spec:width=300dp,height$caret")
     assertEquals(0, fixture.lookupElementStrings!!.size)
   }
 }
