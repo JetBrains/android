@@ -771,9 +771,9 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/javaslang-match-2.0.6.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/javax.inject-1.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-common.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-M1-release-for-android-studio.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-M1-release-for-android-studio.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-M1-release-for-android-studio.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-release-for-android-studio.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-release-for-android-studio.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-release-for-android-studio.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-jps-common.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc_kotlin-reflect.jar

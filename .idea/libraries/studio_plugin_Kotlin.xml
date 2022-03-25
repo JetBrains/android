@@ -6,9 +6,9 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javaslang-match-2.0.6.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javax.inject-1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-M1-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-release-for-android-studio.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-release-for-android-studio.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-jps-common.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinx-collections-immutable-jvm-0.3.4.jar!/" />
