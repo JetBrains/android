@@ -24,9 +24,9 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.utils.getprop
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -41,7 +41,7 @@ private const val ADB_FAILED_COMMAND_ERROR_CODE = 5
 class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrapper {
 
   override suspend fun executeCommand(args: List<String>, stdin: String): AdbCommandResult {
-    return withContext(diskIoThread) {
+    return withContext(Dispatchers.IO) {
       if (args == listOf("mdns", "check")) {
         mdnsCheck()
       }
@@ -101,7 +101,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
 
   override suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice {
     return withTimeoutOrNull(ADB_DEVICE_CONNECT_MILLIS) {
-      withContext(diskIoThread) {
+      withContext(Dispatchers.IO) {
         // Track device changes
         val hostServices = AdbLibService.getSession(project).hostServices
         val deviceListFlow = hostServices.trackDevices(AdbHostServices.DeviceInfoFormat.LONG_FORMAT)
