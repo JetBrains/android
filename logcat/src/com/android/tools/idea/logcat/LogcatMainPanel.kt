@@ -23,6 +23,7 @@ import com.android.ddmlib.IDevice.PROP_BUILD_VERSION
 import com.android.ddmlib.IDevice.PROP_DEVICE_MANUFACTURER
 import com.android.ddmlib.IDevice.PROP_DEVICE_MODEL
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -374,10 +375,26 @@ internal class LogcatMainPanel(
   @UiThread
   override fun clearMessageView() {
     AndroidCoroutineScope(this, workerThread).launch {
-      deviceManager?.clearLogcat()
+      deviceManager?.let {
+        if (it.device.version.apiLevel != 26) {
+          // See http://b/issues/37109298#comment9.
+          // TL/DR:
+          // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running logcat processes.
+          //
+          // Theoretically, we could stop the running logcat here before sending "logcat -c" to the device but this is not trivial. And we
+          // have to do this for all active Logcat panels listening on this device, not only in the current project but across all projects.
+          // A much easier and safer workaround is to not send a "logcat -c" command on this particular API level.
+          it.clearLogcat()
+        }
+      }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")
+        if (deviceManager?.device?.version?.apiLevel == 26) {
+          processMessages(listOf(LogCatMessage(
+            SYSTEM_HEADER,
+            "WARNING: Logcat was not cleared on the device itself because of a bug in Android 8.0 (Oreo).")))
+        }
       }
     }
   }

@@ -21,6 +21,7 @@ import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -738,5 +739,6 @@ private fun mockDevice(serialNumber: String): IDevice {
     `when`(it.state).thenReturn(ONLINE)
     `when`(it.clients).thenReturn(emptyArray())
     `when`(it.serialNumber).thenReturn(serialNumber)
+    `when`(it.version).thenReturn(AndroidVersion(30))
   }
 }
