@@ -31,6 +31,10 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
   }
 
   fun isTabSelected(tabTitle: String) = getContent(TabNameMatcher(tabTitle))?.isSelected ?: false
+
+  public override fun waitUntilIsVisible(): ToolWindowFixture {
+    return super.waitUntilIsVisible()
+  }
 }
 
 /**

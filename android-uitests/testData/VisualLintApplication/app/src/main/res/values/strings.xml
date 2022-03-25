@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AndroidX</string>
+    <string name="action_settings">Settings</string>
+    <string name="long_text">This is a very very very very very very very very very very very very very very very very very very very very very very very long text</string>
+</resources>

@@ -16,12 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.intellij.openapi.project.Project;
+import icons.StudioIcons;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,5 +47,9 @@ public class VisualizationFixture extends ToolWindowFixture {
   @NotNull
   public String getCurrentFileName() {
     return myDesignSurfaceFixture.target().getModel().getVirtualFile().getName();
+  }
+
+  public void openProblemsPanel() {
+    ActionButtonFixture.findByIcon(StudioIcons.Common.WARNING, myRobot, myToolWindow.getComponent()).click();
   }
 }
