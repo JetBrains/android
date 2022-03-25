@@ -181,13 +181,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
     if (!phoneDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING)) {
-      showDeviceGmscoreNeedsUpdate(phonePairingDevice.displayName)
+      showDeviceGmscoreNeedsUpdate(phonePairingDevice)
       phoneDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
       showEmbeddedEmulator(phoneDevice)
       return
     }
     if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD)) {
-      showDeviceGmscoreNeedsUpdate(wearPairingDevice.displayName)
+      showDeviceGmscoreNeedsUpdate(wearPairingDevice)
       wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
       showEmbeddedEmulator(wearDevice)
       return
@@ -237,9 +237,16 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
-  private fun showDeviceGmscoreNeedsUpdate(deviceName: String) {
+  private fun showDeviceGmscoreNeedsUpdate(device: PairingDevice) {
     coroutineScope.launch(diskIoThread) {
-      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error", deviceName), StudioIcons.Common.ERROR)
+      val warningMessage = if (device.isWearDevice) {
+        "wear.assistant.device.connection.gmscore.error.wear"
+      } else if (device.isEmulator) {
+        "wear.assistant.device.connection.gmscore.error.phone.emulator"
+      } else {
+        "wear.assistant.device.connection.gmscore.error.phone.physical"
+      }
+      val body = createWarningPanel(message(warningMessage, device.displayName), StudioIcons.Common.ERROR)
       body.add(
         LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ ->
           wizardAction.restart(project)
