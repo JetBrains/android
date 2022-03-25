@@ -146,9 +146,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
   val javaLibraryCores: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
   val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
 
-  val androidLibraries: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
-  val javaLibraries: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
-
   fun deduplicateString(s: String): String = strings.putIfAbsent(s, s) ?: s
   fun String.deduplicate() = deduplicateString(this)
   fun deduplicateFile(f: File): File = File(f.path.deduplicate())
@@ -453,7 +450,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
       IdeAndroidLibraryDependencyCoreImpl(
-        androidLibraries.internCore(androidLibraryCores.internCore(core)),
+        androidLibraryCores.internCore(core),
         isProvided = isProvided
       )
     }
@@ -479,7 +476,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
       IdeJavaLibraryDependencyCoreImpl(
-        javaLibraries.internCore(javaLibraryCores.internCore(core)),
+        javaLibraryCores.internCore(core),
         isProvided = isProvided
       )
     }
