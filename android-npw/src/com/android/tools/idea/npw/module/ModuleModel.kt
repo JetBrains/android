@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -134,7 +135,7 @@ abstract class ModuleModel(
     }
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {
-      val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
+      val moduleRoot = getModuleRootForNewModule(project.basePath!!, moduleName.get())
       val context = RenderingContext(
         project = project,
         module = null,
@@ -169,8 +170,3 @@ abstract class ModuleModel(
     }
   }
 }
-/**
- * Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
- * the Module Path (called Project Path in gradle world) in "settings.gradle"
- */
-fun getModuleRoot(projectLocation: String, moduleName: String) = File(projectLocation, moduleName.replace(':', File.separatorChar))

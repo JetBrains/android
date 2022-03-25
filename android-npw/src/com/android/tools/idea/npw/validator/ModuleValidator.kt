@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.validator
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.CharMatcher.anyOf
 import com.google.common.base.CharMatcher.inRange
@@ -49,7 +49,7 @@ class ModuleValidator(
                message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
       GradleUtil.findModuleByGradlePath(project, rootedModuleGradlePath) != null ->
         Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
-      else -> pathValidator.validate(getModuleRoot(projectPath, moduleGradlePath).toPath())
+      else -> pathValidator.validate(getModuleRootForNewModule(projectPath, moduleGradlePath).toPath())
     }
   }
 }
