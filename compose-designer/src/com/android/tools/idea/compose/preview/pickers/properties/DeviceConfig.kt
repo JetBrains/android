@@ -20,7 +20,7 @@ package com.android.tools.idea.compose.preview.pickers.properties
 import com.android.resources.Density
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
-import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
+import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt

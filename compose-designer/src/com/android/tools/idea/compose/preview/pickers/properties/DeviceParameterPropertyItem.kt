@@ -30,8 +30,8 @@ import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaul
 import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackerHelper
-import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor

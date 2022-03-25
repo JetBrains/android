@@ -121,22 +121,6 @@ fun Segment?.containsOffset(offset: Int) = this?.let {
 } ?: false
 
 /**
- * Returns an [Enum] that matches [value] from the given class [E]. If no existing Enum, returns [default] instead.
- */
-internal inline fun <reified E: Enum<E>> enumValueOfOrDefault(value: String, default: E): E = enumValueOfOrNull<E>(value) ?: default
-
-/**
- * Returns an [Enum] that matches [value] from the given class [E]. Null if no Enum matches [value].
- */
-internal inline fun <reified E: Enum<E>> enumValueOfOrNull(value: String): E? {
-  return try {
-    enumValueOf<E>(value)
-  }catch (_: Exception) {
-    null
-  }
-}
-
-/**
  * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
  * milliseconds.
  */

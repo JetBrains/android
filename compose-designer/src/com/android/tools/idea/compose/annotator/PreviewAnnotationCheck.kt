@@ -20,8 +20,8 @@ import com.android.tools.idea.compose.preview.Preview
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key

@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Device
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportWithConstantData
-import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
+import com.android.tools.idea.kotlin.enumValueOfOrDefault
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.util.text.nullize
