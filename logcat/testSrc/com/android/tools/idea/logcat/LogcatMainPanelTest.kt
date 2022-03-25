@@ -725,10 +725,19 @@ class LogcatMainPanelTest {
       foldingDetector,
       packageNamesProvider,
       adbAdapter,
+      { logcatPresenter, iDevice -> FakeLogcatDeviceManager(iDevice, logcatPresenter, packageNamesProvider) },
       zoneId,
     ).also {
       Disposer.register(projectRule.project, it)
     }
+
+  private class FakeLogcatDeviceManager(
+    device: IDevice,
+    logcatPresenter: LogcatPresenter,
+    packageNamesProvider: PackageNamesProvider,
+  ) : LogcatDeviceManager(device, logcatPresenter, packageNamesProvider) {
+    override fun clearLogcat() {}
+  }
 }
 
 private fun LogCatMessage.length() = FormattingOptions().getHeaderWidth() + message.length

@@ -128,6 +128,7 @@ internal class LogcatMainPanel(
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
   adbAdapter: AdbAdapter = AdbAdapterImpl(project),
+  deviceManagerFactory: (LogcatPresenter, IDevice) -> LogcatDeviceManager = LogcatDeviceManager.getFactory(project, packageNamesProvider),
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -211,8 +212,8 @@ internal class LogcatMainPanel(
           if (iDevice != null) {
             withContext(uiThread) {
               document.setText("")
+              deviceManager = deviceManagerFactory(this@LogcatMainPanel, iDevice)
             }
-            deviceManager = LogcatDeviceManager.create(project, iDevice, this@LogcatMainPanel, packageNamesProvider)
           }
         }
       }
