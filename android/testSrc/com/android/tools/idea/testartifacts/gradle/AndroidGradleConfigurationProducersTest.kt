@@ -33,6 +33,8 @@ import com.intellij.execution.actions.ConfigurationFromContextImpl
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
@@ -40,11 +42,13 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.source.PsiMethodImpl
 import com.intellij.psi.search.GlobalSearchScope
 import junit.framework.TestCase
 import org.jetbrains.kotlin.daemon.common.trimQuotes
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsoleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -119,7 +123,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
 
     AndroidGradleTaskManager().executeTasks(
       ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      gradleRunConfiguration.settings.taskNames.map { it.trimQuotes()},
+      listOf(":app:testDebugUnitTest"),
       project.basePath!!,
       executionSettings,
       null,
@@ -153,6 +157,38 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     TestCase.assertNotNull(gradleJavaConfiguration)
     // See above comment about the changes to task names.
     assertThat(gradleJavaConfiguration!!.settings.taskNames).isEqualTo(listOf(":javalib:test", "--tests", "\"com.example.javalib.JavaLibJavaTest\""))
+  }
+
+  @Throws(Exception::class)
+  fun testConsoleManagerIsApplicableForTestTaskExecution() {
+    loadSimpleApplication()
+    // Verify We can render method Run configurations using GradleTestsExecutionConsoleManager.
+    val methodPsiElement = JavaPsiFacade.getInstance(project)
+      .findClass("google.simpleapplication.UnitTest", GlobalSearchScope.projectScope(project))!!
+      .children.filterIsInstance<PsiMethodImpl>().first()
+    val  methodConfiguration = createGradleConfigurationFromPsiElement(project, methodPsiElement)
+    assertThat(methodConfiguration).isNotNull()
+    val methodConfigTask = ExternalSystemExecuteTaskTask(project, methodConfiguration!!.settings, null, methodConfiguration)
+    assertThat(ExternalSystemUtil.getConsoleManagerFor(methodConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
+
+    // Verify We can render class Run configurations using GradleTestsExecutionConsoleManager.
+    val classConfiguration = createAndroidGradleTestConfigurationFromClass(project, "google.simpleapplication.UnitTest")
+    assertThat(classConfiguration).isNotNull()
+    val classConfigTask = ExternalSystemExecuteTaskTask(project, classConfiguration!!.settings, null, classConfiguration)
+    assertThat(ExternalSystemUtil.getConsoleManagerFor(classConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
+
+    // Verify We can render package Run configurations using GradleTestsExecutionConsoleManager.
+    val packagePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
+    val packageConfiguration = createGradleConfigurationFromPsiElement(project, packagePsiElement)
+    assertThat(packageConfiguration).isNotNull()
+    val packageConfigTask = ExternalSystemExecuteTaskTask(project, packageConfiguration!!.settings, null, packageConfiguration)
+    assertThat(ExternalSystemUtil.getConsoleManagerFor(packageConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
+
+    // Verify We can render directory Run configurations using GradleTestsExecutionConsoleManager.
+    val  directoryConfiguration = createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java")
+    assertThat(directoryConfiguration).isNotNull()
+    val directoryConfigTask = ExternalSystemExecuteTaskTask(project, directoryConfiguration!!.settings, null, directoryConfiguration)
+    assertThat(ExternalSystemUtil.getConsoleManagerFor(directoryConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {
