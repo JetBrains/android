@@ -229,7 +229,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (file == null || !file.isValid) return
 
     val providers = providers.filter {
-      runInSmartReadAction(project) { it.accept(project, file) }
+      it.accept(project, file)
     }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
     val newRepresentations = mutableMapOf<RepresentationName, PreviewRepresentation>()

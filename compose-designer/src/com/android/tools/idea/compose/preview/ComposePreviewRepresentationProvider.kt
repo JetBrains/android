@@ -171,7 +171,7 @@ class ComposePreviewRepresentationProvider(
   /**
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, psiFile: PsiFile): Boolean =
+  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**

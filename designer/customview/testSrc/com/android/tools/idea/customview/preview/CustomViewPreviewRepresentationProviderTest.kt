@@ -16,6 +16,7 @@
 package com.android.tools.idea.customview.preview
 
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import kotlinx.coroutines.runBlocking
 
 class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var provider : CustomViewPreviewRepresentationProvider
@@ -30,22 +31,22 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     provider = CustomViewPreviewRepresentationProvider()
   }
 
-  fun testDoNotAcceptKotlinWhenNoViews() {
+  fun testDoNotAcceptKotlinWhenNoViews() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/SomeFile.kt", "")
     assertFalse(provider.accept(project, file))
   }
 
-  fun testDoNotAcceptJavaWhenNoViews() {
+  fun testDoNotAcceptJavaWhenNoViews() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/SomeFile.java", "")
     assertFalse(provider.accept(project, file))
   }
 
-  fun testDoNotAcceptRes() {
+  fun testDoNotAcceptRes() = runBlocking {
     val file = myFixture.addFileToProject("res/layout/some_layout.xml", "")
     assertFalse(provider.accept(project, file))
   }
 
-  fun testQuickRejectKotlinWhenNoIncludes() {
+  fun testQuickRejectKotlinWhenNoIncludes() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
       package com.example
 
@@ -56,7 +57,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     assertFalse(provider.accept(project, file))
   }
 
-  fun testQuickRejectJavaWhenNoIncludes() {
+  fun testQuickRejectJavaWhenNoIncludes() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
       package com.example;
 
@@ -71,7 +72,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     assertFalse(provider.accept(project, file))
   }
 
-  fun testAcceptKotlinWhenHasViewsAndIncludes() {
+  fun testAcceptKotlinWhenHasViewsAndIncludes() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
       package com.example
 
@@ -84,7 +85,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     assertTrue(provider.accept(project, file))
   }
 
-  fun testAcceptJavaWhenHasViewsAndDirectIncludes() {
+  fun testAcceptJavaWhenHasViewsAndDirectIncludes() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
       package com.example;
 
@@ -101,7 +102,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     assertTrue(provider.accept(project, file))
   }
 
-  fun testAcceptJavaWhenHasViewsAndInDirectIncludes() {
+  fun testAcceptJavaWhenHasViewsAndInDirectIncludes() = runBlocking {
     val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
       package com.example;
 

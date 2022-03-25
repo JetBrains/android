@@ -16,16 +16,20 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.runReadAction
+import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.testFramework.LightVirtualFile
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidSlowOperations
 
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
@@ -46,20 +50,28 @@ internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOp
   InheritanceUtil.isInheritor(this, CLASS_VIEW)
 }
 
-internal fun PsiFile.containsViewSuccessor(): Boolean {
-  if (DumbService.isDumb(this.project)) {
-    return false
-  }
-
+internal suspend fun PsiFile.containsViewSuccessor(): Boolean = withContext(workerThread) {
   // Quickly reject non-custom view files. A custom view constructor should have Context and AttributeSet as parameters
   // (https://developer.android.com/training/custom-views/create-view#subclassview).
   // Heuristic to check that the code in the file uses android.util.AttributeSet
-  if (viewProvider.document?.charsSequence?.contains("AttributeSet") == false) {
-    return false
+  if (runReadAction { viewProvider.document?.charsSequence?.contains("AttributeSet") } == false) {
+    return@withContext false
   }
 
-  return when (this) {
-    is PsiClassOwner -> this.classes.any { it.extendsView() } // Properly detect inheritance from View in Smart mode
+  return@withContext when (this@containsViewSuccessor) {
+    is PsiClassOwner -> try {
+      val classes = runReadActionWithWritePriority { this@containsViewSuccessor.classes }
+      // Properly detect inheritance from View in Smart mode
+      runReadActionWithWritePriority {
+        classes.any { aClass ->
+          aClass.isValid && aClass.extendsView()
+        }
+      }
+    }
+    catch (t: Exception) {
+      Logger.getInstance(Utils::class.java).warn(t)
+      false
+    }
     else -> false
   }
 }
@@ -68,3 +80,5 @@ internal fun FileEditor.getCustomViewPreviewManager(): CustomViewPreviewManager?
   is MultiRepresentationPreview -> this.currentRepresentation as? CustomViewPreviewManager
   else -> null
 }
+
+object Utils

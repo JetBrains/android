@@ -25,6 +25,8 @@ import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -47,19 +49,26 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -175,7 +184,9 @@ fun CoroutineScope.launchWithProgress(
   }
 
   scope.launch(workerThread) {
-    while (checkProgressIndicatorState()) { delay(500) }
+    while (checkProgressIndicatorState()) {
+      delay(500)
+    }
   }
 
   return scope.launch(context = scope.coroutineContext + context, block = runnable).apply {
@@ -339,6 +350,60 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
 }
 
 /**
+ * [Exception] thrown by [runReadActionWithWritePriority] when `maxRetries` has been exceeded.
+ */
+class RetriesExceededException(message: String? = null) : Exception(message)
+
+/**
+ * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority].
+ * The [callable] will be retried [maxRetries] if cancelled because a write action taking priority. This will wait [maxWaitTime] [maxWaitTimeUnit]
+ * before throwing a [TimeoutException].
+ *
+ * [callable] will receive a `checkCancelled` function that must be invoked frequently to ensure the operation can continue. [callable]
+ * will throw a [ProcessCanceledException] if the operation is not needed anymore, for example when the timeout has been exceeded.
+ */
+@kotlin.jvm.Throws(TimeoutException::class, RetriesExceededException::class)
+suspend fun <T> runReadActionWithWritePriority(
+  maxRetries: Int = 3,
+  maxWaitTime: Long = 10,
+  maxWaitTimeUnit: TimeUnit = TimeUnit.SECONDS,
+  callable: (checkCancelled: ()-> Unit) -> T
+): T {
+  try {
+    return withTimeout(maxWaitTimeUnit.toMillis(maxWaitTime)) {
+      var retries = 0
+      while (retries++ < maxRetries) {
+        val result = AtomicReference<T?>(null)
+        ensureActive()
+        val executed = runInterruptible(workerThread) {
+            ProgressIndicatorUtils.runInReadActionWithWriteActionPriority {
+              if (isActive) result.set(callable {
+                ProgressManager.checkCanceled()
+                ensureActive()
+              })
+            }
+          }
+        if (executed) return@withTimeout result.get()!!
+        /**
+         * If we end up here it means that the [runReadActionWithWritePriority] call was interrupted by some [WriteAction].
+         * Retrying straight away will most probably fail again since that [WriteAction] is still happening.
+         * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
+         * is only makes sense to retry again.
+         */
+        runReadAction {}
+      }
+      throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
+    }
+  }
+  catch (timeout: TimeoutCancellationException) {
+    throw TimeoutException("Deadline $maxWaitTime $maxWaitTimeUnit exceeded.")
+  }
+  catch (_: CancellationException) {
+    throw ProcessCanceledException()
+  }
+}
+
+/**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
  */
 suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = runReadAction {
@@ -350,7 +415,7 @@ suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFil
 /**
  * Scope passed to the runnable in [disposableCallbackFlow].
  */
-interface CallbackFlowWithDisposableScope<T>: CoroutineScope {
+interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
   /**
    * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in
    * [disposableCallbackFlow] is disposed.
@@ -373,7 +438,10 @@ interface CallbackFlowWithDisposableScope<T>: CoroutineScope {
  * This allow for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T> disposableCallbackFlow(debugName: String, logger: Logger? = null, parentDisposable: Disposable? = null, runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+fun <T> disposableCallbackFlow(debugName: String,
+                               logger: Logger? = null,
+                               parentDisposable: Disposable? = null,
+                               runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
   logger?.debug("$debugName start")
 
   val disposable = parentDisposable?.let {
@@ -408,14 +476,14 @@ fun <T> disposableCallbackFlow(debugName: String, logger: Logger? = null, parent
 @VisibleForTesting
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
   disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
-  project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
-    override fun exitDumbMode() {
-      trySend(Unit)
-    }
-  })
+    project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        trySend(Unit)
+      }
+    })
 
-  onConnected?.let { launch(workerThread) { it() } }
-}
+    onConnected?.let { launch(workerThread) { it() } }
+  }
 
 /**
  * A [callbackFlow] that produces an element when the [project] moves into smart mode.

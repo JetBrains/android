@@ -26,7 +26,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
@@ -61,10 +61,10 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
-import kotlin.time.Duration
 
 const val UI_THREAD = "UI thread"
 const val WORKER_THREAD = "Worker thread"
@@ -178,10 +178,10 @@ class CoroutineUtilsTest {
     val messages = mutableListOf<String>()
 
     LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
-        override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
-          messages.add(message)
-          return false
-        }
+      override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
+        messages.add(message)
+        return false
+      }
     }) {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
@@ -347,7 +347,7 @@ class CoroutineUtilsTest {
   }
 
   @Test
-  fun `write action with coroutines times out`()  {
+  fun `write action with coroutines times out`() {
     val readActionIsReady = CountDownLatch(1)
     val readLatch = CountDownLatch(1)
 
@@ -515,8 +515,12 @@ class CoroutineUtilsTest {
     val coroutineCompleted = CompletableDeferred<Unit>()
     launchWithProgress(progressIndicator) {
       try {
-        while (true) { delay(1000) }
-      } catch (_: CancellationException) {}
+        while (true) {
+          delay(1000)
+        }
+      }
+      catch (_: CancellationException) {
+      }
       catch (t: Throwable) {
         fail("Unexpected exception $t")
       }
@@ -529,7 +533,9 @@ class CoroutineUtilsTest {
         coroutineCompleted.await()
       }
       fail("Expected timeout")
-    } catch(_: TimeoutCancellationException) {}
+    }
+    catch (_: TimeoutCancellationException) {
+    }
     // This will cancel the indicator which should stop the launched coroutine
     progressIndicator.cancel()
     coroutineCompleted.await()
@@ -566,7 +572,7 @@ class CoroutineUtilsTest {
     val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
     val callbackDeferred = CompletableDeferred<TestCallback>()
     val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
-      callbackDeferred.complete(object: TestCallback {
+      callbackDeferred.complete(object : TestCallback {
         override fun send() {
           this@disposableCallbackFlow.trySend(Unit)
         }
@@ -630,6 +636,147 @@ class CoroutineUtilsTest {
       job.cancel() // Stop the channel
       job.join()
       assertEquals(expectedModeChanges, flowReceiverCount.get()) // ensure that no more of expectedModeChanges have been received
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority yields to write actions`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    var keepReadActionRunning = true
+    runBlocking {
+      val job = launch {
+        runReadActionWithWritePriority(
+          maxRetries = Int.MAX_VALUE,
+          maxWaitTime = Long.MAX_VALUE,
+          maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+          callable = {
+            ApplicationManager.getApplication().assertReadAccessAllowed()
+            readActionIsRunning.complete(Unit)
+            while (keepReadActionRunning) {
+              it()
+              Thread.sleep(50)
+            }
+          }
+        )
+      }
+
+      launch {
+        readActionIsRunning.await()
+
+        var executedWriteActions = 0
+        repeat(5) {
+          runWriteActionAndWait { executedWriteActions++ }
+        }
+        keepReadActionRunning = false
+        job.join()
+
+        assertEquals(5, executedWriteActions)
+      }
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority stops after x retries`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      var retries = 0
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxRetries = 3,
+            maxWaitTime = Long.MAX_VALUE,
+            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              retries++
+              thread {
+                com.intellij.openapi.application.runWriteActionAndWait { }
+              }
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: RetriesExceededException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+      job.join()
+      assertEquals(3, retries)
+    }
+  }
+
+  @Test(timeout = 2500)
+  fun `read action with write priority stops after timeout`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      var retries = 0
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxWaitTime = 1,
+            maxWaitTimeUnit = TimeUnit.SECONDS,
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              retries++
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: TimeoutException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+
+      delay(TimeUnit.SECONDS.toMillis(2))
+
+      job.join()
+      assertEquals(1, retries)
+    }
+  }
+
+  @Test(timeout = 500)
+  fun `read action with write priority stops if cancelled`() {
+    val readActionIsRunning = CompletableDeferred<Unit>()
+    runBlocking {
+      val job = launch {
+        try {
+          runReadActionWithWritePriority(
+            maxRetries = Int.MAX_VALUE,
+            maxWaitTime = Long.MAX_VALUE,
+            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
+            callable = { checkCancelled ->
+              readActionIsRunning.complete(Unit)
+              while (true) {
+                checkCancelled()
+                Thread.sleep(50)
+              }
+            }
+          )
+          fail("runReadActionWithWritePriority should never return")
+        }
+        catch (ignore: ProcessCanceledException) {
+        }
+        catch (t: Throwable) {
+          fail("Unexpected exception $t")
+        }
+      }
+      readActionIsRunning.await()
+      job.cancel()
+      job.join()
     }
   }
 }

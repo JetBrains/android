@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -84,10 +85,12 @@ class ComposePreviewRepresentationProviderTest {
         fun aKotlinMethod() {
         }
       """.trimIndent())
-    assertTrue(previewProvider.accept(project, previewFile))
-    assertTrue(previewProvider.accept(project, composableFile))
-    assertTrue(previewProvider.accept(project, kotlinFile))
-    assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
+    runBlocking {
+      assertTrue(previewProvider.accept(project, previewFile))
+      assertTrue(previewProvider.accept(project, composableFile))
+      assertTrue(previewProvider.accept(project, kotlinFile))
+      assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
+    }
     assertEquals(PreferredVisibility.SPLIT,
                  getRepresentationForFile(previewFile, project, fixture, previewProvider).preferredInitialVisibility)
     assertEquals(PreferredVisibility.SPLIT,
