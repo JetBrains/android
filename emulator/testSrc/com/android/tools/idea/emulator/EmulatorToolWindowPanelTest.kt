@@ -650,7 +650,7 @@ class EmulatorToolWindowPanelTest {
     val mockAdb = mock<AndroidDebugBridge>()
     `when`(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
-    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
+    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFuture(mockAdb))
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
     return device
   }

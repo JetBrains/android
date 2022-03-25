@@ -29,6 +29,7 @@ import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -42,10 +43,9 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
+import com.android.tools.idea.logcat.util.AdbAdapter
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
-import com.android.tools.idea.logcat.util.FakeAndroidDebugBridgeConnector
+import com.android.tools.idea.logcat.util.FakeAdbAdapter
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.logcatEvents
@@ -82,9 +82,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -94,7 +94,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JPopupMenu
 
 /**
@@ -104,7 +104,7 @@ class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
   private val executor = Executors.newCachedThreadPool()
   private val popupRule = PopupRule()
-  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, diskIoThreadExecutor = executor)
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor)
   private val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
@@ -112,7 +112,7 @@ class LogcatMainPanelTest {
 
   private val mockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
-  private val androidDebugBridge = FakeAndroidDebugBridgeConnector()
+  private val fakeAdbAdapter = FakeAdbAdapter()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
 
   @Before
@@ -202,7 +202,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("tag1", LINE))
     }
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
@@ -306,7 +306,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.clearMessageView()
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
@@ -316,17 +316,18 @@ class LogcatMainPanelTest {
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
     val device = mockDevice("device1")
-    androidDebugBridge.mutableDevices.add(device)
+    fakeAdbAdapter.mutableDevices.add(device)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(androidDebugBridgeConnector = androidDebugBridge).also {
+      logcatMainPanel(adbAdapter = fakeAdbAdapter).also {
         it.deviceContext.fireDeviceSelected(device)
+        waitForCondition(1, SECONDS) { it.deviceManager != null }
         it.editor.document.setText("not-empty")
       }
     }
 
     projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device)
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
   }
@@ -335,18 +336,19 @@ class LogcatMainPanelTest {
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
     val device1 = mockDevice("device1")
     val device2 = mockDevice("device2")
-    androidDebugBridge.mutableDevices.add(device1)
-    androidDebugBridge.mutableDevices.add(device2)
+    fakeAdbAdapter.mutableDevices.add(device1)
+    fakeAdbAdapter.mutableDevices.add(device2)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also {
+      logcatMainPanel(adbAdapter = fakeAdbAdapter).also {
         it.deviceContext.fireDeviceSelected(device1)
+        waitForCondition(1, SECONDS) { it.deviceManager != null }
         it.editor.document.setText("not-empty")
       }
     }
 
     projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2)
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().diskIoThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEqualTo("not-empty")
   }
@@ -489,7 +491,7 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait(logcatMainPanel::reloadMessages)
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
 
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text)
@@ -566,7 +568,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.formattingOptions = COMPACT.formattingOptions
     }
 
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text.trim()).isEqualTo("04:00:01.000  W  message1")
     }
@@ -709,7 +711,7 @@ class LogcatMainPanelTest {
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
-    androidDebugBridgeConnector: AndroidDebugBridgeConnector = AndroidDebugBridgeConnectorImpl(),
+    adbAdapter: AdbAdapter = FakeAdbAdapter(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ): LogcatMainPanel =
     LogcatMainPanel(
@@ -722,7 +724,7 @@ class LogcatMainPanelTest {
       hyperlinkDetector,
       foldingDetector,
       packageNamesProvider,
-      androidDebugBridgeConnector,
+      adbAdapter,
       zoneId,
     ).also {
       Disposer.register(projectRule.project, it)

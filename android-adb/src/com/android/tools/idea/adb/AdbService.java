@@ -26,6 +26,7 @@ import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.io.Files;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -45,6 +46,7 @@ import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -107,7 +109,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
   /**
    * Tracks whether ADB_MDNS_OPENSCREEN env. variable can be used when starting ADB.
-   *
+   * <p>
    * This is required because some version of ADB crash at startup when ADB_MDNS_OPENSCREEN env variable is set.
    * We detect this pattern and prevent ADB_MDNS_OPENSCREEN to be set on the next ADB restart.
    */
@@ -168,7 +170,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     }
     try {
       terminateDdmlib();
-    } catch (TimeoutException ignored) {}
+    }
+    catch (TimeoutException ignored) {
+    }
     // Leave until next getBridge caller to reinitialize.
   }
 
@@ -215,10 +219,42 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * <p>The returned future always completes within the {@link AndroidDebugBridge#DEFAULT_START_ADB_TIMEOUT_MILLIS} timeout.
    * <p>The returned future will contain an exception if ADB cannot be successfully be initialized within the timeout.
    * <p>The returned future may be cancelled in case of concurrent ADB termination or object disposal.
+   *
    * @param adb The full path to the ADB command.
    */
   public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
     return mySequentialExecutor.submit(() -> myImplementation.getAndroidDebugBridge(adb));
+  }
+
+  /**
+   * Asynchronously returns a connected {@link AndroidDebugBridge}
+   * via a {@link ListenableFuture}.
+   *
+   * <p>If ADB has not been started yet, or has been in an error state, a new ADB server
+   * is started and fully initialized (i.e. {@link AndroidDebugBridge#isConnected()} is {@code true})
+   * before the future completes.
+   *
+   * <p>If ADB was previously started and is in good state, the future returns the previous started adb,
+   * i.e only the very first call is expensive and requires a round-trip to another thread.
+   *
+   * <p>The returned future always completes within the {@link AndroidDebugBridge#DEFAULT_START_ADB_TIMEOUT_MILLIS} timeout.
+   * <p>The returned future will contain an exception if ADB cannot be successfully be initialized within the timeout.
+   * <p>The returned future may be cancelled in case of concurrent ADB termination or object disposal.
+   *
+   * @param project A {@link Project} that is used to find the ADB executable file.
+   */
+  public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull Project project) {
+    AdbFileProvider provider = AdbFileProvider.fromProject(project);
+    if (provider == null) {
+      LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)");
+      return Futures.immediateFailedFuture(new IllegalStateException("AdbFileProvider is not correctly set up"));
+    }
+    File adbFile = provider.getAdbFile();
+    if (adbFile == null) {
+      LOG.warn("The path to the ADB command is not available");
+      return Futures.immediateFailedFuture(new FileNotFoundException("The path to the ADB command is not available"));
+    }
+    return getDebugBridge(adbFile);
   }
 
   /**
@@ -418,7 +454,8 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         myAdbExecutableFile = adb;
         LOG.info("Successfully connected to adb");
         return bridge;
-      } finally {
+      }
+      finally {
         Log.removeLogger(toStringLogger);
       }
     }

@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
     ],
 )
 

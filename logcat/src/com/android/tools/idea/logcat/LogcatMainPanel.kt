@@ -16,14 +16,12 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL
 import com.android.ddmlib.IDevice.PROP_BUILD_VERSION
 import com.android.ddmlib.IDevice.PROP_DEVICE_MANUFACTURER
 import com.android.ddmlib.IDevice.PROP_DEVICE_MODEL
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -57,13 +55,14 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnector
-import com.android.tools.idea.logcat.util.AndroidDebugBridgeConnectorImpl
+import com.android.tools.idea.logcat.util.AdbAdapter
+import com.android.tools.idea.logcat.util.AdbAdapterImpl
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.util.getDeviceId
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.run.ClearLogcatListener
@@ -89,6 +88,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -127,7 +127,7 @@ internal class LogcatMainPanel(
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
-  androidDebugBridgeConnector: AndroidDebugBridgeConnector = AndroidDebugBridgeConnectorImpl(),
+  adbAdapter: AdbAdapter = AdbAdapterImpl(project),
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -135,6 +135,7 @@ internal class LogcatMainPanel(
   internal val editor: EditorEx = createLogcatEditor(project)
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
+  private val coroutineScope = AndroidCoroutineScope(this)
 
   @VisibleForTesting
   val deviceContext = DeviceContext()
@@ -168,7 +169,8 @@ internal class LogcatMainPanel(
     this,
     ::formatMessages,
     logcatFilterParser.parse(headerPanel.getFilterText()))
-  private var deviceManager: LogcatDeviceManager? = null
+  @VisibleForTesting
+  internal var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
@@ -200,19 +202,19 @@ internal class LogcatMainPanel(
       override fun onDeviceConnected(device: IDevice) {
         // We have the IDevice already but when moving to AdbLib DeviceComboBox, we will only have the serial number, so we need to find
         // the IDevice corresponding to that serial using AndroidDebugBridge.
-        androidDebugBridgeConnector.addDebugBridgeChangeListener(object : IDebugBridgeChangeListener {
-          override fun bridgeChanged(bridge: com.android.ddmlib.AndroidDebugBridge?) {
-            val iDevice = androidDebugBridgeConnector.devices.find { it.isSameDevice(device) }
-            if (iDevice != null) {
-              deviceManager?.let {
-                Disposer.dispose(it)
-              }
-              document.setText("")
-              deviceManager = LogcatDeviceManager.create(project, iDevice, this@LogcatMainPanel, packageNamesProvider)
-            }
-            androidDebugBridgeConnector.removeDebugBridgeChangeListener(this)
+        coroutineScope.launch(Dispatchers.IO) {
+          val iDevice = adbAdapter.getDevice(device.getDeviceId())
+          deviceManager?.let {
+            Disposer.dispose(it)
+            deviceManager = null
           }
-        })
+          if (iDevice != null) {
+            withContext(uiThread) {
+              document.setText("")
+            }
+            deviceManager = LogcatDeviceManager.create(project, iDevice, this@LogcatMainPanel, packageNamesProvider)
+          }
+        }
       }
 
       @UiThread
@@ -335,7 +337,7 @@ internal class LogcatMainPanel(
   @UiThread
   override fun reloadMessages() {
     document.setText("")
-    AndroidCoroutineScope(this, workerThread).launch {
+    coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
     }
   }
@@ -374,7 +376,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun clearMessageView() {
-    AndroidCoroutineScope(this, workerThread).launch {
+    coroutineScope.launch(workerThread) {
       deviceManager?.let {
         if (it.device.version.apiLevel != 26) {
           // See http://b/issues/37109298#comment9.
@@ -472,13 +474,5 @@ private fun IDevice?.toSavedDevice(): SavedDevice? {
     )
     val avdName = if (avdData.isDone) avdData.get()?.name else null
     SavedDevice(serialNumber, name, isEmulator, avdName, properties)
-  }
-}
-
-private fun IDevice.isSameDevice(other: IDevice): Boolean {
-  return when {
-    !isEmulator -> serialNumber == other.serialNumber
-    avdData.isDone && other.avdData.isDone -> avdData.get().name == other.avdData.get().name
-    else -> false
   }
 }

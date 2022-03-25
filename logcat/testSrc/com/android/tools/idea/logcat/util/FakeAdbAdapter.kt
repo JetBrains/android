@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.logcat.util
 
-import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
 import com.android.ddmlib.IDevice
 
 /**
- * An interface wrapping some features of [com.android.ddmlib.AndroidDebugBridge] to allow testing.
- *
- * Only functionality used by the Logcat module is implemented.
+ * An implementation of [AdbAdapter] for tests.S
  */
-internal interface AndroidDebugBridgeConnector {
-  val devices: List<IDevice>
+internal class FakeAdbAdapter : AdbAdapter {
+  val mutableDevices = mutableListOf<IDevice>()
 
-  fun addDebugBridgeChangeListener(listener: IDebugBridgeChangeListener)
-
-  fun removeDebugBridgeChangeListener(listener: IDebugBridgeChangeListener)
+  override suspend fun getDevice(deviceId: String): IDevice? = mutableDevices.find { it.getDeviceId() == deviceId}
 }
