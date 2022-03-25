@@ -35,11 +35,15 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.usageView.UsageInfo
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
+import org.mockito.quality.Strictness
 import java.awt.Color
 import javax.swing.Icon
 import kotlin.random.Random
@@ -47,6 +51,10 @@ import kotlin.test.assertFailsWith
 import org.mockito.Mockito.`when` as given
 
 class UsageInfoTreeNodeTest {
+
+  @Rule
+  @JvmField
+  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Test
   fun `constructor populates PsiElement from UsageInfo`() {
@@ -230,8 +238,6 @@ class UsageInfoTreeNodeTest {
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    val color = mock<Color>()
-    given(attributes.fgColor).thenReturn(color)
     Mockito.doReturn(attributes).`when`(node).textAttributes
 
     val qualifierString = "" // a trivial config
@@ -269,8 +275,6 @@ class UsageInfoTreeNodeTest {
 
     val node = spy(UsageInfoTreeNode(usageInfo, Random.nextInt()))
     val attributes = mock<SimpleTextAttributes>()
-    val color = mock<Color>()
-    given(attributes.fgColor).thenReturn(color)
     Mockito.doReturn(attributes).`when`(node).textAttributes
 
     mockStatic<ApplicationManager>().use {
