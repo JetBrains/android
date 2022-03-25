@@ -198,7 +198,7 @@ class MessageProcessorTest {
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
-  textAccumulator.accumulate("${messages.joinToString("\n", transform = LogCatMessage::message)}\n")
+  textAccumulator.accumulate("${messages.joinToString("\n", transform = LogCatMessage::getMessage)}\n")
 }
 
-private fun List<LogCatMessage>.mapMessages() = map(LogCatMessage::message)
+private fun List<LogCatMessage>.mapMessages() = map(LogCatMessage::getMessage)
