@@ -29,6 +29,7 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
@@ -49,6 +50,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
       // manifest is user-controllable.  However, we expect most cases to stick with the default locations, or if not preserve the
       // structure involving subdirectories of "src".
       var namespace: String? = null
+      var testNamespace: String? = null
       moduleDirectory.toVirtualFile()?.findChild("src")?.children?.forEach child@{ child ->
         if (!child.isDirectory) return@child
         val childName = child.name
@@ -56,11 +58,12 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
         val xmlFile = manifestFile.takeIf { it.isValid }?.let { psiManager.findFile(it) } as? XmlFile ?: return@child
         val rootTag = xmlFile.rootTag ?: return@child
         val packageAttribute = rootTag.getAttribute("package") ?: return@child
-        // Again, this is somewhat unsound as the main sourceSet need not have the location src/main.  However, well-formed projects
-        // should have the same value for package in all sourceSets, so to some extent this concern is theoretical.
-        namespace = when  {
-          (childName == "main") -> packageAttribute.value
-          else -> namespace ?: packageAttribute.value
+        when {
+          (childName == "main") -> namespace = packageAttribute.value
+          (childName == "androidTest") -> testNamespace = packageAttribute.value
+          // This is somewhat unsound as the main sourceSet need not have the location src/main.  However, well-formed projects
+          // should have the same value for package in all production sourceSets, so to some extent this concern is theoretical.
+          else -> namespace = namespace ?: packageAttribute.value
         }
         val wrappedPsiElement = WrappedPsiElement(packageAttribute, this, REMOVE_MANIFEST_PACKAGE)
         val usageInfo = AndroidManifestPackageUsageInfo(wrappedPsiElement)
@@ -71,6 +74,22 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
         val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_NAMESPACE_BUILDFILE)
         val usageInfo = AndroidNamespaceUsageInfo(wrappedPsiElement, model, namespace)
+        usages.add(usageInfo)
+      }
+      testNamespace?.let { testNamespace ->
+        if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
+        val currentNamespace = when {
+          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
+          namespace != null -> namespace
+          else -> ""
+        }
+        // TODO(b/191813691): this is a problematic case: should require user intervention.
+        if (testNamespace == currentNamespace) return@let
+        if (testNamespace == "$currentNamespace.test") return@let // default value for testNamespace is correct.
+        // TODO(b/191813691): check for agreement between model and specified testNamespace
+        val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
+        val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_TEST_NAMESPACE_BUILDFILE)
+        val usageInfo = AndroidTestNamespaceUsageInfo(wrappedPsiElement, model, testNamespace)
         usages.add(usageInfo)
       }
     }
@@ -101,6 +120,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   companion object {
     val REMOVE_MANIFEST_PACKAGE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.removePackage.usageType"))
     val ADD_NAMESPACE_BUILDFILE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.usageType"))
+    val ADD_TEST_NAMESPACE_BUILDFILE = UsageType(AndroidBundle.messagePointer("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.usageType"))
   }
 }
 
@@ -126,4 +146,16 @@ class AndroidNamespaceUsageInfo(
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.tooltipText")
+}
+
+class AndroidTestNamespaceUsageInfo(
+  element: WrappedPsiElement,
+  val model: GradleBuildModel,
+  val value: String
+) : GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    model.android().testNamespace().setValue(value)
+  }
+
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }
