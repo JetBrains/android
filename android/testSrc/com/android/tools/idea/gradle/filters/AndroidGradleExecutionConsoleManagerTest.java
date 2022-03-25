@@ -29,12 +29,15 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.internal.AbstractExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -50,9 +53,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
 
     // Verify that AndroidGradleExecutionConsoleManager is NOT used for execute task task.
     ExternalSystemTask executeTaskTask = createExternalSystemTask(ExternalSystemExecuteTaskTask.class);
-/* b/226462466
     assertThat(getConsoleManagerFor(executeTaskTask)).isNotInstanceOf(AndroidGradleExecutionConsoleManager.class);
-b/226462466 */
   }
 
   public void testGetHyperLinkInfo() {
@@ -84,6 +85,8 @@ b/226462466 */
     when(taskId.getProjectSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
     when(externalSystemTask.getId()).thenReturn(taskId);
     when(externalSystemTask.getExternalSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
+    when(externalSystemTask.getExternalProjectPath()).thenReturn("");
+    when(externalSystemTask.getIdeProject()).thenReturn(ProjectManager.getInstance().getDefaultProject());
     return externalSystemTask;
   }
 }
