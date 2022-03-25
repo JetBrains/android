@@ -28,7 +28,6 @@ import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Iconable
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -196,7 +195,7 @@ class UsageInfoTreeNodeTest {
     given(attributes.fgColor).thenReturn(color)
     Mockito.doReturn(attributes).`when`(node).textAttributes
 
-    val qualifierString = "<a qualifier string>"
+    val qualifierString = "<a qualifier string>" // a nontrivial config
     val folderConfiguration = mock<FolderConfiguration>()
     given(folderConfiguration.qualifierString).thenReturn(qualifierString)
 
@@ -207,18 +206,14 @@ class UsageInfoTreeNodeTest {
       Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
         given(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
 
-        mockStatic<StringUtil>().use {
-          given(StringUtil.isEmptyOrSpaces(qualifierString)).thenReturn(false)
+        node.render(renderer)
 
-          node.render(renderer)
-
-          verify(renderer).append(eq(name), eq(attributes))
-          verify(renderer).append(eq(" ($qualifierString)"), argThat {
-            it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-            it.fgColor == attributes.fgColor
-          })
-          verify(node).renderReferenceCount(eq(renderer), eq(attributes))
-        }
+        verify(renderer).append(eq(name), eq(attributes))
+        verify(renderer).append(eq(" ($qualifierString)"), argThat {
+          it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
+          it.fgColor == attributes.fgColor
+        })
+        verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }
     }
   }
@@ -239,7 +234,7 @@ class UsageInfoTreeNodeTest {
     given(attributes.fgColor).thenReturn(color)
     Mockito.doReturn(attributes).`when`(node).textAttributes
 
-    val qualifierString = "<a qualifier string>"
+    val qualifierString = "" // a trivial config
     val folderConfiguration = mock<FolderConfiguration>()
     given(folderConfiguration.qualifierString).thenReturn(qualifierString)
 
@@ -250,18 +245,14 @@ class UsageInfoTreeNodeTest {
       Mockito.mockStatic(`JVM class containing getFolderConfiguration`).use {
         given(getFolderConfiguration(psiFile)).thenReturn(folderConfiguration)
 
-        mockStatic<StringUtil>().use {
-          given(StringUtil.isEmptyOrSpaces(qualifierString)).thenReturn(true)
+        node.render(renderer)
 
-          node.render(renderer)
-
-          verify(renderer).append(eq(name), eq(attributes))
-          verify(renderer, never()).append(eq(" ($qualifierString)"), argThat {
-            it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-            it.fgColor == attributes.fgColor
-          })
-          verify(node).renderReferenceCount(eq(renderer), eq(attributes))
-        }
+        verify(renderer).append(eq(name), eq(attributes))
+        verify(renderer, never()).append(eq(" ($qualifierString)"), argThat {
+          it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
+          it.fgColor == attributes.fgColor
+        })
+        verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }
     }
   }

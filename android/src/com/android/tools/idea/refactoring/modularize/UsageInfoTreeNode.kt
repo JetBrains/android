@@ -20,7 +20,6 @@ import com.android.tools.idea.res.getFolderConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Iconable.ICON_FLAG_READ_STATUS
 import com.intellij.openapi.util.Iconable.ICON_FLAG_VISIBILITY
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlTag
@@ -58,7 +57,7 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
 
   private fun renderQualifiers(config: FolderConfiguration?, renderer: ColoredTreeCellRenderer, attr: SimpleTextAttributes) {
     val qualifier = config!!.qualifierString
-    if (!StringUtil.isEmptyOrSpaces(qualifier)) {
+    if(qualifier.isNotBlank()) {
       renderer.append(" ($qualifier)", SimpleTextAttributes(attr.style or STYLE_SMALLER, attr.fgColor))
     }
   }
