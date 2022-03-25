@@ -30,6 +30,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.SyncException
 import com.android.ddmlib.SyncService
 import com.android.ddmlib.TimeoutException
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -80,7 +81,7 @@ private suspend fun syncSend(device: IDevice,
                              remoteFilepath: String,
                              monitor: SyncService.ISyncProgressMonitor) {
   @Suppress("BlockingMethodInNonBlockingContext")
-  withContext(ioDispatcher) {
+  withContext(AndroidDispatchers.diskIoThread) {
     val localFilePath = Paths.get(localFilename)
     val localFileSize = Files.size(localFilePath)
     val localFileMode = RemoteFileMode.fromPath(localFilePath) ?: RemoteFileMode.DEFAULT
@@ -103,7 +104,7 @@ private suspend fun syncRecv(device: IDevice,
                              remoteFilepath: String,
                              localFilename: String,
                              monitor: SyncService.ISyncProgressMonitor) {
-  withContext(ioDispatcher) {
+  withContext(AndroidDispatchers.diskIoThread) {
     val progress = SyncProgressToISyncProgressMonitor(monitor)
     val fileChannel = createNewFileChannel(localFilename)
     fileChannel.use {
