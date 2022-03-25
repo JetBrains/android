@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.flags.StudioFlags
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 internal class DeviceConfigTest {
 
@@ -64,6 +67,43 @@ internal class DeviceConfigTest {
   }
 
   @Test
+  fun parseTestDeviceSpecLanguage() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    var config = DeviceConfig.toDeviceConfigOrNull("spec:width=1080px,height=1920px,dpi=320,isRound=true,chinSize=50px")
+    assertNotNull(config)
+    assertEquals(1080, config.width)
+    assertEquals(1920, config.height)
+    assertEquals(320, config.dpi)
+    assertTrue(config.isRound)
+    assertEquals(50, config.chinSize)
+    assertEquals(DimUnit.px, config.dimUnit)
+
+    config = DeviceConfig.toDeviceConfigOrNull("spec:width=200dp,height=300dp,chinSize=10dp")
+    assertNotNull(config)
+    assertEquals(200, config.width)
+    assertEquals(300, config.height)
+    assertEquals(480, config.dpi)
+    assertFalse(config.isRound)
+    assertEquals(10, config.chinSize)
+    assertEquals(DimUnit.dp, config.dimUnit)
+
+    // Width & height required
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:width=100dp"))
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:height=100dp"))
+
+    // Width & height should have matching units
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:width=100dp,height=1920px"))
+
+    // Width, height & chinSize (when present) should have matching units
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:width=100dp,height=200dp,chinSize=200px"))
+    assertNull(DeviceConfig.toDeviceConfigOrNull("spec:width=100px,height=200px,chinSize=200dp"))
+
+    // Old syntax has no effect, these types of issues should be highlighted by Inspections
+    assertEquals(DimUnit.px, DeviceConfig.toDeviceConfigOrNull("spec:width=1080px,height=1920px,unit=dp")!!.dimUnit)
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
+
+  @Test
   fun modificationsTest() {
     val config = MutableDeviceConfig()
     assertEquals(1080, config.width)
@@ -85,5 +125,30 @@ internal class DeviceConfigTest {
     config.width = config.height
     config.height = temp
     assertEquals(Orientation.landscape, config.orientation)
+  }
+
+  @Test
+  fun testDeviceSpecString() {
+    // Example of DeviceSpec string when new DeviceSpec Language is NOT in use, chinSize ignored
+    var config = DeviceConfig(width = 100, height = 200, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40)
+    assertEquals("spec:shape=Round,width=100,height=200,unit=dp,dpi=300", config.deviceSpec())
+
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    // For usage with DeviceSpec Language, note that parameters with default values are not shown (except for width & height)
+    config = DeviceConfig(width = 100, height = 200, dimUnit = DimUnit.dp, dpi = 300, shape = Shape.Round, chinSize = 40)
+    assertEquals("spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp", config.deviceSpec())
+
+    // Default dpi not shown
+    config = DeviceConfig(width = 100, height = 200, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Round, chinSize = 40)
+    assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp", config.deviceSpec())
+
+    // Default chinSize not shown
+    config = DeviceConfig(width = 100, height = 200, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Round, chinSize = 0)
+    assertEquals("spec:width=100dp,height=200dp,isRound=true", config.deviceSpec())
+
+    // Default isRound not shown, chinSize is dependent on device being round
+    config = DeviceConfig(width = 100, height = 200, dimUnit = DimUnit.dp, dpi = 480, shape = Shape.Normal, chinSize = 40)
+    assertEquals("spec:width=100dp,height=200dp", config.deviceSpec())
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 }

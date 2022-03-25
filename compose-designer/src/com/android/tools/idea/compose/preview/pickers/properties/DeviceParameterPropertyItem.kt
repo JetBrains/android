@@ -23,6 +23,11 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_PX
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findByIdOrName
@@ -61,14 +66,15 @@ internal class DeviceParameterPropertyItem(
   private val defaultDeviceValues: DeviceConfig =
     ConfigurationManager.findExistingInstance(model.module)?.getDefaultPreviewDevice()?.toDeviceConfig() ?: DeviceConfig(
       shape = DEFAULT_SHAPE,
-      width = DEFAULT_WIDTH,
-      height = DEFAULT_HEIGHT,
+      width = DEFAULT_WIDTH_PX,
+      height = DEFAULT_HEIGHT_PX,
       dimUnit = DEFAULT_UNIT,
-      dpi = DEFAULT_DENSITY.dpiValue
+      dpi = DEFAULT_DPI
     )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
 
+  // TODO(b/220005155): Surface remaining DeviceSpec Language parameters: isRound, chinSize
   val innerProperties = listOf<MemoryParameterPropertyItem>(
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_WIDTH,

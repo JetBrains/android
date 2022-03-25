@@ -80,6 +80,6 @@ object Preview {
     internal val DEFAULT_UNIT = DimUnit.px
     internal const val DEFAULT_DPI = 480
     internal const val DEFAULT_IS_ROUND = false
-    internal const val DEFAULT_CHIN_SIZE = 0
+    internal const val DEFAULT_CHIN_SIZE_PX = 0
   }
 }

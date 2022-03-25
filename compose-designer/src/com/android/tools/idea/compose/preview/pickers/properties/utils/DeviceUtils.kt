@@ -20,7 +20,6 @@ import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.intellij.openapi.module.Module
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
@@ -31,10 +30,13 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.MutableDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.CHIN_SIZE_PX_FOR_ROUND_CHIN
 import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkData
 import kotlin.math.sqrt
@@ -59,7 +61,13 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   config.height = screen.yDimension
   config.dpi = screen.pixelDensity.dpiValue
   if (screen.screenRound == ScreenRound.ROUND) {
-    config.shape = if (screen.chin != 0) Shape.Square else Shape.Round
+    if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
+      config.shape = Shape.Round
+      config.chinSize = screen.chin
+    }
+    else {
+      config.shape = if (screen.chin != 0) Shape.Chin else Shape.Round
+    }
   }
   else {
     config.shape = Shape.Normal
@@ -95,12 +103,12 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
         pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), yDimension)
         diagonalLength =
           sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
-        screenRound = when (deviceConfig.shape) {
-          Shape.Round,
-          Shape.Chin -> ScreenRound.ROUND
-          else -> ScreenRound.NOTROUND
+        screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND
+        chin = when {
+          deviceConfig.shape == Shape.Chin -> CHIN_SIZE_PX_FOR_ROUND_CHIN
+          deviceConfig.isRound -> deviceConfig.chinSize
+          else -> 0
         }
-        chin = if (deviceConfig.shape == Shape.Chin) 30 else 0
         size = ScreenSize.getScreenSize(diagonalLength)
         ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
       }

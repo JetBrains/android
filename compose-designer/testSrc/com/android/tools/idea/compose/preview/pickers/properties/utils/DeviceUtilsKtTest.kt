@@ -23,9 +23,11 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.MutableDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.flags.StudioFlags
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 internal class DeviceUtilsKtTest {
 
@@ -46,18 +48,59 @@ internal class DeviceUtilsKtTest {
     assertEquals(240, modifiedConfig.dpi)
     assertEquals(Shape.Normal, modifiedConfig.shape)
 
+    // Make it Round
     screen.screenRound = ScreenRound.ROUND
     val roundConfig = device.toDeviceConfig()
     assertEquals(Shape.Round, roundConfig.shape)
 
+    // Give it a chin
     screen.chin = 10
-    val squareConfig = device.toDeviceConfig()
-    assertEquals(Shape.Square, squareConfig.shape)
+
+    // Old, non-language DeviceSpec
+    var roundChinConfig = device.toDeviceConfig()
+    assertTrue(roundChinConfig.isRound)
+    assertEquals(Shape.Chin, roundChinConfig.shape)
+    assertEquals(0, roundChinConfig.chinSize)
+
+    // When using DeviceSpec Language
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+
+    roundChinConfig = device.toDeviceConfig()
+    assertTrue(roundChinConfig.isRound)
+    assertEquals(Shape.Round, roundChinConfig.shape) // Not using Shape.Chin anymore
+    assertEquals(10, roundChinConfig.chinSize) // ChinSize is reflected properly
+
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
+  }
+
+  @Test
+  fun createDeviceInstanceWithDeviceSpecLanguage() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    var screen = DeviceConfig(
+      width = 100,
+      height = 100,
+      dimUnit = DimUnit.px,
+      shape = Shape.Round,
+      chinSize = 20
+    ).createDeviceInstance().defaultHardware.screen
+    assertEquals(ScreenRound.ROUND, screen.screenRound)
+    assertEquals(20, screen.chin)
+
+    screen = DeviceConfig(
+      width = 100,
+      height = 100,
+      dimUnit = DimUnit.dp,
+      shape = Shape.Round,
+      chinSize = 20
+    ).createDeviceInstance().defaultHardware.screen
+    assertEquals(ScreenRound.ROUND, screen.screenRound)
+    assertEquals(60, screen.chin) // Screen.chin is pixels, so it's a different value when originally declared on 'dp
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
   fun parseDeviceSpecs() {
-    val device1 = emptyList<Device>().findOrParseFromDefinition("spec:shape=Normal,width=100,height=200,unit=px,dpi=300")
+    val device1 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=px,dpi=300")
     assertNotNull(device1)
     val screen1 = device1.defaultHardware.screen
     assertEquals(100, screen1.xDimension)
@@ -65,7 +108,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(320, screen1.pixelDensity.dpiValue) // Adjusted Density bucket
     assertEquals(0.69, (screen1.diagonalLength * 100).toInt() / 100.0)
 
-    val device2 = emptyList<Device>().findOrParseFromDefinition("spec:shape=Normal,width=100,height=200,unit=dp,dpi=300")
+    val device2 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=dp,dpi=300")
     assertNotNull(device2)
     val screen2 = device2.defaultHardware.screen
     assertEquals(188, screen2.xDimension)
@@ -93,6 +136,9 @@ internal class DeviceUtilsKtTest {
     assertEquals(480, screen1.pixelDensity.dpiValue)
   }
 }
+
+private fun deviceFromDeviceSpec(deviceDefinition: String): Device? =
+  emptyList<Device>().findOrParseFromDefinition(deviceDefinition)
 
 private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id

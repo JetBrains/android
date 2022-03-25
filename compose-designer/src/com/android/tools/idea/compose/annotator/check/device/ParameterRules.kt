@@ -107,7 +107,7 @@ internal object LanguageParameterRule {
   val chinSize = create(
     name = DeviceSpec.PARAMETER_CHIN_SIZE,
     expectedType = ExpectedIntegerWithUnit,
-    defaultValue = DeviceSpec.DEFAULT_CHIN_SIZE.toString() + DimUnit.dp.name,
+    defaultValue = DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString() + DimUnit.dp.name,
     valueCheck = IntegerWithUnitCheck
   )
 }

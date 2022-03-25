@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.pickers.tracking.ComposePickerTrac
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
@@ -394,7 +395,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=480", deviceProperty.value)
 
     deviceOptions["Square"]!!.select(deviceProperty) // Wear device
-    assertEquals("spec:shape=Square,width=300,height=300,unit=px,dpi=240", deviceProperty.value)
+    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=240", deviceProperty.value)
 
     deviceOptions["55.0\" Tv 2160p"]!!.select(deviceProperty) // Tv device
     assertEquals("spec:shape=Normal,width=3840,height=2160,unit=px,dpi=320", deviceProperty.value)
@@ -474,7 +475,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
       PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
     }
-    var expectedModificationsCountdown = 13
+    var expectedModificationsCountdown = 14
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -519,6 +520,15 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=960,height=360,unit=px,dpi=240")""",
       noParametersPreview.annotationText()
     )
+
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    // Trigger a change while using the DeviceSpec Language
+    model.properties["", "Width"].value = "961"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=961px,height=360px,dpi=240")""",
+      noParametersPreview.annotationText()
+    )
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
 
     // Clear values
     model.properties["", "group"].value = null

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices
 
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.compose.preview.pickers.properties.DEFAULT_DENSITY
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
@@ -32,6 +32,11 @@ import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
 import kotlin.math.sqrt
+
+/**
+ * Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin
+ */
+internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 /** Default device configuration for Phones */
 internal val ReferencePhoneConfig = deviceConfigWithDpDimensions(width = 360, height = 640)
@@ -106,11 +111,21 @@ internal class DeviceEnumValueBuilder {
   }
 
   fun addWearDevice(
-    shape: Shape
+    isRound: Boolean,
+    chinSizePx: Int,
+    displayName: String
   ): DeviceEnumValueBuilder = apply {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
-    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, dpi = density.dpiValue, shape = shape).deviceSpec()
-    val enumValue = PsiEnumValue.indented(deviceSpec, shape.display, PreviewPickerValue.DEVICE_REF_NONE)
+    val shape = if (isRound) Shape.Round else Shape.Normal
+    val deviceSpec = DeviceConfig(
+      width = 300,
+      height = 300,
+      dimUnit = DimUnit.px,
+      dpi = density.dpiValue,
+      shape = shape,
+      chinSize = chinSizePx
+    ).deviceSpec()
+    val enumValue = PsiEnumValue.indented(deviceSpec, displayName, PreviewPickerValue.DEVICE_REF_NONE)
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
@@ -179,9 +194,9 @@ internal class DeviceEnumValueBuilder {
       addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, ReferenceDesktopConfig, PreviewPickerValue.DEVICE_REF_DESKTOP)
     }
     if (!deviceEnumValues.contains(DeviceClass.Wear) || deviceEnumValues[DeviceClass.Wear]?.isEmpty() == true) {
-      addWearDevice(Shape.Square)
-      addWearDevice(Shape.Round)
-      addWearDevice(Shape.Chin)
+      addWearDevice(isRound = false, chinSizePx = 0, displayName = "Square")
+      addWearDevice(isRound = true, chinSizePx = 0, displayName = "Round")
+      addWearDevice(isRound = true, chinSizePx = CHIN_SIZE_PX_FOR_ROUND_CHIN, displayName = "Round Chin")
     }
     if (!deviceEnumValues.contains(DeviceClass.Tv) || deviceEnumValues[DeviceClass.Tv]?.isEmpty() == true) {
       addTvDevice(widthPx = 3840, heightPx = 2160, diagonalIn = 55.0)
@@ -199,6 +214,6 @@ private fun deviceConfigWithDpDimensions(width: Int, height: Int) =
     width = width,
     height = height,
     dimUnit = DimUnit.dp,
-    dpi = DEFAULT_DENSITY.dpiValue,
+    dpi = DEFAULT_DPI,
     shape = Shape.Normal
   )
