@@ -69,9 +69,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceExpected"))
-    val expectedText = FileUtil.loadFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage").toFile(testDataPath, ""))
-    val actualText = VfsUtilCore.loadText(manifestFile)
-    assertEquals(expectedText, actualText)
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
 
   @Test
@@ -82,9 +80,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToConflictingNamespaceExpected"))
-    val expectedText = FileUtil.loadFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage").toFile(testDataPath, ""))
-    val actualText = VfsUtilCore.loadText(manifestFile)
-    assertEquals(expectedText, actualText)
+    verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
 
   private fun writeToManifestFile(fileName: TestFileName) {
@@ -92,5 +88,11 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     assertTrue(testFile.exists())
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
     runWriteAction { VfsUtil.saveText(manifestFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+  }
+
+  private fun verifyManifestFileContents(file: VirtualFile, expected: TestFileName) {
+    val expectedText = FileUtil.loadFile(expected.toFile(testDataPath, ""))
+    val actualText = VfsUtilCore.loadText(file)
+    assertEquals(expectedText, actualText)
   }
 }
