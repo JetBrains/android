@@ -75,8 +75,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     myDevices = new ArrayList<>(devices);
   }
 
-  @VisibleForTesting
-  @NotNull Object getDevices() {
+  @NotNull List<@NotNull VirtualDevice> getDevices() {
     return myDevices;
   }
 

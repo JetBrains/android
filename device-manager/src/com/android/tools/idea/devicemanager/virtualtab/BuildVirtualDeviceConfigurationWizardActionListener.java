@@ -39,8 +39,10 @@ final class BuildVirtualDeviceConfigurationWizardActionListener implements Actio
 
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    if (AvdWizardUtils.createAvdWizard(myParent, myProject, new AvdOptionsModel(null)).showAndGet()) {
-      myTable.refreshAvds();
+    AvdOptionsModel model = new AvdOptionsModel(null);
+
+    if (AvdWizardUtils.createAvdWizard(myParent, myProject, model).showAndGet()) {
+      myTable.refreshAvdsAndSelect(new VirtualDeviceName(model.getCreatedAvd().getName()));
     }
   }
 }

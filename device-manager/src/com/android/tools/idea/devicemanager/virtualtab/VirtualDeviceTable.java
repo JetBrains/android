@@ -26,7 +26,9 @@ import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
@@ -72,17 +74,23 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @VisibleForTesting
   static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
-    private final @NotNull VirtualDeviceTableModel myModel;
+    private final @NotNull VirtualDeviceTable myTable;
+    private final @Nullable Key myKey;
 
     @VisibleForTesting
-    SetDevices(@NotNull VirtualDeviceTableModel model) {
-      myModel = model;
+    SetDevices(@NotNull VirtualDeviceTable table, @Nullable Key key) {
+      myTable = table;
+      myKey = key;
     }
 
     @Override
     public void onSuccess(@Nullable List<@NotNull VirtualDevice> devices) {
       assert devices != null;
-      myModel.setDevices(devices);
+      myTable.getModel().setDevices(devices);
+
+      if (myKey != null) {
+        myTable.setSelectedDevice(myKey);
+      }
 
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
         .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_COUNT)
@@ -100,7 +108,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @VisibleForTesting
   interface NewSetDevices {
-    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTableModel model);
+    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table, @Nullable Key key);
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
@@ -230,6 +238,19 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return Optional.of(getDeviceAt(viewRowIndex));
   }
 
+  private void setSelectedDevice(@NotNull Key key) {
+    int modelRowIndex = Devices.indexOf(getModel().getDevices(), key);
+
+    if (modelRowIndex == -1) {
+      return;
+    }
+
+    int viewRowIndex = convertRowIndexToView(modelRowIndex);
+
+    setRowSelectionInterval(viewRowIndex, viewRowIndex);
+    scrollRectToVisible(getCellRect(viewRowIndex, deviceViewColumnIndex(), true));
+  }
+
   @Override
   protected @NotNull JTableHeader createDefaultTableHeader() {
     TableColumnModel model = new DefaultTableColumnModel();
@@ -281,7 +302,11 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   void refreshAvds() {
-    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(getModel()));
+    refreshAvdsAndSelect(null);
+  }
+
+  void refreshAvdsAndSelect(@Nullable Key key) {
+    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(this, key));
   }
 
   // TODO: Remove together with the icon update side effect in getTableCellEditorComponent

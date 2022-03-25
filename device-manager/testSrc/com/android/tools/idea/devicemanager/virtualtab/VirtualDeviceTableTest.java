@@ -22,6 +22,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTable.SetDevices;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,7 +85,8 @@ public final class VirtualDeviceTableTest {
     return supplier;
   }
 
-  private @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTableModel model) {
-    return new CountDownLatchFutureCallback<>(new SetDevices(model), myLatch);
+  private @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table,
+                                                                                       @Nullable Key key) {
+    return new CountDownLatchFutureCallback<>(new SetDevices(table, key), myLatch);
   }
 }
