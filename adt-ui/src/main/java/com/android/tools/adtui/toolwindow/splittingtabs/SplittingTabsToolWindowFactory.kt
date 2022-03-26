@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import javax.swing.JComponent
@@ -48,6 +49,17 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     else {
       restoreTabs(project, contentManager, toolWindowState)
     }
+
+    project.messageBus.connect().subscribe(
+      ToolWindowManagerListener.TOPIC,
+      object : ToolWindowManagerListener {
+        override fun toolWindowShown(shownToolWindow: ToolWindow) {
+          if (toolWindow === shownToolWindow && toolWindow.isVisible && contentManager.isEmpty) {
+            // open a new session if all tabs were closed manually
+            createNewTab(project, contentManager)
+          }
+        }
+      })
   }
 
   abstract fun generateTabName(tabNames: Set<String>): String

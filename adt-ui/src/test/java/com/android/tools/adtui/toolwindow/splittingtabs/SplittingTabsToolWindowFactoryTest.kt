@@ -27,6 +27,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
@@ -77,6 +78,29 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(content.displayName).isEqualTo("TabName")
     assertThat((content.component as SplittingPanel).component).isSameAs(component)
     assertThat(content.isSplittingTab()).isTrue()
+  }
+
+  @Test
+  fun toolWindowShown_empty_createsNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+    toolWindow.contentManager.removeAllContents(true)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
+
+    assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
+  }
+
+  @Test
+  fun toolWindowShown_notEmpty_doesNotCreateNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
+
+    assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
   }
 
   /**
@@ -164,6 +188,8 @@ class SplittingTabsToolWindowFactoryTest {
     override fun setToHideOnEmptyContent(hideOnEmpty: Boolean) {
       this.hideOnEmpty = hideOnEmpty
     }
+
+    override fun isVisible(): Boolean = true
 
     override fun setTabActions(vararg actions: AnAction) {
       tabActionList.clear()
