@@ -29,7 +29,6 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
-import com.google.common.base.Charsets;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -399,11 +398,24 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (archive.isProtoXml(p, content)) {
       try {
         ProtoXmlPrettyPrinter prettyPrinter = new ProtoXmlPrettyPrinterImpl();
-        content = prettyPrinter.prettyPrint(content).getBytes(Charsets.UTF_8);
+        String text = prettyPrinter.prettyPrint(content);
+        return ApkVirtualFile.createText(p, text);
       }
       catch (IOException e) {
         // Ignore error, show encoded content.
         getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p), e);
+      }
+      return ApkVirtualFile.create(p, content);
+    }
+
+    if (archive.isBaselineProfile(p, content)) {
+      try {
+        String text = BaselineProfilePrettyPrinter.prettyPrint(myBaseFile, p, content);
+        return ApkVirtualFile.createText(p, text);
+      }
+      catch (IOException e) {
+        getLog().warn(String.format("Error decoding baseline entry \"%s\" from archive", p), e);
+        // Ignore error, fall through and show the original encoded content.
       }
       return ApkVirtualFile.create(p, content);
     }

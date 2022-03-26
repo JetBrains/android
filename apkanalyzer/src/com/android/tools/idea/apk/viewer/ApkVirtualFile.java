@@ -19,10 +19,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.BinaryLightVirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Path;
 
 /**
  * Implementation of an in-memory {@link VirtualFile} that correctly implements the {#getParent()} method.
@@ -50,12 +49,21 @@ class ApkVirtualFile {
         }
       };
     } else {
-      return new LightVirtualFile(fileName.toString(), new String(content, StandardCharsets.UTF_8)) {
-        @Override
-        public VirtualFile getParent() {
-          return ApkVirtualFolder.getDirectory(parent);
-        }
-      };
+      return createText(path, new String(content, StandardCharsets.UTF_8));
     }
+  }
+
+  @Nullable public static VirtualFile createText(@NotNull Path path, @NotNull String content) {
+    Path fileName = path.getFileName();
+    if (fileName == null) {
+      return null;
+    }
+    Path parent = path.getParent();
+    return new LightVirtualFile(fileName.toString(), content) {
+      @Override
+      public VirtualFile getParent() {
+        return ApkVirtualFolder.getDirectory(parent);
+      }
+    };
   }
 }

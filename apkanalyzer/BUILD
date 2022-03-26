@@ -17,6 +17,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
+        "//tools/base/profgen/profgen:studio.android.sdktools.profgen[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

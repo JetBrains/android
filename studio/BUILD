@@ -112,6 +112,7 @@ studio_plugin(
             "//tools/adt/idea/android-lint:intellij.android.lint",
             "//tools/adt/idea/android-templates:intellij.android.templates",
             "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+            "//tools/base/profgen/profgen:studio.android.sdktools.profgen",
             "//tools/adt/idea/app-inspection/api:app-inspection.api",
             "//tools/adt/idea/app-inspection/ide:app-inspection.ide",
             "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api",

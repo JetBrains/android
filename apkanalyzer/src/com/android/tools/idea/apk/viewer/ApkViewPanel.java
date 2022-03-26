@@ -430,11 +430,14 @@ public class ApkViewPanel implements TreeSelectionListener {
       String fileName = base == null ? "" : base.toString();
 
       if (!Files.isDirectory(path)) {
-        if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
+        if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
           return StudioIcons.Shell.Filetree.MANIFEST_FILE;
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
+        } else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
+          // TODO: Use dedicated icon for this.
+          return AllIcons.FileTypes.Hprof;
         }
 
         FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
