@@ -22,6 +22,7 @@ import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -156,8 +157,10 @@ class DeviceView(
           if (width > 0 && height > 0) {
             deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
           }
-          val clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
-          clipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync()
+          if (StudioFlags.DEVICE_CLIPBOARD_SYNCHRONIZATION_ENABLED.get()) {
+            val clipboardSynchronizer = DeviceClipboardSynchronizer(deviceClient.deviceController, this)
+            clipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync()
+          }
         }
       }
       decoder.addFrameListener(object : VideoDecoder.FrameListener {
