@@ -75,7 +75,6 @@ import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
 import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
@@ -1274,7 +1273,6 @@ private fun findResourceFieldsFromClass(
  * Finds all R classes that contain fields for resources from the given module.
  *
  * @param facet [AndroidFacet] of the module to find classes for
- * @return
  */
 private fun findRJavaClasses(facet: AndroidFacet): Collection<PsiClass> {
   val module = facet.module
@@ -1296,9 +1294,7 @@ fun findResourceFieldsForFileResource(file: PsiFile, onlyInOwnPackages: Boolean)
 fun findResourceFieldsForValueResource(tag: XmlTag, onlyInOwnPackages: Boolean): Array<PsiField> {
   val facet = AndroidFacet.getInstance(tag) ?: return PsiField.EMPTY_ARRAY
   val fileResType = getFolderType(tag.containingFile)
-  val resourceType = (if (fileResType == ResourceFolderType.VALUES) getResourceTypeForResourceTag(
-    tag)
-  else null)
+  val resourceType = (if (fileResType == ResourceFolderType.VALUES) getResourceTypeForResourceTag(tag) else null)
                      ?: return PsiField.EMPTY_ARRAY
   val name = tag.getAttributeValue(SdkConstants.ATTR_NAME) ?: return PsiField.EMPTY_ARRAY
   return findResourceFields(facet, resourceType.getName(), name, onlyInOwnPackages)
@@ -1359,43 +1355,31 @@ fun getResourceClassName(field: PsiField): String? {
  */
 fun isResourceDeclaration(resourceElement: PsiElement, targetElement: ResourceReferencePsiElement): Boolean {
   return when (resourceElement) {
-    is XmlFile -> { // If the ReferencePsiElement created from the resourceElement matches the targetElement, then it must be a declaration of the
-      // targetElement.
-      val referencePsiElement = create(resourceElement)
-      referencePsiElement != null && referencePsiElement.isEquivalentTo(targetElement)
-    }
-    is XmlAttributeValue -> {
-      if (isIdDeclaration(
-          resourceElement)) { // Layout and Navigation graph files can do inline id declaration.
-        return true
-      }
-      if (ResourceFolderType.VALUES == getFolderType(resourceElement.getContainingFile())) {
-        val attribute = PsiTreeUtil.getParentOfType(resourceElement,
-                                                    XmlAttribute::class.java)
-        if (attribute == null || attribute.nameElement.text != SdkConstants.ATTR_NAME) {
-          return false
-        }
-        val tag = PsiTreeUtil.getParentOfType(resourceElement, XmlTag::class.java) ?: return false
-        return when (getResourceTypeForResourceTag(tag)) {
-          null -> {
-            // Null means no resource type so this is not a resource declaration
-            false
-          }
-          ResourceType.ATTR -> tag.getAttribute(SdkConstants.ATTR_FORMAT) != null
-          ResourceType.STYLE -> {
-            // Styles can have references to other styles in their name, this checks that the full name is the reference we're looking for.
-            targetElement.isEquivalentTo(resourceElement)
-          }
-          else -> {
-            // For all other ResourceType, this is a declaration
-            true
-          }
-        }
-      }
-      false
-    }
+    is XmlFile -> targetElement.isEquivalentTo(resourceElement)
+    is XmlAttributeValue -> isResourceDeclaration(resourceElement, targetElement)
     else -> false
   }
+}
+
+fun isResourceDeclaration(resourceElement: XmlAttributeValue, targetElement: ResourceReferencePsiElement): Boolean {
+  if (isIdDeclaration(resourceElement)) { // Layout and Navigation graph files can do inline id declaration.
+    return true
+  }
+  if (ResourceFolderType.VALUES == getFolderType(resourceElement.containingFile)) {
+    val attribute = PsiTreeUtil.getParentOfType(resourceElement, XmlAttribute::class.java)
+    if (attribute == null || attribute.nameElement.text != SdkConstants.ATTR_NAME) {
+      return false
+    }
+    val tag = PsiTreeUtil.getParentOfType(resourceElement, XmlTag::class.java) ?: return false
+    return when (getResourceTypeForResourceTag(tag)) {
+      null -> false // Null means no resource type, so this is not a resource declaration.
+      ResourceType.ATTR -> tag.getAttribute(SdkConstants.ATTR_FORMAT) != null
+      // Styles may have references to other styles in their name, this checks that the full name is the reference we're looking for.
+      ResourceType.STYLE -> targetElement.isEquivalentTo(resourceElement)
+      else -> true // For all other resource types, this is a declaration.
+    }
+  }
+  return false
 }
 
 fun isResourceField(field: PsiField): Boolean {
@@ -1462,7 +1446,7 @@ fun addValueResource(resType: ResourceType, resources: Resources, value: String?
         item.type.stringValue = ResourceType.DIMEN.getName()
         return item
       }
-      if (value != null && value.matches(Regex("[-+]?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+)"))) {
+      if (value != null && value.matches(Regex("[-+]?(\\d+\\.\\d*|\\d*\\.\\d+)"))) {
         // Dimension value is in the form of floating-point number, e.g. "0.24".
         val item = resources.addItem()
         item.type.stringValue = ResourceType.DIMEN.getName()
@@ -2290,7 +2274,7 @@ fun getFieldNameByResourceName(styleName: String): String {
 
 /**
  * Finds and returns the resource files named stateListName in the directories listed in dirNames.
- * If some of the directories do not contain a file with that name, creates such a resource file.
+ * If some directories do not contain a file with that name, creates such a resource file.
  *
  * @param project the project
  * @param resDir the res/ dir containing the directories under investigation
