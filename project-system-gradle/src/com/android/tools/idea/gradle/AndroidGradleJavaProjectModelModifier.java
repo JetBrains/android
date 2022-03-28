@@ -243,9 +243,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
-      if (testScopes != null && openedFile != null) {
-        return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION;
-      }
+      boolean isAndroid = testScopes != null && openedFile != null && testScopes.isAndroidTestSource(openedFile);
+      return isAndroid ? ANDROID_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION;
     }
     return IMPLEMENTATION;
   }
