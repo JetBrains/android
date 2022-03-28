@@ -150,13 +150,7 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
     val url = virtualFile.parent?.presentableUrl ?: return
     presentation.addText("  ${FileUtil.getLocationRelativeToUserHome(url)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     val count = issues.size
-    if (count > 0) {
-      val text = "  Has $count issue${if (count == 1) "" else "s"}"
-      presentation.addText(text, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    }
-    else {
-      presentation.addText("  There is no issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    }
+    presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
   }
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> {
@@ -195,13 +189,7 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : De
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(AllIcons.FileTypes.Xml)
     val count = issues.size
-    if (count > 0) {
-      val text = "  Has $count issue${if (count == 1) "" else "s"}"
-      presentation.addText(text, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    }
-    else {
-      presentation.addText("  There is no issue", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    }
+    presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
   }
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> {
@@ -267,5 +255,13 @@ class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommon
     if (this.javaClass != other?.javaClass) return false
     val that = other as? IssueNode ?: return false
     return that.parentDescriptor == parentDescriptor && that.file == file && that.issue == issue
+  }
+}
+
+private fun createIssueCountText(issueCount: Int): String {
+  return when (issueCount) {
+    0 -> "There is no problem"
+    1 -> "Has 1 problem"
+    else -> "Has $issueCount problems"
   }
 }
