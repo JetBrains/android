@@ -187,9 +187,11 @@ open class ProjectsUpgradeTestBase {
   }
 
   private fun File.isFileToCompare() = isFile() && path.let {
-    // TODO what other files do we want to check?
     it.endsWith(SdkConstants.DOT_GRADLE)
     || it.endsWith(SdkConstants.EXT_GRADLE_KTS)
+    || it.endsWith(SdkConstants.DOT_XML)
+    || it.endsWith(SdkConstants.DOT_JAVA)
+    || it.endsWith(SdkConstants.DOT_KT)
     //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO need to avoid comparing timestamp first
   }
 
