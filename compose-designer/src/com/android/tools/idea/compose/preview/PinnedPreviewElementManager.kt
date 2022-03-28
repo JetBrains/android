@@ -77,7 +77,7 @@ class PinnedPreviewElementManagerImpl internal constructor(val project: Project)
       val filesWithPinnedElements = pinnedElements.map { it.containingFilePath }.toSet()
       val kotlinAnnotations: Sequence<PsiElement> = DumbService.getInstance(project).runReadActionInSmartMode(
         Computable<Sequence<PsiElement>> {
-          KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+          KotlinAnnotationsIndex.get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
                                                    GlobalSearchScope.projectScope(project)).asSequence()
         })
 

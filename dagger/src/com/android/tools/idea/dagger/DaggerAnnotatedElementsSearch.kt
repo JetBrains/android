@@ -235,7 +235,7 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     if (useScope is GlobalSearchScope) {
       val name = annClass.name ?: return emptyList()
       val scope = KotlinSourceFilterScope.sourcesAndLibraries(useScope, annClass.project)
-      return KotlinAnnotationsIndex.getInstance().get(name, annClass.project, scope)
+      return KotlinAnnotationsIndex.get(name, annClass.project, scope)
     }
 
     return (useScope as LocalSearchScope).scope.flatMap { it.descendantsOfType<KtAnnotationEntry>() }

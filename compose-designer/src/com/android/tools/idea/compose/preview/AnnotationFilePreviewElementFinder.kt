@@ -83,7 +83,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     }
 
     val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-      KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+      KotlinAnnotationsIndex.get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
                                                GlobalSearchScope.fileScope(project, vFile)).asSequence()
     }
 
