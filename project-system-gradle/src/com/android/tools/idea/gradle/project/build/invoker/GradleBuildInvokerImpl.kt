@@ -404,19 +404,26 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       presentation.description = "Restart"
       presentation.icon = AllIcons.Actions.Compile
 
+      val stopAction: AnAction = StopAction(request)
+      val stopPresentation: Presentation = stopAction.templatePresentation
+      stopPresentation.text = "Stop"
+      stopPresentation.description = "Stop the build"
+      stopPresentation.icon = AllIcons.Actions.Suspend
+
       // If build is invoked in the context of a task that has already opened the build output tool window by sending a similar event
       // sending another one replaces the mapping from the buildId to the build view breaking the build even pipeline. (See: b/190426050).
       if (buildViewManager.getBuildView(id) == null) {
         val eventTime: Long = System.currentTimeMillis()
         val buildDescriptor = DefaultBuildDescriptor(id, executionName, workingDir, eventTime)
+          .withRestartAction(restartAction).withAction(stopAction)
+          .withExecutionFilter(AndroidReRunBuildFilter(workingDir))
+        if (isBuildAttributionEnabledForProject(project)) {
+          buildDescriptor.withExecutionFilter(BuildAttributionOutputLinkFilter())
+        }
         if (request.doNotShowBuildOutputOnFailure) {
-          buildDescriptor.setActivateToolWindowWhenFailed(false)
+          buildDescriptor.isActivateToolWindowWhenFailed = false
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
-        event.withRestartAction(restartAction).withExecutionFilter(AndroidReRunBuildFilter(workingDir))
-        if (isBuildAttributionEnabledForProject(project)) {
-          event.withExecutionFilter(BuildAttributionOutputLinkFilter())
-        }
         startBuildEventPosted = true
         buildEventDispatcher.onEvent(id, event)
       }
@@ -520,6 +527,16 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       val buildTaskListener: ExternalSystemTaskNotificationListener =
         createBuildTaskListener(newRequest, executionName, newRequest.listener)
       internalExecuteTasks(newRequest, null, buildTaskListener)
+    }
+  }
+
+  private inner class StopAction constructor(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = buildStopper.contains(myRequest.taskId)
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      buildStopper.attemptToStopBuild(myRequest.taskId, null)
     }
   }
 
