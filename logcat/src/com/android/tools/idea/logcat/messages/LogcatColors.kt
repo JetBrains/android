@@ -21,7 +21,7 @@ import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
-import com.jetbrains.rd.util.concurrentMapOf
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The logcat-tags-palette.json file is
@@ -48,7 +48,7 @@ internal class LogcatColors {
     } ?: throw IllegalStateException("Resource not found")
 
   }
-  private val tagColors = concurrentMapOf<Int, TextAttributes>()
+  private val tagColors = ConcurrentHashMap<Int, TextAttributes>()
 
   /**
    * Map a [Log.LogLevel] to a [TextAttributesKey] object for rendering a log level.

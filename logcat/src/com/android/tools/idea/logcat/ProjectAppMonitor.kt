@@ -26,7 +26,6 @@ import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.jetbrains.rd.util.concurrentMapOf
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
