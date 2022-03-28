@@ -21,7 +21,6 @@ import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
-@UsedInBuildAction
 class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : ProjectImportModelProvider {
   private var buildModels: Set<GradleBuild>? = null
   private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()

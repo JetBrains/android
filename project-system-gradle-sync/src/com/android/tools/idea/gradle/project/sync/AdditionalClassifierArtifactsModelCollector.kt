@@ -20,7 +20,6 @@ import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import org.gradle.tooling.BuildController
 
-@UsedInBuildAction
 internal fun getAdditionalClassifierArtifactsModel(
   actionRunner: GradleInjectedSyncActionRunner,
   inputModules: List<AndroidModule>,
@@ -55,7 +54,6 @@ internal fun getAdditionalClassifierArtifactsModel(
   )
 }
 
-@UsedInBuildAction
 fun idToString(identifier: ArtifactIdentifier): String {
   return identifier.groupId + ":" + identifier.artifactId + ":" + identifier.version
 }

@@ -48,7 +48,6 @@ typealias IdeVariantFetcher = (
   configuration: ModuleConfiguration
 ) -> IdeVariantCoreImpl?
 
-@UsedInBuildAction
 sealed class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
   abstract val variantNameResolver: VariantNameResolver
@@ -73,26 +72,22 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
  *  - All the non-Android modules
  *  - The android modules using an older AGP version than the minimum supported for V2 sync
  */
-@UsedInBuildAction
 sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject)
 
 /**
  * The container class of Android modules that can be fetched using V2 sync.
  */
-@UsedInBuildAction
 class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, val versions: Versions) :
   BasicIncompleteGradleModule(gradleProject)
 
 /**
  * The container class of Android and non-Android modules that cannot be fetched using V2 nor parallel sync.
  */
-@UsedInBuildAction
 class BasicNonV2IncompleteGradleModule(gradleProject: BasicGradleProject) : BasicIncompleteGradleModule(gradleProject)
 
 /**
  * The container class for Java module, containing its Android models handled by the Android plugin.
  */
-@UsedInBuildAction
 class JavaModule(
   gradleProject: BasicGradleProject,
   private val kotlinGradleModel: KotlinGradleModel?,
@@ -111,7 +106,6 @@ class JavaModule(
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
-@UsedInBuildAction
 @VisibleForTesting
 sealed class AndroidModule constructor(
   val agpVersion: GradleVersion?,
@@ -281,7 +275,6 @@ private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): 
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
 
-@UsedInBuildAction
 class NativeVariantsAndroidModule private constructor(
   gradleProject: BasicGradleProject,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
@@ -301,11 +294,9 @@ class NativeVariantsAndroidModule private constructor(
   override val variantNameResolver: VariantNameResolver = fun(_: String?, _: (String) -> String?): String? = null
 }
 
-@UsedInBuildAction
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minByOrNull { it }
 
-@UsedInBuildAction
 private fun collectIdentifiers(variants: Collection<IdeVariantCoreImpl>): List<ArtifactIdentifier> {
   return variants.asSequence()
     .flatMap {
