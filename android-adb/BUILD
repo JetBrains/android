@@ -30,6 +30,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platform-tools",
     ],
+    test_friends = ["//tools/adt/idea/android-adb:intellij.android.adb"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
