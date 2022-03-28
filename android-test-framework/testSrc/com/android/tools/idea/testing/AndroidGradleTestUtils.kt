@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
@@ -78,6 +79,7 @@ import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
+import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
@@ -186,7 +188,8 @@ typealias AndroidProjectBuilderCore = (
   gradlePath: String,
   rootProjectBasePath: File,
   moduleBasePath: File,
-  agpVersion: String
+  agpVersion: String,
+  internedModels: InternedModels
 ) -> AndroidProjectModels
 
 sealed class ModuleModelBuilder {
@@ -243,6 +246,7 @@ data class JavaModuleModelBuilder(
 }
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
+data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl, val isProvided: Boolean = false)
 
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
@@ -280,7 +284,7 @@ interface AndroidProjectStubBuilder {
   fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl>
 
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
-  fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryDependencyCoreImpl>?
+  fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency>?
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
   fun androidTestArtifact(variant: String): IdeAndroidArtifactCoreImpl?
   fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl?
@@ -288,6 +292,7 @@ interface AndroidProjectStubBuilder {
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantCoreImpl>
   val ndkModel: V2NdkModel?
+  val internedModels: InternedModels
 }
 
 /**
@@ -340,7 +345,7 @@ data class AndroidProjectBuilder(
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
     { variant -> null },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
-  val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryDependencyCoreImpl> =
+  val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency> =
     { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantCoreImpl> = { buildVariantStubs() },
@@ -422,7 +427,7 @@ data class AndroidProjectBuilder(
     copy(androidModuleDependencyList = androidModuleDependencyList)
 
   fun withAndroidLibraryDependencyList(
-    androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryDependencyCoreImpl>
+    androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency>
   ) = copy(androidLibraryDependencyList = androidLibraryDependencyList)
 
   fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
@@ -436,11 +441,14 @@ data class AndroidProjectBuilder(
 
 
   fun build(): AndroidProjectBuilderCore =
-    fun(projectName: String,
-        gradleProjectPath: String,
-        rootProjectBasePath: File,
-        moduleBasePath: File,
-        agpVersion: String): AndroidProjectModels {
+    fun(
+      projectName: String,
+      gradleProjectPath: String,
+      rootProjectBasePath: File,
+      moduleBasePath: File,
+      agpVersion: String,
+      internedModels: InternedModels
+    ): AndroidProjectModels {
       val builder = object : AndroidProjectStubBuilder {
         override val agpVersion: String = agpVersion
         override val buildId: String get() = buildId()
@@ -475,7 +483,7 @@ data class AndroidProjectBuilder(
           dimension)
 
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
-        override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryDependencyCoreImpl> =
+        override fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency> =
           androidLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
@@ -485,6 +493,7 @@ data class AndroidProjectBuilder(
         override val variants: List<IdeVariantCoreImpl> = variants()
         override val androidProject: IdeAndroidProjectImpl = androidProject()
         override val ndkModel: V2NdkModel? = ndkModel()
+        override val internedModels: InternedModels get() = internedModels
       }
       return AndroidProjectModels(
         androidProject = builder.androidProject,
@@ -686,7 +695,12 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
 ): IdeAndroidArtifactCoreImpl {
   val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
   val dependenciesStub = buildDependenciesStub(
-    libraries = androidLibraryDependencies,
+    libraries = androidLibraryDependencies.map {
+      IdeAndroidLibraryDependencyCoreImpl(
+        internedModels.getOrCreate(it.library),
+        it.isProvided
+      )
+    },
     projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
   )
   val assembleTaskName = "assemble".appendCapitalized(variant)
@@ -1192,6 +1206,7 @@ private fun setupTestProjectFromAndroidModelCore(
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val androidModels = mutableListOf<GradleAndroidModel>()
+  val internedModels = InternedModels(null)
   val libraryResolver = IdeLibraryModelResolverImpl()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
@@ -1210,7 +1225,8 @@ private fun setupTestProjectFromAndroidModelCore(
           gradlePath,
           rootProjectBasePath,
           moduleBasePath,
-          moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
+          moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get(),
+          internedModels
         )
         createAndroidModuleDataNode(
           qualifiedModuleName = qualifiedModuleName,

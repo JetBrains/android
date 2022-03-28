@@ -84,7 +84,7 @@ class VariantNameResolutionTest {
       )
         .build()
     val (androidProject, variants, ndkModel) =
-      projectModelBuilder("projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version")
+      projectModelBuilder("projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version", InternedModels(null))
 
     val resolver = buildVariantNameResolver(androidProject, variants)
     Truth.assertThat(

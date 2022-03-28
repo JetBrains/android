@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -32,7 +32,6 @@ import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.android.tools.idea.testing.updateTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestCase
@@ -210,10 +209,10 @@ private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
   )
 
 private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
-  IdeAndroidLibraryDependencyCoreImpl(
+  AndroidLibraryDependency(
     IdeAndroidLibraryImpl.create(
       artifactAddress = artifactAddress,
-      name = artifactAddress,
+      name = "",
       folder = gradleCacheRoot.resolve(File("libraryFolder")),
       manifest = "manifest.xml",
       compileJarFiles = listOf("api.jar"),

@@ -19,13 +19,13 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
+import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -408,9 +408,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   private fun setupProject(
     appDependOnLibrary: Boolean = false,
     additionalAppDeclaredDependencies: String? = null,
-    additionalAppResolvedDependencies: List<IdeAndroidLibraryDependencyCoreImpl> = emptyList(),
+    additionalAppResolvedDependencies: List<AndroidLibraryDependency> = emptyList(),
     additionalLibrary1DeclaredDependencies: String? = null,
-    additionalLibrary1ResolvedDependencies: List<IdeAndroidLibraryDependencyCoreImpl> = emptyList(),
+    additionalLibrary1ResolvedDependencies: List<AndroidLibraryDependency> = emptyList(),
   ) {
 
     fun config(declaredDependencies: String?): String =
@@ -497,10 +497,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 }
 
 private fun ideAndroidLibrary(artifactAddress: String) =
-  IdeAndroidLibraryDependencyCoreImpl(
+  AndroidLibraryDependency(
     IdeAndroidLibraryImpl(
       artifactAddress = artifactAddress,
-      name = artifactAddress,
+      name = "",
       folder = File("libraryFolder").resolve(artifactAddress.replace(':', '-')),
       _manifest = "manifest.xml",
       _compileJarFiles = listOf("file.jar"),

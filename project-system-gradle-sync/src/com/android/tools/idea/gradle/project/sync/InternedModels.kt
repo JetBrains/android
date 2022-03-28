@@ -83,13 +83,13 @@ class InternedModels(private val buildRootDirectory: File?) {
     factory: (core: T, name: String) -> T
   ): T {
     return computeIfAbsent(unnamed) {
-      val libraryName = allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory!!, artifactAddress = unnamed.artifactAddress)
+      val libraryName = allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory, artifactAddress = unnamed.artifactAddress)
       factory(unnamed, libraryName)
     }
   }
 }
 
-private fun MutableSet<String>.generateLibraryName(projectBasePath: File, artifactAddress: String): String {
+private fun MutableSet<String>.generateLibraryName(projectBasePath: File?, artifactAddress: String): String {
   val baseLibraryName = convertToLibraryName(artifactAddress, projectBasePath)
   var candidateLibraryName = baseLibraryName
   var suffix = 0

@@ -161,7 +161,7 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
 /**
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
-internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File): String {
+internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File?): String {
   if (libraryArtifactAddress.startsWith("${ModelCache.LOCAL_AARS}:")) {
     return adjustLocalLibraryName(
       File(libraryArtifactAddress.removePrefix("${ModelCache.LOCAL_AARS}:").substringBefore(":")),
@@ -192,8 +192,8 @@ private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String
  * Name shortening is required because the maximum allowed file name length is 256 characters and .jar files located in deep
  * directories in CI environments may exceed this limit.
  */
-private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: File): @SystemIndependent String {
-  val maybeRelative = artifactFile.relativeToOrSelf(projectBasePath)
+private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: File?): @SystemIndependent String {
+  val maybeRelative = if (projectBasePath != null) artifactFile.relativeToOrSelf(projectBasePath) else artifactFile
   if (!FileUtil.filesEqual(maybeRelative, artifactFile)) {
     return FileUtil.toSystemIndependentName(File(".${File.separator}${maybeRelative}").path)
   }

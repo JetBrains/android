@@ -16,9 +16,9 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Expect
-import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -74,7 +74,8 @@ class AndroidProjectBuilderTest {
       ":app",
       File("/root"),
       File("/root/app"),
-      "99.99-agp"
+      "99.99-agp",
+      InternedModels(null)
     )
 
     expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2")

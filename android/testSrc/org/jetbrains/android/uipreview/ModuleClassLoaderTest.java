@@ -28,11 +28,11 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
@@ -411,14 +411,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertNull("Disposed ModuleClassLoaders can not be copied", copy);
   }
 
-  private static IdeAndroidLibraryDependencyCoreImpl ideAndroidLibrary(File gradleCacheRoot,
-                                                                       @SuppressWarnings("SameParameterValue") String artifactAddress,
-                                                                       String folder,
-                                                                       String libJar) {
-    return new IdeAndroidLibraryDependencyCoreImpl(
+  private static AndroidLibraryDependency ideAndroidLibrary(File gradleCacheRoot,
+                                                            @SuppressWarnings("SameParameterValue") String artifactAddress,
+                                                            String folder,
+                                                            String libJar) {
+    return new AndroidLibraryDependency(
       IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
-        artifactAddress,
+        "",
         gradleCacheRoot.toPath().resolve(folder).toFile(),
         "manifest.xml",
         ImmutableList.of("api.jar"),
