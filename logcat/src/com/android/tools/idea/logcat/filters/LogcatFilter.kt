@@ -139,13 +139,17 @@ internal data class AgeFilter(val age: Duration, private val clock: Clock) : Log
  */
 internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesProvider) : LogcatFilter {
   private var packageNames: Set<String> = emptySet()
+  private lateinit var packageNamesRegex: Regex
 
   override fun prepare() {
     packageNames = packageNamesProvider.getPackageNames()
+    packageNamesRegex = packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex(IGNORE_CASE)
   }
 
   override fun matches(message: LogcatMessageWrapper) =
-    packageNames.isEmpty() || packageNames.contains(message.logCatMessage.header.appName)
+    packageNames.isEmpty()
+    || packageNames.contains(message.logCatMessage.header.appName)
+    || packageNamesRegex.containsMatchIn(message.logCatMessage.message)
 
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
 

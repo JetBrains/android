@@ -203,6 +203,19 @@ class LogcatFilterTest {
         message3
       ).inOrder()
   }
+
+  @Test
+  fun appFilter_matechedMessageText() {
+    val message1 = logCatMessage(message = "Message from com.app1")
+    val message2 = logCatMessage(message = "Message from com.app2")
+    val message3 = logCatMessage(message = "Message from com.app3")
+
+    assertThat(ProjectAppFilter(FakePackageNamesProvider("app1", "app2")).filter(listOf(message1, message2, message3)))
+      .containsExactly(
+        message1,
+        message2,
+      ).inOrder()
+  }
 }
 
 private class TrueFilter : LogcatFilter {
