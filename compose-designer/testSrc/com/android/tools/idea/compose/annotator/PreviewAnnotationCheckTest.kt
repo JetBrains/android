@@ -16,17 +16,22 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.annotator.check.common.BadType
+import com.android.tools.idea.compose.annotator.check.common.CheckResult
 import com.android.tools.idea.compose.annotator.check.common.Failure
 import com.android.tools.idea.compose.annotator.check.common.Missing
 import com.android.tools.idea.compose.annotator.check.common.Repeated
 import com.android.tools.idea.compose.annotator.check.common.Unknown
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.runInEdtAndGet
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
@@ -34,6 +39,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
 internal class PreviewAnnotationCheckTest {
@@ -52,13 +58,12 @@ internal class PreviewAnnotationCheckTest {
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
   fun testGoodAnnotations() {
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -68,23 +73,13 @@ internal class PreviewAnnotationCheckTest {
         @Composable
         fun myFun() {}
       """.trimIndent()
-    ).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    )
     assert(result.issues.isEmpty())
   }
 
   @Test
   fun testAnnotationWithIssues() {
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -93,15 +88,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
         @Composable
         fun myFun() {}
-""".trimIndent()).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+""".trimIndent()
+    )
     assertEquals(6, result.issues.size)
     assertEquals(
       listOf(
@@ -123,9 +111,7 @@ internal class PreviewAnnotationCheckTest {
   @Test
   fun testAnnotationWithDeviceSpecLanguageIssues() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -134,15 +120,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:width=100,isRound=no")
         @Composable
         fun myFun() {}
-""".trimIndent()).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+""".trimIndent()
+    )
     assertEquals(3, result.issues.size)
     assertEquals(
       listOf(
@@ -156,7 +135,6 @@ internal class PreviewAnnotationCheckTest {
       "spec:width=1080px,isRound=false,height=1920px",
       result.proposedFix
     )
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -188,9 +166,8 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testBadTarget() {
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -198,16 +175,7 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         class myNotAnnotation() {}
       """.trimIndent()
-    ).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    )
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
     assertEquals("Preview target must be a composable function or an annotation class",
@@ -216,9 +184,8 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testMultipreviewAnnotation_flagEnabled() {
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -226,24 +193,14 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         annotation class myAnnotation() {}
       """.trimIndent()
-    ).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    )
     assert(result.issues.isEmpty())
   }
 
   @Test
   fun testMultipreviewAnnotation_flagDisabled() {
-    val vFile = rule.fixture.addFileToProject(
-      "test.kt",
-      // language=kotlin
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(false)
+    val result = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -251,18 +208,78 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         annotation class myAnnotation() {}
       """.trimIndent()
-    ).virtualFile
-
-    val annotationEntry = runWriteActionAndWait {
-      rule.fixture.openFileInEditor(vFile)
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
-    assertNotNull(annotationEntry)
-
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(false)
-    val result = runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
+    )
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
     assertEquals("Preview target must be a composable function", (result.issues[0] as Failure).failureMessage)
+  }
+
+  @Test
+  fun testDeviceIdFailure() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+
+    val result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "id:device_1")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Failure::class, result.issues[0]::class)
+    // Memory test by default do not include an instance of the Sdk
+    assertEquals("Default Device: pixel_5 not found", (result.issues[0] as Failure).failureMessage)
+  }
+
+  @Test
+  fun testDeviceIdCheck() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    runWriteActionAndWait {
+      Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module)
+    }
+
+    var result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "id:device_1")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
+    )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("id:pixel_5", result.proposedFix)
+
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "id:pixel_4")
+        @Composable
+        fun myFun() {}
+""".trimIndent())
+    assertFalse(result.hasIssues)
+  }
+
+  /**
+   * Adds file with the given [fileContents] and runs [PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded] on the first Preview
+   * annotation found.
+   */
+  private fun addKotlinFileAndCheckPreviewAnnotation(@Language("kotlin") fileContents: String): CheckResult {
+    rule.fixture.configureByText(KotlinFileType.INSTANCE, fileContents)
+
+    val annotationEntry = runInEdtAndGet { rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>() }
+    assertNotNull(annotationEntry)
+
+    return runReadAction { PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry) }
   }
 }
