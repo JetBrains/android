@@ -54,7 +54,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     initMocks(this);
 
     Project project = getProject();
-    myContentManager = spy(new ContentManager(project));
+    myContentManager = spy(new ContentManagerImpl(project));
     ServiceContainerUtil.replaceService(project, ContentManager.class, myContentManager, project);
     ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
     when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);

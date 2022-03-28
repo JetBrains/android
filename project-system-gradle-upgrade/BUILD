@@ -66,8 +66,12 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )
 
