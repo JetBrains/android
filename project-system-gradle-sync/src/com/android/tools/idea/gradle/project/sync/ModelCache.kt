@@ -98,25 +98,28 @@ interface ModelCache {
 
     @JvmStatic
     fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache {
+      val internedModels = InternedModels(buildFolderPaths.buildRootDirectory)
       if (useV2BuilderModels) {
-        return modelCacheV2Impl(buildFolderPaths.buildRootDirectory)
+        return modelCacheV2Impl(internedModels)
       }
-      return modelCacheV1Impl(buildFolderPaths)
+      return modelCacheV1Impl(internedModels, buildFolderPaths)
     }
 
     @JvmStatic
     fun create(useV2BuilderModels: Boolean): ModelCache {
+      val internedModels = InternedModels(null)
       return if (useV2BuilderModels) {
-        modelCacheV2Impl(null)
+        modelCacheV2Impl(internedModels)
       }
       else {
-        modelCacheV1Impl(BuildFolderPaths())
+        modelCacheV1Impl(internedModels, BuildFolderPaths())
       }
     }
 
     @JvmStatic
     fun create(): ModelCache.V1 {
-      return modelCacheV1Impl(BuildFolderPaths())
+      val internedModels = InternedModels(null)
+      return modelCacheV1Impl(internedModels, BuildFolderPaths())
     }
   }
 }

@@ -60,7 +60,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildType
@@ -143,40 +142,8 @@ import kotlin.concurrent.withLock
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
-internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
-
-  val strings: MutableMap<String, String> = HashMap()
-  // Library names are expected to be unique, and thus we track already allocated library names to be able to uniqualize names when
-  // necessary.
-  val allocatedLibraryNames: MutableSet<String> = HashSet()
-
-  // Different modules (Gradle projects) may (usually do) share the same libraries. We create up to two library instances in this case.
-  // One is when the library is used as a regular dependency and one when it is used as a "provided" dependency. This is going to change
-  // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
-  // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
-  val androidLibraryCores: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
-  val javaLibraryCores: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
-  val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
-
-
-  /**
-   * Finds an existing or creates a new library instances that wraps the library [core]. When creating a new library for a core for which
-   * there is neither regular nor provided library yet generates a unique library name based on its artifact address.
-   *
-   * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
-   * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
-   */
-  fun <TCore : IdeArtifactLibrary> MutableMap<TCore, TCore>.createOrGetNamedLibrary(
-    core: TCore,
-    factory: (core: TCore, name: String) -> TCore
-  ): TCore {
-    return computeIfAbsent(core) {
-      val libraryName = allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory!!, artifactAddress = core.artifactAddress)
-      factory(core, libraryName)
-    }
-  }
-
-  fun String.deduplicate() = strings.putIfAbsent(this, this) ?: this
+internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
+  fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
   fun Set<String>.deduplicateStrings(): Set<String> =  this.map { it.deduplicate() }.toSet()
@@ -461,9 +428,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       externalAnnotations = androidLibraryData.externalAnnotations.path ?: "",
       publicResources = androidLibraryData.publicResources.path ?: "",
       symbolFile = androidLibraryData.symbolFile.path,
-      deduplicate = { strings.getOrPut(this) { this } }
+      deduplicate = { internedModels.intern(this) }
     )
-    return androidLibraryCores.createOrGetNamedLibrary(core) { unnamed, name -> unnamed.copy(name = name) }
+    return internedModels.getOrCreate(core)
   }
 
   /**
@@ -478,7 +445,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       name = "",
       artifact = javaLibrary.artifact!!
     )
-    return javaLibraryCores.createOrGetNamedLibrary(unnamed) { core, name -> core.copy(name = name) }
+    return internedModels.getOrCreate(unnamed)
   }
 
   fun libraryFrom(
@@ -488,14 +455,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     lintJar: File?,
     isTestFixturesComponent: Boolean
   ): IdeModuleLibrary {
-    val core = IdeModuleLibraryImpl(
+    val moduleLibrary = IdeModuleLibraryImpl(
       buildId = buildId,
       projectPath = projectPath,
       variant = variant,
       lintJar = lintJar?.path?.let(::File),
       sourceSet = if (isTestFixturesComponent) IdeModuleSourceSet.TEST_FIXTURES else IdeModuleSourceSet.MAIN
     )
-    return moduleLibraryCores.internCore(core)
+    return internedModels.getOrCreate(moduleLibrary)
   }
 
   fun createFromDependencies(
@@ -1171,20 +1138,6 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 private inline fun <K, R, V> zip(original1: Collection<K>, original2: Collection<R>, mapper: (K, R) -> V): List<V> {
   return original1.zip(original2).toMap().map { (k, v) -> mapper(k, v) }
 }
-
-private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
-
-private fun MutableSet<String>.generateLibraryName(projectBasePath: File, artifactAddress: String): String {
-  val baseLibraryName = convertToLibraryName(artifactAddress, projectBasePath)
-  var candidateLibraryName = baseLibraryName
-  var suffix = 0
-  while (!this.add(candidateLibraryName)) {
-    suffix++
-    candidateLibraryName = "$baseLibraryName ($suffix)"
-  }
-  return candidateLibraryName
-}
-
 
 private data class LibraryIdentity(
   val group: String,

@@ -139,15 +139,10 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
+internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
-  val strings: MutableMap<String, String> = HashMap()
-  val androidLibraryCores: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
-  val javaLibraryCores: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
-  val moduleLibraryCores: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
-
-  fun deduplicateString(s: String): String = strings.putIfAbsent(s, s) ?: s
-  fun String.deduplicate() = deduplicateString(this)
+  fun deduplicateString(s: String): String = internedModels.intern(s)
+  fun String.deduplicate() = internedModels.intern(this)
   fun deduplicateFile(f: File): File = File(f.path.deduplicate())
 
   fun sourceProviderFrom(provider: SourceProvider, mlModelBindingEnabled: Boolean): IdeSourceProviderImpl {
@@ -301,25 +296,25 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
   }
 
   fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeModuleLibrary {
-    val core = IdeModuleLibraryImpl(
+    val moduleLibrary = IdeModuleLibraryImpl(
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
       lintJar = copyNewProperty(library::getLintJar)?.path?.let(::File),
       sourceSet = IdeModuleSourceSet.MAIN
     )
-    return moduleLibraryCores.internCore(core)
+    return internedModels.getOrCreate(moduleLibrary)
   }
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): IdeModuleLibrary {
-    val core = IdeModuleLibraryImpl(
+    val moduleLibrary = IdeModuleLibraryImpl(
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = null,
       lintJar = null,
       sourceSet = IdeModuleSourceSet.MAIN
     )
-    return moduleLibraryCores.internCore(core)
+    return internedModels.getOrCreate(moduleLibrary)
   }
 
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl {
@@ -425,9 +420,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     }
     else {
       val artifactAddress = computeAddress(androidLibrary)
-      val core = IdeAndroidLibraryImpl.create(
+      val unnamedLibrary = IdeAndroidLibraryImpl.create(
         artifactAddress = artifactAddress,
-        name = convertToLibraryName(artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+        name = "",
         folder = androidLibrary.folder,
         manifest = androidLibrary.manifest.path,
         compileJarFiles = listOfNotNull(
@@ -445,12 +440,12 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
         publicResources = androidLibrary.publicResources.path,
         artifact = androidLibrary.bundle,
         symbolFile = getSymbolFilePath(androidLibrary),
-        deduplicate = { strings.getOrPut(this) { this } }
+        deduplicate = { deduplicate() }
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
       IdeAndroidLibraryDependencyCoreImpl(
-        androidLibraryCores.internCore(core),
+        internedModels.getOrCreate(unnamedLibrary),
         isProvided = isProvided
       )
     }
@@ -468,15 +463,15 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
     }
     else {
       val artifactAddress = computeAddress(javaLibrary)
-      val core = IdeJavaLibraryImpl(
+      val unnamedLibrary = IdeJavaLibraryImpl(
         artifactAddress = artifactAddress,
-        name = convertToLibraryName(artifactAddress, buildFolderPaths.buildRootDirectory!!).deduplicate(),
+        name = "",
         artifact = javaLibrary.jarFile
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
       IdeJavaLibraryDependencyCoreImpl(
-        javaLibraryCores.internCore(core),
+        internedModels.getOrCreate(unnamedLibrary),
         isProvided = isProvided
       )
     }
@@ -490,7 +485,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       lintJar = null,
       sourceSet = IdeModuleSourceSet.MAIN
     )
-    return IdeModuleDependencyImpl(moduleLibraryCores.internCore(core))
+    return IdeModuleDependencyImpl(internedModels.getOrCreate(core))
   }
 
   /** Call this method on level 1 Dependencies model.  */
