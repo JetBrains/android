@@ -83,7 +83,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
