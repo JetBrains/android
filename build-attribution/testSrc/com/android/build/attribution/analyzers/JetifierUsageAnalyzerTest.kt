@@ -236,6 +236,7 @@ class JetifierUsageAnalyzerUnitTest {
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse("7.1.0-alpha11"),
+      gradleVersion = null,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = true,
@@ -256,6 +257,7 @@ class JetifierUsageAnalyzerUnitTest {
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse("7.1.0"),
+      gradleVersion = null,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = true,

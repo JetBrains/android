@@ -44,6 +44,7 @@ class CriticalPathAnalyzerTest {
   fun setUp() {
     studioProvidedInfo = StudioProvidedInfo(
       agpVersion = null,
+      gradleVersion = null,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = false,

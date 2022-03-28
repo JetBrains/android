@@ -15,6 +15,9 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.StudioProvidedInfo
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.ide.common.repository.GradleVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
 import com.intellij.openapi.diagnostic.Logger
 import org.gradle.tooling.events.FailureResult
@@ -24,14 +27,28 @@ import java.net.URI
 
 private val LOG = Logger.getInstance(DownloadsAnalyzer::class.java)
 
+/** Minimal version of gradle that provides file download events. */
+private val minGradleVersionProvidingDownloadEvents = GradleVersion.parse("7.3")
+
+/**
+ * The version of AGP that requires gradle at least 7.3.
+ * We get AGP version from current build and can assume Gradle version surely based on that.
+ */
+private val minAgpVersionGuaranteesGradle_7_3 = GradleVersion.parse("7.2")
+
 /**
  * Analyzer for aggregating data about file downloads during build.
  * Listens for Gradle TAPI events of [FileDownloadFinishEvent] type and
  * aggregates received info by repository.
  */
-class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(), BuildEventsAnalyzer {
+class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
+                          BuildEventsAnalyzer,
+                          BuildAttributionReportAnalyzer,
+                          PostBuildProcessAnalyzer {
 
   private val processedEvents = mutableListOf<DownloadResult>()
+  private var gradleCanProvideDownloadEvents: Boolean? = null
+  private var currentAgpVersionFromBuild: GradleVersion? = null
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event !is FileDownloadFinishEvent) return
@@ -53,9 +70,22 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(), BuildEventsA
 
   override fun cleanupTempState() {
     processedEvents.clear()
+    gradleCanProvideDownloadEvents = null
+    currentAgpVersionFromBuild = null
+  }
+
+  override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
+    currentAgpVersionFromBuild = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { GradleVersion.tryParse(it) }
+  }
+
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
+    val doesCurrentAgpRequireGradleThatProvidesEvents = currentAgpVersionFromBuild?.let { it >= minAgpVersionGuaranteesGradle_7_3 } == true
+    val canGradleVersionFromSettingsProvideEvents = studioProvidedInfo.gradleVersion?.let { it >= minGradleVersionProvidingDownloadEvents } == true
+    gradleCanProvideDownloadEvents = doesCurrentAgpRequireGradleThatProvidesEvents || canGradleVersionFromSettingsProvideEvents
   }
 
   override fun calculateResult(): Result {
+    if (gradleCanProvideDownloadEvents != true) return Result.analyzerNotActive
     val resultList = processedEvents.groupBy { it.repository }.map { (repo, events) ->
       val groupedByStatus = events.groupBy { it.status }
       val successDownloads = groupedByStatus.getOrDefault(DownloadStatus.SUCCESS, emptyList())

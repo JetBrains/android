@@ -21,6 +21,7 @@ import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth
 import org.gradle.tooling.Failure
@@ -42,33 +43,6 @@ class DownloadsAnalyzerUnitTest {
     Truth.assertThat(result.analyzerActive).isFalse()
   }
 
-  @Test
-  fun testDownloadsAnalyzerWithNoEvents() {
-    val pluginContainer = PluginContainer()
-    val taskContainer = TaskContainer()
-    val analyzer = DownloadsAnalyzer()
-    val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
-
-    wrapper.onBuildStart()
-    // When the build is finished successfully and the analyzer is run
-    wrapper.onBuildSuccess(
-      null,
-      GradlePluginsData.emptyData,
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
-      StudioProvidedInfo(
-        agpVersion = null,
-        configurationCachingGradlePropertyState = null,
-        buildInvocationType = BuildInvocationType.REGULAR_BUILD,
-        enableJetifierPropertyState = false,
-        useAndroidXPropertyState = false,
-        buildRequestHolder = MockitoKt.mock()
-      )
-    )
-
-    val result = analyzer.result
-    Truth.assertThat(result.repositoryResults).isEmpty()
-    Truth.assertThat(result.analyzerActive).isTrue()
-  }
   @Test
   fun testDownloadsAnalyzerReceivingEvents() {
     val result = testDownloadsAnalyzer()
@@ -212,6 +186,7 @@ class DownloadsAnalyzerUnitTest {
       Mockito.mock(BuildEventsAnalysisResult::class.java),
       StudioProvidedInfo(
         agpVersion = null,
+        gradleVersion = GradleVersion.parse("7.3"),
         configurationCachingGradlePropertyState = null,
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
@@ -221,6 +196,76 @@ class DownloadsAnalyzerUnitTest {
     )
 
     return analyzer.result
+  }
+
+  @Test
+  fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
+    agpVersionFromBuild = "4.3",
+    gradleVersion = "7.2",
+    expectAnalyzerActive = false
+  )
+
+  @Test
+  fun testDownloadsAnalyzerInactiveWithOldGradleAndMissingAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
+    // This would mean some real old AGP as we added it at least in 4.3
+    agpVersionFromBuild = null,
+    gradleVersion = "7.2",
+    expectAnalyzerActive = false
+  )
+
+  @Test
+  fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() = runTestWithNoEventsForAgpAndGradleVersions(
+    agpVersionFromBuild = "4.3",
+    gradleVersion = null,
+    expectAnalyzerActive = false
+  )
+
+  @Test
+  fun testDownloadsAnalyzerWithRecentAGP() = runTestWithNoEventsForAgpAndGradleVersions(
+    // Case for when we assume Gradle version base on AGP version received from build.
+    agpVersionFromBuild = "7.3",
+    gradleVersion = null,
+    expectAnalyzerActive = true
+  )
+
+  @Test
+  fun testDownloadsAnalyzerWithOldAGPButRecentGradle() = runTestWithNoEventsForAgpAndGradleVersions(
+    agpVersionFromBuild = "4.3",
+    gradleVersion = "7.3",
+    expectAnalyzerActive = true
+  )
+
+  private fun runTestWithNoEventsForAgpAndGradleVersions(agpVersionFromBuild: String?, gradleVersion: String?, expectAnalyzerActive: Boolean) {
+    val pluginContainer = PluginContainer()
+    val taskContainer = TaskContainer()
+    val analyzer = DownloadsAnalyzer()
+    val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
+    val attributionData = AndroidGradlePluginAttributionData(
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
+        agpVersion = agpVersionFromBuild,
+        configurationCacheIsOn = false
+      )
+    )
+
+    wrapper.onBuildStart()
+    // When the build is finished successfully and the analyzer is run
+    wrapper.onBuildSuccess(
+      attributionData,
+      GradlePluginsData.emptyData,
+      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      StudioProvidedInfo(
+        agpVersion = null,
+        gradleVersion = gradleVersion?.let{ GradleVersion.parse(it) },
+        configurationCachingGradlePropertyState = null,
+        buildInvocationType = BuildInvocationType.REGULAR_BUILD,
+        enableJetifierPropertyState = false,
+        useAndroidXPropertyState = false,
+        buildRequestHolder = MockitoKt.mock()
+      )
+    )
+
+    Truth.assertThat(analyzer.result.analyzerActive).isEqualTo(expectAnalyzerActive)
+    Truth.assertThat(analyzer.result.repositoryResults).isEmpty()
   }
 }
 

@@ -300,6 +300,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildInvocationType: BuildInvocationType
     ): StudioProvidedInfo = StudioProvidedInfo(
     agpVersion = agpVersion,
+    gradleVersion = null,
     configurationCachingGradlePropertyState = configurationCachingGradlePropertyState,
     buildInvocationType = buildInvocationType,
     enableJetifierPropertyState = false,

@@ -17,7 +17,9 @@ package com.android.build.attribution.data
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.gradle.util.PropertiesFiles
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
@@ -30,6 +32,7 @@ import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
+  val gradleVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
   val buildInvocationType: BuildInvocationType,
   val enableJetifierPropertyState: Boolean,
@@ -44,6 +47,7 @@ data class StudioProvidedInfo(
 
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
+      gradleVersion = GradleVersions.getInstance().getGradleVersion(project),
       configurationCachingGradlePropertyState = runReadAction {
         // First check global user properties as it overrides project properties
         getUserPropertiesConfigurationCachePropertyState(project) ?:
