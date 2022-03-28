@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
+import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -319,8 +320,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
                                                          clazzFile.className.contains("ComposableSingletons\$")
 
-    // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
-    val internalClassName = className.replace(".", "/")
+    val internalClassName = getInternalClassName(desc.containingPackage(), className)
     var primaryClass = ByteArray(0)
     val supportClasses = mutableMapOf<String, ByteArray>()
     // TODO: Remove all these println once we are more stable.
@@ -420,4 +420,19 @@ class AndroidLiveEditCodeGenerator(val project: Project){
   }
 
   fun Annotated.hasComposableAnnotation() = this.annotations.hasAnnotation(FqName("androidx.compose.runtime.Composable"))
+
+  // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
+  // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
+  // and class name in "import" format and returns the same class name in "internal" format.
+  private fun getInternalClassName(packageName : FqName?, className : String) : String {
+    var packagePrefix = ""
+    if (packageName != null && !packageName.isRoot) {
+      packagePrefix = "$packageName."
+    }
+    if (!className.contains(packagePrefix)) {
+      throw LiveEditUpdateException.internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
+    }
+    val classSuffix = className.substringAfter(packagePrefix)
+    return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
+  }
 }
