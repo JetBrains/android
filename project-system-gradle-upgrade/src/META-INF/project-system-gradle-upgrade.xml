@@ -5,4 +5,9 @@
       <add-to-group group-id="ToolsMenu"/>
     </action>
   </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.AssistantInvoker"
+                    serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvokerImpl"/>
+  </extensions>
 </idea-plugin>

@@ -323,6 +323,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//tools/adt/idea/utp[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",

@@ -65,8 +65,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
