@@ -93,7 +93,7 @@ import org.jetbrains.annotations.Nullable;
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
   @NotNull private final FirstRunWizardMode myMode;
 
-  // This will be different than the actual handler, since this will change as and when we change the path in the UI.
+  // This will be different from the actual handler, since this will change as and when we change the path in the UI.
   private AndroidSdkHandler myLocalHandler;
 
   private ComponentTreeNode myComponentTree;
@@ -219,17 +219,19 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
           myLocalHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, myLocalHandler.toCompatiblePath(sdkLocation));
           StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
           myComponentsStep.startLoading();
-          myLocalHandler.getSdkManager(progress)
-            .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
-                    myComponentInstaller = new ComponentInstaller(myLocalHandler);
-                    myComponentTree.updateState(myLocalHandler);
-                    myComponentsStep.stopLoading();
-                  }), ImmutableList.of(() -> myComponentsStep.loadingError()),
-                  new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
-                  StudioSettingsController.getInstance());
-          if (myLicenseAgreementStep != null) {
-            myLicenseAgreementStep.reload();
-          }
+          ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            myLocalHandler.getSdkManager(progress)
+              .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
+                      myComponentInstaller = new ComponentInstaller(myLocalHandler);
+                      myComponentTree.updateState(myLocalHandler);
+                      myComponentsStep.stopLoading();
+                    }), ImmutableList.of(() -> myComponentsStep.loadingError()),
+                    new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
+                    StudioSettingsController.getInstance());
+            if (myLicenseAgreementStep != null) {
+              myLicenseAgreementStep.reload();
+            }
+          });
         }
       }
     }
