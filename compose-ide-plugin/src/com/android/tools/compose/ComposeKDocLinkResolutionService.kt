@@ -54,7 +54,7 @@ class ComposeKDocLinkResolutionService : KDocLinkResolutionService {
     val targetFqName = FqName.fromSegments(qualifiedName)
 
     val functions = KotlinFunctionShortNameIndex.getInstance().get(shortName, project, scope).asSequence()
-    val classes = KotlinClassShortNameIndex.getInstance().get(shortName, project, scope).asSequence()
+    val classes = KotlinClassShortNameIndex.get(shortName, project, scope).asSequence()
 
     val additionalDescriptors = (functions + classes)
       .filter { it.fqName == targetFqName }
