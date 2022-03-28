@@ -765,7 +765,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
   private var _cachedUsages = listOf<UsageInfo>()
-  internal val cachedUsages
+  val cachedUsages
     get() = _cachedUsages
 
   public final override fun findUsages(): Array<out UsageInfo> {
@@ -1014,7 +1014,7 @@ class AgpComponentUsageTypeProvider : UsageTypeProvider {
  * Currently, the difference between these messages is simply that the Processor reports on the state of all its
  * Components, while each Component reports only on itself.
  */
-internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
+fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
   kind: UpgradeAssistantEventKind,
   usages: Int? = null,
   files: Int? = null,
