@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
@@ -35,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
@@ -62,9 +65,10 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> {
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Disposable {
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
+  private @Nullable IDeviceChangeListener myListener;
 
   @VisibleForTesting
   static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
@@ -111,6 +115,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> {
 
     myAsyncSupplier = asyncSupplier;
     myNewSetDevices = newSetDevices;
+    initListener();
 
     dataModel.addTableModelListener(event -> sizeWidthsToFit());
 
@@ -150,6 +155,11 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> {
       .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, listener);
 
     refreshAvds();
+  }
+
+  private void initListener() {
+    myListener = new VirtualDeviceChangeListener();
+    AndroidDebugBridge.addDeviceChangeListener(myListener);
   }
 
   private void sizeWidthsToFit() {
@@ -198,6 +208,11 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> {
     });
 
     return sorter;
+  }
+
+  @Override
+  public void dispose() {
+    AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
   @Override

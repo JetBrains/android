@@ -71,7 +71,10 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull JTable newTable() {
-    return new VirtualDeviceTable(this);
+    VirtualDeviceTable table = new VirtualDeviceTable(this);
+    Disposer.register(this, table);
+
+    return table;
   }
 
   @Override

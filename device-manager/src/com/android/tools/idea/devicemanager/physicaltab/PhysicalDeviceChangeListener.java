@@ -102,6 +102,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceConnected(@NotNull IDevice device) {
+    if (device.isEmulator()) {
+      return;
+    }
+
     Logger.getInstance(PhysicalDeviceChangeListener.class).info(device + " connected");
     buildPhysicalDevice(device);
   }
@@ -112,6 +116,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
+    if (device.isEmulator()) {
+      return;
+    }
+
     Logger.getInstance(PhysicalDeviceChangeListener.class).info(device + " disconnected");
     buildPhysicalDevice(device);
   }
@@ -122,6 +130,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceChanged(@NotNull IDevice device, int mask) {
+    if (device.isEmulator()) {
+      return;
+    }
+
     if ((mask & IDevice.CHANGE_STATE) == 0) {
       return;
     }
@@ -135,10 +147,6 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
    */
   @WorkerThread
   private void buildPhysicalDevice(@NotNull IDevice device) {
-    if (device.isEmulator()) {
-      return;
-    }
-
     // noinspection UnstableApiUsage
     FluentFuture.from(myEdtExecutorService.submit(myBuilderServiceGetInstance::get))
       .transformAsync(builderService -> Objects.requireNonNull(builderService).build(device), myEdtExecutorService)
