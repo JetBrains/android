@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatib
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
@@ -72,7 +73,7 @@ internal class AndroidExtraModelProviderWorker(
 
   fun populateBuildModels() {
     try {
-      val modules: List<GradleModule> =
+      val modules: List<GradleModelCollection> =
         when (syncOptions) {
           is SyncProjectActionOptions -> {
             val modules: List<BasicIncompleteGradleModule> = getBasicIncompleteGradleModules()
@@ -82,8 +83,12 @@ internal class AndroidExtraModelProviderWorker(
                 .filterIsInstance<BasicV2AndroidModuleGradleProject>()
                 .all { canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp)) }
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
-            SyncProjectActionWorker(syncOptions, canFetchV2Models, configuredSyncActionRunner).populateAndroidModels(modules)
-
+            SyncProjectActionWorker(
+              syncOptions,
+              buildModels.first(),
+              canFetchV2Models,
+              configuredSyncActionRunner
+            ).populateAndroidModels(modules)
           }
           is NativeVariantsSyncActionOptions -> {
             consumer.consume(
@@ -109,6 +114,7 @@ internal class AndroidExtraModelProviderWorker(
 
   inner class SyncProjectActionWorker(
     private val syncOptions: SyncProjectActionOptions,
+    private val buildModel: BuildModel,
     private val canFetchV2Models: Boolean,
     private val actionRunner: SyncActionRunner
   )
@@ -131,7 +137,7 @@ internal class AndroidExtraModelProviderWorker(
      * All the requested models are registered back to the external project system via the
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
-    fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModule> {
+    fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModelCollection> {
       val buildNameMap =
         (buildModels
            .mapNotNull { build ->
@@ -170,6 +176,7 @@ internal class AndroidExtraModelProviderWorker(
       getAdditionalClassifierArtifactsModel(
         actionRunner,
         modules.filterIsInstance<AndroidModule>(),
+        modelCache.libraryResolver,
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
         syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
       )
@@ -179,7 +186,7 @@ internal class AndroidExtraModelProviderWorker(
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
       populateProjectSyncIssues(modules.filterIsInstance<AndroidModule>(), canFetchV2Models)
 
-      return modules
+      return modules + GradleProject(buildModel, modelCache.createLibraryTable())
     }
 
     private fun fetchGradleModulesAction(

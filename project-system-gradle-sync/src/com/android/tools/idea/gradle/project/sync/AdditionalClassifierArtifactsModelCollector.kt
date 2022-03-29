@@ -18,11 +18,14 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.LibraryReference
 import org.gradle.tooling.BuildController
 
 internal fun getAdditionalClassifierArtifactsModel(
   actionRunner: GradleInjectedSyncActionRunner,
   inputModules: List<AndroidModule>,
+  libraryResolver: (LibraryReference) -> IdeLibrary,
   cachedLibraries: Collection<String>,
   downloadAndroidxUISamplesSources: Boolean
 ) {
@@ -32,7 +35,7 @@ internal fun getAdditionalClassifierArtifactsModel(
         if (module.agpVersion?.isAtLeast(3, 5, 0) != true) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
-        val identifiers = module.getLibraryDependencies().filter {
+        val identifiers = module.getLibraryDependencies(libraryResolver).filter {
           !cachedLibraries.contains(idToString(it)) && it.version != "unspecified"
         }
 

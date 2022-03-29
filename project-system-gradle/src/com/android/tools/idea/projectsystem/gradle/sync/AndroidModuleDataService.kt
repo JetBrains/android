@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.unlinkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
@@ -140,7 +141,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       }
       .groupBy { it.first }
       .forEach { (projectNode, nodes) ->
-        val libraryResolver = IdeLibraryModelResolverImpl()
+        val libraryResolver = createLibraryResolverFor(projectNode)
         nodes.forEach { (_, moduleNode, modelNode) ->
           importAndroidModel(modelNode, moduleNode, libraryResolver)
         }
@@ -346,4 +347,10 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
   state.AFTER_SYNC_TASK_NAMES = HashSet(mainArtifact.ideSetupTaskNames)
   state.ASSEMBLE_TEST_TASK_NAME = ""
   state.COMPILE_JAVA_TEST_TASK_NAME = ""
+}
+
+private fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolverImpl {
+  val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
+    ?: error("IDE library table node not found")
+  return IdeLibraryModelResolverImpl { libraryTable.libraries[it.libraryIndex] }
 }

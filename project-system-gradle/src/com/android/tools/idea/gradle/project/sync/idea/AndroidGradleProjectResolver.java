@@ -67,6 +67,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl;
+import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -804,28 +805,39 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    resolverCtx.putUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY, new IdeLibraryModelResolverImpl());
     Project project = getProject();
     if (project != null) {
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
     }
+
     IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
     if (syncError != null) {
       throw ideAndroidSyncErrorToException(syncError);
     }
-    // Special mode sync to fetch additional native variants.
-    for (IdeaModule gradleModule : gradleProject.getModules()) {
-      IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
-      if (nativeVariants != null) {
-        projectDataNode.createChild(NATIVE_VARIANTS,
-                                    new IdeAndroidNativeVariantsModelsWrapper(
-                                      GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
-                                      nativeVariants
-                                    ));
+
+    IdeLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeLibraryTableImpl.class);
+    // If there is no ide library table it is not an Android project.
+    if (ideLibraryTable != null) {
+      projectDataNode.createChild(
+        AndroidProjectKeys.IDE_LIBRARY_TABLE,
+        ideLibraryTable
+      );
+      resolverCtx.putUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY,
+                              new IdeLibraryModelResolverImpl(it -> ideLibraryTable.getLibraries().get(it.getLibraryIndex())));
+      // Special mode sync to fetch additional native variants.
+      for (IdeaModule gradleModule : gradleProject.getModules()) {
+        IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
+        if (nativeVariants != null) {
+          projectDataNode.createChild(NATIVE_VARIANTS,
+                                      new IdeAndroidNativeVariantsModelsWrapper(
+                                        GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
+                                        nativeVariants
+                                      ));
+        }
       }
-    }
-    if (isAndroidGradleProject()) {
-      projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+      if (isAndroidGradleProject()) {
+        projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+      }
     }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
   }

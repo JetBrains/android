@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import java.io.File
 
 class InternedModels(private val buildRootDirectory: File?) {
   private val strings: MutableMap<String, String> = HashMap()
+  private val libraries: MutableList<IdeLibrary> = mutableListOf()
 
   // Library names are expected to be unique, and thus we track already allocated library names to be able to uniqualize names when
   // necessary.
@@ -32,9 +36,11 @@ class InternedModels(private val buildRootDirectory: File?) {
   // One is when the library is used as a regular dependency and one when it is used as a "provided" dependency. This is going to change
   // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
-  private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, IdeAndroidLibraryImpl> = HashMap()
-  private val javaLibraries: MutableMap<IdeJavaLibraryImpl, IdeJavaLibraryImpl> = HashMap()
+  private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
+  private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
   private val moduleLibraries: MutableMap<IdeModuleLibraryImpl, IdeModuleLibraryImpl> = HashMap()
+
+  fun resolve(reference: LibraryReference): IdeLibrary = libraries[reference.libraryIndex]
 
   fun intern(string: String): String {
     return strings.getOrPut(string) { string }
@@ -47,7 +53,7 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  fun getOrCreate(unnamedAndroidLibrary: IdeAndroidLibraryImpl): IdeAndroidLibraryImpl {
+  fun getOrCreate(unnamedAndroidLibrary: IdeAndroidLibraryImpl): LibraryReference {
     if (unnamedAndroidLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedAndroidLibrary")
     return androidLibraries.createOrGetNamedLibrary(unnamedAndroidLibrary) { core, name -> core.copy(name = name) }
   }
@@ -59,7 +65,7 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  fun getOrCreate(unnamedJavaLibrary: IdeJavaLibraryImpl): IdeJavaLibraryImpl {
+  fun getOrCreate(unnamedJavaLibrary: IdeJavaLibraryImpl): LibraryReference {
     if (unnamedJavaLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedJavaLibrary")
     return javaLibraries.createOrGetNamedLibrary(unnamedJavaLibrary) { core, name -> core.copy(name = name) }
   }
@@ -78,14 +84,21 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  private fun <T : IdeArtifactLibrary> MutableMap<T, T>.createOrGetNamedLibrary(
+  private fun <T : IdeArtifactLibrary> MutableMap<T, Pair<LibraryReference, T>>.createOrGetNamedLibrary(
     unnamed: T,
     factory: (core: T, name: String) -> T
-  ): T {
+  ): LibraryReference {
     return computeIfAbsent(unnamed) {
       val libraryName = allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory, artifactAddress = unnamed.artifactAddress)
-      factory(unnamed, libraryName)
-    }
+      val library = factory(unnamed, libraryName)
+      val index = libraries.size
+      libraries.add(library)
+      LibraryReference(index) to library
+    }.first
+  }
+
+  fun createLibraryTable(): IdeLibraryTableImpl {
+    return IdeLibraryTableImpl(libraries.toList())
   }
 }
 

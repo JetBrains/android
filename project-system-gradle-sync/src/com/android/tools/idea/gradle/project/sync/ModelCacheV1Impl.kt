@@ -83,9 +83,11 @@ import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
@@ -117,6 +119,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreI
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -1144,6 +1147,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   return object : ModelCache.V1 {
     private val lock = ReentrantLock()
+    override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
+    override fun createLibraryTable(): IdeLibraryTableImpl = internedModels.createLibraryTable()
+
     override fun variantFrom(
       androidProject: IdeAndroidProject,
       variant: Variant,

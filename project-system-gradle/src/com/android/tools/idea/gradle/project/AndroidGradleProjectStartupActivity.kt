@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResol
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IDE_LIBRARY_TABLE
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
@@ -246,26 +248,26 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val moduleSetupData: Collection<ModuleSetupData> =
     projectDataNodes.flatMap { projectData ->
-      projectData.let {
-        val libraryResolver = IdeLibraryModelResolverImpl()
-        it
-          .modules()
-          .flatMap inner@{ node ->
-            val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
+      val libraries =
+        ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
+      val libraryResolver = IdeLibraryModelResolverImpl(fun(reference: LibraryReference) = libraries.libraries[reference.libraryIndex])
+      projectData
+        .modules()
+        .flatMap inner@{ node ->
+          val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
 
-            val externalId = node.data.id
-            val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
+          val externalId = node.data.id
+          val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
 
-            if (sourceSets.isEmpty()) {
-              listOf(ModuleSetupData(module, node, libraryResolver))
-            } else {
-              sourceSets.map {
-                val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
-                ModuleSetupData(moduleId, it, libraryResolver)
-              } + ModuleSetupData(module, node, libraryResolver)
-            }
+          if (sourceSets.isEmpty()) {
+            listOf(ModuleSetupData(module, node, libraryResolver))
+          } else {
+            sourceSets.map {
+              val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
+              ModuleSetupData(moduleId, it, libraryResolver)
+            } + ModuleSetupData(module, node, libraryResolver)
           }
-      }
+        }
     }
 
   val attachModelActions = moduleSetupData.flatMap { data ->

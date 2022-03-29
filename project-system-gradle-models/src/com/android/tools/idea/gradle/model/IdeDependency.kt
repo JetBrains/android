@@ -40,8 +40,10 @@ sealed interface IdeArtifactDependencyCore<T> : IdeDependency<T> {
 interface IdeAndroidLibraryDependency: IdeArtifactDependency<IdeAndroidLibrary>
 interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
 
-interface IdeAndroidLibraryDependencyCore: IdeArtifactDependencyCore<IdeAndroidLibrary>
-interface IdeJavaLibraryDependencyCore: IdeArtifactDependencyCore<IdeJavaLibrary>
+data class LibraryReference(val libraryIndex: Int): Serializable
+
+interface IdeAndroidLibraryDependencyCore: IdeArtifactDependencyCore<LibraryReference>
+interface IdeJavaLibraryDependencyCore: IdeArtifactDependencyCore<LibraryReference>
 
 interface IdeLibraryModelResolver {
   fun resolveAndroidLibrary(unresolved: IdeAndroidLibraryDependencyCore): IdeAndroidLibraryDependency

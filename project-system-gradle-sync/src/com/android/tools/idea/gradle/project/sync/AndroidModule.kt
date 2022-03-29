@@ -22,16 +22,21 @@ import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
@@ -48,8 +53,29 @@ typealias IdeVariantFetcher = (
   configuration: ModuleConfiguration
 ) -> IdeVariantCoreImpl?
 
-sealed class GradleModule(val gradleProject: BasicGradleProject) {
-  abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+sealed interface GradleModelCollection {
+  fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+}
+
+class GradleProject(
+  private val buildModel: BuildModel,
+  private val ideLibraryTable: IdeLibraryTableImpl
+) : GradleModelCollection {
+
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      ideLibraryTable.deliver()
+    }
+  }
+
+  private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
+    inline fun <reified T : Any> T.deliver() {
+      buildModelConsumer.consume(buildModel, this, T::class.java)
+    }
+  }
+}
+
+sealed class GradleModule(val gradleProject: BasicGradleProject) : GradleModelCollection {
   abstract val variantNameResolver: VariantNameResolver
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
@@ -153,8 +179,8 @@ sealed class AndroidModule constructor(
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
    * libraries other variants depend on).
    **/
-  fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
-    return collectIdentifiers(listOfNotNull(syncedVariant))
+  fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): Collection<ArtifactIdentifier> {
+    return collectIdentifiers(listOfNotNull(syncedVariant), libraryResolver)
   }
 
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
@@ -297,7 +323,10 @@ class NativeVariantsAndroidModule private constructor(
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minByOrNull { it }
 
-private fun collectIdentifiers(variants: Collection<IdeVariantCoreImpl>): List<ArtifactIdentifier> {
+private fun collectIdentifiers(
+  variants: Collection<IdeVariantCoreImpl>,
+  libraryResolver: (LibraryReference) -> IdeLibrary
+): List<ArtifactIdentifier> {
   return variants.asSequence()
     .flatMap {
       sequenceOf(
@@ -309,7 +338,7 @@ private fun collectIdentifiers(variants: Collection<IdeVariantCoreImpl>): List<A
         .filterNotNull()
     }
     .flatMap { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-    .mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
+    .mapNotNull { GradleCoordinate.parseCoordinateString((libraryResolver(it.target) as IdeArtifactLibrary).artifactAddress) }
     .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }
     .distinct()
     .toList()
