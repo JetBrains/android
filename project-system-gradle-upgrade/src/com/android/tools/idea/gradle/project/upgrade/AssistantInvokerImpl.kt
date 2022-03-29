@@ -17,11 +17,15 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import org.jetbrains.android.util.firstNotNullResult
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
@@ -54,6 +58,29 @@ class AssistantInvokerImpl : AssistantInvoker {
       dialog.showAndGet()
     }
     return runProcessor
+  }
+
+  @Slow
+  override fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
+    val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
+    val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
+    val compileRuntimeProcessor = processor.componentRefactoringProcessors
+      .firstNotNullResult { it as? CompileRuntimeConfigurationRefactoringProcessor }
+    if (compileRuntimeProcessor == null) {
+      LOG.error("no CompileRuntimeConfiguration processor found in AGP Upgrade Processor")
+    }
+    processor.setCommandName("Replace Deprecated Configurations")
+    val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor!!, null, "Upgrading deprecated configurations")
+    processor.targets.add(wrappedElement)
+    processor.ensureParsedModels()
+    val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
+      val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
+      dialog.showAndGet()
+    }
+    if (runProcessor) {
+      DumbService.getInstance(project).smartInvokeLater { processor.run() }
+    }
   }
 
   override fun createProcessor(project: Project, current: GradleVersion, new: GradleVersion) =

@@ -21,10 +21,10 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
-import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
@@ -237,7 +237,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      performDeprecatedConfigurationsUpgrade(project, element)
+      project.getService(AssistantInvoker::class.java).performDeprecatedConfigurationsUpgrade(project, element)
     }
   }
 

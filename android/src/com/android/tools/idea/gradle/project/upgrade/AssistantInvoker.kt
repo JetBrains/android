@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 
 interface AssistantInvoker {
   /**
@@ -29,5 +30,16 @@ interface AssistantInvoker {
    */
   @Slow
   fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor, preserveProcessorConfigurations: Boolean = false): Boolean
+
+  /**
+   * Perform a specialized "upgrade" of the build files to convert usages of the old, long-deprecated `compile` dependency configuration
+   * (and its variants) to its replacement `api` or `implementation` (depending on the context in which that dependency is declared).
+   */
+  @Slow
+  fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
+
+  /**
+   * Create a refactoring processor for upgrading from AGP version [current] to [new].
+   */
   fun createProcessor(project: Project, current: GradleVersion, new: GradleVersion): AgpUpgradeRefactoringProcessor
 }
