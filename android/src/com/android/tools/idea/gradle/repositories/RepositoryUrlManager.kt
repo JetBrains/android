@@ -37,7 +37,6 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import org.jetbrains.kotlin.util.firstNotNullResult
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
@@ -102,7 +101,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       // Try the repo embedded in AS.
       return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
         .filter { it?.isDirectory == true }
-        .firstNotNullResult {
+        .firstNotNullOfOrNull {
           MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileOp.toPath(it), filter, includePreviews)
         }?.version
     }
