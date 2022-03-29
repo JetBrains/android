@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
@@ -73,6 +75,13 @@ abstract class VisualLintAnalyzer {
   protected fun simpleName(view: ViewInfo): String {
     val tagName = (view.cookie as? TagSnapshot)?.tagName ?: view.className
     return tagName.substringAfterLast('.')
+  }
+
+  protected fun nameWithId(viewInfo: ViewInfo): String {
+    val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
+    val name = tagSnapshot?.tagName?.substringAfterLast('.') ?: viewInfo.className
+    val id = tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let { ResourceUrl.parse(it)?.name }
+    return id?.let { "$name (id: $it)" } ?: name
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo, model: NlModel): NlComponent? {

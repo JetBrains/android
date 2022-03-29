@@ -99,7 +99,7 @@ class VisualLintAnalysisTest {
       when ((it as VisualLintRenderIssue).type) {
         VisualLintErrorType.OVERLAP -> {
           assertEquals(3, it.models.size)
-          assertEquals("TextView is covered by ImageView", it.summary)
+          assertEquals("TextView (id: text_dashboard) is covered by ImageView (id: imageView)", it.summary)
           assertEquals(
             "The content of TextView is partially hidden.<BR/>This may pose a problem for the readability of the text it contains.",
             it.description)
@@ -118,7 +118,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.LONG_TEXT -> {
           assertEquals(2, it.models.size)
-          assertEquals("TextView has lines containing more than 120 characters", it.summary)
+          assertEquals("TextView (id: text_notifications) has lines containing more than 120 characters", it.summary)
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
             "reducing the width of TextView or switching to a " +
@@ -129,7 +129,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.BOUNDS -> {
           assertEquals(2, it.models.size)
-          assertEquals("ImageView is partially hidden in layout", it.summary)
+          assertEquals("ImageView (id: imageView) is partially hidden in layout", it.summary)
           assertEquals(
             "ImageView is partially hidden in layout because it is not contained within the bounds of its parent in 2 preview " +
             "configurations.<BR/>Fix this issue by adjusting the size or position of ImageView.",

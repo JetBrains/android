@@ -57,7 +57,7 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val viewName = simpleName(view)
-    val summary = "$viewName is partially hidden in layout"
+    val summary = "${nameWithId(view)} is partially hidden in layout"
     val provider = { count: Int ->
       HtmlBuilder()
         .add("$viewName is partially hidden in layout because it is not contained within the bounds of its parent in ${

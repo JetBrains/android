@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
@@ -33,8 +35,10 @@ class OverlapAnalyzerTest: LayoutTestCase() {
               .children(
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 200, 200)
+                  .withAttribute(ANDROID_URI, ATTR_ID, "@id/text_view")
                   .withMockView(android.widget.TextView::class.java),
                 component(SdkConstants.IMAGE_VIEW)
+                  .withAttribute(ANDROID_URI, ATTR_ID, "@id/image_view")
                   .withBounds(0, 0, 200, 200)
                   .withMockView()
               )
@@ -42,7 +46,7 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
     val issues = OverlapAnalyzer.findIssues(renderResult, model)
     assertEquals(1, issues.size)
-    assertEquals("TextView is covered by ImageView", issues[0].message)
+    assertEquals("TextView (id: text_view) is covered by ImageView (id: image_view)", issues[0].message)
   }
 
   fun testTextShownIndex() {
@@ -80,13 +84,14 @@ class OverlapAnalyzerTest: LayoutTestCase() {
                   .withMockView(),
                 component(SdkConstants.TEXT_VIEW)
                   .withBounds(0, 0, 200, 200)
+                  .withAttribute(ANDROID_URI, ATTR_ID, "@+id/text_view")
                   .withMockView(android.widget.TextView::class.java)
               )
       ).build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
     val issues = OverlapAnalyzer.findIssues(renderResult, model)
     assertEquals(1, issues.size)
-    assertEquals("TextView is covered by ImageView", issues[0].message)
+    assertEquals("TextView (id: text_view) is covered by ImageView", issues[0].message)
   }
 
   fun testTextShownElevation() {

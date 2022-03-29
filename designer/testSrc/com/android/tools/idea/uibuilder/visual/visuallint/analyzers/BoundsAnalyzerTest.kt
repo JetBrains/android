@@ -65,6 +65,7 @@ class BoundsAnalyzerTest {
               android:layout_y="100dp">
 
               <ImageView
+                android:id="@+id/image_view"
                 android:layout_width="match_parent"
                 android:layout_height="400dp" />
 
@@ -83,7 +84,7 @@ class BoundsAnalyzerTest {
         val issues = BoundsAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals("TextView is partially hidden in layout", issues[0].message)
-        Assert.assertEquals("ImageView is partially hidden in layout", issues[1].message)
+        Assert.assertEquals("ImageView (id: image_view) is partially hidden in layout", issues[1].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

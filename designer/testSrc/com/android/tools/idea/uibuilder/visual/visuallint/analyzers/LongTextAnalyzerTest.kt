@@ -29,6 +29,18 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@Language("XML") private const val LAYOUT_WITH_LONG_TEXT =
+  """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+          <TextView
+            android:id="@+id/textview1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This is a very very very very very very very very very very very long line of text than contains more than 120 characters" />
+       </FrameLayout>"""
+
 class LongTextAnalyzerTest {
 
   @get:Rule
@@ -48,18 +60,7 @@ class LongTextAnalyzerTest {
 
   @Test
   fun testTextSplitOnSeveralLines() {
-    @Language("XML") val content =
-      """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
-
-          <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="This is a very very very very very very very very very very very long line of text than contains more than 120 characters" />
-       </FrameLayout>"""
-
-    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
@@ -79,18 +80,7 @@ class LongTextAnalyzerTest {
 
   @Test
   fun testTextOnOneLongLine() {
-    @Language("XML") val content =
-      """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
-
-          <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="This is a very very very very very very very very very very very long line of text than contains more than 120 characters" />
-       </FrameLayout>"""
-
-    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
@@ -101,7 +91,7 @@ class LongTextAnalyzerTest {
         val result = task.render().get()
         val issues = LongTextAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
+        Assert.assertEquals("TextView (id: textview1) has lines containing more than 120 characters", issues[0].message)
       }
       catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

@@ -65,12 +65,11 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   override fun getHyperlinkListener() = createDefaultHyperLinkListener()
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
-    val viewName = simpleName(view)
-    val summary = "$viewName has lines containing more than 120 characters"
+    val summary = "${nameWithId(view)} has lines containing more than 120 characters"
     val url = "https://material.io/design/layout/responsive-layout-grid.html#breakpoints"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add("$viewName has lines containing more than 120 characters in ${previewConfigurations(count)}.")
+        .add("${simpleName(view)} has lines containing more than 120 characters in ${previewConfigurations(count)}.")
         .newline()
         .add("Material Design recommends reducing the width of TextView or switching to a ")
         .addLink("multi-column layout", url)
