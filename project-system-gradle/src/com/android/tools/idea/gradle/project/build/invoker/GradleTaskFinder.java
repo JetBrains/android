@@ -178,20 +178,16 @@ public class GradleTaskFinder {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     // TODO(b/203237539)
     if (gradleFacet == null) {
-      if (ModuleUtil.isModulePerSourceSetEnabled(module.getProject())) {
-        int lastIndexOfDot = module.getName().lastIndexOf(".");
-        if (lastIndexOfDot > 0) {
-          String parentModuleName = module.getName().substring(0, lastIndexOfDot);
-          Module parentModule = ModuleManager.getInstance(module.getProject()).findModuleByName(parentModuleName);
-          if (parentModule != null) {
-            gradleFacet = GradleFacet.getInstance(parentModule);
-            module = parentModule;
-          }
+      int lastIndexOfDot = module.getName().lastIndexOf(".");
+      if (lastIndexOfDot > 0) {
+        String parentModuleName = module.getName().substring(0, lastIndexOfDot);
+        Module parentModule = ModuleManager.getInstance(module.getProject()).findModuleByName(parentModuleName);
+        if (parentModule != null) {
+          gradleFacet = GradleFacet.getInstance(parentModule);
+          module = parentModule;
         }
-        if (gradleFacet == null) {
-          return null;
-        }
-      } else {
+      }
+      if (gradleFacet == null) {
         return null;
       }
     }

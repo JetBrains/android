@@ -194,7 +194,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   private @Nullable Project myProject;
-  private boolean myIsModulePerSourceSetMode;
   private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
 
   public AndroidGradleProjectResolver() {
@@ -212,7 +211,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @Override
   public void setProjectResolverContext(@NotNull ProjectResolverContext projectResolverContext) {
     myProject = projectResolverContext.getExternalSystemTaskId().findProject();
-    myIsModulePerSourceSetMode = myProject != null && ModuleUtil.isModulePerSourceSetEnabled(myProject);
     // Setting this flag on the `projectResolverContext` tells the Kotlin IDE plugin that we are requesting `KotlinGradleModel` for all
     // modules. This is to be able to provide additional arguments to the model builder and avoid unnecessary processing of currently the
     // inactive build variants.
@@ -246,34 +244,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                   DataNode<ModuleData> moduleDataNode) {
     ProjectIdentifier projectIdentifier = gradleModule.getGradleProject().getProjectIdentifier();
 
-    if (isModulePerSourceSetEnabled()) {
-      Collection<DataNode<GradleSourceSetData>> sourceSetNodes = findAll(moduleDataNode, GradleSourceSetData.KEY);
+    Collection<DataNode<GradleSourceSetData>> sourceSetNodes = findAll(moduleDataNode, GradleSourceSetData.KEY);
 
-      if (!sourceSetNodes.isEmpty()) {
-        // ":" and similar holder projects do not have any source sets and should not be a target of module dependencies.
-        sourceSetNodes.forEach(node -> {
-          IdeModuleSourceSet sourceSet = ModuleUtil.getIdeModuleSourceSet(node.getData());
+    if (!sourceSetNodes.isEmpty()) {
+      // ":" and similar holder projects do not have any source sets and should not be a target of module dependencies.
+      sourceSetNodes.forEach(node -> {
+        IdeModuleSourceSet sourceSet = ModuleUtil.getIdeModuleSourceSet(node.getData());
 
-          if (sourceSet != null && sourceSet.getCanBeConsumed()) {
-            GradleProjectPath gradleProjectPath = new GradleProjectPath(
-              projectIdentifier.getBuildIdentifier().getRootDir().getPath(),
-              projectIdentifier.getProjectPath(),
-              sourceSet
-            );
-            myModuleDataByGradlePath.put(gradleProjectPath, node.getData());
-          }
-        });
-      }
-    }
-    else {
-      if (moduleDataNode != null) {
-        GradleProjectPath gradleProjectPath = new GradleProjectPath(
-          projectIdentifier.getBuildIdentifier().getRootDir(),
-          projectIdentifier.getProjectPath(),
-          IdeModuleSourceSet.MAIN
-        );
-        myModuleDataByGradlePath.put(gradleProjectPath, moduleDataNode.getData());
-      }
+        if (sourceSet != null && sourceSet.getCanBeConsumed()) {
+          GradleProjectPath gradleProjectPath = new GradleProjectPath(
+            projectIdentifier.getBuildIdentifier().getRootDir().getPath(),
+            projectIdentifier.getProjectPath(),
+            sourceSet
+          );
+          myModuleDataByGradlePath.put(gradleProjectPath, node.getData());
+        }
+      });
     }
   }
 
@@ -356,8 +342,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         createGradleAndroidModel(moduleName, rootModulePath, androidModels,
                                  Objects.requireNonNull(resolverCtx.getUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY)));
       issueData = androidModels.getSyncIssues();
-      String ndkModuleName =
-        moduleName + ((isModulePerSourceSetEnabled()) ? "." + ModuleUtil.getModuleName(androidModel.getMainArtifact()) : "");
+      String ndkModuleName = moduleName + "." + ModuleUtil.getModuleName(androidModel.getMainArtifact());
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
     }
 
@@ -395,7 +380,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // We also need to patch java modules as we disabled the kapt resolver.
     // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
-    if (isModulePerSourceSetEnabled() && androidModel != null) {
+    if (androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
       GradleSourceSetData prodModule = createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact(), null);
       IdeBaseArtifact unitTest = variant.getUnitTestArtifact();
@@ -410,10 +395,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       if (testFixtures != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testFixtures, prodModule);
       }
-    }
 
-    // Setup testData nodes for testing sources used by Gradle test runners.
-    if (androidModel != null) {
+     // Setup testData nodes for testing sources used by Gradle test runners.
       createAndSetupTestDataNode(moduleNode, androidModel);
     }
 
@@ -675,15 +658,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
 
-    if (isModulePerSourceSetEnabled()) {
-      ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(
-        ideModule,
-        GradleAndroidModelNode.getData()
-      );
-    }
-    else {
-      ContentRootUtilKt.setupAndroidContentEntries(ideModule, null);
-    }
+    ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(ideModule, GradleAndroidModelNode.getData());
   }
 
   private static boolean hasArtifacts(@Nullable ExternalProject externalProject) {
@@ -736,19 +711,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       libraryFilePaths = LibraryFilePaths.getInstance(project);
     }
 
-    Function<GradleProjectPath, ModuleData> moduleDataLookup = (gradleProjectPath) -> {
-      // In the case when model v2 is enabled and module per source set is disabled, we might get a query to resolve a dependency on
-      // a testFixtures module. As testFixtures relies on module per source set, we resolve the dependency to the main module instead.
-      if (!isModulePerSourceSetEnabled() && gradleProjectPath.getSourceSet() == IdeModuleSourceSet.TEST_FIXTURES) {
-        return myModuleDataByGradlePath.get(
-          new GradleProjectPath(gradleProjectPath.getBuildRoot(), gradleProjectPath.getPath(), IdeModuleSourceSet.MAIN));
-      }
-      return myModuleDataByGradlePath.get(gradleProjectPath);
-    };
-
     Function<String, AdditionalArtifactsPaths> artifactLookup = (artifactId) -> {
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
-      // or contain an imcomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
+      // or contain an incomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
       AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
       if (artifacts != null) {
         return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
@@ -764,19 +729,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return null;
     };
 
-    if (isModulePerSourceSetEnabled()) {
-      DependencyUtilKt.setupAndroidDependenciesForMpss(
-        ideModule,
-        moduleDataLookup::apply,
-        artifactLookup::apply,
-        androidModelNode.getData(),
-        androidModelNode.getData().getSelectedVariant(),
-        project
-      );
-    }
-    else {
-      DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, moduleDataLookup::apply, artifactLookup::apply, project);
-    }
+    DependencyUtilKt.setupAndroidDependenciesForMpss(
+      ideModule,
+      myModuleDataByGradlePath::get,
+      artifactLookup::apply,
+      androidModelNode.getData(),
+      androidModelNode.getData().getSelectedVariant(),
+      project
+    );
   }
 
   @SuppressWarnings("UnstableApiUsage")
@@ -1045,10 +1005,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @Nullable
   public Project getProject() {
     return myProject;
-  }
-
-  private boolean isModulePerSourceSetEnabled() {
-    return myIsModulePerSourceSetMode;
   }
 
   private static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {

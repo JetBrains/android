@@ -732,10 +732,6 @@ public class AndroidGradleTests {
       throw new IllegalArgumentException("The module named " + moduleName + " must be a Java only module!");
     }
 
-    if (!ModuleUtil.isModulePerSourceSetEnabled(project)) {
-      return holderModule;
-    }
-
     return TestModuleUtil.findModule(project, moduleName + ".main");
   }
 }

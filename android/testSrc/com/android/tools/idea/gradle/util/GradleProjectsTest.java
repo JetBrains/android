@@ -98,8 +98,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   }
 
   @Test
-  public void testGradlePathWithModulePerSourceSet() {
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(   true);
+  public void testGradlePath() {
     prepareGradleProject(this,  TestProjectPaths.SIMPLE_APPLICATION, "project");
     openPreparedProject(this, "project", project -> {
       List<Module> modules = Arrays.stream(ModuleManager.getInstance(project).getModules()).sorted(Comparator.comparing(Module::getName))
@@ -111,7 +110,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
       expect.that(GradleProjects.getGradleModulePath(modules.get(4))).isEqualTo(":app"); // unit test module
       return Unit.INSTANCE;
     });
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride();
   }
 
   private void validateModuleGradlePath(Project project, String s) {

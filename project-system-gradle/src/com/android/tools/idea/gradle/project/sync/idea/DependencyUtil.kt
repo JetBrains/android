@@ -20,9 +20,7 @@ import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT
 import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
-import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
@@ -37,7 +35,6 @@ import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -57,8 +54,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension
-import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -76,98 +71,6 @@ typealias SampleSourcePath = File?
 typealias ArtifactId = String
 
 data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
-
-/**
- * Sets up the [LibraryDependencyData] and [ModuleDependencyData] on the receiving [ModuleData] node.
- *
- * This uses the information provided in the given [variant] if no variant is given then the selected
- * variant from the [AndroidModuleModel] is used. This method assumes that this module has an attached
- * [AndroidModuleModel] data node (given by the key [AndroidProjectKeys.ANDROID_MODEL]).
- *
- * [additionalArtifactsMapper] is used to obtain the respective sources and Javadocs which are attached to the
- * libraries. TODO: Replace with something that makes the call sites nicer and shouldn't rely on the project object.
- *
- * The [gradleProjectPathToModuleData] map must be provided and must correctly map module ids created in the same form
- * as [GradleProjectResolverUtil.getModuleId] to the [ModuleData]. This is used to set up
- * [ModuleDependencyData].
- */
-@JvmOverloads
-fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
-  gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
-  variant: IdeVariant? = null,
-  project: Project?
-) {
-  val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return // TODO: Error here
-  // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
-  // exception here as other intellij plugins can manipulate the tree, we do not want to break an import
-  // completely due to a badly behaved plugin.
-  @Suppress("UNCHECKED_CAST") val projectDataNode = parent as? DataNode<ProjectData>
-  if (projectDataNode == null) {
-    LOG.error(
-      "Couldn't find project data for module ${data.moduleName}, incorrect tree structure."
-    )
-    return
-  }
-
-  // These maps keep track of all the dependencies that we have already seen. This allows us to skip over processing
-  // dependencies multiple times with more specific scopes.
-  val processedLibraries = mutableMapOf<String, LibraryDependencyData>()
-  val processedModuleDependencies = mutableMapOf<GradleProjectPath, ModuleDependencyData>()
-
-  val selectedVariant = variant ?: androidModel.selectedVariant
-
-  // First set up any extra sdk libraries as these should really be in the SDK.
-  getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
-    processedLibraries[sdkLibraryDependency.target.externalName] = sdkLibraryDependency
-  }
-
-  val dependenciesSetupContext = AndroidDependenciesSetupContext(
-    this,
-    projectDataNode,
-    gradleProjectPathToModuleData,
-    additionalArtifactsMapper,
-    processedLibraries,
-    processedModuleDependencies,
-    project
-  )
-
-  // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
-  // This allows us to just skip the dependency if it is already present.
-  dependenciesSetupContext.setupForArtifact(selectedVariant.mainArtifact, DependencyScope.COMPILE)
-  val endCompileIndex = processedLibraries.size
-
-  // Setup the dependencies of the test artifact.
-  listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
-    dependenciesSetupContext.setupForArtifact(testArtifact, DependencyScope.TEST)
-  }
-
-  // Determine an order for the dependencies, for now we put the modules first and the libraries after.
-  // The order of the libraries and modules is the same order as we obtain them from AGP, with the
-  // dependencies from the main artifact coming first (java libs then android) and the test artifacts
-  // coming after (java libs then android).
-  // TODO(rework-12): What is the correct order
-  var orderIndex = 0
-
-  val processedLibrarySize = processedLibraries.size
-  var tempOrderIndex = 0
-  processedLibraries.forEach { (_, libraryDependencyData) ->
-    // We want the Test scope artifacts to appear on the classpath before the compile type artifacts. This is to prevent ensure that
-    // if the same dependency (with a different version) is present as both a test and compile dependency then we use the Test version
-    // when running tests. This should become irrelevant once we switch to running unit tests through Gradle.
-    libraryDependencyData.order = orderIndex + Math.floorMod((tempOrderIndex++ - endCompileIndex), processedLibrarySize)
-    createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
-  }
-  orderIndex += tempOrderIndex
-
-  // Due to the way intellij collects classpaths for test (using all transitive deps) we are putting all module dependencies last so that
-  // their dependencies will be last on the classpath and not overwrite actual dependencies of the module being tested.
-  // This should be removed once we have a way to correct the order of the classpath, or we start running tests via Gradle.
-  processedModuleDependencies.forEach { (_, moduleDependencyData) ->
-    moduleDependencyData.order = orderIndex++
-    createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
-  }
-}
 
 /**
  * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
@@ -368,53 +271,6 @@ private class AndroidDependenciesSetupContext(
     }
   }
 }
-
-/**
- * Sets the 'useLibrary' libraries or SDK add-ons as library dependencies.
- *
- * These libraries are set at the project level, which makes it impossible to add them to a IDE SDK definition because the IDE SDK is
- * global to the whole IDE. To work around this limitation, we set these libraries as module dependencies instead.
- *
- * TODO: The priority of these is wrong, they should be part of the SDK.
- *
- */
-private fun getExtraSdkLibraries(
-  projectDataNode: DataNode<ProjectData>,
-  moduleDataNode: DataNode<ModuleData>,
-  bootClasspath: Collection<String>
-): List<LibraryDependencyData> {
-  return bootClasspath.filter { path ->
-    File(path).name != FN_FRAMEWORK_LIBRARY
-  }.map { path ->
-    val filePath = File(path)
-    val name = if (filePath.isFile) getNameWithoutExtension(filePath) else sanitizeFileName(path)
-
-    val libraryData = LibraryData(GradleConstants.SYSTEM_ID, name, false)
-    libraryData.addPath(BINARY, path)
-
-    // Attempt to find JavaDocs and Sources for the SDK additional lib
-    // TODO: Do we actually need this, where are these sources/javadocs located.
-    val sources = LibraryFilePaths.findArtifactFilePathInRepository(filePath, "-sources.jar", true)
-    if (sources != null) {
-      libraryData.addPath(SOURCE, sources.absolutePath)
-    }
-    val javaDocs = LibraryFilePaths.findArtifactFilePathInRepository(filePath, "-javadoc.jar", true)
-    if (javaDocs != null) {
-      libraryData.addPath(DOC, javaDocs.absolutePath)
-    }
-
-    val libraryLevel = if (linkProjectLibrary(null, projectDataNode, libraryData)) LibraryLevel.PROJECT else LibraryLevel.MODULE
-
-    LibraryDependencyData(moduleDataNode.data, libraryData, libraryLevel).apply {
-      scope = DependencyScope.COMPILE
-      isExported = false
-    }
-  }
-}
-
-//****************************************************************************************************************************
-/* Below are methods related to the processing of dependencies for Android modules when module per source set is being used */
-//****************************************************************************************************************************
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,

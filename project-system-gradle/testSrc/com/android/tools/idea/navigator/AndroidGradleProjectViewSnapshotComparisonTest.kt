@@ -179,13 +179,8 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testTestFixtures() {
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-    try {
-      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-      assertIsEqualToSnapshot(text)
-    } finally {
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
-    }
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+    assertIsEqualToSnapshot(text)
   }
 
   fun testSimpleApplicationVersionCatalog() {

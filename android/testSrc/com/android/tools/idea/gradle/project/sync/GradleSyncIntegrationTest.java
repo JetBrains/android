@@ -139,6 +139,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -630,24 +631,23 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     assertFalse(new File(getProjectFolderPath(), "buildSrc/local.properties").exists());
 
     // Verify that ContentRootData DataNode is created for buildSrc module.
-    Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
+    DataNode<GradleSourceSetData> main =
+      ExternalSystemApiUtil.find(moduleData, GradleSourceSetData.KEY, ss -> ss.getData().getModuleName().equals("main"));
+    assertNotNull(main);
+    Collection<DataNode<ContentRootData>> mainRoots = ExternalSystemApiUtil.findAll(main, ProjectKeys.CONTENT_ROOT);
+    DataNode<GradleSourceSetData> test =
+      ExternalSystemApiUtil.find(moduleData, GradleSourceSetData.KEY, ss -> ss.getData().getModuleName().equals("test"));
+    assertNotNull(test);
+    Collection<DataNode<ContentRootData>> testRoots = ExternalSystemApiUtil.findAll(test, ProjectKeys.CONTENT_ROOT);
+
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    if (isModulePerSourceSet()) {
-      String buildSrcDirPath = buildSrcDir.getPath();
-      assertThat(ContainerUtil.map(contentRootData, e -> e.getData().getRootPath())).containsExactly(
-        buildSrcDirPath,
-        buildSrcDirPath + "/src/main/java",
-        buildSrcDirPath + "/src/main/groovy",
-        buildSrcDirPath + "/src/main/resources",
-        buildSrcDirPath + "/src/test/java",
-        buildSrcDirPath + "/src/test/groovy",
-        buildSrcDirPath + "/src/test/resources"
-      );
-    } else {
-      assertThat(contentRootData).hasSize(1);
-      assertThat(contentRootData.iterator().next().getData().getRootPath())
-        .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
-    }
+    String buildSrcDirPath = buildSrcDir.getPath();
+    assertThat(ContainerUtil.map(mainRoots, e -> e.getData().getRootPath())).containsExactly(
+      buildSrcDirPath + "/src/main"
+    );
+    assertThat(ContainerUtil.map(testRoots, e -> e.getData().getRootPath())).containsExactly(
+      buildSrcDirPath + "/src/test"
+    );
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = AndroidGradleTests.getMainJavaModule(getProject(), "lib1");
@@ -851,9 +851,5 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     assertNotNull("Library com.test:bar:0.1 is missing", library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).asList().hasSize(1);
-  }
-
-  private boolean isModulePerSourceSet() {
-    return !IdeInfo.getInstance().isAndroidStudio();
   }
 }

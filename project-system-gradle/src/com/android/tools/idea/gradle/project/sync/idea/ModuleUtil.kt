@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
 import com.intellij.openapi.diagnostic.logger
@@ -28,7 +27,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
@@ -46,9 +44,6 @@ object ModuleUtil {
     }
   }
 
-  @JvmStatic
-  fun Project.isModulePerSourceSetEnabled(): Boolean = GradleUtil.getGradleProjectSettings(this)?.isResolveModulePerSourceSet ?: false
-
   /**
    * Do not use this method outside of project system code.
    *
@@ -62,7 +57,6 @@ object ModuleUtil {
     val holderModule = dataToModuleMap(data) ?: return
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
-    if (!holderModule.project.isModulePerSourceSetEnabled()) return
     var unitTestModule : Module? = null
     var androidTestModule : Module? = null
     var testFixturesModule : Module? = null

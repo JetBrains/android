@@ -81,7 +81,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                    .setJarDependencyCount(13)
                                    .setAarDependencyCount(49))
                    .addModules(GradleModule.newBuilder()
-                                 .setTotalModuleCount((ModuleUtil.isModulePerSourceSetEnabled(getProject())) ? 9 : 3)
+                                 .setTotalModuleCount(9)
                                  .setAppModuleCount(1)
                                  .setLibModuleCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
