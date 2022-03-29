@@ -29,12 +29,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
+  private static final boolean NEW_ONLINE_ENABLED = false;
+
+  private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final long mySizeOnDisk;
   private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
+    private boolean myOnline;
     private @Nullable String myCpuArchitecture;
     private long mySizeOnDisk;
 
@@ -55,6 +59,11 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder setName(@NotNull String name) {
       myName = name;
+      return this;
+    }
+
+    @NotNull Builder setOnline(boolean online) {
+      myOnline = online;
       return this;
     }
 
@@ -116,6 +125,7 @@ public final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
+    myOnline = builder.myOnline;
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
@@ -134,6 +144,10 @@ public final class VirtualDevice extends Device {
 
   @Override
   public boolean isOnline() {
+    if (NEW_ONLINE_ENABLED) {
+      return myOnline;
+    }
+
     // TODO online should be a boolean property. Notify the Virtual tab of devices that come online in a way similar to
     //  PhysicalDeviceChangeListener.
     return myGetDefaultAvdManagerConnection.get().isAvdRunning(myAvdInfo);
