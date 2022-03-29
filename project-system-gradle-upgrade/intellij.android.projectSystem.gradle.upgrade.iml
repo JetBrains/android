@@ -15,5 +15,7 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

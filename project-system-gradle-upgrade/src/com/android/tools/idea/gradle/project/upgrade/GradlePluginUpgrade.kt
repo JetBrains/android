@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,7 @@ import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
-import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState.NON_MODAL
@@ -64,7 +60,6 @@ import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
-val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 // **************************************************************************
 // ** Recommended upgrades
@@ -206,20 +201,6 @@ fun isCleanEnoughProject(project: Project): Boolean {
 @JvmOverloads
 fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, published: Set<GradleVersion> = setOf()) : Boolean {
   return computeGradlePluginUpgradeState(current, latestKnown, published).importance == RECOMMEND
-}
-
-class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, NotificationType.INFORMATION) {
-    init {
-      setListener(listener)
-    }
-  }
-
-fun expireProjectUpgradeNotifications(project: Project?) {
-  NotificationsManager
-    .getNotificationsManager()
-    .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
-    .forEach { it.expire() }
 }
 
 // **************************************************************************

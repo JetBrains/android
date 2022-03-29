@@ -20,6 +20,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//tools/analytics-library/tracker:analytics-tracker[module]",

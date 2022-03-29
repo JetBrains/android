@@ -21,6 +21,7 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
   </component>
 </module>
