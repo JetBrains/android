@@ -25,7 +25,10 @@ import com.intellij.util.xmlb.XmlSerializerUtil
  * Experimental Logcat settings
  */
 @State(name = "LogcatExperimentalSettings", storages = [(Storage("logcat.experimental.xml"))])
-data class LogcatExperimentalSettings(var logcatV2Enabled: Boolean = true)
+data class LogcatExperimentalSettings(
+  var logcatV2Enabled: Boolean = true,
+  var bannerDismissed: Boolean = false,
+)
   : PersistentStateComponent<LogcatExperimentalSettings> {
   override fun getState(): LogcatExperimentalSettings = this
 
