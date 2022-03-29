@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -40,7 +41,7 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
  * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
  */
 internal data class LogcatPanelConfig(
-  var device: SavedDevice?,
+  var device: Device?,
   var formattingConfig: FormattingConfig,
   var filter: String,
   var isSoftWrap: Boolean,
@@ -52,7 +53,46 @@ internal data class LogcatPanelConfig(
      */
     fun fromJson(json: String?): LogcatPanelConfig? {
       return try {
-        gson.fromJson(json, LogcatPanelConfig::class.java)
+        if (json?.contains("ro.product.manufacturer") == true) {
+          fromOldFormat(json)
+        }
+        else {
+          gson.fromJson(json, LogcatPanelConfig::class.java)
+        }
+      }
+      catch (e: JsonSyntaxException) {
+        thisLogger().warn("Invalid state", e)
+        null
+      }
+    }
+
+    // If the device was saved in a different format by a previous version, this loads it correctly.
+    private fun fromOldFormat(json: String): LogcatPanelConfig? {
+      return try {
+        val oldDevice = gson.fromJson(json, OldConfigObject::class.java).device
+        val device = if (oldDevice.isEmulator) {
+          Device.createEmulator(
+            oldDevice.serialNumber,
+            isOnline = false,
+            oldDevice.properties["ro.build.version.release"] ?: "",
+            oldDevice.properties["ro.build.version.sdk"] ?: "",
+            oldDevice.avdName,
+          )
+        }
+        else {
+          Device.createPhysical(
+            oldDevice.serialNumber,
+            isOnline = false,
+            oldDevice.properties["ro.build.version.release"] ?: "",
+            oldDevice.properties["ro.build.version.sdk"] ?: "",
+            oldDevice.properties["ro.product.manufacturer"] ?: "",
+            oldDevice.properties["ro.product.model"] ?: "",
+          )
+        }
+
+        gson.fromJson(json, LogcatPanelConfig::class.java).apply {
+          this.device = device
+        }
       }
       catch (e: JsonSyntaxException) {
         thisLogger().warn("Invalid state", e)
@@ -103,6 +143,15 @@ internal data class LogcatPanelConfig(
         }
       }
     }
+  }
+
+  private class OldConfigObject(val device: Device) {
+    data class Device(
+      val serialNumber: String,
+      val name: String,
+      val isEmulator: Boolean,
+      val avdName: String,
+      val properties: Map<String, String>)
   }
 }
 

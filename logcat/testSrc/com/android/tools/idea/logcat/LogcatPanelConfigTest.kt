@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.TagFormat
@@ -49,10 +50,65 @@ class LogcatPanelConfigTest {
 
     assertThat(fromJson!!.formattingConfig).isEqualTo(custom)
   }
+
+  @Test
+  fun restoreDeviceStateFromPreviousVersion_phisicalDevice() {
+    val state = """
+        {
+          'device': {
+            'serialNumber': 'HT85F1A00630',
+            'name': 'google-pixel_2-HT85F1A00630',
+            'isEmulator': false,
+            'properties': {
+              'ro.product.model': 'Pixel 2',
+              'ro.product.manufacturer': 'Google',
+              'ro.build.version.release': '11',
+              'ro.build.version.sdk': '30'
+            }
+          },
+          'formattingConfig': {
+            'preset': 'STANDARD'
+          },
+          'filter': 'package:mine',
+          'isSoftWrap': false
+        }
+    """.trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state)?.device)
+      .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", "30", "Google", "Pixel 2"))
+  }
+
+  @Test
+  fun restoreDeviceStateFromPreviousVersion_emulator() {
+    val state = """
+      {
+        'device': {
+          'serialNumber': 'emulator-5554',
+          'name': 'emulator-5554',
+          'isEmulator': true,
+          'avdName': 'Pixel_4_API_30',
+          'properties': {
+            'ro.product.model': 'sdk_gphone_x86',
+            'ro.product.manufacturer': 'Google',
+            'ro.build.version.release': '11',
+            'ro.build.version.sdk': '30'
+          }
+        },
+        'formattingConfig': {
+          'preset': 'STANDARD'
+        },
+        'filter': 'package:mine',
+        'isSoftWrap': false
+      }
+    """.trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state)?.device)
+      .isEqualTo(Device.createEmulator("emulator-5554", false, "11", "30", "Pixel_4_API_30"))
+  }
 }
 
 private fun logcatPanelConfig(
-  device: SavedDevice? = null,
+  device: Device? = null,
   formattingConfig: FormattingConfig = FormattingConfig.Preset(STANDARD),
   filter: String = "",
   isSoftWrap: Boolean = false,

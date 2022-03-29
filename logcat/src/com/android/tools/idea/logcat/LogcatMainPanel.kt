@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.AdbLibSession
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL
-import com.android.ddmlib.IDevice.PROP_BUILD_VERSION
-import com.android.ddmlib.IDevice.PROP_DEVICE_MANUFACTURER
-import com.android.ddmlib.IDevice.PROP_DEVICE_MODEL
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -37,6 +35,7 @@ import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
@@ -62,7 +61,6 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
-import com.android.tools.idea.logcat.util.getDeviceId
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.run.ClearLogcatListener
@@ -89,6 +87,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,7 +117,7 @@ private const val DEFAULT_FILTER = "package:mine"
  * @param zoneId A [ZoneId] or null to create the default one. For testing.
  */
 internal class LogcatMainPanel(
-  project: Project,
+  private val project: Project,
   private val popupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
@@ -126,9 +125,11 @@ internal class LogcatMainPanel(
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
-  packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
-  adbAdapter: AdbAdapter = AdbAdapterImpl(project),
-  deviceManagerFactory: (LogcatPresenter, IDevice) -> LogcatDeviceManager = LogcatDeviceManager.getFactory(project, packageNamesProvider),
+  private val packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
+  private val adbAdapter: AdbAdapter = AdbAdapterImpl(project),
+  private val deviceManagerFactory: (LogcatPresenter, IDevice) -> LogcatDeviceManager =
+    LogcatDeviceManager.getFactory(project, packageNamesProvider),
+  adbSession: AdbLibSession = AdbLibService.getInstance(project).session,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -138,8 +139,8 @@ internal class LogcatMainPanel(
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
 
-  @VisibleForTesting
-  val deviceContext = DeviceContext()
+  // TODO(aalbert): We still need a DeviceContext for screenshot & screen record actions.
+  private val deviceContext = DeviceContext()
 
   override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {
@@ -158,9 +159,10 @@ internal class LogcatMainPanel(
   val headerPanel = LogcatHeaderPanel(
     project,
     logcatPresenter = this,
-    deviceContext, packageNamesProvider,
+    packageNamesProvider,
     state?.filter ?: if (androidProjectDetector.isAndroidProject(project)) DEFAULT_FILTER else "",
     state?.device,
+    adbSession,
   )
 
   private val logcatFilterParser = LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
@@ -170,6 +172,7 @@ internal class LogcatMainPanel(
     this,
     ::formatMessages,
     logcatFilterParser.parse(headerPanel.getFilterText()))
+
   @VisibleForTesting
   internal var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
@@ -198,35 +201,6 @@ internal class LogcatMainPanel(
     addToLeft(toolbar.component)
     addToCenter(editor.component)
 
-    deviceContext.addListener(object : DeviceConnectionListener() {
-      @UiThread
-      override fun onDeviceConnected(device: IDevice) {
-        // We have the IDevice already but when moving to AdbLib DeviceComboBox, we will only have the serial number, so we need to find
-        // the IDevice corresponding to that serial using AndroidDebugBridge.
-        coroutineScope.launch(Dispatchers.IO) {
-          val iDevice = adbAdapter.getDevice(device.getDeviceId())
-          deviceManager?.let {
-            Disposer.dispose(it)
-            deviceManager = null
-          }
-          if (iDevice != null) {
-            withContext(uiThread) {
-              document.setText("")
-              deviceManager = deviceManagerFactory(this@LogcatMainPanel, iDevice)
-            }
-          }
-        }
-      }
-
-      @UiThread
-      override fun onDeviceDisconnected(device: IDevice) {
-        deviceManager?.let {
-          Disposer.dispose(it)
-        }
-        deviceManager = null
-      }
-    }, this)
-
     initScrollToEndStateHandling()
 
     LogcatUsageTracker.log(
@@ -243,6 +217,10 @@ internal class LogcatMainPanel(
         clearMessageView()
       }
     })
+
+    coroutineScope.launch(workerThread) {
+      headerPanel.trackSelectedDevice().collect { onDeviceChanged(it) }
+    }
   }
 
   /**
@@ -289,7 +267,7 @@ internal class LogcatMainPanel(
     val formattingOptionsStyle = formattingOptions.getStyle()
     return LogcatPanelConfig.toJson(
       LogcatPanelConfig(
-        deviceContext.selectedDevice?.toSavedDevice(),
+        headerPanel.getSelectedDevice()?.copy(isOnline = false),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         headerPanel.getFilterText(),
         editor.settings.isUseSoftWraps))
@@ -422,6 +400,34 @@ internal class LogcatMainPanel(
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
     messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
+
+
+  private fun onDeviceChanged(device: Device) {
+    if (device.isOnline) {
+      coroutineScope.launch(Dispatchers.IO) {
+        val iDevice = adbAdapter.getDevice(device.deviceId)
+        removeDeviceManager()
+        if (iDevice != null) {
+          withContext(uiThread) {
+            document.setText("")
+            deviceManager = deviceManagerFactory(this@LogcatMainPanel, iDevice)
+          }
+        }
+        deviceContext.fireDeviceSelected(iDevice)
+      }
+    }
+    else {
+      removeDeviceManager()
+      deviceContext.fireDeviceSelected(null)
+    }
+  }
+
+  private fun removeDeviceManager() {
+    deviceManager?.let {
+      Disposer.dispose(it)
+      deviceManager = null
+    }
+  }
 }
 
 private fun LogCatMessage.getPackageNameOrPid() = if (header.appName == "?") "pid-${header.pid}" else header.appName
@@ -461,19 +467,3 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 }
 
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
-
-private fun IDevice?.toSavedDevice(): SavedDevice? {
-  return if (this == null || this is SavedDevice) {
-    this as? SavedDevice
-  }
-  else {
-    val properties = mapOf(
-      PROP_DEVICE_MODEL to getProperty(PROP_DEVICE_MODEL),
-      PROP_DEVICE_MANUFACTURER to getProperty(PROP_DEVICE_MANUFACTURER),
-      PROP_BUILD_VERSION to getProperty(PROP_BUILD_VERSION),
-      PROP_BUILD_API_LEVEL to getProperty(PROP_BUILD_API_LEVEL),
-    )
-    val avdName = if (avdData.isDone) avdData.get()?.name else null
-    SavedDevice(serialNumber, name, isEmulator, avdName, properties)
-  }
-}

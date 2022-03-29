@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.adblib.AdbLibSession
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.ddms.DeviceContext
-import com.android.tools.idea.ddms.DevicePanel
+import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBox
+import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -25,12 +27,12 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.flow.Flow
 import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.GroupLayout
-import javax.swing.JComboBox
 import javax.swing.JPanel
 
 /**
@@ -39,23 +41,20 @@ import javax.swing.JPanel
 internal class LogcatHeaderPanel(
   project: Project,
   val logcatPresenter: LogcatPresenter,
-  deviceContext: DeviceContext,
   packageNamesProvider: PackageNamesProvider,
   filter: String,
-  initialDevice: SavedDevice?,
+  initialDevice: Device?,
+  adbSession: AdbLibSession,
 ) : JPanel() {
-  private val deviceComboBox: JComboBox<IDevice>
+  private val deviceComboBox = DeviceComboBox(
+    logcatPresenter,
+    initialDevice,
+    DeviceComboBoxDeviceTracker(project, initialDevice, adbSession))
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 
   init {
-    // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
-    //  have an instance per tab/split and would like to be disposed when the container closes.
-    //  It's not yet clear if we will and up using DevicePanel or not, so will not make changes to it just yet.
-    val devicePanel = DevicePanel(project, deviceContext, initialDevice)
-    deviceComboBox = devicePanel.deviceComboBox
-
     filterComponent.apply {
       font = Font.getFont(Font.MONOSPACED)
       addDocumentListener(object : DocumentListener {
@@ -72,11 +71,15 @@ internal class LogcatHeaderPanel(
     })
   }
 
+  fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
+
   fun getFilterText() = filterComponent.text
 
   fun selectDevice(device: IDevice) {
     deviceComboBox.selectedItem = device
   }
+
+  fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
