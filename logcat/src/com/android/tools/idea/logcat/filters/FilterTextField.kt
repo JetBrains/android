@@ -188,6 +188,8 @@ internal class FilterTextField(
       })
       // The text field needs to be moved an extra pixel down to appear correctly.
       border = JBUI.Borders.customLine(background, 1, 0, 0, 0)
+      textField.setPlaceholder(LogcatBundle.message("logcat.filter.hint"))
+      textField.setShowPlaceholderWhenFocused(true)
     }
 
     clearButton.apply {
