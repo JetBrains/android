@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class FakeIdeProfilerServices implements IdeProfilerServices {
+public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ART_SAMPLED_NAME = "Sampled";
 

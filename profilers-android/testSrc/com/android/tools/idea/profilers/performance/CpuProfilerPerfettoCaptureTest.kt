@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.performance
 
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils.getTraceFile
 import com.intellij.openapi.util.Disposer
 import org.junit.After
@@ -33,8 +34,11 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Before
   fun setUp() {
     // Use a real instance of TPD Service instead of the fake one.
+    class TestIdeServices: FakeIdeProfilerServices() {
+      override val traceProcessorService get() = this@CpuProfilerPerfettoCaptureTest.traceProcessorService
+    }
     traceProcessorService = TraceProcessorServiceImpl()
-    myIdeServices.traceProcessorService = traceProcessorService
+    myIdeServices = TestIdeServices()
   }
 
   @After
