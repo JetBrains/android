@@ -19,25 +19,9 @@ import java.io.File
 
 interface IdeDependenciesCore {
   /**
-   * Returns the Android library dependencies, both direct and transitive.
-   *
-   * @return the list of libraries of type LIBRARY_ANDROID.
+   * Returns the dependencies, both direct and transitive.
    */
-  val androidLibraries: Collection<IdeAndroidLibraryDependencyCore>
-
-  /**
-   * Returns the Java library dependencies, both direct and transitive dependencies.
-   *
-   * @return the list of libraries of type LIBRARY_JAVA.
-   */
-  val javaLibraries: Collection<IdeJavaLibraryDependencyCore>
-
-  /**
-   * Returns the Module dependencies.
-   *
-   * @return the list of libraries of type LIBRARY_MODULE.
-   */
-  val moduleDependencies: Collection<IdeModuleDependencyCore>
+  val dependencies: Collection<IdeDependencyCore>
 
   /**
    * Returns the list of runtime only classes.

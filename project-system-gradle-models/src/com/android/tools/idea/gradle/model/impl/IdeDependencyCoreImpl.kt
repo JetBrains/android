@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeDependencyCore
+import com.android.tools.idea.gradle.model.LibraryReference
+import java.io.Serializable
 
-data class IdeJavaLibraryDependencyImpl(
-  override val target: IdeJavaLibrary,
+data class IdeDependencyCoreImpl(
+  override val target: LibraryReference,
   override val isProvided: Boolean
-) : IdeJavaLibraryDependency {
-  val displayName: String get() = target.name
-}
+): IdeDependencyCore, Serializable

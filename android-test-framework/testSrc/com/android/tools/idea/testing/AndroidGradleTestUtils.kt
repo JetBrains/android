@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
@@ -47,10 +47,8 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -695,13 +693,12 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
 ): IdeAndroidArtifactCoreImpl {
   val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
   val dependenciesStub = buildDependenciesStub(
-    libraries = androidLibraryDependencies.map {
-      IdeAndroidLibraryDependencyCoreImpl(
+    dependencies = androidLibraryDependencies.map {
+      IdeDependencyCoreImpl(
         internedModels.getOrCreate(it.library),
         it.isProvided
       )
-    },
-    projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
+    } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
   )
   val assembleTaskName = "assemble".appendCapitalized(variant)
   return IdeAndroidArtifactCoreImpl(
@@ -749,9 +746,9 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   variant: String,
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
-    projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
+    dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
       listOf(
-        IdeModuleDependencyCoreImpl(
+        IdeDependencyCoreImpl(
           internedModels.getOrCreate(
             IdeModuleLibraryImpl(
               buildId,
@@ -760,7 +757,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
               null,
               IdeModuleSourceSet.MAIN
             )
-          )
+          ),
+          isProvided = false
         )
       )
   )
@@ -810,9 +808,9 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
 fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
   dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
-    projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
+    dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
       listOf(
-        IdeModuleDependencyCoreImpl(
+        IdeDependencyCoreImpl(
           internedModels.getOrCreate(
             IdeModuleLibraryImpl(
               buildId,
@@ -821,7 +819,8 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
               null,
               IdeModuleSourceSet.MAIN
             )
-          )
+          ),
+          isProvided = false
         )
       )
   ),
@@ -847,7 +846,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
 
 private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDependencies: List<AndroidModuleDependency>) =
   androidModuleDependencies.map {
-    IdeModuleDependencyCoreImpl(
+    IdeDependencyCoreImpl(
       internedModels.getOrCreate(
         IdeModuleLibraryImpl(
           projectPath = it.moduleGradlePath,
@@ -856,7 +855,8 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
           lintJar = null,
           sourceSet = IdeModuleSourceSet.MAIN
         )
-      )
+      ),
+      isProvided = false
     )
   }
 
@@ -864,8 +864,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   variant: String,
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
-    projects = listOf(
-      IdeModuleDependencyCoreImpl(
+    dependencies = listOf(
+      IdeDependencyCoreImpl(
         internedModels.getOrCreate(
           IdeModuleLibraryImpl(
             buildId,
@@ -874,7 +874,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
             null,
             IdeModuleSourceSet.MAIN
           )
-        )
+        ),
+        isProvided = false
       )
     )
   )
@@ -1068,11 +1069,9 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 }
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
-  libraries: List<IdeAndroidLibraryDependencyCoreImpl> = listOf(),
-  javaLibraries: List<IdeJavaLibraryDependencyCoreImpl> = listOf(),
-  projects: List<IdeModuleDependencyCoreImpl> = listOf(),
+  dependencies: List<IdeDependencyCoreImpl> = listOf(),
   runtimeOnlyClasses: List<File> = listOf()
-): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(libraries, javaLibraries, projects, runtimeOnlyClasses)
+): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(dependencies, runtimeOnlyClasses)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.

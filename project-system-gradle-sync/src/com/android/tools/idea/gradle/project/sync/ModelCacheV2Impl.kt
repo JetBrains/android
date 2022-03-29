@@ -57,7 +57,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -69,7 +68,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeDependency
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
+import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
@@ -79,9 +78,6 @@ import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGN
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.IdeModuleDependencyCore
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
@@ -94,7 +90,7 @@ import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
@@ -107,13 +103,10 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyCoreImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -477,7 +470,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     // supposed to be shared by all artifacts. When creating IdeLevel2Dependencies, check if current library is available in this map,
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
     // to this map, so it can be reused the next time when the same library is added.
-    val librariesById = mutableMapOf<String, IdeDependency<*>>()
+    val librariesById = mutableMapOf<String, IdeDependencyCore>()
     fun createModuleLibrary(
       visited: MutableSet<String>,
       projectPath: String,
@@ -490,7 +483,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
         librariesById.computeIfAbsent(artifactAddress) {
-          IdeModuleDependencyCoreImpl(libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar, isTestFixturesComponent))
+          IdeDependencyCoreImpl(
+            libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar, isTestFixturesComponent),
+            isProvided = false
+          )
         }
       }
     }
@@ -527,7 +523,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
           visited.add(address)
           val isProvided = providedLibraries.contains(javaLibrary.libraryInfo?.toIdentity())
           librariesById.computeIfAbsent(address) {
-            IdeJavaLibraryDependencyCoreImpl(javaLibraryFrom(javaLibrary), isProvided)
+            IdeDependencyCoreImpl(javaLibraryFrom(javaLibrary), isProvided)
           }
         }
       }
@@ -600,7 +596,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
           visited.add(address)
           val isProvided = providedLibraries.contains(androidLibrary.libraryInfo?.toIdentity())
           librariesById.computeIfAbsent(address) {
-            IdeAndroidLibraryDependencyCoreImpl(androidLibraryFrom(androidLibrary), isProvided)
+            IdeDependencyCoreImpl(androidLibraryFrom(androidLibrary), isProvided)
           }
         }
       }
@@ -617,22 +613,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       artifactAddresses: Collection<String>,
       runtimeOnlyJars: Collection<File>
     ): IdeDependenciesCore {
-      val androidLibraries = ImmutableList.builder<IdeAndroidLibraryDependencyCore>()
-      val javaLibraries = ImmutableList.builder<IdeJavaLibraryDependencyCore>()
-      val moduleDependencies = ImmutableList.builder<IdeModuleDependencyCore>()
-      for (address in artifactAddresses) {
-        when (val library = librariesById[address]!!) {
-          is IdeAndroidLibraryDependencyCore -> androidLibraries.add(library)
-          is IdeJavaLibraryDependencyCore -> javaLibraries.add(library)
-          is IdeModuleDependencyCore -> moduleDependencies.add(library)
-          else -> throw UnsupportedOperationException("Unknown library type " + library::class.java)
-        }
-      }
       return IdeDependenciesCoreImpl(
-        androidLibraries = androidLibraries.build(),
-        javaLibraries = javaLibraries.build(),
-        moduleDependencies = moduleDependencies.build(),
-        runtimeOnlyClasses = ImmutableList.copyOf(runtimeOnlyJars))
+        dependencies = artifactAddresses.map { address -> librariesById[address]!! },
+        runtimeOnlyClasses = ImmutableList.copyOf(runtimeOnlyJars)
+      )
     }
 
     fun createIdeDependenciesInstance(): IdeDependenciesCore {

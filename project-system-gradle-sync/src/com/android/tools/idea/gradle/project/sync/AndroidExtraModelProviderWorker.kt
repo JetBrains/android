@@ -779,13 +779,13 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
-      return (ideVariant.mainArtifact.dependencyCores.moduleDependencies
-              + ideVariant.unitTestArtifact?.ideDependenciesCore?.moduleDependencies.orEmpty()
-              + ideVariant.androidTestArtifact?.dependencyCores?.moduleDependencies.orEmpty()
-              + ideVariant.testFixturesArtifact?.dependencyCores?.moduleDependencies.orEmpty()
+      return (ideVariant.mainArtifact.dependencyCores.dependencies
+              + ideVariant.unitTestArtifact?.ideDependenciesCore?.dependencies.orEmpty()
+              + ideVariant.androidTestArtifact?.dependencyCores?.dependencies.orEmpty()
+              + ideVariant.testFixturesArtifact?.dependencyCores?.dependencies.orEmpty()
              )
         .distinct()
-        .map { libraryResolver(it.target) as IdeModuleLibrary }
+        .mapNotNull{ libraryResolver(it.target) as? IdeModuleLibrary }
         .mapNotNull { moduleDependency ->
           val dependencyProject = moduleDependency.projectPath
           val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
