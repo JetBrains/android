@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2021.3.01">
+    version="2021.3.1.2">
   <feature
-      name="What's New in 2021.3.01">
+      name="What's New in Dolphin">
     <tutorial
         key="whats-new"
-        label=" What's New in 2021.3.01"
+        label=" What's New in Dolphin"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/preview/features"
+        remoteLink="https://developer.android.com/studio/preview/features#2021.3.1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,11 +37,261 @@
           from the main menu.
           ]]>
       </description>
+      <step label="New Logcat">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-logs.png"/>
+             <br /><br />
+              <p>
+                Logcat has been updated to make it easier to parse, query, and keep track of logs.
+                This represents the most significant update to the tool since its introduction, and
+                we welcome you to <a href="http://issuetracker.google.com/issues/new?title=%5BLogcatV2%5D+Title&cc=adarshf%40google.com%2Crpaquay%40google.com&format=PLAIN&component=192708&type=BUG&priority=P1&severity=S2&assignee=aalbert%40google.com&inProd=true">provide
+                feedback</a>.
+             </p>
+             <br />
+           ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <action
+              key="logcat.enable.and.restart"
+              label="Enable and restart"
+              successMessage="Optional message displayed when action is completed">
+          </action>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p> <b>New formatter:</b> Logcat now formats logs to make it easier to scan useful
+              information, such as tags and messages, and identify different types of logs, such as
+              warnings and errors.
+            </p>
+            <br />
+            <p>
+              <b>Create multiple Logcat windows:</b> You can now create multiple tabs within Logcat,
+              so that you can easily switch between different devices or queries. Right-clicking a
+              tab allows you to rename it, and you can click and drag to rearrange the tabs.
+              Additionally, to help you more easily compare between two sets of logs, you can now
+              split the view within a tab by right-clicking in the log view and selecting either
+              <b>Split Right</b> or <b>Split Down</b>.
+            </p>
+            <br />
+            <p>
+              <b>Switch between view presets:</b> Logcat now allows you to quickly switch between
+                different view modes (<b>Standard</b>, <b>Compact</b>, and <b>Custom</b>) by clicking
+                <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-view-modes-button.png">.
+                Each view mode provides a different default setting for showing you more or less
+                information, such as timestamps, tags, and process IDs (PID). You can also customize each of
+                these default view modes, as well as a custom view mode, by selecting <b>Modify View</b>.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-view-selection.png"></p>
+              <br><br>
+            <p>
+              <b>New key-value search:</b> We’ve now simplified the search experience by introducing
+              key-value searches right from the main query field, complete with suggestions, history,
+              and the ability to favourite queries.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-query-auto-complete.png"></p>
+              <br><br>
+            <p>
+              Here are some examples of how to use the new query system, but you can also simply
+              start typing in the query field to see suggestions:
+            </p>
+            <br />
+            <ul>
+              <li><b>PIDs for the local app project:</b> <code>package:mine</code>
+              </li>
+              <li><b>Specific values:</b> <code>package:my-package-ID</code>, <code>tag:my-tag</code>,
+              <code>level:ERROR</code>, and more.
+              </li>
+              <li><b>Exclude a specific value</b> by preceding the key with <code>-</code>:
+              <code>-tag:exclude-this-tag</code>.
+              </li>
+              <li><b>Use regular expressions</b> with a given key by placing a <code>~</code> after the key:
+              <code>tag~:regex-tag</code> or <code>-tag~:exclude-this-regex-tag</code>.
+              </li>
+            </ul>
+            <br />
+            <p>You can also see a history of queries by clicking
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-query-history.png">
+            in the query field and selecting them from the drop down. To favorite a query so that it
+            stays at the top of the list across all your studio projects, click the
+            <img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-favourite.png">
+            at the end of the query field.
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-history.png"></p>
+              <br><br>
+            <p><b>Track logs across app crashes/restarts:</b> The new Logcat now makes it easier to
+            track logs from your app across app crashes and restarts, so that you don’t miss important
+            logs across these events. When a Logcat notices that your app process has stopped and
+            restarted you’ll see a message in the output similar to below:
+            </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/2021.3.1/logcat-app-restart.png"></p>
+              <br><br>
+              <a href="https://d.android.com/studio/preview/features#logcat">Learn more</a>
+              <br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Support for debugging Kotlin Coroutines">
+        <stepElement>
+          <section>
+            <![CDATA[
+              <p>
+              Android Studio Dolphin now adds support for debugging Kotlin coroutines in your
+              Android projects. The <a href="https://www.jetbrains.com/help/idea/debug-kotlin-coroutines.html">supported
+              functionality</a> is similar to what is currently available in IntelliJ IDEA 2021.3,
+              but is now also available in Android Studio.
+              </p>
+              <br>
+              <p>Before you get started, ensure that your app projects uses
+              <code>kotlinx-coroutine-core</code> <a href="https://github.com/Kotlin/kotlinx.coroutines/releases/tag/1.6.0">version 1.6.0</a>
+              or higher. Then, debug your app as you normally would on a device running API level 29
+              or higher. When setting a breakpoint in a suspend function, make sure the breakpoint
+              sets <b>Suspend</b> to <b>All</b>. When your app hits the breakpoint, you can see
+              coroutines and their states grouped by dispatcher in the <b>Coroutines</b> tab. You
+              can use the <b>Variables</b> tab as you normally would, so that you can investigate
+              values of local variables and fields available in a coroutine at each breakpoint.
+              </p>
+              <br>
+              <a href="https://developer.android.com/studio/preview/features#coroutines">Learn more</a>
+              <br>
+              <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Gradle Managed Virtual Devices">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            In order to improve consistency, performance, and reliability when using Android Virtual
+            Devices for your automated instrumented tests, we’re introducing Gradle Managed Virtual
+            Devices. This feature allows you to configure virtual test devices in your project's
+            Gradle files that the build system uses to fully manage those devices—that is, create,
+            deploy, and tear down—to execute your automated tests.
+            </p>
+            <br />
+            <p>
+            You can specify a virtual device that you want Gradle to use for testing your app in
+            your modul-level build.gradle file. The following code sample creates a Pixel 2
+            running API level 30 as a Gradle managed device.
+            </p><br><br>
+<div style="border: solid gray 1px; padding-left: 10px;">
+<pre>android {
+  testOptions {
+    managedDevices {
+      devices {
+        pixel2api30 (com.android.build.api.dsl.ManagedVirtualDevice) {
+          // Use device profiles you typically see in Android Studio.
+          device = "Pixel 2"
+          // Use only API levels 27 and higher.
+          apiLevel = 30
+          // To include Google services, use "google".
+          systemImageSource = "aosp"
+          // Whether the image must be a 64 bit image. Defaults to
+          // false, in which case the managed device will use a
+          // 32 bit image. Not applicable to arm64 machines.
+          require64Bit = false
+        }
+      }
+    }
+  }
+}</pre>
+</div>
+            <br>
+            <p>To run your tests using the Gradle managed devices you configured, use the following command.
+            If you're running this command on servers that don't support hardware rendering, such as GitHub Actions, you need to
+            also specify <code>-Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"</code>.</p>
+             <br /><br />
+<div style="border: solid gray 1px; padding-left: 10px;">
+<pre>gradlew pixel2api29DebugAndroidTest</pre>
+</div>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/testing/gradle-managed-devices">Learn more</a>,
+              including how to configure and run groups of Gradle-managed devices.
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Automated Test Devices">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+            Gradle Managed Devices supports a new type of Emulator device, called the
+            Automated Test Device (ATD), which is optimized to reduce CPU and Memory
+            resources when running your instrumentation tests.
+            </p>
+            <br />
+            <p>
+            To use an ATD image with Gradle Managed Devices, specify an "atd" image, as
+            shown below:
+            </p><br><br>
+<div style="border: solid gray 1px; padding-left: 10px;">
+<pre>android {
+  testOptions {
+    managedDevices {
+      devices {
+        pixel2api30 (com.android.build.api.dsl.ManagedVirtualDevice) {
+          // Use device profiles you typically see in Android Studio.
+          device = "Pixel 2"
+          // ATD currently support only API level 30.
+          apiLevel = 30
+          // You can also specify "google-atd" if you require Google
+          // Play Services.
+          systemImageSource = "aosp-atd"
+          // Whether the image must be a 64 bit image.
+          require64Bit = false
+        }
+      }
+    }
+  }
+}</pre>
+</div>
+            <br>
+            <a href="https://d.android.com/studio/preview/features#gmd-atd">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Run tests faster with Test Sharding">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              When running tests using Gradle Managed Devices, you can now also enable Test Sharding,
+              which allows you to distribute tests in your
+              test suite across a number of identical virtual device instances, called
+              <em>shards</em>, that run in parallel. Utilizing Test Sharding can help reduce overal
+              test execution time at the cost of additional computational resources, which you can
+              mitigate using Automated Test Devices. To set the
+              number of shards you want to use in a given test run, set the following
+              in your <code>gradle.properties</code> file:
+            </p><br><br>
+<div style="border: solid gray 1px; padding-left: 10px;">
+<pre>android.experimental.androidTest.numManagedDeviceShards=number_of_shards</pre>
+</div>
+            <br>
+            <a href="https://d.android.com/studio/preview/features#gmd-sharding">Learn more</a>
+            <br>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 01/05/2022</em><br><br>
+              <br><em>Last updated 3/29/2022</em><br><br>
             ]]>
           </section>
         </stepElement>
