@@ -41,7 +41,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CommonConfigurationNames.CLASSPATH).forEach dep@{ dep ->
-        when (AndroidPluginVersionUpdater.isUpdatablePluginDependency(new, dep)) {
+        when (isUpdatablePluginDependency(new, dep)) {
           // consider returning a usage even if the dependency has the current version (in a chained upgrade, the dependency
           // might have been updated before this RefactoringProcessor gets a chance to run).  The applicability of the processor
           // will prevent this from being a problem.

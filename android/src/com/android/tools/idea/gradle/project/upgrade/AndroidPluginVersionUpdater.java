@@ -16,14 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ThreeState.NO;
-import static com.intellij.util.ThreeState.UNSURE;
-import static com.intellij.util.ThreeState.YES;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -33,7 +28,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -181,30 +175,6 @@ public class AndroidPluginVersionUpdater {
       msg += ": " + cause;
     }
     Logger.getInstance(AndroidPluginVersionUpdater.class).warn(msg);
-  }
-
-  @NotNull
-  public static ThreeState isUpdatablePluginDependency(@NotNull GradleVersion toVersion, @NotNull ArtifactDependencyModel model) {
-    String artifactId = model.name().forceString();
-    String groupId = model.group().toString();
-    if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
-      return UNSURE;
-    }
-
-    String versionValue = model.version().toString();
-    return (isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ? YES : NO;
-  }
-
-  @NotNull
-  public static ThreeState isUpdatablePluginRelatedDependency(@NotNull GradleVersion toVersion, @NotNull ArtifactDependencyModel model) {
-    String artifactId = model.name().forceString();
-    String groupId = model.group().toString();
-    if (!AndroidPluginInfo.isAndroidPluginOrApi(artifactId, groupId)) {
-      return UNSURE;
-    }
-
-    String versionValue = model.version().toString();
-    return (isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ? YES : NO;
   }
 
   public static class UpdateResult {

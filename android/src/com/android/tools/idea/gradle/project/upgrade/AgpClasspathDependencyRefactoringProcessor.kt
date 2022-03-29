@@ -75,7 +75,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
       model.buildscript().dependencies().artifacts(CommonConfigurationNames.CLASSPATH).forEach dep@{ dep ->
-        when (AndroidPluginVersionUpdater.isUpdatablePluginDependency(new, dep)) {
+        when (isUpdatablePluginDependency(new, dep)) {
           ThreeState.YES -> {
             val resultModel = dep.version().resultModel
             val psiElement = when (val element = resultModel.rawElement) {
@@ -97,7 +97,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
       // buildSrc run-time dependencies are project build-time (classpath) dependencies.
       if (model.moduleRootDirectory.toVirtualFile() == buildSrcDir) {
         model.dependencies().artifacts().forEach dep@{ dep ->
-          when (AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency(new, dep)) {
+          when (isUpdatablePluginRelatedDependency(new, dep)) {
             ThreeState.YES -> {
               val resultModel = dep.version().resultModel
               val psiElement = when (val element = resultModel.rawElement) {
