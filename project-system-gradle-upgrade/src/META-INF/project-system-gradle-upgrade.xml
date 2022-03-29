@@ -11,5 +11,7 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvokerImpl"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.ContentManager"
                     serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ContentManagerImpl"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"
+                    serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdaterImpl"/>
   </extensions>
 </idea-plugin>

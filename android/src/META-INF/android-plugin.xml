@@ -518,7 +518,6 @@
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>

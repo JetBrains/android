@@ -31,25 +31,9 @@ import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidPluginVersionUpdater {
-  @NotNull private final Project myProject;
-  @NotNull private final TextSearch myTextSearch;
-
-  @NotNull
-  public static AndroidPluginVersionUpdater getInstance(@NotNull Project project) {
+public interface AndroidPluginVersionUpdater {
+  static AndroidPluginVersionUpdater getInstance(@NotNull Project project) {
     return project.getService(AndroidPluginVersionUpdater.class);
-  }
-
-  public AndroidPluginVersionUpdater(@NotNull Project project) {
-    this(project, new TextSearch(project));
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  AndroidPluginVersionUpdater(@NotNull Project project,
-                              @NotNull TextSearch textSearch) {
-    myProject = project;
-    myTextSearch = textSearch;
   }
 
   /**
@@ -57,10 +41,7 @@ public class AndroidPluginVersionUpdater {
    * @param gradleVersion the Gradle version to update to
    * @return whether or not the update of the Android Gradle plugin OR Gradle version was successful.
    */
-  public boolean updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, null);
-    return result.isPluginVersionUpdated() || result.isGradleVersionUpdated();
-  }
+  boolean updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion);
 
   /**
    * Updates the plugin version and, optionally, the Gradle version used by the project.
@@ -70,123 +51,21 @@ public class AndroidPluginVersionUpdater {
    * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
    * @return the result of the update operation.
    */
-  public UpdateResult updatePluginVersion(
+  UpdateResult updatePluginVersion(
     @NotNull GradleVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
     @Nullable GradleVersion oldPluginVersion
-  ) {
-    UpdateResult result = new UpdateResult();
+  );
 
-    Runnable updaterRunnable =
-      () -> {
-        updatePluginVersionWithResult(pluginVersion, gradleVersion, oldPluginVersion, result);
-        synchronized (result) {
-          result.complete = true;
-          result.notifyAll();
-        }
-      };
-
-    // TODO(b/159995302): this is rather too complex for what is going on, and all of this complexity is driven from
-    //  getting a status result from the upgrade.  Without that requirement, we could smartInvokeLater(updaterRunnable) and not worry
-    //  about synchronizing, or whether we're on a special thread.
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      // if we're on the dispatch thread, then we can't wait for smart mode; it'll never come if we sit here waiting.  (See e.g. the first
-      // clause in DumbService.runReadActionInSmartMode()).  On the plus side, if we're on the dispatch thread then probably we have been
-      // triggered by explicit user action, and so if we're in dumb mode they will get the visible feedback and a clue on when to try again.
-      updaterRunnable.run();
-    }
-    else {
-      DumbService.getInstance(myProject).smartInvokeLater(updaterRunnable);
-      try {
-        synchronized (result) {
-          while (!result.complete) {
-            result.wait();
-          }
-        }
-      }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    }
-
-    Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
-    Throwable gradleVersionUpdateError = result.getGradleVersionUpdateError();
-
-    if (pluginVersionUpdateError != null) {
-      String msg = String.format("Failed to update Android plugin to version '%1$s'", pluginVersion);
-      logUpdateError(msg, pluginVersionUpdateError);
-    }
-    if (gradleVersionUpdateError != null) {
-      String msg = String.format("Failed to update Gradle to version '%1$s'", gradleVersion);
-      logUpdateError(msg, gradleVersionUpdateError);
-    }
-
-    if (result.getPluginVersionUpdateError() != null) {
-      myTextSearch.execute();
-    }
-    return result;
-  }
-
-  // TODO(xof): this, as it stands, needs to be run on the EDT for running the refactoring processors.
-  private void updatePluginVersionWithResult(
-    @NotNull GradleVersion pluginVersion,
-    @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion,
-    UpdateResult result
-  ) {
-    if (oldPluginVersion == null) {
-      // if we don't know the version we're upgrading from, assume an early one.
-      // FIXME(xof): we should always know what we're upgrading from.  Find callers and fix them.
-      oldPluginVersion = new GradleVersion(1, 0, 0);
-    }
-
-    AgpClasspathDependencyRefactoringProcessor rp1 = new AgpClasspathDependencyRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
-    GMavenRepositoryRefactoringProcessor rp2 = new GMavenRepositoryRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
-    try {
-      rp1.run();
-      if (!oldPluginVersion.isAtLeast(3, 0, 0)) {
-        rp2.run();
-      }
-      if (rp1.getFoundUsages()) {
-        result.pluginVersionUpdated();
-      }
-    }
-    catch (Throwable e) {
-      result.setPluginVersionUpdateError(e);
-    }
-
-    if (result.isPluginVersionUpdated() && gradleVersion != null) {
-      GradleVersionRefactoringProcessor rp3 =
-        new GradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
-      try {
-        rp3.run();
-        result.gradleVersionUpdated();
-      }
-      catch (Throwable e) {
-        result.setGradleVersionUpdateError(e);
-      }
-    }
-  }
-
-  private static void logUpdateError(@NotNull String msg, @NotNull Throwable error) {
-    String cause = error.getMessage();
-    if (isNotEmpty(cause)) {
-      msg += ": " + cause;
-    }
-    Logger.getInstance(AndroidPluginVersionUpdater.class).warn(msg);
-  }
-
-  public static class UpdateResult {
+  class UpdateResult {
     @Nullable private Throwable myPluginVersionUpdateError;
     @Nullable private Throwable myGradleVersionUpdateError;
 
     private boolean myPluginVersionUpdated;
     private boolean myGradleVersionUpdated;
 
-    private boolean complete;
+    protected boolean complete;
 
-    @VisibleForTesting
     public UpdateResult() {
     }
 
@@ -226,25 +105,6 @@ public class AndroidPluginVersionUpdater {
 
     public boolean versionUpdateSuccess() {
       return (myPluginVersionUpdated || myGradleVersionUpdated) && myPluginVersionUpdateError == null && myGradleVersionUpdateError == null;
-    }
-  }
-
-  @VisibleForTesting
-  static class TextSearch {
-    @NotNull private final Project myProject;
-
-    TextSearch(@NotNull Project project) {
-      myProject = project;
-    }
-
-    void execute() {
-      String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
-                   "Please click 'OK' to perform a textual search and then update the build files manually.";
-      ApplicationManager.getApplication().invokeLater(() -> {
-        Messages.showErrorDialog(myProject, msg, "Unexpected Error");
-        String textToFind = AndroidPluginInfo.GROUP_ID + ":" + AndroidPluginInfo.ARTIFACT_ID;
-        searchInBuildFiles(textToFind, myProject);
-      });
     }
   }
 }
