@@ -80,6 +80,7 @@ import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INF
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeModuleDependencyCore
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
@@ -111,6 +112,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
@@ -454,7 +456,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     variant: String?,
     lintJar: File?,
     isTestFixturesComponent: Boolean
-  ): IdeModuleLibrary {
+  ): LibraryReference {
     val moduleLibrary = IdeModuleLibraryImpl(
       buildId = buildId,
       projectPath = projectPath,
@@ -488,7 +490,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
         librariesById.computeIfAbsent(artifactAddress) {
-          IdeModuleDependencyImpl(libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar, isTestFixturesComponent))
+          IdeModuleDependencyCoreImpl(libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar, isTestFixturesComponent))
         }
       }
     }
@@ -617,12 +619,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     ): IdeDependenciesCore {
       val androidLibraries = ImmutableList.builder<IdeAndroidLibraryDependencyCore>()
       val javaLibraries = ImmutableList.builder<IdeJavaLibraryDependencyCore>()
-      val moduleDependencies = ImmutableList.builder<IdeModuleDependency>()
+      val moduleDependencies = ImmutableList.builder<IdeModuleDependencyCore>()
       for (address in artifactAddresses) {
         when (val library = librariesById[address]!!) {
           is IdeAndroidLibraryDependencyCore -> androidLibraries.add(library)
           is IdeJavaLibraryDependencyCore -> javaLibraries.add(library)
-          is IdeModuleDependency -> moduleDependencies.add(library)
+          is IdeModuleDependencyCore -> moduleDependencies.add(library)
           else -> throw UnsupportedOperationException("Unknown library type " + library::class.java)
         }
       }

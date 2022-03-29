@@ -23,6 +23,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeModuleDependencyCore
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import java.io.Serializable
 import java.util.concurrent.ConcurrentHashMap
@@ -30,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap
 class IdeLibraryModelResolverImpl(private val libraryTable: (LibraryReference) -> IdeLibrary) : IdeLibraryModelResolver {
   private val androidLibraries: ConcurrentHashMap<Identity<IdeAndroidLibraryDependencyCore>, IdeAndroidLibraryDependency> = ConcurrentHashMap()
   private val javaLibraries: ConcurrentHashMap<Identity<IdeJavaLibraryDependencyCore>, IdeJavaLibraryDependency> = ConcurrentHashMap()
+  private val modules: ConcurrentHashMap<Identity<IdeModuleDependencyCore>, IdeModuleDependency> = ConcurrentHashMap()
 
   override fun resolveAndroidLibrary(unresolved: IdeAndroidLibraryDependencyCore): IdeAndroidLibraryDependency {
     return androidLibraries.getOrElse(Identity(unresolved)) {
@@ -40,6 +44,12 @@ class IdeLibraryModelResolverImpl(private val libraryTable: (LibraryReference) -
   override fun resolveJavaLibrary(unresolved: IdeJavaLibraryDependencyCore): IdeJavaLibraryDependency {
     return javaLibraries.getOrElse(Identity(unresolved)) {
       IdeJavaLibraryDependencyImpl(libraryTable(unresolved.target) as IdeJavaLibrary, unresolved.isProvided)
+    }
+  }
+
+  override fun resolveModule(unresolved: IdeModuleDependencyCore): IdeModuleDependency {
+    return modules.getOrElse(Identity(unresolved)) {
+      IdeModuleDependencyImpl(libraryTable(unresolved.target) as IdeModuleLibrary)
     }
   }
 }

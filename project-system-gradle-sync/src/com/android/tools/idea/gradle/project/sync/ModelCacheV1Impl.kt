@@ -84,6 +84,7 @@ import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependencyCore
 import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeModuleDependencyCore
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
@@ -120,6 +121,7 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -298,7 +300,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeModuleLibrary {
+  fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): LibraryReference {
     val moduleLibrary = IdeModuleLibraryImpl(
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
@@ -309,7 +311,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return internedModels.getOrCreate(moduleLibrary)
   }
 
-  fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): IdeModuleLibrary {
+  fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): LibraryReference {
     val moduleLibrary = IdeModuleLibraryImpl(
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
@@ -419,7 +421,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // If the aar bundle is inside of build directory of sub-module, then it's regular library module dependency, otherwise it's a wrapped aar module.
     val projectPath = androidLibrary.project
     return if (projectPath != null && !isLocalAarModule(buildFolderPaths, androidLibrary)) {
-      IdeModuleDependencyImpl(createIdeModuleLibrary(androidLibrary, projectPath))
+      IdeModuleDependencyCoreImpl(createIdeModuleLibrary(androidLibrary, projectPath))
     }
     else {
       val artifactAddress = computeAddress(androidLibrary)
@@ -462,7 +464,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val project = copyNewProperty(javaLibrary::getProject)
     return if (project != null) {
       // Java modules don't have variant.
-      IdeModuleDependencyImpl(createIdeModuleLibrary(javaLibrary, project))
+      IdeModuleDependencyCoreImpl(createIdeModuleLibrary(javaLibrary, project))
     }
     else {
       val artifactAddress = computeAddress(javaLibrary)
@@ -480,7 +482,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     }
   }
 
-  fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeModuleDependency {
+  fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeModuleDependencyCoreImpl {
     val core = IdeModuleLibraryImpl(
       buildId = buildId,
       projectPath = projectPath,
@@ -488,7 +490,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = null,
       sourceSet = IdeModuleSourceSet.MAIN
     )
-    return IdeModuleDependencyImpl(internedModels.getOrCreate(core))
+    return IdeModuleDependencyCoreImpl(internedModels.getOrCreate(core))
   }
 
   /** Call this method on level 1 Dependencies model.  */
@@ -575,14 +577,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     ): IdeDependenciesCoreImpl {
       val androidLibraries = ImmutableList.builder<IdeAndroidLibraryDependencyCore>()
       val javaLibraries = ImmutableList.builder<IdeJavaLibraryDependencyCore>()
-      val moduleDependencies = ImmutableList.builder<IdeModuleDependency>()
+      val moduleDependencies = ImmutableList.builder<IdeModuleDependencyCore>()
       for (address in artifactAddresses) {
         val library = dependenciesById[address]!!
         // TODO(solodkyy): Build typed collections directly in populate methods.
         when (library) {
           is IdeAndroidLibraryDependencyCore -> androidLibraries.add(library)
           is IdeJavaLibraryDependencyCore -> javaLibraries.add(library)
-          is IdeModuleDependency -> moduleDependencies.add(library)
+          is IdeModuleDependencyCore -> moduleDependencies.add(library)
           else -> throw UnsupportedOperationException("Unknown library type " + library::class.java)
         }
       }

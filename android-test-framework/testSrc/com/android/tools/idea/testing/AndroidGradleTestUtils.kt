@@ -50,7 +50,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -750,7 +750,19 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
     projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
-               listOf(IdeModuleDependencyImpl(IdeModuleLibraryImpl(buildId, gradleProjectPath, variant, null, IdeModuleSourceSet.MAIN)))
+      listOf(
+        IdeModuleDependencyCoreImpl(
+          internedModels.getOrCreate(
+            IdeModuleLibraryImpl(
+              buildId,
+              gradleProjectPath,
+              variant,
+              null,
+              IdeModuleSourceSet.MAIN
+            )
+          )
+        )
+      )
   )
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
   return IdeAndroidArtifactCoreImpl(
@@ -799,7 +811,19 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
   dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
     projects = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
-               listOf(IdeModuleDependencyImpl(IdeModuleLibraryImpl(buildId, gradleProjectPath, variant, null, IdeModuleSourceSet.MAIN)))
+      listOf(
+        IdeModuleDependencyCoreImpl(
+          internedModels.getOrCreate(
+            IdeModuleLibraryImpl(
+              buildId,
+              gradleProjectPath,
+              variant,
+              null,
+              IdeModuleSourceSet.MAIN
+            )
+          )
+        )
+      )
   ),
   mockablePlatformJar: File? = null
 ): IdeJavaArtifactCoreImpl {
@@ -823,13 +847,15 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
 
 private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDependencies: List<AndroidModuleDependency>) =
   androidModuleDependencies.map {
-    IdeModuleDependencyImpl(
-      IdeModuleLibraryImpl(
-        projectPath = it.moduleGradlePath,
-        buildId = this.buildId,
-        variant = it.variant,
-        lintJar = null,
-        sourceSet = IdeModuleSourceSet.MAIN
+    IdeModuleDependencyCoreImpl(
+      internedModels.getOrCreate(
+        IdeModuleLibraryImpl(
+          projectPath = it.moduleGradlePath,
+          buildId = this.buildId,
+          variant = it.variant,
+          lintJar = null,
+          sourceSet = IdeModuleSourceSet.MAIN
+        )
       )
     )
   }
@@ -838,7 +864,19 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   variant: String,
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
-    projects = listOf(IdeModuleDependencyImpl(IdeModuleLibraryImpl(buildId, gradleProjectPath, variant, null, IdeModuleSourceSet.MAIN)))
+    projects = listOf(
+      IdeModuleDependencyCoreImpl(
+        internedModels.getOrCreate(
+          IdeModuleLibraryImpl(
+            buildId,
+            gradleProjectPath,
+            variant,
+            null,
+            IdeModuleSourceSet.MAIN
+          )
+        )
+      )
+    )
   )
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("testFixtures")
   return IdeAndroidArtifactCoreImpl(
@@ -1032,7 +1070,7 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 fun AndroidProjectStubBuilder.buildDependenciesStub(
   libraries: List<IdeAndroidLibraryDependencyCoreImpl> = listOf(),
   javaLibraries: List<IdeJavaLibraryDependencyCoreImpl> = listOf(),
-  projects: List<IdeModuleDependencyImpl> = listOf(),
+  projects: List<IdeModuleDependencyCoreImpl> = listOf(),
   runtimeOnlyClasses: List<File> = listOf()
 ): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(libraries, javaLibraries, projects, runtimeOnlyClasses)
 
@@ -1160,8 +1198,10 @@ private fun setupTestProjectFromAndroidModelCore(
       GRADLE_SYSTEM_ID,
       projectName,
       rootProjectBasePath.systemIndependentPath,
-      rootProjectBasePath.systemIndependentPath),
-    null)
+      rootProjectBasePath.systemIndependentPath
+    ),
+    null
+  )
 
   if (cacheExistingVariants) {
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(project)
@@ -1357,9 +1397,10 @@ private fun createAndroidModuleDataNode(
 
   if (ndkModel != null) {
     val selectedAbiName = selectedAbiName
-                          ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
-                          ?: error(
-                            "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'")
+      ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
+      ?: error(
+        "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+      )
     moduleDataNode.addChild(
       DataNode<NdkModuleModel>(
         AndroidProjectKeys.NDK_MODEL,
@@ -1462,7 +1503,8 @@ private fun createJavaModuleDataNode(
             sourceSetDataDataNode.data,
             ExternalSystemApiUtil.findAll(
               moduleDataNode,
-              GradleSourceSetData.KEY).find { it.data.moduleName == "main" }!!.data
+              GradleSourceSetData.KEY
+            ).find { it.data.moduleName == "main" }!!.data
           ),
           null
         )

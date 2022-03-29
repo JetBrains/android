@@ -37,7 +37,7 @@ interface IdeDependenciesCore {
    *
    * @return the list of libraries of type LIBRARY_MODULE.
    */
-  val moduleDependencies: Collection<IdeModuleDependency>
+  val moduleDependencies: Collection<IdeModuleDependencyCore>
 
   /**
    * Returns the list of runtime only classes.

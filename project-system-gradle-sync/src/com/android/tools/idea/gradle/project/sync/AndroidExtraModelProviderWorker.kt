@@ -32,8 +32,11 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -421,7 +424,7 @@ internal class AndroidExtraModelProviderWorker(
         syncVariantResultCore?.let {
           SyncVariantResult(
             syncVariantResultCore,
-            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants),
+            syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants, modelCache.libraryResolver),
           )
         }
       }
@@ -744,7 +747,10 @@ internal class AndroidExtraModelProviderWorker(
     val unresolvedDependencies: List<IdeUnresolvedDependency> get() = core.unresolvedDependencies
   }
 
-  private fun SyncVariantResultCore.getModuleDependencyConfigurations(selectedVariants: SelectedVariants): List<ModuleConfiguration> {
+  private fun SyncVariantResultCore.getModuleDependencyConfigurations(
+    selectedVariants: SelectedVariants,
+    libraryResolver: (LibraryReference) -> IdeLibrary
+  ): List<ModuleConfiguration> {
     val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
 
     // Regardless of the current selection in the IDE we try to select the same ABI in all modules the "top" module depends on even
@@ -772,12 +778,14 @@ internal class AndroidExtraModelProviderWorker(
       return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
     }
 
-    fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
+    fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
       return (ideVariant.mainArtifact.dependencyCores.moduleDependencies
               + ideVariant.unitTestArtifact?.ideDependenciesCore?.moduleDependencies.orEmpty()
               + ideVariant.androidTestArtifact?.dependencyCores?.moduleDependencies.orEmpty()
               + ideVariant.testFixturesArtifact?.dependencyCores?.moduleDependencies.orEmpty()
              )
+        .distinct()
+        .map { libraryResolver(it.target) as IdeModuleLibrary }
         .mapNotNull { moduleDependency ->
           val dependencyProject = moduleDependency.projectPath
           val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
@@ -804,7 +812,7 @@ internal class AndroidExtraModelProviderWorker(
       }
     }
 
-    return generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
+    return generateDirectModuleDependencies(libraryResolver) + generateDynamicFeatureDependencies()
   }
 
   sealed class NativeVariantAbiResult {

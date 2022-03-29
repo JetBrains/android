@@ -28,7 +28,7 @@ sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T>
   val isProvided: Boolean
 }
 
-sealed interface IdeArtifactDependencyCore<T> : IdeDependency<T> {
+sealed interface IdeDependencyCore<T> : IdeDependency<T> {
   val target: T
   /**
    * Returns whether the dependency is on the compile class path but is not on the runtime class
@@ -42,12 +42,14 @@ interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
 
 data class LibraryReference(val libraryIndex: Int): Serializable
 
-interface IdeAndroidLibraryDependencyCore: IdeArtifactDependencyCore<LibraryReference>
-interface IdeJavaLibraryDependencyCore: IdeArtifactDependencyCore<LibraryReference>
+interface IdeAndroidLibraryDependencyCore: IdeDependencyCore<LibraryReference>
+interface IdeJavaLibraryDependencyCore: IdeDependencyCore<LibraryReference>
+interface IdeModuleDependencyCore: IdeDependencyCore<LibraryReference>
 
 interface IdeLibraryModelResolver {
   fun resolveAndroidLibrary(unresolved: IdeAndroidLibraryDependencyCore): IdeAndroidLibraryDependency
   fun resolveJavaLibrary(unresolved: IdeJavaLibraryDependencyCore): IdeJavaLibraryDependency
+  fun resolveModule(unresolved: IdeModuleDependencyCore): IdeModuleDependency
 }
 
 interface IdeModuleDependency: IdeDependency<IdeModuleLibrary> {
