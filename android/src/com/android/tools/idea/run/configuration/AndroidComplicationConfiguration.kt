@@ -70,21 +70,23 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     }
   }
 
-  internal fun getTypesFromManifest(): List<Complication.ComplicationType>{
-    val module = this.module ?: return emptyList()
+  internal fun getTypesFromManifest(): List<Complication.ComplicationType>? {
+    val module = this.module ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.module.not.chosen"))
     val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
     if (snapshotFuture.isDone) {
       return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName ?: "")
     }
-    return emptyList()
+    return null
   }
 
   override fun checkConfiguration() {
     super.checkConfiguration()
+    val types = getTypesFromManifest()
+                ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.type.manifest.not.available"))
     if (chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
-    verifyProviderTypes(getTypesFromManifest())
+    verifyProviderTypes(types)
   }
 
   var chosenSlots: List<ChosenSlot> = listOf()

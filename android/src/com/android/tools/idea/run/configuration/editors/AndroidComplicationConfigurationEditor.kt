@@ -42,7 +42,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   private var originalChosenSlots: List<AndroidComplicationConfiguration.ChosenSlot> = listOf()
   private val currentChosenSlots: ObservableList<AndroidComplicationConfiguration.ChosenSlot> = ObservableList()
   private var notChosenSlotIds: List<Int> = emptyList()
-  private var sourceTypes: List<Complication.ComplicationType> = emptyList()
+  private var sourceTypes: List<Complication.ComplicationType>? = null
   private lateinit var addSlotLink: JComponent
   private lateinit var slotsComponent: JPanel
 
@@ -71,7 +71,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   }
 
   private fun removeInvalidTypes(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): AndroidComplicationConfiguration.ChosenSlot{
-    if (sourceTypes.contains(chosenSlot.type)) {
+    if (sourceTypes?.contains(chosenSlot.type) != false) {
       return chosenSlot
     }
     return AndroidComplicationConfiguration.ChosenSlot(chosenSlot.id, null)
@@ -179,8 +179,8 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     return comboBox
   }
 
-  private fun filterTypes(types: Array<Complication.ComplicationType>, supported: List<Complication.ComplicationType>) : Array<Complication.ComplicationType> {
-    return types.filter {type -> supported.any { it == type }}.toTypedArray()
+  private fun filterTypes(types: Array<Complication.ComplicationType>, supported: List<Complication.ComplicationType>?) : Array<Complication.ComplicationType> {
+    return types.filter {type -> supported?.any { it == type } != false}.toTypedArray()
   }
 
   private fun getSlotIdComboBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<Int> {
