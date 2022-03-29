@@ -64,7 +64,7 @@ public class DisposerExplorer {
    */
   @NotNull
   private static Collection<Disposable> getTreeRootsInternal() {
-    return getFieldValue(Disposer.getTree(), "myRootObjects");
+    return getObjectNodeDisposableChildren(getFieldValue(Disposer.getTree(), "ROOT_NODE"));
   }
 
   @NotNull
@@ -82,16 +82,21 @@ public class DisposerExplorer {
       if (objectNode == null) {
         return ImmutableList.of();
       }
-      List<?> childNodes = getObjectNodeChildren(objectNode);
-      if (childNodes.isEmpty()) {
-        return ImmutableList.of();
-      }
-      ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
-      for (Object node : childNodes) {
-        builder.add(getObjectNodeDisposable(node));
-      }
-      return builder.build();
+      return getObjectNodeDisposableChildren(objectNode);
     }
+  }
+
+  @NotNull
+  private static ImmutableList<Disposable> getObjectNodeDisposableChildren(@NotNull Object objectNode) {
+    List<?> childNodes = getObjectNodeChildren(objectNode);
+    if (childNodes.isEmpty()) {
+      return ImmutableList.of();
+    }
+    ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
+    for (Object node : childNodes) {
+      builder.add(getObjectNodeDisposable(node));
+    }
+    return builder.build();
   }
 
   /**
