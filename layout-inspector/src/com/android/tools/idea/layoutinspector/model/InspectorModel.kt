@@ -29,13 +29,16 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
-const val DECREASE_FACTOR = 1.4f
+const val DECREASE_HALF_TIME = 2000
 const val DECREASE_DELAY = 500L
 val DECREASE_TIMEUNIT = TimeUnit.MILLISECONDS
+val DECREASE_FACTOR = 2.0.pow(DECREASE_DELAY.toDouble() / DECREASE_HALF_TIME.toDouble()).toFloat()
+const val DECREASE_BREAK_OFF = 0.75f
 
 enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 

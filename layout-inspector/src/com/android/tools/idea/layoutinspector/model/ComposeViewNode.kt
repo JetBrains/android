@@ -90,7 +90,7 @@ class RecompositionData(var count: Int, var skips: Int, var highlightCount: Floa
   }
 
   fun decreaseHighlights(): Float {
-    highlightCount = if (highlightCount > DECREASE_FACTOR) highlightCount / DECREASE_FACTOR else 0f
+    highlightCount = if (highlightCount > DECREASE_BREAK_OFF) highlightCount / DECREASE_FACTOR else 0f
     return highlightCount
   }
 }
