@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.analytics.trackLoading
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.saveHeapDumpToFile
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*
@@ -42,6 +43,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import gnu.trove.TLongObjectHashMap
 import java.io.OutputStream
 import java.util.HashMap
@@ -99,7 +101,13 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   override fun load(queryRange: Range?, queryJoiner: Executor?) = doGetBytesRequest().let { response ->
     if (response.contents === ByteString.EMPTY) false.also { isLoadingError = true }
-    else true.also { load(InMemoryBuffer(response.contents.asReadOnlyByteBuffer())) }
+    else true.also {
+      ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF,
+                                                      sizeKb = countBytes() / 1024,
+                                                      measure = { instanceIndex.size().toLong() }) {
+        load(InMemoryBuffer(response.contents.asReadOnlyByteBuffer()))
+      }
+    }
   }
 
   @VisibleForTesting
@@ -212,12 +220,14 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     return null
   }
 
-  override fun canSafelyLoad() = MainMemoryProfilerStage.canSafelyLoadHprof(doGetBytesRequest().serializedSize.toLong())
+  override fun canSafelyLoad() = MainMemoryProfilerStage.canSafelyLoadHprof(countBytes().toLong())
 
   private fun doGetBytesRequest() = client.transportClient.getBytes(Transport.BytesRequest.newBuilder()
                                                                       .setStreamId(_session.streamId)
                                                                       .setId(heapDumpInfo.startTime.toString())
                                                                       .build())
+
+  private fun countBytes() = doGetBytesRequest().serializedSize
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name)

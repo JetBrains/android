@@ -522,6 +522,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackLifecycleTogglingPerTrace(int count) { }
 
   @Override
+  public void trackLoading(AndroidProfilerEvent.Loading loading) { }
+
+  @Override
   public void trackNetworkMigrationDialogSelected() { }
 
   @NotNull

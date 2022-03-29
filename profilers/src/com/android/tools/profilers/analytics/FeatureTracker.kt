@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.analytics
 
+import com.android.tools.analytics.CommonMetricsData
+import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.android.tools.profiler.proto.Common.SessionMetaData
@@ -465,4 +467,41 @@ interface FeatureTracker {
    * Tracks when the user has toggled the "Lifecycle" checkbox this many times within one session viewing a trace
    */
   fun trackLifecycleTogglingPerTrace(count: Int)
+
+  /**
+   * Tracks the loading of a trace or file
+   */
+  fun trackLoading(loading: AndroidProfilerEvent.Loading)
+}
+
+/**
+ * Run the task, with tracking before and after upon success.
+ * @param sizeKb the size of the trace/file in KB, should be available without running
+ * @param measure the size of the in-memory representation (e.g. object count, event count, etc.)
+ *                that's only queried if the task succeeds
+ */
+fun<A> FeatureTracker.trackLoading(type: AndroidProfilerEvent.Loading.Type, sizeKb: Int, measure: () -> Long, run: () -> A): A {
+  fun Long.bToMb() = this / (1024 * 1024)
+  val totalMem = HostData.osBean?.totalPhysicalMemorySize?.bToMb() ?: 0L
+  val numProcs = HostData.osBean?.availableProcessors ?: 0
+  val studioMem = CommonMetricsData.jvmDetails.maximumHeapSize.bToMb()
+  val studioFree = (CommonMetricsData.jvmDetails.maximumHeapSize -
+                    CommonMetricsData.javaProcessStats.heapMemoryUsage).bToMb()
+  fun track(setUp: AndroidProfilerEvent.Loading.Builder.() -> Unit) =
+    trackLoading(AndroidProfilerEvent.Loading.newBuilder()
+                   .setType(type)
+                   .setSizeKb(sizeKb)
+                   .setCoreCount(numProcs)
+                   .setMachineMemoryMb(totalMem.toInt())
+                   .setStudioMaxMemoryMb(studioMem.toInt())
+                   .setStudioFreeMemoryMb(studioFree.toInt())
+                   .apply(setUp)
+                   .build())
+
+  track { isSuccess = false }
+  val t1 = System.currentTimeMillis()
+  val res = run()
+  val t2 = System.currentTimeMillis()
+  track { isSuccess = true; elapsedMs = (t2 - t1).toInt(); eventCount = measure() }
+  return res
 }

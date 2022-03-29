@@ -49,6 +49,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/codenavigation[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
     ],
 )
 
