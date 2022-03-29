@@ -54,11 +54,18 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         }
         row {
           checkBox(
+            AndroidBundle.message("live.edit.configurable.enable.inline.analysis"),
+            liveEditSettings::useInlineAnalysis,
+            AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment")
+          )
+        }
+        row {
+          checkBox(
             AndroidBundle.message("live.edit.configurable.enable.partial.recompose"),
             liveEditSettings::usePartialRecompose,
             AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment")
           )
-      }
+        }
         row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
           cell {
             // Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-287095

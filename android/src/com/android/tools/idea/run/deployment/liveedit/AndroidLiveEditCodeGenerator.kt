@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
+import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -255,7 +256,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
 
   private fun compileKtFile(file: KtFile, inputs: Collection<CodeGeneratorInput>) : List<CodeGeneratorOutput> {
     val tracker = PerformanceTracker()
-    val inputFiles = listOf(file)
+    var inputFiles = listOf(file)
 
     // This is a three-step process:
     // 1) Compute binding context based on any previous cached analysis results.
@@ -264,7 +265,21 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     val resolution = tracker.record({fetchResolution(inputFiles)}, "resolution_fetch")
 
     ProgressManager.checkCanceled()
-    val bindingContext = tracker.record({analyze(inputFiles, resolution)}, "analysis")
+    var bindingContext = tracker.record({analyze(inputFiles, resolution)}, "analysis")
+
+    // 1.1) Add any extra source file this compilation need in order to support the input file calling an inline function
+    //      from another source file.
+    //      Note: This can be potentially be very expensive. We might consider doing this only if the initial compile
+    //      fails because of an inlining issue.
+    if (LiveEditConfig.getInstance().useInlineAnalysis) {
+      inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
+
+      // We need to perform the analysis once more with the new set of input files.
+      val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+
+      // We will need to start using the binding context from the new analysis for code gen.
+      bindingContext = newAnalysisResult.bindingContext
+    }
 
     // 2) Invoke the backend with the inputs and the binding context computed from step 1.
     //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
@@ -285,6 +300,15 @@ class AndroidLiveEditCodeGenerator(val project: Project){
   fun fetchResolution(input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
     return kotlinCacheService.getResolutionFacade(input)
+  }
+
+  /**
+   * Given a source file A.kt and an initial analysis result, compute a list of source files (A.kt included) need in order to correctly
+   * compile the A.kt and any inline functions it needs from another source file.
+   */
+  fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
+    val (_, filesToCompile) = analyzeInlinedFunctions(resolution, file, false, bindingContext)
+    return filesToCompile
   }
 
   /**
