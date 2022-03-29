@@ -20,6 +20,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -54,6 +55,8 @@ open class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnA
   init {
     targetComponent = surface
     ActionToolbarUtil.makeToolbarNavigable(this)
+    layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 }
 

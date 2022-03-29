@@ -37,7 +37,7 @@ class AnimationCard(previewState: AnimationPreviewState,
                     val surface: DesignSurface,
                     val state: ElementState,
                     private val tracker: ComposeAnimationEventTracker)
-  : JPanel(TabularLayout("*")) {
+  : JPanel(TabularLayout("*", "30px,30px")) {
 
   // Collapsed view:
   //   Expand button
@@ -67,11 +67,11 @@ class AnimationCard(previewState: AnimationPreviewState,
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
   var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private val firstRow = JPanel(TabularLayout("30px,*,Fit")).apply {
+  private val firstRow = JPanel(TabularLayout("30px,*,Fit","30px")).apply {
     border = JBUI.Borders.empty(0, 0, 0, 8)
   }
 
-  private val secondRow = JPanel(TabularLayout("Fit,Fit,*")).apply {
+  private val secondRow = JPanel(TabularLayout("30px,Fit,*", "30px")).apply {
     border = JBUI.Borders.empty(0, 25, 0, 8)
   }
 
@@ -95,7 +95,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   }
 
   init {
-    val expandButton = DefaultToolbarImpl(surface, "ExpandCollapseAnimationCard", ExpandAction())
+    val expandButton = SingleButtonToolbar(surface, "ExpandCollapseAnimationCard", ExpandAction())
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
