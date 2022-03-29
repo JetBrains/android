@@ -27,10 +27,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
@@ -245,6 +245,7 @@ class AndroidProcessMonitorManagerTest {
 
   private fun createMockDevice(apiVersion: Int): IDevice {
     val mockDevice = mock(IDevice::class.java)
+    `when`(mockDevice.isOnline).thenReturn(true)
     `when`(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
     return mockDevice
   }

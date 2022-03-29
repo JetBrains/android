@@ -61,7 +61,9 @@ class AndroidJavaDebuggerTest {
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
     executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
     runnableClientsService = RunnableClientsService(project)
-    client = runnableClientsService.startClient(Mockito.mock(IDevice::class.java), APP_PACKAGE)
+    val device = Mockito.mock(IDevice::class.java)
+    Mockito.`when`(device.isOnline).thenReturn(true)
+    client = runnableClientsService.startClient(device, APP_PACKAGE)
   }
 
   @After

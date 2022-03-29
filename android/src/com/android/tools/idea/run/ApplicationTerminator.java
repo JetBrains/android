@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicatorProvider;
+import com.intellij.execution.ExecutionException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,9 +54,15 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
 
   /**
    * @return true if upon return no processes related to an app are running.
+   * <p>
+   * launchStatus is presented for old configurations' execution flow.
+   * @throws ExecutionException if device is not online.
    */
   @Trace
-  public boolean killApp(@NotNull LaunchStatus launchStatus) {
+  public boolean killApp(@Nullable LaunchStatus launchStatus) throws ExecutionException {
+    if (!myIDevice.isOnline()) {
+      throw new ExecutionException(String.format("Couldn't terminate the existing process for %s. Device is offline.", myApplicationId));
+    }
     myIDevice.forceStop(myApplicationId);
     if (myIDevice.getVersion().getApiLevel() <= AndroidVersion.VersionCodes.N_MR1) {
       // APIs <= 25 have a bug (b/181004316) where the first call to "force-stop" does not terminate the app
@@ -64,24 +70,29 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
       myIDevice.forceStop(myApplicationId);
     }
     myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
-    if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
-      myProcessKilledLatch.countDown();
+    if (myClientsToWaitFor.isEmpty()) {
+      return true;
     }
-    else {
-      AndroidDebugBridge.addDeviceChangeListener(this);
-      checkDone();
-    }
+
+    AndroidDebugBridge.addDeviceChangeListener(this);
 
     try {
       // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
       if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
-        launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true);
+        if (launchStatus != null) {
+          launchStatus.terminateLaunch(String.format("Couldn't terminate the existing process for %s.", myApplicationId), true);
+        }
         return false;
       }
     }
     catch (InterruptedException ignored) {
-      launchStatus.terminateLaunch(String.format("Termination of the existing process for %s was cancelled.", myApplicationId), true);
+      if (launchStatus != null) {
+        launchStatus.terminateLaunch(String.format("Termination of the existing process for %s was cancelled.", myApplicationId), true);
+      }
       return false;
+    }
+    finally {
+      AndroidDebugBridge.removeDeviceChangeListener(this);
     }
 
     return true;
@@ -92,35 +103,8 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
    * but without usage of LaunchStatus. [killApp(LaunchStatus)] is going to be deleted when we enable [StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get()].
    */
   @Trace
-  public boolean killApp() {
-    myIDevice.forceStop(myApplicationId);
-    myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
-    if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
-      myProcessKilledLatch.countDown();
-    }
-    else {
-      AndroidDebugBridge.addDeviceChangeListener(this);
-      checkDone();
-    }
-
-    try {
-      ProgressIndicator indicator = ProgressIndicatorProvider.getGlobalProgressIndicator();
-      if (indicator != null) {
-        indicator.setText(String.format("Killing app '%s'", myApplicationId));
-      }
-      // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
-      if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
-        return false;
-      }
-    }
-    catch (InterruptedException ignored) {
-      return false;
-    }
-    finally {
-      AndroidDebugBridge.removeDeviceChangeListener(this);
-    }
-
-    return true;
+  public boolean killApp() throws ExecutionException {
+    return killApp(null);
   }
 
   @Override

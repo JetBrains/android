@@ -149,7 +149,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         ListenableFuture<?> waitApplicationTerminationTask = Futures.whenAllSucceed(
           ContainerUtil.map(devices, device -> MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
             ApplicationTerminator terminator = new ApplicationTerminator(device, myApplicationId);
-            if (!terminator.killApp(launchStatus)) {
+            try {
+              if (!terminator.killApp(launchStatus)) {
+                throw new CancellationException("Could not terminate running app " + myApplicationId);
+              }
+            }
+            catch (com.intellij.execution.ExecutionException e) {
               throw new CancellationException("Could not terminate running app " + myApplicationId);
             }
             if (device.isOnline()) {
