@@ -362,7 +362,7 @@ class CustomViewPreviewRepresentation(
     val className = fqcn2name(selectedClass)
 
     val model = if (surface.models.isEmpty()) {
-      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
+      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
       val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
       NlModel.builder(facet, customPreviewXml, config)
         .withParentDisposable(this@CustomViewPreviewRepresentation)

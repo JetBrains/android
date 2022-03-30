@@ -17,8 +17,10 @@ package com.android.tools.idea.customview.preview
 
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
@@ -30,8 +32,14 @@ internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
 private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
-internal class CustomViewLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+internal class CustomViewLightVirtualFile(
+  name: String,
+  content: String,
+  private val originFileProvider: () -> VirtualFile?
+) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
+
+  override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
 }
 
 internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
