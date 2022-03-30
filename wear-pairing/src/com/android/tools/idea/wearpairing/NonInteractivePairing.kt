@@ -18,8 +18,9 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.NullOutputReceiver
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import kotlinx.coroutines.CoroutineScope
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.intellij.openapi.Disposable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,8 @@ import kotlinx.coroutines.launch
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-class NonInteractivePairing private constructor(private val phone: IDevice,
+class NonInteractivePairing private constructor(private val parentDisposable: Disposable,
+                                                private val phone: IDevice,
                                                 private val watchAvdName: String,
                                                 private val companionAppId: String,
                                                 private val watchNodeId: String) : MultiLineReceiver(), Closeable {
@@ -39,18 +41,19 @@ class NonInteractivePairing private constructor(private val phone: IDevice,
   companion object {
     private val STATE_LOG_PATTERN = "\\[EMULATOR_PAIRING:([^]]+)]".toRegex()
 
-    fun startPairing(phone: IDevice,
+    fun startPairing(parentDisposable: Disposable,
+                     phone: IDevice,
                      watchAvdName: String,
                      companionAppId: String,
                      watchNodeId: String): NonInteractivePairing {
-      val nonInteractivePairing = NonInteractivePairing(phone, watchAvdName, companionAppId, watchNodeId)
+      val nonInteractivePairing = NonInteractivePairing(parentDisposable, phone, watchAvdName, companionAppId, watchNodeId)
       nonInteractivePairing.startPairing()
       return nonInteractivePairing
     }
   }
 
   private fun startPairing() {
-    logReaderJob = CoroutineScope(diskIoThread).launch {
+    logReaderJob = AndroidCoroutineScope(parentDisposable).launch(Dispatchers.IO) {
       try {
         phone.executeShellCommand("logcat -T 1", this@NonInteractivePairing, 0, TimeUnit.MILLISECONDS)
       }

@@ -20,7 +20,6 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.adtui.util.HelpTooltipForList
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -53,6 +52,7 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -340,7 +340,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
               val process = Runnable {
-                val cloudSyncIsEnabled = runBlocking(context = diskIoThread) {
+                val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
                   withTimeoutOrNull(5_000) {
                     WearPairingManager.checkCloudSyncIsEnabled(phoneWearPair.phone)
                   }
@@ -348,7 +348,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                 if (cloudSyncIsEnabled == true) {
                   ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
-                AndroidCoroutineScope(this@DeviceListStep).launch(diskIoThread) {
+                AndroidCoroutineScope(this@DeviceListStep).launch(Dispatchers.IO) {
                   WearPairingManager.removeAllPairedDevices(listDevice.deviceID)
                   // Update pairing icon
                   ApplicationManager.getApplication().invokeLater(

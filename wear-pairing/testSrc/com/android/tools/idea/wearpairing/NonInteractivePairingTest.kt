@@ -19,17 +19,14 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.getTypedArgument
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
-import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 private const val LOGCAT_FORMAT = "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
@@ -54,14 +51,11 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
       null
     }.`when`(device).executeShellCommand(ArgumentMatchers.anyString(),
                                          ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.any())
-    val executors: AndroidExecutors = MockitoKt.mock()
-    Mockito.`when`(executors.diskIoThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
-    project.registerServiceInstance(AndroidExecutors::class.java, executors)
   }
 
   @Test
   fun afterClose_receiverIsCancelled() {
-    NonInteractivePairing.startPairing(device, "", "", "").use {
+    NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
       com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 
@@ -74,7 +68,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
 
   @Test
   fun onMultipleLogEntries_stateRepresentsTheMostRecentOne() {
-    NonInteractivePairing.startPairing(device, "", "", "").use {
+    NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
       com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 
@@ -90,7 +84,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
 
   @Test
   fun onUnknownStatusLog_stateIsSetToUnknown() {
-    NonInteractivePairing.startPairing(device, "", "", "").use {
+    NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
       com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 

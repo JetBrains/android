@@ -18,8 +18,8 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.diagnostic.logger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -37,14 +37,14 @@ object DeviceConnection
 private val LOG get() = logger<DeviceConnection>()
 
 suspend fun IDevice.executeShellCommand(cmd: String) {
-  withContext(AndroidDispatchers.diskIoThread) {
+  withContext(Dispatchers.IO) {
     runCatching {
       executeShellCommand(cmd, NullOutputReceiver())
     }
   }
 }
 
-suspend fun IDevice.runShellCommand(cmd: String): String = withContext(AndroidDispatchers.diskIoThread) {
+suspend fun IDevice.runShellCommand(cmd: String): String = withContext(Dispatchers.IO) {
   val outputReceiver = CollectingOutputReceiver()
   runCatching {
     executeShellCommand(cmd, outputReceiver)
