@@ -871,8 +871,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: NonStandardSourceSetDependencies.jarWrapperLib.JarWrappedLib [=]
-            IsExported                    : true
     MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -1445,8 +1443,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ModuleName                    : NonStandardSourceSetDependencies.app.main
         Module                        : NonStandardSourceSetDependencies.app.main
     LIBRARY_TABLE
-        LIBRARY                       : Gradle: NonStandardSourceSetDependencies.jarWrapperLib.JarWrappedLib
-            *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: __wrapped_aars__::aarWrapperLib:unspecified@aar
             *CLASSES                      : file://<PROJECT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/AndroidManifest.xml
             *CLASSES                      : file://<PROJECT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/res
