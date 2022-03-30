@@ -82,6 +82,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
 
     settingsEditor.resetFrom(runConfiguration)
     val modulesComboBox = TreeWalker(editor).descendants().filterIsInstance<ModulesComboBox>().first()
+    settingsEditor.applyTo(runConfiguration)  // Apply now to avoid clearing the slots on the next "applyTo".
     assertEquals(myModule, modulesComboBox.selectedModule)
 
     // runConfiguration has available slots, add button should become enabled.

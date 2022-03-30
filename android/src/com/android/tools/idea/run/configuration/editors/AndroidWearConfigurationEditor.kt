@@ -71,6 +71,12 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   private lateinit var wearComponentFqNameComboBox: ComboBox<String>
   private var componentName: String? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        onComponentNameChanged(value)
+      }
+    }
   private var installFlags: String = ""
 
   init {
@@ -107,6 +113,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   }
 
   open fun onModuleChanged(newModule: Module?) {}
+
+  open fun onComponentNameChanged(newComponent: String?) {}
 
   override fun resetEditorFrom(runConfiguration: T) {
     moduleSelector.reset(runConfiguration)

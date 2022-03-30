@@ -103,6 +103,12 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     sourceTypes = runConfiguration.getTypesFromManifest()
   }
 
+  override fun onComponentNameChanged(newComponent: String?) {
+    super.onComponentNameChanged(newComponent)
+    currentChosenSlots.clear()
+    slotsComponent.removeAll()
+  }
+
   override fun createEditor() =
     panel {
       getModuleChooser()
