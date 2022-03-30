@@ -29,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -106,10 +107,24 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   @UiThread
   private void remove() {
     try {
-      BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(), (scope, completion) -> {
-        PhoneWearPair pair = myTable.getSelectedPairing().orElseThrow(AssertionError::new).getPair();
-        return myManager.removePairedDevices(pair, true, completion);
-      });
+      PhoneWearPair pair = myTable.getSelectedPairing().orElseThrow(AssertionError::new).getPair();
+
+      // TODO Override toString in PairingDevice to return the display name
+      String wearOs = pair.getWear().getDisplayName();
+      String phone = pair.getPhone().getDisplayName();
+
+      String message = "This will disconnect " + wearOs + " from " + phone + ". To completely unpair the two devices, remove " + wearOs +
+                       " from the list of devices in the Wear OS app on " + phone + " and wipe data from " + wearOs + '.';
+
+      boolean disconnect = MessageDialogBuilder.okCancel("Disconnect " + wearOs + " from " + phone + '?', message)
+        .asWarning()
+        .yesText("Disconnect")
+        .ask(this);
+
+      if (disconnect) {
+        BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(),
+                               (scope, completion) -> myManager.removePairedDevices(pair, true, completion));
+      }
     }
     catch (InterruptedException exception) {
       Thread.currentThread().interrupt();
