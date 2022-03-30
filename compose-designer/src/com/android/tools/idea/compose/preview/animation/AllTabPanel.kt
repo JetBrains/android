@@ -47,7 +47,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
   //   |    ...       |             ...                | <- Cards and Timeline are scrollable.
   //   |______________|________________________________|
 
-  private val splitter = JBSplitter(0.4f).apply {
+  private val splitter = JBSplitter(false, .4f, .1f, .9f).apply {
     // Cards
     firstComponent = JPanel(TabularLayout("*")).apply {
       this.border = getCardsBorder()
@@ -56,7 +56,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
     secondComponent = JPanel(BorderLayout()).apply {
       this.border = MatteBorder(0, 1, 0, 0, JBColor.border())
     }
-    dividerWidth = 1
+    dividerWidth = 3
   }
 
   private fun updateDimension() {
