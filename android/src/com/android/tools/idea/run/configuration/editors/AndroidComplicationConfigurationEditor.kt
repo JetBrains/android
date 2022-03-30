@@ -19,6 +19,7 @@ import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
@@ -45,6 +46,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   private var sourceTypes: List<Complication.ComplicationType>? = null
   private lateinit var addSlotLink: JComponent
   private lateinit var slotsComponent: JPanel
+  private var hasModule = false
 
   init {
     Disposer.register(project, this)
@@ -53,7 +55,12 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   private fun update() {
     repaintSlotsComponent()
-    addSlotLink.isEnabled = currentChosenSlots.size < allAvailableSlots.size
+    addSlotLink.isEnabled = hasModule && (currentChosenSlots.size < allAvailableSlots.size)
+  }
+
+  override fun onModuleChanged(newModule: Module?) {
+    hasModule = newModule != null
+    update()
   }
 
   override fun resetEditorFrom(runConfiguration: AndroidComplicationConfiguration) {

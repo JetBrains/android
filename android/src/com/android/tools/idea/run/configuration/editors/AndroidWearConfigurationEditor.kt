@@ -100,10 +100,13 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
               add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
             }
           }
+          onModuleChanged(moduleSelector.module)
         }
       }.queue()
     }
   }
+
+  open fun onModuleChanged(newModule: Module?) {}
 
   override fun resetEditorFrom(runConfiguration: T) {
     moduleSelector.reset(runConfiguration)
