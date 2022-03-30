@@ -20,7 +20,8 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
-import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvokerImpl
+import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -65,11 +66,11 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
           }
         }
         else {
-          val assistantInvoker = project.getService(AssistantInvoker::class.java)
-          val processor = assistantInvoker.createProcessor(project, currentAgpVersion, agpVersion)
+          val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
+          val processor = refactoringProcessorInstantiator.createProcessor(project, currentAgpVersion, agpVersion)
           val runProcessor =
             if ((!isUnitTestMode()) || (showDialogResultForTest == null))
-              assistantInvoker.showAndGetAgpUpgradeDialog(processor)
+              refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
             else
               showDialogResultForTest!!
           if (runProcessor) {

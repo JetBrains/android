@@ -242,9 +242,10 @@ fun performForcedPluginUpgrade(
 
   if (upgradeAccepted) {
     // The user accepted the upgrade
-    val assistantInvoker = project.getService(AssistantInvoker::class.java)
-    val processor = assistantInvoker.createProcessor(project, currentPluginVersion, newPluginVersion)
-    val runProcessor = assistantInvoker.showAndGetAgpUpgradeDialog(processor)
+    // Note: we retrieve an AssistantInvokerImpl as a project service for the convenience of tests.
+    val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
+    val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
+    val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }

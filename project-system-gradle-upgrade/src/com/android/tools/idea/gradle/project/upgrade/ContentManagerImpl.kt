@@ -346,7 +346,7 @@ class ToolWindowModel(
     val newProcessor = newVersion?.let {
       current?.let { current ->
         if (newVersion >= current && !project.isDisposed)
-          project.getService(AssistantInvoker::class.java).createProcessor(project, current, it)
+          project.getService(RefactoringProcessorInstantiator::class.java).createProcessor(project, current, it)
         else
           null
       }
