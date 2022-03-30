@@ -413,6 +413,10 @@ public class AndroidLiveEditDeployMonitor {
 
     if (useDebugMode) {
       writeDebugToTmp(update.getClassName().replaceAll("/", ".")+ ".class", update.getClassData());
+      for (String supportClassName : update.getSupportClasses().keySet()) {
+        byte[] bytecode = update.getSupportClasses().get(supportClassName);
+        writeDebugToTmp(supportClassName.replaceAll("/", ".")+ ".class", bytecode);
+      }
     }
 
     String deviceId = adb.getSerial() + "#" + packageName;
