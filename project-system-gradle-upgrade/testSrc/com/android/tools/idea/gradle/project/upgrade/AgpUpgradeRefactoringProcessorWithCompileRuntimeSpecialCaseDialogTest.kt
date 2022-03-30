@@ -26,7 +26,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.android.util.firstNotNullResult
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action

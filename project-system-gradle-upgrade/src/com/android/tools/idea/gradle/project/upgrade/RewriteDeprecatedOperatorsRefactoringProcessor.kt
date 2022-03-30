@@ -16,15 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
-import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
-import com.intellij.usageView.UsageInfo
-import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 

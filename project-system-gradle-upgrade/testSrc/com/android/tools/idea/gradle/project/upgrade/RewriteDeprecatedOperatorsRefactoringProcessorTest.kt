@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Test
 
 @RunsInEdt
