@@ -21,7 +21,7 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
 import java.awt.Component
 import java.awt.Font
@@ -80,8 +80,8 @@ fun createHideablePanel(
   val htmlTitle = String.format("<html><b>%s</b></html>", title)
   return HideablePanel.Builder(htmlTitle, content)
     .setNorthEastComponent(northEastComponent)
-    .setPanelBorder(JBEmptyBorder(10, 0, 0, 0))
-    .setContentBorder(JBEmptyBorder(10, 12, 0, 0))
+    .setPanelBorder(JBUI.Borders.empty(10, 0, 0, 0))
+    .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
     .build()
 }
 

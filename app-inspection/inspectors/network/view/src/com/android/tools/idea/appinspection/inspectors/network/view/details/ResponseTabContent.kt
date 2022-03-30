@@ -18,15 +18,13 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
-import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_INTERCEPTION
 import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.Dimension
-import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextArea
@@ -45,7 +43,7 @@ class ResponseTabContent(
 
   override fun createComponent(): JComponent {
     panel = createVerticalPanel(TAB_SECTION_VGAP).apply {
-      border = JBEmptyBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
+      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     }
     return createVerticalScrollPane(panel)
   }
@@ -83,7 +81,7 @@ class ResponseTabContent(
       val viewer = IntellijDataViewer.createRawTextViewer(payload.toByteArray(), true)
       textArea = viewer.component as? JTextArea ?: return null
       return createVerticalScrollPane(textArea!!).apply {
-        border = JBEmptyBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
+        border = JBUI.Borders.empty(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
         preferredSize = Dimension(800, 300)
       }
     }

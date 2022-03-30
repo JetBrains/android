@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -35,7 +35,7 @@ class RequestTabContent(private val componentsProvider: UiComponentsProvider) : 
 
   override fun createComponent(): JComponent {
     contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
-    contentPanel.border = JBEmptyBorder(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
+    contentPanel.border = JBUI.Borders.empty(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     return createVerticalScrollPane(contentPanel)
   }
 

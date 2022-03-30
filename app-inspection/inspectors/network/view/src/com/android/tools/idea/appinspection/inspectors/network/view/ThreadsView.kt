@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
+import com.android.tools.idea.appinspection.inspectors.network.view.constants.MONITOR_BORDER_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER
@@ -301,7 +302,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       if (data.javaThreads.size > 1) {
         val divider = JPanel()
         divider.preferredSize = Dimension(0, 5)
-        divider.border = BorderFactory.createMatteBorder(0, 0, 1, 0, NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)
+        divider.border = JBUI.Borders.customLineBottom(NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)
         divider.background = content.background
         content.add(divider, TabularLayout.Constraint(content.componentCount, 0))
         val alsoAccessedByLabel = newTooltipLabel("Also accessed by:")

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.constants
 
-import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
-import javax.swing.BorderFactory
 import javax.swing.border.Border
 
 /**
@@ -34,13 +32,13 @@ val Y_AXIS_TOP_MARGIN = JBUI.scale(30)
 
 val MONITOR_LABEL_PADDING: Border = JBUI.Borders.empty(5, 10)
 
-val MONITOR_BORDER: Border = BorderFactory.createMatteBorder(0, 0, 1, 0, MONITOR_BORDER_COLOR)
+val MONITOR_BORDER: Border = JBUI.Borders.customLineBottom(MONITOR_BORDER_COLOR)
 
 val LEGEND_RIGHT_PADDING = JBUI.scale(9)
 
 val ROW_HEIGHT_PADDING = JBUI.scale(4)
 
-val TOOLTIP_BORDER: Border = JBEmptyBorder(8, 10, 8, 10)
+val TOOLTIP_BORDER: Border = JBUI.Borders.empty(8, 10, 8, 10)
 
 // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
 val TOOLBAR_HEIGHT = JBUI.scale(31)

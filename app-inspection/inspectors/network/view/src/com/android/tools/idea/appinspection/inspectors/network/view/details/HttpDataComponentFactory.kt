@@ -26,7 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.ST
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import java.awt.CardLayout
 import java.awt.Color
 import java.awt.Component
@@ -102,7 +102,7 @@ class HttpDataComponentFactory(private val httpData: HttpData) {
       val toggleDefaultColor: Color = AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleHoverColor.rgb, 0.6f)
       toggleLabel.foreground = toggleDefaultColor
       toggleLabel.font = STANDARD_FONT
-      toggleLabel.border = JBEmptyBorder(0, 10, 0, 5)
+      toggleLabel.border = JBUI.Borders.empty(0, 10, 0, 5)
       toggleLabel.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           toggleLabel.text = if (cardViewSource == toggleLabel.text) cardViewParsed else cardViewSource
@@ -240,7 +240,7 @@ class HttpDataComponentFactory(private val httpData: HttpData) {
 
   companion object {
     private const val ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER"
-    private val PAYLOAD_BORDER: Border = JBEmptyBorder(6, 0, 0, 0)
+    private val PAYLOAD_BORDER: Border = JBUI.Borders.empty(6, 0, 0, 0)
 
     /**
      * Search for the payload [DataViewer] inside a component returned by

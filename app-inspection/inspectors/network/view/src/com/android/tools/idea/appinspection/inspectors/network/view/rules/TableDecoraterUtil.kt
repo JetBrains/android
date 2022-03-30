@@ -18,24 +18,17 @@ package com.android.tools.idea.appinspection.inspectors.network.view.rules
 import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
-import com.intellij.util.ui.ListTableModel
-import javax.swing.BorderFactory
+import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 
 /**
- * A Table class with decorated toolbar for network inspector.
+ * Returns a table component with decorated toolbar.
  */
-class DecoratedTable<Item>(model: ListTableModel<Item>) {
-  val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
-  val table: TableView<Item>
-
-  init {
-    table = TableView(model)
-    val decorator = ToolbarDecorator.createDecorator(table)
-    component.add(decorator.createPanel().apply {
-      border = BorderFactory.createEmptyBorder()
+fun <Item> createDecoratedTable(table: TableView<Item>, decorator: ToolbarDecorator) =
+  JPanel(TabularLayout("*", "Fit,Fit,*")).apply {
+    add(decorator.createPanel().apply {
+      border = JBUI.Borders.empty()
     }, TabularLayout.Constraint(0, 0))
-    component.add(table.tableHeader, TabularLayout.Constraint(1, 0))
-    component.add(table, TabularLayout.Constraint(2, 0))
+    add(table.tableHeader, TabularLayout.Constraint(1, 0))
+    add(table, TabularLayout.Constraint(2, 0))
   }
-}

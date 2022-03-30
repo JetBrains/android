@@ -23,7 +23,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.Rules
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -65,7 +65,7 @@ class NetworkInspectorDetailsPanel(
     // Add a wrapper to move the close button center vertically.
     val closeButtonWrapper = JPanel(BorderLayout())
     closeButtonWrapper.add(closeButton, BorderLayout.CENTER)
-    closeButtonWrapper.border = JBEmptyBorder(3, 0, 0, 0)
+    closeButtonWrapper.border = JBUI.Borders.empty(3, 0, 0, 0)
     rootPanel.add(closeButtonWrapper, TabularLayout.Constraint(0, 1))
     rootPanel.add(cardLayoutView, TabularLayout.Constraint(0, 0, 2, 2))
     add(rootPanel)

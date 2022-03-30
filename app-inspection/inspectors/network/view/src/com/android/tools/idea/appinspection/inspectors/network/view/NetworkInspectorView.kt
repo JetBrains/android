@@ -85,7 +85,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.Collections
 import java.util.concurrent.TimeUnit
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -143,10 +142,7 @@ class NetworkInspectorView(
         inspectorServices.usageTracker.trackConnectionDetailsSelected()
         updateDetailsPanel()
       }
-    model.aspect.addDependency(this)
-      .onChange(NetworkInspectorAspect.SELECTED_RULE) {
-        updateDetailsPanel()
-      }
+    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_RULE) { updateDetailsPanel() }
     tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }
@@ -270,7 +266,7 @@ class NetworkInspectorView(
   private fun createSelectionTimeLabel(): JLabel {
     val label = JLabel("")
     label.font = STANDARD_FONT
-    label.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+    label.border = JBUI.Borders.empty(3, 3, 3, 3)
     label.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         val timeline = model.timeline
@@ -310,7 +306,7 @@ class NetworkInspectorView(
     label.verticalAlignment = SwingConstants.TOP
     val lineChartPanel = JBPanel<Nothing>(BorderLayout())
     lineChartPanel.isOpaque = false
-    lineChartPanel.border = BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0)
+    lineChartPanel.border = JBUI.Borders.empty(Y_AXIS_TOP_MARGIN, 0, 0, 0)
     val usage = model.networkUsage
     val lineChart = LineChart(usage)
     val receivedConfig = LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)

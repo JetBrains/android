@@ -36,7 +36,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -111,7 +111,7 @@ class NetworkInspectorTab(
 
         actionsToolBar = JPanel(GridBagLayout())
         toolbar.add(actionsToolBar, BorderLayout.EAST)
-        actionsToolBar.border = JBEmptyBorder(0, 0, 0, 2)
+        actionsToolBar.border = JBUI.Borders.empty(0, 0, 0, 2)
 
         val zoomOut = CommonButton(AllIcons.General.ZoomOut)
         zoomOut.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomOut)
@@ -177,7 +177,7 @@ class NetworkInspectorTab(
         goLiveButton.font = H4_FONT
         goLiveButton.horizontalTextPosition = SwingConstants.LEFT
         goLiveButton.horizontalAlignment = SwingConstants.LEFT
-        goLiveButton.border = JBEmptyBorder(3, 7, 3, 7)
+        goLiveButton.border = JBUI.Borders.empty(3, 7, 3, 7)
         val attachAction = DefaultContextMenuItem.Builder(ATTACH_LIVE)
           .setContainerComponent(splitter)
           .setActionRunnable { goLiveButton.doClick(0) }
