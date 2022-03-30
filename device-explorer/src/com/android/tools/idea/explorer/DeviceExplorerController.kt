@@ -84,7 +84,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 /**
- * Implementation of the Device Explorer application logic
+ * Implementation of the Device File Explorer application logic
  */
 @UiThread
 class DeviceExplorerController(
