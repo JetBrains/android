@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.containingPackage
@@ -71,12 +72,20 @@ private fun handleCompilerErrors(e : Throwable) {
     throw e
   }
 
+  if (e is InvalidModuleException) {
+    throw ProcessCanceledException(e)
+  }
+
   // Given that the IDE already provide enough information about compilation errors, there is no
   // real need to surface any compilation exception. We will just print the true cause for the
   // exception for our own debugging purpose only.
   var cause = e;
   while (cause.cause != null) {
     cause = cause.cause!!
+
+    if (cause is InvalidModuleException) {
+      throw ProcessCanceledException(e)
+    }
 
     // The Kotlin compiler probably shouldn't be swallowing these, but since we can't change that,
     // detect and re-throw them here as the proper exception type.
