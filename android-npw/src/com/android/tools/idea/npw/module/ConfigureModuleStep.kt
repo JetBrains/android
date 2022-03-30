@@ -28,7 +28,6 @@ import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -62,6 +61,7 @@ import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.refactoring.isAndroidx
@@ -113,7 +113,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
       })
 
-      AndroidCoroutineScope(this).launch(diskIoThread) {
+      AndroidCoroutineScope(this).launch(Dispatchers.IO) {
         val gradleVersionValue = determineGradlePluginVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
 
