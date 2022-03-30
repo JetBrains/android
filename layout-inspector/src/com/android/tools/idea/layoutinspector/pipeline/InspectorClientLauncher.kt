@@ -205,6 +205,7 @@ class InspectorClientLauncher(
             throw cancellationException
           }
           catch (ignored: Exception) {
+            ignored.printStackTrace()
           }
         }
       }

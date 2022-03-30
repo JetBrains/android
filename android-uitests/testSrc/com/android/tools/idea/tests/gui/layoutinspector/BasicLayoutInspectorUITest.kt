@@ -26,6 +26,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -34,29 +36,27 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
-import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.notification.EventLog
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.fest.swing.core.MouseButton
 import org.fest.swing.data.TableCell
 import org.fest.swing.timing.Wait
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
-import java.awt.Color
 import java.awt.event.KeyEvent.VK_SPACE
 import java.net.Socket
 import java.util.ArrayDeque
 import java.util.concurrent.TimeUnit
 
 private const val PROJECT_NAME = "LayoutTest"
-private const val LAYOUT_ID = 1L
-private const val PAYLOAD_SINGLE_BOX = 7
-private const val PAYLOAD_BOXES = 8
 private const val NAMESPACE = "com.android.tools.tests.layout"
 private const val LAYOUT_NAME = "inspection"
 
@@ -73,28 +73,17 @@ class BasicLayoutInspectorUITest {
 
   private val commandHandler = MyDeviceCommandHandler()
   private val namespace = ResourceNamespace.fromPackageName(NAMESPACE)
-  private val layoutReference = ResourceReference(namespace, ResourceType.LAYOUT, LAYOUT_NAME)
-  private val buttonMaterialReference = ResourceReference.style(namespace, "Widget.Material.Button")
-  private val buttonStyleReference = ResourceReference.style(namespace, "ButtonStyle")
   private val linearLayoutId = ResourceReference(namespace, ResourceType.ID, "linear1")
   private val frameLayoutId = ResourceReference(namespace, ResourceType.ID, "frame2")
   private val button3Id = ResourceReference(namespace, ResourceType.ID, "button3")
   private val button4Id = ResourceReference(namespace, ResourceType.ID, "button4")
 
-  @get:Rule
-  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  private val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  private val devSkia = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
+  private val transportRule = TransportRule().withDeviceCommandHandler(commandHandler)
 
   @get:Rule
-  val transportRule = TransportRule()
-    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND, ::startHandler)
-    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.STOP_FETCH_COMMAND, ::stopHandler)
-    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.GET_PROPERTIES_COMMAND, ::produceProperties)
-    .withDeviceCommandHandler(commandHandler)
-    .withFile(PAYLOAD_SINGLE_BOX, generateSingle())
-    .withFile(PAYLOAD_BOXES, generateBoxes())
-
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
+  val ruleChain = RuleChain.outerRule(guiTest).around(transportRule).around(devSkia)!!
 
   @Test
   fun testLayoutInspector() {
@@ -108,7 +97,7 @@ class BasicLayoutInspectorUITest {
     }
   }
 
-  /*
+  @Ignore("b/228615904")
   @Test
   @UseBleak
   @RunIn(TestGroup.PERFORMANCE)
@@ -120,8 +109,6 @@ class BasicLayoutInspectorUITest {
 
     guiTest.runWithBleak { basicLayoutInspectorOperations(frame) }
   }
-
-   */
 
   private fun init(): IdeFrameFixture {
     val frame = guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_NAME)
@@ -135,6 +122,7 @@ class BasicLayoutInspectorUITest {
 
     // Add the default device and process
     transportRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+    Wait.seconds(10).expecting("Device registered").until { bridge.devices.isNotEmpty() }
 
     transportRule.saveEventPositionMark(DEFAULT_DEVICE.deviceId)
 
@@ -142,6 +130,8 @@ class BasicLayoutInspectorUITest {
   }
 
   private fun basicLayoutInspectorOperations(frame: IdeFrameFixture) {
+    val boxes = FakeBoxes(transportRule.viewInspector)
+
     val robot = guiTest.robot()
 
     // Hide the messages tool window which may appear after the build. Remove such that the inspector has more room.
@@ -149,6 +139,12 @@ class BasicLayoutInspectorUITest {
 
     // Hide notifications since they will overlap the properties panel and interfere with the test.
     EventLog.getLogModel(frame.project).notifications.forEach { it.balloon?.hide() }
+
+    // Override the AndroidModel such that the fake process is recognized
+    runInEdtAndWait {
+      val facet = ProjectFacetManager.getInstance(frame.project).getFacets(AndroidFacet.ID).first()
+      AndroidModel.set(facet, TestAndroidModel(DEFAULT_PROCESS.name));
+    }
 
     // Open the inspector tool window.
     val inspector = LayoutInspectorFixture(frame.project, robot)
@@ -160,11 +156,11 @@ class BasicLayoutInspectorUITest {
     // Select a device and process and wait for the component tree to display the correct amount of nodes.
     inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}", DEFAULT_PROCESS.name)
 
-    /*
     inspector.waitForComponentTreeToLoad(1)
 
     // Simulate that the user did something on the device that caused a different skia image to be received.
-    transportRule.addEventToStream(DEFAULT_DEVICE, createBoxesTreeEvent(DEFAULT_PROCESS.pid))
+    runInEdtAndWait { boxes.sendMultipleBoxesTreeEvent() }
+
     inspector.waitForComponentTreeToLoad(4)
 
     val properties = inspector.properties
@@ -178,7 +174,7 @@ class BasicLayoutInspectorUITest {
     // Find "backgroundTint" in the "Declared Attributes" section and verify its value.
     val declared = properties.findSectionByName("Declared Attributes")!!
     val table = declared.components.single() as PTableFixture
-    assertThat(table.rowCount()).isEqualTo(2)
+    assertThat(table.rowCount()).isEqualTo(1)
     val item = table.item(0)
     assertThat(item.name).isEqualTo(ATTR_BACKGROUND_TINT)
     assertThat(item.value).isEqualTo("#FF0000")
@@ -204,14 +200,14 @@ class BasicLayoutInspectorUITest {
     // Click on the LinearLayout
     val deviceView = inspector.deviceView
     deviceView.clickOnImage(50, 50)
-    inspector.tree.requireSelection(0)
+    inspector.tree.requireSelectedRows(0)
     inspector.waitForPropertiesToPopulate(toUrl(linearLayoutId))
     requireDeclaredAttributeValue(properties, "background", "#FFFF00")
     requireNoDeclaredAttribute(properties, "backgroundTint")
 
     // Click on the Button4
     deviceView.clickOnImage(500, 1400)
-    inspector.tree.requireSelection(3)
+    inspector.tree.requireSelectedRows(3)
     inspector.waitForPropertiesToPopulate(toUrl(button4Id))
     requireNoDeclaredAttribute(properties, "background")
     requireDeclaredAttributeValue(properties, "backgroundTint", "#FF0000")
@@ -275,11 +271,11 @@ class BasicLayoutInspectorUITest {
 
     // Zoom In
     deviceView.zoomInButton.click()
-    deviceView.waitUntilExpectedViewportHeight(1200, tolerance = 50)
+    deviceView.waitUntilExpectedViewportHeight(1100, tolerance = 50)
 
     // Zoom In a second time
     deviceView.zoomInButton.click()
-    deviceView.waitUntilExpectedViewportHeight(790, tolerance = 50)
+    deviceView.waitUntilExpectedViewportHeight(730, tolerance = 50)
 
     // Panning using the space key
     var pos = deviceView.viewPosition
@@ -309,7 +305,7 @@ class BasicLayoutInspectorUITest {
 
     // Zoom out
     deviceView.zoomOutButton.click()
-    deviceView.waitUntilExpectedViewportHeight(1200, tolerance = 50)
+    deviceView.waitUntilExpectedViewportHeight(1100, tolerance = 50)
 
     // Zoom to fit
     deviceView.zoomToFitButton.click()
@@ -319,10 +315,8 @@ class BasicLayoutInspectorUITest {
 
     inspector.stop()
     Wait.seconds(10).expecting("debug attribute cleanup").until { commandHandler.stopped }
-    */
   }
 
-  /*
   private fun requireDeclaredAttributeValue(properties: PropertiesPanelFixture<*>, attrName: String, attrValue: String) {
     val declared = properties.findSectionByName("Declared Attributes")!!
     val table = declared.components.single() as PTableFixture
@@ -342,334 +336,6 @@ class BasicLayoutInspectorUITest {
 
   private fun toUrl(ref: ResourceReference): String =
     ref.getRelativeResourceUrl(namespace).toString()
-
-   */
-
-  private fun startHandler(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
-    //events.add(createSingleBoxTreeEvent(DEFAULT_PROCESS.pid))
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun stopHandler(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
-    transportRule.revertToEventPositionMark(DEFAULT_DEVICE.deviceId)
-  }
-
-  private fun produceProperties(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
-    //val event = when (command.getPropertiesCommand.viewId) {
-    //  1L -> createPropertiesForLinearLayout(DEFAULT_PROCESS.pid)
-    //  2L -> createPropertiesForFrameLayout(DEFAULT_PROCESS.pid)
-    //  3L -> createPropertiesForButton3(DEFAULT_PROCESS.pid)
-    //  4L -> createPropertiesForButton4(DEFAULT_PROCESS.pid)
-    //  else -> error("unexpected property request")
-    //}
-    //events.add(event)
-  }
-
-  /*
-  private fun createSingleBoxTreeEvent(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.treeBuilder.apply {
-        payloadId = PAYLOAD_SINGLE_BOX
-        payloadType = ComponentTreeEvent.PayloadType.SKP
-        rootBuilder.apply {
-          drawId = LAYOUT_ID
-          viewId = strings.add(linearLayoutId)
-          layout = strings.add(layoutReference)
-          x = 0
-          y = 0
-          width = 1000
-          height = 2000
-          className = strings.add("LinearLayout")
-          packageName = strings.add("android.widget")
-        }
-        resourcesBuilder.apply {
-          appPackageName = strings.add(NAMESPACE)
-          theme = strings.add(ResourceReference.style(namespace, "AppTheme"))
-        }
-        addAllAllWindowIds(listOf(LAYOUT_ID))
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-  private fun createBoxesTreeEvent(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.treeBuilder.apply {
-        payloadId = PAYLOAD_BOXES
-        payloadType = ComponentTreeEvent.PayloadType.SKP
-        rootBuilder.apply {
-          drawId = LAYOUT_ID
-          viewId = strings.add(linearLayoutId)
-          layout = strings.add(layoutReference)
-          x = 0
-          y = 0
-          width = 1000
-          height = 2000
-          className = strings.add("LinearLayout")
-          packageName = strings.add("android.widget")
-          addSubView(View.newBuilder().apply {
-            drawId = 2L
-            viewId = strings.add(frameLayoutId)
-            layout = strings.add(layoutReference)
-            x = 100
-            y = 100
-            width = 500
-            height = 1000
-            className = strings.add("FrameLayout")
-            packageName = strings.add("android.widget")
-            addSubView(View.newBuilder().apply {
-              drawId = 3L
-              viewId = strings.add(button3Id)
-              layout = strings.add(layoutReference)
-              x = 200
-              y = 200
-              width = 200
-              height = 500
-              className = strings.add("AppCompatButton")
-              packageName = strings.add("androidx.appcompat.widget")
-            })
-          })
-          addSubView(View.newBuilder().apply {
-            drawId = 4L
-            viewId = strings.add(button4Id)
-            layout = strings.add(layoutReference)
-            x = 300
-            y = 1200
-            width = 400
-            height = 500
-            className = strings.add("AppCompatButton")
-            packageName = strings.add("androidx.appcompat.widget")
-          })
-        }
-        resourcesBuilder.apply {
-          appPackageName = strings.add(NAMESPACE)
-          theme = strings.add(ResourceReference.style(namespace, "AppTheme"))
-        }
-        addAllAllWindowIds(listOf(LAYOUT_ID))
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-  private fun createPropertiesForLinearLayout(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.propertiesBuilder.apply {
-        viewId = 1L
-        layout = strings.add(layoutReference)
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("id")
-          type = Property.Type.RESOURCE
-          source = strings.add(layoutReference)
-          resourceValue = strings.add(linearLayoutId)
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("background")
-          type = Property.Type.COLOR
-          source = strings.add(layoutReference)
-          addResolutionStack(strings.add(layoutReference))
-          int32Value = Color.YELLOW.rgb
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("orientation")
-          type = Property.Type.INT_ENUM
-          source = strings.add(layoutReference)
-          int32Value = strings.add("vertical")
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_width")
-          type = Property.Type.INT_ENUM
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = strings.add("match_parent")
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_height")
-          type = Property.Type.INT_ENUM
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = strings.add("match_parent")
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("elevation")
-          type = Property.Type.FLOAT
-          floatValue = 0.0f
-        })
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-  private fun createPropertiesForFrameLayout(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.propertiesBuilder.apply {
-        viewId = 2L
-        layout = strings.add(layoutReference)
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("id")
-          type = Property.Type.RESOURCE
-          source = strings.add(layoutReference)
-          resourceValue = strings.add(frameLayoutId)
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("background")
-          type = Property.Type.COLOR
-          source = strings.add(layoutReference)
-          addResolutionStack(strings.add(layoutReference))
-          int32Value = Color.BLUE.rgb
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_width")
-          type = Property.Type.INT_ENUM
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = strings.add("500")
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_height")
-          type = Property.Type.INT_ENUM
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = strings.add("1000")
-        })
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-  private fun createPropertiesForButton3(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.propertiesBuilder.apply {
-        viewId = 3L
-        layout = strings.add(layoutReference)
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("id")
-          type = Property.Type.RESOURCE
-          source = strings.add(layoutReference)
-          resourceValue = strings.add(button3Id)
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("backgroundTint")
-          type = Property.Type.COLOR
-          source = strings.add(layoutReference)
-          addResolutionStack(strings.add(layoutReference))
-          addResolutionStack(strings.add(buttonStyleReference))
-          int32Value = Color.BLACK.rgb
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_width")
-          type = Property.Type.INT32
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = 200
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_height")
-          type = Property.Type.INT32
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = 500
-        })
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-  private fun createPropertiesForButton4(processId: Int): Common.Event {
-    val strings = TestStringTable()
-    return Common.Event.newBuilder().apply {
-      pid = processId
-      kind = Common.Event.Kind.LAYOUT_INSPECTOR
-      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
-      timestamp = System.currentTimeMillis()
-      layoutInspectorEventBuilder.propertiesBuilder.apply {
-        viewId = 4L
-        layout = strings.add(layoutReference)
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("id")
-          type = Property.Type.RESOURCE
-          source = strings.add(layoutReference)
-          resourceValue = strings.add(button4Id)
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("backgroundTint")
-          type = Property.Type.COLOR
-          source = strings.add(layoutReference)
-          addResolutionStack(strings.add(layoutReference))
-          addResolutionStack(strings.add(buttonStyleReference))
-          int32Value = Color.RED.rgb
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("clickable")
-          type = Property.Type.BOOLEAN
-          int32Value = 1
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("elevation")
-          type = Property.Type.FLOAT
-          floatValue = 5.5f
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("gravity")
-          type = Property.Type.GRAVITY
-          source = strings.add(buttonMaterialReference)
-          addResolutionStack(strings.add(buttonMaterialReference))
-          flagValueBuilder.addAllFlag(listOf(strings.add("center")))
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_width")
-          type = Property.Type.INT32
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = 400
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_height")
-          type = Property.Type.INT32
-          source = strings.add(layoutReference)
-          isLayout = true
-          int32Value = 500
-        })
-        addProperty(Property.newBuilder().apply {
-          name = strings.add("layout_gravity")
-          type = Property.Type.GRAVITY
-          isLayout = true
-          flagValueBuilder.addAllFlag(listOf(strings.add("clip_horizontal"), strings.add("clip_vertical"), strings.add("fill")))
-        })
-        addAllString(strings.asEntryList())
-      }
-    }.build()
-  }
-
-   */
-
-  private external fun generateSingle(): ByteArray
-
-  private external fun generateBoxes(): ByteArray
 
   private class MyDeviceCommandHandler : DeviceCommandHandler("shell") {
     var debugViewAttributesChanges = 0
@@ -697,17 +363,26 @@ class BasicLayoutInspectorUITest {
      * Handle shell commands.
      *
      * Examples:
+     *  - "echo anything"
      *  - "settings get global debug_view_attributes"
      *  - "settings get global debug_view_attributes_application_package"
      *  - "settings put global debug_view_attributes 1"
      *  - "settings put global debug_view_attributes_application_package com.example.myapp"
      *  - "settings delete global debug_view_attributes"
      *  - "settings delete global debug_view_attributes_application_package"
+     *  - "rm -f /data/local/tmp/perfd/layoutinspector-view-inspection.jar"
+     *  - "mkdir -p /data/local/tmp/perfd"
+     *  - "sh -c 'trap "settings delete global debug_view_attributes_application_package" EXIT; read'"
      */
     private fun handleShellCommand(command: String): String? {
       val args = ArrayDeque(command.split(' '))
-      if (args.poll() != "settings") {
-        return null
+      when (args.poll()) {
+        "settings" -> {}
+        "echo" -> return args.joinToString()
+        "rm" -> return ""
+        "mkdir" -> return ""
+        "sh" -> return ""
+        else -> return null
       }
       val operation = args.poll()
       if (args.poll() != "global") {
@@ -723,9 +398,9 @@ class BasicLayoutInspectorUITest {
         return null
       }
       return when (operation) {
-        "get" -> { variable.get().toString() }
-        "put" -> { variable.set(argument); debugViewAttributesChanges++; ""}
-        "delete" -> { variable.set(null); debugViewAttributesChanges++; ""}
+        "get" -> variable.get().toString()
+        "put" -> { variable.set(argument); debugViewAttributesChanges++; "" }
+        "delete" -> { variable.set(null); debugViewAttributesChanges++; "" }
         else -> null
       }
     }

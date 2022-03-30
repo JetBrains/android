@@ -17,13 +17,17 @@
 
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl
 
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Quad
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Rect
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StringEntry
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
 
@@ -87,10 +91,22 @@ fun ViewResource(type: Int, namespace: Int, name: Int): Resource {
   }.build()
 }
 
+fun ViewAppContext(theme: Resource): AppContext {
+  return AppContext.newBuilder().setTheme(theme).build()
+}
+
+fun ViewScreenshot(init: Screenshot.Builder.() -> Unit): Screenshot {
+  return Screenshot.newBuilder().apply(init).build()
+}
+
 fun PropertyGroup(init: PropertyGroup.Builder.() -> Unit): PropertyGroup {
   return PropertyGroup.newBuilder().apply(init).build()
 }
 
 fun PropertyGroup.Builder.Property(init: Property.Builder.() -> Unit) {
   addProperty(Property.newBuilder().apply(init).build())
+}
+
+fun ViewFlagValue(vararg values: Int): FlagValue {
+  return FlagValue.newBuilder().addAllFlag(values.asList()).build()
 }

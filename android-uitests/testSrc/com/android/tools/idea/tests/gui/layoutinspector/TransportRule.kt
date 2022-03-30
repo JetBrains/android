@@ -19,7 +19,12 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
+import com.android.tools.idea.appinspection.test.createResponse
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -61,7 +66,7 @@ private const val TEST_CHANNEL_NAME = "LayoutInspectorUiTest"
  * or calling [com.android.tools.idea.transport.poller.TransportEventPoller.poll()] directly.
  */
 class TransportRule(
-  private val timer: FakeTimer = FakeTimer(),
+  val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).closeServerDuringCleanUp(false),
   private val transportService: FakeTransportService = FakeTransportService(timer, false),
   private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService)
@@ -69,8 +74,34 @@ class TransportRule(
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
 
-  private val commandHandlers = mutableMapOf<LayoutInspectorViewProtocol.Command.SpecializedCase,
-    (LayoutInspectorViewProtocol.Command, MutableList<Common.Event>) -> Unit>()
+  private val viewConnection = object : FakeInspector.Connection<LayoutInspectorViewProtocol.Event>() {
+    override fun sendEvent(event: LayoutInspectorViewProtocol.Event) {
+      val rawEvent = AppInspection.RawEvent.newBuilder().setContent(event.toByteString())
+      val appEvent = AppInspection.AppInspectionEvent.newBuilder().setRawEvent(rawEvent).setInspectorId(VIEW_LAYOUT_INSPECTOR_ID)
+      val commonEvent = Common.Event.newBuilder().apply {
+        pid = DEFAULT_PROCESS.pid
+        timestamp = timer.currentTimeNs
+        isEnded = true
+        kind = Common.Event.Kind.APP_INSPECTION_EVENT
+        appInspectionEvent = appEvent.build()
+      }.build()
+      transportService.addEventToStream(DEFAULT_DEVICE.deviceId, commonEvent)
+      timer.currentTimeNs += 1
+    }
+  }
+  val viewInspector = FakeViewLayoutInspector(viewConnection)
+
+  private val viewInspectorHandler = TestAppInspectorCommandHandler(
+    timer,
+    createInspectorResponse = { createCommand ->
+      createCommand.createResponse(viewInspector.createResponseStatus)
+    },
+    rawInspectorResponse = { rawCommand ->
+      val viewCommand = LayoutInspectorViewProtocol.Command.parseFrom(rawCommand.content)
+      val viewResponse = viewInspector.handleCommand(viewCommand)
+      val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
+      AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
+    })
 
   private var attachHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -86,29 +117,13 @@ class TransportRule(
     }
   }
 
-  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+  private val appInspectionHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      val layoutInspectorCommand = LayoutInspectorViewProtocol.Command.parseFrom(command.appInspectionCommand.rawInspectorCommand.content)
-      commandHandlers[layoutInspectorCommand.specializedCase]?.invoke(layoutInspectorCommand, events)
+      viewInspectorHandler.handleCommand(command, events)
     }
   }
 
   private val disposableRule = DisposableRule()
-
-  /**
-   * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
-   */
-  fun withCommandHandler(type: LayoutInspectorViewProtocol.Command.SpecializedCase,
-                         handler: (LayoutInspectorViewProtocol.Command, MutableList<Common.Event>) -> Unit) =
-    apply { commandHandlers[type] = handler }
-
-  fun withFile(id: Int, bytes: ByteArray) = apply {
-    transportService.addFile(id.toString(), ByteString.copyFrom(bytes))
-  }
-
-  fun addEventToStream(device: Common.Device, event: Common.Event) {
-    transportService.addEventToStream(device.deviceId, event)
-  }
 
   fun withDeviceCommandHandler(handler: DeviceCommandHandler) = apply {
     adbRule.withDeviceCommandHandler(handler)
@@ -133,15 +148,6 @@ class TransportRule(
     transportService.saveEventPositionMark(streamId)
   }
 
-  /**
-   * Remove all events added added after the previously saved mark in the events for the specified stream.
-   *
-   * This is useful if we want the process event to remain in a Bleak test.
-   */
-  fun revertToEventPositionMark(streamId: Long) {
-    transportService.revertToEventPositionMark(streamId)
-  }
-
   override fun apply(base: Statement, description: Description): Statement {
     return disposableRule.apply(grpcServer.apply(adbRule.apply(
       object : Statement() {
@@ -156,7 +162,7 @@ class TransportRule(
 
   private fun before() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
-    transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, appInspectionHandler)
 
     // Start ADB with fake server and its port.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)

@@ -55,7 +55,7 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
   }
 }
 
-private fun ByteArray.compress(): ByteArray {
+fun ByteArray.compress(): ByteArray {
   val deflater = Deflater(Deflater.BEST_SPEED)
   deflater.setInput(this)
   deflater.finish()

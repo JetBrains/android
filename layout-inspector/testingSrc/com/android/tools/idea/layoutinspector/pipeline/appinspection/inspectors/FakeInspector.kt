@@ -74,7 +74,7 @@ abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
    *
    * This method should only be called by internal test framework logic.
    */
-  internal fun handleCommand(command: C): R {
+  fun handleCommand(command: C): R {
     val interceptedResponse = interceptors.entries
       .firstOrNull { it.key(command) }
       ?.let { entry -> entry.value(command) }

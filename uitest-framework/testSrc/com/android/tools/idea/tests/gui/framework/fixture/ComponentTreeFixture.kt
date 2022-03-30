@@ -15,27 +15,38 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
+import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.intellij.openapi.util.Ref
 import com.intellij.util.ui.tree.TreeUtil
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
-import org.fest.swing.fixture.JTreeFixture
+import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.timing.Wait
-import javax.swing.JTree
+import javax.swing.JTable
 import javax.swing.tree.TreeModel
 
 /**
  * Fixture for the component tree in com.android.tools.componenttree.
  */
-class ComponentTreeFixture(robot: Robot, tree: JTree) : JTreeFixture(robot, tree) {
+class ComponentTreeFixture(robot: Robot, table: JTable) : JTableFixture(robot, table) {
+
+  val table: TreeTableImpl
+    get() = target() as TreeTableImpl
 
   /**
    * Expand all nodes without creating selection events.
    */
   fun expandAll() {
     val done = Ref(false)
-    GuiQuery.get { TreeUtil.expandAll(target()) { done.set(true) } }
+    GuiQuery.get { TreeUtil.expandAll(table.tree) { done.set(true) } }
     Wait.seconds(10).expecting("Tree to be expanded").until{ done.get() }
+  }
+
+  /**
+   * Convenience shortcut.
+   */
+  fun selectRow(row: Int) {
+    selectRows(row)
   }
 
   /**
@@ -45,7 +56,7 @@ class ComponentTreeFixture(robot: Robot, tree: JTree) : JTreeFixture(robot, tree
    */
   val modelRowCount: Int
     get() {
-      val model = target().model
+      val model = table.tree.model
       val root = model.root ?: return 0
       return treeSize(root, model)
     }

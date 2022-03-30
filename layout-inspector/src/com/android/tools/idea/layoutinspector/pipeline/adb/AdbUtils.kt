@@ -69,6 +69,9 @@ fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
                                          timeoutSecs: Long = ADB_NEVER_TIMEOUT,
                                          latch: CountDownLatch = CountDownLatch(1)
 ): CollectingOutputReceiver {
+  if (findDevice(device) == null) {
+    println("Device: ${device.serial} is not found in monitor task list")
+  }
   return findDevice(device)?.let { adbDevice ->
     val receiver = CollectingOutputReceiver(latch)
     adbDevice.executeShellCommand(command, receiver, timeoutSecs, TimeUnit.SECONDS)

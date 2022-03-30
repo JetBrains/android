@@ -78,6 +78,7 @@ fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 private const val ICON_VERTICAL_BORDER = 5
 private const val ICON_HORIZONTAL_BORDER = 10
 private const val TEXT_HORIZONTAL_BORDER = 5
+const val COMPONENT_TREE_NAME = "COMPONENT_TREE"
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
@@ -163,6 +164,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
     inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
+    focusComponent.name = COMPONENT_TREE_NAME // For UI tests
     focusComponent.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.code)) {

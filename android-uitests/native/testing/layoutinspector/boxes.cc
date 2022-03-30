@@ -13,7 +13,7 @@
 extern "C" {
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_android_tools_idea_tests_gui_layoutinspector_BasicLayoutInspectorUITest_generateBoxes(
+Java_com_android_tools_idea_tests_gui_layoutinspector_FakeBoxes_generateMultipleBoxesSkiaImage(
         JNIEnv *env, jobject instance) {
     SkPictureRecorder recorder;
     SkPaint paint;

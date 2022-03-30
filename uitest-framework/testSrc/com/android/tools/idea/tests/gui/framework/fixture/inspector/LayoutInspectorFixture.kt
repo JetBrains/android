@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.inspector
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.tree.COMPONENT_TREE_NAME
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_ACTION_TOOLBAR_NAME
 import com.android.tools.idea.layoutinspector.ui.LayerSpacingSliderAction
 import com.android.tools.idea.tests.gui.framework.GuiTests
@@ -31,10 +32,12 @@ import com.android.tools.idea.tests.gui.framework.waitUntilFound
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.runInEdtAndWait
 import org.fest.swing.annotation.RunsInEDT
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JMenuItemFixture
+import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.fixture.JSliderFixture
 import org.fest.swing.timing.Wait
 import javax.swing.JComponent
@@ -42,21 +45,24 @@ import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JSlider
-import javax.swing.JTree
+import javax.swing.JTable
 import javax.swing.MenuElement
 
 /**
  * Fixture for the dynamic layout inspector tool window.
  */
-class LayoutInspectorFixture(project: Project, robot: Robot) : ToolWindowFixture(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, project, robot) {
+class LayoutInspectorFixture(
+  project: Project,
+  private val robot: Robot
+) : ToolWindowFixture(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, project, robot) {
 
   /**
    * Lazily get the component tree of the layout inspector.
    */
   val tree: ComponentTreeFixture by lazy(LazyThreadSafetyMode.NONE) {
     val content = getContent("")
-    val componentTree = GuiTests.waitUntilFound(myRobot, content!!.component, Matchers.byType(JTree::class.java))
-    ComponentTreeFixture(robot, componentTree)
+    val table: JTable = GuiTests.waitUntilFound(myRobot, content!!.component, Matchers.byName(JTable::class.java, COMPONENT_TREE_NAME))
+    ComponentTreeFixture(robot, table)
   }
 
   /**
@@ -79,18 +85,14 @@ class LayoutInspectorFixture(project: Project, robot: Robot) : ToolWindowFixture
    * Select a device and process from the select process action button in the toolbar of the layout inspector.
    */
   fun selectDevice(device: String, process: String) {
-    // First put focus on the select process action button.
-    // This will cause an update of the action associated with the button, which in turn will regenerate
-    // the popup menu shown on a subsequent click.
-    robot().focusAndWaitForFocusGain(selectProcessActionButton.target())
-
-    // Click to show the newly generated popup menu.
-    selectProcessActionButton.click()
-
-    // Find the device and the process sub menu and select those menu items.
-    // For some reason this fails occasionally if the focus() call is omitted.
-    val deviceMenu = findSubItemInActivePopup(device).focus().click()
-    findSubItemOfMenu(deviceMenu.target(), process).click()
+    val button = selectProcessActionButton
+    runInEdtAndWait { button.target().click() }
+    val popup = JPopupMenuFixture(robot, robot.findActivePopupMenu()!!)
+    val deviceMenu = findSubItemInActivePopup(device)
+    runInEdtAndWait { deviceMenu.target().doClick() }
+    val processMenu =  findSubItemOfMenu(deviceMenu.target(), process)
+    runInEdtAndWait { processMenu.target().doClick() }
+    runInEdtAndWait { popup.target().isVisible = false }
   }
 
   /**
