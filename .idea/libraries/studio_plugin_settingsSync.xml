@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-c-clangd">
+  <library name="studio-plugin-settingsSync">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/c-clangd/lib/c-clangd.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/settingsSync/lib/settingsSync.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
