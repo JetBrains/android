@@ -15,20 +15,9 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.ddmlib.IDevice
-
 /**
- * Device tracking events
+ * Contains an Android process package name and process name
  */
-internal sealed class DeviceMonitorEvent {
-  /**
-   * Sent when a device is [com.android.ddmlib.IDevice.DeviceState.ONLINE] and ready to accept ADB request
-   */
-  data class Online(val device: IDevice) : DeviceMonitorEvent()
-
-  /**
-   * Sent when a device is disconnected. Note that there is no guarantee this is invoked in all cases. Also note this can be invoked even
-   * if a [Online] was never sent.
-   */
-  data class Disconnected(val device: IDevice) : DeviceMonitorEvent()
+data class ProcessNames(val packageName: String, val processName: String) {
+  fun isInitialized(): Boolean = packageName.isNotEmpty() && processName.isNotEmpty()
 }

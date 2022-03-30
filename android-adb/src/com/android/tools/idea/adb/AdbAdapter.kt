@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adb.processnamemonitor
+package com.android.tools.idea.adb
 
+import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 
 /**
- * Device tracking events
+ * Provides some basic [com.android.ddmlib.AndroidDebugBridge] functionality in a testable way.
  */
-internal sealed class DeviceMonitorEvent {
-  /**
-   * Sent when a device is [com.android.ddmlib.IDevice.DeviceState.ONLINE] and ready to accept ADB request
-   */
-  data class Online(val device: IDevice) : DeviceMonitorEvent()
+interface AdbAdapter {
+  suspend fun getDevices(): List<IDevice>
 
-  /**
-   * Sent when a device is disconnected. Note that there is no guarantee this is invoked in all cases. Also note this can be invoked even
-   * if a [Online] was never sent.
-   */
-  data class Disconnected(val device: IDevice) : DeviceMonitorEvent()
+  fun addDeviceChangeListener(listener: IDeviceChangeListener)
+
+  fun removeDeviceChangeListener(listener: IDeviceChangeListener)
 }
