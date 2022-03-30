@@ -35,7 +35,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
@@ -138,14 +137,5 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
       AndroidBundle.message("android.run.configuration.not.supported",
                             configuration.name)) // There is no test ApkInfo for AndroidWatchFaceConfiguration, thus it should be always single ApkInfo. Only App.
     return apkProvider.getApks(device).single().files.map { it.apkFile.path }
-  }
-
-  protected open fun startDebugSession(
-    device: IDevice,
-    processHandler: AndroidProcessHandlerForDevices,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
-    processHandler.startNotify()
-    return DebugSessionStarter(environment).attachDebuggerToClient(device, { processHandler.destroyProcess() }, console)
   }
 }

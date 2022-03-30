@@ -24,6 +24,7 @@ import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WA
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -53,10 +54,10 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     Disposer.register(project, console)
     val applicationInstaller = getApplicationInstaller(console)
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val processHandler = WatchFaceProcessHandler(console, isDebug)
+    val processHandler = AndroidProcessHandler(project, appId, getStopWatchFaceCallback(console, isDebug))
     devices.forEach { device ->
       terminatePreviousAppInstance(device)
-      processHandler.addDevice(device)
+      processHandler.addTargetDevice(device)
       val version = device.getWearDebugSurfaceVersion()
       if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
         throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
@@ -65,7 +66,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       if (isDebug) {
         val promise = AsyncPromise<RunContentDescriptor>()
         executeOnPooledThread {
-          startDebugSession(devices.single(), processHandler, console)
+          startDebugSession(devices.single(), console)
             .onError(promise::setError)
             .then { it.runContentDescriptor }.processed(promise)
         }
@@ -102,13 +103,12 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
   }
 
-  override fun startDebugSession(
+  private fun startDebugSession(
     device: IDevice,
-    processHandler: AndroidProcessHandlerForDevices,
     console: ConsoleView
   ): Promise<XDebugSessionImpl> {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return super.startDebugSession(device, processHandler, console)
+    return DebugSessionStarter(environment).attachDebuggerToClient(device, getStopWatchFaceCallback(console, true), console)
   }
 }
 
@@ -124,14 +124,13 @@ internal fun showWatchFace(device: IDevice, console: ConsoleView) {
   }
 }
 
-class WatchFaceProcessHandler(private val console: ConsoleView, override val isDebug: Boolean)
-  : AndroidProcessHandlerForDevices() {
-
-  override fun stopSurface(device: IDevice) {
-    val receiver = CommandResultReceiver()
-    device.executeShellCommand(UNSET_WATCH_FACE, console, receiver)
-    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("Warning: Watch face was not stopped.")
-    }
+private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
+  val receiver = CommandResultReceiver()
+  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver)
+  if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    console.printError("Warning: Watch face was not stopped.")
+  }
+  if (isDebug) {
+    stopDebugApp(device)
   }
 }

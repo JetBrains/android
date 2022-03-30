@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
@@ -82,7 +83,6 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env))
 
     val startCommand = "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
-    val stopCommand = "am force-stop com.example.app"
 
     val runnableClientsService = RunnableClientsService(testRootDisposable)
 
@@ -91,15 +91,14 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     }
 
     val processTerminatedLatch = CountDownLatch(1)
-    val stopActivityCommandHandler: CommandHandler = { device, _ ->
+    val device = getMockDevice(mapOf(
+      startCommand to startActivityCommandHandler,
+    ))
+
+    Mockito.`when`(device.forceStop(eq(appId))).then {
       runnableClientsService.stopClient(device, appId)
       processTerminatedLatch.countDown()
     }
-
-    val device = getMockDevice(mapOf(
-      startCommand to startActivityCommandHandler,
-      stopCommand to stopActivityCommandHandler
-    ))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -117,7 +116,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(2)).executeShellCommand(
+    Mockito.verify(device).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -127,8 +126,7 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
 
     // Start Activity with -D flag.
     assertThat(commands[0]).isEqualTo(startCommand)
-
     // Stop debug process
-    assertThat(commands[1]).isEqualTo(stopCommand)
+    Mockito.verify(device, Mockito.times(2)).forceStop(appId)
   }
 }

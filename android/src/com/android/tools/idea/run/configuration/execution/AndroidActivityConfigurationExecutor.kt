@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
@@ -47,10 +48,10 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
     val console = createConsole()
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller(console)
-    val processHandler = ActivityProcessHandler(appId, console)
+    val processHandler = AndroidProcessHandler(project, appId)
     devices.forEach { device ->
       terminatePreviousAppInstance(device)
-      processHandler.addDevice(device)
+      processHandler.addTargetDevice(device)
       ProgressManager.checkCanceled()
       indicator?.text = "Installing app"
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.PM_INSTALL_OPTIONS)
@@ -58,7 +59,9 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
     }
     ProgressManager.checkCanceled()
     if (isDebug) {
-      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
+      DebugSessionStarter(environment)
+        .attachDebuggerToClient(devices.single(), { device -> device.forceStop(appId) }, console)
+        .then { it.runContentDescriptor }
     }
     return createRunContentDescriptor(processHandler, console, environment)
   }
@@ -94,8 +97,3 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
   }
 }
 
-class ActivityProcessHandler(private val appId: String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
-  override fun stopSurface(device: IDevice) {
-    device.executeShellCommand("am force-stop $appId", console)
-  }
-}

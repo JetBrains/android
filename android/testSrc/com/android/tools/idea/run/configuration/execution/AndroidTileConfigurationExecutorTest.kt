@@ -18,7 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
-import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
@@ -30,7 +29,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.invokeLater
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -215,35 +213,5 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Clear debug app
     assertThat(commands[6]).isEqualTo(clearDebugAppBroadcast)
     assertThat(commands[7]).isEqualTo(clearDebugAppAm)
-  }
-
-  @Test
-  fun testTileProcessHandler() {
-    val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
-                                            Mockito.mock(ConsoleView::class.java), false)
-    val countDownLatch = CountDownLatch(1)
-    val device = getMockDevice(mapOf(
-      removeTile to { _, _ -> countDownLatch.countDown() }
-    ))
-    processHandler.addDevice(device)
-
-    processHandler.startNotify()
-
-    processHandler.destroyProcess()
-
-    assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue()
-
-    // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
-
-    // Unset tile
-    assertThat(commands[0]).isEqualTo(removeTile)
   }
 }

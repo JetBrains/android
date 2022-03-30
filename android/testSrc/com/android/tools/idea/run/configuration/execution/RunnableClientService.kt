@@ -67,7 +67,7 @@ internal class RunnableClientsService(testDisposable: Disposable) {
   }
 
   fun stopClient(device: IDevice, appId: String) {
-    val runnableClient = deviceToRunnableClients[device]?.get(appId) ?: throw RuntimeException("Client is not started")
+    val runnableClient = deviceToRunnableClients[device]?.get(appId) ?: return
     runnableClient.stopClient()
     deploymentApplicationService.removeClient(device, appId)
     deviceToRunnableClients[device]!!.remove(appId)

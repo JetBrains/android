@@ -19,7 +19,6 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.TestResources
-import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
@@ -37,7 +36,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.invokeLater
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -320,50 +318,10 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   }
 
   @Test
-  fun testComplicationProcessHandler() {
-    val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
-                                                    Mockito.mock(ConsoleView::class.java), false)
-    val countDownLatch = CountDownLatch(1)
-    val device = getMockDevice(mapOf(
-      unsetWatchFace to { _, _ -> countDownLatch.countDown() }
-    ))
-    processHandler.addDevice(device)
-
-    processHandler.startNotify()
-
-    processHandler.destroyProcess()
-
-    assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue()
-
-    // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(2)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
-
-    // Unset complication
-    assertThat(commands[0]).isEqualTo(unsetComplication)
-    // Unset debug watchFace
-    assertThat(commands[1]).isEqualTo(unsetWatchFace)
-  }
-
-  @Test
   fun testGetComplicationSourceTypes() {
     val types = getComplicationSourceTypes(
       listOf(ApkInfo(TestResources.getFile("/WearableTestApk.apk"), "com.example.android.wearable.watchface")),
       "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
     assertThat(types).isEqualTo(listOf(SHORT_TEXT, LONG_TEXT))
-  }
-
-  fun testGetManifestNoModule() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
-    val androidComplicationConfiguration = Mockito.spy(configSettings.configuration as AndroidComplicationConfiguration)
-    doReturn(null).`when`(androidComplicationConfiguration).module
-    assertThat(androidComplicationConfiguration.getTypesFromManifest()).isEqualTo(emptyList<Complication.ComplicationType>())
   }
 }

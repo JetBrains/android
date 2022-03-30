@@ -29,8 +29,6 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.testFramework.registerServiceInstance
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -240,34 +238,5 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       }
     }
     Mockito.verify(device, Mockito.atLeastOnce()).forceStop(appId)
-  }
-
-  @Test
-  fun testWatchFaceProcessHandler() {
-    val processHandler = WatchFaceProcessHandler(Mockito.mock(ConsoleView::class.java), false)
-    val countDownLatch = CountDownLatch(1)
-    val device = getMockDevice(mapOf(
-      unsetWatchFace to { _, _ -> countDownLatch.countDown() }
-    ))
-    processHandler.addDevice(device)
-
-    processHandler.startNotify()
-
-    processHandler.destroyProcess()
-
-    assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue()
-
-    // Verify commands sent to device.
-    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
-      commandsCaptor.capture(),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
-    )
-    val commands = commandsCaptor.allValues
-
-    // Unset watch face
-    assertThat(commands[0]).isEqualTo(unsetWatchFace)
   }
 }
