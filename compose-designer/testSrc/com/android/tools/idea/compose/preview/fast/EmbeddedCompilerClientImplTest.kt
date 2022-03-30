@@ -121,19 +121,5 @@ internal class EmbeddedCompilerClientImplTest {
     }
     assertEquals(230L, result)
     assertEquals(attempts - 1, executedRetries)
-
-    // Check that ProcessCanceledException is not retried
-    executedRetries = 0
-    try {
-      retry(attempts) {
-        executedRetries++
-        // Throw in all but the last one
-        if (executedRetries < attempts - 1) throw ProcessCanceledException()
-        230L
-      }
-    }
-    catch (_: ProcessCanceledException) {
-    }
-    assertEquals(1, executedRetries)
   }
 }

@@ -53,7 +53,8 @@ fun <T> retry(retryTimes: Int = defaultRetryTimes, retryBlock: () -> T): T {
       return retryBlock()
     }
     catch (t: ProcessCanceledException) {
-      throw t // Immediately exit, no more retries
+      // ProcessCanceledException can not be logged
+      lastException = t
     }
     catch (t: Throwable) {
       Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Retrying after error (retry $it)", t)
@@ -77,15 +78,12 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
   private fun compileKtFiles(inputs: List<KtFile>, outputDirectory: Path) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
-    ProgressManager.checkCanceled()
-    log.debug("fetchResolution")
-    val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
-    val languageVersionSettings = inputs.first().languageVersionSettings
-
-    ProgressManager.checkCanceled()
-
     // Retry is a temporary workaround for b/224875189
     val generationState = retry {
+      log.debug("fetchResolution")
+      val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
+      ProgressManager.checkCanceled()
+      val languageVersionSettings = inputs.first().languageVersionSettings
       log.debug("analyze")
       val bindingContext = analyze(inputs, resolution)
       ProgressManager.checkCanceled()
