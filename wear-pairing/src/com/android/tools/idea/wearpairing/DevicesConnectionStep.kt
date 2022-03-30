@@ -801,19 +801,21 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   private fun goToNextStep() {
-    // The "Next" button changes asynchronously. Create a temporary property that will change state at the same time.
-    val doGoForward = BoolValueProperty()
-    bindings.bind(doGoForward, canGoForward)
-    deviceStateListener.listenAndFire(doGoForward) {
-      if (canGoForward.get()) {
-        dispose()
-        ApplicationManager.getApplication().invokeLater {
-          wizardFacade.goForward()
+    ApplicationManager.getApplication().invokeLater({
+      // The "Next" button changes asynchronously. Create a temporary property that will change state at the same time.
+      val doGoForward = BoolValueProperty()
+      bindings.bind(doGoForward, canGoForward)
+      deviceStateListener.listenAndFire(doGoForward) {
+        if (canGoForward.get()) {
+          dispose()
+          ApplicationManager.getApplication().invokeLater({
+            wizardFacade.goForward()
+          }, ModalityState.any())
         }
       }
-    }
 
-    canGoForward.set(true)
+      canGoForward.set(true)
+    }, ModalityState.any())
   }
 
   private fun showEmbeddedEmulator(device: IDevice) {
