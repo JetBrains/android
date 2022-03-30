@@ -20,6 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.analyze
 import com.android.tools.idea.run.deployment.liveedit.backendCodeGen
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
@@ -29,25 +30,33 @@ import com.intellij.util.io.createFile
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
 
+private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
+
 /**
  * Retries the [retryBlock] [retryTimes] or until it does not throw an exception.
  *
  * Every retry will wait 50ms * number of retries with a maximum of 200ms per retry.
  */
-private fun <T> retry(retryTimes: Int = 3, retryBlock: () -> T): T {
+@VisibleForTesting
+fun <T> retry(retryTimes: Int = defaultRetryTimes, retryBlock: () -> T): T {
   var lastException: Throwable? = null
   repeat(retryTimes) {
     ProgressManager.checkCanceled()
     try {
       return retryBlock()
-    } catch (t: Throwable) {
-      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn(t)
+    }
+    catch (t: ProcessCanceledException) {
+      throw t // Immediately exit, no more retries
+    }
+    catch (t: Throwable) {
+      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Retrying after error (retry $it)", t)
       lastException = t
     }
     ProgressManager.checkCanceled()
@@ -71,20 +80,20 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     ProgressManager.checkCanceled()
     log.debug("fetchResolution")
     val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
-
-    ProgressManager.checkCanceled()
-    log.debug("analyze")
-    // Retry is a temporary workaround for b/224875189
-    val bindingContext = retry {
-      analyze(inputs, resolution)
-    }
-
     val languageVersionSettings = inputs.first().languageVersionSettings
 
     ProgressManager.checkCanceled()
-    log.debug("backCodeGen")
-    val generationState = backendCodeGen(project, resolution, bindingContext, inputs,
-                                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+
+    // Retry is a temporary workaround for b/224875189
+    val generationState = retry {
+      log.debug("analyze")
+      val bindingContext = analyze(inputs, resolution)
+      ProgressManager.checkCanceled()
+      log.debug("backCodeGen")
+      backendCodeGen(project, resolution, bindingContext, inputs,
+                     AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+    }
+
     generationState.factory.asList().forEach {
       val path = outputDirectory.resolve(it.relativePath)
       path.createFile()
