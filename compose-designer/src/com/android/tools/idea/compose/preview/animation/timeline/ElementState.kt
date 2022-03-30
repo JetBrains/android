@@ -33,23 +33,23 @@ class ElementState(val title : String? = null) {
     valueOffsetListeners.add(listener)
   }
 
-  private val lockedListeners: MutableList<() -> Unit> = mutableListOf()
+  private val freezeListeners: MutableList<() -> Unit> = mutableListOf()
 
-  /** If element is locked in specified [lockedValue]. */
-  var locked = false
+  /** If element is frozen in specified [frozenValue]. */
+  var frozen = false
     set(value) {
       // Ignore repeated values.
       if (field != value) {
         field = value
-        lockedListeners.forEach { it() }
+        freezeListeners.forEach { it() }
       }
     }
 
-  /** The value in ms in which the animation is locked. */
-  var lockedValue: Int = 0
+  /** The value in ms in which the animation is frozen. */
+  var frozenValue: Int = 0
 
-  fun addLockedListener(listener: () -> Unit) {
-    lockedListeners.add(listener)
+  fun addFreezeListener(listener: () -> Unit) {
+    freezeListeners.add(listener)
   }
 
   private val expandedListeners: MutableList<() -> Unit> = mutableListOf()

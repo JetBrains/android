@@ -341,22 +341,22 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
 
 
   @Test
-  fun `ui with locked elements`(): Unit = invokeAndWaitIfNeeded {
+  fun `ui with frozen elements`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       value = 1000
     }
     (slider.ui as TimelineSliderUI).apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply {
-        locked = true
+        frozen = true
       })
       elements.add(TestUtils.TestTimelineElement(50, 150, positionProxy).apply {
-        locked = false
+        frozen = false
       })
       elements.add(TestUtils.TestTimelineElement(50, 250, positionProxy).apply {
-        locked = true
+        frozen = true
       })
       elements.add(TestUtils.TestTimelineElement(50, 350, positionProxy).apply {
-        locked = false
+        frozen = false
       })
     }
     val ui = FakeUi(slider.parent)
@@ -366,7 +366,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
   }
 
   @Test
-  fun `ui with all unlocked elements`(): Unit = invokeAndWaitIfNeeded {
+  fun `ui with all unfrozen elements`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       value = 1000
     }
@@ -384,7 +384,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
   }
 
   @Test
-  fun `ui with one unlocked element`(): Unit = invokeAndWaitIfNeeded {
+  fun `ui with one unfrozen element`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       value = 1000
     }
@@ -398,13 +398,13 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
   }
 
   @Test
-  fun `ui with one locked element`(): Unit = invokeAndWaitIfNeeded {
+  fun `ui with one frozen element`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       value = 1000
     }
     (slider.ui as TimelineSliderUI).apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply {
-        locked = true
+        frozen = true
       })
     }
     val ui = FakeUi(slider.parent)

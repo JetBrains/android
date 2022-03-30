@@ -64,6 +64,6 @@ object InspectorColors {
   /** Color of the ticks for the timeline. */
   val TIMELINE_TICK_COLOR = JBColor(Gray._223, Gray._50)
 
-  /** Color of the vertical line showing the lock position. */
-  val LOCK_COLOR = JBColor(Gray._176, Gray._176)
+  /** Color of the vertical line showing the freeze position. */
+  val FREEZE_LINE_COLOR = JBColor(Gray._176, Gray._176)
 }

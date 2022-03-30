@@ -50,7 +50,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅
   //      ↑    ↑
   //      |    StateComboBox - AnimatedVisibilityComboBox or StartEndComboBox.
-  //     Lock / unlock toggle.
+  //     Freeze / unfreeze toggle.
   //
   //
   // Expanded view:
@@ -99,8 +99,8 @@ class AnimationCard(previewState: AnimationPreviewState,
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
-    val lockToolbar = SingleButtonToolbar(surface, "LockUnlockAnimationCard", LockAction(previewState, state, tracker))
-    secondRow.add(lockToolbar, TabularLayout.Constraint(0, 0))
+    val freezeToolbar = SingleButtonToolbar(surface, "FreezeAnimationCard", FreezeAction(previewState, state, tracker))
+    secondRow.add(freezeToolbar, TabularLayout.Constraint(0, 0))
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
     OpenInNewTab().installOn(this)

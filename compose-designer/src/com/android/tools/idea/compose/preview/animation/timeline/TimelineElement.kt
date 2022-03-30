@@ -38,7 +38,7 @@ enum class TimelineElementStatus {
 }
 
 /**
- * Group of [TimelineElement] for timeline. Group elements are moved and locked together.
+ * Group of [TimelineElement] for timeline. Group elements are moved and frozen together.
  */
 open class ParentTimelineElement(state: ElementState, private val children: List<TimelineElement>, positionProxy: PositionProxy)
   : TimelineElement(state = state, minX = children.minOf { it.minX },
@@ -70,7 +70,7 @@ open class ParentTimelineElement(state: ElementState, private val children: List
 }
 
 /**
- * Drawable element for timeline. Each element could be moved and locked.
+ * Drawable element for timeline. Each element could be moved and frozen.
  */
 abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX: Int, protected val positionProxy: PositionProxy) {
 
@@ -78,10 +78,10 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
   abstract var height: Int
   fun heightScaled(): Int = JBUI.scale(height)
 
-  open var locked: Boolean
-    get() = state.locked
+  open var frozen: Boolean
+    get() = state.frozen
     set(value) {
-      state.locked = value
+      state.frozen = value
     }
 
   open var status: TimelineElementStatus = TimelineElementStatus.Inactive

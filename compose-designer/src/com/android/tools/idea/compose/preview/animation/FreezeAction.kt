@@ -24,14 +24,14 @@ import icons.StudioIcons
 import java.util.function.Supplier
 
 
-class LockAction(private val previewState: AnimationPreviewState,
-                 val state: ElementState,
-                 val tracker: ComposeAnimationEventTracker) : ToggleAction(
+class FreezeAction(private val previewState: AnimationPreviewState,
+                   val state: ElementState,
+                   val tracker: ComposeAnimationEventTracker) : ToggleAction(
   Supplier { message("animation.inspector.action.freeze") }, StudioIcons.Compose.Toolbar.FREEZE_ANIMATION) {
 
-  override fun setSelected(e: AnActionEvent, locked: Boolean) {
-    state.locked = locked
-    if (locked) {
+  override fun setSelected(e: AnActionEvent, frozen: Boolean) {
+    state.frozen = frozen
+    if (frozen) {
       tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.LOCK_ANIMATION)
       e.presentation.text = message("animation.inspector.action.unfreeze")
     }
@@ -42,7 +42,7 @@ class LockAction(private val previewState: AnimationPreviewState,
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return state.locked
+    return state.frozen
   }
 
   override fun update(e: AnActionEvent) {

@@ -221,7 +221,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
       if (!executeOnRenderThread(longTimeout) {
           if (coordinationIsSupported())
             setClockTimes(animationsMap.mapValues {
-              (if (it.value.elementState.locked) it.value.elementState.lockedValue.toLong() else clockTimeMs) - it.value.elementState.valueOffset
+              (if (it.value.elementState.frozen) it.value.elementState.frozenValue.toLong() else clockTimeMs) - it.value.elementState.valueOffset
             })
           // Fall back to `setClockTime` if coordination is nor available.
           else setClockTime(clockTimeMs)
@@ -446,13 +446,13 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
       addExpandedListener {
         updateTimelineElements()
       }
-      addLockedListener {
+      addFreezeListener {
         timeline.repaint()
-        if (!this.locked) {
+        if (!this.frozen) {
           setClockTime(timeline.value)
           loadProperties()
         }
-        lockedValue = timeline.value
+        frozenValue = timeline.value
       }
       addValueOffsetListener { setClockTime(timeline.value) }
     }
@@ -490,7 +490,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
       add(stateComboBoxInTab.component, TabularLayout.Constraint(0, 2))
       add(tabScrollPane, TabularLayout.Constraint(1, 0, 3))
       tabScrollPane.setViewportView(tabTimelineParent)
-      add(playbackControls.createToolbar(listOf(LockAction(previewState, elementState, tracker))), TabularLayout.Constraint(0, 0))
+      add(playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))), TabularLayout.Constraint(0, 0))
       isFocusable = false
       focusTraversalPolicy = LayoutFocusTraversalPolicy()
     }

@@ -35,7 +35,7 @@ class TimelineElementTest {
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       assertEquals(0, line.offsetPx)
-      assertFalse { line.locked }
+      assertFalse { line.frozen }
       assertEquals(TimelineElementStatus.Inactive, line.status)
       assertEquals(0, line.state.valueOffset)
     }
@@ -52,7 +52,7 @@ class TimelineElementTest {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       val copy = TestUtils.TestTimelineElement(50, 50, positionProxy, line.state)
       assertEquals(0, copy.offsetPx)
-      assertFalse { copy.locked }
+      assertFalse { copy.frozen }
       assertEquals(TimelineElementStatus.Inactive, copy.status)
       assertEquals(0, copy.state.valueOffset)
     }

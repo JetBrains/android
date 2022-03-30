@@ -172,7 +172,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     g as Graphics2D
     paintMajorTicks(g)
     paintElements(g)
-    paintLocks(g)
+    paintFreezeLines(g)
   }
 
   final override fun paintFocus(g: Graphics?) {
@@ -201,7 +201,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   private fun paintMajorTicks(g: Graphics2D) {
     // Set background color
-    g.color = if (!separateElements() && elements.firstOrNull()?.locked == true) {
+    g.color = if (!separateElements() && elements.firstOrNull()?.frozen == true) {
       InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
     }
     else {
@@ -211,7 +211,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
-      if (element.locked) {
+      if (element.frozen) {
         g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
         g.fillRect(0, totalHeight, slider.width, element.heightScaled())
       }
@@ -232,26 +232,26 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   }
 
   /**
-   * Paint vertical lock lines for all locked elements.
-   * If [separateElements] is not true, the lock will have the height of the panel.
+   * Paint vertical freeze lines for all frozen elements.
+   * If [separateElements] is not true, the line will have the height of the panel.
    * */
-  private fun paintLocks(g: Graphics2D) {
-    g.color = InspectorColors.LOCK_COLOR
-    g.stroke = InspectorLayout.lockStroke
+  private fun paintFreezeLines(g: Graphics2D) {
+    g.color = InspectorColors.FREEZE_LINE_COLOR
+    g.stroke = InspectorLayout.freezeLineStroke
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
-      if (element.locked) {
-        val lockedValue = element.state.lockedValue
-        g.drawLine(xPositionForValue(lockedValue), totalHeight + 2,
-                   xPositionForValue(lockedValue), totalHeight + element.heightScaled() - 2)
+      if (element.frozen) {
+        val frozenValue = element.state.frozenValue
+        g.drawLine(xPositionForValue(frozenValue), totalHeight + 2,
+                   xPositionForValue(frozenValue), totalHeight + element.heightScaled() - 2)
       }
       totalHeight += element.heightScaled()
     }
     else elements.firstOrNull()?.also {
-      if (it.locked) {
-        val lockedValue = it.state.lockedValue
-        g.drawLine(xPositionForValue(lockedValue), InspectorLayout.timelineHeaderHeightScaled() + 2,
-                   xPositionForValue(lockedValue), slider.height - 2)
+      if (it.frozen) {
+        val frozenValue = it.state.frozenValue
+        g.drawLine(xPositionForValue(frozenValue), InspectorLayout.timelineHeaderHeightScaled() + 2,
+                   xPositionForValue(frozenValue), slider.height - 2)
       }
     }
   }

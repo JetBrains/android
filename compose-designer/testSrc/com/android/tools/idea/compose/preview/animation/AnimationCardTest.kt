@@ -77,18 +77,18 @@ class AnimationCardTest {
       }
 
       // Lock button.
-      findLockButton(card).also {
+      findFreezeButton(card).also {
         // Button is here and visible.
         assertTrue(it.isVisible)
         assertTrue { it.isEnabled }
         TestUtils.assertBigger(minimumSize, it.size)
         // After clicking button callback is called.
         var lockCalls = 0
-        card.state.addLockedListener { lockCalls++ }
+        card.state.addFreezeListener { lockCalls++ }
         ui.clickOn(it)
         ui.updateToolbars()
         assertEquals(1, lockCalls)
-        card.state.locked = false
+        card.state.frozen = false
         ui.layout()
         ui.updateToolbars()
         assertEquals(2, lockCalls)
@@ -116,7 +116,7 @@ class AnimationCardTest {
     }
 
     // Lock button is not available.
-    findLockButton(card).also {
+    findFreezeButton(card).also {
       // Button is here and visible.
       assertTrue(it.isVisible)
       assertFalse { it.isEnabled }
@@ -126,9 +126,9 @@ class AnimationCardTest {
     //ui.render()
   }
 
-  private fun findLockButton(parent: Component): Component {
-    val lockToolbar = TreeWalker(parent).descendantStream().filter { it is ActionToolbarImpl }.collect(
-      Collectors.toList()).map { it as ActionToolbarImpl }.firstOrNull { it.place == "LockUnlockAnimationCard" }
-    return (lockToolbar as JComponent).components[0]
+  private fun findFreezeButton(parent: Component): Component {
+    val frozeToolbar = TreeWalker(parent).descendantStream().filter { it is ActionToolbarImpl }.collect(
+      Collectors.toList()).map { it as ActionToolbarImpl }.firstOrNull { it.place == "FreezeAnimationCard" }
+    return (frozeToolbar as JComponent).components[0]
   }
 }

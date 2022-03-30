@@ -40,7 +40,7 @@ object InspectorLayout {
     dashedStroke = BasicStroke(JBUI.scale(1).toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
                                floatArrayOf(JBUI.scale(3).toFloat()), 0f)
     simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
-    lockStroke = BasicStroke(JBUI.scale(3).toFloat())
+    freezeLineStroke = BasicStroke(JBUI.scale(3).toFloat())
   }
 
   /** Size of the outline padding. */
@@ -110,7 +110,7 @@ object InspectorLayout {
   lateinit var simpleStroke: Stroke
     private set
 
-  /** Vertical line showing the lock position. */
-  lateinit var lockStroke: Stroke
+  /** Vertical line showing the freeze position. */
+  lateinit var freezeLineStroke: Stroke
     private set
 }

@@ -16,12 +16,12 @@ class ElementStateTest {
   }
 
   @Test
-  fun `locked callback is invoked`() {
+  fun `freeze callback is invoked`() {
     val state = ElementState()
-    assertFalse { state.locked }
+    assertFalse { state.frozen }
     var callbackCalls = 0
-    state.addLockedListener { callbackCalls++ }
-    state.locked = true
+    state.addFreezeListener { callbackCalls++ }
+    state.frozen = true
     assertEquals(1, callbackCalls)
   }
 
