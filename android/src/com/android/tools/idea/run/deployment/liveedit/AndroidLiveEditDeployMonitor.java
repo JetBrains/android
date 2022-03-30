@@ -30,6 +30,7 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.EditState;
 import com.android.tools.idea.editors.literals.EditStatus;
+import com.android.tools.idea.editors.literals.FunctionState;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
@@ -152,9 +153,6 @@ public class AndroidLiveEditDeployMonitor {
 
   private @Nullable String applicationId;
 
-  // A map of live edited files and their corresponding state information.
-  private final Map<PsiFile, FunctionState> functionStateMap = new HashMap<>();
-
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
 
   private final @NotNull AtomicReference<EditStatus> editStatus = new AtomicReference<>(LiveEditService.DISABLED_STATUS);
@@ -269,7 +267,7 @@ public class AndroidLiveEditDeployMonitor {
       .schedule(
         () -> {
           this.applicationId = null;
-          functionStateMap.clear();
+          LiveEditService.getInstance(project).clearFunctionState();
           this.applicationId = applicationId;
           editStatusChanged(editStatus.getAndSet(LiveEditService.UP_TO_DATE_STATUS));
 
@@ -312,12 +310,6 @@ public class AndroidLiveEditDeployMonitor {
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
-    // Perform bookkeeping of function locations.
-    for (EditEvent event : changes) {
-      functionStateMap.computeIfAbsent(event.getFile(), file -> new FunctionState());
-      functionStateMap.get(event.getFile()).updateFunction(event);
-    }
-
     ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
     LiveEditUpdateException exception = null;
     try {
@@ -326,7 +318,7 @@ public class AndroidLiveEditDeployMonitor {
       checkJetpackCompose(project);
       List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
         change ->
-          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getFunction(), functionStateMap.get(change.getFile())))
+          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getNamedFunction(), change.getFunctionState()))
         .collect(Collectors.toList());
       if (!new AndroidLiveEditCodeGenerator(project).compile(inputs, compiled)) {
         return false;

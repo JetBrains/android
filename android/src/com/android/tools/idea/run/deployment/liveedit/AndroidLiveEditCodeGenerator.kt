@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
+import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProcessCanceledException

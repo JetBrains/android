@@ -26,19 +26,18 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.util.HashMap
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
-data class EditEvent(val file: PsiFile, val function: KtNamedFunction?) {
-  // start and end offset can be changed by the editor so we need to record these
-  // information on the first read event available. That's why it needs to be
-  // done here.
-  var functionStartOffSet = function?.let { it.funKeyword?.startOffset }
-  var functionEndOffSet = function?.let {it.endOffset}
+data class EditEvent(val file: PsiFile,
+                     val namedFunction: KtNamedFunction?,
+                     val function: KtFunction?,
+                     val functionState: FunctionState) {
   fun isWithinFunction() = function != null
 }
 
@@ -54,9 +53,14 @@ data class EditStatus(val editState: EditState, val message: String)
 @Service
 class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
 
+  // A map of live edited files and their corresponding state information.
+  private val functionStateMap: HashMap<PsiFile, FunctionState> = HashMap()
+
   constructor(project: Project) : this(project,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
+
+  fun clearFunctionState() = functionStateMap.clear()
 
   fun interface EditListener {
     operator fun invoke(method: EditEvent)
@@ -120,7 +124,7 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
     }
   }
 
-  private class MyPsiListener(private val editListener: EditListener) : PsiTreeChangeListener {
+  private inner class MyPsiListener(private val editListener: EditListener) : PsiTreeChangeListener {
     @com.android.annotations.Trace
     private fun handleChangeEvent(event: PsiTreeChangeEvent) {
       // THIS CODE IS EXTREMELY FRAGILE AT THE MOMENT.
@@ -134,12 +138,22 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
 
       // The code might not be valid at this point, so we should not be making any
       // assumption based on the Kotlin language structure.
+
+      // unnamed function should be any function that is defined without a "fun" keyword.
+      var unNamedFunction : KtFunction? = null
       while (parent != null) {
         when (parent) {
           is KtNamedFunction -> {
-            val event = EditEvent(event.file!!, parent)
+            if (unNamedFunction == null) {
+              unNamedFunction = parent
+            }
+            val event = EditEvent(event.file!!, parent, unNamedFunction,
+                                  functionStateMap.computeIfAbsent(event.file!!) { it -> FunctionState(it as KtFile) })
             editListener(event)
             break;
+          }
+          is KtFunction -> {
+            unNamedFunction = parent
           }
         }
         parent = parent.parent
