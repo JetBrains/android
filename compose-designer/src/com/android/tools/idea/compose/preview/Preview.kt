@@ -833,6 +833,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         pauseInteractivePreview()
       }
       isActive.set(false)
+      // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating publish the issue update event.
+      surface.deactivateIssueModel()
 
       if  (PreviewPowerSaveManager.isInPowerSaveMode) {
         // When on power saving mode, deactivate immediately to free resources.

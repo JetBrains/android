@@ -1401,6 +1401,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myIssueModel.activate();
   }
 
+  public void deactivateIssueModel() {
+    myIssueModel.deactivate();
+  }
+
   public void deactivate() {
     if (myIsActive) {
       Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);

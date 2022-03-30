@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +55,9 @@ public class IssueModel implements Disposable {
   public final Runnable myUpdateCallback = () -> updateErrorsList();
 
   private final List<IssueProvider> myIssueProviders = new ArrayList<>();
+
+  @NotNull
+  private final AtomicBoolean myIsActivated = new AtomicBoolean(true);
 
   /**
    * IssueModel constructor.
@@ -144,7 +148,9 @@ public class IssueModel implements Disposable {
     myIssues = newIssueList;
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
-    myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
+    if (myIsActivated.get()) {
+      myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
+    }
   }
 
   private void updateIssuesCounts(@NotNull Issue issue) {
@@ -213,10 +219,12 @@ public class IssueModel implements Disposable {
   }
 
   public void activate() {
+    myIsActivated.set(true);
     myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, myIssues);
   }
 
   public void deactivate() {
+    myIsActivated.set(false);
     myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, Collections.emptyList());
   }
 
