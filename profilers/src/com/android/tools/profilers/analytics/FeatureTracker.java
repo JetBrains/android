@@ -228,11 +228,6 @@ public interface FeatureTracker {
   void trackSelectCaptureFlameChart();
 
   /**
-   * Track the user opening up the "Call Chart" tab in the CPU capture view
-   */
-  void trackSelectCaptureCallChart();
-
-  /**
    * Track when the user requests memory be garbage collected.
    */
   void trackForceGc();
@@ -291,11 +286,6 @@ public interface FeatureTracker {
   void trackSelectNetworkDetailsOverview();
 
   /**
-   * Track the user opening up the "Headers" tab in the network details view.
-   */
-  void trackSelectNetworkDetailsHeaders();
-
-  /**
    * Track the user opening up the "Response" tab in the network details view.
    */
   void trackSelectNetworkDetailsResponse();
@@ -309,11 +299,6 @@ public interface FeatureTracker {
    * Track the user opening up the "Trace" tab in the network details view.
    */
   void trackSelectNetworkDetailsStack();
-
-  /**
-   * Track the user opening up the "Error" tab in the network details view.
-   */
-  void trackSelectNetworkDetailsError();
 
   /**
    * Track the user selecting the "Connections View" tab.
@@ -339,16 +324,6 @@ public interface FeatureTracker {
    * Track when the user uses the filter component in the profilers.
    */
   void trackFilterMetadata(@NotNull FilterMetadata filterMetadata);
-
-  /**
-   * Track when the user selects a thread via the cpu kernel list.
-   */
-  void trackSelectCpuKernelElement();
-
-  /**
-   * Track when a user expands or collapses the cpu kernel view.
-   */
-  void trackToggleCpuKernelHideablePanel();
 
   /**
    * Track when a user expands or collapses the cpu threads view.

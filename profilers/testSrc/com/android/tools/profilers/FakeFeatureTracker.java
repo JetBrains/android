@@ -321,11 +321,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
     myLastCaptureDetailsType = CaptureDetails.Type.FLAME_CHART;
   }
 
-  @Override
-  public void trackSelectCaptureCallChart() {
-    myLastCaptureDetailsType = CaptureDetails.Type.CALL_CHART;
-  }
-
   public void resetLastCaptureDetailsType() {
     myLastCaptureDetailsType = null;
   }
@@ -390,11 +385,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectNetworkDetailsHeaders() {
-
-  }
-
-  @Override
   public void trackSelectNetworkDetailsResponse() {
 
   }
@@ -406,11 +396,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackSelectNetworkDetailsStack() {
-
-  }
-
-  @Override
-  public void trackSelectNetworkDetailsError() {
 
   }
 
@@ -431,16 +416,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackCreateCustomProfilingConfig() {
-
-  }
-
-  @Override
-  public void trackSelectCpuKernelElement() {
-
-  }
-
-  @Override
-  public void trackToggleCpuKernelHideablePanel() {
 
   }
 

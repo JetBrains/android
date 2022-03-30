@@ -336,16 +336,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectCpuKernelElement() {
-    track(AndroidProfilerEvent.Type.KERNEL_VIEW_CLICKED);
-  }
-
-  @Override
-  public void trackToggleCpuKernelHideablePanel() {
-    track(AndroidProfilerEvent.Type.KERNEL_VIEW_TOGGLED);
-  }
-
-  @Override
   public void trackToggleCpuThreadsHideablePanel() {
     track(AndroidProfilerEvent.Type.THREADS_VIEW_TOGGLED);
   }
@@ -416,11 +406,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectCaptureFlameChart() {
     track(AndroidProfilerEvent.Type.SELECT_FLAME_CHART);
-  }
-
-  @Override
-  public void trackSelectCaptureCallChart() {
-    track(AndroidProfilerEvent.Type.SELECT_CALL_CHART);
   }
 
   @Override
@@ -504,11 +489,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectNetworkDetailsHeaders() {
-    track(AndroidProfilerEvent.Type.SELECT_DETAILS_HEADERS);
-  }
-
-  @Override
   public void trackSelectNetworkDetailsResponse() {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_RESPONSE);
   }
@@ -521,11 +501,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectNetworkDetailsStack() {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_STACK);
-  }
-
-  @Override
-  public void trackSelectNetworkDetailsError() {
-    track(AndroidProfilerEvent.Type.SELECT_DETAILS_ERROR);
   }
 
   @Override
