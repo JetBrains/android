@@ -69,12 +69,12 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
       setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
       if (offsetPx != 0) {
         color = InspectorColors.LINE_COLOR
-        stroke = InspectorLayout.DASHED_STROKE
+        stroke = InspectorLayout.dashedStroke
         drawRoundRect(rectNoOffset.x, rectNoOffset.y + outlinePaddingScaled(),
                       rectNoOffset.width, rectNoOffset.height - 2 * outlinePaddingScaled(),
                       lineHeightScaled() + 2 * outlinePaddingScaled(),
                       lineHeightScaled() + 2 * outlinePaddingScaled())
-        stroke = InspectorLayout.SIMPLE_STROKE
+        stroke = InspectorLayout.simpleStroke
       }
       val yOffset = if (status == TimelineElementStatus.Dragged) -2 else 0
       val rect = Rectangle(
@@ -84,7 +84,7 @@ class TimelineLine(state: ElementState, minX: Int, maxX: Int, rowMinY: Int, posi
         rectNoOffset.height)
       if (status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered) {
         color = InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
-        stroke = InspectorLayout.SIMPLE_STROKE
+        stroke = InspectorLayout.simpleStroke
         drawRoundRect(rect.x - outlinePaddingScaled(), rect.y - outlinePaddingScaled(), rect.width + 2 * outlinePaddingScaled(),
                       rect.height + 2 * outlinePaddingScaled(),
                       lineHeightScaled() + 2 * outlinePaddingScaled(), lineHeightScaled() + 2 * outlinePaddingScaled())

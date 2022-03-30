@@ -237,7 +237,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
    * */
   private fun paintLocks(g: Graphics2D) {
     g.color = InspectorColors.LOCK_COLOR
-    g.stroke = InspectorLayout.LOCK_STROKE
+    g.stroke = InspectorLayout.lockStroke
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements()) elements.forEach { element ->
       if (element.locked) {

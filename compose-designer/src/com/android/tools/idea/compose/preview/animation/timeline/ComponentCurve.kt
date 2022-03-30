@@ -99,7 +99,7 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
   private val startDiamondNoOffset = Diamond(minX, curveBaseY, colorIndex)
   private val endDiamondNoOffset = Diamond(maxX, curveBaseY, colorIndex)
 
-  private val boxedLabelPositionWithoutOffset = Point(minX + InspectorLayout.LABEL_OFFSET, curveBaseY + InspectorLayout.LABEL_OFFSET)
+  private val boxedLabelPositionWithoutOffset = Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
 
   /** Position from where [BoxedLabel] should be painted. */
   var boxedLabelPosition = boxedLabelPositionWithoutOffset
@@ -157,13 +157,13 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
     //             .                                .
     //
     g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
-    g.stroke = InspectorLayout.SIMPLE_STROKE
+    g.stroke = InspectorLayout.simpleStroke
     g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
     if (component.linkToNext) {
-      g.stroke = InspectorLayout.DASHED_STROKE
+      g.stroke = InspectorLayout.dashedStroke
       g.drawLine(minX + offsetPx, curveBaseY, minX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
       g.drawLine(maxX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY + heightScaled() - Diamond.diamondSize())
-      g.stroke = InspectorLayout.SIMPLE_STROKE
+      g.stroke = InspectorLayout.simpleStroke
     }
     g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
     val prevAntiAliasHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
@@ -178,7 +178,7 @@ class ComponentCurve(state: ElementState, val component: AnimatedProperty.Animat
     endDiamond.paint(g, status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered)
 
     if (offsetPx != 0) {
-      g.stroke = InspectorLayout.DASHED_STROKE
+      g.stroke = InspectorLayout.dashedStroke
       g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
       if (offsetPx > 0) {
         g.drawLine(minX + Diamond.diamondSize() + 1, curveBaseY, minX + offsetPx - Diamond.diamondSize() - 1, curveBaseY)

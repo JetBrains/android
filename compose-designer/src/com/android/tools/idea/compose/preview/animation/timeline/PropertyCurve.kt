@@ -35,7 +35,7 @@ class PropertyCurve private constructor(
     fun create(state : ElementState, property: AnimatedProperty<Double>, rowMinY: Int, colorIndex : Int, positionProxy: PositionProxy) : PropertyCurve {
       val curves = property.components.mapIndexed { componentId, _ ->
         ComponentCurve.create(state, property, componentId,
-                              rowMinY + componentId * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT, positionProxy, colorIndex)
+                              rowMinY + componentId * InspectorLayout.timelineCurveRowHeightScaled(), positionProxy, colorIndex)
       }.toList()
       return PropertyCurve(state, property, curves, positionProxy)
     }

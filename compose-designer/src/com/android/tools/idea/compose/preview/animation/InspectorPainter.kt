@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import android.annotation.SuppressLint
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
@@ -31,6 +32,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -148,13 +150,22 @@ object InspectorPainter {
   }
 
   /** Label displayed below each animation curve. */
+  @SuppressLint("JbUiStored")
   object BoxedLabel {
+
+    init {
+      JBUIScale.addUserScaleChangeListener {
+        OFFSET = JBUI.scale(6)
+      }
+    }
+
     /** Offset between components. */
-    private const val OFFSET = 6
+    private var OFFSET = JBUI.scale(6)
 
     /** Size of the color box for [ComposeUnit.Color] property. */
-    private const val COLOR_BOX_SIZE = 10
-    private const val COLOR_BOX_ARC = 4
+    private val COLOR_BOX_SIZE = JBUI.size(10, 10)
+    private val COLOR_BOX_ARC = JBUI.size(4, 4)
+    private const val COLOR_BOX_OUTLINE_OFFSET = 1
 
     private val BOX_COLOR = JBColor(Gray._225, UIUtil.getToolTipActionBackground())
     private val COLOR_OUTLINE = Gray._194
@@ -197,7 +208,7 @@ object InspectorPainter {
       val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
       val valueLayout = TextLayout(value, g.font, g.fontRenderContext)
       val textBoxHeight = (labelLayout.bounds.height + OFFSET * 2).toInt()
-      val extraColorOffset = if (color != null) COLOR_BOX_SIZE + OFFSET else 0
+      val extraColorOffset = if (color != null) COLOR_BOX_SIZE.width() + OFFSET else 0
       val textBoxWidth = (labelLayout.bounds.width + valueLayout.bounds.width + OFFSET * 3 + extraColorOffset).toInt()
 
       // Background box
@@ -209,10 +220,17 @@ object InspectorPainter {
       // Colored box
       val xPos = x + OFFSET + labelLayout.bounds.width.toInt()
       color?.let {
-        g.color = color
-        g.fillRoundRect(xPos, y + OFFSET, COLOR_BOX_SIZE, COLOR_BOX_SIZE, COLOR_BOX_ARC, COLOR_BOX_ARC)
         g.color = COLOR_OUTLINE
-        g.drawRoundRect(xPos, y + OFFSET, COLOR_BOX_SIZE, COLOR_BOX_SIZE, COLOR_BOX_ARC, COLOR_BOX_ARC)
+        g.drawRoundRect(xPos, y + OFFSET,
+                        COLOR_BOX_SIZE.width(), COLOR_BOX_SIZE.height(),
+                        COLOR_BOX_ARC.width(), COLOR_BOX_ARC.height())
+
+        g.color = color
+        g.fillRoundRect(xPos + COLOR_BOX_OUTLINE_OFFSET, y + OFFSET + COLOR_BOX_OUTLINE_OFFSET,
+                        COLOR_BOX_SIZE.width() - COLOR_BOX_OUTLINE_OFFSET * 2,
+                        COLOR_BOX_SIZE.height() - COLOR_BOX_OUTLINE_OFFSET * 2,
+                        COLOR_BOX_ARC.width(), COLOR_BOX_ARC.height())
+
       }
       // Value
       g.color = VALUE_COLOR
@@ -326,7 +344,7 @@ object InspectorPainter {
 
     fun paintOutline(g: Graphics2D) {
       g.color = InspectorColors.GRAPH_COLORS[colorIndex % InspectorColors.GRAPH_COLORS.size]
-      g.stroke = InspectorLayout.SIMPLE_STROKE
+      g.stroke = InspectorLayout.simpleStroke
       g.drawPolygon(diamondOutline)
     }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import android.annotation.SuppressLint
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Stroke
@@ -24,7 +25,23 @@ import java.awt.Stroke
  * Layout sizes for Animation Inspector. All sizes are in px.
  * TODO Check how layout is resized and scale it appropriately if needed.
  */
+@SuppressLint("JbUiStored")
 object InspectorLayout {
+
+  init {
+    updateSizes()
+    JBUIScale.addUserScaleChangeListener {
+      updateSizes()
+    }
+  }
+
+  private fun updateSizes() {
+    labelOffset = JBUI.scale(10)
+    dashedStroke = BasicStroke(JBUI.scale(1).toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
+                               floatArrayOf(JBUI.scale(3).toFloat()), 0f)
+    simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
+    lockStroke = BasicStroke(JBUI.scale(3).toFloat())
+  }
 
   /** Size of the outline padding. */
   const val OUTLINE_PADDING = 1
@@ -81,19 +98,19 @@ object InspectorLayout {
   const val TIMELINE_TICKS_PER_LABEL = 5
 
   /** Label offset from the curve. */
-  const val LABEL_OFFSET = 10
+  var labelOffset = JBUI.scale(10)
+    private set
 
   /** Height of the [BottomPanel]. */
   const val BOTTOM_PANEL_HEIGHT = 25
 
-  @SuppressLint("JbUiStored")
-  private var strokeWidth: Float = JBUI.scale(1).toFloat()
+  lateinit var dashedStroke: Stroke
+    private set
 
-  val DASHED_STROKE: Stroke = BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
-                                          floatArrayOf(JBUI.scale(3).toFloat()), 0f)
-
-  val SIMPLE_STROKE = BasicStroke(strokeWidth)
+  lateinit var simpleStroke: Stroke
+    private set
 
   /** Vertical line showing the lock position. */
-  val LOCK_STROKE = BasicStroke(3f)
+  lateinit var lockStroke: Stroke
+    private set
 }
