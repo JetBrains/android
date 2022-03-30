@@ -86,7 +86,6 @@ import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -219,8 +218,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       }
     }
 
-    @Ignore("Currently doesn't sync correctly due to an IDE error matching dependencies")
-    @Test
+    @Test // TODO(b/227469255): Uncomment dependencies in the test project when module dependency resolution is fixed.
     fun testNonStandardSourceSetDependencies() {
       val text = importSyncAndDumpProject(NON_STANDARD_SOURCE_SET_DEPENDENCIES)
       assertIsEqualToSnapshot(text)

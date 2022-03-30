@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "me.monori.gradleprojectpathissue"
-        minSdk 21
-        targetSdk 31
+        minSdkVersion 21
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -36,5 +36,5 @@ dependencies {
     implementation project(path: ":javaLibrary")
     implementation project(path: ":javaLibrary", configuration: "testEnv")
     implementation project(':aarWrapperLib')
-    implementation project(':jarWrapperLib')
+// TODO(b/227469255):    implementation project(':jarWrapperLib')
 }

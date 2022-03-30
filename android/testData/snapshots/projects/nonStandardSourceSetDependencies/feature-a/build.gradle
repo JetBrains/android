@@ -3,11 +3,11 @@ plugins {
     id 'kotlin-android'
 }
 android {
-    compileSdk 31
+    compileSdkVersion 30
 }
 
 dependencies {
-    implementation project(':network-kmm')
+// TODO(b/208357458):    implementation project(':network-kmm')
 
     implementation 'androidx.appcompat:appcompat:+'
 }

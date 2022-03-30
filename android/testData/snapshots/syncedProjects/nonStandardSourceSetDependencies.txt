@@ -456,8 +456,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
     MODULE                        : NonStandardSourceSetDependencies.feature-a.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -869,7 +867,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1141,7 +1139,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/network-kmm
             EXCLUDE_FOLDER                : file://<PROJECT>/network-kmm/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/network-kmm/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/network-kmm/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
