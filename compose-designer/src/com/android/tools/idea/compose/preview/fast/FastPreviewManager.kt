@@ -345,10 +345,16 @@ class FastPreviewManager private constructor(
   private val compilingMutex = Mutex(false)
 
   /**
+   * If true, it means that Fast Preview is disabled only for this session. If Studio is restarted, we will use the persisted configuration
+   * valid in [FastPreviewApplicationConfiguration].
+   */
+  private var disableForThisSession = false
+
+  /**
    * Returns true when the feature is enabled
    */
   val isEnabled: Boolean
-    get() = FastPreviewApplicationConfiguration.getInstance().isEnabled
+    get() = !disableForThisSession && FastPreviewApplicationConfiguration.getInstance().isEnabled
 
   /**
    * Returns the reason why the Fast Preview was disabled, if available.
@@ -522,13 +528,15 @@ class FastPreviewManager private constructor(
                    reason.longDescriptionString(),
                    NotificationType.WARNING)
         .notify(project)
+      disableForThisSession = true
     }
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = false
+    else FastPreviewApplicationConfiguration.getInstance().isEnabled = false
   }
 
   /** Enables the Fast Preview. */
   fun enable() {
     disableReason = null
+    disableForThisSession = false
     FastPreviewApplicationConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 

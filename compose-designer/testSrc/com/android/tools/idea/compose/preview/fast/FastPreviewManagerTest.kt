@@ -19,6 +19,7 @@ import com.android.flags.junit.RestoreFlagRule
 import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
@@ -373,6 +374,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
+      assertTrue("Auto disable should not be persisted", FastPreviewApplicationConfiguration.getInstance().isEnabled)
       assertEquals(
         "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
         manager.disableReason.toString())
@@ -385,6 +387,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue(manager.isEnabled)
+      assertTrue(FastPreviewApplicationConfiguration.getInstance().isEnabled)
       assertNull(manager.disableReason)
     }
   }
