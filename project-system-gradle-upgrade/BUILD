@@ -75,6 +75,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
 
