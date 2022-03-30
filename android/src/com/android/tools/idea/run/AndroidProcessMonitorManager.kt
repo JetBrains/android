@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param textEmitter a text emitter to be used to output message from this class such as logcat message and error messages
  * @param captureLogcat true if you need logcat message to be captured and emitted to [textEmitter], false otherwise
  * @param listener a listener to listen events from this manager
+ * @param finishAndroidProcessCallback custom way to finish started process
  * @param singleDeviceAndroidProcessMonitorFactory a factory method to constructor single device android process monitor
  */
 class AndroidProcessMonitorManager(
@@ -45,6 +46,7 @@ class AndroidProcessMonitorManager(
   private val textEmitter: TextEmitter,
   captureLogcat: Boolean,
   private val listener: AndroidProcessMonitorManagerListener,
+  finishAndroidProcessCallback: (IDevice) -> Unit,
   private val singleDeviceAndroidProcessMonitorFactory: SingleDeviceAndroidProcessMonitorFactory =
     { _, device, monitorListener, _, logcatCaptor ->
       SingleDeviceAndroidProcessMonitor(targetApplicationId,
@@ -52,7 +54,9 @@ class AndroidProcessMonitorManager(
                                         monitorListener,
                                         deploymentApplicationService,
                                         logcatCaptor,
-                                        textEmitter)
+                                        textEmitter,
+                                        finishAndroidProcessCallback
+      )
     }
 ) : Closeable {
   private val myMonitors: ConcurrentMap<IDevice, SingleDeviceAndroidProcessMonitor> = ConcurrentHashMap()

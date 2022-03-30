@@ -19,6 +19,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.debugger.DebuggerManager
@@ -41,23 +42,27 @@ class AndroidRemoteDebugProcessHandlerTest {
   @Before
   fun setUpDebugSession() {
     client = Mockito.mock(ClientImpl::class.java)
-    device = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(device.isOnline).thenReturn(true)
-    Mockito.`when`(client.device).thenReturn(device)
+    device = createDevice()
     val clientData = object : ClientData(client as ClientImpl, 111) {
       override fun getPackageName() = "MyApp"
       override fun getClientDescription() = "MyApp"
     }
     Mockito.`when`(client.clientData).thenReturn(clientData)
-
+    Mockito.`when`(client.device).thenReturn(device)
     debugProcess = Mockito.mock(DebugProcess::class.java)
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     Mockito.`when`(debugManager.getDebugProcess(MockitoKt.any(AndroidRemoteDebugProcessHandler::class.java))).thenReturn(debugProcess)
   }
 
+  private fun createDevice(): IDevice {
+    val mockDevice = Mockito.mock(IDevice::class.java)
+    Mockito.`when`(mockDevice.version).thenReturn(AndroidVersion(26))
+    Mockito.`when`(mockDevice.isOnline).thenReturn(true)
+    return mockDevice
+  }
+
   @Test
   fun restoreConnectionOnDetach() {
-    val client = Mockito.mock(Client::class.java)
     val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
     processHandler.startNotify()
     processHandler.detachProcess()
@@ -85,7 +90,6 @@ class AndroidRemoteDebugProcessHandlerTest {
 
   @Test
   fun `don'tTerminateTargetVMOnDestroy`() {
-    val client = Mockito.mock(Client::class.java)
     val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
     processHandler.startNotify()
     processHandler.destroyProcess()

@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
@@ -27,16 +28,20 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 import java.util.concurrent.ScheduledExecutorService
@@ -51,18 +56,29 @@ class SingleDeviceAndroidProcessMonitorTest {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
+  private fun createDevice(): IDevice {
+    val mockDevice = mock(IDevice::class.java)
+    `when`(mockDevice.version).thenReturn(AndroidVersion(26))
+    `when`(mockDevice.isOnline).thenReturn(true)
+    return mockDevice
+  }
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
   @get:Rule
   var mockitoJunit = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
-  @Mock
-  lateinit var mockDevice: IDevice
+  var mockDevice = createDevice()
+
   @Mock
   lateinit var mockDeploymentAppService: DeploymentApplicationService
+
   @Mock
   lateinit var mockLogcatCaptor: AndroidLogcatOutputCapture
+
   @Mock
   lateinit var mockTextEmitter: TextEmitter
-  @Mock
-  lateinit var mockListener: SingleDeviceAndroidProcessMonitorStateListener
+
   @Mock(answer = Answers.RETURNS_MOCKS)
   lateinit var mockScheduledExecutor: ScheduledExecutorService
   @Mock
@@ -97,10 +113,13 @@ class SingleDeviceAndroidProcessMonitorTest {
       capturedTimeoutTimeUnit = it.getArgument(2)
       mockTimeoutScheduledFuture
     }
+    ApplicationManager.getApplication()
+      .replaceService(DeploymentApplicationService::class.java, mockDeploymentAppService, projectRule.project)
   }
 
   private fun startMonitor(
-    logcatCaptor: AndroidLogcatOutputCapture? = mockLogcatCaptor
+    logcatCaptor: AndroidLogcatOutputCapture? = mockLogcatCaptor,
+    finishAndroidProcessCallback: (IDevice) -> Unit = { it.forceStop(AndroidProcessMonitorManagerTest.TARGET_APP_NAME) }
   ): SingleDeviceAndroidProcessMonitor {
     return SingleDeviceAndroidProcessMonitor(
       TARGET_APP_NAME,
@@ -113,8 +132,9 @@ class SingleDeviceAndroidProcessMonitorTest {
       mockDeploymentAppService,
       logcatCaptor,
       mockTextEmitter,
+      finishAndroidProcessCallback,
       listenerExecutor = MoreExecutors.directExecutor(),
-      stateUpdaterExecutor = mockScheduledExecutor
+      stateUpdaterExecutor = mockScheduledExecutor,
     )
   }
 
@@ -147,10 +167,27 @@ class SingleDeviceAndroidProcessMonitorTest {
   }
 
   @Test
+  fun callCustomStopAndroidProcessCallback() {
+    var callBackIsCalled = false
+    val monitor = startMonitor(finishAndroidProcessCallback = { callBackIsCalled = true })
+
+    val mockClients = listOf(createMockClient(123))
+    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    updateMonitorState()
+
+    // Now kill the target process by close.
+    monitor.close()
+
+    assertThat(callBackIsCalled).isTrue()
+  }
+
+  @Test
   fun processFoundThenKillProcessByMonitor() {
     val monitor = startMonitor()
 
+    `when`(mockDevice.isOnline).thenReturn(true)
     val mockClient = createMockClient(123)
+
     `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
     updateMonitorState()
 
@@ -162,7 +199,7 @@ class SingleDeviceAndroidProcessMonitorTest {
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_FINISHED)
     verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
-    verify(mockClient).kill()
+    verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
   }
 
   @Test
@@ -181,7 +218,7 @@ class SingleDeviceAndroidProcessMonitorTest {
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
     verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
-    verify(mockClient, never()).kill()
+    verify(mockDevice, never()).forceStop(TARGET_APP_NAME)
   }
 
   @Test
@@ -211,10 +248,11 @@ class SingleDeviceAndroidProcessMonitorTest {
 
   @Test
   fun processFoundThenStopListeningAndClose() {
+    `when`(mockDevice.isOnline).thenReturn(true)
     val monitor = startMonitor()
 
-    val mockClients = listOf(createMockClient(123))
-    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    val mockClient = createMockClient(123)
+    `when`(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
@@ -230,7 +268,7 @@ class SingleDeviceAndroidProcessMonitorTest {
 
     assertThat(isListenerReplacedAndDetached).isTrue()
     verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
-    verify(mockClients[0]).kill()
+    verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
   }
 
   private fun createMockClient(pid: Int): Client {

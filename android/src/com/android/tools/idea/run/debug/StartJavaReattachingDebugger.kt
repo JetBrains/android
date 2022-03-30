@@ -55,7 +55,8 @@ fun startJavaReattachingDebugger(
   check(StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) { "New execution flow must be enabled." }
 
   fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
-    attachJavaDebuggerToClient(project, client, environment, consoleViewToReuse, onDebugProcessStarted)
+    attachJavaDebuggerToClient(project, client, environment, consoleViewToReuse, onDebugProcessStarted,
+                               onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
 
   return startReattachingDebugger(project, device, masterAndroidProcessName, applicationIds, ::startJavaSession, onDebugProcessStarted)
 }

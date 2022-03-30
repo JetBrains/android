@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.run;
 
+
+import com.android.annotations.NonNull;
 import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
@@ -53,12 +56,12 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
   private final Project myProject;
   private final Client myClient;
   private final boolean myDetachIsDefault;
-  private final Function1<? super Client, Unit> myFinishAndroidProcessCallback;
+  private final Function1<IDevice, Unit> myFinishAndroidProcessCallback;
 
   public AndroidRemoteDebugProcessHandler(Project project,
                                           Client client,
                                           boolean detachIsDefault,
-                                          Function1<? super Client, Unit> finishAndroidProcessCallback) {
+                                          @NonNull Function1<IDevice, Unit> finishAndroidProcessCallback) {
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
@@ -68,7 +71,14 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
   }
 
   public AndroidRemoteDebugProcessHandler(Project project, Client client, boolean detachIsDefault) {
-    this(project, client, detachIsDefault, null);
+    this(project, client, detachIsDefault, (device) -> {
+      String processName = client.getClientData().getClientDescription();
+      if (processName == null) {
+        return Unit.INSTANCE;
+      }
+      device.forceStop(processName);
+      return Unit.INSTANCE;
+    });
   }
 
   // This is partially copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify.
@@ -103,8 +113,7 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
    * Terminates the process when ProcessHandler is stopped via {@link ProcessHandler#destroyProcess()} instead of shutting down target vm.
    */
   private void terminateAndroidProcess() {
-    ApplicationManager.getApplication()
-      .executeOnPooledThread(() -> TerminateAndroidProcessKt.terminateAndroidProcess(myClient, myFinishAndroidProcessCallback));
+    ApplicationManager.getApplication().executeOnPooledThread(() -> myFinishAndroidProcessCallback.invoke(myClient.getDevice()));
   }
 
   @Override

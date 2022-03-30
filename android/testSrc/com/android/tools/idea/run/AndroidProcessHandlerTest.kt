@@ -27,21 +27,23 @@ import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations.initMocks
 
 /**
@@ -53,20 +55,32 @@ class AndroidProcessHandlerTest {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
-  @Mock lateinit var mockProject: Project
-  @Mock lateinit var mockExecutionTargetManager: ExecutionTargetManager
-  @Mock lateinit var mockExecutionTarget: AndroidExecutionTarget
-  @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
-  @Mock lateinit var mockMonitorManager: AndroidProcessMonitorManager
-  @Mock lateinit var mockProcessListener: ProcessListener
-  @Mock lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  val project
+    get() = projectRule.project
+
+  @Mock
+  lateinit var mockExecutionTargetManager: ExecutionTargetManager
+  @Mock
+  lateinit var mockExecutionTarget: AndroidExecutionTarget
+  @Mock
+  lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock
+  lateinit var mockMonitorManager: AndroidProcessMonitorManager
+  @Mock
+  lateinit var mockProcessListener: ProcessListener
+  @Mock
+  lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
   var captureLogcat: Boolean = true
   var autoTerminate: Boolean = true
 
   val handler: AndroidProcessHandler by lazy {
     AndroidProcessHandler(
-      mockProject,
+      project,
       TARGET_APP_NAME,
+      { device -> device.forceStop(TARGET_APP_NAME) },
       captureLogcat,
       autoTerminate,
       mockAnsiEscapeDecoder,
@@ -87,8 +101,8 @@ class AndroidProcessHandlerTest {
   fun setUp() {
     initMocks(this)
 
-    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java)))
-      .thenReturn(mockExecutionTargetManager)
+    project.replaceService(ExecutionTargetManager::class.java, mockExecutionTargetManager, project)
+
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
     `when`(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
       val (text, attributes, textAcceptor) = invocation.arguments
@@ -175,6 +189,17 @@ class AndroidProcessHandlerTest {
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
+  }
+
+  @Test
+  fun callCloseForMonitorManager() {
+    val mockDevice = createMockDevice(28)
+    handler.addTargetDevice(mockDevice)
+
+    handler.destroyProcess()
+    handler.waitFor()
+
+    verify(mockMonitorManager).close()
   }
 
   @Test

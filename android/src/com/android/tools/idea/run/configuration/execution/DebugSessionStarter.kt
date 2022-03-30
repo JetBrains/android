@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApplicationTerminator
@@ -38,7 +37,7 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
 
   @WorkerThread
   fun attachDebuggerToClient(device: IDevice,
-                             destroyRunningProcess: (Client) -> Unit,
+                             destroyRunningProcess: (IDevice) -> Unit,
                              consoleView: ConsoleView): Promise<XDebugSessionImpl> {
 
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
@@ -57,7 +56,7 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
       destroyRunningProcess
     )
       .onError {
-        destroyRunningProcess(client)
+        destroyRunningProcess(device)
         ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
       }
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+
 import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -26,8 +27,8 @@ import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
@@ -38,6 +39,7 @@ import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import java.util.function.BiConsumer;
+import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,9 +77,14 @@ public class AndroidRunState implements RunProfileState {
     ExecutionConsole console = prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
+      String appId = getMasterAndroidProcessId(myEnv.getRunProfile());
       processHandler = new AndroidProcessHandler(
         myEnv.getProject(),
-        getMasterAndroidProcessId(myEnv.getRunProfile()),
+        appId,
+        (device) -> {
+          device.forceStop(appId);
+          return Unit.INSTANCE;
+        },
         shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()),
         shouldAutoTerminate(myEnv.getRunnerAndConfigurationSettings()));
     }

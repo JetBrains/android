@@ -33,7 +33,6 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
@@ -80,7 +79,7 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
     MockitoAnnotations.initMocks(this)
     `when`(mockApplicationIdProvider.packageName).thenReturn(TEST_APP_PACKAGE_NAME)
     `when`(mockApplicationIdProvider.testPackageName).thenThrow(ApkProvisionException("no test package"))
-    baseConnector = TestConnectDebuggerTask(mockApplicationIdProvider)
+    baseConnector = TestConnectDebuggerTask(project, mockApplicationIdProvider)
     printer = ProcessHandlerConsolePrinter(mockProcessHandler)
 
     `when`(mockStatus.processHandler).thenReturn(mockProcessHandler)
@@ -122,8 +121,8 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
   }
 }
 
-class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
-  : ConnectDebuggerTaskBase(applicationIdProvider, mock(Project::class.java), false) {
+class TestConnectDebuggerTask(project: Project, applicationIdProvider: ApplicationIdProvider)
+  : ConnectDebuggerTaskBase(applicationIdProvider, project, false) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,

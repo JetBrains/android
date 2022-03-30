@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.debug
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.flags.StudioFlags
@@ -56,13 +57,20 @@ class AndroidJavaDebuggerTest {
   private lateinit var runnableClientsService: RunnableClientsService
   private lateinit var executionEnvironment: ExecutionEnvironment
 
+
+  private fun createDevice(): IDevice {
+    val mockDevice = Mockito.mock(IDevice::class.java)
+    Mockito.`when`(mockDevice.version).thenReturn(AndroidVersion(26))
+    Mockito.`when`(mockDevice.isOnline).thenReturn(true)
+    return mockDevice
+  }
+
   @Before
   fun setUp() {
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
     executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
     runnableClientsService = RunnableClientsService(project)
-    val device = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(device.isOnline).thenReturn(true)
+    val device = createDevice()
     client = runnableClientsService.startClient(device, APP_PACKAGE)
   }
 
@@ -77,7 +85,9 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testSessionCreated() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null).blockingGet(10, TimeUnit.SECONDS)
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null,
+                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
+                                                                                                                                TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
@@ -90,7 +100,9 @@ class AndroidJavaDebuggerTest {
     }
 
     val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessStarted = onDebugProcessStarted).blockingGet(10, TimeUnit.SECONDS)
+                                             onDebugProcessStarted = onDebugProcessStarted,
+                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
+                                                                                                                                TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(callbackCount).isEqualTo(1)
   }
@@ -146,7 +158,9 @@ class AndroidJavaDebuggerTest {
     Mockito.`when`(mockDevice.forceStop(any())).then {
       countDownLatch.countDown()
     }
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment).blockingGet(10, TimeUnit.SECONDS)!!
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
+                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
+                                                                                                                                TimeUnit.SECONDS)!!
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
@@ -157,7 +171,9 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testVMExitedNotifierIsInvokedOnDetach() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment).blockingGet(10, TimeUnit.SECONDS)!!
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
+                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
+                                                                                                                                TimeUnit.SECONDS)!!
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()

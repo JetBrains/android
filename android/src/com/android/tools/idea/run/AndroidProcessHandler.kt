@@ -30,6 +30,7 @@ import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.OutputStream
@@ -53,18 +54,21 @@ import java.io.OutputStream
  * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
  * @param captureLogcat true if you need logcat message to be captured and displayed in an attached console view, false otherwise
+ * @param finishAndroidProcessCallback custom way to finish a started process, used by AndroidProcessMonitorManager.
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   val targetApplicationId: String,
+  finishAndroidProcessCallback: (IDevice) -> Unit = { device -> device.forceStop(targetApplicationId) },
   val captureLogcat: Boolean = true,
   val autoTerminate: Boolean = true,
   private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.instance,
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
-    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
+    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener,
+                                 finishAndroidProcessCallback)
   }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {
 
   companion object {
@@ -91,7 +95,9 @@ class AndroidProcessHandler @JvmOverloads constructor(
           notifyProcessTerminated(0)
         }
       }
-    })
+    }).apply {
+    Disposer.register(project) { close() }
+  }
 
   override fun notifyTextAvailable(text: String, outputType: Key<*>) {
     ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->

@@ -20,6 +20,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.flags.junit.SetFlagRule
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
@@ -65,8 +66,14 @@ class StartReattachingDebuggerTest {
   fun setUp() {
     runnableClientsService = RunnableClientsService(project)
     executionEnvironment = createFakeExecutionEnvironment(project, "myTestConfiguration")
-    mockDevice = Mockito.mock(IDevice::class.java)
+    mockDevice = createDevice()
+  }
+
+  private fun createDevice(): IDevice {
+    val mockDevice = Mockito.mock(IDevice::class.java)
+    `when`(mockDevice.version).thenReturn(AndroidVersion(26))
     `when`(mockDevice.isOnline).thenReturn(true)
+    return mockDevice
   }
 
   @After

@@ -57,8 +57,10 @@ class AndroidProcessMonitorManagerTest {
     monitorManager =  AndroidProcessMonitorManager(TARGET_APP_NAME,
                                                    mockDeploymentAppService,
                                                    mockTextEmitter,
-                                                   /*captureLogcat=*/true,
-                                                   mockMonitorManagerListener) {_, device, listener, _, _ ->
+      /*captureLogcat=*/true,
+                                                   mockMonitorManagerListener,
+                                                   { device -> device.forceStop(TARGET_APP_NAME) }
+    ) { _, device, listener, _, _ ->
       if (::stateChangeListener.isInitialized) {
         assertThat(listener).isSameAs(stateChangeListener)
       }

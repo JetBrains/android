@@ -16,6 +16,7 @@
 package com.android.tools.idea.run
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
@@ -61,6 +62,7 @@ class SingleDeviceAndroidProcessMonitor(
   private val deploymentApplicationService: DeploymentApplicationService,
   private val androidLogcatOutputCapture: AndroidLogcatOutputCapture?,
   private val textEmitter: TextEmitter,
+  private val finishAndroidProcessCallback: (IDevice) -> Unit,
   stateUpdaterExecutor: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService(),
   listenerExecutor: Executor = AppExecutorUtil.getAppExecutorService()
 ) : Closeable {
@@ -114,12 +116,15 @@ class SingleDeviceAndroidProcessMonitor(
     }
 
     val clients = deploymentApplicationService.findClient(targetDevice, targetApplicationId)
-    clients.forEach { client ->
-      myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
-        textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
-        androidLogcatOutputCapture?.startCapture(targetDevice, pid, targetApplicationId)
+    fun startLogcatOutputCapture() {
+      clients.forEach { client ->
+        myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
+          textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
+          androidLogcatOutputCapture?.startCapture(targetDevice, pid, targetApplicationId)
+        }
       }
     }
+
     val isTargetProcessFound = clients.isNotEmpty()
 
     synchronized(this) {
@@ -127,6 +132,7 @@ class SingleDeviceAndroidProcessMonitor(
         WAITING_FOR_PROCESS -> {
           if (isTargetProcessFound) {
             myState = PROCESS_IS_RUNNING
+            startLogcatOutputCapture()
           }
         }
         PROCESS_IS_RUNNING -> {
@@ -179,16 +185,15 @@ class SingleDeviceAndroidProcessMonitor(
    * If you want to keep those process running and just stop the monitor, use [detachAndClose] instead.
    */
   @Synchronized
+  @WorkerThread
   override fun close() {
     androidLogcatOutputCapture?.stopCapture(targetDevice)
 
     when (myState) {
       WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
-        // force-stop target process if it's still running.
+        finishAndroidProcessCallback(targetDevice)
+        // For non-debuggable app we don't have a client, so we do our best shot - force stop.
         targetDevice.forceStop(targetApplicationId)
-        deploymentApplicationService.findClient(targetDevice, targetApplicationId).forEach { client ->
-          client.kill()
-        }
         myState = PROCESS_FINISHED
       }
       PROCESS_DETACHED, PROCESS_FINISHED, PROCESS_NOT_FOUND -> {

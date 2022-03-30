@@ -17,6 +17,7 @@ package com.android.tools.idea.run.debug
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.Client
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine.JavaDebugProcess
@@ -52,7 +53,7 @@ fun attachJavaDebuggerToClient(
   executionEnvironment: ExecutionEnvironment,
   consoleViewToReuse: ConsoleView? = null,
   onDebugProcessStarted: (() -> Unit)? = null,
-  onDebugProcessDestroyed: ((Client) -> Unit)? = null,
+  onDebugProcessDestroyed: (IDevice) -> Unit,
 ): Promise<XDebugSessionImpl> {
   return getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
     .then { starter ->
@@ -87,7 +88,8 @@ fun attachJavaDebuggerToClientAndShowTab(
 ): AsyncPromise<XDebugSession> {
   val sessionName = "Android Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"
 
-  return getDebugProcessStarter(project, client, null, null, null, true)
+  return getDebugProcessStarter(project, client, null, null,
+                                { device -> device.forceStop(client.clientData.clientDescription) }, true)
     .thenAsync { starter ->
       val promise = AsyncPromise<XDebugSession>()
       runInEdt {
@@ -112,7 +114,7 @@ private fun getDebugProcessStarter(
   client: Client,
   consoleViewToReuse: ConsoleView?,
   onDebugProcessStarted: (() -> Unit)?,
-  onDebugProcessDestroyed: ((Client) -> Unit)?,
+  onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean,
 ): AsyncPromise<XDebugProcessStarter> {
   val sessionName = "Android Java Debugger (pid: ${client.clientData.pid}, debug port: ${client.debuggerListenPort})"

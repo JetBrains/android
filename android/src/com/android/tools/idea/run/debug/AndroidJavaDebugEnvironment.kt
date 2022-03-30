@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.debug
 
 import com.android.ddmlib.Client
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.intellij.debugger.DebugEnvironment
@@ -42,7 +43,7 @@ internal class AndroidJavaDebugEnvironment(
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
   private val onDebugProcessStarted: (() -> Unit)?,
-  private val onDebugProcessDestroyed: ((Client) -> Unit)?,
+  private val onDebugProcessDestroyed: (IDevice) -> Unit,
   private val detachIsDefault: Boolean
 ) : DebugEnvironment {
 
