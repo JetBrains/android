@@ -185,7 +185,7 @@ fun performRecommendedPluginUpgrade(
 //  - gradle-wrapper.properties
 //  - gradle properties files
 //  - build-adjacent files (e.g. proguard files, AndroidManifest.xml for the change namespacing R classes)
-fun isCleanEnoughProject(project: Project): Boolean {
+internal fun isCleanEnoughProject(project: Project): Boolean {
   ModuleManager.getInstance(project).modules.forEach { module ->
     val gradleFacet = GradleFacet.getInstance(module) ?: return@forEach
     val buildFile = gradleFacet.gradleModuleModel?.buildFile ?: return@forEach
