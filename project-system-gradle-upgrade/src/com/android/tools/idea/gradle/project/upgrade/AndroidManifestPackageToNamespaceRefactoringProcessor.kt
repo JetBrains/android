@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
 import com.intellij.openapi.project.Project
@@ -31,7 +32,6 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
