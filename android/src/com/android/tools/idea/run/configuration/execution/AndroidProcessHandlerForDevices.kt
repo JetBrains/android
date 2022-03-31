@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
@@ -32,13 +37,41 @@ abstract class AndroidProcessHandlerForDevices : ProcessHandler() {
 
   val devices = mutableListOf<IDevice>()
 
+  val listener = object : IDeviceChangeListener {
+    override fun deviceConnected(device: IDevice) {}
+    override fun deviceChanged(device: IDevice, changeMask: Int) {}
+
+    override fun deviceDisconnected(device: IDevice) {
+      if (devices.contains(device)) {
+        devices.remove(device)
+        if (devices.isEmpty()) {
+          notifyProcessTerminated(0)
+        }
+      }
+    }
+  }
+
+  init {
+    AndroidDebugBridge.addDeviceChangeListener(listener)
+
+    this.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        AndroidDebugBridge.removeDeviceChangeListener(listener)
+        this@AndroidProcessHandlerForDevices.removeProcessListener(this)
+      }
+    })
+  }
   open fun addDevice(device: IDevice) {
     devices.add(device)
   }
 
   final override fun destroyProcessImpl() {
     AppExecutorUtil.getAppExecutorService().submit {
-      devices.forEach { destroyProcessOnDevice(it) }
+      try {
+        devices.forEach { destroyProcessOnDevice(it) }
+      } catch (e:Exception) {
+        Logger.getInstance(AndroidProcessHandlerForDevices::class.java).error(e)
+      }
       notifyProcessTerminated(0)
     }
   }
