@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
-import com.intellij.build.issue.BuildIssue
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.getInstance
-import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.roots.impl.DirectoryIndex
+import com.intellij.openapi.vfs.VfsUtil
+import java.io.File
 
 /**
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
@@ -74,14 +76,15 @@ fun updateUsageTracker(projectPath: String, gradleSyncFailure: GradleSyncFailure
   }
 }
 
+/**
+ * Find the Idea project instance associated with a given Gradle project's external path.
+ */
 //TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
 fun fetchIdeaProjectForGradleProject(projectPath: String): Project? {
-  for (project in ProjectManager.getInstance().openProjects) {
-    for (module in ModuleManager.getInstance(project!!).modules) {
-      if (AndroidProjectRootUtil.getModuleDirPath(module!!) == projectPath) return project
-    }
+  val projectVirtualFile = VfsUtil.findFileByIoFile(File(projectPath), true) ?: return null
+  return ProjectManager.getInstance().openProjects.firstOrNull {
+    DirectoryIndex.getInstance(it).getInfoForFile(projectVirtualFile).module != null
   }
-  return null
 }
 
 /**
