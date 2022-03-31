@@ -33,7 +33,6 @@ import com.intellij.openapi.util.io.FileUtil
 
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 
 private val log: Logger = logger<InstallerData>()
 
@@ -41,7 +40,6 @@ private val log: Logger = logger<InstallerData>()
  * Wrapper around data passed from the installer.
  */
 class InstallerData(
-  val androidSrc: File?,
   val androidDest: File?,
   private val createAvd: Boolean,
   val timestamp: String?,
@@ -53,7 +51,6 @@ class InstallerData(
   fun shouldCreateAvd(): Boolean = createAvd
 
   override fun toString(): String = MoreObjects.toStringHelper(this)
-    .add(PROPERTY_SDK_REPO, androidSrc)
     .add(PROPERTY_SDK, androidDest)
     .add(PROPERTY_AVD, createAvd)
     .add(PROPERTY_TIMESTAMP, timestamp)
@@ -67,7 +64,6 @@ class InstallerData(
 }
 
 private const val PROPERTY_SDK = "androidsdk.dir"
-private const val PROPERTY_SDK_REPO = "androidsdk.repo"
 private const val PROPERTY_TIMESTAMP = "install.timestamp"
 private const val PROPERTY_AVD = "create.avd"
 private const val PROPERTY_VERSION = "studio.version"
@@ -101,18 +97,13 @@ var installerData = parse()
   @Synchronized @JvmName("set") @VisibleForTesting set
 
 @JvmField
-val EMPTY_INSTALLER_DATA = InstallerData(null, null, true, null, null)
+val EMPTY_INSTALLER_DATA = InstallerData(null, true, null, null)
 
 private fun parse(): InstallerData? {
   val properties = readProperties() ?: return null
   val androidSdkPath = properties[PROPERTY_SDK]
   val androidDest = if (androidSdkPath.isNullOrBlank()) null else File(androidSdkPath)
-  return InstallerData(getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
+  return InstallerData(androidDest,
                        properties[PROPERTY_AVD]?.toBoolean() ?: true,
                        properties[PROPERTY_TIMESTAMP], properties[PROPERTY_VERSION])
-}
-
-private fun getIfPathExists(properties: Map<String, String>, propertyName: String): File? {
-  val path = properties[propertyName] ?: return null
-  return File(path).takeIf { it.isDirectory }
 }
