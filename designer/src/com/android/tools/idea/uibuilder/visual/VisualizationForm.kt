@@ -75,9 +75,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
@@ -133,6 +136,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     VERTICAL_SCREEN_DELTA,
     false
   )
+  private val myUpdateQueue: MergingUpdateQueue
 
   /**
    * [CompletableFuture] of the next model load. This is kept so the load can be cancelled.
@@ -221,6 +225,9 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       }
 
     })
+    myUpdateQueue = MergingUpdateQueue("visualization.form.update", NlModel.DELAY_AFTER_TYPING_MS, true,
+                                       null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
+    myUpdateQueue.setRestartTimerOnAdd(true)
   }
 
   private fun createToolbarPanel(): JComponent {
@@ -551,9 +558,23 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       }
     }
     if (needsRenderModels) {
-      // Show and hide progress indicator during rendering.
-      ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
-      renderCurrentModels().thenRun { ApplicationManager.getApplication().invokeLater { surface.unregisterIndicator(myProgressIndicator) } }
+      myUpdateQueue.queue(
+        object : Update("update") {
+          override fun run() {
+            // Show and hide progress indicator during rendering.
+            ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
+            renderCurrentModels().thenRun {
+              ApplicationManager.getApplication().invokeLater {
+                surface.unregisterIndicator(myProgressIndicator)
+              }
+            }
+          }
+
+          override fun canEat(update: Update): Boolean {
+            return true
+          }
+        }
+      )
     }
   }
 
