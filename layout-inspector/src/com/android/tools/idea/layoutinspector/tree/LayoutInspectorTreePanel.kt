@@ -191,7 +191,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val reset = CommonHyperLinkLabel().apply {
       text = "Reset"
       border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, ICON_HORIZONTAL_BORDER)
-      hyperLinkListeners.add(::resetRecompositionCounts)
+      hyperLinkListeners.add(::resetRecompositionCountsFromTableHeaderClick)
       cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
       toolTipText = "Click to reset recomposition counts"
     }
@@ -248,6 +248,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     interactions.setHeaderVisibility(show)
     interactions.setColumnVisibility(1, show)
     interactions.setColumnVisibility(2, show)
+  }
+
+  private fun resetRecompositionCountsFromTableHeaderClick() {
+    resetRecompositionCounts()
+    layoutInspector?.stats?.resetRecompositionCountsClick()
   }
 
   fun resetRecompositionCounts() {
@@ -424,6 +429,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       componentTreeModel.columnDataChanged()
     }
     updateRecompositionColumnVisibility()
+    inspectorModel?.let { model ->
+      layoutInspector?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
+    }
   }
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {

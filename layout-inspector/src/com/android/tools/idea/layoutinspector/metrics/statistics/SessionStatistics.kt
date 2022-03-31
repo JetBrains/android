@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -74,5 +75,13 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
 
   fun gotoSourceFromDoubleClick() {
     goto.gotoSourceFromDoubleClick()
+  }
+
+  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
+    compose.updateRecompositionStats(recompositions, maxHighlight)
+  }
+
+  fun resetRecompositionCountsClick() {
+    compose.resetRecompositionCountsClick()
   }
 }

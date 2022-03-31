@@ -75,7 +75,7 @@ class RecompositionData(var count: Int, var skips: Int, var highlightCount: Floa
     (node as? ComposeViewNode)?.let { maxOf(it.recompositions) }
   }
 
-  private fun maxOf(other: RecompositionData) {
+  fun maxOf(other: RecompositionData) {
     count = maxOf(count, other.count)
     skips = maxOf(skips, other.skips)
     highlightCount = maxOf(highlightCount, other.highlightCount)

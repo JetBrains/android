@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
@@ -38,6 +39,9 @@ class ComposeStatisticsTest {
     assertThat(data.imageClicks).isEqualTo(0)
     assertThat(data.componentTreeClicks).isEqualTo(0)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(0)
+    assertThat(data.maxRecompositionCount).isEqualTo(0)
+    assertThat(data.maxRecompositionSkips).isEqualTo(0)
+    assertThat(data.maxRecompositionHighlight).isEqualTo(0f)
   }
 
   @Test
@@ -60,5 +64,22 @@ class ComposeStatisticsTest {
     assertThat(data.imageClicks).isEqualTo(1)
     assertThat(data.componentTreeClicks).isEqualTo(2)
     assertThat(data.goToSourceFromPropertyValueClicks).isEqualTo(2)
+  }
+
+  @Test
+  fun testRecompositionCounts() {
+    val compose = ComposeStatistics()
+    compose.updateRecompositionStats(RecompositionData(12, 33, 2.1f), 2.1f)
+    compose.updateRecompositionStats(RecompositionData(34, 51, 1.1f), 5.1f)
+    compose.resetRecompositionCountsClick()
+    compose.resetRecompositionCountsClick()
+    compose.updateRecompositionStats(RecompositionData(5, 10, 1.1f), 1.1f)
+    compose.updateRecompositionStats(RecompositionData(17, 103, 4.1f), 9.1f)
+    val data = DynamicLayoutInspectorCompose.newBuilder()
+    compose.save(data)
+    assertThat(data.maxRecompositionCount).isEqualTo(34)
+    assertThat(data.maxRecompositionSkips).isEqualTo(103)
+    assertThat(data.maxRecompositionHighlight).isWithin(0.01f).of(9.10f)
+    assertThat(data.recompositionResetClicks).isEqualTo(2)
   }
 }

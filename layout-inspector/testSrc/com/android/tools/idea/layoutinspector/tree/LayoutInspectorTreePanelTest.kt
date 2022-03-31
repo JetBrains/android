@@ -825,6 +825,22 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(selectionUpdate).isEqualTo(1)
     assertThat(updateSettingsCommands).isEqualTo(2)
     assertThat(lastUpdateSettingsCommand?.includeRecomposeCounts).isTrue()
+
+    val data = DynamicLayoutInspectorSession.newBuilder()
+    inspector.stats.save(data)
+    assertThat(data.compose.recompositionResetClicks).isEqualTo(1)
+  }
+
+  @Test
+  fun testRecompositionCountsAreLogged() {
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    setToolContext(panel, inspector)
+
+    val data = DynamicLayoutInspectorSession.newBuilder()
+    inspector.stats.save(data)
+    assertThat(data.compose.maxRecompositionCount).isEqualTo(9)
+    assertThat(data.compose.maxRecompositionSkips).isEqualTo(33)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
