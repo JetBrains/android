@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.AndroidProjectTypes
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -253,6 +255,29 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
     return androidFacets.filter { it.getModuleSystem().getPackageName() == packageName }
   }
+
+  override fun getKnownApplicationIds(project: Project): Set<String> {
+    val model = getModel(project) ?: return emptySet()
+
+    val ids = model.allApplicationIds
+    ids.add(model.applicationId)
+    return ids
+  }
+
+  // TODO(b/228120633) reimplement this in a more efficient way
+  private fun getModel(project: Project): AndroidModel? {
+    if (project.isDisposed) {
+      return null
+    }
+
+    val module = ModuleManager.getInstance(project).modules.firstOrNull {
+      !it.isDisposed && AndroidFacet.getInstance(it)?.let { facet ->
+        facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP
+      } == true
+    } ?: return null
+
+    return AndroidModel.get(module)
+  }
 }
 
 private val IdeAndroidArtifact.scopeType: ScopeType
@@ -284,7 +309,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
     return IdeaSourceProviderImpl(
       scopeType,
-      object: IdeaSourceProviderImpl.Core {
+      object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
         override val javaDirectoryUrls: Sequence<String> =
@@ -308,7 +333,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
     return IdeaSourceProviderImpl(
       ScopeType.UNIT_TEST,
-      object: IdeaSourceProviderImpl.Core {
+      object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
         override val javaDirectoryUrls: Sequence<String> =
@@ -344,9 +369,12 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     },
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
-    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.UNIT_TEST),
-    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.ANDROID_TEST),
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
+    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.UNIT_TEST),
+    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.ANDROID_TEST),
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
+      ScopeType.TEST_FIXTURES)
   )
 }
 

@@ -126,6 +126,12 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * Returns a list of [AndroidFacet]s by given package name.
    */
   fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet>
+
+  /**
+   * @return all the application IDs of artifacts this project module is known to produce.
+   */
+  @JvmDefault
+  fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
