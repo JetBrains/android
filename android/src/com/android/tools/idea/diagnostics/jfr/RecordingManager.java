@@ -33,7 +33,6 @@ import java.nio.file.Path;
 import java.util.IdentityHashMap;
 import java.util.concurrent.TimeUnit;
 import jdk.jfr.Event;
-import jdk.jfr.FlightRecorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +53,6 @@ public class RecordingManager {
 
   public static void init() {
     if (ServerFlagService.Companion.getInstance().getBoolean(JFR_SERVER_FLAG_NAME, false)) {
-      addPeriodicEvents();
       setupActionEvents();
       setupFreezeEvents();
       setupLowMemoryEvents();
@@ -74,10 +72,6 @@ public class RecordingManager {
         }
       }, 0, JFR_RECORDING_DURATION_SECONDS, TimeUnit.SECONDS);
     }
-  }
-
-  private static void addPeriodicEvents() {
-    FlightRecorder.addPeriodicEvent(MemorySample.class, MemorySample.memorySampleHook);
   }
 
   private static void setupActionEvents() {

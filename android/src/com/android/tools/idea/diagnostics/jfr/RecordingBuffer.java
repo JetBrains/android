@@ -78,6 +78,8 @@ public class RecordingBuffer {
     recordings[latest].enable("jdk.ExecutionSample").withPeriod(Duration.ofMillis(20));
     recordings[latest].enable("jdk.NativeMethodSample").withPeriod(Duration.ofMillis(20));
     recordings[latest].enable("jdk.ThreadDump").withPeriod(Duration.ofMillis(5000));
+    recordings[latest].enable("jdk.GCPhasePause");
+    recordings[latest].enable("jdk.GCHeapSummary");
     recordings[latest].setToDisk(true);
     recordings[latest].start();
   }
