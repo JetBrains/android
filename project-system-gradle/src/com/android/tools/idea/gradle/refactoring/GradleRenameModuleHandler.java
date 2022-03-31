@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.refactoring;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -149,10 +151,11 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         return true;
       }
 
-      final String oldModuleGradlePath = getGradlePath(myModule);
-      if (oldModuleGradlePath == null) {
+      final GradleProjectPath oldModuleGradleProjectPath = getGradleProjectPath(myModule);
+      if (oldModuleGradleProjectPath == null) {
         return true;
       }
+      final String oldModuleGradlePath = oldModuleGradleProjectPath.getPath();
 
       // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();

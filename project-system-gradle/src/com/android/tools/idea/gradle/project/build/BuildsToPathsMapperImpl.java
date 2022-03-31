@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build;
 
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFileOrLogError;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 
 import com.android.build.OutputFile;
 import com.android.builder.model.AppBundleProjectBuildOutput;
@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.util.OutputType;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ImmutableList;
 import java.io.File;
@@ -155,6 +156,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
   private static File tryToGetOutputPostBuildApkFile(@NotNull Module module,
                                                      @NotNull PostBuildModel postBuildModel,
                                                      @NotNull String buildVariant) {
+    // NOTE: Post build models do not support composite builds properly.
     ProjectBuildOutput projectBuildOutput = postBuildModel.findProjectBuildOutput(getGradlePath(module));
     if (projectBuildOutput == null) {
       return null;
@@ -172,6 +174,12 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     }
 
     return null;
+  }
+
+  @Nullable
+  private static String getGradlePath(@NotNull Module module) {
+    GradleProjectPath gradleProjectPath = getGradleProjectPath(module);
+    return gradleProjectPath != null ? gradleProjectPath.getPath() : null;
   }
 
   @Nullable

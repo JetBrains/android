@@ -25,6 +25,7 @@ import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -55,7 +56,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   private fun getBuildScriptsWithQualifiers(): Map<VirtualFile, String> {
     val buildScripts = mutableMapOf<VirtualFile, String>()
     for (module in ModuleManager.getInstance(myProject).modules) {
-      val moduleName = getPrefixForModule(module) + module.getHolderModule().name
+      val moduleName = getPrefixForModule(module.getHolderModule()) + module.getHolderModule().name
       val gradleBuildFile = GradleUtil.getGradleBuildFile(module)
       if (gradleBuildFile != null) {
         buildScripts[gradleBuildFile] = moduleName
@@ -135,7 +136,8 @@ private fun findChildAndAddToMapIfFound(
 }
 
 private fun getPrefixForModule(module: Module): String {
-  return if (GradleUtil.isRootModuleWithNoSources(module)) AndroidBuildScriptNode.PROJECT_PREFIX
+  val externalId = ExternalSystemApiUtil.getExternalProjectId(module).orEmpty()
+  return if (!externalId.contains(":")) AndroidBuildScriptNode.PROJECT_PREFIX
   else AndroidBuildScriptNode.MODULE_PREFIX
 }
 

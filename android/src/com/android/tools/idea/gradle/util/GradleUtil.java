@@ -29,7 +29,6 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -71,7 +70,6 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
@@ -149,34 +147,6 @@ public final class GradleUtil {
       default:
         return ANDROID_MODULE;
     }
-  }
-
-  /**
-   * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
-   *
-   * @param module the given module.
-   * @return the Gradle path for the given module, or {@code null} if the module does not represent a Gradle project or sub-project.
-   */
-  @Nullable
-  public static String getGradlePath(@NotNull Module module) {
-    GradleFacet facet = GradleFacet.getInstance(module);
-    return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
-  }
-
-  /**
-   * Returns whether the given module is the module corresponding to the project root (i.e. gradle path of ":") and has no source roots.
-   * <p/>
-   * The default Android Studio projects create an empty module at the root level. In theory, users could add sources to that module, but
-   * we expect that most don't and keep that as a module simply to tie together other modules.
-   */
-  public static boolean isRootModuleWithNoSources(@NotNull Module module) {
-    if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
-      String gradlePath = getGradlePath(module);
-      if (gradlePath == null || gradlePath.equals(":")) {
-        return ModuleManager.getInstance(module.getProject()).getModuleGrouper(null).getGroupPath(module).size() <= 1;
-      }
-    }
-    return false;
   }
 
   @Nullable
@@ -410,29 +380,6 @@ public final class GradleUtil {
    */
   public static int isValidGradlePath(@NotNull String gradlePath) {
     return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
-  }
-
-  /**
-   * Checks if the project already has a module with given Gradle path.
-   */
-  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath) {
-    if (project == null) {
-      return false;
-    }
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (gradlePath.equals(getGradlePath(module))) {
-        return true;
-      }
-    }
-    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-    if (location.isFile()) {
-      return true;
-    }
-    if (location.isDirectory()) {
-      File[] children = location.listFiles();
-      return children == null || children.length > 0;
-    }
-    return false;
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {

@@ -20,26 +20,26 @@ package com.android.tools.idea.gradle.run
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.module.Module
 
 /**
  * Creates BuildAction based on AndroidModelFeatures.
  * Use [OutputBuildAction] to obtain post build sync models if isPostBuildSyncSupported is true for all modules.
  */
-fun createOutputBuildAction(modules: List<Module>): OutputBuildAction? {
-  val usePostBuildSync = modules.mapNotNull { GradleAndroidModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
-  return if (usePostBuildSync) OutputBuildAction(getModuleGradlePaths(modules)) else null
+internal fun createOutputBuildAction(modulesFromOneIncludedBuild: List<Module>): OutputBuildAction? {
+  val usePostBuildSync = modulesFromOneIncludedBuild.mapNotNull { GradleAndroidModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
+  return if (usePostBuildSync) OutputBuildAction(getModuleGradlePaths(modulesFromOneIncludedBuild)) else null
 }
 
 /**
  * Get the gradle paths for the given module, all the tested projects (if it is a test app), and dynamic feature modules.
  * These paths will be used by the BuildAction run after build to know all the needed models.
  */
-private fun getModuleGradlePaths(modules: List<Module>): Set<String> {
+private fun getModuleGradlePaths(modulesFromOneIncludedBuild: List<Module>): Set<String> {
   val gradlePaths = mutableSetOf<String>()
-  modules.mapNotNullTo(gradlePaths) { GradleUtil.getGradlePath(it) }
-  modules
+  modulesFromOneIncludedBuild.mapNotNullTo(gradlePaths) { it.getGradleProjectPath()?.path }
+  modulesFromOneIncludedBuild
     .mapNotNull { it to (GradleAndroidModel.get(it) ?: return@mapNotNull null) }
     .forEach { (androidModule, androidModel) ->
       val androidProject = androidModel.androidProject
@@ -51,7 +51,7 @@ private fun getModuleGradlePaths(modules: List<Module>): Set<String> {
         IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> {
           val baseModule = DynamicAppUtils.getBaseFeature(androidModule)
           if (baseModule != null) {
-            GradleUtil.getGradlePath(baseModule)?.let { gradlePaths.add(it) }
+            baseModule.getGradleProjectPath()?.path?.let { gradlePaths.add(it) }
           }
         }
         else -> Unit

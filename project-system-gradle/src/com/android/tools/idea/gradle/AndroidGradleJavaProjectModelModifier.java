@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ADD_LIBRARY_DEPENDENCY;
@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -108,13 +109,13 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope, boolean exported) {
     Project project = from.getProject();
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
-    String gradlePath = getGradlePath(to);
+    GradleProjectPath gradlePath = getGradleProjectPath(to);
     GradleBuildModel buildModel = GradleBuildModel.get(from);
 
     if (buildModel != null && gradlePath != null) {
       DependenciesModel dependencies = buildModel.dependencies();
       String configurationName = getConfigurationName(from, scope, openedFile);
-      dependencies.addModule(configurationName, gradlePath, null);
+      dependencies.addModule(configurationName, gradlePath.getPath(), null);
 
       new WriteCommandAction(project, "Add Gradle Module Dependency") {
         @Override

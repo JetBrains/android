@@ -16,10 +16,10 @@
 package com.android.tools.idea.navigator
 
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 
 fun getSubmodules(project: Project, parent: Module?): Collection<Module> {
   val moduleManager = ModuleManager.getInstance(project)
@@ -63,7 +63,8 @@ fun getSubmodules(project: Project, parent: Module?): Collection<Module> {
   return submodules
 }
 
-private fun Module.isIgnoredRootModule() = GradleUtil.isRootModuleWithNoSources(this) && ApkFacet.getInstance(this) == null
+private fun Module.isIgnoredRootModule() =
+  ModuleRootManager.getInstance(this).sourceRoots.isEmpty() && ApkFacet.getInstance(this) == null
 
 private fun List<String>.startsWith(prefix: List<String>): Boolean {
   if (size < prefix.size) return false

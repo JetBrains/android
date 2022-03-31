@@ -17,7 +17,6 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -39,7 +38,6 @@ import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
-import javax.tools.ToolProvider
 
 /**
  * Snapshot tests for 'Android Project View'.

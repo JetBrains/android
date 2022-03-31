@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
@@ -196,7 +197,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setInstantAppProjectBuildOutput(
       instantAppProjectBuildOutput).build()
     return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      GradleUtil.getGradlePath(myModule)!!, postBuildModuleModels).build()
+      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
   }
 
   private fun createPostBuildModel(outputs: Collection<File>,
@@ -205,7 +206,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setProjectBuildOutput(
       projectBuildOutput).build()
     return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      GradleUtil.getGradlePath(myModule)!!, postBuildModuleModels).build()
+      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
   }
 
   private fun createAppBundleBuildModel(output: File,
@@ -214,7 +215,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setAppBundleProjectBuildOutput(
       projectBuildOutput).build()
     return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      GradleUtil.getGradlePath(myModule)!!, postBuildModuleModels).build()
+      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
   }
 
   private class PostBuildModuleModelsMockBuilder {

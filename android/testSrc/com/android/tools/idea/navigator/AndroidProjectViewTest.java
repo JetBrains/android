@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE;
@@ -80,14 +80,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
     PsiDirectory dir = getBaseFolder();
     assertNotNull(dir);
-
-    String rootModuleName = null;
-    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      if (getGradlePath(module) == null) {
-        rootModuleName = module.getName();
-      }
-    }
-    assertNotNull(rootModuleName);
 
     String projectName = getProject().getName();
     String expected = projectName + "\n" +
