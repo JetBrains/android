@@ -345,3 +345,5 @@ fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseAr
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
 
+internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
+  GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)

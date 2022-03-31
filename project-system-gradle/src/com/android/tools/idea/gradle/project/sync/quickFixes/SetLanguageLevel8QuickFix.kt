@@ -20,11 +20,15 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElement
@@ -85,10 +89,18 @@ class SetLanguageLevel8AllQuickFix(setJvmTarget: Boolean) : AbstractSetLanguageL
 class SetLanguageLevel8ModuleQuickFix(val modulePath: String, setJvmTarget: Boolean): AbstractSetLanguageLevel8QuickFix(setJvmTarget, "module $modulePath") {
   override val id = "set.java.level.8.module"
 
-  override fun buildFilesToApply(project: Project) = listOf(GradleUtil.findModuleByGradlePath(project, modulePath))
-    .filter { it != null && AndroidFacet.getInstance(it) != null }
-    .mapNotNull { GradleUtil.getGradleModuleModel(it) }
-    .mapNotNull { it.buildFile}
+  override fun buildFilesToApply(project: Project): List<VirtualFile> {
+    return listOfNotNull(
+      // TODO(b/149203281): Fix support for composite projects.
+      GradleHolderProjectPath(
+        FileUtil.toSystemIndependentName((project.guessProjectDir()?.path ?: return emptyList())),
+        modulePath
+      ).resolveIn(project)
+    )
+      .filter { AndroidFacet.getInstance(it) != null }
+      .mapNotNull { GradleUtil.getGradleModuleModel(it) }
+      .mapNotNull { it.buildFile }
+  }
 }
 
 private class SetJavaLanguageLevel8Processor(

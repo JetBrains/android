@@ -19,8 +19,8 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.resolveIn;
 import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
@@ -59,6 +59,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -455,7 +456,10 @@ public final class GradleApkProvider implements ApkProvider {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
           Project project = myFacet.getModule().getProject();
-          return findModuleByGradlePath(project, targetGradlePath);
+          GradleProjectPath projectPath = getGradleProjectPath(myFacet.getHolderModule());
+          if (projectPath == null) return null;
+          GradleProjectPath targetProjectPath = new GradleHolderProjectPath(projectPath.getBuildRoot(), targetGradlePath);
+          return resolveIn(targetProjectPath, project);
         });
 
       if (targetModule == null) {

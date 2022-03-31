@@ -149,20 +149,6 @@ public final class GradleUtil {
     }
   }
 
-  @Nullable
-  public static Module findModuleByGradlePath(@NotNull Project project, @NotNull String gradlePath) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet != null) {
-        if (gradlePath.equals(gradleFacet.getConfiguration().GRADLE_PROJECT_PATH)) {
-          return module;
-        }
-      }
-    }
-    return null;
-  }
-
   @NotNull
   public static List<String> getPathSegments(@NotNull String gradlePath) {
     return on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().splitToList(gradlePath);

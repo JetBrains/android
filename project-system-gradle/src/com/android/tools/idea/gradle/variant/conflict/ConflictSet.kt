@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.buildId
-import com.android.tools.idea.gradle.model.projectPath
-import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.messages.GroupNames
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
@@ -29,8 +26,6 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.google.common.collect.ImmutableList
@@ -161,5 +156,3 @@ class ConflictSet private constructor(
     }
   }
 }
-
-private fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath = GradleSourceSetProjectPath(buildId, projectPath, sourceSet)

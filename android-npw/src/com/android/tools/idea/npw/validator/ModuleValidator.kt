@@ -19,7 +19,8 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.CharMatcher.anyOf
 import com.google.common.base.CharMatcher.inRange
@@ -41,13 +42,16 @@ class ModuleValidator(
   override fun validate(moduleGradlePath: String): Result {
     val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
     val rootedModuleGradlePath = if (moduleGradlePath.startsWith(":")) moduleGradlePath else ":" + moduleGradlePath
+    // TODO(b/149203281): Fix support for composite projects. This code assumes that `moduleGradlePath` is for a Gradle build at the root
+    //                    of the IDE project.
+    val gradleProjectPath = GradleHolderProjectPath(projectPath, rootedModuleGradlePath)
     return when {
       moduleGradlePath.isEmpty() ->
         Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
       illegalCharIdx >= 0 ->
         Result(Severity.ERROR,
                message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
-      GradleUtil.findModuleByGradlePath(project, rootedModuleGradlePath) != null ->
+      gradleProjectPath.resolveIn(project) != null ->
         Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
       else -> pathValidator.validate(getModuleRootForNewModule(projectPath, moduleGradlePath).toPath())
     }

@@ -20,7 +20,7 @@ import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.createFullTaskName;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.findModule;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getBuildRootDir;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.utils.Pair;
 import com.google.common.collect.ArrayListMultimap;
@@ -307,7 +308,12 @@ public class GradleTaskFinder {
 
     for (IdeTestedTargetVariant testedTargetVariant : testAndroidModel.getSelectedVariant().getTestedTargetVariants()) {
       String targetProjectGradlePath = testedTargetVariant.getTargetProjectPath();
-      Module targetModule = findModuleByGradlePath(testOnlyModule.getProject(), targetProjectGradlePath);
+      GradleProjectPath gradleProjectPath = getGradleProjectPath(testOnlyModule);
+      if (gradleProjectPath == null) return;
+      Module targetModule =
+        findModule(testOnlyModule.getProject(),
+                   new GradleHolderProjectPath(gradleProjectPath.getBuildRoot(), targetProjectGradlePath));
+
 
       // Adds the assemble task for the tested variants
       if (targetModule != null) {

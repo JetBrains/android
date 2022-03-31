@@ -24,10 +24,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
@@ -176,10 +175,10 @@ class GradleModuleSystem(
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
     val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
     return dependencies?.moduleDependencies
-             // TODO(b/149203281): Rework. This doesn't work with composite build projects and it is extremely slow.
-             ?.mapNotNull { GradleUtil.findModuleByGradlePath(module.project, it.projectPath) }
-             ?.toList()
-           ?: emptyList()
+      // TODO(b/149203281): Rework. This doesn't work with composite build projects and it is extremely slow.
+      ?.mapNotNull { it.getGradleProjectPath().resolveIn(this.module.project) }
+      ?.toList()
+      ?: emptyList()
   }
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(

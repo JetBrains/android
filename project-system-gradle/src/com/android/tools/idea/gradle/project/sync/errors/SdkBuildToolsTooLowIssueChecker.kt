@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQ
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -37,6 +39,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -81,7 +84,8 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
     // Get IDEA project that contains the current Gradle project instance.
     val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return buildIssueComposer
 
-    val modules = listOfNotNull(GradleUtil.findModuleByGradlePath(ideaProject, gradlePath))
+    // TODO(b/149203281): Fix support for composite projects.
+    val modules = listOfNotNull(GradleHolderProjectPath(FileUtil.toSystemIndependentName(projectPath), gradlePath).resolveIn(ideaProject))
     val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleUtil.getGradleBuildFile(modules[0]))
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler

@@ -26,11 +26,13 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TE
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
 import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -118,8 +120,13 @@ class GradleApplicationIdProvider(
       ?: return null // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
 
     val targetFacet =
-      findModuleByGradlePath(androidFacet.module.project, testedTargetVariant.targetProjectPath)?.androidFacet
-      ?: return null
+      androidFacet
+        .holderModule
+        .getGradleProjectPath()
+        ?.let { GradleHolderProjectPath(it.buildRoot, testedTargetVariant.targetProjectPath) }
+        ?.resolveIn(androidFacet.module.project)
+        ?.androidFacet
+        ?: return null
 
     val targetModel = GradleAndroidModel.get(targetFacet) ?: return null
     val targetVariant = targetModel.variants.find { it.name == testedTargetVariant.targetVariant } ?: return null
