@@ -21,17 +21,16 @@ import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.*;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DiagnosticReportBuilder {
@@ -75,7 +74,8 @@ public class DiagnosticReportBuilder {
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
       new MemoryUseReportContributor(),
-      new ActionsReportContributor(lastActionTracker)
+      new ActionsReportContributor(lastActionTracker),
+      new JfrReportContributor()
     );
     myBinaryReportPaths = new TreeMap<>();
 

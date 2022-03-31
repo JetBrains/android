@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.jfr;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import com.android.annotations.concurrency.Slow;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -77,7 +79,6 @@ public class RecordingBuffer {
     recordings[latest] = new Recording();
     recordings[latest].enable("jdk.ExecutionSample").withPeriod(Duration.ofMillis(20));
     recordings[latest].enable("jdk.NativeMethodSample").withPeriod(Duration.ofMillis(20));
-    recordings[latest].enable("jdk.ThreadDump").withPeriod(Duration.ofMillis(5000));
     recordings[latest].enable("jdk.GCPhasePause");
     recordings[latest].enable("jdk.GCHeapSummary");
     recordings[latest].setToDisk(true);
@@ -85,7 +86,7 @@ public class RecordingBuffer {
   }
 
   @Slow
-  public Path dumpZipTo(Path directory) {
+  public Path dumpJfrTo(Path directory) {
     if (currentFreezeEvent != null) {
       currentFreezeEvent.commit();
       currentFreezeEvent = null;
@@ -100,21 +101,23 @@ public class RecordingBuffer {
           recordingFiles.addAll(dumpAndCloseRecording(1 - latest, dumpDir, "0.jfr"));
         }
         recordingFiles.addAll(dumpAndCloseRecording(latest, dumpDir, recordingFiles.size() + ".jfr"));
-        if (!recordingFiles.isEmpty()) {
-          File zipFile = new File(directory.toFile(), "jfr.zip");
-          try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
-            zos.putNextEntry(new ZipEntry("recording.jfr"));
+        if (recordingFiles.size() == 1) {
+          Files.move(recordingFiles.get(0).toPath(), new File(directory.toFile(), "recording.jfr").toPath(), REPLACE_EXISTING);
+        } else if (recordingFiles.size() > 1) {
+          File concatenatedRecordings = new File(directory.toFile(), "recording.jfr");
+          try (FileOutputStream fos = new FileOutputStream(concatenatedRecordings)) {
             // concatenate the individual recordings. A JFR file is a list of self-contained "chunks", so
             // concatenating JFR files produces a valid JFR file encompassing the entire duration of the components.
             for (File jfrFile : recordingFiles) {
-              Files.copy(jfrFile.toPath(), zos);
+              Files.copy(jfrFile.toPath(), fos);
             }
-          } catch (IOException e) {
-            FileUtil.delete(zipFile);
+          }
+          catch (IOException e) {
+            FileUtil.delete(concatenatedRecordings);
             LOG.warn(e);
             return null;
           }
-          return zipFile.toPath();
+          return concatenatedRecordings.toPath();
         }
       } catch (IOException e) {
         LOG.warn(e);

@@ -18,7 +18,6 @@ package com.android.tools.idea.diagnostics;
 import static java.nio.file.Files.newDirectoryStream;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.diagnostics.jfr.RecordingManager;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
@@ -132,13 +131,6 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
               // Non fatal exception
               LOG.warn("Exception while appending to a report.", e);
             }
-          }
-        }
-
-        if (reportDir != null) {
-          Path jfrZipPath = RecordingManager.dumpZipTo(reportDir.toPath());
-          if (jfrZipPath != null) {
-            localBuilder.addBinaryReportPath("flightRecording", jfrZipPath);
           }
         }
       }

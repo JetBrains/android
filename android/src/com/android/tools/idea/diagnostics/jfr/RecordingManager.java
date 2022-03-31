@@ -128,16 +128,16 @@ public class RecordingManager {
     });
   }
 
-  public static Path dumpZipTo(Path directory) {
+  public static Path dumpJfrTo(Path directory) {
     synchronized (jfrLock) {
-      return recordings.dumpZipTo(directory);
+      return recordings.dumpJfrTo(directory);
     }
   }
 
   public static class DumpJfrAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      dumpZipTo(new File(PathManager.getLogPath()).toPath());
+      dumpJfrTo(new File(PathManager.getLogPath()).toPath());
     }
   }
 }
