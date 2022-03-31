@@ -225,10 +225,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
 
   private fun createToolbarPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = BorderFactory.createCompoundBorder(
-      BorderFactory.createMatteBorder(0, 0, 1, 0, border),
-      BorderFactory.createEmptyBorder(0, 6, 0, 0)
-    )
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, border)
     updateActionToolbar(panel)
     return panel
   }
@@ -272,7 +269,9 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true)
     actionToolbar.setTargetComponent(surface)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    toolbarPanel.add(actionToolbar.component, BorderLayout.CENTER)
+    val toolbarComponent = actionToolbar.component
+    toolbarComponent.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
+    toolbarPanel.add(toolbarComponent, BorderLayout.CENTER)
     if (StudioFlags.NELE_VISUAL_LINT.get()) {
       val lintGroup = DefaultActionGroup()
       lintGroup.add(ToggleOnlyShowLayoutWithIssuesAction(surface))
