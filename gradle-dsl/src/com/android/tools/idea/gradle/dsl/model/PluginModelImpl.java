@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InexpressiblePropertyTransform;
@@ -100,7 +102,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel name() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
-      .addTransform(new PluginAliasTransform(ID))
+      .addTransform(new PluginAliasTransform(ID, ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName))
       .addTransform(new PluginNameTransform())
       .buildResolved();
   }
@@ -109,7 +111,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel version() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
-      .addTransform(new PluginAliasTransform(VERSION))
+      .addTransform(new PluginAliasTransform(VERSION, ArtifactDependencySpec::getVersion, ArtifactDependencySpecImpl::setVersion))
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
       .addTransform(new InexpressiblePropertyTransform())

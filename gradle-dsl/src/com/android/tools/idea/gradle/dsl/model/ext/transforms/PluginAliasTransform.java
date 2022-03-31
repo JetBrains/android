@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ALIAS;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -27,15 +30,26 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PluginAliasTransform extends PropertyTransform {
   @NotNull String myName;
+  @NotNull Function<ArtifactDependencySpec, String> myGetter;
+  @NotNull BiConsumer<ArtifactDependencySpecImpl, String> mySetter;
 
-  public PluginAliasTransform(@NotNull String name) {
+  public PluginAliasTransform(
+    @NotNull String name,
+    @NotNull Function<ArtifactDependencySpec, String> getter,
+    @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setter
+  ) {
     super();
     myName = name;
+    myGetter = getter;
+    mySetter = setter;
   }
 
   @Override
@@ -61,9 +75,16 @@ public class PluginAliasTransform extends PropertyTransform {
     }
     if (dependencies == null || dependencies.size() != 1) return null;
     GradleDslElement reference = dependencies.get(0).getToBeInjected();
-    if (!(reference instanceof GradleDslExpressionMap)) return null;
-    map = (GradleDslExpressionMap)reference;
-    return map.getPropertyElement(myName);
+    if (reference instanceof GradleDslExpressionMap) {
+      map = (GradleDslExpressionMap)reference;
+      return map.getPropertyElement(myName);
+    }
+    else if (reference instanceof GradleDslLiteral) {
+      return new FakeArtifactElement(e, GradleNameElement.fake(myName), ((GradleDslLiteral)reference), myGetter, mySetter, false);
+    }
+    else {
+      return null;
+    }
   }
 
   @Override
@@ -71,6 +92,10 @@ public class PluginAliasTransform extends PropertyTransform {
                                            @Nullable GradleDslElement oldElement,
                                            @NotNull Object value,
                                            @NotNull String name) {
+    if (oldElement instanceof FakeArtifactElement) {
+      ((FakeArtifactElement)oldElement).setValue(value);
+      return (FakeArtifactElement)oldElement;
+    }
     return createBasicExpression(holder, value, GradleNameElement.create(myName));
   }
 

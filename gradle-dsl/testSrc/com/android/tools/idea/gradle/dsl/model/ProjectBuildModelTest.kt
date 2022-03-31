@@ -521,12 +521,15 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       val appliedPlugins = buildModel.appliedPlugins()
       assertSize(0, appliedPlugins)
       val plugins = buildModel.plugins()
-      assertSize(2, plugins)
+      assertSize(3, plugins)
       assertEquals("com.android.application", plugins[0].name().toString())
       assertEquals("7.1.0", plugins[0].version().toString())
 
       assertEquals("com.android.library", plugins[1].name().toString())
       assertEquals("7.1.0", plugins[1].version().toString())
+
+      assertEquals("com.android.dynamic-feature", plugins[2].name().toString())
+      assertEquals("7.1.0", plugins[2].version().toString())
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
