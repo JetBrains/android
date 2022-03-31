@@ -83,6 +83,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -316,6 +317,16 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return false;
     }
 
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement ||
+        referenceExpression.getFirstChild() instanceof GrMethodCallExpression) {
+      PsiElement operator = referenceExpression.getLastChild();
+      if (operator.textMatches("version") || operator.textMatches("apply")) {
+        // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
+        //  properties, because the tree structures are not aligned.
+        return processPluginDeclaration(expression, dslElement);
+      }
+    }
+
     // If the reference has multiple parts i.e google().with then strip the end as these kind of calls are not supported.
     if (expression.getChildren().length > 1 &&
         referenceExpression.getChildren().length == 1 &&
@@ -521,7 +532,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return true;
   }
 
-  boolean processPluginDeclaration(GrApplicationStatement statement, GradlePropertiesDslElement parent) {
+  boolean processPluginDeclaration(GrMethodCall statement, GradlePropertiesDslElement parent) {
     GradlePropertiesDslElement pluginElement;
     if (parent instanceof GradleDslInfixExpression) {
       pluginElement = parent;
@@ -541,9 +552,9 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
     if (!success) return false;
     PsiElement operator = referenceExpression.getLastChild();
-    PsiElement operand = statement.getLastChild().getFirstChild();
-    if (!(operand instanceof GrExpression)) return false;
-    GrExpression value = (GrExpression) operand;
+    PsiElement[] operands = statement.getExpressionArguments();
+    if (operands.length != 1) return false;
+    GrExpression value = (GrExpression) operands[0];
     GradleDslElement propertyElement = getExpressionElement(pluginElement, value, GradleNameElement.from(operator, this), value);
     pluginElement.addParsedElement(propertyElement);
     return true;

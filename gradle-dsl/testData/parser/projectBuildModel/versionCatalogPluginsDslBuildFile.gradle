@@ -1,5 +1,5 @@
 plugins {
   alias libs.plugins.app apply false
-  alias(libs.plugins.lib) apply false
+  alias(libs.plugins.lib) apply(false)
   alias libs.plugins.com apply false
 }
