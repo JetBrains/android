@@ -280,6 +280,30 @@ class DeviceViewPanelModelTest {
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
   }
 
+  @Test
+  fun testAllNodesInvisible() {
+    val model = model {
+      view(ROOT, Rectangle(0, 0, 100, 200)) {
+        view(VIEW1, Rectangle(10, 10, 50, 100)) {
+          view(VIEW2, 10, 10, 10, 10)
+        }
+        view(VIEW3, 50, 50, 20, 20)
+      }
+    }
+    val treeSettings = FakeTreeSettings()
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
+    panelModel.layerSpacing = 0
+    model.showOnlySubtree(model[VIEW1]!!)
+    model.hideSubtree(model[VIEW1]!!)
+    panelModel.refresh()
+
+    assertThat(model.root.x).isEqualTo(0)
+    assertThat(model.root.y).isEqualTo(0)
+    assertThat(model.root.width).isEqualTo(0)
+    assertThat(model.root.height).isEqualTo(0)
+    assertThat(panelModel.maxWidth)
+  }
+
   private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
     val rectMap = mapOf(
       ROOT to Rectangle(0, 0, 100, 200),

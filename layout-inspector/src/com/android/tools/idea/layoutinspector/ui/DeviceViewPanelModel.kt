@@ -73,10 +73,12 @@ class DeviceViewPanelModel(
   private var visibleBounds: Rectangle = Rectangle()
   private var maxDepth: Int = 0
 
-  internal val maxWidth
+  @VisibleForTesting // was internal
+  val maxWidth
     get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.width.toFloat()).toInt()
 
-  internal val maxHeight
+  @VisibleForTesting // was internal
+  val maxHeight
     get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.height.toFloat()).toInt()
 
   val isRotated
@@ -183,14 +185,14 @@ class DeviceViewPanelModel(
         visibleBounds = model.root.flatten()
           .filter { model.isVisible(it) }
           .map { it.transitiveBounds.bounds }
-          .reduce { acc, bounds -> acc.apply { add(bounds) } }
+          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
 
         fun lowestVisible(node: ViewNode): Sequence<ViewNode> {
           return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
         }
 
         rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.transformedBounds.bounds }
-          .reduce { acc, bounds -> acc.apply { add(bounds) } }
+          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
 
       root.x = rootBounds.x
