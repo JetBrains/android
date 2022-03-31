@@ -53,7 +53,7 @@ internal class DevicesMonitorListener(
   private fun send(event: DeviceMonitorEvent) {
     @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
     producerScope.trySendBlocking(event).onFailure {
-      thisLogger().warn("Failed to send DeviceMonitorEvent")
+      thisLogger().warn("Failed to send DeviceMonitorEvent", it)
     }
   }
 }
