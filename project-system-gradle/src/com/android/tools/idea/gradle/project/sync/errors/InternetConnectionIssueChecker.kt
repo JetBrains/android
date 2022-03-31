@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -26,6 +27,7 @@ import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.util.function.Consumer
 
 class InternetConnectionIssueChecker : GradleIssueChecker {
@@ -42,7 +44,10 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.INTERNET_CONNECTION_ERROR)
     }
     return BuildIssueComposer(message).apply {
-      addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+      val project = fetchIdeaProjectForGradleProject(issueData.projectPath) ?: return@apply
+      if (GradleSettings.getInstance(project).isOfflineWork) {
+        addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+      }
     }.composeBuildIssue()
   }
 
