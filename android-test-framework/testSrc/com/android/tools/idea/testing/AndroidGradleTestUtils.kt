@@ -102,7 +102,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.sdk.IdeSdks
@@ -125,6 +124,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.internal.InternalExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -135,6 +135,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManagerImpl
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
@@ -166,11 +168,16 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
+import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
+import org.jetbrains.plugins.gradle.model.GradleExtensions
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
+import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -1315,6 +1322,9 @@ private fun setupTestProjectFromAndroidModelCore(
   mergeContentRoots(projectDataNode)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
+  val externalProjectData = InternalExternalProjectInfo(GradleConstants.SYSTEM_ID, rootProjectBasePath.path, projectDataNode)
+  (ExternalProjectsManager.getInstance(project) as ExternalProjectsManagerImpl).updateExternalProjectData(externalProjectData)
+
   ProjectDataManager.getInstance().importData(projectDataNode, project, true)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
@@ -1516,6 +1526,16 @@ private fun createJavaModuleDataNode(
   if (buildable) {
     setupSourceSet("main", isTest = false)
     setupSourceSet("test", isTest = true)
+
+    val gradleExtensions = DefaultGradleExtensions()
+    gradleExtensions.extensions.add(DefaultGradleExtension("java", "org.gradle.api.plugins.internal.DefaultJavaPluginExtension"));
+    moduleDataNode.addChild(
+      DataNode<GradleExtensions>(
+        GradleExtensionsDataService.KEY,
+        gradleExtensions,
+        null
+      )
+    )
   }
 
   if (buildable || gradlePath != ":") {

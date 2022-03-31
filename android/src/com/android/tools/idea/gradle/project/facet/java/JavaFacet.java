@@ -119,21 +119,6 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
     return Logger.getInstance(JavaFacet.class);
   }
 
-  @Nullable
-  public String getGradleTaskName(@NotNull BuildMode buildMode) {
-    if (!getConfiguration().BUILDABLE) {
-      return null;
-    }
-    switch (buildMode) {
-      case ASSEMBLE:
-        return DEFAULT_ASSEMBLE_TASK_NAME;
-      case COMPILE_JAVA:
-        return COMPILE_JAVA_TASK_NAME;
-      default:
-        return null;
-    }
-  }
-
   public void setJavaModuleModel(@NotNull JavaModuleModel javaModuleModel) {
     myJavaModuleModel = javaModuleModel;
   }

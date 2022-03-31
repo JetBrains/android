@@ -19,22 +19,25 @@ import static com.android.tools.idea.gradle.project.build.invoker.TestCompileTyp
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.createFullTaskName;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.findModule;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getBuildRootDir;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Arrays.stream;
 import static java.util.stream.Stream.concat;
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -65,10 +68,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.api.plugins.JavaPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder;
+import org.jetbrains.plugins.gradle.model.GradleExtensions;
+import org.jetbrains.plugins.gradle.model.GradleProperty;
+import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService;
+import org.jetbrains.plugins.gradle.util.GradleModuleData;
 
 public class GradleTaskFinder {
   @NotNull
@@ -284,16 +293,42 @@ public class GradleTaskFinder {
       }
     }
     else {
-      JavaFacet javaFacet = JavaFacet.getInstance(module);
-      if (javaFacet != null && javaFacet.getConfiguration().BUILDABLE) {
-        String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
-        if (gradleTaskName != null) {
-          tasks.add(createFullTaskName(gradlePath, gradleTaskName));
-        }
-        if (TestCompileType.UNIT_TESTS.equals(testCompileType) || TestCompileType.ALL.equals(testCompileType)) {
-          tasks.add(createFullTaskName(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
-        }
+      final String projectId = getExternalProjectId(module);
+      if (projectId == null) return;
+      String externalProjectPath = getExternalProjectPath(module);
+      if (externalProjectPath == null) return;
+
+      GradleModuleData gradleModuleData = CachedModuleDataFinder.getGradleModuleData(module);
+      if (gradleModuleData == null) return;
+
+      GradleExtensions extensions = gradleModuleData.findAll(GradleExtensionsDataService.KEY).stream().findFirst().orElse(null);
+      if (extensions == null) return;
+
+      // Check to see if the Java plugin is applied to this project
+      if (extensions.getExtensions().stream().map(GradleProperty::getName).noneMatch(name -> name.equals("java"))) {
+        return;
       }
+
+      String taskName = getGradleTaskName(buildMode);
+      if (taskName != null) {
+          tasks.add(createFullTaskName(gradlePath, taskName));
+
+        if (TestCompileType.UNIT_TESTS.equals(testCompileType) || TestCompileType.ALL.equals(testCompileType)) {
+            tasks.add(createFullTaskName(gradlePath, JavaPlugin.TEST_CLASSES_TASK_NAME));
+          }
+      }
+    }
+  }
+
+  @Nullable
+  public static String getGradleTaskName(@NotNull BuildMode buildMode) {
+    switch (buildMode) {
+      case ASSEMBLE:
+        return DEFAULT_ASSEMBLE_TASK_NAME;
+      case COMPILE_JAVA:
+        return COMPILE_JAVA_TASK_NAME;
+      default:
+        return null;
     }
   }
 
