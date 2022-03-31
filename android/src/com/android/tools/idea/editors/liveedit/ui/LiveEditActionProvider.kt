@@ -38,11 +38,11 @@ import com.intellij.openapi.editor.markup.InspectionWidgetActionProvider
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.NotNullProducer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -50,6 +50,7 @@ import java.awt.Insets
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.FontUIResource
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 class LiveEditActionProvider : InspectionWidgetActionProvider {
   override fun createAction(editor: Editor): AnAction? {
@@ -61,7 +62,8 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
       object : DefaultActionGroup(LiveEditAction(editor), Separator.create()) {
         override fun update(e: AnActionEvent) {
           val proj = e.project ?: return
-          if (!proj.isInitialized || PsiDocumentManager.getInstance(proj).getPsiFile(editor.document) == null) {
+          val psiFile = PsiDocumentManager.getInstance(proj).getPsiFile(editor.document)
+          if (!proj.isInitialized || psiFile == null || !psiFile.virtualFile.isKotlinFileType() || !editor.document.isWritable) {
             e.presentation.isEnabledAndVisible = false
             return
           }
@@ -124,4 +126,7 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
   companion object {
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
   }
+
+  internal fun VirtualFile.isKotlinFileType(): Boolean =
+    extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
 }
