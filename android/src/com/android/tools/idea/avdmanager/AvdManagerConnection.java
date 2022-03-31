@@ -109,7 +109,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
@@ -128,6 +127,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -169,8 +169,8 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static final Map<Path, AvdManagerConnection> ourAvdCache = ContainerUtil.createWeakMap();
-  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = ContainerUtil.createWeakMap();
+  private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
+  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
   private static long ourMemorySize = -1;
 
   private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =

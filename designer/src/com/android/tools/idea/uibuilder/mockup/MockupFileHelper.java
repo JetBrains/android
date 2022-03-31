@@ -26,7 +26,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ public class MockupFileHelper {
   public static final Set<String> VALID_EXTENSION = new HashSet<>(Arrays.asList("psd", "png", "jpg"));
   public static final Logger LOGGER = Logger.getInstance(MockupFileHelper.class);
 
-  private static final Map<String, Image> IMAGE_CACHE = ContainerUtil.createWeakMap();
+  private static final Map<String, Image> IMAGE_CACHE = new WeakHashMap<>();
 
   @Nullable
   public static Image openImageFile(String path) {

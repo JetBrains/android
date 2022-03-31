@@ -22,12 +22,12 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class LayoutNavigationManager implements Disposable {
@@ -36,7 +36,7 @@ public class LayoutNavigationManager implements Disposable {
    * The map associate a "destination" file with a "source" file.
    * It is used to navigate back from the destination editor the source editor.
    */
-  private static final Map<VirtualFile, VirtualFile> ourNavigationCache = ContainerUtil.createWeakMap();
+  private static final Map<VirtualFile, VirtualFile> ourNavigationCache = new WeakHashMap<>();
 
   private final Project myProject;
 

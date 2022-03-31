@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ContainerUtil;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A wrapper class which manages a {@link DeviceManager} instance and provides convenience functions
@@ -51,7 +51,7 @@ public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<Path, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static Map<Path, DeviceManagerConnection> ourCache = new WeakHashMap<>();
   private DeviceManager ourDeviceManager;
   @Nullable private Path mySdkPath;
 
