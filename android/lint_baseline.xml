@@ -6,7 +6,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="310"/>
+            line="341"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="55"/>
+            line="61"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="57"/>
+            line="63"/>
     </issue>
 
     <issue
@@ -94,7 +94,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="58"/>
+            line="64"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="62"/>
+            line="68"/>
     </issue>
 
     <issue
@@ -362,14 +362,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/project/build/output/BuildOutputParserWrapper.kt"
-            line="42"/>
-    </issue>
-
-    <issue
         id="UseValueOf"
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
@@ -486,7 +478,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="827"/>
+            line="832"/>
     </issue>
 
     <issue

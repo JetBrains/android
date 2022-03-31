@@ -550,7 +550,6 @@
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager" />
     <projectService serviceImplementation="com.android.tools.idea.ndk.NativeWorkspaceService" />
 
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
@@ -674,10 +673,6 @@
     <refactoring.safeDeleteProcessor
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
-
-    <!-- Custom BuildOutputParsers, runs first so that it has higher priority to handle messages than other parsers provided by external system -->
-    <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
-                                        id="gradle" order="first"/>
 
     <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.namespaces.ResourcePackageGroupingRuleProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
@@ -821,10 +816,6 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">
     <wizardTemplateProvider implementation="com.android.tools.idea.wizard.template.impl.WizardTemplateProviderImpl" />
-  </extensions>
-
-  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <issueChecker implementation="com.android.tools.idea.gradle.project.build.output.DataBindingIssueChecker"/>
   </extensions>
 
   <applicationListeners>
