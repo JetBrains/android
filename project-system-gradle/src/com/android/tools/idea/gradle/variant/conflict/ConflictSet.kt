@@ -27,6 +27,7 @@ import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
@@ -119,7 +120,7 @@ class ConflictSet private constructor(
               .mapNotNull {
                 val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 val targetModule =
-                  modulesByPath[it.getGradleProjectPath().copy(sourceSet = null)] ?: return@mapNotNull null
+                  modulesByPath[it.getGradleProjectPath().toHolder()] ?: return@mapNotNull null
                 val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
                 if (selectedVariant == targetVariant) null
                 else RawConflict(module, selectedVariant, targetModule, targetVariant)

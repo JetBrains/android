@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPathCore
+import com.android.tools.idea.projectsystem.gradle.internalGetGradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -63,6 +63,6 @@ fun getSelectedVariantDetails(androidModel: GradleAndroidModel, ndkModel: NdkMod
 private fun Module.getModuleId(): String? {
   // Android Studio internally use paths as they are returned by models, however to avoid ambiguity communication between
   // the code injected into the Gradle process and the IDE uses canonical paths.
-  val gradleProjectPath = getGradleProjectPathCore(useCanonicalPath = true) ?: return null
+  val gradleProjectPath = internalGetGradleProjectPath(useCanonicalPath = true) ?: return null
   return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
 }

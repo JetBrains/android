@@ -32,12 +32,10 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
@@ -46,6 +44,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
@@ -105,6 +104,7 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
@@ -1894,7 +1894,7 @@ fun Project.requestSyncAndWait() {
  */
 private fun setupDataNodesForSelectedVariant(
   project: Project,
-  buildId: String,
+  buildId: @SystemIndependent String,
   androidModuleModels: List<GradleAndroidModel>,
   projectDataNode: DataNode<ProjectData>
 ) {
@@ -1911,7 +1911,7 @@ private fun setupDataNodesForSelectedVariant(
     moduleNode.setupCompilerOutputPaths(newVariant)
     // Then patch in any Kapt generated sources that we need
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
-    moduleNode.setupAndroidDependenciesForMpss({ path: GradleProjectPath -> moduleIdToDataMap[path] }, { id ->
+    moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { id ->
       AdditionalArtifactsPaths(
         libraryFilePaths.getCachedPathsForArtifact(id)?.sources,
         libraryFilePaths.getCachedPathsForArtifact(id)?.javaDoc,
@@ -1923,16 +1923,16 @@ private fun setupDataNodesForSelectedVariant(
 }
 
 private fun createGradleProjectPathToModuleDataMap(
-  buildId: String,
+  buildId: @SystemIndependent String,
   moduleNodes: Collection<DataNode<ModuleData>>
-): Map<GradleProjectPath, ModuleData> {
+): Map<GradleSourceSetProjectPath, ModuleData> {
   return moduleNodes
     .flatMap { moduleDataNode ->
       ExternalSystemApiUtil.findAll(moduleDataNode, GradleSourceSetData.KEY)
         .mapNotNull {
           it.data.getIdeModuleSourceSet()
-            ?.let { sourceSet ->
-              GradleProjectPath(
+            .let { sourceSet ->
+              GradleSourceSetProjectPath(
                 buildId,
                 if (toSystemIndependentName(moduleDataNode.data.linkedExternalProjectPath) == buildId) ":"
                 else moduleDataNode.data.id,

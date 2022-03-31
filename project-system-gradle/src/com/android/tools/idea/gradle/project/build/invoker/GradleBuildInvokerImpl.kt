@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN
 import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPathCore
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ListMultimap
 import com.google.common.util.concurrent.Futures
@@ -112,7 +112,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     val projectRootPaths: Set<File> =
       ModuleManager.getInstance(project)
         .modules
-        .mapNotNull { module -> module.getGradleProjectPathCore()?.buildRoot?.let(::File) }
+        .mapNotNull { module -> module.getGradleProjectPath()?.buildRoot?.let(::File) }
         .toSet()
     return combineGradleInvocationResults(
       projectRootPaths
@@ -167,7 +167,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     val modulesByRootProject: Map<Path, List<Module>> =
       assembledModules
         .mapNotNull { module ->
-          module.getGradleProjectPathCore()?.let { module to it.buildRootDir.toPath() }
+          module.getGradleProjectPath()?.let { module to it.buildRootDir.toPath() }
         }
         .groupBy { it.second }
         .mapValues { it.value.map { it.first } }

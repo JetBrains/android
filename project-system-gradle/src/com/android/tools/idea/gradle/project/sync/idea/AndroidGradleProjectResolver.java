@@ -44,6 +44,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Collections.emptyList;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
@@ -88,6 +89,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.utils.StringHelper;
@@ -253,8 +255,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         IdeModuleSourceSet sourceSet = ModuleUtil.getIdeModuleSourceSet(node.getData());
 
         if (sourceSet.getCanBeConsumed()) {
-          GradleProjectPath gradleProjectPath = new GradleProjectPath(
-            projectIdentifier.getBuildIdentifier().getRootDir().getPath(),
+          GradleProjectPath gradleProjectPath = new GradleSourceSetProjectPath(
+            toSystemIndependentName(projectIdentifier.getBuildIdentifier().getRootDir().getPath()),
             projectIdentifier.getProjectPath(),
             sourceSet
           );

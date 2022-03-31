@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -159,7 +160,7 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
           value?.let {
             val buildId = value.buildRoot.let(::File).relativeToOrSelf(root).path.nullize()?.let { "[$it]" }.orEmpty()
             val gradlePath = value.path
-            val sourceSet = value.sourceSet?.let { "/$it" }.orEmpty()
+            val sourceSet = (value as? GradleSourceSetProjectPath)?.sourceSet?.let { "/$it" }.orEmpty()
             " ${buildId}$gradlePath$sourceSet"
           } ?: ""
         }"

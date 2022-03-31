@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -29,8 +28,10 @@ import com.android.tools.idea.gradle.project.sync.applyChange
 import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -180,13 +181,13 @@ private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndA
 }
 
 private class AndroidModule(
-  val gradleProjectPath: GradleProjectPath,
+  val gradleProjectPath: GradleHolderProjectPath,
   val module: DataNode<out ModuleData>,
   val androidModel: GradleAndroidModel
 )
 
 private class AndroidModules(
-  val modulesByGradleProjectPath: Map<GradleProjectPath, AndroidModule>,
+  val modulesByGradleProjectPath: Map<GradleHolderProjectPath, AndroidModule>,
   val projectData: ProjectData
 )
 
@@ -211,16 +212,15 @@ private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Se
               it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty() +
               it.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
             }
-            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).copy(sourceSet = null)] }
+            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).toHolder()] }
         )
         queue.addAll(
           head.androidModel.androidProject.dynamicFeatures
             // TODO: Fix support for dynamic features in included builds.
             .mapNotNull { dynamicFeatureId ->
-              modulesByGradleProjectPath[GradleProjectPath(
+              modulesByGradleProjectPath[GradleHolderProjectPath(
                 head.gradleProjectPath.buildRoot,
-                dynamicFeatureId,
-                null
+                dynamicFeatureId
               )]
             }
         )
@@ -243,15 +243,14 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
       val rootProjectName = moduleId.substringBefore(':', moduleId)
       val projectPath = ":" + moduleId.substringAfter(':', "")
       AndroidModule(
-        gradleProjectPath = GradleProjectPath((
-                                                if (rootProjectName == "") this.data.linkedExternalProjectPath
-                                                else roots[rootProjectName]?.data?.linkedExternalProjectPath
-                                              ) ?: error("Cannot find root module data: $rootProjectName"),
-                                              projectPath,
-                                              null
+        gradleProjectPath = GradleHolderProjectPath(
+          (if (rootProjectName == "") this.data.linkedExternalProjectPath
+          else roots[rootProjectName]?.data?.linkedExternalProjectPath) ?: error("Cannot find root module data: $rootProjectName"),
+          projectPath
         ),
         module = node,
-        androidModel = androidModel)
+        androidModel = androidModel
+      )
     }.associateBy { it.gradleProjectPath },
     data
   )

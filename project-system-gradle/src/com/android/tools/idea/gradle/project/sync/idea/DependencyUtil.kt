@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -104,15 +105,15 @@ catch (e: UnsupportedMethodException) {
  */
 fun computeModuleIdForLibraryTarget(
   library: IdeModuleDependency
-): GradleProjectPath {
+): GradleSourceSetProjectPath {
   val libraryBuildId = toSystemIndependentName(library.buildId)
-  return GradleProjectPath(libraryBuildId, library.projectPath, library.sourceSet)
+  return GradleSourceSetProjectPath(libraryBuildId, library.projectPath, library.sourceSet)
 }
 
 private class AndroidDependenciesSetupContext(
   private val moduleDataNode: DataNode<out ModuleData>,
   private val projectDataNode: DataNode<ProjectData>,
-  private val gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
+  private val gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
   private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>,
@@ -276,7 +277,7 @@ private class AndroidDependenciesSetupContext(
 }
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
-  gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
+  gradleProjectPathToModuleData: (GradleSourceSetProjectPath) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   androidModel: AndroidModuleModel,
   variant: IdeVariant,
