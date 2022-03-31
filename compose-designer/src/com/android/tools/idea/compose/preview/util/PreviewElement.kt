@@ -153,7 +153,7 @@ internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, t
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  !isInTestFile() && isValidPreviewLocation() && this.toUElementOfType<UMethod>()?.let { hasPreviewElements(it) } == true
+  !isInTestFile() && isValidPreviewLocation() && this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,

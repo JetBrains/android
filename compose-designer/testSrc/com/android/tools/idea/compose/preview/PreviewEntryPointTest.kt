@@ -16,9 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -27,15 +29,13 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class PreviewEntryPointTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+class PreviewEntryPointTest(val previewAnnotationPackage: String, val composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
     val namespaces = namespaceVariations
   }
-
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
@@ -47,12 +47,17 @@ class PreviewEntryPointTest(previewAnnotationPackage: String, composableAnnotati
     fixture.enableInspections(UnusedSymbolInspection() as InspectionProfileEntry)
   }
 
+  @After
+  fun tearDown() {
+    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
+  }
+
   @Test
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val fileContent = """
-      import androidx.compose.Composable
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationPackage.Composable
+      import $previewAnnotationPackage.Preview
 
       @Composable
       @Preview
@@ -69,6 +74,41 @@ class PreviewEntryPointTest(previewAnnotationPackage: String, composableAnnotati
 
       @Preview
       fun NotAComposable() {
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals("Function \"NotUsed\" is never used",
+                 fixture.doHighlighting().single { it?.description?.startsWith("Function") ?: false }.description)
+  }
+
+  @Test
+  fun testFindPreviewAnnotationsMultiPreview() {
+    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+    @Language("kotlin")
+    val fileContent = """
+      import $composableAnnotationPackage.Composable
+      import $previewAnnotationPackage.Preview
+
+      @Preview
+      annotation class MyAnnotation
+
+      annotation class MyEmptyAnnotation
+
+      @Composable
+      @MyAnnotation
+      fun Preview1() {
+      }
+
+      @Composable
+      @MyAnnotation
+      @MyEmptyAnnotation
+      fun Preview2() {
+      }
+
+      @Composable
+      @MyEmptyAnnotation
+      fun NotUsed() {
       }
     """.trimIndent()
 

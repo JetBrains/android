@@ -96,7 +96,7 @@ internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Thr
  * Returns true if the [uMethod] is annotated with a @Preview annotation, taking in consideration
  * indirect annotations with multipreview when the flag is enabled
  */
-internal fun hasPreviewElements(uMethod: UMethod) = getPreviewElements(uMethod).firstOrNull() != null
+internal fun UMethod?.hasPreviewElements() = this?.let { getPreviewElements(it).firstOrNull() } != null
 
 /**
  * Given a Composable method, return a sequence of [PreviewElement] corresponding to its Preview annotations

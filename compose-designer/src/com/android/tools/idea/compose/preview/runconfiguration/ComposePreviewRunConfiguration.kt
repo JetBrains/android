@@ -156,7 +156,7 @@ open class ComposePreviewRunConfiguration(
     JavaPsiFacade.getInstance(project).findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
       ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
       ?.forEach { method ->
-        if (method.toUElementOfType<UMethod>()?.let { hasPreviewElements(it) } == true) return@isValidComposableSet true
+        if (method.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true) return@isValidComposableSet true
       }
 
     return false
