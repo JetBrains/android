@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.runWriteActionAndWait
-import com.google.common.base.Stopwatch
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeout
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.idea.util.module
@@ -54,17 +49,16 @@ private suspend fun PsiFile.saveIfNeeded() {
 }
 
 /**
- * Starts a new fast compilation for the current file in the Preview. The returned [CompletableDeferred] will complete
- * with the result of the compilation.
+ * Starts a new fast compilation for the current file in the Preview and returns the result of the compilation.
  */
-fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile): Deferred<CompilationResult> {
-  val contextModule = file.module ?: return CompletableDeferred<CompilationResult>().apply { completeExceptionally(Throwable("No module")) }
+suspend fun fastCompile(parentDisposable: Disposable, file: PsiFile): CompilationResult = coroutineScope {
+  val contextModule = file.module ?: throw Throwable("No module")
   val project = file.project
   val deferred = CompletableDeferred<CompilationResult>()
 
-  object : Task.Backgroundable(project, message("notification.compiling"), false) {
+  object : Task.Backgroundable(project, message("notification.compiling"), true) {
     override fun run(indicator: ProgressIndicator) {
-      AndroidCoroutineScope(parentDisposable).async {
+      AndroidCoroutineScope(parentDisposable).launch {
         file.saveIfNeeded()
 
         val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
@@ -78,5 +72,6 @@ fun fastCompileAsync(parentDisposable: Disposable, file: PsiFile): Deferred<Comp
       }.asCompletableFuture().join()
     }
   }.queue()
-  return deferred
+
+  return@coroutineScope deferred.await()
 }

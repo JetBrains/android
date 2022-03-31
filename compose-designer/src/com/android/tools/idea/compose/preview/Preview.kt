@@ -31,7 +31,7 @@ import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
-import com.android.tools.idea.compose.preview.fast.fastCompileAsync
+import com.android.tools.idea.compose.preview.fast.fastCompile
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
@@ -51,9 +51,9 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
+import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
-import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -97,16 +97,20 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -707,7 +711,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * Initializes the flows that will listen to different events and will call [requestRefresh].
    */
-  @OptIn(ExperimentalCoroutinesApi::class)
+  @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
   private fun initializeFlows() = activationLock.withLock {
     activationScope?.cancel()
     with(createChildScope(true)) {
@@ -774,15 +778,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Flow handling file changes.
       launch(workerThread) {
         val psiFile = psiFilePointer.element ?: return@launch
-        disposableCallbackFlow<Unit>("ChangeListenerFlow", LOG, this@ComposePreviewRepresentation) {
-          setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
-        }.collectLatest {
-          if (FastPreviewManager.getInstance(project).isAvailable) {
-            requestFastPreviewRefreshAsync()?.let {
-              it.await() // Wait for this compilation to complete before processing any new ones
+        documentChangeFlow(psiFile, this@ComposePreviewRepresentation, LOG)
+          .debounce {
+            // The debounce timer is smaller when running with Fast Preview so the changes are more responsive to typing.
+            if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
+          }
+          .conflate()
+          .collectLatest {
+            if (FastPreviewManager.getInstance(project).isEnabled) {
+              try {
+                requestFastPreviewRefresh()
+              } catch(_: Throwable) {
+                // Ignore any cancellation exceptions
+              }
               return@collectLatest
             }
-          }
 
           if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
         }
@@ -1210,21 +1220,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private fun shouldQuickRefresh() =
     !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && renderedElements.count() == 1
 
-  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>? {
+  private suspend fun requestFastPreviewRefresh(): CompilationResult? = coroutineScope {
     val currentStatus = status()
-    if (!currentStatus.hasSyntaxErrors && !currentStatus.isRefreshing && currentStatus.isOutOfDate) {
+    if (!currentStatus.hasSyntaxErrors) {
       psiFilePointer.element?.let {
-        return@requestFastPreviewRefreshAsync activationScope?.async {
-          val result = fastCompileAsync(this@ComposePreviewRepresentation, it).await()
-          if (result is CompilationResult.Success) {
-            forceRefresh()
-          }
-
-          return@async result
+        val result = fastCompile(this@ComposePreviewRepresentation, it)
+        if (result is CompilationResult.Success) {
+          forceRefresh()
         }
+        return@coroutineScope result
       }
     }
 
-    return null
+    return@coroutineScope null
   }
+
+  override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?> =
+    activationScope?.async { requestFastPreviewRefresh() } ?: CompletableDeferred(null)
 }

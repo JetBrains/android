@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -25,8 +28,16 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.update.MergingUpdateQueue
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -201,5 +212,38 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
     assertEquals(1, saveCount)
+  }
+
+  fun testChangeFlow(): Unit = runBlocking {
+    @Language("kotlin")
+    val startFileContent = """
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
+    """.trimIndent()
+    val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
+    val ready = CompletableDeferred<Unit>()
+    val changes = async(workerThread) {
+      documentChangeFlow(composeTest, testRootDisposable, onReady = { ready.complete(Unit) })
+        .take(3).toList()
+    }
+    ready.await()
+
+    repeat(3) {
+      runWriteAction {
+        composeTest.runOnDocument { _, document ->
+          document.insertString(0, "// Just a comment\n")
+          PsiDocumentManager.getInstance(project).commitDocument(document)
+        }
+      }
+    }
+
+    withTimeout(TimeUnit.SECONDS.toMillis(3)) {
+      assertEquals(3, changes.await().size)
+    }
   }
 }

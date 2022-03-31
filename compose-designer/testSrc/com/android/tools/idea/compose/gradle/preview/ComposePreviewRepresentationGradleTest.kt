@@ -331,7 +331,7 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
-      val result = composePreviewRepresentation.requestFastPreviewRefreshAsync()?.await()
+      val result = composePreviewRepresentation.requestFastPreviewRefreshAsync().await()
       ?: fail("fast preview refresh request was rejected")
 
       assertTrue(result is CompilationResult.Success)

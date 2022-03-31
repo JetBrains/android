@@ -482,14 +482,16 @@ class FastPreviewManager private constructor(
     }
 
     // Notify any error/success into the event log
-    val buildMessage = if (result.isSuccess)
-      message("event.log.fast.preview.build.successful", durationString)
-    else
-      message("event.log.fast.preview.build.failed", durationString)
-    Notification(PREVIEW_NOTIFICATION_GROUP_ID,
-                 buildMessage,
-                 if (result.isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
-      .notify(project)
+    if (result !is CompilationResult.CompilationAborted) {
+      val buildMessage = if (result.isSuccess)
+        message("event.log.fast.preview.build.successful", durationString)
+      else
+        message("event.log.fast.preview.build.failed", durationString)
+      Notification(PREVIEW_NOTIFICATION_GROUP_ID,
+                   buildMessage,
+                   if (result.isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
+        .notify(project)
+    }
 
     if (result.isSuccess) {
       // The project has built successfully so we can drop the constants that we were keeping.

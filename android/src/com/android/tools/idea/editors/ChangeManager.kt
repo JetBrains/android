@@ -1,6 +1,7 @@
 package com.android.tools.idea.editors
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.intellij.AppTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ReadAction
@@ -160,3 +161,21 @@ fun setupOnSaveListener(
     }
   })
 }
+
+/**
+ * Returns a new flow that gets all the document changes for the given [psiFile]. The flow is cancelled if the [parentDisposable] is disposed.
+ * [onReady] will be called when the flow is ready to start processing events from the document.
+ */
+fun documentChangeFlow(psiFile: PsiFile, parentDisposable: Disposable, log: Logger? = null, onReady: () -> Unit = {}) =
+  disposableCallbackFlow<Long>("ChangeListenerFlow", log, parentDisposable) {
+    val documentManager = PsiDocumentManager.getInstance(psiFile.project)
+    val document = ReadAction.compute<Document, Throwable> { documentManager.getDocument(psiFile)!! }
+    document.addDocumentListener(
+      object : DocumentListener {
+        override fun documentChanged(event: DocumentEvent) {
+          trySend(event.document.modificationStamp)
+        }
+      },
+      disposable)
+    onReady()
+  }
