@@ -131,16 +131,43 @@ interface IdeJavaLibrary: IdeArtifactLibrary {
 }
 
 /**
- * A source set in an Android module.
+ * A source set in an IDE module group.
  */
-enum class IdeModuleSourceSet(val sourceSetName: String, val canBeConsumed: Boolean) {
-  MAIN("main", true),
-  TEST_FIXTURES("testFixtures", true),
-  UNIT_TEST("unitTest", false),
-  ANDROID_TEST("androidTest", false),
+interface IdeModuleSourceSet {
+  val sourceSetName: String
+  val canBeConsumed: Boolean
 }
 
-interface IdeModuleLibrary: IdeLibrary {
+/**
+ * An Android or Java well-known source set in an IDE module group.
+ *
+ * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java and KMP worlds source set
+ * naming is more flexible. Note tha in case of source set name collision the original intent is assumed.
+ */
+enum class IdeModuleWellKnownSourceSet(
+  override val sourceSetName: String,
+  override val canBeConsumed: Boolean
+) : IdeModuleSourceSet {
+  /**
+  * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other
+  * project would depend on unless intentionally changed in the Gradle configuration.
+  */
+  MAIN("main", true),
+
+  /**
+   * A source set with text fixtures supported by the Android Gradle plugin and 'java-test-fixtures' plugin.
+   */
+  TEST_FIXTURES("testFixtures", true),
+
+  UNIT_TEST("unitTest", false),
+  ANDROID_TEST("androidTest", false);
+
+  companion object {
+    fun fromName(name: String): IdeModuleWellKnownSourceSet? = values().firstOrNull { it.sourceSetName == name }
+  }
+}
+
+interface IdeModuleLibrary : IdeLibrary {
   /**
    * Returns the gradle path.
    */

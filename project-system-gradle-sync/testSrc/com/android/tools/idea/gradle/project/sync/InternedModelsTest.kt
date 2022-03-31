@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -110,7 +111,7 @@ class InternedModelsTest {
       projectPath = ":app",
       variant = "debug",
       lintJar = null,
-      sourceSet = IdeModuleSourceSet.MAIN
+      sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
 
     val copy = module.copy()

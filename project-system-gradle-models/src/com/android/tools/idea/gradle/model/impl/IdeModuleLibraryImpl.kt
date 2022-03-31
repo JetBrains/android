@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import org.jetbrains.annotations.TestOnly
@@ -35,7 +36,7 @@ data class IdeModuleLibraryImpl(
     projectPath = "",
     variant = null,
     lintJar = null,
-    sourceSet = IdeModuleSourceSet.MAIN
+    sourceSet = IdeModuleWellKnownSourceSet.MAIN
   )
 
   constructor(
@@ -46,7 +47,7 @@ data class IdeModuleLibraryImpl(
     projectPath = projectPath,
     variant = null,
     lintJar = null,
-    sourceSet = IdeModuleSourceSet.MAIN
+    sourceSet = IdeModuleWellKnownSourceSet.MAIN
   )
 
   @get:TestOnly

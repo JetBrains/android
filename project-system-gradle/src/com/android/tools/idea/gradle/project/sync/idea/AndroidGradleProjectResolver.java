@@ -63,6 +63,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -251,7 +252,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       sourceSetNodes.forEach(node -> {
         IdeModuleSourceSet sourceSet = ModuleUtil.getIdeModuleSourceSet(node.getData());
 
-        if (sourceSet != null && sourceSet.getCanBeConsumed()) {
+        if (sourceSet.getCanBeConsumed()) {
           GradleProjectPath gradleProjectPath = new GradleProjectPath(
             projectIdentifier.getBuildIdentifier().getRootDir().getPath(),
             projectIdentifier.getProjectPath(),

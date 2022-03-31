@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
@@ -119,7 +119,7 @@ class ConflictSet private constructor(
               .mapNotNull {
                 val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 val targetModule =
-                  modulesByPath[it.getGradleProjectPath().copy(sourceSet = IdeModuleSourceSet.MAIN)] ?: return@mapNotNull null
+                  modulesByPath[it.getGradleProjectPath().copy(sourceSet = null)] ?: return@mapNotNull null
                 val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
                 if (selectedVariant == targetVariant) null
                 else RawConflict(module, selectedVariant, targetModule, targetVariant)

@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.utils.appendCapitalized
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -93,14 +94,14 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
  */
 private fun KotlinMPPGradleModel.androidCompilationsForVariant(
   variant: String
-): List<Pair<IdeModuleSourceSet, KotlinCompilation>> {
+): List<Pair<IdeModuleWellKnownSourceSet, KotlinCompilation>> {
   return targets
     .asSequence()
     .flatMap { it.compilations.asSequence() }
     .filter { it.platform == KotlinPlatform.ANDROID }
     .mapNotNull { androidKotlinCompilation ->
       val sourceSet =
-        IdeModuleSourceSet.values().find { variant + it.androidCompilationNameSuffix() == androidKotlinCompilation.name }
+        IdeModuleWellKnownSourceSet.values().find { variant + it.androidCompilationNameSuffix() == androidKotlinCompilation.name }
           ?: return@mapNotNull null
       sourceSet to androidKotlinCompilation
     }
@@ -117,21 +118,21 @@ private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<Gradle
  * Usually there are multiple Kotlin source sets representing one [IdeModuleSourceSet]. For example, for [IdeModuleSourceSet.ANDROID_TEST]
  * there might be `androidAndroidTest` and `androidAndroidTestDebug`.
  */
-private fun IdeModuleSourceSet.getRootKotlinSourceSet(compilation: KotlinCompilation): KotlinSourceSet? {
+private fun IdeModuleWellKnownSourceSet.getRootKotlinSourceSet(compilation: KotlinCompilation): KotlinSourceSet? {
   val sourceSetName = compilation.disambiguationClassifier.orEmpty().appendCapitalized(kmpSourceSetSuffix())
   return compilation.declaredSourceSets.singleOrNull { it.name == sourceSetName }
 }
 
-private fun IdeModuleSourceSet.androidCompilationNameSuffix() = when (this) {
-  IdeModuleSourceSet.MAIN -> ""
-  IdeModuleSourceSet.ANDROID_TEST -> "AndroidTest"
-  IdeModuleSourceSet.UNIT_TEST -> "UnitTest"
-  IdeModuleSourceSet.TEST_FIXTURES -> "TestFixtures"
+private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (this) {
+  IdeModuleWellKnownSourceSet.MAIN -> ""
+  IdeModuleWellKnownSourceSet.ANDROID_TEST -> "AndroidTest"
+  IdeModuleWellKnownSourceSet.UNIT_TEST -> "UnitTest"
+  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "TestFixtures"
 }
 
-private fun IdeModuleSourceSet.kmpSourceSetSuffix() = when (this) {
-  IdeModuleSourceSet.MAIN -> "main"
-  IdeModuleSourceSet.ANDROID_TEST -> "androidTest"
-  IdeModuleSourceSet.UNIT_TEST -> "test"
-  IdeModuleSourceSet.TEST_FIXTURES -> "testFixtures"
+private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffix() = when (this) {
+  IdeModuleWellKnownSourceSet.MAIN -> "main"
+  IdeModuleWellKnownSourceSet.ANDROID_TEST -> "androidTest"
+  IdeModuleWellKnownSourceSet.UNIT_TEST -> "test"
+  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "testFixtures"
 }

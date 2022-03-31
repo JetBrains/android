@@ -18,13 +18,20 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.buildId
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.text.nullize
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.execution.GradleRunnerUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -35,10 +42,10 @@ data class GradleProjectPathCore(val buildRoot: @SystemIndependent String, val p
 
 data class GradleProjectPath(
   val core: GradleProjectPathCore,
-  val sourceSet: IdeModuleSourceSet
+  val sourceSet: IdeModuleSourceSet?
 ) {
-  constructor (buildRoot: File, path: String, sourceSet: IdeModuleSourceSet) : this(buildRoot.path, path, sourceSet)
-  constructor (buildRoot: @SystemIndependent String, path: String, sourceSet: IdeModuleSourceSet): this(
+  constructor (buildRoot: File, path: String, sourceSet: IdeModuleSourceSet?) : this(buildRoot.path, path, sourceSet)
+  constructor (buildRoot: @SystemIndependent String, path: String, sourceSet: IdeModuleSourceSet?): this(
       core = GradleProjectPathCore(FileUtil.toSystemIndependentName(buildRoot), path),
       sourceSet
   )
@@ -84,7 +91,38 @@ internal fun Module.getGradleProjectPathCore(useCanonicalPath: Boolean = false):
   return GradleProjectPathCore(FileUtils.toSystemIndependentPath(rootFolder.path), gradleProjectPath)
 }
 
-internal fun GradleProjectPathCore.toGradleProjectPath(): GradleProjectPath = GradleProjectPath(this,IdeModuleSourceSet.MAIN)
+fun Module.getGradleProjectPath(): GradleProjectPath? {
+  return CachedValuesManager.getManager(project).getCachedValue(this) {
+    val result = let {
 
-fun Module.getGradleProjectPath(): GradleProjectPath? = getGradleProjectPathCore()?.toGradleProjectPath()
+      val core = getGradleProjectPathCore() ?: return@let null
+      val sourceSetName =
+        if (getExternalModuleType(this) != GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY) null
+        else (ExternalSystemApiUtil.getExternalProjectId(this)?.substringAfterLast(':', "").nullize() ?: return@let null)
+      GradleProjectPath(core, sourceSetName?.let(IdeModuleSourceSetImpl::wellKnownOrCreate))
+    }
+    CachedValueProvider.Result.create(
+      result,
+      ProjectRootModificationTracker.getInstance(project)
+    )
+  }
+}
+
+fun Project.findModule(gradleProjectPath: GradleProjectPath): Module? {
+  return CachedValuesManager.getManager(this).getCachedValue(this) {
+    val moduleMap = ModuleManager.getInstance(this)
+      .modules
+      .mapNotNull {
+        (it.getGradleProjectPath() ?: return@mapNotNull null) to it
+      }
+      .toMap()
+    CachedValueProvider.Result.create(
+      moduleMap,
+      ProjectRootModificationTracker.getInstance(this)
+    )
+  }[gradleProjectPath]
+}
+
+fun GradleProjectPath.resolveIn(project: Project): Module? = project.findModule(this)
+
 internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath = GradleProjectPath(buildId, projectPath, sourceSet)

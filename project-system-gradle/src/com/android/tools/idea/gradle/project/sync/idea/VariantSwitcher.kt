@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -211,13 +211,17 @@ private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Se
               it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty() +
               it.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
             }
-            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency)] }
+            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).copy(sourceSet = null)] }
         )
         queue.addAll(
           head.androidModel.androidProject.dynamicFeatures
             // TODO: Fix support for dynamic features in included builds.
             .mapNotNull { dynamicFeatureId ->
-              modulesByGradleProjectPath[GradleProjectPath(head.gradleProjectPath.buildRoot, dynamicFeatureId, IdeModuleSourceSet.MAIN)]
+              modulesByGradleProjectPath[GradleProjectPath(
+                head.gradleProjectPath.buildRoot,
+                dynamicFeatureId,
+                null
+              )]
             }
         )
       }
@@ -244,7 +248,7 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
                                                 else roots[rootProjectName]?.data?.linkedExternalProjectPath
                                               ) ?: error("Cannot find root module data: $rootProjectName"),
                                               projectPath,
-                                              IdeModuleSourceSet.MAIN
+                                              null
         ),
         module = node,
         androidModel = androidModel)

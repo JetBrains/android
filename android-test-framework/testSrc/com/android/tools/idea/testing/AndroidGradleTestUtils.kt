@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -755,7 +756,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
               gradleProjectPath,
               variant,
               null,
-              IdeModuleSourceSet.MAIN
+              IdeModuleWellKnownSourceSet.MAIN
             )
           ),
           isProvided = false
@@ -817,7 +818,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
               gradleProjectPath,
               variant,
               null,
-              IdeModuleSourceSet.MAIN
+              IdeModuleWellKnownSourceSet.MAIN
             )
           ),
           isProvided = false
@@ -853,7 +854,7 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
           buildId = this.buildId,
           variant = it.variant,
           lintJar = null,
-          sourceSet = IdeModuleSourceSet.MAIN
+          sourceSet = IdeModuleWellKnownSourceSet.MAIN
         )
       ),
       isProvided = false
@@ -872,7 +873,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
             gradleProjectPath,
             variant,
             null,
-            IdeModuleSourceSet.MAIN
+            IdeModuleWellKnownSourceSet.MAIN
           )
         ),
         isProvided = false
