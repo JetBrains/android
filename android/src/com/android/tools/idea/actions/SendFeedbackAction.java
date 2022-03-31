@@ -29,8 +29,12 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.model.NdkModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -108,15 +112,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
-      sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
-      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
+      sb.append(String.format("AS: %1$s\n", ApplicationInfoEx.getInstanceEx().getFullVersion()));
+      sb.append(String.format("Kotlin plugin: %1$s\n", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
       if (project != null) {
-        sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
-        sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
+        sb.append(String.format("Android Gradle Plugin: %1$s\n", safeCall(() -> getGradlePluginDetails(project))));
+        sb.append(String.format("Gradle: %1$s\n", safeCall(() -> getGradleDetails(project))));
       }
-      sb.append(String.format("Gradle JDK: %1$s; ", safeCall(() -> getJdkDetails(project))));
-      sb.append(String.format("NDK: %1$s; ", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
-      sb.append(String.format("LLDB: %1$s; ", safeCall(() -> getLldbDetails(sdkHandler, progress))));
+      sb.append(String.format("Gradle JDK: %1$s\n", safeCall(() -> getJdkDetails(project))));
+      sb.append(String.format("NDK: %1$s\n", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
+      sb.append(String.format("LLDB: %1$s\n", safeCall(() -> getLldbDetails(sdkHandler, progress))));
       sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
       return sb.toString();
     });
@@ -165,6 +169,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
                                       @NotNull AndroidSdkHandler sdkHandler,
                                       @NotNull ProgressIndicator progress) {
     StringBuilder sb = new StringBuilder();
+    ProjectSystemUtil.getAndroidFacets(project).forEach(facet -> {
+      com.intellij.openapi.module.Module module = facet.getHolderModule();
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+        NdkModel ndkModel = ndkFacet.getNdkModuleModel().getNdkModel();
+        sb.append(String.format("from module: %1$s, ", ndkModel.getNdkVersion()));
+      }
+    });
+
     // Get version information from all the channels we know, and include it all into the bug to provide
     // the entire context.
     // NDK specified in local.properties (if any)
