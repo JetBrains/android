@@ -19,7 +19,6 @@ import com.android.io.CancellableFileIo;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.CollectionFactory;
 import com.intellij.util.lang.UrlClassLoader;
 import java.awt.*;
 import java.io.File;
@@ -28,6 +27,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,7 @@ public class PatchRunner {
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static final Map<@NotNull LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
+  private static final Map<@NotNull LocalPackage, PatchRunner> ourCache = new WeakHashMap<>();
 
   /**
    * Run the IJ patcher by reflection.
