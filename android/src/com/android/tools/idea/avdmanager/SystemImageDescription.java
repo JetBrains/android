@@ -19,6 +19,7 @@ import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
@@ -54,7 +55,7 @@ public final class SystemImageDescription {
 
   public static final Set<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableSet.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
                                                                             PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                            WEAR_TAG, CHROMEOS_TAG,
+                                                                            WEAR_TAG, DESKTOP_TAG, CHROMEOS_TAG,
                                                                             AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public SystemImageDescription(@NotNull ISystemImage systemImage) {
