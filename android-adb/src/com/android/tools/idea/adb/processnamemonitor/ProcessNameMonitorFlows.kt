@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.ddmlib.IDevice
+import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -25,4 +27,9 @@ internal interface ProcessNameMonitorFlows {
    * Track devices connecting and disconnecting.
    */
   fun trackDevices(): Flow<DeviceMonitorEvent>
+
+  /**
+   * Track clients being added & removed.
+   */
+  fun trackClients(device: IDevice): Flow<ClientMonitorEvent>
 }

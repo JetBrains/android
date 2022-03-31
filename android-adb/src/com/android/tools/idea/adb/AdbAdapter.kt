@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb
 
+import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 
@@ -27,4 +28,8 @@ interface AdbAdapter {
   fun addDeviceChangeListener(listener: IDeviceChangeListener)
 
   fun removeDeviceChangeListener(listener: IDeviceChangeListener)
+
+  fun addClientChangeListener(listener: IClientChangeListener)
+
+  fun removeClientChangeListener(listener: IClientChangeListener)
 }

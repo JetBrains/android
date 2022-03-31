@@ -16,12 +16,15 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 /**
- * Contains an Android process package name and process name
+ * Client tracking events
+ *
+ * @param addedProcesses A map (pid -> process name) of processes added on the devices
+ * @param removedProcesses A collection of processes removed from the device.
  */
-class ProcessNames(val packageName: String, val processName: String) {
-  fun isInitialized(): Boolean = packageName.isNotEmpty() && processName.isNotEmpty()
-
-  fun isNotInitialized(): Boolean = !isInitialized()
-
-  override fun toString(): String = "($packageName/$processName)"
+internal class ClientMonitorEvent(val addedProcesses: Map<Int, ProcessNames>, val removedProcesses: Collection<Int>) {
+  override fun toString(): String {
+    val added = addedProcesses.entries.joinToString(prefix = "Added: [", postfix = "]") { "${it.key}->${it.value}" }
+    val removed = removedProcesses.joinToString(prefix = "Removed: [", postfix = "]") { it.toString() }
+    return "$added $removed"
+  }
 }

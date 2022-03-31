@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.project.Project
@@ -33,5 +34,13 @@ class AdbAdapterImpl(private val project: Project) : AdbAdapter {
 
   override fun removeDeviceChangeListener(listener: IDeviceChangeListener) {
     AndroidDebugBridge.removeDeviceChangeListener(listener)
+  }
+
+  override fun addClientChangeListener(listener: IClientChangeListener) {
+    AndroidDebugBridge.addClientChangeListener(listener)
+  }
+
+  override fun removeClientChangeListener(listener: IClientChangeListener) {
+    AndroidDebugBridge.removeClientChangeListener(listener)
   }
 }

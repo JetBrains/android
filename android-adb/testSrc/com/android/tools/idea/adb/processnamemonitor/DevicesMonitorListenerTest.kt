@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.CHANGE_BUILD_INFO
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
-import com.android.ddmlib.IDevice.DeviceState
 import com.android.ddmlib.IDevice.DeviceState.DISCONNECTED
 import com.android.ddmlib.IDevice.DeviceState.FASTBOOTD
 import com.android.ddmlib.IDevice.DeviceState.OFFLINE
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.ddmlib.IDevice.DeviceState.UNAUTHORIZED
-import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
+import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +32,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import org.mockito.Mockito.`when`
 
 /**
  * Tests for [DevicesMonitorListener]
@@ -152,15 +148,4 @@ private suspend fun Flow<DeviceMonitorEvent>.toEventList(): List<String> {
       is Disconnected -> "${it.device.serialNumber} disconnected"
     }
   }
-}
-
-private fun mockDevice(serialNumber: String, state: DeviceState): IDevice {
-  return mock<IDevice>().also {
-    `when`(it.serialNumber).thenReturn(serialNumber)
-  }.setState(state)
-}
-
-private fun IDevice.setState(state: DeviceState): IDevice {
-  `when`(this.state).thenReturn(state)
-  return this
 }

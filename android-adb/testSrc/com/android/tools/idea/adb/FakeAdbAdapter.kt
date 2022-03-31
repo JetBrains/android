@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.adb
 
+import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
+import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.intellij.util.containers.ContainerUtil
 
@@ -26,6 +28,7 @@ internal class FakeAdbAdapter : AdbAdapter {
   var devices = listOf<IDevice>()
 
   val deviceChangeListeners = ContainerUtil.createConcurrentList<IDeviceChangeListener>()
+  val clientChangeListeners = ContainerUtil.createConcurrentList<IClientChangeListener>()
 
   fun fireDeviceConnected(device: IDevice) {
     deviceChangeListeners.forEach { it.deviceConnected(device) }
@@ -39,6 +42,12 @@ internal class FakeAdbAdapter : AdbAdapter {
     deviceChangeListeners.forEach { it.deviceChanged(device, changeMask) }
   }
 
+  fun fireClientChange(client: Client, changeMask: Int) {
+    clientChangeListeners.forEach {
+      it.clientChanged(client, changeMask)
+    }
+  }
+
   override suspend fun getDevices(): List<IDevice> = devices
 
   override fun addDeviceChangeListener(listener: IDeviceChangeListener) {
@@ -47,5 +56,13 @@ internal class FakeAdbAdapter : AdbAdapter {
 
   override fun removeDeviceChangeListener(listener: IDeviceChangeListener) {
     deviceChangeListeners.remove(listener)
+  }
+
+  override fun addClientChangeListener(listener: IClientChangeListener) {
+    clientChangeListeners.add(listener)
+  }
+
+  override fun removeClientChangeListener(listener: IClientChangeListener) {
+    clientChangeListeners.remove(listener)
   }
 }

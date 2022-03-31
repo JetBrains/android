@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.ddmlib.Client
 import com.android.ddmlib.Client.CHANGE_NAME
-import com.android.ddmlib.ClientData
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.channels.awaitClose
@@ -29,7 +25,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import org.mockito.Mockito.`when`
 
 /**
  * Tests for [ClientMonitorListener]
@@ -107,34 +102,4 @@ class ClientMonitorListenerTest {
 
 private suspend fun Flow<ClientEvent>.toStrings(): List<String> {
   return toList().map { it.toString() }
-}
-
-private fun mockDevice(serialNumber: String): IDevice {
-  return mock<IDevice>().also {
-    `when`(it.serialNumber).thenReturn(serialNumber)
-    `when`(it.clients).thenReturn(emptyArray())
-  }
-}
-
-private fun IDevice.withClients(vararg clients: Client): IDevice {
-  clients.forEach {
-    `when`(it.device).thenReturn(this)
-  }
-  `when`(this.clients).thenReturn(clients)
-  return this
-}
-
-private fun mockClient(pid: Int, packageName: String?, processName: String?): Client {
-  val clientData = mockClientData(pid, packageName, processName)
-  return mock<Client>().also {
-    `when`(it.clientData).thenReturn(clientData)
-  }
-}
-
-private fun mockClientData(pid: Int, packageName: String?, processName: String?): ClientData {
-  return mock<ClientData>().also {
-    `when`(it.pid).thenReturn(pid)
-    `when`(it.packageName).thenReturn(packageName)
-    `when`(it.clientDescription).thenReturn(processName)
-  }
 }

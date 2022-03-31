@@ -17,13 +17,12 @@
 
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.ddmlib.IDevice
+import com.android.ddmlib.Client.CHANGE_NAME
+import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
-import com.android.ddmlib.IDevice.DeviceState
 import com.android.ddmlib.IDevice.DeviceState.DISCONNECTED
 import com.android.ddmlib.IDevice.DeviceState.OFFLINE
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.FakeAdbAdapter
 import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
@@ -43,7 +42,6 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import java.io.Closeable
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -61,6 +59,10 @@ class ProcessNameMonitorFlowsImplTest {
   private val testScope = TestCoroutineScope(TestCoroutineDispatcher())
 
   private val eventChannel = Channel<String>(1)
+
+  private val client1 = mockClient(1, "package1", "process1")
+  private val client2 = mockClient(2, "package2", "process2")
+  private val client3 = mockClient(3, "package3", "process3")
 
   @Test
   fun trackDevices_noInitialDevices(): Unit = runBlocking {
@@ -137,6 +139,70 @@ class ProcessNameMonitorFlowsImplTest {
     waitForCondition(1, SECONDS) { adbAdapter.deviceChangeListeners.isEmpty() }
   }
 
+  @Test
+  fun trackClients_initialClients(): Unit = runBlocking {
+    val device = mockDevice("device", ONLINE).withClients(client1, client2)
+
+    collectFlowToChannel(processNameMonitorFlows.trackClients(device), eventChannel).use {
+      assertThat(eventChannel.receive()).isEqualTo("Added: [1->(package1/process1), 2->(package2/process2)] Removed: []")
+    }
+  }
+
+  @Test
+  fun trackClients_clientListChanged(): Unit = runBlocking {
+    val device = mockDevice("device", ONLINE)
+
+    collectFlowToChannel(processNameMonitorFlows.trackClients(device.withClients(client1)), eventChannel).use {
+      assertThat(eventChannel.receive()).isEqualTo("Added: [1->(package1/process1)] Removed: []")
+
+      adbAdapter.fireDeviceChange(device.withClients(client2, client3), CHANGE_CLIENT_LIST)
+      assertThat(eventChannel.receive()).isEqualTo("Added: [2->(package2/process2), 3->(package3/process3)] Removed: [1]")
+
+      adbAdapter.fireDeviceChange(device.withClients(client3), CHANGE_CLIENT_LIST)
+      assertThat(eventChannel.receive()).isEqualTo("Added: [] Removed: [2]")
+    }
+  }
+
+  @Test
+  fun trackClients_clientListChanged_otherDevice(): Unit = runBlocking {
+    val device1 = mockDevice("device1", ONLINE)
+    val device2 = mockDevice("device2", ONLINE)
+
+    collectFlowToChannel(processNameMonitorFlows.trackClients(device1.withClients(client1)), eventChannel).use {
+      assertThat(eventChannel.receive()).isEqualTo("Added: [1->(package1/process1)] Removed: []")
+
+      adbAdapter.fireDeviceChange(device2.withClients(client2, client3), CHANGE_CLIENT_LIST)
+      assertThat(withTimeoutOrNull(1000) { eventChannel.receive() }).named("Expected to time out").isNull()
+    }
+  }
+
+  @Test
+  fun trackClients_clientWithoutName(): Unit = runBlocking {
+    val client4 = mockClient(4, packageName = null, processName = null)
+    val device = mockDevice("device", ONLINE).withClients(client1, client4)
+
+    collectFlowToChannel(processNameMonitorFlows.trackClients(device), eventChannel).use {
+      assertThat(eventChannel.receive()).isEqualTo("Added: [1->(package1/process1)] Removed: []")
+
+      adbAdapter.fireClientChange(client4.withNames("package4", "process4"), CHANGE_NAME)
+      assertThat(eventChannel.receive()).isEqualTo("Added: [4->(package4/process4)] Removed: []")
+    }
+  }
+
+  @Test
+  fun trackClients_clientWithoutName_otherDevice(): Unit = runBlocking {
+    val client4Device1 = mockClient(4, packageName = null, processName = null)
+    val device1 = mockDevice("device1", ONLINE).withClients(client1, client4Device1)
+    val client4Device2 = mockClient(4, packageName = null, processName = null)
+    mockDevice("device2", ONLINE).withClients(client1, client4Device2)
+
+    collectFlowToChannel(processNameMonitorFlows.trackClients(device1), eventChannel).use {
+      assertThat(eventChannel.receive()).isEqualTo("Added: [1->(package1/process1)] Removed: []")
+
+      adbAdapter.fireClientChange(client4Device2.withNames("package4", "process4"), CHANGE_NAME)
+      assertThat(withTimeoutOrNull(1000) { eventChannel.receive() }).named("Expected to time out").isNull()
+    }
+  }
 
   /**
    * Collect a flow and sent the results into a channel (converting to String for easy debugging). Return the Job wrapped by a Closeable,
@@ -149,15 +215,5 @@ class ProcessNameMonitorFlowsImplTest {
         job.cancel()
       }
     }
-  }
-}
-
-private fun mockDevice(serialNumber: String, state: DeviceState = OFFLINE): IDevice {
-  return mock<IDevice>().also {
-    `when`(it.serialNumber).thenReturn(serialNumber)
-    `when`(it.toString()).thenReturn(serialNumber)
-    `when`(it.state).thenReturn(state)
-    `when`(it.isOnline).thenReturn(state == ONLINE)
-    `when`(it.isOffline).thenReturn(state != ONLINE)
   }
 }
