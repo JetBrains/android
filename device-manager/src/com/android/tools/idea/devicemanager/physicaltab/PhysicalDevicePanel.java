@@ -20,6 +20,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DevicePanel;
+import com.android.tools.idea.devicemanager.Devices;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -170,7 +171,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
     devices.addAll(onlineDevices);
 
     persistedDevices.stream()
-      .filter(persistedDevice -> PhysicalDevices.indexOf(onlineDevices, persistedDevice) == -1)
+      .filter(persistedDevice -> Devices.indexOf(onlineDevices, persistedDevice.getKey()) == -1)
       .forEach(devices::add);
 
     return devices;

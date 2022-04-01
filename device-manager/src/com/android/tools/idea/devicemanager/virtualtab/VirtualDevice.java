@@ -23,6 +23,7 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
+import java.util.Objects;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -194,5 +195,46 @@ public final class VirtualDevice extends Device {
 
   public @NotNull AvdInfo getAvdInfo() {
     return myAvdInfo;
+  }
+
+  @Override
+  public int hashCode() {
+    int hashCode = myKey.hashCode();
+
+    hashCode = 31 * hashCode + myType.hashCode();
+    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
+    hashCode = 31 * hashCode + myTarget.hashCode();
+    hashCode = 31 * hashCode + myCpuArchitecture.hashCode();
+    hashCode = 31 * hashCode + myAndroidVersion.hashCode();
+    hashCode = 31 * hashCode + Long.hashCode(mySizeOnDisk);
+    hashCode = 31 * hashCode + Objects.hashCode(myResolution);
+    hashCode = 31 * hashCode + myDensity;
+    hashCode = 31 * hashCode + myGetDefaultAvdManagerConnection.hashCode();
+    hashCode = 31 * hashCode + myAvdInfo.hashCode();
+
+    return hashCode;
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof VirtualDevice)) {
+      return false;
+    }
+
+    VirtualDevice device = (VirtualDevice)object;
+
+    return myKey.equals(device.myKey) &&
+           myType.equals(device.myType) &&
+           myName.equals(device.myName) &&
+           myOnline == device.myOnline &&
+           myTarget.equals(device.myTarget) &&
+           myCpuArchitecture.equals(device.myCpuArchitecture) &&
+           myAndroidVersion.equals(device.myAndroidVersion) &&
+           mySizeOnDisk == device.mySizeOnDisk &&
+           Objects.equals(myResolution, device.myResolution) &&
+           myDensity == device.myDensity &&
+           myGetDefaultAvdManagerConnection.equals(device.myGetDefaultAvdManagerConnection) &&
+           myAvdInfo.equals(device.myAvdInfo);
   }
 }

@@ -87,6 +87,10 @@ public abstract class Device {
     return myResolution;
   }
 
+  public final int getDensity() {
+    return myDensity;
+  }
+
   public final @Nullable Resolution getDp() {
     if (myDensity == -1) {
       return null;

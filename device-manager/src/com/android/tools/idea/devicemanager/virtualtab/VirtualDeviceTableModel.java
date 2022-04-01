@@ -19,7 +19,11 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.Devices;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
@@ -67,13 +71,45 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   }
 
   @VisibleForTesting
-  VirtualDeviceTableModel(@NotNull List<@NotNull VirtualDevice> devices) {
-    myDevices = devices;
+  VirtualDeviceTableModel(@NotNull Collection<@NotNull VirtualDevice> devices) {
+    myDevices = new ArrayList<>(devices);
+  }
+
+  @VisibleForTesting
+  @NotNull Object getDevices() {
+    return myDevices;
   }
 
   void setDevices(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
     fireTableDataChanged();
+  }
+
+  void setOnline(@NotNull Key key, boolean online) {
+    int modelRowIndex = Devices.indexOf(myDevices, key);
+
+    if (modelRowIndex == -1) {
+      return;
+    }
+
+    VirtualDevice oldDevice = myDevices.get(modelRowIndex);
+
+    VirtualDevice newDevice = new VirtualDevice.Builder()
+      .setKey(oldDevice.getKey())
+      .setType(oldDevice.getType())
+      .setName(oldDevice.getName())
+      .setOnline(online)
+      .setTarget(oldDevice.getTarget())
+      .setCpuArchitecture(oldDevice.getCpuArchitecture())
+      .setAndroidVersion(oldDevice.getAndroidVersion())
+      .setSizeOnDisk(oldDevice.getSizeOnDisk())
+      .setResolution(oldDevice.getResolution())
+      .setDensity(oldDevice.getDensity())
+      .setAvdInfo(oldDevice.getAvdInfo())
+      .build();
+
+    myDevices.set(modelRowIndex, newDevice);
+    fireTableCellUpdated(modelRowIndex, DEVICE_MODEL_COLUMN_INDEX);
   }
 
   @Override

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.SerialNumber;
@@ -76,7 +77,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   void addOrSet(@NotNull PhysicalDevice device) {
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, device);
+    int modelRowIndex = Devices.indexOf(myDevices, device.getKey());
 
     if (modelRowIndex == -1) {
       myDevices.add(device);

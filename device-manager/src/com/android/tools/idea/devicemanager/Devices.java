@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
-final class PhysicalDevices {
-  private PhysicalDevices() {
+public final class Devices {
+  private Devices() {
   }
 
-  static int indexOf(@NotNull List<@NotNull PhysicalDevice> devices, @NotNull PhysicalDevice device) {
-    Object key = device.getKey();
-
+  public static int indexOf(@NotNull List<? extends @NotNull Device> devices, @NotNull Key key) {
     OptionalInt optionalIndex = IntStream.range(0, devices.size())
       .filter(index -> devices.get(index).getKey().equals(key))
       .findFirst();
