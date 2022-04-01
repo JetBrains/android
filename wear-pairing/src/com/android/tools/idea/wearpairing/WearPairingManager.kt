@@ -62,6 +62,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 private val LOG get() = logger<WearPairingManager>()
 
@@ -521,11 +522,16 @@ private fun IDevice.getDeviceName(unknown: String): String {
   return deviceName.ifBlank { unknown }
 }
 
+private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?")
+
 private fun IDevice.getDeviceID(): String {
   return when {
     avdName != null -> avdName!!
     isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
-    else -> this.serialNumber
+    else -> {
+      val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
+      if (matcher.matches()) matcher.group(1) else this.serialNumber
+    }
   }
 }
 
