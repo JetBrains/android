@@ -21,8 +21,11 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.analyze
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -32,6 +35,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -388,6 +393,44 @@ internal class FastPreviewManagerTest {
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue(manager.isEnabled)
       assertTrue(FastPreviewApplicationConfiguration.getInstance().isEnabled)
+      assertNull(manager.disableReason)
+    }
+  }
+
+  @Test
+  fun `do not auto disable on syntax error`(): Unit = runBlocking {
+    val file = projectRule.fixture.addFileToProject("test.kt", """
+      fun empty) { // Syntax error
+    """.trimIndent())
+    val manager = FastPreviewManager.getTestInstance(
+      project,
+      daemonFactory = {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
+          override suspend fun compileRequest(files: Collection<PsiFile>,
+                                              module: Module,
+                                              outputDirectory: Path,
+                                              indicator: ProgressIndicator): CompilationResult {
+            val inputs = files.filterIsInstance<KtFile>()
+            assertTrue(inputs.isNotEmpty())
+            runReadAction {
+              // Simulate a syntax error compilation syntax error
+              val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
+              analyze(inputs, resolution)
+            }
+            throw IllegalStateException("Not reachable")
+          }
+        }
+      },
+      moduleClassPathLocator = { listOf("b/c/Test.class") },
+      moduleDependenciesClassPathLocator = { listOf("A.jar") },
+      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+      Disposer.register(projectRule.testRootDisposable, it)
+    }
+    assertNull(manager.disableReason)
+    assertTrue(manager.isEnabled)
+    manager.compileRequest(file, projectRule.module).first.also { result ->
+      assertTrue(result.toString(), result is CompilationResult.RequestException)
+      assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
       assertNull(manager.disableReason)
     }
   }

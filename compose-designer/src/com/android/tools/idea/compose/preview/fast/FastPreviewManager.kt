@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
@@ -85,6 +86,14 @@ data class DisableReason(val title: String, val description: String? = null, val
  * A [DisableReason] to be used when calling [FastPreviewManager.disable] if it was disabled by the user.
  */
 val ManualDisabledReason = DisableReason("User disabled")
+
+/**
+ * Returns true if the [CompilationResult.RequestException] is from a syntax error.
+ */
+private fun CompilationResult.RequestException.isSyntaxError(): Boolean =
+  e is LiveEditUpdateException
+  && e.error == LiveEditUpdateException.Error.ANALYSIS_ERROR
+  && (e.message?.startsWith("Analyze Error.") ?: false)
 
 /**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
@@ -453,9 +462,14 @@ class FastPreviewManager private constructor(
     log.info("Compiled in $durationString (result=$result, id=$requestId)")
     if (result.isError && allowAutoDisable) {
       val reason = when (result) {
-        is CompilationResult.RequestException -> DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
-                                                               description = result.e?.message,
-                                                               throwable = result.e)
+        // Handle RequestException but do not disable the compilation if it's because of a syntax error. This might be caused by the
+        // user still typing.
+        is CompilationResult.RequestException ->
+          if (!result.isSyntaxError())
+            DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
+                          description = result.e?.message,
+                          throwable = result.e)
+          else null
         is CompilationResult.DaemonStartFailure -> DisableReason(title = message("fast.preview.disabled.reason.unable.start"),
                                                                  throwable = result.e)
         is CompilationResult.DaemonError -> DisableReason(
