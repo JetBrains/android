@@ -352,7 +352,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
     NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
     "Use a shared issue panel to display the issue for all design tools",
-    true);
+    false);
 
   public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
     NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
@@ -408,7 +408,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUAL_LINT = Flag.create(
     NELE, "visual.lint", "Enable visual linting for layouts",
     "Enable all the various tools related to visual linting of layouts.",
-    true);
+    false);
 
   public static final Flag<Boolean> NELE_VISUAL_LINT_TOGGLE_ISSUE_LAYOUTS = Flag.create(
     NELE, "visual.lint.toggle.issue.layouts", "Checkbox to show the the layouts with issue only.",
