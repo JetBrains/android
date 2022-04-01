@@ -291,7 +291,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNotNull()
 
-    // Check that the buttons not applicable to Wear OS 3 are hidden.
+    // Check that the buttons not applicable to Wear OS are hidden.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
@@ -307,8 +307,8 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testWearToolbarActionsApi27() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 27)
+  fun testWearToolbarActionsApi26() {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 26)
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
@@ -319,20 +319,22 @@ class EmulatorToolWindowPanelTest {
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
 
-    // Check that the buttons specific to Wear OS 3 are hidden.
+    // Check that the buttons specific to API 30 and API 28 are hidden.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 1" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Button 2" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
 
-    // The device doesn't run Wear OS 3. Check that regular toolbar buttons are present.
+    // Check that the generic Android buttons are visible on API 26.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    // Check that the buttons not applicable to Wear OS are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
 
     val streamScreenshotCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     panel.destroyContent()

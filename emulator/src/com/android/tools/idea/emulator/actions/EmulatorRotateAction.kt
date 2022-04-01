@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
  */
 sealed class EmulatorRotateAction(
   val rotationAngleDegrees: Float,
-) : AbstractEmulatorAction(configFilter = { config -> config.hasOrientationSensors && !(config.isWearOs && config.api >= 28) }) {
+) : AbstractEmulatorAction(configFilter = { config -> config.hasOrientationSensors && !config.isWearOs }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
