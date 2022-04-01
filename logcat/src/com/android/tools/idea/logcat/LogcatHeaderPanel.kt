@@ -22,6 +22,8 @@ import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
@@ -32,7 +34,10 @@ import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
+import javax.swing.JLabel
 import javax.swing.JPanel
 
 /**
@@ -54,6 +59,8 @@ internal class LogcatHeaderPanel(
 
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 
+  private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
+
   init {
     filterComponent.apply {
       font = Font.getFont(Font.MONOSPACED)
@@ -69,6 +76,15 @@ internal class LogcatHeaderPanel(
         layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
       }
     })
+
+    helpIcon.let {
+      toolTipText = LogcatBundle.message("logcat.help.tooltip")
+      addMouseListener(object: MouseAdapter(){
+        override fun mouseClicked(e: MouseEvent) {
+          BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
+        }
+      })
+    }
   }
 
   fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
@@ -93,11 +109,13 @@ internal class LogcatHeaderPanel(
       layout.createSequentialGroup()
         .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
         .addComponent(filterComponent.component)
+        .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
         .addComponent(filterComponent.component)
+        .addComponent(helpIcon)
     )
     return layout
   }
