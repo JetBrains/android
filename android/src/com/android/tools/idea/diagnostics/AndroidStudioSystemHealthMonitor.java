@@ -98,7 +98,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.messages.MessageBusConnection;
@@ -691,25 +690,12 @@ public class AndroidStudioSystemHealthMonitor {
    */
   private void checkRuntime() {
     warnIfOpenJDK();
-    warnIfMacDragNDropJDKBug();
   }
 
   private void warnIfOpenJDK() {
     if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
         !SystemInfo.isJetBrainsJvm && !SystemInfo.isStudioJvm) {
       showNotification("unsupported.jvm.openjdk.message", null);
-    }
-  }
-
-  private void warnIfMacDragNDropJDKBug() {
-    if (SystemInfoRt.isMac &&
-        !SystemInfo.isJetBrainsJvm &&
-        !SystemInfo.isStudioJvm &&
-        SystemInfo.isJavaVersionAtLeast("1.8.0_60") &&
-        !SystemInfo.isJavaVersionAtLeast("1.8.0_76")) {
-      // Upstream JDK8 bug tracked by https://bugs.openjdk.java.net/browse/JDK-8134917, affecting 1.8.0_60 up to 1.8.0_76.
-      // Fixed by Jetbrains in their 1.8.0_40-b108 JRE and tracked in https://youtrack.jetbrains.com/issue/IDEA-146691
-      showNotification("unsupported.jvm.dragndrop.message", null);
     }
   }
 
