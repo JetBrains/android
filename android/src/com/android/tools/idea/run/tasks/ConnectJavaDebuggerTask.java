@@ -57,7 +57,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -94,7 +93,10 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
           return null;
         },
         null
-      ).onSuccess(XDebugSessionImpl::showSessionTab);
+      ).onSuccess(session -> {
+        processHandler.copyUserDataTo(session.getDebugProcess().getProcessHandler());
+        session.showSessionTab();
+      });
       return null;
     }
 
