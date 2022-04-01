@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator.check.device
 
-import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.create
+import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.simpleParameterRule
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
@@ -28,31 +28,31 @@ import com.android.tools.idea.kotlin.enumValueOfOrNull
  * For example: `spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480`
  */
 internal object LegacyParameterRule {
-  val shape = create(
+  val shape = simpleParameterRule(
     name = DeviceSpec.PARAMETER_SHAPE,
     expectedType = ExpectedShape,
     defaultValue = DeviceSpec.DEFAULT_SHAPE.name
   ) { enumValueOfOrNull<Shape>(it) != null }
 
-  val width = create(
+  val width = simpleParameterRule(
     name = DeviceSpec.PARAMETER_WIDTH,
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_WIDTH_PX.toString()
   ) { it.toIntOrNull() != null }
 
-  val height = create(
+  val height = simpleParameterRule(
     name = DeviceSpec.PARAMETER_HEIGHT,
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_HEIGHT_PX.toString()
   ) { it.toIntOrNull() != null }
 
-  val unit = create(
+  val unit = simpleParameterRule(
     name = DeviceSpec.PARAMETER_UNIT,
     expectedType = ExpectedDimUnit,
     defaultValue = DeviceSpec.DEFAULT_UNIT.name
   ) { enumValueOfOrNull<DimUnit>(it) != null }
 
-  val dpi = create(
+  val dpi = simpleParameterRule(
     name = DeviceSpec.PARAMETER_DPI,
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_DPI.toString()
@@ -68,59 +68,37 @@ internal object LegacyParameterRule {
  */
 internal object LanguageParameterRule {
   // TODO(b/220006785): Add ParameterRule for parent. Note that such rule requires checking Sdk devices, which depends on the Module class.
-  // TODO(b/220006785): Add a type of rule that can read previous parameters. To check that width & height have the same unit suffix.
-  // TODO(b/220006785): Make it so that a ParameterRule may attempt a fix from the original input, instead of just defaulting to one value
-  //   Eg: width=120 -> width=120dp
 
-  val width = create(
+  val width = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_WIDTH,
-    expectedType = ExpectedFloatWithUnit,
-    defaultValue = DeviceSpec.DEFAULT_WIDTH_PX.toString() + DimUnit.px.name,
-    FloatWithUnitCheck
+    defaultNumber = DeviceSpec.DEFAULT_WIDTH_PX,
   )
 
-  val height = create(
+  val height = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_HEIGHT,
-    expectedType = ExpectedFloatWithUnit,
-    defaultValue = DeviceSpec.DEFAULT_HEIGHT_PX.toString() + DimUnit.px.name,
-    valueCheck = FloatWithUnitCheck
+    defaultNumber = DeviceSpec.DEFAULT_HEIGHT_PX,
   )
 
-  val round = create(
+  val chinSize = DimensionParameterRule(
+    name = DeviceSpec.PARAMETER_CHIN_SIZE,
+    defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_PX,
+  )
+
+  val round = simpleParameterRule(
     name = DeviceSpec.PARAMETER_IS_ROUND,
     expectedType = ExpectedStrictBoolean,
     defaultValue = false.toString()
   ) { it.toBooleanStrictOrNull() != null }
 
-  val orientation = create(
+  val orientation = simpleParameterRule(
     name = DeviceSpec.PARAMETER_ORIENTATION,
     expectedType = ExpectedOrientation,
     defaultValue = Orientation.portrait.name
   ) { enumValueOfOrNull<Orientation>(it) != null }
 
-  val dpi = create(
+  val dpi = simpleParameterRule(
     name = DeviceSpec.PARAMETER_DPI,
     expectedType = ExpectedInteger,
     defaultValue = DeviceSpec.DEFAULT_DPI.toString()
   ) { it.toIntOrNull() != null }
-
-  val chinSize = create(
-    name = DeviceSpec.PARAMETER_CHIN_SIZE,
-    expectedType = ExpectedIntegerWithUnit,
-    defaultValue = DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString() + DimUnit.dp.name,
-    valueCheck = IntegerWithUnitCheck
-  )
-}
-
-private val FloatWithUnitCheck: (String) -> Boolean = { value ->
-  endsWithDpOrPx(value) && value.dropLast(2).toFloatOrNull() != null
-}
-
-private val IntegerWithUnitCheck: (String) -> Boolean = { value ->
-  endsWithDpOrPx(value) && value.dropLast(2).toIntOrNull() != null
-}
-
-private fun endsWithDpOrPx(value: String): Boolean {
-  val suffix = value.takeLast(2)
-  return suffix == DimUnit.px.name || suffix == DimUnit.dp.name
 }

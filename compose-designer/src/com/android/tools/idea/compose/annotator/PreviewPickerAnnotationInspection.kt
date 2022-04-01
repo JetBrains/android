@@ -109,7 +109,7 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
       holder.registerProblem(
         deviceValueElement,
         message,
-        ProblemHighlightType.ERROR,
+        ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
         PreviewParametersQuickFix(deviceValueElement, result.proposedFix)
       )
     }

@@ -146,13 +146,12 @@ Missing parameter: dpi.""",
       affectedText = "spec:width=1080,isRound=no,chinSize=30,orientation=vertical",
       errorDescription = """Bad value type for: width, isRound, chinSize, orientation.
 
-Parameter: width should have Float(dp/px) value.
+Parameter: width, chinSize should have Float(dp/px) value.
 Parameter: isRound should be one of: true, false.
-Parameter: chinSize should have Integer(dp/px) value.
 Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
-      replaceWithMessage = "Replace with spec:width=1080px,isRound=false,chinSize=0dp,orientation=portrait,height=1920px"
+      replaceWithMessage = "Replace with spec:width=1080px,isRound=false,chinSize=30px,orientation=portrait,height=1920px"
     )
   }
 
@@ -178,7 +177,7 @@ Missing parameter: height.""",
   }
 
   private fun annotateAndGetLintInfo(): HighlightInfo? =
-    fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }.let {
+    fixture.doHighlighting().filter { it.severity == HighlightSeverity.WARNING }.let {
       assert(it.size <= 1)
       it.firstOrNull()
     }

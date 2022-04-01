@@ -24,6 +24,8 @@ import com.android.tools.idea.compose.annotator.check.common.Missing
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
 import com.android.tools.idea.compose.annotator.check.common.Repeated
 import com.android.tools.idea.compose.annotator.check.common.Unknown
+import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckState
+import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStateKey
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
@@ -33,6 +35,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -91,11 +94,11 @@ internal object PreviewAnnotationCheck {
       }
     }
 
-    val result = checkDeviceParameter(deviceValue, annotationEntry.module)
-    synchronized(PreviewAnnotationCheck) {
-      annotationEntry.putUserData(PreviewCheckResultKey, Pair(deviceValue, result))
+    return synchronized(PreviewAnnotationCheck) {
+      checkDeviceParameter(deviceValue, annotationEntry.module).also { checkResult ->
+        annotationEntry.putUserData(PreviewCheckResultKey, Pair(deviceValue, checkResult))
+      }
     }
-    return result
   }
 
   /**
@@ -145,11 +148,14 @@ internal object PreviewAnnotationCheck {
    *
    * [CheckResult.proposedFix] is a proposed string to fix the issues found, based on the original input.
    */
-  private fun checkDeviceSpecParams(originalParams: Collection<Pair<String, String>>, rule: CheckRule): CheckResult {
+  private fun checkDeviceSpecParams(
+    originalParams: Collection<Pair<String, String>>,
+    rule: CheckRule
+  ): CheckResult {
     val issues = mutableListOf<IssueReason>()
 
     // Set of parameters confirmed in the original parameter list
-    val appliedParams = mutableSetOf<String>()
+    val appliedParams = mutableMapOf<String, String>()
 
     // Set of parameters present more than once
     val repeated = mutableSetOf<String>()
@@ -166,8 +172,23 @@ internal object PreviewAnnotationCheck {
 
     // A copy based on the original collection that removes any unsupported parameter, this may be modified to represent a complete and
     // correct param-value map
-    val fixableParams =
+    val fixableParams: MutableMap<String, String> =
       originalParams.filter { namesToParamRule.contains(it.first) }.associate { it }.toMutableMap()
+
+    // Used by DeviceSpecLanguage ParameterRules, should persist through the entire check process
+    val deviceSpecState = DeviceSpecCheckState()
+
+    // DataProvider for context-dependent checks
+    val dataProvider = DataProvider {
+      when (it) {
+        // TODO(b/220006785): Checking the `parent` parameter in the DeviceSpec requires providing the current Module
+        DeviceSpecCheckStateKey.name -> deviceSpecState
+        else -> null
+      }
+    }
+
+    // List to collect all parameters with syntax issues
+    val paramsToFix: MutableList<String> = ArrayList(fixableParams.size)
 
     originalParams.forEach { (paramName, value) ->
       if (!namesToParamRule.contains(paramName)) {
@@ -180,25 +201,36 @@ internal object PreviewAnnotationCheck {
           repeated.add(paramName)
           return@forEach
         }
-        else {
-          appliedParams.add(paramName)
-          requiredParamsCheckList.remove(paramName)
-        }
 
         val paramRule = namesToParamRule[paramName]!!
-        if (!paramRule.valueCheck(value)) {
-          // If the value is not valid, update the fixable params mapping with a correct value, and register the issue
-          fixableParams[paramName] = paramRule.defaultValue
+        if (!paramRule.checkValue(value, dataProvider)) {
+          // Register the issue and prepare to fix the parameter's value
+          paramsToFix.add(paramName)
           issues.add(BadType(paramName, paramRule.expectedType))
         }
+
+        appliedParams[paramName] = value
+        requiredParamsCheckList.remove(paramName)
       }
     }
     repeated.forEach { issues.add(Repeated(it)) }
 
     requiredParamsCheckList.forEach { missingParamName ->
       // Add missing parameters with their default value, and register the issue
-      fixableParams[missingParamName] = namesToParamRule[missingParamName]!!.defaultValue
+      val missingParamRule = namesToParamRule[missingParamName]!!
+
+      val candidate = missingParamRule.defaultValue
+      if (!missingParamRule.checkValue(candidate, dataProvider)) {
+        // Check the validity of the default value, since a parameterRule may have a context-dependent check
+        paramsToFix.add(missingParamName)
+      }
+      fixableParams[missingParamName] = candidate
       issues.add(Missing(missingParamName))
+    }
+
+    paramsToFix.forEach {
+      // Lastly, obtain the fixes, it's expected that the inspection should not fail again if the proposed fix is applied
+      fixableParams[it] = namesToParamRule[it]!!.getFixedOrDefaultValue(fixableParams[it]!!, dataProvider)
     }
     return CheckResult(issues = issues, proposedFix = fixableParams.buildDeviceSpecString())
   }

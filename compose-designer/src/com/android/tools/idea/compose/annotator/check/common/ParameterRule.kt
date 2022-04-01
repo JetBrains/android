@@ -15,44 +15,68 @@
  */
 package com.android.tools.idea.compose.annotator.check.common
 
+import com.intellij.openapi.actionSystem.DataProvider
+
+
 /**
  * A [ParameterRule] defines the logic to verify a parameter value correctness.
  */
-internal interface ParameterRule {
+internal abstract class ParameterRule {
   /**
    * Name of the parameter
    */
-  val name: String
+  abstract val name: String
 
   /**
    * Describes the expected type of value. Eg: Value should be an Integer
    *
    * @see ExpectedValueType
    */
-  val expectedType: ExpectedValueType
+  abstract val expectedType: ExpectedValueType
 
   /**
-   * The default value, used to provide a correction option.
+   * The default value, used to provide a correction option when [attemptFix] returns null.
    */
-  val defaultValue: String
+  abstract val defaultValue: String
 
   /**
-   * A lambda that evaluates the [String] value associated with this parameter. Returns false if the [String] does not represent a valid
-   * value for this parameter.
+   * Returns whether the [value] associated to the parameter is valid.
+   *
+   * Use [dataProvider] to obtain additional information.
    */
-  val valueCheck: (String) -> Boolean
+  abstract fun checkValue(value: String, dataProvider: DataProvider): Boolean
+
+  /**
+   * Returns a valid String based off [value]. [value] is the original parameter input, and it's guaranteed to have failed [checkValue].
+   *
+   * Returns null if it's not possible to fix the original [value].
+   *
+   * Use [dataProvider] to obtain additional information.
+   */
+  abstract fun attemptFix(value: String, dataProvider: DataProvider): String?
+
+  /**
+   * Returns a valid String for the given [value], either by the result of [attemptFix] or using [defaultValue].
+   */
+  fun getFixedOrDefaultValue(value: String, dataProvider: DataProvider): String =
+    attemptFix(value, dataProvider) ?: defaultValue
 
   companion object {
-    fun create(
+
+    /**
+     * Basic implementation of [ParameterRule], does not attempt to fix any given value for [name].
+     */
+    fun simpleParameterRule(
       name: String,
       expectedType: ExpectedValueType,
       defaultValue: String,
       valueCheck: (String) -> Boolean
-    ): ParameterRule = object : ParameterRule {
+    ): ParameterRule = object : ParameterRule() {
       override val name: String = name
       override val defaultValue: String = defaultValue
       override val expectedType: ExpectedValueType = expectedType
-      override val valueCheck: (String) -> Boolean = valueCheck
+      override fun checkValue(value: String, dataProvider: DataProvider): Boolean = valueCheck(value)
+      override fun attemptFix(value: String, dataProvider: DataProvider): String? = null
     }
   }
 }

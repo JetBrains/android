@@ -111,7 +111,9 @@ internal class PreviewAnnotationCheckTest {
   @Test
   fun testAnnotationWithDeviceSpecLanguageIssues() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    val result = addKotlinFileAndCheckPreviewAnnotation(
+
+    // Missing height, no common unit defined
+    var result: CheckResult = addKotlinFileAndCheckPreviewAnnotation(
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
@@ -122,7 +124,6 @@ internal class PreviewAnnotationCheckTest {
         fun myFun() {}
 """.trimIndent()
     )
-    assertEquals(3, result.issues.size)
     assertEquals(
       listOf(
         BadType::class,
@@ -131,10 +132,28 @@ internal class PreviewAnnotationCheckTest {
       ),
       result.issues.map { it::class }
     )
-    assertEquals(
-      "spec:width=1080px,isRound=false,height=1920px",
-      result.proposedFix
+    assertEquals("spec:width=100px,isRound=false,height=1920px", result.proposedFix)
+
+    // First valid unit is `dp`, other dimension parameters should have the same unit
+    result = addKotlinFileAndCheckPreviewAnnotation(
+      """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Preview(device = "spec:width=100dp,height=400.56px,chinSize=30")
+        @Composable
+        fun myFun() {}
+""".trimIndent()
     )
+    assertEquals(
+      listOf(
+        BadType::class,
+        BadType::class
+      ),
+      result.issues.map { it::class }
+    )
+    assertEquals("spec:width=100dp,height=400.6dp,chinSize=30dp", result.proposedFix)
   }
 
   @Test
