@@ -68,7 +68,7 @@ class BuildAttributionManagerImpl(
     var agpVersion: GradleVersion? = null
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
-      analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
+      analyticsManager.runLoggingPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }

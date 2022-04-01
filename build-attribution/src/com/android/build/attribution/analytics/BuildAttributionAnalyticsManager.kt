@@ -68,7 +68,7 @@ class BuildAttributionAnalyticsManager(
 
   private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
-  fun logBuildAttributionPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> Unit) {
+  fun runLoggingPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> Unit) {
     val watch = Stopwatch.createStarted()
     postBuildAnalysis()
     attributionStatsBuilder.setBuildAttributionPerformanceStats(
