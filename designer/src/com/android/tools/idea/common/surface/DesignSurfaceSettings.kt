@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -44,14 +45,27 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
   }
 }
 
+@Suppress("MemberVisibilityCanBePrivate")
 class SurfaceState {
   /**
    * The map of file path and zoom level. We use path string here because [PersistentStateComponent] doesn't support [File] type.
    * This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field directly,
    * use [saveFileScale] and [loadFileScale] instead.
    */
-  @field:Suppress("MemberVisibilityCanBePrivate")
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
+
+  /**
+   * The map of file path and the drawable background type. We use path string here because [PersistentStateComponent] doesn't support
+   * [File] type. This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field
+   * directly, use [saveDrawableBackgroundType] and [loadDrawableBackgroundType] instead.
+   */
+  var filePathToDrawableBackgroundType: MutableMap<String, DrawableBackgroundType> = HashMap()
+
+  /**
+   * Remember the last [DrawableBackgroundType] use selects. This [DrawableBackgroundType] is applied when user opens a drawable file which
+   * it is never opened before.
+   */
+  var lastSelectedDrawableBackgroundType: DrawableBackgroundType = DrawableBackgroundType.NONE
 
   @Transient
   fun loadFileScale(project: Project, file: VirtualFile): Double? {
@@ -68,6 +82,19 @@ class SurfaceState {
     else {
       filePathToZoomLevelMap[relativePath] = scale
     }
+  }
+
+  @Transient
+  fun loadDrawableBackgroundType(project: Project, file: VirtualFile): DrawableBackgroundType {
+    val relativePath = getRelativePathInProject(project, file) ?: return lastSelectedDrawableBackgroundType
+    return filePathToDrawableBackgroundType[relativePath] ?: lastSelectedDrawableBackgroundType
+  }
+
+  @Transient
+  fun saveDrawableBackgroundType(project: Project, file: VirtualFile, type: DrawableBackgroundType) {
+    lastSelectedDrawableBackgroundType = type
+    val relativePath = getRelativePathInProject(project, file) ?: return
+    filePathToDrawableBackgroundType[relativePath] = type
   }
 }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
@@ -87,7 +88,10 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         .apply {
           val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
             when (file?.toPsiFile(project)?.typeOf()) {
-              is AdaptiveIconFileType, is DrawableFileType -> DrawableScreenViewProvider()
+              is AdaptiveIconFileType, is DrawableFileType -> {
+                val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
+                DrawableScreenViewProvider(lastBackgroundType)
+              }
               else -> NlScreenViewProvider.RENDER
             }
           }
