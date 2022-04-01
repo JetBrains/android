@@ -195,9 +195,6 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     private fun getAndroidModuleModel(moduleNode: DataNode<out ModuleData>) =
         ExternalSystemApiUtil.getChildren(moduleNode, AndroidProjectKeys.ANDROID_MODEL).firstOrNull()?.data
 
-    private fun getJavaModuleModel(moduleNode: DataNode<out ModuleData>) =
-        ExternalSystemApiUtil.getChildren(moduleNode, AndroidProjectKeys.JAVA_MODULE_MODEL).firstOrNull()?.data
-
     private fun addSourceRoot(
         sourceRoot: File,
         type: JpsModuleSourceRootType<*>,

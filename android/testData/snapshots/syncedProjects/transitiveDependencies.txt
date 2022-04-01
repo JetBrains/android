@@ -14,10 +14,6 @@ PROJECT                       : testTransitiveDependencies
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testTransitiveDependencies.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
@@ -488,10 +484,6 @@ PROJECT                       : testTransitiveDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :javalib1
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/javalib1
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/build [-]
@@ -570,10 +562,6 @@ PROJECT                       : testTransitiveDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :javalib2
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/javalib2
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/build [-]

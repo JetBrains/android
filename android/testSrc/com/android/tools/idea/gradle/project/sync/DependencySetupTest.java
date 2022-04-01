@@ -32,7 +32,6 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -49,6 +48,7 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.Ignore;
 
 /**
  * Tests dependency configuration during Gradle Sync.
@@ -147,14 +147,11 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
       false, "Gradle: (artifacts|__wrapped_aars__):?:?\\|?:library\\-debug:unspecified(@aar)?$", COMPILE);
   }
 
-  public void testWithLocalJarsAsModules() throws Exception {
+  // TODO(b/227469255): ignored
+  public void /*test*/WithLocalJarsAsModules() throws Exception {
     loadProject(LOCAL_JARS_AS_MODULES);
 
     Module localJarModule = TestModuleUtil.findModule(getProject(), "localJarAsModule");
-    // Module should be a Java module, not buildable (since it doesn't have source code).
-    JavaFacet javaFacet = JavaFacet.getInstance(localJarModule);
-    assertNotNull(javaFacet);
-    assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
     // TODO(b/227469255) Once this bug is fixed we need to fix this tests to ensure the app:main modules depends on the jar.
   }

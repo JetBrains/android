@@ -14,10 +14,6 @@ PROJECT                       : testWithMlModels
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithMlModels.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]

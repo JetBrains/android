@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradle
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -120,7 +119,7 @@ public final class GradleProjects {
   }
 
   public static boolean isIdeaAndroidModule(@NotNull Module module) {
-    if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null) {
+    if (GradleFacet.getInstance(module) != null) {
       return true;
     }
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);

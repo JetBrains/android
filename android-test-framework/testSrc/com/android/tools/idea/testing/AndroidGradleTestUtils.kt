@@ -65,13 +65,11 @@ import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -1558,24 +1556,6 @@ private fun createJavaModuleDataNode(
     )
   }
 
-  moduleDataNode.addChild(
-    DataNode<JavaModuleModel>(
-      AndroidProjectKeys.JAVA_MODULE_MODEL,
-      JavaModuleModel.create(
-        qualifiedModuleName,
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyMap(),
-        null,
-        null,
-        null,
-        buildable
-      ),
-      null
-    )
-  )
-
   return moduleDataNode
 }
 
@@ -1897,10 +1877,6 @@ inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, 
 private fun Project.verifyModelsAttached() {
   ModuleManager.getInstance(this).modules.forEach { module ->
     module.verifyModel(GradleFacet::getInstance, GradleFacet::getGradleModuleModel)
-    if (GradleFacet.getInstance(module) != null) {
-      // Java facets are not created for modules without GradleFacet even if there is a JavaModuleModel.
-      module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
-    }
     module.verifyModel(AndroidFacet::getInstance, GradleAndroidModel::get)
     module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }

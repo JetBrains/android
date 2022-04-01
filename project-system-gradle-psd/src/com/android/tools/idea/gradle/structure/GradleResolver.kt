@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker

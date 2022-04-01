@@ -14,10 +14,6 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/build [-]
@@ -911,10 +907,6 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/build [-]
@@ -1775,10 +1767,6 @@ PROJECT                       : testWithCompositeBuild
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
@@ -1845,10 +1833,6 @@ PROJECT                       : testWithCompositeBuild
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build
@@ -1915,10 +1899,6 @@ PROJECT                       : testWithCompositeBuild
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build
@@ -1985,10 +1965,6 @@ PROJECT                       : testWithCompositeBuild
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
@@ -2051,10 +2027,6 @@ PROJECT                       : testWithCompositeBuild
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithCompositeBuild.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]

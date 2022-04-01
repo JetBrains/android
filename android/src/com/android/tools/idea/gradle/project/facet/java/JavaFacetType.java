@@ -17,15 +17,14 @@ package com.android.tools.idea.gradle.project.facet.java;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
-import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JavaFacetType extends FacetType<JavaFacet, JavaFacetConfiguration> {
+public class JavaFacetType extends FacetType<DoNotUseLegacyJavaFacet, JavaFacetConfiguration> {
   public JavaFacetType() {
-    super(JavaFacet.getFacetTypeId(), JavaFacet.getFacetId(), JavaFacet.getFacetName());
+    super(DoNotUseLegacyJavaFacet.TYPE_ID, DoNotUseLegacyJavaFacet.getFacetId(), DoNotUseLegacyJavaFacet.getFacetName());
   }
 
   @Override
@@ -35,15 +34,15 @@ public class JavaFacetType extends FacetType<JavaFacet, JavaFacetConfiguration> 
   }
 
   @Override
-  public JavaFacet createFacet(@NotNull Module module,
-                               String name,
-                               @NotNull JavaFacetConfiguration configuration,
-                               @Nullable Facet underlyingFacet) {
-    return new JavaFacet(module, name, configuration);
+  public DoNotUseLegacyJavaFacet createFacet(@NotNull Module module,
+                                             String name,
+                                             @NotNull JavaFacetConfiguration configuration,
+                                             @Nullable Facet underlyingFacet) {
+    return new DoNotUseLegacyJavaFacet(module, name, configuration);
   }
 
   @Override
   public boolean isSuitableModuleType(ModuleType moduleType) {
-    return moduleType instanceof JavaModuleType;
+    return false;
   }
 }

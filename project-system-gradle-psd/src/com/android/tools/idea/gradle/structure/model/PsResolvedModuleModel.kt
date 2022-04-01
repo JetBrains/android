@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import org.jetbrains.plugins.gradle.model.ExternalProject

@@ -14,10 +14,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdDependencyAndroidToJavaModuleAndBack.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
@@ -491,10 +487,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jModuleK
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleK
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleK/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleK/build [-]
@@ -587,10 +579,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jModuleL
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleL
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleL/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleL/build [-]
@@ -659,10 +647,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jModuleM
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleM
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleM/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleM/build [-]
@@ -731,10 +715,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jModuleZ
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/build [-]
@@ -802,10 +782,6 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jModuleZ:nestedZ
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/nestedZ
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/nestedZ/build [-]

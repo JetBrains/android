@@ -26,7 +26,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.r
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_VARIANTS;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
@@ -72,8 +71,6 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels;
@@ -190,7 +187,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY");
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
-  @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   private @Nullable Project myProject;
   private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
@@ -198,15 +194,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private IdeLibraryTableImpl myResolvedModuleDependencies = null;
 
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new IdeaJavaModuleModelFactory());
+    this(new CommandLineArgs());
   }
 
   @NonInjectable
   @VisibleForTesting
-  AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
-                               @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory) {
+  AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs) {
     myCommandLineArgs = commandLineArgs;
-    myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
   }
 
   @Override
@@ -335,7 +329,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
 
     GradleAndroidModel androidModel = null;
-    JavaModuleModel javaModuleModel = null;
     NdkModuleModel ndkModuleModel = null;
     GradleModuleModel gradleModel = null;
     Collection<IdeSyncIssue> issueData = null;
@@ -359,13 +352,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                 buildScriptClasspathModel,
                                 gradlePluginList);
     }
-    if (androidModel == null) {
-      javaModuleModel = createJavaModuleModel(gradleModule, externalProject, gradlePluginList, hasArtifactsOrNoRootSettingsFile);
-    }
 
-    if (javaModuleModel != null) {
-      moduleNode.createChild(JAVA_MODULE_MODEL, javaModuleModel);
-    }
     if (gradleModel != null) {
       moduleNode.createChild(GRADLE_MODULE_MODEL, gradleModel);
     }
@@ -407,16 +394,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     // Populate extra things
     populateAdditionalClassifierArtifactsModel(gradleModule);
-  }
-
-  @NotNull
-  private JavaModuleModel createJavaModuleModel(@NotNull IdeaModule gradleModule,
-                                                ExternalProject externalProject,
-                                                Collection<String> gradlePluginList,
-                                                boolean hasArtifactsOrNoRootSettingsFile) {
-    boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
-    // TODO: This model should eventually be removed.
-    return myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
   }
 
   @NotNull

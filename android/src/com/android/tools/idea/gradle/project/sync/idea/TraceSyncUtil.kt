@@ -60,7 +60,6 @@ object TraceSyncUtil {
                                           "Trace: com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver::populateModuleContentRoots\n" +
                                           "Trace: com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver::populateModuleDependencies\n" +
                                           "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService::importData\n" +
-                                          "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService::importData\n" +
                                           "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService::importData\n" +
                                           "Trace: com.intellij.openapi.externalSystem.service.project.manage.ContentRootDataService::importData\n" +
                                           "Trace: com.intellij.openapi.externalSystem.service.project.manage.LibraryDataService::importData\n" +

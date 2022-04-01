@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -72,13 +71,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       sourceSets = $sourceSets
       artifacts = ${artifacts.take(3)}...
       artifactsByConfiguration = ${artifactsByConfiguration.entries.take(3)}...
-      """.replaceIndent("    ")
-    is JavaModuleModel -> "\n" + """
-      isBuildable = ${isBuildable}
-      languageLevel = ${javaLanguageLevel}
-      contentRoots = ${contentRoots}
-      artifactsByConfiguration = ${artifactsByConfiguration}
-      configurations = ${configurations}
       """.replaceIndent("    ")
     is GradleAndroidModel -> format()
     is NdkModuleModel -> format()

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
-import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -295,17 +294,12 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
     val configuration = facet.configuration
     when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)
-      is JavaFacetConfiguration -> dump(configuration)
       is AndroidFacetConfiguration -> dump(configuration)
       is NdkFacetConfiguration -> dump(configuration)
       is KotlinFacetConfiguration -> dump(configuration)
       else -> prop("Configuration") { configuration.toString() }
     }
   }
-}
-
-private fun ProjectDumper.dump(javaFacetConfiguration: JavaFacetConfiguration) {
-  prop("Buildable") { javaFacetConfiguration.BUILDABLE.toString() }
 }
 
 private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) {

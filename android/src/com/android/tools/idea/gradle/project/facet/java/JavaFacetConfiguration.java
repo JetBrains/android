@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,7 @@ public class JavaFacetConfiguration implements FacetConfiguration {
   }
 
   @Override
-  public void readExternal(Element element) throws InvalidDataException {
-    XmlSerializer.deserializeInto(this, element);
-  }
-
-  @Override
-  public void writeExternal(Element element) throws WriteExternalException {
-    XmlSerializer.serializeInto(this, element);
+  public String toString() {
+    return "JavaFacetConfiguration: BUILDABLE - " + BUILDABLE;
   }
 }

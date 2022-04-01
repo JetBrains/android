@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.IdeAndroidNativeVariantsModelsWrapper;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
@@ -36,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  * <li>{@link GradleModuleModelDataService}</li>
  * <li>{@link NdkModuleModelDataService}</li>
- * <li>{@link AndroidModuleDataService} or {@link JavaModuleModelDataService} (mutually exclusive)</li>
+ * <li>{@link AndroidModuleDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
  * <br/>
@@ -67,11 +66,8 @@ public final class AndroidProjectKeys {
   public static final Key<GradleAndroidModel> ANDROID_MODEL = Key.create(GradleAndroidModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
-
-  @NotNull
   public static final Key<IdeLibraryTableImpl> IDE_LIBRARY_TABLE =
-    Key.create(IdeLibraryTableImpl.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+    Key.create(IdeLibraryTableImpl.class, ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);

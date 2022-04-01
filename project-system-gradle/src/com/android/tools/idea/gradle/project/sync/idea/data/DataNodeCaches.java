@@ -73,7 +73,6 @@ public class DataNodeCaches {
   private static void clearCaches(@NotNull DataNode<ProjectData> cache) {
     clearCachesOfType(cache, GRADLE_MODULE_MODEL);
     clearCachesOfType(cache, ANDROID_MODEL);
-    clearCachesOfType(cache, JAVA_MODULE_MODEL);
     clearCachesOfType(cache, NDK_MODEL);
   }
 

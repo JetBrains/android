@@ -156,10 +156,6 @@ PROJECT                       : My Application
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :lib
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]

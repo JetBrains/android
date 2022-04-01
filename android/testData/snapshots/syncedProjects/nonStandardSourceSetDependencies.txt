@@ -14,10 +14,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/NonStandardSourceSetDependencies.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
@@ -41,10 +37,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :aarWrapperLib
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
@@ -873,10 +865,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jarWrapperLib
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
@@ -900,10 +888,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :javaLibrary
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
@@ -1505,10 +1489,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :network-kmm
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/network-kmm
             EXCLUDE_FOLDER                : file://<PROJECT>/network-kmm/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/network-kmm/build

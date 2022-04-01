@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -32,7 +31,6 @@ import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidMod
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IDE_LIBRARY_TABLE
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
@@ -213,7 +211,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         FacetManager.getInstance(module).let {
           it.getFacetsByType(GradleFacet.getFacetTypeId()) +
             it.getFacetsByType(AndroidFacet.ID) +
-            it.getFacetsByType(JavaFacet.getFacetTypeId()) +
             it.getFacetsByType(NdkFacet.facetTypeId)
         }
       }
@@ -315,7 +312,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         configure = { setModuleAndResolver(it, data.libraryResolver) },
         validate = GradleAndroidModel::validate
       ) ?: return,
-      prepare(JAVA_MODULE_MODEL, ::getModelFromDataNode, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
     )

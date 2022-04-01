@@ -5,7 +5,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Re
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.util.BuildMode
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -38,7 +37,7 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   override fun canRun(projectTask: ProjectTask): Boolean {
     if (projectTask !is ModuleBuildTask) return false
     val module = projectTask.module
-    return GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null /* || AndroidModuleModel.get(module) != null*/
+    return GradleFacet.getInstance(module) != null
   }
 
   private fun executeTasks(

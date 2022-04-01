@@ -420,7 +420,10 @@
     <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
+
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
+
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>

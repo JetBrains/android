@@ -14,10 +14,6 @@ PROJECT                       : testPsdSample
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdSample.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
@@ -832,10 +828,6 @@ PROJECT                       : testPsdSample
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :jav
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jav
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/build [-]
@@ -2242,10 +2234,6 @@ PROJECT                       : testPsdSample
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :nested2:trans
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            ExternalSource                : GRADLE
-            Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/build [-]

@@ -104,7 +104,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       // TODO(b/139179869): Replace with the common way to detect Android-Gradle projects.
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
-        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
+        if (projectPath.equals(ExternalSystemApiUtil.getExternalRootProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
           return GradleBuildInvoker.getInstance(project);
         }
       }
