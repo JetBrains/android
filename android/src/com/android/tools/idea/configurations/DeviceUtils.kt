@@ -38,6 +38,7 @@ enum class DeviceGroup {
   NEXUS_XL,
   NEXUS_TABLET,
   WEAR,
+  DESKTOP,
   TV,
   AUTOMOTIVE,
   GENERIC,
@@ -88,6 +89,7 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
       when {
         isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         isWear(it) -> DeviceGroup.WEAR
+        isDesktop(it) -> DeviceGroup.DESKTOP
         isTv(it) -> DeviceGroup.TV
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)
         isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC

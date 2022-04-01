@@ -81,6 +81,8 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    8.9, 2048 \u00d7 1536, xhdpi (Nexus 9)\n" +
       "    9.9, 2560 \u00d7 1800, xhdpi (Pixel C)\n" +
       "    10.1, 2560 \u00d7 1600, xhdpi (Nexus 10)\n" +
+      "    ------------------------------------------------------\n" +
+      "    Desktop\n" +
       "    14.0, 1366 × 768, mdpi (Small Desktop)\n" +
       "    15.0, 3840 × 2160, xhdpi (Medium Desktop)\n" +
       "    17.0, 1920 × 1080, mdpi (Large Desktop)\n" +

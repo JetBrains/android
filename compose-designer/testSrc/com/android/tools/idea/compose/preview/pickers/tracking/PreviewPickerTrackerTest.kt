@@ -73,10 +73,11 @@ internal class PreviewPickerTrackerTest {
       registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImage.WEAR_TAG.id)
       registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImage.DEFAULT_TAG.id)
       registerNameModificationWithDevice(isCustom = false, isGeneric = true, tagId = SystemImage.DEFAULT_TAG.id)
+      registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImage.DESKTOP_TAG.id)
     }
 
     val registeredActions = tracker.lastActionsLogged.toList()
-    assertEquals(6, registeredActions.size)
+    assertEquals(7, registeredActions.size)
 
     val registeredDeviceTypes = registeredActions.map { it.previewModification.closestDeviceType }
     assertEquals(DeviceType.CUSTOM, registeredDeviceTypes[0])
@@ -85,6 +86,7 @@ internal class PreviewPickerTrackerTest {
     assertEquals(DeviceType.WEAR, registeredDeviceTypes[3])
     assertEquals(DeviceType.PHONE, registeredDeviceTypes[4])
     assertEquals(DeviceType.GENERIC, registeredDeviceTypes[5])
+    assertEquals(DeviceType.DESKTOP, registeredDeviceTypes[6])
   }
 
   @Test

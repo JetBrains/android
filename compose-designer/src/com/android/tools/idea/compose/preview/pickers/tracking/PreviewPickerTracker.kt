@@ -99,6 +99,7 @@ internal open class PreviewPickerTracker: BaseComposePickerTracker() {
           DeviceGroup.NEXUS_XL -> DeviceType.PHONE
           DeviceGroup.NEXUS_TABLET -> DeviceType.TABLET
           DeviceGroup.WEAR -> DeviceType.WEAR
+          DeviceGroup.DESKTOP -> DeviceType.DESKTOP
           DeviceGroup.TV -> DeviceType.TV
           DeviceGroup.AUTOMOTIVE -> DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
           DeviceGroup.GENERIC -> DeviceType.GENERIC

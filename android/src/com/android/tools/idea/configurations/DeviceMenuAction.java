@@ -175,6 +175,7 @@ public class DeviceMenuAction extends DropDownAction {
     // We don't add DeviceGroup.NEXUS because all Nexus devices with small screen size are legacy devices.
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, currentDevice);
+    addDeviceSection(groupedDevices, DeviceGroup.DESKTOP, currentDevice);
     if (StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get()) {
       addWearDeviceSection(groupedDevices, currentDevice);
     }
@@ -235,6 +236,8 @@ public class DeviceMenuAction extends DropDownAction {
         return "Phone";
       case NEXUS_TABLET:
         return "Tablet";
+      case DESKTOP:
+        return "Desktop";
       case WEAR:
         return "Wear";
       case TV:

@@ -79,7 +79,7 @@ class DeviceMenuAction2Test {
     Foldable (674 × 841 dp, xxhdpi)
     Tablet (1280 × 800 dp, xxhdpi)
     Desktop (1920 × 1080 dp, xxhdpi)
-    Phones and Tablets
+    Phones
         Pixel 6 (411 × 914 dp, xxhdpi)
         Pixel 6 Pro (411 × 891 dp, xxxhdpi)
         Pixel 5 (393 × 851 dp, xxhdpi)
@@ -94,14 +94,16 @@ class DeviceMenuAction2Test {
         Pixel 2 XL (411 × 823 dp, 560dpi)
         Pixel (411 × 731 dp, 420dpi)
         Pixel XL (411 × 731 dp, 560dpi)
+        Nexus 6 (411 × 731 dp, 560dpi)
+        Nexus 6P (411 × 731 dp, 560dpi)
+        Nexus 5X (411 × 731 dp, 420dpi)
+    Tablets
         Pixel C (1280 × 900 dp, xhdpi)
         Nexus 10 (1280 × 800 dp, xhdpi)
         Nexus 9 (1024 × 768 dp, xhdpi)
         Nexus 7 (600 × 960 dp, xhdpi)
         Nexus 7 (2012) (601 × 962 dp, hdpi)
-        Nexus 6 (411 × 731 dp, 560dpi)
-        Nexus 6P (411 × 731 dp, 560dpi)
-        Nexus 5X (411 × 731 dp, 420dpi)
+    Desktop
         Small Desktop (1366 × 768 dp, mdpi)
         Medium Desktop (1920 × 1080 dp, xhdpi)
         Large Desktop (1920 × 1080 dp, mdpi)
