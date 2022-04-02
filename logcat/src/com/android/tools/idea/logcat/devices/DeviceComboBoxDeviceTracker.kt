@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.time.Duration
+import kotlin.coroutines.CoroutineContext
 
 private const val PROP_RELEASE = "ro.build.version.release"
 private const val PROP_SDK = "ro.build.version.sdk"
@@ -49,6 +50,7 @@ internal class DeviceComboBoxDeviceTracker(
   project: Project,
   private val preexistingDevice: Device?,
   private val adbSession: AdbLibSession = AdbLibService.getSession(project),
+  private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
@@ -119,7 +121,7 @@ internal class DeviceComboBoxDeviceTracker(
           }
         }
       }
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(coroutineContext)
   }
 
   private suspend fun DeviceInfo.toDevice(): Device {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbLibSession
-import com.android.adblib.DeviceList
 import com.android.adblib.DeviceState
 import com.android.adblib.testing.FakeAdbLibSession
 import com.android.ddmlib.IDevice
@@ -48,8 +47,8 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.testing.TestDevice
+import com.android.tools.idea.logcat.testing.setDevices
 import com.android.tools.idea.logcat.testing.setupCommandsForDevice
-import com.android.tools.idea.logcat.testing.setupInitialDevices
 import com.android.tools.idea.logcat.util.AdbAdapter
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.FakeAdbAdapter
@@ -327,7 +326,7 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "Google", "Pixel", "")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
-    fakeAdbLibSession.setupInitialDevices(testDevice)
+    fakeAdbLibSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {
         waitForCondition(1, SECONDS) { it.deviceManager != null }
@@ -351,7 +350,7 @@ class LogcatMainPanelTest {
     fakeAdbAdapter.mutableDevices.addAll(listOf(device1, device2))
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice1)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice2)
-    fakeAdbLibSession.setupInitialDevices(testDevice1, testDevice2)
+    fakeAdbLibSession.hostServices.setDevices(testDevice1, testDevice2)
 
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(adbAdapter = fakeAdbAdapter, adbSession = fakeAdbLibSession).also {

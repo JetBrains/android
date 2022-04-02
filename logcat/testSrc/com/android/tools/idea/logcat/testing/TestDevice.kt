@@ -20,7 +20,7 @@ import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.adblib.testing.FakeAdbDeviceServices
-import com.android.adblib.testing.FakeAdbLibSession
+import com.android.adblib.testing.FakeAdbHostServices
 import com.android.tools.idea.logcat.devices.Device
 
 private const val PROP_RELEASE = "ro.build.version.release"
@@ -87,12 +87,19 @@ internal fun FakeAdbDeviceServices.setupCommandsForDevice(testDevice: TestDevice
   }
 }
 
-internal fun FakeAdbLibSession.setupInitialDevices(vararg devices: TestDevice) {
-  hostServices.devicesList = DeviceList(devices.map { it.deviceInfo }, emptyList())
+/**
+ * Set the response of the [FakeAdbHostServices.devices] method. A convenience method that uses [TestDevice] instead of a [DeviceInfo].
+ */
+internal fun FakeAdbHostServices.setDevices(vararg devices: TestDevice) {
+  this.devices = DeviceList(devices.map { it.deviceInfo }, emptyList())
 }
 
-internal fun FakeAdbLibSession.setupTrackingData(vararg devices: List<TestDevice>) {
-  hostServices.devicesTrackingData = devices.map { DeviceList(it.map { device -> device.deviceInfo }, emptyList()) }
+/**
+ * Controls the [FakeAdbHostServices.trackDevices] call by sending devices to flow (via a channel). A convenience method that uses
+ * [TestDevice] instead of a [DeviceInfo].
+ */
+internal suspend fun FakeAdbHostServices.sendDevices(vararg devices: TestDevice) {
+  sendDeviceList(DeviceList(devices.map { it.deviceInfo }, emptyList()))
 }
 
 private fun FakeAdbDeviceServices.configureProperties(device: TestDevice, vararg properties: String) {
