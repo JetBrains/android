@@ -995,6 +995,8 @@ fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreI
     // Request VariantDependencies model for the variant's dependencies.
     val variantDependencies = controller.findVariantDependenciesV2Model(module.gradleProject, configuration.variant) ?: return null
     return modelCache.variantFrom(
+      module.gradleProject.projectIdentifier.buildIdentifier.rootDir,
+      module.gradleProject.projectIdentifier.projectPath,
       variant,
       variantDependencies,
       variantNameResolvers,
