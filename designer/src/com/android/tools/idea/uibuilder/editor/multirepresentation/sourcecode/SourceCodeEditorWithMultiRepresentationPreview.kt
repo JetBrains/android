@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 import com.android.tools.idea.editors.literals.actions.LiveLiteralsStatusAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
@@ -53,11 +50,9 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(private val projec
   }
 
   override fun createRightToolbarActionGroup(): ActionGroup? =
-    textEditor.editor.project?.let {
-      DefaultActionGroup(
-        listOfNotNull(
-          LiveLiteralsStatusAction(it)
-        )
-      )
+    textEditor.editor.project?.let { project ->
+      LiveLiteralsStatusAction.getAction(project)?.let {
+        DefaultActionGroup(listOfNotNull(it))
+      }
     }
 }

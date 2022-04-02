@@ -59,6 +59,16 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
   private val liveLiteralsService by lazy { LiveLiteralsService.getInstance(project) }
   private val liveLiteralsDeploymentReportService by lazy { LiveLiteralsDeploymentReportService.getInstance(project) }
 
+  companion object {
+    private fun isLiveEdit(): Boolean {
+      return !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
+    }
+
+    fun getAction(project: Project): LiveLiteralsStatusAction? {
+      return if (isLiveEdit()) null else LiveLiteralsStatusAction(project)
+    }
+  }
+
   override fun displayTextInToolbar(): Boolean = true
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> {
@@ -123,9 +133,5 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
       this.text = text
       this.icon = icon
     }
-  }
-
-  private fun isLiveEdit(): Boolean {
-    return !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
   }
 }
