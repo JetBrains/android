@@ -23,6 +23,7 @@ import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
@@ -30,9 +31,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.io.IOException
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
@@ -58,73 +61,88 @@ internal class DeviceComboBoxDeviceTracker(
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
     return flow {
-      val onlineDevicesBySerial = mutableMapOf<String, Device>()
-      val allDevicesById = mutableMapOf<String, Device>()
-
-      // Initialize state by reading all current devices
-      coroutineScope {
-        adbSession.hostServices.devices().filter { it.isOnline() }.map { async { it.toDevice() } }.awaitAll().forEach {
-          onlineDevicesBySerial[it.serialNumber] = it
-          allDevicesById[it.deviceId] = it
-          emit(Added(it))
+      while (true) {
+        // TODO(b/228224334): This should be handled internally by AdbLib
+        try {
+          trackDevicesInternal()
         }
-      }
-
-      // Add the preexisting device.
-      if (preexistingDevice != null && !allDevicesById.containsKey(preexistingDevice.deviceId)) {
-        onlineDevicesBySerial[preexistingDevice.serialNumber] = preexistingDevice
-        allDevicesById[preexistingDevice.deviceId] = preexistingDevice
-        emit(Added(preexistingDevice))
-      }
-
-      // Track devices changes:
-      // There are 3 distinct cases:
-      // 1. A device that has not been seen before comes online -> callback.deviceAdded()
-      // 2. A device that was seen before and is now offline comes online -> callback.deviceStateChanged()
-      // 3. A device that is currently online goes offline -> callback.deviceStateChanged()
-      adbSession.hostServices.trackDevices().collect { deviceList ->
-        for (deviceInfo in deviceList) {
-          val serialNumber = deviceInfo.serialNumber
-          val isOnline = deviceInfo.isOnline()
-          if (isOnline) {
-            if (onlineDevicesBySerial.containsKey(serialNumber)) {
-              continue
-            }
-
-            val deviceId = deviceInfo.getDeviceId()
-            val existingDevice = allDevicesById[deviceId]
-            if (existingDevice != null) {
-              val copy = if (existingDevice.isEmulator) {
-                existingDevice.copy(isOnline = true, serialNumber = serialNumber)
-              }
-              else {
-                val properties = deviceInfo.getProperties(PROP_RELEASE, PROP_SDK)
-                existingDevice.copy(isOnline = true, release = properties.getValue(PROP_RELEASE), sdk = properties.getValue(PROP_SDK))
-
-              }
-              onlineDevicesBySerial[serialNumber] = copy
-              allDevicesById[serialNumber] = copy
-              emit(StateChanged(copy))
-            }
-            else {
-              val newDevice = deviceInfo.toDevice()
-              allDevicesById[deviceId] = newDevice
-              onlineDevicesBySerial[serialNumber] = newDevice
-              emit(Added(newDevice))
-            }
-          }
-          else {
-            val device = onlineDevicesBySerial[serialNumber]
-            if (device != null) {
-              val copy = device.copy(isOnline = false)
-              onlineDevicesBySerial.remove(serialNumber)
-              allDevicesById[device.serialNumber] = copy
-              emit(StateChanged(copy))
-            }
-          }
+        catch (e: IOException) {
+          logger.info("Device tracker exception, restarting it...", e)
+          emit(TrackingReset(e))
+          continue
         }
+        break
       }
     }.flowOn(coroutineContext)
+  }
+
+  private suspend fun FlowCollector<DeviceEvent>.trackDevicesInternal() {
+    val onlineDevicesBySerial = mutableMapOf<String, Device>()
+    val allDevicesById = mutableMapOf<String, Device>()
+
+    // Initialize state by reading all current devices
+    coroutineScope {
+      adbSession.hostServices.devices().filter { it.isOnline() }.map { async { it.toDevice() } }.awaitAll().forEach {
+        onlineDevicesBySerial[it.serialNumber] = it
+        allDevicesById[it.deviceId] = it
+        emit(Added(it))
+      }
+    }
+
+    // Add the preexisting device.
+    if (preexistingDevice != null && !allDevicesById.containsKey(preexistingDevice.deviceId)) {
+      onlineDevicesBySerial[preexistingDevice.serialNumber] = preexistingDevice
+      allDevicesById[preexistingDevice.deviceId] = preexistingDevice
+      emit(Added(preexistingDevice))
+    }
+
+    // Track devices changes:
+    // There are 3 distinct cases:
+    // 1. A device that has not been seen before comes online -> callback.deviceAdded()
+    // 2. A device that was seen before and is now offline comes online -> callback.deviceStateChanged()
+    // 3. A device that is currently online goes offline -> callback.deviceStateChanged()
+    adbSession.hostServices.trackDevices().collect { deviceList ->
+      for (deviceInfo in deviceList) {
+        val serialNumber = deviceInfo.serialNumber
+        val isOnline = deviceInfo.isOnline()
+        if (isOnline) {
+          if (onlineDevicesBySerial.containsKey(serialNumber)) {
+            continue
+          }
+
+          val deviceId = deviceInfo.getDeviceId()
+          val existingDevice = allDevicesById[deviceId]
+          if (existingDevice != null) {
+            val copy = if (existingDevice.isEmulator) {
+              existingDevice.copy(isOnline = true, serialNumber = serialNumber)
+            }
+            else {
+              val properties = deviceInfo.getProperties(PROP_RELEASE, PROP_SDK)
+              existingDevice.copy(isOnline = true, release = properties.getValue(PROP_RELEASE), sdk = properties.getValue(PROP_SDK))
+
+            }
+            onlineDevicesBySerial[serialNumber] = copy
+            allDevicesById[serialNumber] = copy
+            emit(StateChanged(copy))
+          }
+          else {
+            val newDevice = deviceInfo.toDevice()
+            allDevicesById[deviceId] = newDevice
+            onlineDevicesBySerial[serialNumber] = newDevice
+            emit(Added(newDevice))
+          }
+        }
+        else {
+          val device = onlineDevicesBySerial[serialNumber]
+          if (device != null) {
+            val copy = device.copy(isOnline = false)
+            onlineDevicesBySerial.remove(serialNumber)
+            allDevicesById[device.serialNumber] = copy
+            emit(StateChanged(copy))
+          }
+        }
+      }
+    }
   }
 
   private suspend fun DeviceInfo.toDevice(): Device {

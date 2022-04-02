@@ -22,6 +22,7 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testing.FakeAdbLibSession
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.sendDevices
 import com.android.tools.idea.logcat.testing.setDevices
@@ -30,11 +31,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.IOException
 import kotlin.coroutines.EmptyCoroutineContext
 
 
@@ -77,7 +78,7 @@ class DeviceComboBoxDeviceTrackerTest {
   }
 
   @Test
-  fun emulatorWithLegacyAvdName(): Unit = runBlocking {
+  fun emulatorWithLegacyAvdName(): Unit = runBlockingTest {
     val emulator =
       TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "avd3")
     adbSession.deviceServices.setupCommandsForDevice(emulator)
@@ -99,7 +100,7 @@ class DeviceComboBoxDeviceTrackerTest {
   }
 
   @Test
-  fun emulatorWithoutAvdProperty(): Unit = runBlocking {
+  fun emulatorWithoutAvdProperty(): Unit = runBlockingTest {
     val emulator =
       TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "")
     adbSession.deviceServices.setupCommandsForDevice(emulator)
@@ -284,6 +285,25 @@ class DeviceComboBoxDeviceTrackerTest {
       Added(emulator1.device.copy(serialNumber = "emulator-1")),
       StateChanged(emulator1.device.copy(isOnline = false)),
       StateChanged(emulator1.device.copy(isOnline = true, serialNumber = "emulator-2")),
+    ).inOrder()
+  }
+
+  @Test
+  fun trackDevicesThrows(): Unit = runBlockingTest {
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = adbSession)
+
+    val events = async { deviceTracker.trackDevices().toList() }
+
+    hostServices.sendDevices(device1)
+    val ioException = IOException("error while tracking")
+    hostServices.closeTrackDevicesFlow(-1, ioException)
+    hostServices.sendDevices(device1)
+
+    hostServices.close()
+    assertThat(events.await()).containsExactly(
+      Added(device1.device),
+      TrackingReset(ioException),
+      Added(device1.device),
     ).inOrder()
   }
 

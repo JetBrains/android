@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
@@ -55,8 +56,15 @@ internal class DeviceComboBox(
   private val deviceTracker: IDeviceComboBoxDeviceTracker,
   coroutineScope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)
 ) : ComboBox<Device>() {
+  private val logger = thisLogger()
 
   private val selectionChannel = Channel<Device>(1)
+
+  private val deviceModel: DeviceModel
+    get() = model as DeviceModel
+
+  private val selectedDevice: Device?
+    get() = selectedItem as? Device
 
   init {
     AccessibleContextUtil.setName(this, LogcatBundle.message("logcat.device.combo.accessible.name"))
@@ -65,15 +73,19 @@ internal class DeviceComboBox(
 
     addActionListener {
       coroutineScope.launch {
-        selectionChannel.send(selectedItem as Device)
+        selectedDevice?.let {
+          selectionChannel.send(it)
+        }
       }
     }
 
     coroutineScope.launch {
       deviceTracker.trackDevices().collect {
+        logger.debug("trackDevices: $it")
         when (it) {
           is Added -> deviceAdded(it.device)
           is StateChanged -> deviceStateChanged(it.device)
+          is TrackingReset -> makeDevicesOffline()
         }
       }
       selectionChannel.close()
@@ -83,11 +95,16 @@ internal class DeviceComboBox(
   fun trackSelectedDevice(): Flow<Device> = selectionChannel.consumeAsFlow()
 
   private fun deviceAdded(device: Device) {
-    (model as DeviceModel).add(device)
-    when {
-      selectedItem != null -> return
-      initialDevice == null -> selectDevice(device)
-      device.deviceId == initialDevice.deviceId -> selectDevice(device)
+    if (deviceModel.containsDevice(device)) {
+      deviceStateChanged(device)
+    }
+    else {
+      deviceModel.add(device)
+      when {
+        selectedItem != null -> return
+        initialDevice == null -> selectDevice(device)
+        device.deviceId == initialDevice.deviceId -> selectDevice(device)
+      }
     }
   }
 
@@ -96,7 +113,13 @@ internal class DeviceComboBox(
   }
 
   private fun deviceStateChanged(device: Device) {
-    (model as DeviceModel).replaceItem(device, device.deviceId == (selectedItem as? Device)?.deviceId)
+    (model as DeviceModel).replaceItem(device, device.deviceId == selectedDevice?.deviceId)
+  }
+
+  private fun makeDevicesOffline() {
+    deviceModel.items.forEach {
+      deviceStateChanged(it.copy(isOnline = false))
+    }
   }
 
   // Renders a Device.
@@ -148,5 +171,7 @@ internal class DeviceComboBox(
         selectedItem = device
       }
     }
+
+    fun containsDevice(device: Device): Boolean = idToIndexMap.containsKey(device.deviceId)
   }
 }

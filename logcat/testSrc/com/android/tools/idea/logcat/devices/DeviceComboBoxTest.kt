@@ -17,11 +17,13 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -82,6 +84,10 @@ class DeviceComboBoxTest {
 
     assertThat(selectionEvents).containsExactly(device1)
     assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      device1,
+      device2,
+    )
   }
 
   @Test
@@ -99,6 +105,10 @@ class DeviceComboBoxTest {
 
     assertThat(selectionEvents).containsExactly(device2)
     assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      device1,
+      device2,
+    )
   }
 
   @Test
@@ -118,6 +128,9 @@ class DeviceComboBoxTest {
       device2.offline(),
     )
     assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      device2.offline(),
+    )
   }
 
   @Test
@@ -135,6 +148,10 @@ class DeviceComboBoxTest {
 
     assertThat(selectionEvents).containsExactly(device1)
     assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      device1,
+      device2.offline(),
+    )
   }
 
   @Test
@@ -151,6 +168,32 @@ class DeviceComboBoxTest {
     }
 
     assertThat(selectedDevices.await()).containsExactly(device1, device2)
+  }
+
+  @Test
+  fun trackingReset(): Unit = runBlockingTest {
+    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+
+    deviceTracker.use {
+      it.sendEvents(
+        Added(device1.online()),
+        TrackingReset(Exception()),
+        Added(device1.online()),
+        Added(device2.online()),
+      )
+    }
+
+    assertThat(selectionEvents).containsExactly(
+      device1.online(),
+      device1.offline(),
+      device1.online(),
+    )
+    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      device1.online(),
+      device2.online()
+    )
   }
 
   @Test
@@ -221,3 +264,6 @@ private fun Device.online() = copy(isOnline = true)
 
 private fun DeviceComboBox.getRenderedText(device: Device) =
   renderer.getListCellRendererComponent(JBList(), device, 0, false, false).toString()
+
+private fun DeviceComboBox.getItems(): List<Device> =
+  (model as CollectionComboBoxModel<Device>).items
