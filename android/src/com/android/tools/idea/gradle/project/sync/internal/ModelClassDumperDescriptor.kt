@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.google.common.base.CaseFormat
+import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
@@ -59,7 +60,8 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
    * Return a property which is can be used to name instances of the class described by this object.
    */
   val displayNameProperty: Property? =
-    allNamedProperties.singleOrNull { it.name == "displayName" }
+    allNamedProperties.singleOrNull { it.name == "path" }.takeIf { klass == File::class }
+      ?: allNamedProperties.singleOrNull { it.name == "displayName" }
       ?: allNamedProperties.singleOrNull { it.name == "id" }
       ?: allNamedProperties.singleOrNull { it.name == "name" }
       ?: allNamedProperties.singleOrNull { it.name.endsWith("Id") }

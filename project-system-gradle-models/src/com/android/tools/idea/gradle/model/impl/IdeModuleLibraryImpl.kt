@@ -51,5 +51,5 @@ data class IdeModuleLibraryImpl(
   )
 
   @get:TestOnly
-  val displayName: String get() = "$buildId:$projectPath@$variant"
+  val displayName: String get() = "$buildId:$projectPath${ if (!variant.isNullOrEmpty()) "@$variant" else "" }"
 }

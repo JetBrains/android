@@ -4183,7 +4183,7 @@ MODULE                        : project.lib
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::jav@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>::jav (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :jav
                                 sourceSet                     : MAIN
@@ -4269,7 +4269,7 @@ MODULE                        : project.lib
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::jav@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::jav (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
@@ -4355,7 +4355,7 @@ MODULE                        : project.lib
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::jav@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::jav (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar

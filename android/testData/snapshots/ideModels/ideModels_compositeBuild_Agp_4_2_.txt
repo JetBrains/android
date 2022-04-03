@@ -1274,12 +1274,12 @@ MODULE                        : TestCompositeLib1.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
                                 projectPath                   : :
                                 sourceSet                     : MAIN
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>/TestCompositeLib2
                                 projectPath                   : :
                                 sourceSet                     : MAIN
@@ -1291,7 +1291,7 @@ MODULE                        : TestCompositeLib1.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>/TestCompositeLib4
                                 projectPath                   : :
                                 sourceSet                     : MAIN
@@ -1447,9 +1447,9 @@ MODULE                        : TestCompositeLib1.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>/TestCompositeLib3
@@ -1458,7 +1458,7 @@ MODULE                        : TestCompositeLib1.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1561,13 +1561,13 @@ MODULE                        : TestCompositeLib1.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : TestCompositeLib1:app (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib1.app.androidTest
@@ -1907,11 +1907,11 @@ MODULE                        : TestCompositeLib1.lib
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2007,11 +2007,11 @@ MODULE                        : TestCompositeLib1.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2108,11 +2108,11 @@ MODULE                        : TestCompositeLib1.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : TestCompositeLib1:lib (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib1.lib.androidTest
@@ -2819,12 +2819,12 @@ MODULE                        : TestCompositeLib3.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3::@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3:: (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
                                 projectPath                   : :
                                 sourceSet                     : MAIN
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2972,9 +2972,9 @@ MODULE                        : TestCompositeLib3.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3077,9 +3077,9 @@ MODULE                        : TestCompositeLib3.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : TestCompositeLib3:app (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib3.app.androidTest
@@ -3407,7 +3407,7 @@ MODULE                        : TestCompositeLib3.lib
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3492,7 +3492,7 @@ MODULE                        : TestCompositeLib3.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3578,7 +3578,7 @@ MODULE                        : TestCompositeLib3.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : TestCompositeLib3:lib (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib3.lib.androidTest
@@ -4758,13 +4758,13 @@ MODULE                        : project.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4919,13 +4919,13 @@ MODULE                        : project.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5030,13 +5030,13 @@ MODULE                        : project.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib1::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib2::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib2:: (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>/TestCompositeLib3::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>/TestCompositeLib4::@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>/TestCompositeLib4:: (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets

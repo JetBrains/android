@@ -986,7 +986,7 @@ MODULE                        : MainActivity.app
                                 artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 artifactAddress               : org.jetbrains:annotations:13.0@jar
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::javaLib@null (IdeModuleLibraryImpl)
+                            target                        : <ROOT>::javaLib (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :javaLib
                                 sourceSet                     : MAIN
@@ -1214,7 +1214,7 @@ MODULE                        : MainActivity.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::javaLib@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1280,7 +1280,7 @@ MODULE                        : MainActivity.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::javaLib@null (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
