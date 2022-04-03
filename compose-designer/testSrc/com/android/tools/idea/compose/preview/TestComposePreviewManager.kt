@@ -18,14 +18,19 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.psi.PsiFile
 
-class TestComposePreviewManager(var interactiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
+class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
 
-  override fun status(): ComposePreviewManager.Status =
-    ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                 hasSyntaxErrors = false,
-                                 isOutOfDate = false,
-                                 isRefreshing = false,
-                                 interactiveMode = interactiveMode)
+  var currentStatus = ComposePreviewManager.Status(hasRuntimeErrors = false,
+                                                   hasSyntaxErrors = false,
+                                                   isOutOfDate = false,
+                                                   isRefreshing = false,
+                                                   interactiveMode = initialInteractiveMode)
+  var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
+    set(value) {
+      field = value
+      currentStatus = currentStatus.copy(interactiveMode = value)
+    }
+  override fun status(): ComposePreviewManager.Status = currentStatus
 
   override fun invalidateSavedBuildStatus() {
     // do nothing

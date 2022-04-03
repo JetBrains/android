@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.ManualDisabledReason
+import com.android.tools.idea.compose.preview.fast.fastPreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
@@ -36,7 +36,7 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.project ?: return
-    val fastPreviewManager = FastPreviewManager.getInstance(project)
+    val fastPreviewManager = project.fastPreviewManager
     if (state) {
       fastPreviewManager.enable()
 
@@ -73,7 +73,7 @@ class ToggleFastPreviewAction: ToggleAction(null, null, StudioIcons.Shell.Status
       presentation.isEnabled = true
     }
 
-    presentation.text = if (FastPreviewManager.getInstance(project).isEnabled)
+    presentation.text = if (project.fastPreviewManager.isEnabled)
       message("action.preview.fast.refresh.disable.title")
     else
       message("action.preview.fast.refresh.enable.title")

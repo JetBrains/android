@@ -27,7 +27,17 @@ import java.util.stream.Stream
 import javax.swing.Icon
 import javax.swing.event.HyperlinkListener
 
-data class NlComponentIssueSource(val component: NlComponent) : IssueSource, NlAttributesHolder {
+/**
+ * And [IssueSource] for issues from an NlModel.
+ */
+interface NlIssueSource : IssueSource {
+  val model: NlModel
+}
+
+data class NlComponentIssueSource(val component: NlComponent) : NlIssueSource, NlAttributesHolder {
+  override val model: NlModel
+    get() = component.model
+
   @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
   override val file: VirtualFile? = component.model.virtualFile
   override val displayText: String = listOfNotNull(
@@ -50,7 +60,7 @@ fun IssueSource.isFromNlComponent(component: NlComponent): Boolean {
     return this is NlComponentIssueSource && this.component == component
 }
 
-private data class NlModelIssueSource(private val model: NlModel) : IssueSource {
+private data class NlModelIssueSource(override val model: NlModel) : NlIssueSource {
   @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
   override val file: VirtualFile? = model.virtualFile
   override val displayText: String = model.modelDisplayName.orEmpty()

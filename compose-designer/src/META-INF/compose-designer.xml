@@ -141,11 +141,6 @@
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">
-    <composeEditorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider" />
-    <composeEditorNotificationProvider implementation="com.android.tools.idea.compose.preview.fast.FastPreviewDisableNotificationProvider" />
-  </extensions>
-
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
     <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewRepresentationProvider"/>
   </extensions>
@@ -163,7 +158,7 @@
   <actions>
     <action id="Android.Designer.ComposeIssueNotificationAction"
             icon="StudioIcons.Common.ERROR"
-            class="com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction"
+            class="com.android.tools.idea.common.actions.IssueNotificationAction"
             text="Toggle Issue Panel"
             description="Toggle the visibility of Issue Panel"
             use-shortcut-of="Android.Designer.IssueNotificationAction" />

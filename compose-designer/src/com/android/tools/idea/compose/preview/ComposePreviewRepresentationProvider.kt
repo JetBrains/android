@@ -29,7 +29,6 @@ import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.compose.preview.actions.ToggleFastPreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
@@ -78,7 +77,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
-      ToggleFastPreviewAction(),
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
@@ -89,8 +87,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     )
   )
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
-    ComposeIssueNotificationAction.getInstance()
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf(
+    ComposeIssueNotificationAction()
   ))
 
   /**

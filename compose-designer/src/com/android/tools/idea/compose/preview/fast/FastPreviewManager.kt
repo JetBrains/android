@@ -374,6 +374,12 @@ class FastPreviewManager private constructor(
     private set
 
   /**
+   * Returns true if the service is auto disabled and was not manually disabled by the user.
+   */
+  val isAutoDisabled: Boolean
+    get() = !isEnabled && disableReason != null && disableReason != ManualDisabledReason
+
+  /**
    * Allow auto disable. If set to true, the Fast Preview might disable itself automatically if there is a compiler failure.
    * This can happen if the project has unsupported features like annotation providers.
    */
@@ -475,7 +481,7 @@ class FastPreviewManager private constructor(
         is CompilationResult.DaemonStartFailure -> DisableReason(title = message("fast.preview.disabled.reason.unable.start"),
                                                                  throwable = result.e)
         is CompilationResult.DaemonError -> DisableReason(
-          title = message("fast.preview.disabled.reason.unable.compile.compiler.error"),
+          title = message("fast.preview.disabled.reason.unable.compile.compiler.error.title"),
           description = message("fast.preview.disabled.reason.unable.compile.compiler.error.description"))
         is CompilationResult.CompilationAborted -> null
         is CompilationResult.Success -> throw IllegalStateException("Result is not an error, no disable reason")
@@ -542,7 +548,7 @@ class FastPreviewManager private constructor(
     if (newReason && reason != ManualDisabledReason && reason.hasLongDescription) {
       // Log long description to the event log.
       Notification(PREVIEW_NOTIFICATION_GROUP_ID,
-                   message("fast.preview.disabled.reason.unable.compile.compiler.error"),
+                   message("fast.preview.disabled.reason.unable.compile.compiler.error.description"),
                    reason.longDescriptionString(),
                    NotificationType.WARNING)
         .notify(project)
@@ -594,3 +600,6 @@ class FastPreviewManager private constructor(
     private val FAST_PREVIEW_MANAGER_TOPIC = Topic("Fast Preview Manager Topic", CompileListener::class.java)
   }
 }
+
+internal val Project.fastPreviewManager: FastPreviewManager
+  get() = FastPreviewManager.getInstance(this)

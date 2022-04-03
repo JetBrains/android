@@ -76,7 +76,13 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
           },
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
+          StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled {
+            ComposePreviewIssuePanelAction(
+              modelProvider = { sceneView.scene.sceneManager.model },
+              issueModelProvider = { sceneView.surface.issueModel }
+            )
+          }
         ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
       ),
       true,

@@ -24,6 +24,7 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -61,11 +62,11 @@ internal class ToggleFastPreviewActionTest {
     val action = ToggleFastPreviewAction()
     val event = TestActionEvent()
 
-    action.setSelected(event, false)
+    action.actionPerformed(event)
     assertFalse(manager.isEnabled)
     assertFalse(manager.isAvailable)
 
-    action.setSelected(event, true)
+    action.actionPerformed(event)
     assertTrue(manager.isEnabled)
     assertTrue(manager.isAvailable)
   }
