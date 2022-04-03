@@ -9,5 +9,5 @@ android {
 dependencies {
 // TODO(b/208357458):    implementation project(':network-kmm')
 
-    implementation 'androidx.appcompat:appcompat:+'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
 }

@@ -216,6 +216,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
     MODULE                        : NonStandardSourceSetDependencies.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.app
@@ -388,6 +389,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
     MODULE                        : NonStandardSourceSetDependencies.feature-a
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
@@ -1114,6 +1116,368 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/javaLibrary/build/classes/java/testEnv
+    MODULE                        : NonStandardSourceSetDependencies.lib
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.lib
+            main                          : NonStandardSourceSetDependencies.lib.main
+            unitTest                      : NonStandardSourceSetDependencies.lib.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.lib.androidTest
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :lib
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AssembleTaskName              : assembleDebug
+            CompileJavaTaskName           : compileDebugSources
+            - AfterSyncTask               : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            ProjectType                   : 1
+            RunProcessResourcesMavenTask  : true
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing               : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex                : false
+            MinimalMainDex                : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :lib
+        CONENT_ENTRY                  : file://<PROJECT>/lib
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : NonStandardSourceSetDependencies.lib.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.lib
+            main                          : NonStandardSourceSetDependencies.lib.main
+            unitTest                      : NonStandardSourceSetDependencies.lib.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:androidTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.lib.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.lib.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.lib.main
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.5
+            CompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.5
+            MergedCompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
+    MODULE                        : NonStandardSourceSetDependencies.lib.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.lib
+            main                          : NonStandardSourceSetDependencies.lib.main
+            unitTest                      : NonStandardSourceSetDependencies.lib.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:main
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.lib.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.lib.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.5
+            CompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.5
+            MergedCompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+            JavaSource                    : file://<PROJECT>/lib/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.lib.main
+    MODULE                        : NonStandardSourceSetDependencies.lib.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.lib
+            main                          : NonStandardSourceSetDependencies.lib.main
+            unitTest                      : NonStandardSourceSetDependencies.lib.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:unitTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.lib.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.lib.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.lib.main
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.5
+            CompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.5
+            MergedCompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
     MODULE                        : NonStandardSourceSetDependencies.network-kmm
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -1454,6 +1818,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
+            *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar
@@ -1495,6 +1861,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.3.1
             *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
@@ -1521,6 +1889,24 @@ PROJECT                       : NonStandardSourceSetDependencies
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
@@ -1533,6 +1919,22 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
+            *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1
+            *CLASSES                      : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1
+            *CLASSES                      : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY                       : Gradle: junit:junit:4.12
+            *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0
+            *CLASSES                      : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>

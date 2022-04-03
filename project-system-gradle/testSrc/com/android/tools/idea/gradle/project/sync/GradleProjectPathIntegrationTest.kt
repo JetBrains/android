@@ -64,6 +64,10 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .javaLibrary.main ==> :javaLibrary/MAIN
             .javaLibrary.test ==> :javaLibrary/test
             .javaLibrary.testEnv ==> :javaLibrary/testEnv
+            .lib ==> :lib
+            .lib.androidTest ==> :lib/ANDROID_TEST
+            .lib.main ==> :lib/MAIN
+            .lib.unitTest ==> :lib/UNIT_TEST
             .network-kmm ==> :network-kmm
             .network-kmm.commonMain ==> :network-kmm/commonMain
             .network-kmm.commonTest ==> :network-kmm/commonTest
