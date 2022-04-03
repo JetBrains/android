@@ -1427,7 +1427,7 @@ private fun createAndroidModuleDataNode(
   }
 
   fun IdeBaseArtifact.setup() {
-    val sourceSetModuleName = ModuleUtil.getModuleName(this)
+    val sourceSetModuleName = ModuleUtil.getModuleName(this.name)
     moduleDataNode.addChild(
       DataNode<GradleSourceSetData>(
         GradleSourceSetData.KEY,

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
@@ -33,9 +32,6 @@ import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 object ModuleUtil {
-  @JvmStatic
-  fun getModuleName(artifact: IdeBaseArtifact): String = getModuleName(artifact.name)
-
   @JvmStatic
   fun getModuleName(artifactName: IdeArtifactName): String {
     return when (artifactName) {

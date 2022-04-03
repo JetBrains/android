@@ -29,7 +29,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 @JvmOverloads
 fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
-  val selectedVariant = variant ?: androidModel.selectedVariant
+  val selectedVariant = variant ?: androidModel.selectedVariantCore
 
   data.isInheritProjectCompileOutputPath = false
 

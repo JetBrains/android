@@ -17,13 +17,6 @@
 
 package com.android.tools.idea.gradle.project.model
 
-import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -31,6 +24,13 @@ import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.ANDROID_TEST
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.MAIN
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.TEST_FIXTURES
@@ -44,13 +44,13 @@ import com.intellij.util.containers.addIfNotNull
  *   productFlavorContainer.selectProvider()
  * }
  */
-private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifact?, val artifactName: String) {
+private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseArtifactCore?, val artifactName: String) {
   MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
   UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
   ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST),
   TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES);
 
-  fun IdeVariant.selectArtifact(): IdeBaseArtifact? = selector()
+  fun IdeVariantCore.selectArtifact(): IdeBaseArtifactCore? = selector()
   fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
   fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
@@ -61,12 +61,12 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
     }
 }
 
-internal fun GradleAndroidModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
-internal fun GradleAndroidModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
-internal fun GradleAndroidModel.collectAndroidTestSourceProviders(variant: IdeVariant) =
+internal fun GradleAndroidModel.collectMainSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, MAIN)
+internal fun GradleAndroidModel.collectUnitTestSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, UNIT_TEST)
+internal fun GradleAndroidModel.collectAndroidTestSourceProviders(variant: IdeVariantCore) =
   if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
   else emptyList()
-internal fun GradleAndroidModel.collectTestFixturesSourceProviders(variant: IdeVariant) =
+internal fun GradleAndroidModel.collectTestFixturesSourceProviders(variant: IdeVariantCore) =
   if (variant.testFixturesArtifact != null) collectCurrentProvidersFor(variant, TEST_FIXTURES)
   else emptyList()
 
@@ -75,7 +75,7 @@ internal fun GradleAndroidModel.collectAllUnitTestSourceProviders(): List<IdeSou
 internal fun GradleAndroidModel.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
 internal fun GradleAndroidModel.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
 
-private fun GradleAndroidModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
+private fun GradleAndroidModel.collectCurrentProvidersFor(variant: IdeVariantCore, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
   mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())

@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -109,7 +110,7 @@ public class GradleProjectSystemUtil {
    * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
-  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull GradleAndroidModel model) {
+  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifactCore artifact, @NotNull GradleAndroidModel model) {
     File buildFolder = model.getAndroidProject().getBuildFolder();
     return artifact.getGeneratedSourceFolders()
       .stream()

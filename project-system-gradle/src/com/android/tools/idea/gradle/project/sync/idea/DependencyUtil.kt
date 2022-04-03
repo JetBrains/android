@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeModuleDependency
@@ -339,9 +340,9 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   }
 }
 
-fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact): DataNode<GradleSourceSetData> {
+fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifactCore): DataNode<GradleSourceSetData> {
   return ExternalSystemApiUtil.find(this, GradleSourceSetData.KEY) {
-    it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact)
+    it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact.name)
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
 

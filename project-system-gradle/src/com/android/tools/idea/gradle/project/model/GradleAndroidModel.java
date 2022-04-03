@@ -32,6 +32,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.gradle.model.IdeAaptOptions;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeApiVersion;
@@ -255,37 +256,42 @@ public class GradleAndroidModel implements AndroidModuleModel {
   }
 
   @NotNull
+  public IdeAndroidArtifactCore getMainArtifactCore() {
+    return getSelectedVariantCore().getMainArtifact();
+  }
+
+  @NotNull
   public IdeSourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
   @NotNull
   public List<IdeSourceProvider> getActiveSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
+    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariantCore());
   }
 
   @NotNull
   public List<IdeSourceProvider> getUnitTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
+    return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariantCore());
   }
 
   @NotNull
   public List<IdeSourceProvider> getAndroidTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
+    return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariantCore());
   }
 
   @NotNull
   public List<IdeSourceProvider> getTestFixturesSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectTestFixturesSourceProviders(this, getSelectedVariant());
+    return AndroidModelSourceProviderUtils.collectTestFixturesSourceProviders(this, getSelectedVariantCore());
   }
 
   @NotNull
   public List<IdeSourceProvider> getTestSourceProviders(@NotNull IdeArtifactName artifactName) {
     switch (artifactName) {
       case ANDROID_TEST:
-        return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
+        return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariantCore());
       case UNIT_TEST:
-        return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
+        return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariantCore());
     }
     return ImmutableList.of();
   }
@@ -500,6 +506,11 @@ public class GradleAndroidModel implements AndroidModuleModel {
   @Nullable
   public IdeVariant findVariantByName(@NotNull String variantName) {
     return myCachedResolvedVariantsByName.get(variantName);
+  }
+
+  @Nullable
+  public IdeVariantCore findVariantCoreByName(@NotNull String variantName) {
+    return myCachedVariantsByName.get(variantName);
   }
 
   /**
