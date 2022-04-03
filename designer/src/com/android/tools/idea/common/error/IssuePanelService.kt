@@ -395,19 +395,33 @@ class IssuePanelService(private val project: Project) {
 }
 
 /**
+ * Helper function to set the issue panel in [DesignSurface] without tracking it into the layout editor metrics.
+ * @param show whether to show or hide the issue panel.
+ * @param userInvoked if true, this was the direct consequence of a user action.
+ */
+fun DesignSurface.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: Boolean) {
+  if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+    IssuePanelService.getInstance(project).setSharedIssuePanelVisibility(show)
+  }
+  else
+    UIUtil.invokeLaterIfNeeded {
+      issuePanel.isMinimized = !show
+      if (userInvoked) {
+        issuePanel.disableAutoSize()
+      }
+      revalidate()
+      repaint()
+    }
+}
+
+/**
  * Helper function to set the issue panel in [DesignSurface].
  * @param show whether to show or hide the issue panel.
  * @param userInvoked if true, this was the direct consequence of a user action.
  */
 fun DesignSurface.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean) {
-  UIUtil.invokeLaterIfNeeded {
-    issuePanel.isMinimized = !show
-    if (userInvoked) {
-      issuePanel.disableAutoSize()
-    }
-    revalidate()
-    repaint()
-  }
+  analyticsManager.trackShowIssuePanel()
+  setIssuePanelVisibilityNoTracking(show, userInvoked)
 }
 
 /**

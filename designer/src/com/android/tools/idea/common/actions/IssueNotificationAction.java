@@ -114,13 +114,7 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return;
     }
-    surface.getAnalyticsManager().trackShowIssuePanel();
-    if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      IssuePanelService.getInstance(surface.getProject()).setSharedIssuePanelVisibility(state);
-    }
-    else {
-      IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true);
-    }
+    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true);
   }
 
   @NotNull
