@@ -32,12 +32,12 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import javax.swing.JList
 
 /**
@@ -49,31 +49,20 @@ import javax.swing.JList
  * An initial device can optionally be provided. This initial device will become the selected item. If no initial device is provided, the
  * first device added will be selected.
  */
-internal class DeviceComboBox @TestOnly internal constructor(
+internal class DeviceComboBox(
   parentDisposable: Disposable,
   private val initialDevice: Device?,
   private val deviceTracker: IDeviceComboBoxDeviceTracker,
-  autostart: Boolean = true
+  coroutineScope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)
 ) : ComboBox<Device>() {
 
-  constructor(parentDisposable: Disposable, initialDevice: Device?, deviceTracker: IDeviceComboBoxDeviceTracker)
-    : this(parentDisposable, initialDevice, deviceTracker, true)
-
   private val selectionChannel = Channel<Device>(1)
-  private val coroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)
 
   init {
     AccessibleContextUtil.setName(this, LogcatBundle.message("logcat.device.combo.accessible.name"))
     renderer = DeviceComboBoxRenderer()
     model = DeviceModel()
 
-    if (autostart) {
-      startTrackingDevices()
-    }
-  }
-
-  @TestOnly
-  fun startTrackingDevices() {
     coroutineScope.launch {
       deviceTracker.trackDevices().collect {
         when (it) {

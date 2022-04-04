@@ -23,19 +23,25 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.components.JBList
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
+import java.io.Closeable
 
 /**
  * Tests for [DeviceComboBox]
  */
+@Suppress("EXPERIMENTAL_API_USAGE")
 class DeviceComboBoxTest {
 
   private val disposableRule = DisposableRule()
@@ -51,71 +57,84 @@ class DeviceComboBoxTest {
   private val emulator = Device.createEmulator("emulator-5555", false, "11", "30", "AVD")
 
   @Test
-  fun noDevice_noSelection(): Unit = runBlocking {
+  fun noDevice_noSelection(): Unit = runBlockingTest {
     val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
 
-    assertThat(deviceComboBox.trackSelectedDevice().toList()).isEmpty()
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    deviceTracker.close()
+
+    assertThat(selectedDevices.await()).isEmpty()
     assertThat(selectionEvents).isEmpty()
   }
 
   @Test
-  fun noInitialDevice_selectsFirstDevice(): Unit = runBlocking {
-    deviceTracker.setEvents(
-      Added(device1),
-      Added(device2),
-    )
+  fun noInitialDevice_selectsFirstDevice(): Unit = runBlockingTest {
 
     val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
-    val selectedDevices = deviceComboBox.trackSelectedDevice().toList()
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
-    assertThat(selectedDevices).containsExactly(device1)
-    assertThat(selectionEvents).isEqualTo(selectedDevices)
+    deviceTracker.use {
+      it.sendEvents(
+        Added(device1),
+        Added(device2),
+      )
+    }
+
+    assertThat(selectionEvents).containsExactly(device1)
+    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
   }
 
   @Test
-  fun withInitialDevice_selectsInitialDevice(): Unit = runBlocking {
-    deviceTracker.setEvents(
-      Added(device1),
-      Added(device2),
-    )
-
+  fun withInitialDevice_selectsInitialDevice(): Unit = runBlockingTest {
     val deviceComboBox = deviceComboBox(initialDevice = device2, deviceTracker = deviceTracker, selectionEvents = selectionEvents)
-    val selectedDevices = deviceComboBox.trackSelectedDevice().toList()
 
-    assertThat(selectedDevices).containsExactly(device2)
-    assertThat(selectionEvents).isEqualTo(selectedDevices)
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+
+    deviceTracker.use {
+      it.sendEvents(
+        Added(device1),
+        Added(device2),
+      )
+    }
+
+    assertThat(selectionEvents).containsExactly(device2)
+    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
   }
 
   @Test
-  fun selectedDeviceStateChanges_selectsDevice(): Unit = runBlocking {
-    deviceTracker.setEvents(
-      Added(device2.online()),
-      StateChanged(device2.offline()),
-    )
-
+  fun selectedDeviceStateChanges_selectsDevice(): Unit = runBlockingTest {
     val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
-    val selectedDevices = deviceComboBox.trackSelectedDevice().toList()
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
-    assertThat(selectedDevices).containsExactly(
+    deviceTracker.use {
+      it.sendEvents(
+        Added(device2.online()),
+        StateChanged(device2.offline()),
+      )
+    }
+
+    assertThat(selectionEvents).containsExactly(
       device2.online(),
       device2.offline(),
     )
-    assertThat(selectionEvents).isEqualTo(selectedDevices)
+    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
   }
 
   @Test
-  fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runBlocking {
-    deviceTracker.setEvents(
-      Added(device1),
-      Added(device2.online()),
-      StateChanged(device2.offline()),
-    )
-
+  fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runBlockingTest {
     val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
-    val selectedDevices = deviceComboBox.trackSelectedDevice().toList()
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
-    assertThat(selectedDevices).containsExactly(device1)
-    assertThat(selectionEvents).isEqualTo(selectedDevices)
+    deviceTracker.use {
+      it.sendEvents(
+          Added(device1),
+          Added(device2.online()),
+          StateChanged(device2.offline()),
+      )
+    }
+
+    assertThat(selectionEvents).containsExactly(device1)
+    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
   }
 
   @Test
@@ -155,30 +174,29 @@ class DeviceComboBoxTest {
     initialDevice: Device? = null,
     deviceTracker: IDeviceComboBoxDeviceTracker = FakeDeviceComboBoxDeviceTracker(),
     selectionEvents: MutableList<Any?> = mutableListOf(),
-    ): DeviceComboBox =
-    DeviceComboBox(disposable, initialDevice, deviceTracker, autostart = false).also {
+  ): DeviceComboBox =
+    DeviceComboBox(disposable, initialDevice, deviceTracker, TestCoroutineScope()).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
       `when`(it.model.setSelectedItem(any())).thenAnswer { invocation ->
         invocation.callRealMethod()
         selectionEvents.add(invocation.arguments[0])
       }
-      // We must call the ctor for autostart = false so it doesn't start tracking before we replace the model
-      it.startTrackingDevices()
     }
 }
 
-private class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker {
+private class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker, Closeable {
 
-  private var events = mutableListOf<DeviceEvent>()
+  private var eventChannel = Channel<DeviceEvent>(UNLIMITED)
 
-  fun setEvents(vararg events: DeviceEvent) {
-    this.events.clear()
-    this.events.addAll(events)
+  suspend fun sendEvents(vararg events: DeviceEvent) {
+    events.forEach { eventChannel.send(it) }
   }
 
-  override suspend fun trackDevices(): Flow<DeviceEvent> {
-    return events.asFlow()
+  override suspend fun trackDevices(): Flow<DeviceEvent> = eventChannel.consumeAsFlow()
+
+  override fun close() {
+    eventChannel.close()
   }
 }
 
