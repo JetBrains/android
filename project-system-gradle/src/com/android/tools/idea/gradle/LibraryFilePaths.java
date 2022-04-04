@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
-import static com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER;
 import static com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsModelCollectorKt.idToString;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
@@ -33,6 +31,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class LibraryFilePaths {
   // Key: libraryId, Value: ExtraArtifactsPaths for the library.
@@ -40,6 +39,9 @@ public class LibraryFilePaths {
 
   // for 2019-05 gradle cache layout
   private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
+
+  @NotNull
+  public static final String NAME_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
   public static class ArtifactPaths {
     @Nullable public final File javaDoc;
