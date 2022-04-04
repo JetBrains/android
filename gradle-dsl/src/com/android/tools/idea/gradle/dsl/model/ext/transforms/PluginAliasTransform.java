@@ -55,7 +55,8 @@ public class PluginAliasTransform extends PropertyTransform {
   @Override
   public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
     return (e instanceof GradleDslInfixExpression && ((GradleDslInfixExpression)e).getPropertyElement(ALIAS) != null ||
-            e instanceof GradleDslLiteral && e.getName().equals(ALIAS));
+            e instanceof GradleDslLiteral && e.getName().equals(ALIAS) ||
+            e instanceof GradleDslMethodCall && e.getName().equals(ALIAS));
   }
 
   @Override
@@ -108,9 +109,21 @@ public class PluginAliasTransform extends PropertyTransform {
     if (aliasElement instanceof GradleDslInfixExpression) {
       aliasElement = ((GradleDslInfixExpression)oldElement).getPropertyElement(ALIAS);
     }
+    if (aliasElement instanceof GradleDslMethodCall) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall) aliasElement;
+      if (methodCall.getArguments().size() == 1) {
+        aliasElement = methodCall.getArguments().get(0);
+      }
+      else {
+        aliasElement = null;
+      }
+    }
     if (aliasElement != null) {
       GradleDslExpressionMap map;
-      GradleDslElement reference = aliasElement.getDependencies().get(0).getToBeInjected();
+      GradleDslElement reference = null;
+      if (aliasElement.getDependencies().size() == 1) {
+         reference = aliasElement.getDependencies().get(0).getToBeInjected();
+      }
       if (reference instanceof GradleDslExpressionMap) {
         map = (GradleDslExpressionMap)reference;
         GradleDslElement existing = map.getPropertyElement(myName);
@@ -120,6 +133,6 @@ public class PluginAliasTransform extends PropertyTransform {
         map.setNewElement(newElement);
       }
     }
-    return newElement;
+    return oldElement;
   }
 }

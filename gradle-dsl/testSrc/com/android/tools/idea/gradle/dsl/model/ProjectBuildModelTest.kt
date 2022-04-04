@@ -537,6 +537,56 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testVersionCatalogPluginsDslSetVersions() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val plugins = buildModel.plugins()
+      // This way of setting versions should not be seen "in the wild", but exposed an issue in the PluginAliasTransform
+      plugins[0].version().setValue("7.1.1")
+      plugins[1].version().setValue("7.1.2")
+      plugins[2].version().setValue("7.1.3")
+      // We do not check file contents here because the end result of this is not clear.  For a clearer version, see
+      // testVersionCatalogPluginsDslSetResultModelVersions() below.
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testVersionCatalogPluginsDslSetResultModelVersions() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    // TODO(xof): write support does not yet work.  We test here that the operation does not change any file; when write support
+    //  works, alter this test to execute the writes and check the Toml file contents against the _EXPECTED file.
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(false)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val plugins = buildModel.plugins()
+      plugins[0].version().resultModel.setValue("7.1.1")
+      plugins[1].version().resultModel.setValue("7.1.2")
+      plugins[2].version().resultModel.setValue("7.1.3")
+      applyChangesAndReparse(pbm)
+      verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
   fun testWriteVersionCatalogMapNotation() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
@@ -623,6 +673,26 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testPluginAliasInvalidSyntax() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE_INVALID_ALIAS)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_MAP_NOTATION)
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val appliedPlugins = buildModel.appliedPlugins()
+      assertSize(0, appliedPlugins)
+      val plugins = buildModel.plugins()
+      assertSize(0, plugins)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -659,6 +729,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
     VERSION_CATALOG_ALIAS_MAPPING_BUILD_FILE("versionCatalogAliasMappingBuildFile"),
     VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE("versionCatalogPluginsDslBuildFile"),
+    VERSION_CATALOG_BUILD_FILE_INVALID_ALIAS("versionCatalogBuildFileInvalidAlias"),
     VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
     VERSION_CATALOG_GROUP_COMPACT_NOTATION("versionCatalogGroupCompactNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION("versionCatalogMapNotation.toml"),
@@ -668,6 +739,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_MAP_VERSION_REF_NOTATION_EXPECTED("versionCatalogMapVersionRefNotationExpected.toml"),
     VERSION_CATALOG_MODULE_VERSION_REF_NOTATION("versionCatalogModuleVersionRefNotation.toml"),
     VERSION_CATALOG_PLUGINS_NOTATION("versionCatalogPluginsNotation.toml"),
+    VERSION_CATALOG_PLUGINS_NOTATION_EXPECTED("versionCatalogPluginsNotationExpected.toml"),
     VERSION_CATALOG_CREATE_VERSION_PROPERTY_EXPECTED("versionCatalogCreateVersionPropertyExpected.toml"),
     ;
 

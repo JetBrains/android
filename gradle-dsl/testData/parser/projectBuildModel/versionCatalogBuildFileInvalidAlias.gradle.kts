@@ -1,0 +1,3 @@
+plugins {
+  alias("com.android.application:7.1.0") apply false
+}
