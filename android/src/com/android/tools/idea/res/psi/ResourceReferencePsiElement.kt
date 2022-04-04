@@ -88,6 +88,73 @@ class ResourceReferencePsiElement(
   val writable: Boolean = false
 ) : FakePsiElement() {
 
+  override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
+
+  override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
+
+  override fun getManager(): PsiManager = delegate.manager
+
+  override fun getProject() = delegate.project
+
+  override fun getLanguage() = delegate.language
+
+  override fun getParent(): PsiElement? = delegate.parent
+
+  override fun isValid() = true
+
+  override fun isWritable(): Boolean {
+    return writable
+  }
+
+  override fun getUseScope(): SearchScope {
+    // Returning GlobalSearchScope.allScope is probably a hack, but it replicates previous
+    // behavior when the getContainingFile method returned null.
+    return GlobalSearchScope.allScope(project)
+  }
+
+  override fun getName() = resourceReference.name
+
+  override fun isEquivalentTo(element: PsiElement) = create(element)?.resourceReference == resourceReference
+
+  fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
+    // Framework resources are not writable.
+    if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
+      val writableElement = ResourceReferencePsiElement(originalElement, resourceReference, true)
+      copyCopyableDataTo(writableElement)
+      return writableElement
+    }
+    return null
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    other as ResourceReferencePsiElement
+    return delegate == other.delegate && resourceReference == other.resourceReference
+  }
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(delegate.hashCode(), resourceReference.hashCode())
+  }
+
+  override fun toString(): String {
+    return "$delegate: $resourceReference"
+  }
+
+  /**
+   * Element description for Android resources.
+   */
+  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
+      return when (location) {
+        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        is UsageViewLongNameLocation -> element.presentableText
+        else -> resourceReference.name
+      }
+    }
+  }
+
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
@@ -199,72 +266,5 @@ class ResourceReferencePsiElement(
         return ResourceReferencePsiElement(element, resourceReference)
       }
     }
-  }
-
-  override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
-
-  override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
-
-  override fun getManager(): PsiManager = delegate.manager
-
-  override fun getProject() = delegate.project
-
-  override fun getLanguage() = delegate.language
-
-  override fun getParent(): PsiElement? = delegate.parent
-
-  override fun isValid() = true
-
-  override fun isWritable(): Boolean {
-    return writable
-  }
-
-  override fun getUseScope(): SearchScope {
-    // Returning GlobalSearchScope.allScope is probably a hack, but it replicates previous
-    // behavior when the getContainingFile method returned null.
-    return GlobalSearchScope.allScope(project)
-  }
-
-  override fun getName() = resourceReference.name
-
-  override fun isEquivalentTo(element: PsiElement) = create(element)?.resourceReference == resourceReference
-
-  /**
-   * Element description for Android resources.
-   */
-  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
-    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
-      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
-      return when (location) {
-        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
-        is UsageViewLongNameLocation -> element.presentableText
-        else -> resourceReference.name
-      }
-    }
-  }
-
-  fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
-    // Framework resources are not writable.
-    if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
-      val writableElement = ResourceReferencePsiElement(originalElement, resourceReference, true)
-      copyCopyableDataTo(writableElement)
-      return writableElement
-    }
-    return null
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-    other as ResourceReferencePsiElement
-    return delegate == other.delegate && resourceReference == other.resourceReference
-  }
-
-  override fun hashCode(): Int {
-    return HashCodes.mix(delegate.hashCode(), resourceReference.hashCode())
-  }
-
-  override fun toString(): String {
-    return "$delegate: $resourceReference"
   }
 }
