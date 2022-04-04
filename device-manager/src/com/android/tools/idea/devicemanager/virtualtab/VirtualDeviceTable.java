@@ -24,6 +24,7 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.Devices;
@@ -40,7 +41,6 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
@@ -73,12 +73,14 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private @Nullable IDeviceChangeListener myListener;
 
   @VisibleForTesting
-  static final class SetDevices implements FutureCallback<List<VirtualDevice>> {
+  static final class SetDevices extends DeviceManagerFutureCallback<List<VirtualDevice>> {
     private final @NotNull VirtualDeviceTable myTable;
     private final @Nullable Key myKey;
 
     @VisibleForTesting
     SetDevices(@NotNull VirtualDeviceTable table, @Nullable Key key) {
+      super(VirtualDeviceTable.class);
+
       myTable = table;
       myKey = key;
     }
@@ -98,11 +100,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
         .build();
 
       DeviceManagerUsageTracker.log(event);
-    }
-
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(VirtualDeviceTable.class).warn(throwable);
     }
   }
 

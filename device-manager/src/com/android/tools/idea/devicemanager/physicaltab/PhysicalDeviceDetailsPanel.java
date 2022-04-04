@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
@@ -24,7 +25,6 @@ import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -63,11 +63,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  static final class SummarySectionCallback extends MyFutureCallback {
+  static final class SummarySectionCallback extends DeviceManagerFutureCallback<PhysicalDevice> {
     private final @NotNull SummarySection mySection;
 
     @VisibleForTesting
     SummarySectionCallback(@NotNull SummarySection section) {
+      super(PhysicalDeviceDetailsPanel.class);
       mySection = section;
     }
 
@@ -81,13 +82,6 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       InfoSection.setText(mySection.myDpLabel, device.getDp());
       InfoSection.setText(mySection.myAbiListLabel, device.getAbis());
       InfoSection.setText(mySection.myAvailableStorageLabel, device.getStorageDevice());
-    }
-  }
-
-  private abstract static class MyFutureCallback implements FutureCallback<PhysicalDevice> {
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(PhysicalDeviceDetailsPanel.class).warn(throwable);
     }
   }
 

@@ -21,6 +21,7 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.internal.DeviceMonitor;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
@@ -46,12 +47,13 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   private final @NotNull FutureCallback<@NotNull PhysicalDevice> myCallback;
 
   @VisibleForTesting
-  static class AddOrSet implements FutureCallback<PhysicalDevice> {
+  static final class AddOrSet extends DeviceManagerFutureCallback<PhysicalDevice> {
     private final @NotNull PhysicalDeviceTableModel myModel;
 
     @UiThread
     @VisibleForTesting
     AddOrSet(@NotNull PhysicalDeviceTableModel model) {
+      super(PhysicalDeviceChangeListener.class);
       myModel = model;
     }
 
@@ -60,13 +62,6 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
     public void onSuccess(@Nullable PhysicalDevice device) {
       assert device != null;
       myModel.addOrSet(device);
-    }
-
-    @UiThread
-    @Override
-    public final void onFailure(@NotNull Throwable throwable) {
-      // TODO Handle the exception in a user visible way
-      Logger.getInstance(PhysicalDeviceChangeListener.class).warn(throwable);
     }
   }
 

@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.Devices;
 import com.google.common.annotations.VisibleForTesting;
@@ -26,7 +27,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
@@ -64,11 +64,12 @@ public final class PhysicalDevicePanel extends DevicePanel {
   private @Nullable AbstractButton myHelpButton;
 
   @VisibleForTesting
-  static final class SetDevices implements FutureCallback<List<PhysicalDevice>> {
+  static final class SetDevices extends DeviceManagerFutureCallback<List<PhysicalDevice>> {
     private final @NotNull PhysicalDevicePanel myPanel;
 
     @VisibleForTesting
     SetDevices(@NotNull PhysicalDevicePanel panel) {
+      super(PhysicalDevicePanel.class);
       myPanel = panel;
     }
 
@@ -76,11 +77,6 @@ public final class PhysicalDevicePanel extends DevicePanel {
     public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
       assert devices != null;
       myPanel.setDevices(myPanel.addOfflineDevices(devices));
-    }
-
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
     }
   }
 
