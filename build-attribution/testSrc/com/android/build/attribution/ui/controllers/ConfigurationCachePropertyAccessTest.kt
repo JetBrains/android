@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -59,13 +60,13 @@ class ConfigurationCachePropertyAccessTest {
   fun testPropertyStateReadWhenSetToTrue() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "org.gradle.unsafe.configuration-cache=true") }
 
-    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder, BuildInvocationType.REGULAR_BUILD)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isEqualTo("true")
   }
 
   @Test
   fun testPropertyStateWhenNotSet() {
-    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder, BuildInvocationType.REGULAR_BUILD)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isNull()
   }
 
@@ -73,14 +74,14 @@ class ConfigurationCachePropertyAccessTest {
   fun testPropertyStateReadWhenSetToFalse() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "org.gradle.unsafe.configuration-cache=false") }
 
-    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder, BuildInvocationType.REGULAR_BUILD)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isEqualTo("false")
   }
 
   @Test
   fun testAddingPropertyWhenNotSet() {
-    Truth.assertThat(
-      StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder).configurationCachingGradlePropertyState).isNull()
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder, BuildInvocationType.REGULAR_BUILD)
+    Truth.assertThat(info.configurationCachingGradlePropertyState).isNull()
 
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project)
 

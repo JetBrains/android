@@ -248,14 +248,14 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
       }
     }
 
-    private static void setUpBuildAttributionManager(LongRunningOperation operation,
-                                                     BuildAttributionManager buildAttributionManager,
-                                                     boolean skipIfNull) {
+    private void setUpBuildAttributionManager(LongRunningOperation operation,
+                                              BuildAttributionManager buildAttributionManager,
+                                              boolean skipIfNull) {
       if (skipIfNull && buildAttributionManager == null) {
         return;
       }
       operation.addProgressListener(buildAttributionManager, OperationType.PROJECT_CONFIGURATION, OperationType.TASK, OperationType.TEST);
-      buildAttributionManager.onBuildStart();
+      buildAttributionManager.onBuildStart(myRequest);
     }
 
     @NotNull

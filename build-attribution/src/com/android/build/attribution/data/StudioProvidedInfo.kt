@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.data
 
-import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.lang.properties.IProperty
@@ -30,21 +29,23 @@ import org.jetbrains.kotlin.idea.util.application.runReadAction
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
-  val isInConfigurationCacheTestFlow: Boolean,
+  val buildInvocationType: BuildInvocationType,
   val enableJetifierPropertyState: Boolean,
   val useAndroidXPropertyState: Boolean,
   val buildRequestHolder: BuildRequestHolder
 ) {
 
+  val isInConfigurationCacheTestFlow: Boolean get() = buildInvocationType == BuildInvocationType.CONFIGURATION_CACHE_TRIAL
+
   companion object {
     private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
 
-    fun fromProject(project: Project, buildRequest: BuildRequestHolder) = StudioProvidedInfo(
+    fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
         project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
       },
-      isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild,
+      buildInvocationType = buildInvocationType,
       enableJetifierPropertyState = project.isEnableJetifier(),
       useAndroidXPropertyState = project.isAndroidx(),
       buildRequestHolder = buildRequest

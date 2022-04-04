@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.checkJetifierResultFile
 import com.android.build.attribution.data.GradlePluginsData
@@ -328,8 +329,13 @@ class PluginVersionDeclarationFinder(val project: Project) {
 
 class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 
-  var runningTestConfigurationCacheBuild: Boolean = false
+  @Volatile
+  private var testConfigurationCacheBuildRequest: GradleBuildInvoker.Request? = null
+  @Volatile
   var runningFirstConfigurationCacheBuild: Boolean = false
+
+  fun isTestConfigurationCacheBuild(request: GradleBuildInvoker.Request): Boolean =
+    testConfigurationCacheBuildRequest?.let { it == request } ?: false
 
   companion object {
     fun getInstance(project: Project): ConfigurationCacheTestBuildFlowRunner {
@@ -357,8 +363,12 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         Messages.getInformationIcon(), null
       )
       if (confirmationResult == Messages.OK) {
-        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = true) {
-          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = false) { showFinalSuccessMessage() } }
+        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = true, onBuildFailure = this::showFailureMessage) {
+          invokeLater {
+            scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = false, onBuildFailure = this::showFailureMessage) {
+              showFinalSuccessMessage()
+            }
+          }
         }
       }
     }
@@ -383,32 +393,34 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(
+  fun scheduleRebuildWithCCOptionAndRunOnSuccess(
     originalBuildRequest: GradleBuildInvoker.Request,
     firstBuild: Boolean,
+    onBuildFailure: (GradleInvocationResult) -> Unit,
     onSuccess: () -> Unit
   ) {
     val request = builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, originalBuildRequest.gradleTasks)
       .setCommandLineArguments(originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
       .build()
 
+    testConfigurationCacheBuildRequest = request
+    runningFirstConfigurationCacheBuild = firstBuild
+
     val future = GradleBuildInvoker.getInstance(project).executeTasks(request)
     Futures.addCallback(future, object : FutureCallback<GradleInvocationResult> {
       override fun onSuccess(result: GradleInvocationResult?) {
         runningFirstConfigurationCacheBuild = false
-        runningTestConfigurationCacheBuild = false
+        testConfigurationCacheBuildRequest = null
         if (result!!.isBuildSuccessful) onSuccess()
-        else showFailureMessage(result)
+        else onBuildFailure(result)
       }
 
       override fun onFailure(t: Throwable) {
         runningFirstConfigurationCacheBuild = false
-        runningTestConfigurationCacheBuild = false
+        testConfigurationCacheBuildRequest = null
         throw t
       }
     }, MoreExecutors.directExecutor())
-    runningFirstConfigurationCacheBuild = firstBuild
-    runningTestConfigurationCacheBuild = true
   }
 
   private fun showFailureMessage(result: GradleInvocationResult) {
@@ -436,7 +448,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 }
 
 fun createCheckJetifierTaskRequest(originalBuildRequest: GradleBuildInvoker.Request): GradleBuildInvoker.Request {
-  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf("checkJetifier"))
+  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
     .setCommandLineArguments(listOf(
       createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequest).absolutePath),
       // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.

@@ -31,6 +31,7 @@ import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
@@ -269,5 +270,20 @@ class BuildAttributionAnalyticsManager(
       }
     }
       .build()
+
+  fun logBuildSuccess(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.SUCCESS
+  }
+
+  fun logBuildFailure(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.BUILD_FAILURE
+  }
+
+  fun logAnalysisFailure(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_FAILURE
+  }
 
 }

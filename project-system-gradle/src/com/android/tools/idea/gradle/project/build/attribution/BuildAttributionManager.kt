@@ -24,7 +24,7 @@ data class BasicBuildAttributionInfo(
 )
 
 interface BuildAttributionManager : ProgressListener {
-  fun onBuildStart()
+  fun onBuildStart(request: GradleBuildInvoker.Request)
 
   fun onBuildSuccess(request: GradleBuildInvoker.Request): BasicBuildAttributionInfo
 

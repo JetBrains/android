@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
@@ -168,7 +169,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = testCaseData.agpVersion,
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = false
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
     Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
@@ -188,7 +189,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = false
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
@@ -220,7 +221,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "true",
-      isInConfigurationCacheTestFlow = false
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
@@ -244,7 +245,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "false",
-      isInConfigurationCacheTestFlow = false
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
@@ -268,7 +269,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = true
+      buildInvocationType = BuildInvocationType.CONFIGURATION_CACHE_TRIAL
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
 
@@ -295,11 +296,11 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   private fun studioProvidedInfo(
     agpVersion: GradleVersion?,
     configurationCachingGradlePropertyState: String?,
-    isInConfigurationCacheTestFlow: Boolean
-  ): StudioProvidedInfo = StudioProvidedInfo(
+    buildInvocationType: BuildInvocationType
+    ): StudioProvidedInfo = StudioProvidedInfo(
     agpVersion = agpVersion,
     configurationCachingGradlePropertyState = configurationCachingGradlePropertyState,
-    isInConfigurationCacheTestFlow = isInConfigurationCacheTestFlow,
+    buildInvocationType = buildInvocationType,
     enableJetifierPropertyState = false,
     useAndroidXPropertyState = false,
     buildRequestHolder = mock()

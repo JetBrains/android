@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import java.io.File
 
+const val CHECK_JETIFIER_TASK_NAME = "checkJetifier"
 fun checkJetifierResultFile(buildRequest: GradleBuildInvoker.Request): File = FileUtils.join(
   getAgpAttributionFileDir(buildRequest),
   SdkConstants.FD_BUILD_ATTRIBUTION,

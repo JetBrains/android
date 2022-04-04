@@ -16,19 +16,18 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,7 +45,7 @@ class CriticalPathAnalyzerTest {
     studioProvidedInfo = StudioProvidedInfo(
       agpVersion = null,
       configurationCachingGradlePropertyState = null,
-      isInConfigurationCacheTestFlow = false,
+      buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = false,
       useAndroidXPropertyState = false,
       buildRequestHolder = mock()
