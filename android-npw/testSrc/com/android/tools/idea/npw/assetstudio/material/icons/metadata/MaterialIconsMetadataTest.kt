@@ -100,7 +100,7 @@ class MaterialIconsMetadataTest {
                                                families = arrayOf("Style 1", "Style 2"),
                                                icons = iconsMetadata)
     // Create a Json String
-    val serializedMetadata = MaterialIconsMetadata.parse(metadataObject)
+    val serializedMetadata = MaterialIconsMetadata.toJsonText(metadataObject)
 
     // Deserialize the Json String and compare resulting object
     val deserializedMetadata = MaterialIconsMetadata.parse(StringReader(serializedMetadata))

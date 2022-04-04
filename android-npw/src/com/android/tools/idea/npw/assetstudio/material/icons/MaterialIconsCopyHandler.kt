@@ -139,7 +139,7 @@ class MaterialIconsCopyHandler(
   }
 
   private fun updateSavedMetadata(metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
-    targetPath.resolve(METADATA_TEMP_FILE_NAME).writeText(MaterialIconsMetadata.parse(metadataBuilder.build()))
+    targetPath.resolve(METADATA_TEMP_FILE_NAME).writeText(MaterialIconsMetadata.toJsonText(metadataBuilder.build()))
   }
 
   private fun alreadyCopied(targetPath: File): Boolean {

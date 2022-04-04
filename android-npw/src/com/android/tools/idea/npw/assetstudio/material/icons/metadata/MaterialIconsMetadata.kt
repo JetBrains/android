@@ -51,7 +51,7 @@ data class MaterialIconsMetadata(
     /**
      * @return A Json [String] of the serialized [MaterialIconsMetadata], note that it generates an NonExecutable Json using Gson.
      */
-    fun parse(metadata: MaterialIconsMetadata): String {
+    fun toJsonText(metadata: MaterialIconsMetadata): String {
       return with(getMetadataGson()) {
         toJson(metadata, MaterialIconsMetadata::class.java)
       }

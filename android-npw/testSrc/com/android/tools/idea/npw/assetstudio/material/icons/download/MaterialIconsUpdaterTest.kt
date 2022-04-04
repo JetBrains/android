@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.material.icons.download
 
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
@@ -24,7 +25,7 @@ import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
-import com.intellij.util.io.exists
+import com.intellij.util.io.createFile
 import com.intellij.util.io.readText
 import org.junit.Before
 import org.junit.Rule
@@ -36,8 +37,6 @@ import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 private const val HOST = "my.host.com"
 private const val PATTERN = "/s/i/{family}/{icon}/v{version}/{asset}"
@@ -101,6 +100,7 @@ class MaterialIconsUpdaterTest {
   fun setup() {
     testDirectory = createTempDirectory(javaClass.simpleName)
     downloadDir = testDirectory.resolve("downloads")
+    downloadDir.resolve(METADATA_FILE_NAME).createFile().writeText(OLD_METADATA_CONTENT)
     // Setup 'Downloads' directory with the existing XML files of the `old` metadata
     downloadDir.resolve("style1/my_icon_1").apply { createDirectories() }.resolve("my_icon_1.xml").writeText(OLD_VD)
     downloadDir.resolve("style1/my_icon_2").apply { createDirectories() }.resolve("my_icon_2.xml").writeText(OLD_VD)
@@ -132,24 +132,36 @@ class MaterialIconsUpdaterTest {
 
     val newMetadata = MaterialIconsMetadata.parse(StringReader(NEW_METADATA_CONTENT))
     updateIconsAtDir(
-      MaterialIconsMetadata.parse(StringReader(OLD_METADATA_CONTENT)),
-      newMetadata,
-      downloadDir
+      existingMetadata = MaterialIconsMetadata.parse(StringReader(OLD_METADATA_CONTENT)),
+      newMetadata = newMetadata,
+      targetDir = downloadDir
     )
 
-    // Existing/old vector drawable files should not exist.
-    assertFalse(existingIcon1.exists())
-    assertFalse(existingIcon2.exists())
+    // Downloaded version of Icon 1 forces a specific file name and deletes the existing XML file
+    assertThat(existingIcon1).doesNotExist()
+    // Icon2 may still be in use, so it shouldn't be deleted yet, we just update the metadata file
+    assertThat(existingIcon2).exists()
 
-    // Only directory of my_icon_1 should exist
+    // Icon directories should still exist
     assertThat(existingIcon1.parent).exists()
-    assertFalse(existingIcon2.parent.exists())
+    assertThat(existingIcon2.parent).exists()
 
     assertEquals(NEW_VD, existingIcon1.parent.resolve("style1_my_icon_1_24.xml").readText())
 
     // There should be a metadata file that reflects the new information
     val savedMetadata = downloadDir.resolve("icons_metadata.txt")
-    assertTrue(savedMetadata.exists())
-    assertEquals(MaterialIconsMetadata.parse(newMetadata), savedMetadata.readText())
+    assertThat(savedMetadata).exists()
+    assertEquals(MaterialIconsMetadata.toJsonText(newMetadata), savedMetadata.readText())
+
+    // Calling updateIconsAtDir again will remove any unused Icons from the current metadata
+    updateIconsAtDir(
+      existingMetadata = newMetadata, // The existing metadata now reflects the latest changes
+      newMetadata = newMetadata, // No changes
+      targetDir = downloadDir
+    )
+
+    // Icon 2 should be deleted now, since it's not in use by the current metadata
+    assertThat(existingIcon1.parent).exists()
+    assertThat(existingIcon2.parent).doesNotExist()
   }
 }

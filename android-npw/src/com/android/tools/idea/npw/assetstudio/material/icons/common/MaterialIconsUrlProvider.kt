@@ -58,7 +58,7 @@ class BundledIconsUrlProvider : MaterialIconsUrlProvider {
  *
  * @see MaterialIconsUtils.getIconsSdkTargetPath
  */
-class SdkMaterialIconsUrlProvider: MaterialIconsUrlProvider {
+class SdkMaterialIconsUrlProvider : MaterialIconsUrlProvider {
   private val iconsSdkPath = MaterialIconsUtils.getIconsSdkTargetPath()
 
   override fun getStyleUrl(style: String): URL? {
@@ -66,11 +66,7 @@ class SdkMaterialIconsUrlProvider: MaterialIconsUrlProvider {
   }
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return getIconDirectoryFile(style, iconName)?.resolve(iconFileName)?.let(::fileToUrl)
-  }
-
-  private fun getIconDirectoryFile(style: String, name: String): File? {
-    return getStyleDirectoryFile(style)?.resolve(name)
+    return getStyleDirectoryFile(style)?.resolve(iconName)?.resolve(iconFileName)?.let(::fileToUrl)
   }
 
   private fun getStyleDirectoryFile(style: String): File? {
