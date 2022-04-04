@@ -99,14 +99,24 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
             toolTipText = myPresentation.description
             return
           }
-          val editState = LiveEditService.getInstance(project).editStatus()
+          val status = LiveEditService.getInstance(project).editStatus()
           HelpTooltip.dispose(this)
           HelpTooltip()
             .setTitle(myPresentation.description)
-            .setDescription(editState.message)
+            .setDescription(status.message)
             .setLink("Configure live edit")
             { ShowSettingsUtil.getInstance().showSettingsDialog(project, LiveLiteralsConfigurable::class.java) }
             .installOn(this)
+        }
+
+        override fun updateIcon() {
+          val project = editor.project
+          if (project == null) {
+            toolTipText = myPresentation.description
+            return
+          }
+          myPresentation.icon = stateToIcon[LiveEditService.getInstance(project).editStatus().editState]
+          super.updateIcon()
         }
       }.also {
         it.foreground = JBColor { editor.colorsScheme.getColor(FOREGROUND) ?: FOREGROUND.defaultColor }
