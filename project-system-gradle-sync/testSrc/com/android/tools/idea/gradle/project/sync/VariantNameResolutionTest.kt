@@ -20,10 +20,6 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Truth
-import org.gradle.tooling.model.BuildIdentifier
-import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.ProjectIdentifier
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.junit.Test
 import java.io.File
 
@@ -88,7 +84,7 @@ class VariantNameResolutionTest {
 
     val resolver = buildVariantNameResolver(androidProject, variants)
     Truth.assertThat(
-      resolver(
+      resolver.resolveVariant(
         "debug"
       ) {
         when (it) {
@@ -99,19 +95,3 @@ class VariantNameResolutionTest {
       }).isEqualTo("firstAbcSecondXyzDebug")
   }
 }
-
-private val APP_BASIC_GRADLE_PROJECT = object : BasicGradleProject {
-  override fun getProjectIdentifier(): ProjectIdentifier {
-    return object : ProjectIdentifier {
-      override fun getProjectPath(): String = ":app"
-      override fun getBuildIdentifier(): BuildIdentifier = BuildIdentifier { PROJECT_ROOT }
-    }
-  }
-
-  override fun getName(): String = throw UnsupportedOperationException()
-  override fun getPath(): String = ":app"
-  override fun getProjectDirectory(): File = throw UnsupportedOperationException()
-  override fun getParent(): BasicGradleProject = throw UnsupportedOperationException()
-  override fun getChildren(): DomainObjectSet<out BasicGradleProject> = throw UnsupportedOperationException()
-}
-

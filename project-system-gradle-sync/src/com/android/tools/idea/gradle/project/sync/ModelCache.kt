@@ -84,7 +84,7 @@ interface ModelCache {
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
-      variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
+      androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, File>
     ): IdeVariantCoreImpl
 

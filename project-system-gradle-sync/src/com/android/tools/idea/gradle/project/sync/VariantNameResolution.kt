@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeVariantCore
 
-typealias VariantNameResolver = (buildType: String?, productFlavors: (dimension: String) ->  String) -> String?
-
-fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariantCore>): VariantNameResolver {
+fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariantCore>): AndroidVariantResolver {
   val moduleName = androidProject.name
   val availableDimensions = androidProject.productFlavors.mapNotNull { it.productFlavor.dimension }.toSet()
   val dimensions = androidProject.flavorDimensions.filter { availableDimensions.contains(it) }
@@ -29,11 +27,12 @@ fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Coll
       variant.productFlavors.toList() + listOfNotNull(variant.buildType) to variant.name
     }
 
-  return fun(buildType: String?, productFlavors: (dimension: String) ->  String): String {
-    val flavors = dimensions.map(productFlavors)
-    val key = flavors + listOfNotNull(buildType)
-    return map
-      .getOrElse(key) { error("Cannot find a variant matching build type '$buildType' and product flavors '$flavors' in $moduleName") }
-
+  return object : AndroidVariantResolver {
+    override fun resolveVariant(buildType: String?, productFlavors: (dimension: String) -> String): String {
+      val flavors = dimensions.map(productFlavors)
+      val key = flavors + listOfNotNull(buildType)
+      return map
+        .getOrElse(key) { error("Cannot find a variant matching build type '$buildType' and product flavors '$flavors' in $moduleName") }
+    }
   }
 }
