@@ -97,7 +97,6 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
 
     val gradleBuildModel: GradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile)
     // Only add the google Maven repository if it doesn't already exist.
-    // TODO(b/197125864): Could there be a case when this condition is not always true ?
     if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
       val processor = AddRepoProcessor(project, listOf(buildFile), AddRepoProcessor.Repository.GOOGLE, true)
       processor.setPreviewUsages(true)
