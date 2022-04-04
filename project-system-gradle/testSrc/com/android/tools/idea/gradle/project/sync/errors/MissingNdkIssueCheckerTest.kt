@@ -63,7 +63,7 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   fun testHandleErrorWithNdkLicenceMissing() {
-    verifyWithFixVersion("Failed to install the following Android SDK packages as some licences have not been accepted." +
+    verifyWithFixVersion("java.Lang.RuntimeException: Failed to install the following Android SDK packages as some licences have not been accepted." +
                            "blah blah ndk-bundle NDK blah blah")
   }
 

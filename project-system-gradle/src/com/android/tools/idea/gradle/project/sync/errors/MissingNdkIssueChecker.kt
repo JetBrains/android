@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import org.intellij.markdown.flavours.gfm.table.GitHubTableMarkerProvider.Companion.contains
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -133,8 +134,8 @@ class MissingNdkIssueChecker: GradleIssueChecker {
   }
 
   private fun matchesTriedInstall(errorMessage: String): Boolean {
-    return (errorMessage.startsWith(
-      "Failed to install the following Android SDK packages as some licences have not been accepted.") || errorMessage.startsWith(
+    return (errorMessage.contains(
+      "Failed to install the following Android SDK packages as some licences have not been accepted.") || errorMessage.contains(
       "Failed to install the following SDK components:")) && errorMessage.contains("NDK")
   }
 
