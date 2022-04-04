@@ -138,6 +138,22 @@ class DeviceComboBoxTest {
   }
 
   @Test
+  fun userSelection_sendsToFlow(): Unit = runBlockingTest {
+    val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker, selectionEvents = selectionEvents)
+    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+
+    deviceTracker.use {
+      it.sendEvents(
+          Added(device1),
+          Added(device2),
+      )
+      deviceComboBox.selectedItem = device2
+    }
+
+    assertThat(selectedDevices.await()).containsExactly(device1, device2)
+  }
+
+  @Test
   fun renderer_physicalDevice_offline() {
     val deviceComboBox = deviceComboBox(deviceTracker = deviceTracker)
 

@@ -63,6 +63,12 @@ internal class DeviceComboBox(
     renderer = DeviceComboBoxRenderer()
     model = DeviceModel()
 
+    addActionListener {
+      coroutineScope.launch {
+        selectionChannel.send(selectedItem as Device)
+      }
+    }
+
     coroutineScope.launch {
       deviceTracker.trackDevices().collect {
         when (it) {
@@ -76,7 +82,7 @@ internal class DeviceComboBox(
 
   fun trackSelectedDevice(): Flow<Device> = selectionChannel.consumeAsFlow()
 
-  private suspend fun deviceAdded(device: Device) {
+  private fun deviceAdded(device: Device) {
     (model as DeviceModel).add(device)
     when {
       selectedItem != null -> return
@@ -85,17 +91,12 @@ internal class DeviceComboBox(
     }
   }
 
-  private suspend fun selectDevice(device: Device) {
+  private fun selectDevice(device: Device) {
     selectedItem = device
-    selectionChannel.send(device)
   }
 
-  private suspend fun deviceStateChanged(device: Device) {
-    val setSelected = device.deviceId == (selectedItem as? Device)?.deviceId
-    if (setSelected) {
-      selectionChannel.send(device)
-    }
-    (model as DeviceModel).replaceItem(device, setSelected)
+  private fun deviceStateChanged(device: Device) {
+    (model as DeviceModel).replaceItem(device, device.deviceId == (selectedItem as? Device)?.deviceId)
   }
 
   // Renders a Device.
