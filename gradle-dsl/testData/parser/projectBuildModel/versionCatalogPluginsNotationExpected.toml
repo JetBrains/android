@@ -2,6 +2,6 @@
 agp = "7.1.2"
 
 [plugins]
-app = { id = 'com.android.application', version = '7.1.1' }
+app = { id = 'com.android.application', version = "7.1.1" }
 lib = { id = 'com.android.library', version.ref = 'agp' }
-com = 'com.android.dynamic-feature:7.1.3'
+com = "com.android.dynamic-feature:7.1.3"

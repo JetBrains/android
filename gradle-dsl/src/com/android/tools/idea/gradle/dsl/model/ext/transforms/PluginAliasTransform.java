@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -93,9 +94,20 @@ public class PluginAliasTransform extends PropertyTransform {
                                            @Nullable GradleDslElement oldElement,
                                            @NotNull Object value,
                                            @NotNull String name) {
-    if (oldElement instanceof FakeArtifactElement) {
-      ((FakeArtifactElement)oldElement).setValue(value);
-      return (FakeArtifactElement)oldElement;
+    GradleDslElement transformed = transform(oldElement);
+    if (transformed instanceof FakeArtifactElement) {
+      ((FakeArtifactElement)transformed).setValue(value);
+      return (FakeArtifactElement)transformed;
+    }
+    if (transformed instanceof GradleDslSettableExpression) {
+      ((GradleDslSettableExpression)transformed).setValue(value);
+      return (GradleDslSettableExpression)transformed;
+    }
+    if (transformed != null) {
+      GradleDslElement parent = transformed.getParent();
+      if (parent != null) {
+        return createBasicExpression(parent, value, GradleNameElement.create(myName));
+      }
     }
     return createBasicExpression(holder, value, GradleNameElement.create(myName));
   }
@@ -105,6 +117,11 @@ public class PluginAliasTransform extends PropertyTransform {
                                            @Nullable GradleDslElement oldElement,
                                            @NotNull GradleDslExpression newElement,
                                            @NotNull String name) {
+    GradleDslElement transformed = transform(oldElement);
+    if (newElement == transformed) {
+      // We made no change other than possibly setting the value of the transformed element: no further action needed.
+      return oldElement;
+    }
     GradleDslElement aliasElement = oldElement;
     if (aliasElement instanceof GradleDslInfixExpression) {
       aliasElement = ((GradleDslInfixExpression)oldElement).getPropertyElement(ALIAS);

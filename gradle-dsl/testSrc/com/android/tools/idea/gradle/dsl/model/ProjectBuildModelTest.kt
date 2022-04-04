@@ -563,9 +563,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testVersionCatalogPluginsDslSetResultModelVersions() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
-    // TODO(xof): write support does not yet work.  We test here that the operation does not change any file; when write support
-    //  works, alter this test to execute the writes and check the Toml file contents against the _EXPECTED file.
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(false)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     try {
       writeToBuildFile(TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
       writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
@@ -578,7 +576,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       plugins[2].version().resultModel.setValue("7.1.3")
       applyChangesAndReparse(pbm)
       verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
-      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+      verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_PLUGINS_NOTATION_EXPECTED)
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
