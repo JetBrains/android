@@ -88,7 +88,7 @@ class ImportTestGroupTest {
 
     assertThat(actions).containsExactly(
       "intelliJHistory1",
-      "utpProto (${DateFormatUtil.formatDateTime(Date(2000))})",
+      "utpProto - connected (${DateFormatUtil.formatDateTime(Date(2000))})",
       "intelliJHistory2",
     )
   }

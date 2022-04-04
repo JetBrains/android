@@ -59,7 +59,7 @@ private const val TEST_RESULT_PB_FILE_NAME = "test-result.pb"
  */
 class ImportUtpResultAction(icon: Icon? = null,
                             text: String = "Import Android Test Results...",
-                            private val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
+                            val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
     private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
@@ -176,19 +176,37 @@ data class ImportUtpResultActionFromFile(val timestamp: Long, val action: Import
  */
 fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): List<ImportUtpResultActionFromFile> {
   val testDirectory = getDefaultAndroidGradlePluginTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(testDirectory)
+  return findTestResultProtoAndCreateImportActions(testDirectory, deviceType = "connected")
 }
 
 fun createImportGradleManagedDeviceUtpResults(project: Project?): List<ImportUtpResultActionFromFile> {
   val deviceFolder = getDefaultAndroidGradlePluginDevicesTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(deviceFolder)
+  return findTestResultProtoAndCreateImportActions(deviceFolder, deviceType = "managed")
 }
 
-private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile): List<ImportUtpResultActionFromFile> {
+private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
+                                                      deviceType: String): List<ImportUtpResultActionFromFile> {
+  val results = mutableMapOf<VirtualFile, ImportUtpResultActionFromFile>()
+
+  findTestResultProtoAndCreateImportActions(dir, flavorName = null, deviceType)
+    .map { requireNotNull(it.action.importFile) to it }
+    .toMap(results)
+
+  dir.findChild("flavors")?.children?.asSequence()
+    ?.filter(VirtualFile::isDirectory)
+    ?.flatMap { findTestResultProtoAndCreateImportActions(it, flavorName = it.name, deviceType) }
+    ?.map { requireNotNull(it.action.importFile) to it }
+    ?.toMap(results)
+
+  return results.values.toList()
+}
+
+private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
+                                                      flavorName: String?,
+                                                      deviceType: String): Sequence<ImportUtpResultActionFromFile> {
   return findTestResultProto(dir)
-    .map { createImportUtpResultsFromProto(it) }
+    .map { createImportUtpResultsFromProto(it, flavorName, deviceType) }
     .filterNotNull()
-    .toList()
 }
 
 private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
@@ -201,7 +219,9 @@ private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
     .flatMap { findTestResultProto(it) }
 }
 
-private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
+private fun createImportUtpResultsFromProto(file: VirtualFile,
+                                            flavorName: String?,
+                                            deviceType: String?): ImportUtpResultActionFromFile? {
   val resultProto = try {
     file.inputStream.use {
       TestSuiteResultProto.TestSuiteResult.parseFrom(it)
@@ -217,7 +237,13 @@ private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultA
     it.first > 0 && it.second.isNotBlank()
   }.firstOrNull() ?: return null
 
-  val actionText = "${testName} (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})"
+  val actionText = StringBuilder(testName).apply {
+    flavorName?.let {
+      append(" - $it")
+    }
+    append(" - $deviceType")
+    append(" (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})")
+  }.toString()
   return ImportUtpResultActionFromFile(startTimeMillis, ImportUtpResultAction(text = actionText, importFile = file))
 }
 

@@ -24,7 +24,6 @@ import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.wm.ToolWindowManager
@@ -86,7 +85,7 @@ class ImportUtpResultActionTest {
   @Test
   fun enableUtpResultSupport() {
     StudioFlags.UTP_TEST_RESULT_SUPPORT.override(true)
-    val anActionEvent = AnActionEvent(null, DataContext{ projectRule.project },
+    val anActionEvent = AnActionEvent(null, { projectRule.project },
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
     ImportUtpResultAction().update(anActionEvent)
@@ -104,7 +103,7 @@ class ImportUtpResultActionTest {
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
     assertThat(importActions).hasSize(1)
-    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest")
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - connected")
   }
 
   @Test
@@ -128,7 +127,7 @@ class ImportUtpResultActionTest {
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
     assertThat(importActions).hasSize(1)
-    assertThat(importActions[0].action.templateText).contains("MergedResult")
+    assertThat(importActions[0].action.templateText).contains("MergedResult - connected")
   }
 
   @Test
@@ -147,9 +146,24 @@ class ImportUtpResultActionTest {
     val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
 
     assertThat(importActions).hasSize(2)
-    assertThat(importActions[0].action.templateText).contains("Device1Result")
-    assertThat(importActions[1].action.templateText).contains("Device2Result")
+    assertThat(importActions[0].action.templateText).contains("Device1Result - connected")
+    assertThat(importActions[1].action.templateText).contains("Device2Result - connected")
   }
+
+  @Test
+  fun createImportUtpResultActionWithFlavor() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/connected/flavors/demo/test-result.pb",
+        createTestResultsProto().toByteArray()
+      )
+
+    val importActions = createImportUtpResultActionFromAndroidGradlePluginOutput(projectRule.project)
+
+    assertThat(importActions).hasSize(1)
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - demo - connected")
+  }
+
 
   @Test
   fun createImportGradleManagedDeviceUtpResultAction() {
@@ -162,7 +176,21 @@ class ImportUtpResultActionTest {
     val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
 
     assertThat(importActions).hasSize(1)
-    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest")
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - managed")
+  }
+
+  @Test
+  fun createImportGradleManagedDeviceUtpResultActionWithFlavor() {
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/flavors/demo/test-result.pb",
+        createTestResultsProto().toByteArray()
+      )
+
+    val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
+
+    assertThat(importActions).hasSize(1)
+    assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - demo - managed")
   }
 
   private fun createTestResultsProto(
