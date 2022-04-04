@@ -22,16 +22,13 @@ import static java.nio.file.Files.readAllBytes;
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -120,7 +117,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       }
       sb.append(String.format("Gradle JDK: %1$s\n", safeCall(() -> getJdkDetails(project))));
       sb.append(String.format("NDK: %1$s\n", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
-      sb.append(String.format("LLDB: %1$s\n", safeCall(() -> getLldbDetails(sdkHandler, progress))));
       sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
       return sb.toString();
     });
@@ -244,19 +240,6 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       }
     }
     return "UNKNOWN";
-  }
-
-  private static String getLldbDetails(@NotNull AndroidSdkHandler sdkHandler, @NotNull ProgressIndicator progress) {
-    String path = DetailsTypes.getLldbPath(Revision.parseRevision(SdkConstants.LLDB_PINNED_REVISION));
-    LocalPackage p = sdkHandler.getLocalPackage(path, progress);
-    if (p == null) {
-      // OK, the version of LLDB compatible with the running version of Studio not found, display the latest installed
-      // information instead (and indicate that the supported version is not found)
-      p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_LLDB, null, false, progress);
-      return String.format("pinned revision %1$s not found, latest from SDK: %2$s", SdkConstants.LLDB_PINNED_REVISION,
-                           getLocalPackageDisplayInfo(p));
-    }
-    return getLocalPackageDisplayInfo(p);
   }
 
   private static String getCMakeDetails(@Nullable Project project,
