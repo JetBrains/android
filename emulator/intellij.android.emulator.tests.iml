@@ -32,6 +32,7 @@
     <orderEntry type="library" scope="TEST" name="studio-plugin-webp" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.emulator" />

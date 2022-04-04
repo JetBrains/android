@@ -74,6 +74,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

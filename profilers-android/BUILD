@@ -18,6 +18,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",

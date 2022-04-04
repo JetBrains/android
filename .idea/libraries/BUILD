@@ -256,6 +256,13 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
+    name = "kotlin-test",
+    jars = ["//prebuilts/tools/common/m2:kotlin-test_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
     name = "jetbrains.kotlinx.coroutines.test",
     jars = ["//prebuilts/tools/common/m2:jetbrains.kotlinx.coroutines.test_files"],
     visibility = ["//visibility:public"],
