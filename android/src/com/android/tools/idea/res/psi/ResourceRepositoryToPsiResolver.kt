@@ -118,7 +118,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     val resourceRepository = getRelevantResourceRepository(resourceReference, resourceRepositoryManager) ?: return ResolveResult.EMPTY_ARRAY
     val allItems = mutableListOf<ResolveResult>()
     if (resourceRepository.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
-      allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
+      allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
     }
     if (includeDynamicFeatures) {
       val moduleSystem = context.getModuleSystem() ?: return ResolveResult.EMPTY_ARRAY
@@ -126,7 +126,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       for (module in dynamicFeatureModules) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
         if (moduleResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
-          allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
+          allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
         }
       }
     }

@@ -30,6 +30,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Ref
+import com.intellij.psi.PsiElement
 import com.intellij.util.containers.stream
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
@@ -101,12 +102,13 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
           app:layout_constraintTop_toBottomOf="parent"
           android:src="@drawable/thumbnail${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent()).virtualFile
-    myFixture.configureFromExistingVirtualFile(layoutFile)
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
     val implementations = ShowImplementationsTestUtil.getImplementations()
-    assertThat(implementations).hasLength(2)
-    assertThat(implementations.map { it.toString() })
-      .containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
+    assertThat(implementations.map(PsiElement::toString)).containsExactly(
+        "PsiElement(XML_ATTRIBUTE_VALUE): ResourceReference{namespace=apk/res-auto, type=drawable, name=thumbnail}",
+        "PsiBinaryFile:thumbnail.png",
+        "PsiBinaryFile:thumbnail.png")
   }
 
   fun testColorFromResourceReferenceXml() {
@@ -131,12 +133,13 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
           android:layout_height="match_parent"
           android:textColor="@color/colorPrimary${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent()).virtualFile
-    myFixture.configureFromExistingVirtualFile(layoutFile)
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
     val implementations = ShowImplementationsTestUtil.getImplementations()
-    assertThat(implementations).hasLength(1)
-    assertThat(implementations.map { ImplementationViewComponent.getNewText(it) })
-      .containsExactly("  <color name=\"colorPrimary\">#008577</color>")
+    assertThat(implementations).hasLength(2)
+    assertThat(implementations[0].toString()).isEqualTo(
+        "PsiElement(XML_ATTRIBUTE_VALUE): ResourceReference{namespace=apk/res-auto, type=color, name=colorPrimary}")
+    assertThat(ImplementationViewComponent.getNewText(implementations[1])).isEqualTo("  <color name=\"colorPrimary\">#008577</color>")
   }
 
   /**

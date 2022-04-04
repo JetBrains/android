@@ -1362,7 +1362,7 @@ fun isResourceDeclaration(resourceElement: PsiElement, targetElement: ResourceRe
     is XmlFile -> { // If the ReferencePsiElement created from the resourceElement matches the targetElement, then it must be a declaration of the
       // targetElement.
       val referencePsiElement = create(resourceElement)
-      referencePsiElement != null && referencePsiElement == targetElement
+      referencePsiElement != null && referencePsiElement.isEquivalentTo(targetElement)
     }
     is XmlAttributeValue -> {
       if (isIdDeclaration(
@@ -1384,7 +1384,7 @@ fun isResourceDeclaration(resourceElement: PsiElement, targetElement: ResourceRe
           ResourceType.ATTR -> tag.getAttribute(SdkConstants.ATTR_FORMAT) != null
           ResourceType.STYLE -> {
             // Styles can have references to other styles in their name, this checks that the full name is the reference we're looking for.
-            targetElement == create(resourceElement)
+            targetElement.isEquivalentTo(resourceElement)
           }
           else -> {
             // For all other ResourceType, this is a declaration

@@ -33,11 +33,18 @@ class ResourceDefinitionSearch : QueryExecutorBase<PsiElement, DefinitionsScoped
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(element) ?: return
     val resourceReference = refElement.resourceReference
     val repository = resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace) ?: return
-    for (resource in repository.getResources(resourceReference).filterDefinitions(project)) {
+    var minQualifiers = Int.MAX_VALUE
+    for (resource in repository.getResources(resourceReference).filterDefinitions(project).sortedBy { it.configuration.qualifiers.size }) {
       val declaration = ResourceRepositoryToPsiResolver.resolveToDeclaration(resource, project)
       if (declaration != null) {
-        consumer.process(declaration)
-        break
+        val numQualifiers = resource.configuration.qualifiers.size
+        if (numQualifiers > minQualifiers) {
+          break
+        }
+        minQualifiers = numQualifiers
+        if (!consumer.process(declaration)) {
+          break
+        }
       }
     }
   }

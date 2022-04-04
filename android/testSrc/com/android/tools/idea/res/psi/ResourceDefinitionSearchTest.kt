@@ -27,7 +27,7 @@ import org.jetbrains.android.AndroidTestCase
  */
 class ResourceDefinitionSearchTest : AndroidTestCase() {
 
-  fun testResourceReference() {
+  fun testResourceReferenceInJava() {
     myFixture.addFileToProject("res/values/strings.xml",
       //language=XML
       """
@@ -46,6 +46,33 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
           int n = R.string.app_<caret>name;
         }
       }
+      """.trimIndent()).virtualFile
+
+    ResourceRepositoryManager.getAppResources(myFacet)
+    myFixture.configureFromExistingVirtualFile(file)
+
+    val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
+    val psiElements = gotoData.targets
+    assertThat(psiElements).hasLength(1)
+    assertThat(psiElements.first().parent.parent.text).isEqualTo("<string name=\"app_name\">My Application</string>")
+  }
+
+  fun testResourceReferenceInXml() {
+    myFixture.addFileToProject("res/values/strings.xml",
+      //language=XML
+      """
+      <resources>
+        <string name="app_name">My Application</string>
+      </resources>
+      """.trimIndent())
+
+    val file = myFixture.addFileToProject(
+      "res/values/test.xml",
+      //language=XML
+      """
+      <resources>
+        <string name="test">@string/app_<caret>name</string>
+      </resources>
       """.trimIndent()).virtualFile
 
     ResourceRepositoryManager.getAppResources(myFacet)

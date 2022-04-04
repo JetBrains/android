@@ -40,7 +40,6 @@ import org.jetbrains.android.resourceManagers.FrameworkResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.NonNls
 import java.util.ArrayDeque
-import java.util.HashSet
 
 /**
  * This converter deals with the name attribute in a [StyleItem] or [Attr] tag.
@@ -82,7 +81,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
     val facet = AndroidFacet.getInstance(context) ?: return null
     val allResources = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceReference.namespace) ?: return null
     val hasResources = allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)
-    return if (hasResources) ResourceReferencePsiElement(resourceReference, context.psiManager) else null
+    return if (hasResources) ResourceReferencePsiElement(context.xmlElement as PsiElement, resourceReference) else null
   }
 
   override fun isReferenceTo(element: PsiElement,

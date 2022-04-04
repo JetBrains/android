@@ -217,7 +217,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   }
 
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
-    val psiManager = (element as? ResourceReferencePsiElement)?.psiManager ?: return null
+    val psiManager = (element as? ResourceReferencePsiElement)?.manager ?: return null
     return Runnable {
       scheduleNewResolutionAndHighlighting(psiManager)
     }

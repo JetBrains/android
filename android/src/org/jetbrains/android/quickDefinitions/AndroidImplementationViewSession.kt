@@ -80,7 +80,7 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
         val resourceReference = ResourceUrl.parse(element.resource)?.resolve(
           ResourceNamespace.TODO(),
           ResourceNamespace.Resolver.EMPTY_RESOLVER) ?: return null
-        ResourceReferencePsiElement(resourceReference, contextElement.manager)
+        ResourceReferencePsiElement(contextElement, resourceReference)
       }
       is PsiElement -> ResourceReferencePsiElement.create(element)
       else -> null
@@ -113,7 +113,7 @@ class AndroidImplementationViewSession(
     override val factory: ImplementationViewSessionFactory
       get() = ImplementationViewSessionFactory.EP_NAME.findExtensionOrFail(AndroidImplementationViewSessionFactory::class.java)
 
-    override val project: Project = resourceReferencePsiElement.psiManager.project
+    override val project: Project = resourceReferencePsiElement.project
 
     override fun searchImplementationsInBackground(indicator: ProgressIndicator,
                                                    processor: Processor<in ImplementationViewElement>): List<ImplementationViewElement> = emptyList()
