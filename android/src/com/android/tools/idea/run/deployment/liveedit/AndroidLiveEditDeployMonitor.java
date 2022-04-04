@@ -301,6 +301,12 @@ public class AndroidLiveEditDeployMonitor {
     }
   }
 
+  private static void checkIwiAvailable() {
+    if (StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() == StudioFlags.OptimisticInstallSupportLevel.DISABLED) {
+      throw LiveEditUpdateException.compilationError("Cannot perform Live Edit without optimistic install support", null);
+    }
+  }
+
   @Trace
   private boolean handleChangedMethods(Project project,
                                        String packageName,
@@ -316,6 +322,7 @@ public class AndroidLiveEditDeployMonitor {
       // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
       // unclear BackendException
       checkJetpackCompose(project);
+      checkIwiAvailable();
       List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
         change ->
           new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getNamedFunction(), change.getFunctionState()))
