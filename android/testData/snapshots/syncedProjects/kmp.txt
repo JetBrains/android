@@ -88,8 +88,6 @@ PROJECT                       : kotlinMultiPlatform
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     MODULE                        : kotlinMultiPlatform.app.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.app
@@ -685,8 +683,6 @@ PROJECT                       : kotlinMultiPlatform
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     MODULE                        : kotlinMultiPlatform.module2.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2

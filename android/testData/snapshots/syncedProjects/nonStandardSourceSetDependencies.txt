@@ -455,8 +455,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.commonMain
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.network-kmm.jvmMain
     MODULE                        : NonStandardSourceSetDependencies.feature-a.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-a
