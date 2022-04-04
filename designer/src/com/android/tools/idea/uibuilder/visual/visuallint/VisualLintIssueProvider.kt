@@ -29,7 +29,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Objects
 import javax.swing.event.HyperlinkListener
-import kotlin.test.assertNotNull
 
 class VisualLintIssueProvider : IssueProvider() {
   private val issues = VisualLintIssues()
