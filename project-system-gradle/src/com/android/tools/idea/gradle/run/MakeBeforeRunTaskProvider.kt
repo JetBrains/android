@@ -65,6 +65,7 @@ import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -72,6 +73,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
+import org.jetbrains.kotlin.idea.roots.findAll
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
@@ -141,10 +144,11 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
   private fun createAvailableTasks(): List<String> {
     val moduleManager = ModuleManager.getInstance(project)
     val gradleTasks: MutableList<String> = ArrayList()
+    val cachedModuleDataFinder = CachedModuleDataFinder.getInstance(project) ?: return listOf()
     for (module in moduleManager.modules) {
-      val facet = GradleFacet.getInstance(module) ?: continue
-      val gradleModuleModel = facet.gradleModuleModel ?: continue
-      gradleTasks.addAll(gradleModuleModel.taskNames)
+      cachedModuleDataFinder.findModuleData(module)?.findAll(ProjectKeys.TASK)?.forEach {
+        gradleTasks.add(it.data.name)
+      }
     }
     return gradleTasks
   }
