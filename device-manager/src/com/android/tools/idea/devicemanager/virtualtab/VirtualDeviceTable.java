@@ -163,7 +163,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   private void initListener() {
-    myListener = new VirtualDeviceChangeListener();
+    myListener = new VirtualDeviceChangeListener(getModel());
     AndroidDebugBridge.addDeviceChangeListener(myListener);
   }
 

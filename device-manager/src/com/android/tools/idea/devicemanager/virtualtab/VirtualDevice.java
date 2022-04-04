@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
-  private static final boolean NEW_ONLINE_ENABLED = false;
+  static final boolean NEW_ONLINE_ENABLED = false;
 
   private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
