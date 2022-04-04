@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.compose.ComposeLibraryNamespace
-import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
-import com.android.tools.compose.findComposeToolingNamespace
+import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
+import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
@@ -30,7 +29,6 @@ import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
@@ -54,7 +52,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
                                                           sourceElement: Ref<PsiElement>): Boolean {
     if (!isComposeRunConfigurationEnabled()) return false
 
-    configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName, true)
+    configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
@@ -64,7 +62,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
 
       it.valueParameters.forEach { parameter ->
         parameter.annotationEntries.firstOrNull { annotation ->
-          annotation.fqNameMatches(PREVIEW_PARAMETER_FQNS)
+          annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
         }?.let { previewParameter ->
           previewParameter.providerClassName()?.let { providerClass ->
             configuration.providerClassFqn = providerClass

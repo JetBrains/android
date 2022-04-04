@@ -21,14 +21,13 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_USE_TAG;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 import static com.google.common.base.Charsets.UTF_8;
 
-import com.android.tools.compose.ComposeLibraryNamespaceKt;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Collections;
@@ -96,9 +95,7 @@ public class TagSnapshot {
     // ComposeView gets replaced with ComposeViewAdapter so it can be rendered correctly within the Layout Editor.
     // The ComposeView requires a ViewTreeLifecycleOwner but, since the Layout Editor does not run within an activity, there is not one.
     // ComposeViewAdapter provides that logic allowing for transparently replace it.
-    return CLASS_COMPOSE_VIEW.equals(tagName) ?
-           ComposeLibraryNamespaceKt.findComposeToolingNamespace(ModuleUtilCore.findModuleForPsiElement(tag)).getComposableAdapterName()
-                                              : tagName;
+    return CLASS_COMPOSE_VIEW.equals(tagName) ? COMPOSE_VIEW_ADAPTER_FQN : tagName;
   }
 
   /**

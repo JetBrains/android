@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQNS;
+import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -30,7 +30,6 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -48,7 +47,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.compose.ComposeLibraryNamespace;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
@@ -1408,18 +1406,14 @@ public class RenderTask {
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
     Optional<Method> disposeMethod = Optional.empty();
-    if (myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE.getComposableAdapterName()) ||
-        myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.getComposableAdapterName())) {
-      for (String composeViewAdapterName: COMPOSE_VIEW_ADAPTER_FQNS) {
-        try {
-          Class<?> composeViewAdapter = myLayoutlibCallback.findClass(composeViewAdapterName);
-          // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
-          disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
-          break;
-        }
-        catch (ClassNotFoundException ex) {
-          LOG.debug(composeViewAdapterName + " class not found", ex);
-        }
+    if (myLayoutlibCallback.hasLoadedClass(COMPOSE_VIEW_ADAPTER_FQN)) {
+      try {
+        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(COMPOSE_VIEW_ADAPTER_FQN);
+        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
+        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+      }
+      catch (ClassNotFoundException ex) {
+        LOG.debug(COMPOSE_VIEW_ADAPTER_FQN + " class not found", ex);
       }
 
       if (!disposeMethod.isPresent()) {
@@ -1447,8 +1441,7 @@ public class RenderTask {
    */
   private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
     Object viewObject = viewInfo.getViewObject();
-    if (viewObject == null ||
-        !COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObject.getClass().getName())) {
+    if (viewObject == null || !COMPOSE_VIEW_ADAPTER_FQN.equals(viewObject.getClass().getName())) {
       return;
     }
     try {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
@@ -43,7 +43,7 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
 
   return logger.brokenClasses.values
     .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER_FQNS.contains(ex.className) }
+      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER_FQN == ex.className }
     }
 }
 

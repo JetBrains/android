@@ -238,7 +238,7 @@ private const val LAYOUT_KEY = "previewLayout"
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
- * [com.android.tools.compose.PREVIEW_ANNOTATION_FQNS]) annotation.
+ * [com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN]) annotation.
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.

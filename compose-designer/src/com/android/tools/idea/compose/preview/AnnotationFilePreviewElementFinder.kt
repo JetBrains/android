@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview
  */
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -33,7 +33,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
@@ -45,7 +44,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.await
 import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
@@ -118,7 +116,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
     return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
       CachedValueProvider.Result.createSingleDependency(
-        hasAnnotatedMethods(project, vFile, PREVIEW_ANNOTATION_FQNS, COMPOSE_PREVIEW_ANNOTATION_NAME),
+        hasAnnotatedMethods(project, vFile, setOf(COMPOSE_PREVIEW_ANNOTATION_FQN), COMPOSE_PREVIEW_ANNOTATION_NAME),
         psiFile
       )
     }

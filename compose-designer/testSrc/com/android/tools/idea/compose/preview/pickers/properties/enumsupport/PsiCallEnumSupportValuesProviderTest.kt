@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
-import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
@@ -70,14 +70,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val composeLibraryNamespace = ComposeLibraryNamespace.values().first { it.apiPreviewPackage == previewAnnotationPackage }
   private val module: Module
     get() = rule.fixture.module
 
   @Before
   fun setup() {
     ConfigurationManager.getOrCreateInstance(module)
-    rule.fixture.stubDevicesAsLibrary(composeLibraryNamespace.apiPreviewPackage)
+    rule.fixture.stubDevicesAsLibrary(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
   }
 
   @RunsInEdt
@@ -198,7 +197,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @Test
   fun testGroupValuesProvider() {
     rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable annotation
-    rule.fixture.stubPreviewAnnotation(composeLibraryNamespace.apiPreviewPackage)
+    rule.fixture.stubPreviewAnnotation(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
     val file = rule.fixture.addFileToProjectAndInvalidate(
       "Test.kt",
       // language=kotlin

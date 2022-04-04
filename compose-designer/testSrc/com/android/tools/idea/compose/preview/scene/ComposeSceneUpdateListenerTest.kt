@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.psi.PsiFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -51,8 +47,8 @@ internal class ComposeSceneUpdateListenerTest {
 
   val composable = SinglePreviewElementInstance("composableMethodName",
                                                 PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                                PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null),
-                                                ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API)
+                                                PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+  )
 
   @Test
   fun `check hasAnimations is updated and logged correctly in static mode`() {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
-import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.COMPOSE_UI_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
@@ -35,10 +35,10 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureTestCase() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
-      "src/${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName.replace(".", "/")}/Modifier.kt",
+      "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin
       """
-    package ${ComposeLibraryNamespace.ANDROIDX_COMPOSE.packageName}
+    package $COMPOSE_UI_PACKAGE
 
     interface Modifier {
       fun adjust():Modifier

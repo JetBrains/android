@@ -25,7 +25,6 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.Configuration
@@ -130,8 +129,8 @@ class PreviewElementConfigurationTest() {
 
     SinglePreviewElementInstance("NoSize",
                                  PreviewDisplaySettings("Name", null, false, false, null), null, null,
-                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null),
-                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
+    ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
                                                devicesProvider = deviceProvider,
@@ -143,8 +142,8 @@ class PreviewElementConfigurationTest() {
     SinglePreviewElementInstance("WithSize",
                                  PreviewDisplaySettings("Name", null, false, false, null), null, null,
                                  PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
-                                                                  null),
-                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+                                                                  null)
+    ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
                                                devicesProvider = deviceProvider,
@@ -158,8 +157,8 @@ class PreviewElementConfigurationTest() {
                                  PreviewDisplaySettings("Name", null, true, false, null), null,
                                  null,
                                  PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
-                                                                  null, null, null),
-                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+                                                                  null, null, null)
+    ).let { previewElement ->
       previewElement.applyConfigurationForTest(configuration,
                                                highestApiTarget = { null },
                                                devicesProvider = deviceProvider,

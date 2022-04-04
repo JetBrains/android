@@ -26,8 +26,7 @@ import com.android.resources.Density
 import com.android.resources.ScreenRound
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
-import com.android.tools.compose.ComposeLibraryNamespace
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
@@ -36,8 +35,8 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.ide.common.resources.Locale
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.compose.preview.hasPreviewElements
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notebook.editor.BackedVirtualFile
@@ -118,7 +117,7 @@ else {
 private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
 
 /**
- * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQNS] is defined in a valid location, which can be either:
+ * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location, which can be either:
  * 1. Top-level functions
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
  *
@@ -147,7 +146,7 @@ internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, t
 
 /**
  *  Whether this function is not in a test file and is properly annotated
- *  with [PREVIEW_ANNOTATION_FQNS], considering indirect annotations when
+ *  with [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when
  *  the Multipreview flag is enabled, and validating the location of Previews
  *
  *  @see [isValidPreviewLocation]
@@ -386,9 +385,6 @@ data class PreviewParameter(val name: String,
  * Definition of a preview element
  */
 interface PreviewElement {
-  /** [ComposeLibraryNamespace] to identify the package name used for this [PreviewElement] annotations */
-  val composeLibraryNamespace: ComposeLibraryNamespace
-
   /** Fully Qualified Name of the composable method */
   val composableMethodFqn: String
 
@@ -440,7 +436,7 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     xmlBuilder
-      .setRootTagName(composeLibraryNamespace.composableAdapterName)
+      .setRootTagName(COMPOSE_VIEW_ADAPTER_FQN)
       .androidAttribute(ATTR_LAYOUT_WIDTH, width)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
       // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min 1x1 parent (b/169230467).
@@ -481,8 +477,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                    override val displaySettings: PreviewDisplaySettings,
                                    override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                                    override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                   override val configuration: PreviewConfiguration,
-                                   override val composeLibraryNamespace: ComposeLibraryNamespace) : PreviewElementInstance() {
+                                   override val configuration: PreviewConfiguration) : PreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
@@ -494,8 +489,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
                    displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-                   configuration: PreviewConfiguration = nullConfiguration,
-                   uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API) =
+                   configuration: PreviewConfiguration = nullConfiguration) =
       SinglePreviewElementInstance(composableMethodFqn,
                                    PreviewDisplaySettings(
                                      displayName,
@@ -505,8 +499,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                      backgroundColor,
                                      displayPositioning),
                                    null, null,
-                                   configuration,
-                                   uiToolingPackageName)
+                                   configuration)
   }
 }
 

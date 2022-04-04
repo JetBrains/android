@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQNS;
+import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
@@ -28,12 +28,11 @@ import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.relative.draw.RelativeLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link SceneDecoratorFactory} for layout editor components.
@@ -47,10 +46,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
 
   static {
     try {
-      for (String className : COMPOSE_VIEW_ADAPTER_FQNS) {
-        ourConstructorMap.put(className, ComposeViewAdapterDecorator.class.getConstructor());
-      }
-
+      ourConstructorMap.put(COMPOSE_VIEW_ADAPTER_FQN, ComposeViewAdapterDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());

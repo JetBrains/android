@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
-import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.COMPOSE_STRING_RESOURCE_FQN
 import com.android.tools.compose.isInsideComposableCode
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.createValueResource
@@ -168,7 +168,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
 
         val template: TemplateImpl
         if (element.isInsideComposableCode()) {
-            template = TemplateImpl("", "${ComposeLibraryNamespace.ANDROIDX_COMPOSE.stringResourceFunctionFqName}($fieldName)", "")
+            template = TemplateImpl("", "$COMPOSE_STRING_RESOURCE_FQN($fieldName)", "")
         }
         else if (!needContextReceiver(element)) {
             template = TemplateImpl("", "$GET_STRING_METHOD($fieldName)", "")

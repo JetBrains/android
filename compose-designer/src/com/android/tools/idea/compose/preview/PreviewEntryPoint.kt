@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.intellij.codeInspection.reference.EntryPoint
 import com.intellij.codeInspection.reference.RefElement
 import com.intellij.configurationStore.deserializeInto
@@ -36,7 +36,7 @@ class PreviewEntryPoint : EntryPoint() {
 
   override fun isEntryPoint(psiElement: PsiElement): Boolean =
     psiElement is PsiMethod &&
-    (PREVIEW_ANNOTATION_FQNS.any { psiElement.hasAnnotation(it) } || psiElement.toUElement(UMethod::class.java).hasPreviewElements())
+    (psiElement.hasAnnotation(COMPOSE_PREVIEW_ANNOTATION_FQN) || psiElement.toUElement(UMethod::class.java).hasPreviewElements())
 
   override fun readExternal(element: Element) = element.deserializeInto(this)
 

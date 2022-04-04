@@ -1,6 +1,6 @@
 package com.android.tools.idea.compose.preview.uibuilder.handler
 
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.Interaction
@@ -14,7 +14,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
  */
 class ComposeViewHandlerProvider: ViewHandlerProvider {
   override fun findHandler(viewTag: String): ViewHandler? =
-    if (COMPOSE_VIEW_ADAPTER_FQNS.contains(viewTag)) {
+    if (COMPOSE_VIEW_ADAPTER_FQN == viewTag) {
       ComposeViewAdapterHandler()
     } else {
       null

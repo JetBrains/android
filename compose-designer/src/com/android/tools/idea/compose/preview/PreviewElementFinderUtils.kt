@@ -16,10 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
-import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
-import com.android.tools.compose.findComposeToolingNamespace
+import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
@@ -39,9 +38,7 @@ import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UClassLiteralExpression
@@ -72,7 +69,7 @@ private val NON_MULTIPREVIEW_PREFIXES = listOf(
 internal fun KtAnnotationEntry.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> {
   // getQualifiedName is fairly expensive, so we check first that short name matches before calling it.
   shortName?.identifier == COMPOSE_PREVIEW_ANNOTATION_NAME &&
-  PREVIEW_ANNOTATION_FQNS.contains(getQualifiedName())
+  COMPOSE_PREVIEW_ANNOTATION_FQN == getQualifiedName()
 }
 
 /**
@@ -88,9 +85,7 @@ private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
 /**
  * Returns true if the [UAnnotation] is a `@Preview` annotation.
  */
-internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> {
-  PREVIEW_ANNOTATION_FQNS.contains(qualifiedName)
-}
+internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> { COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName }
 
 /**
  * Returns true if the [uMethod] is annotated with a @Preview annotation, taking in consideration
@@ -186,14 +181,6 @@ private fun UAnnotation.findClassNameValue(name: String) =
   (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
 
 /**
- * Looks up for annotation element using a set of annotation qualified names.
- *
- * @param fqName the qualified name to search
- * @return the first annotation element with the specified qualified name, or null if there is no annotation with such name.
- */
-private fun UAnnotated.findAnnotation(fqName: Set<String>): UAnnotation? = uAnnotations.firstOrNull { fqName.contains(it.qualifiedName) }
-
-/**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
  */
 private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<String, String?>): PreviewConfiguration {
@@ -252,13 +239,11 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                                backgroundColorString)
 
   val parameters = getPreviewParameters(annotatedMethod.uastParameters)
-  val composeLibraryNamespace = previewAnnotation.sourcePsi?.module.findComposeToolingNamespace()
   val basePreviewElement = SinglePreviewElementInstance(composableMethod,
                                                         displaySettings,
                                                         rootAnnotation.toSmartPsiPointer(),
                                                         annotatedMethod.uastBody.toSmartPsiPointer(),
-                                                        attributesToConfiguration(previewAnnotation, defaultValues),
-                                                        composeLibraryNamespace)
+                                                        attributesToConfiguration(previewAnnotation, defaultValues))
   return if (!parameters.isEmpty()) {
     ParametrizedPreviewElementTemplate(basePreviewElement, parameters)
   }
@@ -273,7 +258,8 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
  */
 private fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
   parameters.mapIndexedNotNull { index, parameter ->
-    val annotation = parameter.findAnnotation(PREVIEW_PARAMETER_FQNS) ?: return@mapIndexedNotNull null
+    val annotation = parameter.uAnnotations.firstOrNull { COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN == it.qualifiedName }
+                     ?: return@mapIndexedNotNull null
     val providerClassFqn = (annotation.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
     val limit = annotation.findAttributeIntValue("limit") ?: Int.MAX_VALUE
     PreviewParameter(parameter.name, index, providerClassFqn, limit)

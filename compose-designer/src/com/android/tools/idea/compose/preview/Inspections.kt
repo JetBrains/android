@@ -16,13 +16,12 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
-import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
-import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
 import com.android.tools.idea.compose.preview.util.isInUnitTestFile
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
@@ -68,13 +67,13 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitImportDirective(importDirective: KtImportDirective) {
           super.visitImportDirective(importDirective)
 
-          isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQNS.contains(importDirective.importedFqName?.asString())
+          isPreviewFile = isPreviewFile || COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
           super.visitAnnotationEntry(annotationEntry)
 
-          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(PREVIEW_ANNOTATION_FQNS)
+          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -84,7 +83,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
             return
           }
 
-          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(PREVIEW_ANNOTATION_FQNS) } ?: return
+          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) } ?: return
           visitPreviewAnnotatedFunction(holder, function, previewAnnotation)
         }
       }
@@ -101,7 +100,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 private fun KtParameter.isAcceptableForPreview(): Boolean =
   hasDefaultValue() ||
   // We also accept parameters with the @PreviewParameter annotation
-  annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQNS) }
+  annotationEntries.any { it.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) }
 
 /**
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
@@ -127,7 +126,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
                                              previewAnnotation: KtAnnotationEntry) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter = function.valueParameters.mapNotNull {
-      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQNS) }
+      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) }
     }.drop(1).firstOrNull() ?: return
 
     // Flag the second annotation as the error
