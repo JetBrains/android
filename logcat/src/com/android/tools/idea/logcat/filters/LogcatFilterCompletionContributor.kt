@@ -63,7 +63,9 @@ private const val AGE_KEY = "age:"
 private val KEYS = STRING_KEYS + LEVEL_KEY + AGE_KEY
 private val ALL_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
 
-private val LEVEL_LOOKUPS = Log.LogLevel.values().map { it.name.toLookupElement(suffix = " ") }
+private val LEVEL_LOOKUPS = Log.LogLevel.values()
+  .flatMap { sequenceOf(it.name, it.name.lowercase()) }
+  .map { it.toLookupElement(suffix = " ") }
 
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"

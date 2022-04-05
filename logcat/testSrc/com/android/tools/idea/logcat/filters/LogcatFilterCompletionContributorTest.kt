@@ -100,7 +100,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_withoutWhitespace() {
-    val levels = LogLevel.values().map { "${it.name} " }
+    val levels = LogLevel.values().map { "${it.name} " } + LogLevel.values().map { "${it.name.lowercase()} " }
     fixture.configure("level:$caret")
 
     fixture.completeBasic()
@@ -110,7 +110,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_withWhitespace() {
-    val levels = LogLevel.values().map { "${it.name} " }
+    val levels = LogLevel.values().map { "${it.name} " } + LogLevel.values().map { "${it.name.lowercase()} " }
     fixture.configure("level:  $caret")
 
     fixture.completeBasic()
