@@ -55,10 +55,12 @@ private const val TEST_RESULT_PB_FILE_NAME = "test-result.pb"
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
  *
+ * @param toolWindowDisplayName a name that is displayed as a tool-window title
  * @param importFile a UTP result protobuf file to open, or null to open file chooser dialog
  */
 class ImportUtpResultAction(icon: Icon? = null,
                             text: String = "Import Android Test Results...",
+                            val toolWindowDisplayName: String = "Imported Android Test Results",
                             val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
@@ -84,7 +86,7 @@ class ImportUtpResultAction(icon: Icon? = null,
   /**
    * Import test results and display them in the test result panel.
    *
-   * @param inputStream contains a binary protobuf of the test suite result
+   * @param file contains a binary protobuf of the test suite result
    * @param project the Android Studio project.
    **/
   @VisibleForTesting
@@ -108,7 +110,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       val testSuiteView = AndroidTestSuiteView(disposable, project, module, IMPORTED_TEST_WINDOW_ID)
       val toolWindow = getToolWindow(project)
       val contentManager = toolWindow.contentManager
-      val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
+      val content = contentManager.factory.createContent(testSuiteView.component, toolWindowDisplayName, true)
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
@@ -244,7 +246,9 @@ private fun createImportUtpResultsFromProto(file: VirtualFile,
     append(" - $deviceType")
     append(" (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})")
   }.toString()
-  return ImportUtpResultActionFromFile(startTimeMillis, ImportUtpResultAction(text = actionText, importFile = file))
+  return ImportUtpResultActionFromFile(
+    startTimeMillis,
+    ImportUtpResultAction(text = actionText, toolWindowDisplayName = actionText, importFile = file))
 }
 
 private fun getDefaultAndroidGradlePluginTestDirectory(project: Project?): VirtualFile? {

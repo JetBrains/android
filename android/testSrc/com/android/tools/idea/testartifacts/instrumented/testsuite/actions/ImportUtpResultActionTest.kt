@@ -32,14 +32,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.writeChild
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -56,30 +54,32 @@ class ImportUtpResultActionTest {
     .around(temporaryFolder)
     .around(RestoreFlagRule(StudioFlags.UTP_TEST_RESULT_SUPPORT))
 
-  private val importUtpResultAction = ImportUtpResultAction()
-  private lateinit var utpProtoFile: File
-
-  @Before
-  fun setUp() {
-    utpProtoFile = temporaryFolder.newFile()
-  }
-
   @Test
   fun importUtpResults() {
-    importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
+    val importUtpResultAction = ImportUtpResultAction()
+
+    importUtpResultAction.parseResultsAndDisplay(temporaryFolder.newFile(), disposableRule.disposable, projectRule.project)
+
     val toolWindow = importUtpResultAction.getToolWindow(projectRule.project)
-    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    assertThat(toolWindow.contentManager.contents).hasLength(1)
+    assertThat(toolWindow.contentManager.contents[0].displayName).isEqualTo("Imported Android Test Results")
   }
-  
+
   @Test
   fun importUtpResultPreCreateContentManager() {
     RunContentManager.getInstance(projectRule.project)
     val toolWindow = ToolWindowManager.getInstance(projectRule.project)
       .getToolWindow(ImportUtpResultAction.IMPORTED_TEST_WINDOW_ID)
+
     assertThat(toolWindow).isNull()
-    importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
+
+    val importUtpResultAction = ImportUtpResultAction()
+
+    importUtpResultAction.parseResultsAndDisplay(temporaryFolder.newFile(), disposableRule.disposable, projectRule.project)
     val newToolWindow = importUtpResultAction.getToolWindow(projectRule.project)
-    assertThat(newToolWindow.contentManager.contents).isNotEmpty()
+
+    assertThat(newToolWindow.contentManager.contents).hasLength(1)
+    assertThat(newToolWindow.contentManager.contents[0].displayName).isEqualTo("Imported Android Test Results")
   }
 
   @Test
@@ -104,6 +104,7 @@ class ImportUtpResultActionTest {
 
     assertThat(importActions).hasSize(1)
     assertThat(importActions[0].action.templateText).contains("ExampleInstrumentedTest - connected")
+    assertThat(importActions[0].action.toolWindowDisplayName).contains("ExampleInstrumentedTest - connected")
   }
 
   @Test
