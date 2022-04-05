@@ -50,6 +50,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
@@ -337,12 +338,8 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         // So, we only check if all projects are closed. If yes, terminate adb.
         if (ProjectManager.getInstance().getOpenProjects().length == 0) {
           LOG.info("Ddmlib can be terminated as all projects have been closed");
-          try {
-            terminateDdmlib();
-          }
-          catch (TimeoutException e) {
-            LOG.warn("Timed out waiting for AdbService to terminate on all project shutdown");
-          }
+          //noinspection unused
+          Future<?> unused = mySequentialExecutor.submit(myImplementation::terminate);
         }
       }
     });
