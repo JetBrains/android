@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueMod
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.findSourceSetDataForArtifact;
+import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.resolveModuleDependencies;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -62,9 +63,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver;
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariantCore;
@@ -138,7 +137,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -190,14 +188,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY");
 
-  private static final Key<IdeLibraryModelResolver> SYNC_TIME_LIBRARY_RESOLVER_KEY =
-    Key.create("SYNC_TIME_LIBRARY_RESOLVER_KEY");
-
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   private @Nullable Project myProject;
   private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
+  private IdeLibraryTableImpl myResolvedModuleDependencies = null;
 
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(), new IdeaJavaModuleModelFactory());
@@ -220,6 +216,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY, true);
     // Similarly for KAPT.
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY, true);
+    myResolvedModuleDependencies = null;
     super.setProjectResolverContext(projectResolverContext);
   }
 
@@ -341,9 +338,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<IdeSyncIssue> issueData = null;
 
     if (androidModels != null) {
-      androidModel =
-        createGradleAndroidModel(moduleName, rootModulePath, androidModels,
-                                 Objects.requireNonNull(resolverCtx.getUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY)));
+      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels);
       issueData = androidModels.getSyncIssues();
       String ndkModuleName = moduleName + "." + ModuleUtil.getModuleName(androidModel.getMainArtifactCore().getName());
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
@@ -480,14 +475,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull
   private static GradleAndroidModel createGradleAndroidModel(String moduleName,
                                                              File rootModulePath,
-                                                             @NotNull IdeAndroidModels ideModels,
-                                                             @NotNull IdeLibraryModelResolver ideLibraryModelResolver) {
+                                                             @NotNull IdeAndroidModels ideModels) {
 
     return GradleAndroidModel.create(moduleName,
                                      rootModulePath,
                                      ideModels.getAndroidProject(),
                                      ideModels.getFetchedVariants(),
-                                     ideLibraryModelResolver,
                                      ideModels.getSelectedVariantName());
   }
 
@@ -680,6 +673,21 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       super.populateModuleDependencies(gradleModule, ideModule, ideProject);
       return;
     }
+    if (myResolvedModuleDependencies == null) {
+      IdeLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeLibraryTableImpl.class);
+      if (ideLibraryTable == null) {
+        throw new IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present");
+      }
+      IdeLibraryTableImpl resolvedTable = resolveModuleDependencies(ideLibraryTable);
+      ideProject.createChild(
+        AndroidProjectKeys.IDE_LIBRARY_TABLE,
+        resolvedTable
+      );
+      myResolvedModuleDependencies = resolvedTable;
+    }
+
+    androidModelNode.getData()
+      .setResolver(new IdeLibraryModelResolverImpl(it -> myResolvedModuleDependencies.getLibraries().get(it.getLibraryIndex())));
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
@@ -783,12 +791,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     IdeLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeLibraryTableImpl.class);
     // If there is no ide library table it is not an Android project.
     if (ideLibraryTable != null) {
-      projectDataNode.createChild(
-        AndroidProjectKeys.IDE_LIBRARY_TABLE,
-        ideLibraryTable
-      );
-      resolverCtx.putUserData(SYNC_TIME_LIBRARY_RESOLVER_KEY,
-                              new IdeLibraryModelResolverImpl(it -> ideLibraryTable.getLibraries().get(it.getLibraryIndex())));
       // Special mode sync to fetch additional native variants.
       for (IdeaModule gradleModule : gradleProject.getModules()) {
         IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);

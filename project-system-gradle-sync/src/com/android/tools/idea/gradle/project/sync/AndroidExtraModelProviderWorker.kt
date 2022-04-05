@@ -33,7 +33,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibrary
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -779,7 +779,7 @@ internal class AndroidExtraModelProviderWorker(
               + ideVariant.testFixturesArtifact?.dependencyCores?.dependencies.orEmpty()
              )
         .distinct()
-        .mapNotNull{ libraryResolver(it.target) as? IdeModuleLibrary }
+        .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }
         .mapNotNull { moduleDependency ->
           val dependencyProject = moduleDependency.projectPath
           val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)

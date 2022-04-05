@@ -16,31 +16,19 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.singletonList;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Dependencies.ProjectIdentifier;
-import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Library;
 import com.android.builder.model.MavenCoordinates;
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
-import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths;
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.model.stubs.AndroidLibraryStub;
-import com.android.tools.idea.gradle.model.stubs.JavaLibraryStub;
 import com.android.tools.idea.gradle.model.stubs.LibraryStub;
 import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub;
 import com.android.tools.idea.gradle.project.sync.ModelCacheV1ImplKt;
-import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -22,6 +22,9 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 
 class InternedModels(private val buildRootDirectory: File?) {
@@ -38,7 +41,7 @@ class InternedModels(private val buildRootDirectory: File?) {
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
   private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
   private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
-  private val moduleLibraries: MutableMap<IdeModuleLibraryImpl, Pair<LibraryReference, IdeModuleLibraryImpl>> = HashMap()
+  private val moduleLibraries: MutableMap<IdeLibrary, Pair<LibraryReference, IdeLibrary>> = HashMap()
 
   fun resolve(reference: LibraryReference): IdeLibrary = libraries[reference.libraryIndex]
 
@@ -77,6 +80,21 @@ class InternedModels(private val buildRootDirectory: File?) {
   /**
    * Interns [moduleLibrary].
    */
+  fun getOrCreate(moduleLibrary: IdePreResolvedModuleLibraryImpl): LibraryReference {
+    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  }
+
+  /**
+   * Interns [moduleLibrary].
+   */
+  fun getOrCreate(moduleLibrary: IdeUnresolvedModuleLibraryImpl): LibraryReference {
+    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  }
+
+  /**
+   * Interns [moduleLibrary].
+   */
+  @TestOnly
   fun getOrCreate(moduleLibrary: IdeModuleLibraryImpl): LibraryReference {
     return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
   }

@@ -182,6 +182,7 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
  */
 private val PROPERTIES_TO_SKIP = setOf(
   "/Level2Dependencies/dependencies/androidLibraries/target/lintJar",
+  "/Level2Dependencies/dependencies/moduleDependencies/target/artifact",
   "/ModelSyncFile",
   "/ModelSyncFile/Type",
   "/ModelSyncFile/TaskName",

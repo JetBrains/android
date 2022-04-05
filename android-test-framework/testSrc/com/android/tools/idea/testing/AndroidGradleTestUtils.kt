@@ -759,11 +759,11 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
         IdeDependencyCoreImpl(
           internedModels.getOrCreate(
             IdeModuleLibraryImpl(
-              buildId,
-              gradleProjectPath,
-              variant,
-              null,
-              IdeModuleWellKnownSourceSet.MAIN
+              buildId = buildId,
+              projectPath = gradleProjectPath,
+              variant = variant,
+              lintJar = null,
+              sourceSet = IdeModuleWellKnownSourceSet.MAIN
             )
           ),
           isProvided = false
@@ -821,11 +821,11 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
         IdeDependencyCoreImpl(
           internedModels.getOrCreate(
             IdeModuleLibraryImpl(
-              buildId,
-              gradleProjectPath,
-              variant,
-              null,
-              IdeModuleWellKnownSourceSet.MAIN
+              buildId = buildId,
+              projectPath = gradleProjectPath,
+              variant = variant,
+              lintJar = null,
+              sourceSet = IdeModuleWellKnownSourceSet.MAIN
             )
           ),
           isProvided = false
@@ -876,11 +876,11 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
       IdeDependencyCoreImpl(
         internedModels.getOrCreate(
           IdeModuleLibraryImpl(
-            buildId,
-            gradleProjectPath,
-            variant,
-            null,
-            IdeModuleWellKnownSourceSet.MAIN
+            buildId = buildId,
+            projectPath = gradleProjectPath,
+            variant = variant,
+            lintJar = null,
+            sourceSet = IdeModuleWellKnownSourceSet.MAIN
           )
         ),
         isProvided = false
@@ -1393,9 +1393,10 @@ private fun createAndroidModuleDataNode(
     moduleBasePath,
     androidProject,
     variants,
-    libraryResolver,
     selectedVariantName
   )
+
+  gradleAndroidModel.setResolver(libraryResolver);
 
   moduleDataNode.addChild(
     DataNode<GradleAndroidModel>(

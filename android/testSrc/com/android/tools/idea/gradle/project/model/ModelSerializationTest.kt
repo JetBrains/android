@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
@@ -229,7 +229,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testLevel2JavaLibrary() = Truth.assertThat(IdeJavaLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testLevel2ModuleLibrary() = Truth.assertThat(IdeModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testLevel2ModuleLibrary() = Truth.assertThat(IdePreResolvedModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testDependencyCores() = Truth.assertThat(IdeDependenciesCoreImpl::class.java).isAssignableTo(Serializable::class.java)

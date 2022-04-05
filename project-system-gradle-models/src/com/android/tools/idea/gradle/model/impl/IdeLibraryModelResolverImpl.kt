@@ -23,7 +23,9 @@ import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import java.io.Serializable
 
@@ -37,10 +39,16 @@ class IdeLibraryModelResolverImpl(private val libraryTable: (LibraryReference) -
   }
 
   override fun resolveModule(unresolved: IdeDependencyCore): IdeModuleDependency? {
-    return IdeModuleDependencyImpl(libraryTable(unresolved.target) as? IdeModuleLibrary ?: return null)
+    val moduleLibrary = when (val library = libraryTable(unresolved.target)) {
+      is IdeModuleLibrary -> library
+      is IdePreResolvedModuleLibrary -> error("Module dependencies are not yet resolved")
+      is IdeUnresolvedModuleLibrary -> error("Module dependencies are not yet resolved")
+      else -> return null
+    }
+    return IdeModuleDependencyImpl(moduleLibrary)
   }
 }
 
 data class IdeLibraryTableImpl(
   val libraries: List<IdeLibrary>
-): Serializable
+) : Serializable

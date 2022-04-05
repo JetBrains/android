@@ -1489,7 +1489,7 @@ MODULE                        : project.app
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
+                            target                        : <ROOT>::lib@debug/TEST_FIXTURES (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :lib
                                 sourceSet                     : TEST_FIXTURES
@@ -1872,7 +1872,7 @@ MODULE                        : project.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::lib@debug/TEST_FIXTURES (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1927,7 +1927,7 @@ MODULE                        : project.lib
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                            target                        : <ROOT>::lib@debug/TEST_FIXTURES (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
             TestFixturesArtifact
