@@ -87,9 +87,11 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -415,7 +417,7 @@ internal class LogcatMainPanel(
   private fun onDeviceChanged(device: Device) {
     if (device.isOnline) {
       coroutineScope.launch(Dispatchers.IO) {
-        val iDevice = adbAdapter.getDevice(device.deviceId)
+        val iDevice = findIDevice(device)
         removeDeviceManager()
         if (iDevice != null) {
           withContext(uiThread) {
@@ -436,6 +438,16 @@ internal class LogcatMainPanel(
     deviceManager?.let {
       Disposer.dispose(it)
       deviceManager = null
+    }
+  }
+
+  private suspend fun findIDevice(device: Device): IDevice? {
+    val devices = adbAdapter.getDevices()
+    return if (device.isEmulator) {
+      devices.find { device.deviceId == it.avdData.await().name } ?: devices.find { device.deviceId == it.serialNumber }
+    }
+    else {
+      devices.find { device.deviceId == it.serialNumber }
     }
   }
 }

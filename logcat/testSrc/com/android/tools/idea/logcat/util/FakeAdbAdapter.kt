@@ -23,5 +23,5 @@ import com.android.ddmlib.IDevice
 internal class FakeAdbAdapter : AdbAdapter {
   val mutableDevices = mutableListOf<IDevice>()
 
-  override suspend fun getDevice(deviceId: String): IDevice? = mutableDevices.find { it.getDeviceId() == deviceId}
+  override suspend fun getDevices(): List<IDevice> = mutableDevices
 }

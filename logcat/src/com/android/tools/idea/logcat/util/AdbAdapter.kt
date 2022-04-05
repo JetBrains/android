@@ -24,7 +24,5 @@ import kotlinx.coroutines.guava.await
  * The device identifier is the serial number for physical devices and the AVD name for emulators.
  */
 internal interface AdbAdapter {
-  suspend fun getDevice(deviceId: String): IDevice?
+  suspend fun getDevices(): List<IDevice>
 }
-
-suspend fun IDevice.getDeviceId(): String = if (isEmulator) avdData.await().name ?: "" else serialNumber

@@ -23,6 +23,7 @@ import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -39,7 +40,8 @@ private const val PROP_RELEASE = "ro.build.version.release"
 private const val PROP_SDK = "ro.build.version.sdk"
 private const val PROP_MANUFACTURER = "ro.product.manufacturer"
 private const val PROP_MODEL = "ro.product.model"
-private const val PROP_AVD_NAME = "ro.kernel.qemu.avd_name"
+private const val PROP_AVD_NAME = "ro.boot.qemu.avd_name"
+private const val PROP_AVD_NAME_PRE_31 = "ro.kernel.qemu.avd_name"
 
 private val ADB_TIMEOUT = Duration.ofMillis(1000)
 
@@ -52,6 +54,7 @@ internal class DeviceComboBoxDeviceTracker(
   private val adbSession: AdbLibSession = AdbLibService.getSession(project),
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
+  private val logger = thisLogger()
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
     return flow {
@@ -126,13 +129,13 @@ internal class DeviceComboBoxDeviceTracker(
 
   private suspend fun DeviceInfo.toDevice(): Device {
     if (serialNumber.startsWith("emulator-")) {
-      val properties = getProperties(PROP_RELEASE, PROP_SDK, PROP_AVD_NAME)
+      val properties = getProperties(PROP_RELEASE, PROP_SDK, PROP_AVD_NAME, PROP_AVD_NAME_PRE_31)
       return Device.createEmulator(
         serialNumber,
         isOnline = true,
         properties.getValue(PROP_RELEASE),
         properties.getValue(PROP_SDK),
-        properties.getValue(PROP_AVD_NAME))
+        getAvdName(properties))
     }
     else {
       val properties = getProperties(PROP_RELEASE, PROP_SDK, PROP_MANUFACTURER, PROP_MODEL)
@@ -146,9 +149,15 @@ internal class DeviceComboBoxDeviceTracker(
     }
   }
 
+  private fun DeviceInfo.getAvdName(properties: Map<String, String>): String =
+    properties.getValue(PROP_AVD_NAME).ifBlank { properties.getValue(PROP_AVD_NAME_PRE_31) }.ifBlank {
+      logger.warn("Emulator has no avd_name property")
+      serialNumber
+    }
+
   private suspend fun DeviceInfo.getDeviceId(): String {
     return when {
-      serialNumber.startsWith("emulator-") -> getProperties(PROP_AVD_NAME).getValue(PROP_AVD_NAME)
+      serialNumber.startsWith("emulator-") -> getAvdName(getProperties(PROP_AVD_NAME, PROP_AVD_NAME_PRE_31))
       else -> serialNumber
     }
   }

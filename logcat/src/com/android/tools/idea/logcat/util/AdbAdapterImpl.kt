@@ -25,6 +25,5 @@ import kotlinx.coroutines.guava.await
  * An implementation of [AdbAdapter] using [AndroidDebugBridge]
  */
 internal class AdbAdapterImpl(private val project: Project) : AdbAdapter {
-  override suspend fun getDevice(deviceId: String): IDevice? =
-    AdbService.getInstance().getDebugBridge(project).await().devices.find { deviceId == it.getDeviceId() }
+  override suspend fun getDevices(): List<IDevice> = AdbService.getInstance().getDebugBridge(project).await().devices.asList()
 }

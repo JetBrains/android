@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
@@ -51,7 +52,7 @@ class DeviceComboBoxDeviceTrackerTest {
 
   private val device1 = TestDevice("device-1", ONLINE, "release1", "sdk1", "manufacturer1", "model1", avdName = "")
   private val device2 = TestDevice("device-2", ONLINE, "release2", "sdk2", "manufacturer2", "model2", avdName = "")
-  private val emulator1 = TestDevice("emulator-1", ONLINE, "release1", "sdk1", manufacturer = "", model = "", "avd1")
+  private val emulator1 = TestDevice("emulator-1", ONLINE, "release1", "sdk1", manufacturer = "", model = "", avdName = "avd1")
 
   @Before
   fun setUp() {
@@ -72,6 +73,51 @@ class DeviceComboBoxDeviceTrackerTest {
     assertThat(events.await()).containsExactly(
       Added(device1.device),
       Added(emulator1.device),
+    ).inOrder()
+  }
+
+  @Test
+  fun emulatorWithLegacyAvdName(): Unit = runBlocking {
+    val emulator =
+      TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "avd3")
+    adbSession.deviceServices.setupCommandsForDevice(emulator)
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = adbSession)
+
+    val events = async { deviceTracker.trackDevices().toList() }
+
+    hostServices.use {
+      it.sendDevices(
+        emulator,
+        emulator.withState(OFFLINE),
+      )
+    }
+
+    assertThat(events.await()).containsExactly(
+      Added(Device.createEmulator(emulator.serialNumber, true, emulator.release, emulator.sdk, emulator.avdNamePre31)),
+      StateChanged(Device.createEmulator(emulator.serialNumber, false, emulator.release, emulator.sdk, emulator.avdNamePre31)),
+    ).inOrder()
+  }
+
+  @Test
+  fun emulatorWithoutAvdProperty(): Unit = runBlocking {
+    val emulator =
+      TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "")
+    adbSession.deviceServices.setupCommandsForDevice(emulator)
+
+    val deviceTracker = deviceComboBoxDeviceTracker(adbSession = adbSession)
+
+    val events = async { deviceTracker.trackDevices().toList() }
+
+    hostServices.use {
+      it.sendDevices(
+        emulator,
+        emulator.withState(OFFLINE),
+      )
+    }
+
+    assertThat(events.await()).containsExactly(
+      Added(Device.createEmulator(emulator.serialNumber, true, emulator.release, emulator.sdk, emulator.serialNumber)),
+      StateChanged(Device.createEmulator(emulator.serialNumber, false, emulator.release, emulator.sdk, emulator.serialNumber)),
     ).inOrder()
   }
 

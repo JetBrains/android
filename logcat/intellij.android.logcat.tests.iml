@@ -24,6 +24,7 @@
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />
 </module>
