@@ -57,7 +57,9 @@ class GradleResolver {
 
 private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
   val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
-  val gradlePath = gradleModuleModel.gradlePath
+  // TODO(b/149203281): Verify support for composite builds if needed here.
+  val externalProject = module.findModel(ExternalProject::class.java) ?: return null
+  val gradlePath = externalProject.qName
 
   fun tryAndroidModels(): PsResolvedModuleModel.PsAndroidModuleResolvedModel? {
     val androidModel = module.findModel(GradleAndroidModel::class.java) ?: return null

@@ -219,7 +219,6 @@ public class GradleSyncExecutor {
             }
 
             builder.add(moduleModules);
-            continue;
           }
 
           if (rootProjectNode != null) {

@@ -140,6 +140,7 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -196,12 +197,8 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     loadProject(NESTED_MODULE);
 
     Module rootModule = TestModuleUtil.findModule(getProject(), getProject().getName());
-    GradleFacet gradleFacet = GradleFacet.getInstance(rootModule);
-    // The root module should be considered a Java module.
-    assertNotNull(gradleFacet);
-    GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
-    assertNotNull(gradleModel);
-    assertEquals(":", gradleModel.getGradlePath());
+    assertEquals(":", GradleProjectResolverUtil.getGradlePath(rootModule));
+    assertNull(AndroidFacet.getInstance(rootModule));
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {
