@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model.pom;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jdom.Document;
+import com.intellij.openapi.util.JDOMUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.text.StringUtil.*;
 
 public class MavenPoms {
@@ -43,8 +42,7 @@ public class MavenPoms {
     }
     List<PsArtifactDependencySpec> dependencies = Lists.newArrayList();
     try {
-      Document document = loadDocument(pomFilePath);
-      Element rootElement = document.getRootElement();
+      Element rootElement = JDOMUtil.load(pomFilePath);
       Element dependenciesElement = null;
       for (Element childElement : rootElement.getChildren()) {
         if ("dependencies".equals(childElement.getName())) {
