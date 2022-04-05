@@ -90,7 +90,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
 
   private void sizeApiTypeAndActionsColumnWidthsToFit() {
     getRowSorter().allRowsChanged();
-    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(65));
+    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 
     Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
                      Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
