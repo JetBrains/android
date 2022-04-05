@@ -15,37 +15,34 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom;
 
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.nullize;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.JDOMUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jdom.Document;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MavenPoms {
+public final class MavenPoms {
   private static final Logger LOG = Logger.getInstance(MavenPoms.class);
 
   private MavenPoms() {
   }
 
-  @NotNull
-  public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@Nullable File pomFilePath) {
+  public static @NotNull List<PsArtifactDependencySpec> findDependenciesInPomFile(@Nullable File pomFilePath) {
     if (pomFilePath == null || !pomFilePath.isFile()) {
       return Collections.emptyList();
     }
     List<PsArtifactDependencySpec> dependencies = new ArrayList<>();
     try {
-      Document document = loadDocument(pomFilePath);
-      Element rootElement = document.getRootElement();
+      Element rootElement = JDOMUtil.load(pomFilePath);
       Element dependenciesElement = null;
       for (Element childElement : rootElement.getChildren()) {
         if ("dependencies".equals(childElement.getName())) {
@@ -72,8 +69,7 @@ public class MavenPoms {
     return dependencies;
   }
 
-  @Nullable
-  private static PsArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
+  private static @Nullable PsArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
     String artifactId = null;
     String groupId = null;
     String version = null;
@@ -91,7 +87,7 @@ public class MavenPoms {
         version = textOf(childElement);
       }
       else if ("optional".equals(name)) {
-        optional = Boolean.valueOf(textOf(childElement));
+        optional = Boolean.parseBoolean(textOf(childElement));
       }
       else if ("scope".equals(name)) {
         scope = textOf(childElement);
@@ -104,8 +100,7 @@ public class MavenPoms {
     return null;
   }
 
-  @Nullable
-  private static String textOf(@NotNull Element e) {
+  private static @Nullable String textOf(@NotNull Element e) {
     return nullize(e.getText(), true);
   }
 }
