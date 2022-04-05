@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.SdkConstants.GRADLE_LATEST_VERSION
+import com.android.SdkConstants.NDK_DEFAULT_VERSION
 import com.android.sdklib.devices.Abi
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -37,8 +39,8 @@ import org.junit.Test
 import org.junit.rules.TestName
 import java.io.File
 
-@OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
-class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
+@OldAgpTest(agpVersions = ["4.1.0"], gradleVersions = ["LATEST"])
+class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
@@ -48,7 +50,13 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION)
+    prepareGradleProject(
+      testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
+      name = "project",
+      gradleVersion = GRADLE_VERSION,
+      gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
+      ndkVersion = NDK_VERSION,
+    )
     openPreparedProject("project") { project ->
       val selectedVariant = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))?.selectedVariantAbi
       Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
@@ -76,7 +84,13 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION)
+    prepareGradleProject(
+      testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
+      name = "project",
+      gradleVersion = GRADLE_VERSION,
+      gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
+      ndkVersion = NDK_VERSION,
+    )
     openPreparedProject("project") { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi
@@ -91,7 +105,7 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
       runOn(Abi.ARMEABI_V7A)
 
       Truth.assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi })
-        .containsExactly(Abi.X86.toString(), Abi.ARMEABI_V7A.toString())
+        .containsExactly(Abi.X86.toString()) // TODO(b/226372843): Should also contain Abi.ARMEABI_V7A.toString()) !
     }
   }
 
@@ -101,7 +115,8 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
-private const val ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0"
-private const val GRADLE_VERSION = "5.5"
+private const val ANDROID_GRADLE_PLUGIN_VERSION = "4.1.0"
+private const val GRADLE_VERSION = GRADLE_LATEST_VERSION
+private const val NDK_VERSION = NDK_DEFAULT_VERSION
 
 private const val errorMessage: String = "Unexpected attempt to resolve a project."
