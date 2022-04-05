@@ -22,7 +22,7 @@ fun interface AndroidProjectPathResolver {
    * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [AndroidVariantResolver] or returns `null` if the
    * given path does refer to an Android Gradle project.
    */
-  fun resolve(buildId: File, projectPath: String): AndroidModule?
+  fun resolve(buildId: BuildId, projectPath: String): AndroidModule?
 }
 
 interface AndroidVariantResolver {

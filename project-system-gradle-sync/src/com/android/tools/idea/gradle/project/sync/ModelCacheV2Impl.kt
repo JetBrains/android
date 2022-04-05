@@ -452,10 +452,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
    */
   fun moduleLibraryFrom(
     projectPath: String,
-    ownerBuildId: File,
+    ownerBuildId: BuildId,
     ownerProjectPath: String,
     isAndroidProject: Boolean,
-    buildId: File,
+    buildId: BuildId,
     variant: String?,
     lintJar: File?,
     isTestFixturesComponent: Boolean,
@@ -468,7 +468,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     fun resolved(sourceSet: IdeModuleWellKnownSourceSet): LibraryReference {
       return internedModels.getOrCreate(
         IdePreResolvedModuleLibraryImpl(
-          buildId = toSystemIndependentName(buildId.path),
+          buildId = buildId.asString,
           projectPath = projectPath,
           variant = variant,
           lintJar = lintJar?.path?.let(::File),
@@ -480,7 +480,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     fun unresolved(artifact: File): LibraryReference {
       return internedModels.getOrCreate(
         IdeUnresolvedModuleLibraryImpl(
-          buildId = toSystemIndependentName(buildId.path),
+          buildId = buildId.asString,
           projectPath = projectPath,
           variant = variant,
           lintJar = lintJar?.path?.let(::File),
@@ -520,12 +520,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   }
 
   fun createFromDependencies(
-    ownerBuildId: File,
+    ownerBuildId: BuildId,
     ownerProjectPath: String,
     dependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
-    buildNameMap: Map<String, File>
+    buildNameMap: Map<String, BuildId>
   ): IdeDependenciesCore {
 
     // Map from unique artifact address to level2 library instance. The library instances are
@@ -715,12 +715,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
    * Create [IdeDependencies] from [ArtifactDependencies].
    */
   fun dependenciesFrom(
-    ownerBuildId: File,
+    ownerBuildId: BuildId,
     ownerProjectPath: String,
     artifactDependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
-    buildNameMap: Map<String, File>
+    buildNameMap: Map<String, BuildId>
   ): IdeDependenciesCore {
     return createFromDependencies(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap)
   }
@@ -816,16 +816,17 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   }
 
   fun androidArtifactFrom(
-    ownerBuildId: File,
+    ownerBuildId: BuildId,
     ownerProjectPath: String,
     artifact: IdeAndroidArtifactCoreImpl,
     artifactDependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
-    buildNameMap: Map<String, File>,
+    buildNameMap: Map<String, BuildId>,
   ): IdeAndroidArtifactCoreImpl {
     return artifact.copy(
-      dependencyCores = dependenciesFrom(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap),
+      dependencyCores =
+      dependenciesFrom(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap),
       unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }
@@ -852,13 +853,13 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   }
 
   fun javaArtifactFrom(
-    buildId: File,
+    buildId: BuildId,
     projectPath: String,
     artifact: IdeJavaArtifactCoreImpl,
     variantDependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
-    buildNameMap: Map<String, File>
+    buildNameMap: Map<String, BuildId>
   ): IdeJavaArtifactCoreImpl {
     return artifact.copy(
       ideDependenciesCore = dependenciesFrom(buildId, projectPath, variantDependencies, libraries, androidProjectPathResolver, buildNameMap),
@@ -940,12 +941,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   }
 
   fun variantFrom(
-    ownerBuildId: File,
+    ownerBuildId: BuildId,
     ownerProjectPath: String,
     variant: IdeVariantCoreImpl,
     variantDependencies: VariantDependencies,
     androidProjectPathResolver: AndroidProjectPathResolver,
-    buildNameMap: Map<String, File>
+    buildNameMap: Map<String, BuildId>
   ): IdeVariantCoreImpl {
     return variant.copy(
       mainArtifact = variant.mainArtifact.let {
@@ -1213,12 +1214,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     ): IdeVariantCoreImpl = lock.withLock { variantFrom(androidProject, basicVariant, variant, modelVersion) }
 
     override fun variantFrom(
-      ownerBuildId: File,
+      ownerBuildId: BuildId,
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
       androidProjectPathResolver: AndroidProjectPathResolver,
-      buildNameMap: Map<String, File>
+      buildNameMap: Map<String, BuildId>
     ): IdeVariantCoreImpl =
       lock.withLock { variantFrom(ownerBuildId, ownerProjectPath, variant, variantDependencies, androidProjectPathResolver, buildNameMap) }
 

@@ -133,7 +133,7 @@ class JavaModule(
 sealed class AndroidModule constructor(
   val agpVersion: GradleVersion?,
   val buildName: String?,
-  val buildNameMap: Map<String, File>?,
+  val buildNameMap: Map<String, BuildId>?,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProjectImpl,
   /** All configured variant names if supported by the AGP version. */
@@ -211,7 +211,7 @@ sealed class AndroidModule constructor(
   class V1(
     agpVersion: GradleVersion?,
     buildName: String?,
-    buildNameMap: Map<String, File>?,
+    buildNameMap: Map<String, BuildId>?,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
     /** All configured variant names if supported by the AGP version. */
@@ -242,7 +242,7 @@ sealed class AndroidModule constructor(
   class V2(
     agpVersion: GradleVersion?,
     buildName: String?,
-    buildNameMap: Map<String, File>?,
+    buildNameMap: Map<String, BuildId>?,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
     allVariantNames: Set<String>,

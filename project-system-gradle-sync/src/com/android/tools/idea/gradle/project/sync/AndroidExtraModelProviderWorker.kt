@@ -143,8 +143,8 @@ internal class AndroidExtraModelProviderWorker(
            .mapNotNull { build ->
              actionRunner.runAction { controller -> controller.findModel(build.rootProject, BuildMap::class.java) }
            }
-           .flatMap { buildNames -> buildNames.buildIdMap.entries.map { it.key to it.value } } +
-         (":" to buildFolderPaths.buildRootDirectory!!)
+           .flatMap { buildNames -> buildNames.buildIdMap.entries.map { it.key to BuildId(it.value) } } +
+         (":" to BuildId(buildFolderPaths.buildRootDirectory!!))
         )
           .toMap()
 
@@ -154,9 +154,9 @@ internal class AndroidExtraModelProviderWorker(
       androidModules.forEach { androidModulesById[it.id] = it }
 
       val androidModulesByProjectPath = androidModules
-        .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to it }
+        .associate { (BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir) to it.gradleProject.path) to it }
 
-      fun resolveAndroidProjectPath(buildId: File, projectPath: String): AndroidModule? =
+      fun resolveAndroidProjectPath(buildId: BuildId, projectPath: String): AndroidModule? =
         androidModulesByProjectPath[buildId to projectPath]
 
       when (syncOptions) {
@@ -190,7 +190,7 @@ internal class AndroidExtraModelProviderWorker(
 
     private fun fetchGradleModulesAction(
       incompleteBasicModules: List<BasicIncompleteGradleModule>,
-      buildNameMap: Map<String, File>
+      buildNameMap: Map<String, BuildId>
     ): List<GradleModule> {
       return actionRunner.runActions(
         incompleteBasicModules.map {
@@ -875,7 +875,7 @@ private fun createAndroidModule(
   androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project,
   nativeAndroidProject: NativeAndroidProject?,
   nativeModule: NativeModule?,
-  buildNameMap: Map<String, File>,
+  buildNameMap: Map<String, BuildId>,
   modelCache: ModelCache
 ): AndroidModule {
   val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
@@ -913,7 +913,7 @@ private fun createAndroidModule(
   gradleProject: BasicGradleProject,
   androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project,
   nativeModule: NativeModule?,
-  buildNameMap: Map<String, File>,
+  buildNameMap: Map<String, BuildId>,
   modelCache: ModelCache
 ): AndroidModule {
   val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
@@ -988,7 +988,7 @@ fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreI
     // Request VariantDependencies model for the variant's dependencies.
     val variantDependencies = controller.findVariantDependenciesV2Model(module.gradleProject, configuration.variant) ?: return null
     return modelCache.variantFrom(
-      module.gradleProject.projectIdentifier.buildIdentifier.rootDir,
+      BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),
       module.gradleProject.projectIdentifier.projectPath,
       variant,
       variantDependencies,
