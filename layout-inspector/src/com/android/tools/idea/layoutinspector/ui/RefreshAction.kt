@@ -25,7 +25,7 @@ import icons.StudioIcons
 /**
  * Action to refresh the content of the inspector.
  */
-object RefreshAction : AnAction({ "Refresh layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH), TooltipDescriptionProvider {
+object RefreshAction : AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH), TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }

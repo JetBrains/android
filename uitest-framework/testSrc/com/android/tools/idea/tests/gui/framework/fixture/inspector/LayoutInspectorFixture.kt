@@ -96,7 +96,7 @@ class LayoutInspectorFixture(
   }
 
   /**
-   * Select the "Stop inspector" menu item from the select process action button in the toolbar of the layout inspector.
+   * Select the "Stop Inspector" menu item from the select process action button in the toolbar of the layout inspector.
    */
   fun stop() {
     // For some reason this line avoids the popup of tooltip for the action button
@@ -106,7 +106,7 @@ class LayoutInspectorFixture(
     robot().focusAndWaitForFocusGain(selectProcessActionButton.target())
     selectProcessActionButton.click()
 
-    findSubItemInActivePopup("Stop inspector").click()
+    findSubItemInActivePopup("Stop Inspector").click()
   }
 
   /**

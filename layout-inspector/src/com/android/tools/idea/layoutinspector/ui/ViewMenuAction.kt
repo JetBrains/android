@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
 import kotlin.reflect.KMutableProperty1
 
-object ViewMenuAction : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
+object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
   class SettingsAction(name: String, val property: KMutableProperty1<DeviceViewSettings, Boolean>) : ToggleAction(name) {
     override fun isSelected(event: AnActionEvent) =
       event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> return property.get(settings) } ?: false

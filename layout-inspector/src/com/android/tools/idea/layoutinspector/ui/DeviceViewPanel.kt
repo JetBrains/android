@@ -135,7 +135,7 @@ class DeviceViewPanel(
       supportsOffline = false,
       createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
       stopPresentation = SelectProcessAction.StopPresentation(
-        "Stop inspector",
+        "Stop Inspector",
         "Stop running the layout inspector against the current process"),
       onStopAction = { stopInspectors() },
       customDeviceAttribution = ::deviceAttribution

@@ -367,7 +367,7 @@ class DeviceViewPanelWithFullInspectorTest {
     contentPanel.selectProcessAction?.updateActions(mock())
     val actionEvent = mock<AnActionEvent>()
     `when`(actionEvent.actionManager).thenReturn(mock())
-    val stopAction = contentPanel.selectProcessAction?.getChildren(actionEvent)?.first { it.templateText == "Stop inspector" }
+    val stopAction = contentPanel.selectProcessAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
     stopAction?.actionPerformed(mock())
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
@@ -394,7 +394,7 @@ class DeviceViewPanelWithFullInspectorTest {
     checkDeviceAction(children[0], enabled = true, ICON_PHONE, "Google Modern Model")
     checkDeviceAction(children[1], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
     checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
-    checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop inspector")
+    checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop Inspector")
   }
 
   private fun checkDeviceAction(action: AnAction, enabled: Boolean, icon: Icon?, text: String) {
