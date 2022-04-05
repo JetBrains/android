@@ -37,25 +37,25 @@ class FastPreviewDisableNotificationProvider : EditorNotifications.Provider<Edit
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) return null
     log.debug("createNotificationPanel")
-    return FastPreviewManager.getInstance(project).disableReason?.let { disableReason ->
-      EditorNotificationPanel(LightColors.RED).apply {
-        text = disableReason.title
-        isFocusable = false
+    val disableReason = FastPreviewManager.getInstance(project).disableReason ?: return null
+    if (disableReason == ManualDisabledReason) return null
+    return EditorNotificationPanel(LightColors.RED).apply {
+      text = disableReason.title
+      isFocusable = false
 
-        if (disableReason.hasLongDescription) {
-          createActionLabel(message("fast.preview.disabled.notification.show.details.action.title")) {
-            EventLog.getEventLog(project)?.activate(null)
-          }
+      if (disableReason.hasLongDescription) {
+        createActionLabel(message("fast.preview.disabled.notification.show.details.action.title")) {
+          EventLog.getEventLog(project)?.activate(null)
         }
-        createActionLabel(message("fast.preview.disabled.notification.reenable.action.title")) {
-          FastPreviewManager.getInstance(project).enable()
-          EditorNotifications.getInstance(project).updateNotifications(file)
-        }
-        createActionLabel(message("fast.preview.disabled.notification.stop.autodisable.action.title")) {
-          FastPreviewManager.getInstance(project).allowAutoDisable = false
-          FastPreviewManager.getInstance(project).enable()
-          EditorNotifications.getInstance(project).updateNotifications(file)
-        }
+      }
+      createActionLabel(message("fast.preview.disabled.notification.reenable.action.title")) {
+        FastPreviewManager.getInstance(project).enable()
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      }
+      createActionLabel(message("fast.preview.disabled.notification.stop.autodisable.action.title")) {
+        FastPreviewManager.getInstance(project).allowAutoDisable = false
+        FastPreviewManager.getInstance(project).enable()
+        EditorNotifications.getInstance(project).updateNotifications(file)
       }
     }
   }

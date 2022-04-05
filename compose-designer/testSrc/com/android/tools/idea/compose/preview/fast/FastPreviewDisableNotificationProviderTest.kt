@@ -108,4 +108,10 @@ class FastPreviewDisableNotificationProviderTest {
     assertTrue(fastPreviewManager.isEnabled)
     assertFalse(fastPreviewManager.allowAutoDisable)
   }
+
+  @Test
+  fun `do not display user disable reason`() {
+    fastPreviewManager.disable(ManualDisabledReason)
+    assertNull(notificationProvider.createNotificationPanel(file.virtualFile, fileEditor, projectRule.project))
+  }
 }
