@@ -87,13 +87,15 @@ data class DisableReason(val title: String, val description: String? = null, val
  */
 val ManualDisabledReason = DisableReason("User disabled")
 
+private fun Throwable?.isSyntaxError(): Boolean =
+  this is LiveEditUpdateException
+  && error == LiveEditUpdateException.Error.ANALYSIS_ERROR
+  && (message?.startsWith("Analyze Error.") ?: false)
+
 /**
  * Returns true if the [CompilationResult.RequestException] is from a syntax error.
  */
-private fun CompilationResult.RequestException.isSyntaxError(): Boolean =
-  e is LiveEditUpdateException
-  && e.error == LiveEditUpdateException.Error.ANALYSIS_ERROR
-  && (e.message?.startsWith("Analyze Error.") ?: false)
+private fun CompilationResult.RequestException.isSyntaxError(): Boolean = e.isSyntaxError() || e?.cause.isSyntaxError()
 
 /**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
@@ -558,6 +560,13 @@ class FastPreviewManager private constructor(
 
   override fun dispose() {
     _isDisposed.set(true)
+  }
+
+  @TestOnly
+  fun invalidateRequestsCache() {
+    synchronized(requestTracker) {
+      requestTracker.invalidateAll()
+    }
   }
 
   companion object {

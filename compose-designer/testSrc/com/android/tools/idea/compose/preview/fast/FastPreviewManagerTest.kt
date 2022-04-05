@@ -21,7 +21,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyze
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
@@ -45,6 +44,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
@@ -402,6 +402,10 @@ internal class FastPreviewManagerTest {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty) { // Syntax error
     """.trimIndent())
+    // Utility method that allows to optionally wrap the exception before throwing it
+    var wrapAndThrow: (Throwable) -> Unit = {
+      throw it
+    }
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = {
@@ -415,7 +419,11 @@ internal class FastPreviewManagerTest {
             runReadAction {
               // Simulate a syntax error compilation syntax error
               val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
-              analyze(inputs, resolution)
+              try {
+                analyze(inputs, resolution)
+              } catch (t: Throwable) {
+                wrapAndThrow(t)
+              }
             }
             throw IllegalStateException("Not reachable")
           }
@@ -428,6 +436,16 @@ internal class FastPreviewManagerTest {
     }
     assertNull(manager.disableReason)
     assertTrue(manager.isEnabled)
+    manager.compileRequest(file, projectRule.module).first.also { result ->
+      assertTrue(result.toString(), result is CompilationResult.RequestException)
+      assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
+      assertNull(manager.disableReason)
+    }
+
+    wrapAndThrow = {
+      throw ExecutionException(it)
+    }
+    manager.invalidateRequestsCache()
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
