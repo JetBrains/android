@@ -44,6 +44,7 @@ import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
@@ -785,7 +786,7 @@ class LogcatMainPanelTest {
   private fun logcatMainPanel(
     popupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
-    state: LogcatPanelConfig? = null,
+    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = "", isSoftWrap = false),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
@@ -794,7 +795,7 @@ class LogcatMainPanelTest {
     adbAdapter: AdbAdapter = FakeAdbAdapter(),
     adbSession: AdbLibSession = FakeAdbLibSession(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ): LogcatMainPanel =
+  ) =
     LogcatMainPanel(
       projectRule.project,
       popupActionGroup,

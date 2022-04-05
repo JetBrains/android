@@ -149,9 +149,8 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
 
   override fun matches(message: LogcatMessageWrapper): Boolean {
     val header = message.logCatMessage.header
-    return (packageNames.isEmpty()
-            || packageNames.contains(header.appName)
-            || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logCatMessage.message)))
+    return packageNames.contains(header.appName)
+           || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logCatMessage.message))
   }
 
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider

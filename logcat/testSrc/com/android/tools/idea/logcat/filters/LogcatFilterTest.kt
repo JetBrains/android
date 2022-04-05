@@ -193,17 +193,12 @@ class LogcatFilterTest {
   }
 
   @Test
-  fun appFilter_emptyMatchesAll() {
+  fun appFilter_emptyMatchesNone() {
     val message1 = logCatMessage(appName = "foo")
     val message2 = logCatMessage(appName = "bar")
     val message3 = logCatMessage(appName = "foobar")
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3)))
-      .containsExactly(
-        message1,
-        message2,
-        message3
-      ).inOrder()
+    assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3))).isEmpty()
   }
 
   @Test
