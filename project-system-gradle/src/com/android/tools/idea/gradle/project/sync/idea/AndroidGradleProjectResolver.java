@@ -158,6 +158,7 @@ import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -193,6 +194,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private @Nullable Project myProject;
   private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
+  private final Map<String, GradleProjectPath> myGradlePathByModuleId = new LinkedHashMap<>();
   private IdeLibraryTableImpl myResolvedModuleDependencies = null;
 
   public AndroidGradleProjectResolver() {
@@ -258,6 +260,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
             sourceSet
           );
           myModuleDataByGradlePath.put(gradleProjectPath, node.getData());
+          myGradlePathByModuleId.put(node.getData().getId(), gradleProjectPath);
         }
       });
     }
@@ -678,12 +681,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       if (ideLibraryTable == null) {
         throw new IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present");
       }
-      IdeLibraryTableImpl resolvedTable = resolveModuleDependencies(ideLibraryTable);
+      myResolvedModuleDependencies = buildResolvedLibraryTable(ideProject, ideLibraryTable);
       ideProject.createChild(
         AndroidProjectKeys.IDE_LIBRARY_TABLE,
-        resolvedTable
+        myResolvedModuleDependencies
       );
-      myResolvedModuleDependencies = resolvedTable;
     }
 
     androidModelNode.getData()
@@ -750,6 +752,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       androidModelNode.getData().getSelectedVariant(),
       project
     );
+  }
+
+  private @NotNull IdeLibraryTableImpl buildResolvedLibraryTable(@NotNull DataNode<ProjectData> ideProject,
+                                                                 @NotNull IdeLibraryTableImpl ideLibraryTable) {
+    Map<String, String> artifactToModuleIdMap = ideProject.getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS);
+    if (artifactToModuleIdMap == null) throw new IllegalStateException("Implementation of GradleProjectResolver has changed");
+    return resolveModuleDependencies(ideLibraryTable, (artifact) -> {
+      String moduleId = artifactToModuleIdMap.get(ExternalSystemApiUtil.toCanonicalPath(artifact.getPath()));
+      if (moduleId == null) return null;
+      GradleProjectPath projectPath = myGradlePathByModuleId.get(moduleId);
+      return projectPath instanceof GradleSourceSetProjectPath ? (GradleSourceSetProjectPath)projectPath : null;
+    });
   }
 
   @SuppressWarnings("UnstableApiUsage")

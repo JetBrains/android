@@ -218,7 +218,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       }
     }
 
-    @Test // TODO(b/227469255): Uncomment dependencies in the test project when module dependency resolution is fixed.
+    @Test
     fun testNonStandardSourceSetDependencies() {
       val text = importSyncAndDumpProject(NON_STANDARD_SOURCE_SET_DEPENDENCIES)
       assertIsEqualToSnapshot(text)

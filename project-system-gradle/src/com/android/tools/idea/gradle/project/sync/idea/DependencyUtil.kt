@@ -32,12 +32,12 @@ import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.buildId
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.projectPath
@@ -356,20 +356,40 @@ fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseAr
 internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
   GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)
 
-fun resolveModuleDependencies(libraryTable: IdeLibraryTableImpl): IdeLibraryTableImpl {
+fun resolveModuleDependencies(
+  libraryTable: IdeLibraryTableImpl,
+  artifactResolver: (File) -> GradleSourceSetProjectPath?
+): IdeLibraryTableImpl {
   return IdeLibraryTableImpl(
     libraryTable.libraries.map {
       when (it) {
         is IdeJavaLibrary -> it
         is IdeAndroidLibrary -> it
         is IdeModuleLibrary -> error("Unexpected resolved library: $it")
-        is IdeUnresolvedModuleLibrary -> IdeModuleLibraryImpl(
-          buildId = it.buildId,
-          projectPath = it.projectPath,
-          variant = it.variant,
-          lintJar = it.lintJar,
-          sourceSet = IdeModuleWellKnownSourceSet.MAIN
-        )
+        is IdeUnresolvedModuleLibrary -> {
+          val projectPath = artifactResolver(it.artifact)
+          if (projectPath != null) {
+            if (projectPath.buildRoot != it.buildId) {
+              error("Unexpected resolved module build id ${projectPath.buildRoot} != ${it.buildId}")
+            }
+            if (projectPath.path != it.projectPath) {
+              error("Unexpected resolved module project path ${projectPath.path} != ${it.projectPath}")
+            }
+            IdeModuleLibraryImpl(
+              buildId = it.buildId,
+              projectPath = it.projectPath,
+              variant = it.variant,
+              lintJar = it.lintJar,
+              sourceSet = projectPath.sourceSet
+            )
+          } else {
+            IdeJavaLibraryImpl(
+              it.artifact.path,
+              it.artifact.path,
+              it.artifact
+            )
+          }
+        }
         is IdePreResolvedModuleLibrary -> IdeModuleLibraryImpl(
           buildId = it.buildId,
           projectPath = it.projectPath,

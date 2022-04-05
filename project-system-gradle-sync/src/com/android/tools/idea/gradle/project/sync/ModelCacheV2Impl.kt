@@ -132,6 +132,8 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -466,7 +468,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     fun resolved(sourceSet: IdeModuleWellKnownSourceSet): LibraryReference {
       return internedModels.getOrCreate(
         IdePreResolvedModuleLibraryImpl(
-          buildId = buildId.absolutePath,
+          buildId = toSystemIndependentName(buildId.path),
           projectPath = projectPath,
           variant = variant,
           lintJar = lintJar?.path?.let(::File),
@@ -478,7 +480,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     fun unresolved(artifact: File): LibraryReference {
       return internedModels.getOrCreate(
         IdeUnresolvedModuleLibraryImpl(
-          buildId = buildId.absolutePath,
+          buildId = toSystemIndependentName(buildId.path),
           projectPath = projectPath,
           variant = variant,
           lintJar = lintJar?.path?.let(::File),

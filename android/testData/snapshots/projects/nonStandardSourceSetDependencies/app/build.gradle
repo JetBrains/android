@@ -38,5 +38,5 @@ dependencies {
     implementation project(':aarWrapperLib')
     androidTestImplementation project(':lib')
     testImplementation project(':lib')
-// TODO(b/227469255):    implementation project(':jarWrapperLib')
+    implementation project(':jarWrapperLib')
 }

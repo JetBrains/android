@@ -462,7 +462,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/jarWrapperLib
-                buildDir                      : <ROOT>/jarWrapperLib/build [-]
+                buildDir                      : <ROOT>/jarWrapperLib/build
                 buildFile                     : <ROOT>/jarWrapperLib/build.gradle
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
@@ -887,7 +887,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 sourceCompatibility           : 11
                 targetCompatibility           : 11
                 projectDir                    : <ROOT>/network-kmm
-                buildDir                      : <ROOT>/network-kmm/build [-]
+                buildDir                      : <ROOT>/network-kmm/build
                 buildFile                     : <ROOT>/network-kmm/build.gradle
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/network-kmm/build/libs/network-kmm-jvm.jar [-]
@@ -1277,6 +1277,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                                 resStaticLibrary              : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/res.apk [-]
                                 - runtimeJarFiles             : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/jars/classes.jar
                                 symbolFile                    : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/R.txt
+                        - javaLibraries               : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryImpl)
+                                artifact                      : <ROOT>/jarWrapperLib/JarWrappedLib.jar
+                                artifactAddress               : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
@@ -1370,6 +1374,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         - androidLibraries            : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             isProvided                    : true
                             target                        : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -1422,6 +1428,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     dependencies                  : IdeDependenciesImpl
                         - androidLibraries            : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryDependencyImpl)
+                            target                        : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -1486,6 +1494,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
+                    - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
@@ -1511,6 +1520,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
+                    - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
@@ -1539,6 +1549,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
+                    - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
@@ -2252,6 +2263,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :network-kmm
+                                sourceSet                     : jvmMain (IdeModuleSourceSetImpl)
+                                    canBeConsumed                 : true
                         - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -2342,6 +2359,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::feature-a@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2430,6 +2449,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::feature-a@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
