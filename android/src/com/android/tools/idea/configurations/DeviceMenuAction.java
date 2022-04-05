@@ -525,7 +525,7 @@ public class DeviceMenuAction extends DropDownAction {
         customBuilder.setName(CUSTOM_DEVICE_NAME);
         customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
         myCustomDevice = customBuilder.build();
-        configuration.setEffectiveDevice(myCustomDevice, myDevice.getDefaultState());
+        configuration.setDevice(myCustomDevice, false);
       }
     }
 
@@ -568,7 +568,7 @@ public class DeviceMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       // TODO: force set orientation for virtual wear os device
-      configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
+      configuration.setDevice(myAvdDevice, false);
     }
   }
 
