@@ -133,7 +133,7 @@ class DeviceMenuAction2Test {
         4.7" WXGA (640 × 360 dp, xhdpi)
         5.1" WVGA (480 × 800 dp, mdpi)
         5.4" FWVGA (480 × 854 dp, mdpi)
-        Resizable (411 × 891 dp, xxhdpi)
+        Resizable (Experimental) (411 × 891 dp, xxhdpi)
         6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)
