@@ -276,7 +276,12 @@ class LogcatMainPanelTest {
     fakeUi.rightClickOn(logcatMainPanel)
 
     val popupMenu = popupRule.popupContents as JPopupMenu
-    assertThat(popupMenu.components.map { (it as ActionMenuItem).anAction }).containsExactlyElementsIn(popupActionGroup.getChildren(null))
+
+    assertThat(popupMenu.components.map { if (it is JPopupMenu.Separator) "-" else (it as ActionMenuItem).text }).containsExactly(
+      "An Action",
+      "-",
+      "Clear Logcat",
+    )
     verify(popupRule.mockPopup).show()
     // JBPopupMenu has a Timer that is stopped when made invisible. If not stopped, checkJavaSwingTimersAreDisposed() will throw in some
     // other test.

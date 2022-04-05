@@ -73,11 +73,13 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
+import com.intellij.openapi.editor.actions.SplitLineAction
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
@@ -183,7 +185,7 @@ internal class LogcatMainPanel(
   init {
     editor.apply {
       installPopupHandler(object : ContextMenuPopupHandler() {
-        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
+        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(popupActionGroup.getChildren(null))
       })
       gutterComponentEx.isVisible = false
       settings.isUseSoftWraps = state?.isSoftWrap ?: false
@@ -220,6 +222,14 @@ internal class LogcatMainPanel(
 
     coroutineScope.launch(workerThread) {
       headerPanel.trackSelectedDevice().collect { onDeviceChanged(it) }
+    }
+  }
+
+  private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
+    return SimpleActionGroup().apply {
+      actions.forEach { add(it) }
+      add(Separator.create())
+      add(ClearLogcatAction(this@LogcatMainPanel))
     }
   }
 
