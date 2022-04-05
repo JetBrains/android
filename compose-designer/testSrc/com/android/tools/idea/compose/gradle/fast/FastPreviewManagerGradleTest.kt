@@ -25,7 +25,9 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
+import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -34,15 +36,20 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -51,9 +58,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
+import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.thread
 
 @RunWith(Parameterized::class)
-class FastPreviewManagerGradleTest(useEmbeddedCompiler: Boolean) {
+class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -162,6 +173,60 @@ class FastPreviewManagerGradleTest(useEmbeddedCompiler: Boolean) {
       }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
     }
+  }
+
+  // Regression test for b/228168101
+  @Test
+  fun `test parallel compilations`() {
+    // This tests is only to verify the interaction of the internal compiler with the Live Edit
+    // on device compilation.
+    if (!useEmbeddedCompiler) return
+
+    var compile = true
+    val startCountDownLatch = CountDownLatch(1)
+
+    val previewCompilations = AtomicLong(0)
+    val previewThread = thread {
+      startCountDownLatch.await()
+      while (compile) {
+        val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+        typeAndSaveDocument("Text(\"Hello 3\")\n")
+        runBlocking {
+          fastPreviewManager.compileRequest(psiMainFile, module)
+        }
+        previewCompilations.incrementAndGet()
+      }
+    }
+
+    val deviceCompilations = AtomicLong(0)
+    val deviceThread = thread {
+      val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
+      val function = runReadAction {
+        psiMainFile.collectDescendantsOfType<KtNamedFunction>().first { it.name?.contains("TwoElementsPreview") ?: false }
+      }
+      val state = runReadAction { FunctionState(psiMainFile as KtFile) }
+
+      startCountDownLatch.await()
+      while (compile) {
+        AndroidLiveEditCodeGenerator(projectRule.project).compile(
+          listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function, state)), output)
+        deviceCompilations.incrementAndGet()
+      }
+    }
+
+    val iterations = 20L
+
+    // Start both threads.
+    startCountDownLatch.countDown()
+
+    // Wait for both threads to run the iterations.
+    runBlocking {
+      while (deviceCompilations.get() < iterations || previewCompilations.get() < iterations) delay(200)
+      compile = false
+    }
+
+    previewThread.join()
+    deviceThread.join()
   }
 
   private fun typeAndSaveDocument(typedString: String) {

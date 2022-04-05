@@ -17,8 +17,7 @@ package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
-import com.android.tools.idea.run.deployment.liveedit.analyze
-import com.android.tools.idea.run.deployment.liveedit.backendCodeGen
+import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -35,9 +34,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -95,17 +92,20 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
   private fun compileKtFiles(inputs: List<KtFile>, outputDirectory: Path, indicator: ProgressIndicator) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
-    log.debug("fetchResolution")
+    // Retry is a temporary workaround for b/224875189
     val generationState = retryInNonBlockingReadAction(indicator = indicator) {
-      val resolution = runReadAction { KotlinCacheService.getInstance(project).getResolutionFacade(inputs) }
-      val languageVersionSettings = inputs.first().languageVersionSettings
-      ProgressManager.checkCanceled()
-      log.debug("analyze")
-      val bindingContext = analyze(inputs, resolution)
-      ProgressManager.checkCanceled()
-      log.debug("backCodeGen")
-      backendCodeGen(project, resolution, bindingContext, inputs,
-                     AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+      runWithCompileLock {
+        log.debug("fetchResolution")
+        val resolution = fetchResolution(project, inputs)
+        ProgressManager.checkCanceled()
+        val languageVersionSettings = inputs.first().languageVersionSettings
+        log.debug("analyze")
+        val bindingContext = analyze(inputs, resolution)
+        ProgressManager.checkCanceled()
+        log.debug("backCodeGen")
+        backendCodeGen(project, resolution, bindingContext, inputs,
+                       AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+      }
     }
 
     generationState.factory.asList().forEach {

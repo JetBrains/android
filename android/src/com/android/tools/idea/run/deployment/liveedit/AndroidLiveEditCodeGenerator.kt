@@ -19,193 +19,32 @@ import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.google.common.collect.HashMultimap
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
-import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
-import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
-import org.jetbrains.kotlin.backend.jvm.jvmPhases
-import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.codegen.ClassBuilderFactories
-import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.containingPackage
-import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.idea.util.module
-import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
-import org.jetbrains.kotlin.resolve.source.PsiSourceFile
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
 import java.lang.Math.ceil
 
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
-
-private fun handleCompilerErrors(e : Throwable) {
-  // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
-  // internal IDE code for handling read/write actions to function as expected.
-  if (e is ProcessCanceledException) {
-    throw e
-  }
-
-  if (e is InvalidModuleException) {
-    throw ProcessCanceledException(e)
-  }
-
-  // Given that the IDE already provide enough information about compilation errors, there is no
-  // real need to surface any compilation exception. We will just print the true cause for the
-  // exception for our own debugging purpose only.
-  var cause = e;
-  while (cause.cause != null) {
-    cause = cause.cause!!
-
-    if (cause is InvalidModuleException) {
-      throw ProcessCanceledException(e)
-    }
-
-    // The Kotlin compiler probably shouldn't be swallowing these, but since we can't change that,
-    // detect and re-throw them here as the proper exception type.
-    if (cause is ProcessCanceledException) {
-      throw cause
-    }
-
-    var message = cause.message!!
-    if (message.contains("Unhandled intrinsic in ExpressionCodegen")) {
-      // This bug should be fixed as of Dolphin C5. We should leave it in in case of regression / other scenerios that triggers it again.
-      var nameStart = message.indexOf("name:") + "name:".length
-      var nameEnd = message.indexOf(' ', nameStart)
-      var name = message.substring(nameStart, nameEnd)
-
-      throw LiveEditUpdateException.knownIssue(201728545,
-                                               "unable to compile a file that reference a top level function in another source file.\n" +
-                                               "For now work around this by moving function $name inside the class.")
-    } else if (message.contains("Back-end (JVM) Internal error: Couldn't inline method call")) {
-      // We currently don't support inline function calls to another source code file.
-
-      var nameStart = message.indexOf("Couldn't inline method call: CALL '") + "Couldn't inline method call: CALL '".length
-      var nameEnd = message.indexOf("'", nameStart)
-      var name = message.substring(nameStart, nameEnd)
-
-      throw LiveEditUpdateException.knownIssue(223485031,
-                                               "Unable to update function that references" +
-                                               " an inline function from another source file: $name")
-    }
-  }
-  throw LiveEditUpdateException.compilationError(e.message?:"No error message", e)
-}
-
-/**
- * Compute the BindingContext of the input file that can be used for code generation.
- *
- * This function needs to be done in a read action.
- */
-fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext {
-  val trace = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks")
-  try {
-    var exception : LiveEditUpdateException? = null
-    val analysisResult = resolution.analyzeWithAllCompilerChecks(input) {
-      if (it.severity== Severity.ERROR) {
-        exception = LiveEditUpdateException.analysisError("Analyze Error. $it")
-      }
-    }
-    if (exception != null) {
-      throw exception!!
-    }
-
-    if (analysisResult.isError()) {
-      throw LiveEditUpdateException.analysisError(analysisResult.error.message?:"No Error message")
-    }
-
-    for (diagnostic in analysisResult.bindingContext.diagnostics) {
-      if (diagnostic.severity == Severity.ERROR) {
-        throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
-      }
-    }
-
-    return analysisResult.bindingContext
-  } finally {
-    trace.close()
-  }
-}
-
-/**
- * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
- * the extension point to generate code for @composable functions.
- */
-fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                           input: List<KtFile>, langVersion: LanguageVersionSettings): GenerationState {
-  val compilerConfiguration = CompilerConfiguration()
-  compilerConfiguration.languageVersionSettings = langVersion
-
-  compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, input[0].module!!.name)
-
-  val useComposeIR = LiveEditConfig.getInstance().useEmbeddedCompiler
-  if (useComposeIR) {
-    // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-    compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
-
-    // We don't support INVOKE_DYNAMIC in the interpeter at the moment.
-    compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-    compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
-  }
-
-  val generationStateBuilder = GenerationState.Builder(project,
-                                                       ClassBuilderFactories.BINARIES,
-                                                       resolution.moduleDescriptor,
-                                                       bindingContext,
-                                                       input,
-                                                       compilerConfiguration);
-
-  if (useComposeIR) {
-    generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
-      compilerConfiguration,
-      PhaseConfig(jvmPhases),
-      jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
-        override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
-          val psiSourceFile =
-            descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
-          return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
-        }
-      }
-    ))
-  }
-
-  val generationState = generationStateBuilder.build();
-
-  try {
-    KotlinCodegenFacade.compileCorrectFiles(generationState)
-  } catch (e : Throwable) {
-    handleCompilerErrors(e) // handleCompilerErrors() always throws.
-  }
-
-  return generationState
-}
 
 class AndroidLiveEditCodeGenerator(val project: Project){
 
@@ -259,57 +98,44 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
 
-    // This is a three-step process:
-    // 1) Compute binding context based on any previous cached analysis results.
-    //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-    ProgressManager.checkCanceled()
-    val resolution = tracker.record({fetchResolution(inputFiles)}, "resolution_fetch")
+    return runWithCompileLock {
+      // This is a three-step process:
+      // 1) Compute binding context based on any previous cached analysis results.
+      //    On small edits of previous analyzed project, this operation should be below 30ms or so.
+      ProgressManager.checkCanceled()
+      val resolution = tracker.record({ fetchResolution(project, inputFiles) }, "resolution_fetch")
 
-    ProgressManager.checkCanceled()
-    var bindingContext = tracker.record({analyze(inputFiles, resolution)}, "analysis")
+      ProgressManager.checkCanceled()
+      var bindingContext = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
 
-    // 1.1) Add any extra source file this compilation need in order to support the input file calling an inline function
-    //      from another source file.
-    //      Note: This can be potentially be very expensive. We might consider doing this only if the initial compile
-    //      fails because of an inlining issue.
-    if (LiveEditConfig.getInstance().useInlineAnalysis) {
-      inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
+      // 1.1) Add any extra source file this compilation need in order to support the input file calling an inline function
+      //      from another source file.
+      //      Note: This can be potentially be very expensive. We might consider doing this only if the initial compile
+      //      fails because of an inlining issue.
+      if (LiveEditConfig.getInstance().useInlineAnalysis) {
+        inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
 
-      // We need to perform the analysis once more with the new set of input files.
-      val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+        // We need to perform the analysis once more with the new set of input files.
+        val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
-      // We will need to start using the binding context from the new analysis for code gen.
-      bindingContext = newAnalysisResult.bindingContext
+        // We will need to start using the binding context from the new analysis for code gen.
+        bindingContext = newAnalysisResult.bindingContext
+      }
+
+      // 2) Invoke the backend with the inputs and the binding context computed from step 1.
+      //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
+      //    the complexity of the input .kt file.
+      ProgressManager.checkCanceled()
+      val generationState = tracker.record({
+                                             backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+                                           }, "codegen")
+
+      // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
+      //    decide which classes we want to send to the device along with what extra meta-information the
+      //    agent need.
+      return@runWithCompileLock inputs.map { getGeneratedCode(it, generationState)}
     }
-
-    // 2) Invoke the backend with the inputs and the binding context computed from step 1.
-    //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
-    //    the complexity of the input .kt file.
-    ProgressManager.checkCanceled()
-    val generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
-                                 AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))}, "codegen")
-
-    // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
-    //    decide which classes we want to send to the device along with what extra meta-information the
-    //    agent need.
-    return inputs.map { getGeneratedCode(it, generationState)}
-  }
-
-  /**
-   * Fetch the resolution based on the cached service.
-   */
-  fun fetchResolution(input: List<KtFile>): ResolutionFacade {
-    val kotlinCacheService = KotlinCacheService.getInstance(project)
-    return kotlinCacheService.getResolutionFacade(input)
-  }
-
-  /**
-   * Given a source file A.kt and an initial analysis result, compute a list of source files (A.kt included) need in order to correctly
-   * compile the A.kt and any inline functions it needs from another source file.
-   */
-  fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
-    val (_, filesToCompile) = analyzeInlinedFunctions(resolution, file, false, bindingContext)
-    return filesToCompile
   }
 
   /**

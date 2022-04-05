@@ -21,7 +21,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.deployment.liveedit.analyze
+import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.application.runReadAction
@@ -34,7 +34,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -417,12 +416,14 @@ internal class FastPreviewManagerTest {
             val inputs = files.filterIsInstance<KtFile>()
             assertTrue(inputs.isNotEmpty())
             runReadAction {
-              // Simulate a syntax error compilation syntax error
-              val resolution = KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
-              try {
-                analyze(inputs, resolution)
-              } catch (t: Throwable) {
-                wrapAndThrow(t)
+              runWithCompileLock {
+                // Simulate a syntax error compilation syntax error
+                val resolution = fetchResolution(project, inputs)
+                try {
+                  analyze(inputs, resolution)
+                } catch (t: Throwable) {
+                  wrapAndThrow(t)
+                }
               }
             }
             throw IllegalStateException("Not reachable")
