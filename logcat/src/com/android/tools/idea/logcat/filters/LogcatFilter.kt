@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
+import com.android.ddmlib.Log.LogLevel.ERROR
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
@@ -146,10 +147,12 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
     packageNamesRegex = packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex(IGNORE_CASE)
   }
 
-  override fun matches(message: LogcatMessageWrapper) =
-    packageNames.isEmpty()
-    || packageNames.contains(message.logCatMessage.header.appName)
-    || packageNamesRegex.containsMatchIn(message.logCatMessage.message)
+  override fun matches(message: LogcatMessageWrapper): Boolean {
+    val header = message.logCatMessage.header
+    return (packageNames.isEmpty()
+            || packageNames.contains(header.appName)
+            || (header.logLevel >= ERROR && packageNamesRegex.containsMatchIn(message.logCatMessage.message)))
+  }
 
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
 
