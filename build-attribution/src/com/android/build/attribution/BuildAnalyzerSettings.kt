@@ -29,7 +29,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.text.Formats
 import com.intellij.ui.dsl.builder.bindIntText
-import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 
@@ -45,7 +44,8 @@ class BuildAnalyzerSettings : PersistentStateComponent<BuildAnalyzerSettings.Sta
   }
 
   data class State(
-    var notifyAboutWarnings: Boolean = true,
+    @Deprecated("NotificationsConfiguration used instead. Only read value for migration and only set to it default.")
+    var notifyAboutWarnings: String = "deprecated",
     var maxNumberOfBuildsStored: Int = 15,
     var maxStorageSpaceKilobytes: Int = 1000,
   )
@@ -110,13 +110,6 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
       row {
         button("Clear Build Results Data", ClearBuildResultsAction(::reset))
       }
-    }
-
-    row {
-      checkBox("Notify about new warning types").bindSelected(
-        getter = { buildAnalyzerSettings.settingsState.notifyAboutWarnings },
-        setter = { buildAnalyzerSettings.settingsState.notifyAboutWarnings = it }
-      )
     }
   }
 }

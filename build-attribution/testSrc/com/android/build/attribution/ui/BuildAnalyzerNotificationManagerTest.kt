@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.BUILD_ANALYZER_NOTIFICATION_GROUP_ID
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerSettings
 import com.android.build.attribution.BuildAnalyzerStorageManager
@@ -30,6 +31,7 @@ import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.migrateSetting
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
@@ -41,10 +43,13 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
-import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.Notifications
+import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
@@ -57,8 +62,6 @@ import javax.swing.JPanel
  */
 class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
-  private lateinit var windowManager: ToolWindowManager
-
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
   private var notificationCounter = 0
 
@@ -68,12 +71,13 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     UsageTracker.setWriterForTest(tracker)
-    windowManager = object : ToolWindowHeadlessManagerImpl(project) {
-      override fun notifyByBalloon(options: ToolWindowBalloonShowOptions) {
-        notificationCounter++
+    project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
+      override fun notify(notification: Notification) {
+        if (notification.groupId == BUILD_ANALYZER_NOTIFICATION_GROUP_ID) {
+          notificationCounter++
+        }
       }
-    }
-    registerProjectService(ToolWindowManager::class.java, windowManager)
+    })
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
     registerProjectService(BuildAnalyzerStorageManager::class.java, buildAnalyzerStorageMock)
 
@@ -100,20 +104,6 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     setNewReportData(result)
 
     verifyNotificationShownForSessions(listOf(buildSessionId))
-  }
-
-  fun testBalloonNotShownOnReportWithWarningWhenSettingIsOff() {
-    BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings = false
-
-    val buildSessionId = UUID.randomUUID().toString()
-    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
-    val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
-    )
-    setNewReportData(result)
-
-    verifyNotificationShownForSessions(emptyList())
   }
 
   fun testBalloonNotShownOnSecondReportWithSameWarning() {
@@ -229,6 +219,44 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     setNewReportData(result3)
 
     verifyNotificationShownForSessions(listOf(buildSessionId1, buildSessionId3))
+  }
+
+  fun testNotificationSettingDefault() {
+    val group = NotificationGroup.findRegisteredGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)!!
+    Truth.assertThat(group.displayType).isEqualTo(NotificationDisplayType.TOOL_WINDOW)
+    Truth.assertThat(group.isHideFromSettings).isEqualTo(false)
+    Truth.assertThat(group.toolWindowId).isEqualTo(BuildContentManager.TOOL_WINDOW_ID)
+  }
+
+  fun testSettingMigration() {
+    Truth.assertThat(NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType)
+      .isEqualTo(NotificationDisplayType.TOOL_WINDOW)
+    fun testCombination(
+      oldSetting: String,
+      newSettingBefore: NotificationDisplayType,
+      newSettingAfter: NotificationDisplayType
+    ) {
+      BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings = oldSetting
+      NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType = newSettingBefore
+
+      migrateSetting(project)
+
+      Truth.assertThat(NotificationsConfigurationImpl.getSettings(BUILD_ANALYZER_NOTIFICATION_GROUP_ID).displayType)
+        .isEqualTo(newSettingAfter)
+      Truth.assertThat(BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings)
+        .isEqualTo("deprecated")
+    }
+
+    // Previously set false flag should convert to NONE in Notification settings.
+    testCombination("false", NotificationDisplayType.TOOL_WINDOW, NotificationDisplayType.NONE)
+    testCombination("false", NotificationDisplayType.NONE, NotificationDisplayType.NONE)
+    // If it runs on already converted value - nothing should change.
+    testCombination("deprecated", NotificationDisplayType.TOOL_WINDOW, NotificationDisplayType.TOOL_WINDOW)
+    testCombination("deprecated", NotificationDisplayType.NONE, NotificationDisplayType.NONE)
+    // This is probably not needed as previous default value 'true' would not be saved in the xml and thus
+    // auto-converted to the new default value. But let's still test just in case.
+    testCombination("true", NotificationDisplayType.TOOL_WINDOW, NotificationDisplayType.TOOL_WINDOW)
+    testCombination("true", NotificationDisplayType.NONE, NotificationDisplayType.NONE)
   }
 
   private fun setNewReportData(analysisResults: BuildAnalysisResults) {
