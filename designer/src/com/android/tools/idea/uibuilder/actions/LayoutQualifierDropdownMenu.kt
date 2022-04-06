@@ -27,11 +27,9 @@ import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -39,18 +37,30 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.intentions.OverrideResourceAction
 
+private fun generateLayoutAndQualifierTitle(file: VirtualFile?): String {
+  val fileName = file?.name ?: return  "Switch Layout Qualifier"
+  val folderName = file.parent?.name ?: return fileName
+  if (folderName == SdkConstants.FD_RES_LAYOUT) {
+    return fileName
+  }
+  val qualifier = folderName.substringAfter("layout-")
+  return "$qualifier/$fileName"
+}
+
 /**
  * The dropdown menu for changing layout qualifier.
  * Note that this action is also registered to action system in designer.xml.
  */
-class LayoutQualifierDropdownMenu(private val displayText: String)
-  : DropDownAction(displayText, "Action to switch and create qualifiers for layout files", null) {
+class LayoutQualifierDropdownMenu(private val file: VirtualFile?)
+  : DropDownAction(generateLayoutAndQualifierTitle(file), "Action to switch and create qualifiers for layout files", null) {
 
   /**
    * The default constructor is used by register point of action system through reflection. See designer.xml file.
    */
   @Suppress("unused")
-  private constructor(): this("Switch Layout Qualifier")
+  private constructor(): this(null)
+
+  private val displayText = generateLayoutAndQualifierTitle(file)
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -80,13 +90,7 @@ class LayoutQualifierDropdownMenu(private val displayText: String)
       val project = module.project
       val variations = getResourceVariations(virtualFile, true)
       for (file in variations) {
-        val parentFolderName = file.parent.name
-        val title = if (parentFolderName == SdkConstants.FD_RES_LAYOUT) {
-          file.name
-        }
-        else {
-          "$parentFolderName/${file.name}"
-        }
+        val title = generateLayoutAndQualifierTitle(file)
         add(SwitchToVariationAction(title, project, file, virtualFile == file))
       }
       addSeparator()
@@ -136,7 +140,7 @@ class LayoutQualifierDropdownMenu(private val displayText: String)
 }
 
 
-class SwitchToVariationAction(title: String,
+class SwitchToVariationAction(private val title: String,
                               private val myProject: Project,
                               private val myFile: VirtualFile,
                               select: Boolean) : AnAction(title, null, null), Toggleable {
@@ -147,6 +151,10 @@ class SwitchToVariationAction(title: String,
       Toggleable.setSelected(templatePresentation, true)
       templatePresentation.isEnabled = false
     }
+  }
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.setText(title, false)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

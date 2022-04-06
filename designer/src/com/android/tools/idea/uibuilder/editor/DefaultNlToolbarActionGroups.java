@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
 import java.util.function.Supplier;
@@ -85,14 +86,14 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     List<NlModel> models = mySurface.getModels();
-    String fileName;
+    VirtualFile file;
     if (!models.isEmpty()) {
-      fileName = models.get(0).getFile().getName();
+      file = models.get(0).getVirtualFile();
     }
     else {
-      fileName = "unknown file";
+      file = null;
     }
-    LayoutQualifierDropdownMenu dropdown = new LayoutQualifierDropdownMenu(fileName);
+    LayoutQualifierDropdownMenu dropdown = new LayoutQualifierDropdownMenu(file);
     group.add(dropdown);
     group.addSeparator();
 

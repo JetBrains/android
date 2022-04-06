@@ -23,7 +23,12 @@ import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,14 +42,15 @@ class LayoutQualifierDropdownMenuTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var context: DataContext
+  private lateinit var file: VirtualFile
 
   @Before
   fun setUp() {
     val surface = Mockito.mock(NlDesignSurface::class.java)
 
-    val file = projectRule.fixture.addFileToProject("res/layout/layout1.xml", "")
+    file = projectRule.fixture.addFileToProject("res/layout/layout1.xml", "").virtualFile
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.module)
-    val config = manager.getConfiguration(file.virtualFile)
+    val config = manager.getConfiguration(file)
 
     Mockito.`when`(surface.configurations).thenReturn(ImmutableList.of(config))
     context = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
@@ -52,9 +58,9 @@ class LayoutQualifierDropdownMenuTest {
 
   @Test
   fun checkActionsWithNoOtherVariantFiles() {
-    val action = LayoutQualifierDropdownMenu("")
+    val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """
+    val expected = """layout1.xml
     layout1.xml
     ------------------------------------------------------
     Create Landscape Qualifier
@@ -68,11 +74,11 @@ class LayoutQualifierDropdownMenuTest {
   fun checkActionsWithExistingLandscapeVariationBut() {
     projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "")
     waitForResourceRepositoryUpdates(projectRule.module)
-    val action = LayoutQualifierDropdownMenu("")
+    val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """
+    val expected = """layout1.xml
     layout1.xml
-    layout-land/layout1.xml
+    land/layout1.xml
     ------------------------------------------------------
     Create Tablet Qualifier
     Add Resource Qualifier
@@ -85,12 +91,52 @@ class LayoutQualifierDropdownMenuTest {
     projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "")
     projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "")
     waitForResourceRepositoryUpdates(projectRule.module)
-    val action = LayoutQualifierDropdownMenu("")
+    val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """
+    val expected = """layout1.xml
     layout1.xml
-    layout-land/layout1.xml
-    layout-sw600dp/layout1.xml
+    land/layout1.xml
+    sw600dp/layout1.xml
+    ------------------------------------------------------
+    Add Resource Qualifier
+"""
+    assertEquals(expected, prettyPrintActions(action))
+  }
+
+  @Test
+  fun checkActionTitle() {
+    val file2 = projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "").virtualFile
+    val file3 = projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "").virtualFile
+    waitForResourceRepositoryUpdates(projectRule.module)
+
+    val presentation = Presentation()
+    val event = AnActionEvent(null, context, ActionPlaces.UNKNOWN, presentation, ActionManager.getInstance(), 0)
+
+    val action1 = LayoutQualifierDropdownMenu(file)
+    action1.update(event)
+    assertEquals("layout1.xml", presentation.text)
+
+    val action2 = LayoutQualifierDropdownMenu(file2)
+    action2.update(event)
+    assertEquals("land/layout1.xml", presentation.text)
+
+    val action3 = LayoutQualifierDropdownMenu(file3)
+    action3.update(event)
+    assertEquals("sw600dp/layout1.xml", presentation.text)
+  }
+
+  @Test
+  fun createActionCreatedByVariantFile() {
+    val variantFile = projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "")
+    projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "")
+    waitForResourceRepositoryUpdates(projectRule.module)
+
+    val action = LayoutQualifierDropdownMenu(variantFile.virtualFile)
+    action.updateActions(context)
+    val expected = """land/layout1.xml
+    layout1.xml
+    land/layout1.xml
+    sw600dp/layout1.xml
     ------------------------------------------------------
     Add Resource Qualifier
 """
