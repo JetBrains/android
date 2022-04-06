@@ -19,7 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
-import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
+import static com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired;
 
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -73,7 +73,7 @@ public class AndroidRunConfigurations {
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
-    else if (isWatchFaceApp(facet)) {
+    else if (isWatchFeatureRequired(facet)) {
       // In case of a watch face app, there is only a service and no default activity that can be launched
       // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
       // See https://code.google.com/p/android/issues/detail?id=151353
