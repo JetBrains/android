@@ -134,6 +134,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   }
 
   companion object {
+    // TODO(b/227759559): adjust this when the change of default version is known.
     val ACTIVATED_VERSION = GradleVersion.parse("8.0.0-alpha04")
 
     val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))

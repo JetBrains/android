@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -33,13 +32,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT
@@ -1093,10 +1088,3 @@ private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(
 
   UsageTracker.log(studioEvent)
 }
-
-private fun ProjectSystemSyncManager.SyncResult?.forStats() = when {
-  this == ProjectSystemSyncManager.SyncResult.SKIPPED -> SYNC_SKIPPED
-  this?.isSuccessful == true -> SYNC_SUCCEEDED
-  else -> SYNC_FAILED
-}
-
