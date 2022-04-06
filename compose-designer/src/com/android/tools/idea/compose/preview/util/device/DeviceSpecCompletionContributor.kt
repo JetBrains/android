@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
+import com.android.tools.compose.completion.addLookupElement
+import com.android.tools.compose.completion.inserthandler.InsertionFormat
+import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec
+import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
@@ -22,9 +27,12 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.dev
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
+import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParam
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecPsiFile
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes
+import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecSpecImpl
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -37,7 +45,11 @@ import com.intellij.patterns.PsiElementPattern
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.util.ProcessingContext
+import org.jetbrains.kotlin.idea.completion.or
 import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
+import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 /**
  * [CompletionContributor] for the [DeviceSpecLanguage] parameters.
@@ -74,6 +86,19 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
         .withParent(PlatformPatterns.psiElement(PsiErrorElement::class.java).isFirstChild())
         .withSuperParent(2, DeviceSpecPsiFile::class.java),
       DeviceReferenceProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Completion for DeviceSpec parameters, a parameter definition may start after a colon character ':' or after a comma ',' following
+      // the value of another parameter.
+      PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T) // String token
+        // Unresolved/incomplete statements are wrapped in a PsiErrorElement.
+        .withParent(PlatformPatterns.psiElement(PsiErrorElement::class.java).afterLeaf(
+          PlatformPatterns.psiElement(DeviceSpecTypes.COLON)
+            .or(PlatformPatterns.psiElement(DeviceSpecTypes.COMMA)))
+        )
+        .withSuperParent(2, DeviceSpecPsiFile::class.java),
+      MissingParameterProvider
     )
   }
 }
@@ -115,12 +140,72 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
     val module = parameters.position.module
     val defaultDeviceId = module?.let(ConfigurationManager::getOrCreateInstance)?.getDefaultPreviewDevice()?.id
     defaultDeviceId?.let {
-      result.addElement(LookupElementBuilder.create(DEVICE_BY_ID_PREFIX + defaultDeviceId).appendTailText(" Default Device", true))
+      result.addLookupElement(lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId, tailText = " Default Device")
     }
 
-    result.addElement(LookupElementBuilder.create(ReferencePhoneConfig.deviceSpec()).appendTailText(" Reference Phone", true))
-    result.addElement(LookupElementBuilder.create(ReferenceTabletConfig.deviceSpec()).appendTailText(" Reference Tablet", true))
-    result.addElement(LookupElementBuilder.create(ReferenceDesktopConfig.deviceSpec()).appendTailText(" Reference Desktop", true))
-    result.addElement(LookupElementBuilder.create(ReferenceFoldableConfig.deviceSpec()).appendTailText(" Reference Foldable", true))
+    result.addLookupElement(lookupString = ReferencePhoneConfig.deviceSpec(), tailText = " Reference Phone")
+    result.addLookupElement(lookupString = ReferenceTabletConfig.deviceSpec(), tailText = " Reference Tablet")
+    result.addLookupElement(lookupString = ReferenceDesktopConfig.deviceSpec(), tailText = " Reference Desktop")
+    result.addLookupElement(lookupString = ReferenceFoldableConfig.deviceSpec(), tailText = " Reference Foldable")
   }
+}
+
+private object MissingParameterProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    val remainingParameters = mutableMapOf<String, String>(
+      DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
+      DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
+      DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
+      DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
+      DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString(),
+    )
+
+    val deviceSpecImplElement = parameters.position.getParentOfType<DeviceSpecPsiFile>(false)?.getChildOfType<DeviceSpecSpecImpl>()
+    val expectedUnit = deviceSpecImplElement?.getFirstValidUnit() ?: DeviceSpec.DEFAULT_UNIT
+
+    deviceSpecImplElement?.getChildrenOfType<DeviceSpecParam>()?.forEach {
+      // Remove parameters already used.
+      remainingParameters.remove(it.firstChild.text)
+    }
+    val createDimensionFormat: (String) -> InsertionFormat = { defaultValue ->
+      LiveTemplateFormat("=<$defaultValue>${expectedUnit.name}")
+    }
+    val createCommonFormat: (String) -> InsertionFormat = { defaultValue ->
+      LiveTemplateFormat("=<$defaultValue>")
+    }
+
+    remainingParameters.forEach {
+      when (it.key) {
+        DeviceSpec.PARAMETER_WIDTH,
+        DeviceSpec.PARAMETER_HEIGHT,
+        DeviceSpec.PARAMETER_CHIN_SIZE -> {
+          // For parameters that take a dimension, use an appropriate InsertionFormat that includes the expected dimension unit.
+          result.addLookupElement(lookupString = it.key, format = createDimensionFormat(it.value))
+        }
+        else -> result.addLookupElement(lookupString = it.key, format = createCommonFormat(it.value))
+      }
+    }
+  }
+}
+
+/**
+ * Return the first valid dimension unit [DimUnit] used within a [DeviceSpecSpecImpl] element. That same unit is expected to be used in
+ * other dimension values.
+ */
+private fun DeviceSpecSpecImpl.getFirstValidUnit(): DimUnit? {
+  getChildrenOfType<DeviceSpecParam>().forEach loop@{ paramElement ->
+    when (paramElement.firstChild.text) {
+      DeviceSpec.PARAMETER_WIDTH,
+      DeviceSpec.PARAMETER_HEIGHT,
+      DeviceSpec.PARAMETER_CHIN_SIZE -> {
+        enumValueOfOrNull<DimUnit>(paramElement.text.takeLast(2))?.let {
+          return it
+        }
+      }
+      else -> {
+        return@loop
+      }
+    }
+  }
+  return null
 }
