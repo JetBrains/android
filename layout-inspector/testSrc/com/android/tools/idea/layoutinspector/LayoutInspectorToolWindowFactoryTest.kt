@@ -58,7 +58,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test

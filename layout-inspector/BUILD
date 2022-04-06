@@ -19,6 +19,7 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
+    test_srcs = ["testingSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -47,6 +48,13 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/adt/idea/.idea/libraries:transport-proto[test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

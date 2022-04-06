@@ -19,8 +19,10 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
 import kotlin.test.fail
 
 // Note: The ComposeInspector doesn't have any events yet, but if they are added in the future, change the
@@ -41,7 +43,9 @@ class FakeComposeLayoutInspector
       Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND ->
         Response.newBuilder().setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance()).build()
       Command.SpecializedCase.UPDATE_SETTINGS_COMMAND ->
-        Response.newBuilder().setUpdateSettingsResponse(LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()).build()
+        Response.newBuilder().setUpdateSettingsResponse(UpdateSettingsResponse.getDefaultInstance()).build()
+      Command.SpecializedCase.GET_PARAMETER_DETAILS_COMMAND ->
+        Response.newBuilder().setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance()).build()
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }
