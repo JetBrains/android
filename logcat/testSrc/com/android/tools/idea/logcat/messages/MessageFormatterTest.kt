@@ -172,7 +172,7 @@ class MessageFormatterTest {
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1            com.example.app1                     W  message
-      1970-01-01 04:00:01.000     2-2     Lon...yNameTag1 com.example.app1                     W  multiline
+      1970-01-01 04:00:01.000     2-2     LongCo...meTag1 com.example.app1                     W  multiline
                                                                                                   message
 
     """.trimIndent())
