@@ -16,19 +16,33 @@
 package com.android.tools.idea.instantapp;
 
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_RESOURCE_HOST;
+import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
+import static com.intellij.testFramework.UsefulTestCase.assertSize;
 
 import com.android.testutils.junit4.OldAgpTest;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.EdtRule;
 import java.util.Collection;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 @OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
-public class InstantAppUrlFinderIntegTest extends AndroidGradleTestCase {
+public class InstantAppUrlFinderIntegTest {
 
+  private final AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
+
+  @Test
+  @Ignore("b/203803107")
   public void testHostIsResolved() throws Exception {
-    // Use a plugin with instant app support
-    loadProject(INSTANT_APP_RESOURCE_HOST, null, "5.5", "3.5.0");
-    Module featureModule = getModule("feature");
+    // Use a plugin with instant app supportp
+    projectRule.loadProject(INSTANT_APP_RESOURCE_HOST, null, "5.5", "3.5.0");
+    Module featureModule = projectRule.getModule("feature");
     Collection<String> urls = new InstantAppUrlFinder(featureModule).getAllUrls();
     assertSize(1, urls);
     assertContainsElements(urls, "https://android.example.com/example");
