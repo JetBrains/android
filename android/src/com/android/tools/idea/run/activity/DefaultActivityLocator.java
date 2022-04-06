@@ -140,6 +140,27 @@ public class DefaultActivityLocator extends ActivityLocator {
   }
 
   /**
+   * Returns true if there is a default launcher Activity in the manifest.
+   */
+  @Nullable
+  public static boolean hasDefaultLauncherActivity(@NotNull final Manifest manifest) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    Application application = manifest.getApplication();
+    if (application == null) {
+      return false;
+    }
+
+    List<ActivityWrapper> activities = merge(application.getActivities(), application.getActivityAliases());
+    for (ActivityWrapper activity : activities) {
+      if (ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Returns the fqcn (fully qualified class name) of the default activity given a list of candidate activities,
    * or <@code null> if none can be found.
    */
