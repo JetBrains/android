@@ -335,4 +335,19 @@ public class StudioDownloaderTest {
       assertEquals("blah", new String(bytes).trim());
     }
   }
+
+  @Test
+  public void testTemporaryFilesWithNonexistentPath() throws Exception {
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
+    Path tmpPath = InMemoryFileSystems.getSomeRoot(fs).resolve("tmp");
+    createServerContextThatReturnsCustomContent("blah");
+    StudioDownloader downloader = new StudioDownloader(new FakeSettingsController(false));
+    downloader.setDownloadIntermediatesLocation(tmpPath);
+    byte[] bytes = new byte[10];
+    try (BufferedInputStream is = new BufferedInputStream(
+      downloader.downloadAndStreamWithOptions(new URL(myUrl), new FakeProgressIndicator()))) {
+      assertEquals(4, is.read(bytes));
+      assertEquals("blah", new String(bytes).trim());
+    }
+  }
 }
