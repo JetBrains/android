@@ -85,6 +85,7 @@ private class SetScreenViewProviderAction(name: String, description: String, pri
  * Provide the custom [ScreenView] to the current [NlDesignSurface] for the drawable files.
  */
 class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType) : ScreenViewProvider {
+  override val displayName: String = "Drawable Mode"
   private var myDrawableBackgroundLayer: DrawableBackgroundLayer? = null
 
   fun setDrawableBackgroundType(type: DrawableBackgroundType) {

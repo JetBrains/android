@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
@@ -123,7 +124,7 @@ fun createPreviewDesignSurface(
     .setShouldRenderErrorsPanel(true)
     .build()
     .apply {
-      setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)
+      setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
       setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     }
 

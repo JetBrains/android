@@ -47,6 +47,7 @@ class SetColorBlindModeAction(
       isSelected = false
     }
 
+    override val displayName: String = "Color Blind Mode"
     override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
   }
 
@@ -58,6 +59,7 @@ class SetColorBlindModeAction(
 
       override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
 
+      override val displayName: String = "Default"
       override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
     }
   }

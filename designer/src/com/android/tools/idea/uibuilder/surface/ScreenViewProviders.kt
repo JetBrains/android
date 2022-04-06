@@ -39,6 +39,11 @@ import java.awt.Dimension
  */
 interface ScreenViewProvider {
   /**
+   * User visible name when switching through different [ScreenViewProvider]s.
+   */
+  val displayName: String
+
+  /**
    * May return another [ScreenViewProvider]. Used to quickly toggle through different types of [ScreenViewProvider] in the DesignSurface.
    */
   operator fun next(): ScreenViewProvider? = null
@@ -65,7 +70,7 @@ interface ScreenViewProvider {
 /**
  * Common [ScreenViewProvider]s for the Layout Editor.
  */
-enum class NlScreenViewProvider(val displayName: String,
+enum class NlScreenViewProvider(override val displayName: String,
                                 val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView,
                                 val secondary: ((NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView)? = null,
                                 private val visibleToUser: Boolean = true,
@@ -74,9 +79,6 @@ enum class NlScreenViewProvider(val displayName: String,
   RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
   BLUEPRINT("Blueprint", ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
   RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BOTH),
-  COMPOSE("Compose", ::composeProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
-  COMPOSE_BLUEPRINT("Compose Blueprint", ::composeBlueprintProvider, visibleToUser = false,
-                    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
   RESIZABLE_PREVIEW("Preview",
                     { surface, manager, _ ->
                       ScreenView.newBuilder(surface, manager)
@@ -129,21 +131,13 @@ enum class NlScreenViewProvider(val displayName: String,
         DEFAULT_SCREEN_MODE
       }
 
-      // Don't allow SCREEN_COMPOSE_ONLY as default mode.
-      // SCREEN_COMPOSE_ONLY should not be saved as default mode but it was for a while. This is just a
-      // workaround to avoid setting that mode for users that had it saved at one point.
-      // b/144829328
-      if (cachedScreenViewProvider == COMPOSE) {
-        cachedScreenViewProvider = DEFAULT_SCREEN_MODE
-      }
-
       return cachedScreenViewProvider!!
     }
 
     @Synchronized
     fun savePreferredMode(mode: NlScreenViewProvider) {
       // See comment about SCREEN_COMPOSE_ONLY on loadPreferredMode
-      if (cachedScreenViewProvider == mode || mode == COMPOSE || mode == COMPOSE_BLUEPRINT) {
+      if (cachedScreenViewProvider == mode) {
         return
       }
 

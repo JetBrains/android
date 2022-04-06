@@ -31,6 +31,8 @@ import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorActi
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.ToggleFastPreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
+import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER
+import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -108,10 +110,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
       val colorBlindEnabled = StudioFlags.COMPOSE_COLORBLIND_MODE.get()
       if (blueprintEnabled || colorBlindEnabled) {
-        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+        addAction(SetScreenViewProviderAction(COMPOSE_SCREEN_VIEW_PROVIDER, surface))
       }
       if (blueprintEnabled) {
-        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+        addAction(SetScreenViewProviderAction(COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER, surface))
       }
       if (colorBlindEnabled) {
         addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {

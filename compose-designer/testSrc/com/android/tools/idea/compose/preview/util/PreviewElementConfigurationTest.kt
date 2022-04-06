@@ -168,24 +168,4 @@ class PreviewElementConfigurationTest() {
       assertEquals(2000, screenSize.height)
     }
   }
-
-
-  @Test
-  fun `device round frame is not displayed when frame is not enabled`() {
-    val config = Configuration.create(ConfigurationManager.getOrCreateInstance(fixture.module), null, FolderConfiguration.createDefault())
-    val wearOsConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, "id:wearos_round")
-    wearOsConfiguration.applyConfigurationForTest(config,
-                                                  highestApiTarget = { null },
-                                                  devicesProvider = deviceProvider,
-                                                  defaultDeviceProvider = { defaultDevice },
-                                                  useDeviceFrame = false)
-    assertTrue(config.device!!.allStates.none { it.hardware.screen.screenRound == ScreenRound.ROUND })
-
-    wearOsConfiguration.applyConfigurationForTest(config,
-                                                  highestApiTarget = { null },
-                                                  devicesProvider = deviceProvider,
-                                                  defaultDeviceProvider = { defaultDevice },
-                                                  useDeviceFrame = true)
-    assertTrue(config.device!!.allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND })
-  }
 }

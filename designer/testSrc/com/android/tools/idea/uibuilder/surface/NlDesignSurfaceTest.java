@@ -610,14 +610,4 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
   }
-
-  /**
-   * Regression test for b/144829328
-   */
-  public void testComposeScreenModeDenied() {
-    mySurface.setScreenViewProvider(NlScreenViewProvider.COMPOSE, true);
-
-    NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
-    assertNotSame(NlScreenViewProvider.COMPOSE, otherSurface.getScreenViewProvider());
-  }
 }
