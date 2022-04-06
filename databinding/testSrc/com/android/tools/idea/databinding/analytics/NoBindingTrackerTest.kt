@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -71,7 +70,6 @@ class NoBindingTrackerTest {
     """.trimIndent())
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
         projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
@@ -87,6 +85,5 @@ class NoBindingTrackerTest {
         tracker.close()
         UsageTracker.cleanAfterTesting()
       }
-    }
   }
 }

@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +31,7 @@ import org.junit.Test
 class DataBindingDefaultTrackerTest {
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
+  val projectRule = AndroidProjectRule.withAndroidModels()
 
   @Before
   fun setUp() {
@@ -44,7 +43,6 @@ class DataBindingDefaultTrackerTest {
   @Test
   fun testTrackDataBindingEnabled() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-    runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
         projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
@@ -61,5 +59,4 @@ class DataBindingDefaultTrackerTest {
         UsageTracker.cleanAfterTesting()
       }
     }
-  }
 }

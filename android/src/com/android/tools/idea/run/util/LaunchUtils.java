@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,13 +78,17 @@ public class LaunchUtils {
       return false;
     }
 
-    MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
-    Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-    if (usesFeatureElem != null) {
-      String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
-      return isEmpty(required) || VALUE_TRUE.equals(required);
+    try {
+      MergedManifestSnapshot info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
+      Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+      if (usesFeatureElem != null) {
+        String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
+        return isEmpty(required) || VALUE_TRUE.equals(required);
+      }
     }
-
+    catch (ExecutionException | InterruptedException ex) {
+      Logger.getInstance(LaunchUtils.class).warn(ex);
+    }
     return false;
   }
 
