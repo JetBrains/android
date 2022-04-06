@@ -26,25 +26,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.intellij.execution.Executor;
-import com.intellij.execution.impl.ExecutionManagerImpl;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -90,66 +77,6 @@ public class LaunchUtils {
       Logger.getInstance(LaunchUtils.class).warn(ex);
     }
     return false;
-  }
-
-  public static void showNotification(@NotNull final Project project,
-                                      @NotNull final Executor executor,
-                                      @NotNull final String sessionName,
-                                      @NotNull final String message,
-                                      @NotNull final NotificationType type,
-                                      @Nullable final NotificationListener errorNotificationListener) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (project.isDisposed()) {
-          return;
-        }
-
-        String toolWindowId = executor.getToolWindowId();
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-        if (toolWindow.isVisible() && errorNotificationListener == null) {
-          return;
-        }
-
-        final String link = "toolWindow_" + sessionName;
-        final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
-
-        NotificationGroup group = getNotificationGroup(toolWindowId);
-        group.createNotification(notificationMessage, type).setListener(new NotificationListener() {
-          @Override
-          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            boolean handled = false;
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
-              for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
-                if (sessionName.equals(d.getDisplayName())) {
-                  final Content content = d.getAttachedContent();
-                  if (content != null) {
-                    content.getManager().setSelectedContent(content);
-                  }
-                  toolWindow.activate(null, true, true);
-                  handled = true;
-                  break;
-                }
-              }
-            }
-
-            if (!handled && errorNotificationListener != null) {
-              errorNotificationListener.hyperlinkUpdate(notification, event);
-            }
-          }
-        }).notify(project);
-      }
-
-      @NotNull
-      private NotificationGroup getNotificationGroup(@NotNull String toolWindowId) {
-        String displayId = "Launch Notifications for " + toolWindowId;
-        NotificationGroup group = NotificationGroup.findRegisteredGroup(displayId);
-        if (group == null) {
-          group = NotificationGroup.toolWindowGroup(displayId, toolWindowId, true, PluginId.getId("org.jetbrains.android"));
-        }
-        return group;
-      }
-    });
   }
 
   public static void initiateDismissKeyguard(@NotNull final IDevice device) {
