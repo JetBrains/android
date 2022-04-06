@@ -15,39 +15,9 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout
 
-/**
- * Describes a string that may be automatically inserted when selecting an autocomplete option.
- */
-internal sealed class InsertionFormat(
-  val insertableString: String
-)
-
-/**
- * Inserts the string after the auto-completed value.
- *
- * The caret will be moved to the position marked by the '|' character.
- */
-internal class LiteralWithCaretFormat(literalFormat: String) : InsertionFormat(literalFormat)
-
-/**
- * Inserts the string after the auto-complete value.
- *
- * It will insert a new line as if it was done by an ENTER keystroke, marked by the '\n' character.
- *
- * Note that it will only apply the new line on the first '\n' character.
- */
-internal class LiteralNewLineFormat(literalFormat: String) : InsertionFormat(literalFormat)
-
-/**
- * Inserts a string driven by Live templates. The string is inserted after the auto-completed value.
- *
- * Use '<' and '>' to delimit a range of text the user is expected to edit, may contain multiple instances of these delimiters.
- *
- * Eg: For the string `"<0123>, <text>"`. The '0123' will be selected in the editor for the user to modify, once they press Enter, it
- * will select 'text' for the user to modify until all marked snippets of the strings are handled or the user presses ESC to keep the text
- * as is.
- */
-internal class LiveTemplateFormat(templateFormat: String) : InsertionFormat(templateFormat)
+import com.android.tools.compose.completion.inserthandler.LiteralNewLineFormat
+import com.android.tools.compose.completion.inserthandler.LiteralWithCaretFormat
+import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
 
 internal val JsonStringValueTemplate = LiteralWithCaretFormat(": '|',")
 

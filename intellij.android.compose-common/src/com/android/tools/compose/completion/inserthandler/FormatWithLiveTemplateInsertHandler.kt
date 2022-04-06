@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.code.completion.constraintlayout.inserthandler
+package com.android.tools.compose.completion.inserthandler
 
-import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.daemon.impl.quickfix.EmptyExpression
@@ -26,7 +25,7 @@ import com.intellij.codeInsight.template.impl.ConstantNode
 /**
  * Handles insertions of an [InsertionFormat] using the [TemplateManager], stopping at every '<>' for user input.
  */
-internal class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
+class FormatWithLiveTemplateInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
   override fun handleInsert(context: InsertionContext, item: LookupElement) {
     val templateManager = TemplateManager.getInstance(context.project)
     val template = templateManager.createTemplate("", "")

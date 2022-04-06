@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.code.completion.constraintlayout.inserthandler
+package com.android.tools.compose.completion.inserthandler
 
-import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
@@ -26,7 +25,7 @@ import com.intellij.psi.PsiDocumentManager
 /**
  * Handles insertions of an [InsertionFormat], moving the caret at the position specified by the '|' character.
  */
-internal class FormatWithCaretInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
+class FormatWithCaretInsertHandler(private val format: InsertionFormat) : InsertHandler<LookupElement> {
   override fun handleInsert(context: InsertionContext, item: LookupElement) {
     with(context) {
       val isMoveCaret = format.insertableString.contains('|')

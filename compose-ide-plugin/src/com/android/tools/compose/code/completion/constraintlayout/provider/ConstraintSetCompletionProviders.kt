@@ -18,27 +18,21 @@ package com.android.tools.compose.code.completion.constraintlayout.provider
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
 import com.android.tools.compose.code.completion.constraintlayout.Dimension
-import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonNumericValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
-import com.android.tools.compose.code.completion.constraintlayout.LiteralNewLineFormat
-import com.android.tools.compose.code.completion.constraintlayout.LiteralWithCaretFormat
-import com.android.tools.compose.code.completion.constraintlayout.LiveTemplateFormat
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
-import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithCaretInsertHandler
-import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithLiveTemplateInsertHandler
-import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithNewLineInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintsModel
+import com.android.tools.compose.completion.addLookupElement
+import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.json.psi.JsonProperty
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
@@ -110,7 +104,7 @@ internal object ConstraintSetFieldsProvider : BaseConstraintSetsCompletionProvid
     val currentSetName = currentConstraintSet.name ?: return
     constraintSetsPropertyModel.getRemainingFieldsForConstraintSet(currentSetName).forEach { fieldName ->
       val template = if (fieldName == KeyWords.Extends) JsonStringValueTemplate else JsonNewObjectTemplate
-      result.addLookupElement(name = fieldName, tailText = null, template)
+      result.addLookupElement(lookupString = fieldName, tailText = null, template)
     }
   }
 }
@@ -147,11 +141,11 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
     val existingFields = currentConstraintsModel?.declaredFieldNames?.toHashSet() ?: emptySet<String>()
     StandardAnchor.values().forEach {
       if (!existingFields.contains(it.keyWord)) {
-        result.addLookupElement(name = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
+        result.addLookupElement(lookupString = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
       }
     }
     if (!existingFields.contains(KeyWords.Visibility)) {
-      result.addLookupElement(name = KeyWords.Visibility, format = JsonStringValueTemplate)
+      result.addLookupElement(lookupString = KeyWords.Visibility, format = JsonStringValueTemplate)
     }
     result.addEnumKeyWordsWithStringValueTemplate<SpecialAnchor>(existingFields)
     result.addEnumKeyWordsWithNumericValueTemplate<Dimension>(existingFields)
@@ -178,7 +172,7 @@ internal object ConstraintIdsProvider : BaseConstraintSetsCompletionProvider() {
     getJsonPropertyParent(parameters)?.name?.let(possibleIds::remove)
 
     possibleIds.forEach { id ->
-      result.addLookupElement(name = id)
+      result.addLookupElement(lookupString = id)
     }
   }
 }
@@ -201,7 +195,7 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
       StandardAnchor.isHorizontal(currentAnchorKeyWord) -> StandardAnchor.horizontalAnchors
       else -> emptyList()
     }
-    possibleAnchors.forEach { result.addLookupElement(name = it.keyWord) }
+    possibleAnchors.forEach { result.addLookupElement(lookupString = it.keyWord) }
   }
 }
 
@@ -214,28 +208,9 @@ internal class EnumValuesCompletionProvider<E>(private val enumClass: KClass<E>)
   : CompletionProvider<CompletionParameters>() where E : Enum<E>, E : ConstraintLayoutKeyWord {
   override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     enumClass.java.enumConstants.forEach {
-      result.addLookupElement(name = it.keyWord)
+      result.addLookupElement(lookupString = it.keyWord)
     }
   }
-}
-
-private fun CompletionResultSet.addLookupElement(name: String, tailText: String? = null, format: InsertionFormat? = null) {
-  var lookupBuilder = if (format == null) {
-    LookupElementBuilder.create(name)
-  }
-  else {
-    val insertionHandler = when (format) {
-      is LiteralWithCaretFormat -> FormatWithCaretInsertHandler(format)
-      is LiteralNewLineFormat -> FormatWithNewLineInsertHandler(format)
-      is LiveTemplateFormat -> FormatWithLiveTemplateInsertHandler(format)
-    }
-    LookupElementBuilder.create(name).withInsertHandler(insertionHandler)
-  }
-  lookupBuilder = lookupBuilder.withCaseSensitivity(false)
-  if (tailText != null) {
-    lookupBuilder = lookupBuilder.withTailText(tailText, true)
-  }
-  addElement(lookupBuilder)
 }
 
 /**
@@ -266,7 +241,7 @@ private inline fun <reified E> addEnumKeywords(
 ) where E : Enum<E>, E : ConstraintLayoutKeyWord {
   E::class.java.enumConstants.forEach { constant ->
     if (!existing.contains(constant.keyWord)) {
-      result.addLookupElement(name = constant.keyWord, format = format)
+      result.addLookupElement(lookupString = constant.keyWord, format = format)
     }
   }
 }
