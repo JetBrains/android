@@ -398,10 +398,12 @@ internal class FilterTextField(
         }
         if (isSelected) {
           filterLabel.foreground = list.selectionForeground
+          countLabel.foreground = filterLabel.foreground
           component.background = list.selectionBackground
         }
         else {
           filterLabel.foreground = list.foreground
+          countLabel.foreground = filterLabel.foreground
           component.background = list.background
         }
         return component
