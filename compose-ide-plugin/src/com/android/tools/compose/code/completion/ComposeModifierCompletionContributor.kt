@@ -23,6 +23,7 @@ import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
@@ -105,7 +106,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val nameExpression = createNameExpression(element)
 
-    val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element)
+    val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element, resultSet.prefixMatcher)
 
     ProgressManager.checkCanceled()
     val (returnsModifier, others) = extensionFunctions.partition { it.returnType?.fqName?.asString() == COMPOSE_MODIFIER_FQN }
@@ -182,13 +183,15 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     return file.getChildOfType<KtProperty>()!!.getChildOfType<KtDotQualifiedExpression>()!!.lastChild as KtSimpleNameExpression
   }
 
-  private fun getExtensionFunctionsForModifier(nameExpression: KtSimpleNameExpression,
-                                               originalPosition: PsiElement): Collection<CallableDescriptor> {
+  private fun getExtensionFunctionsForModifier(
+    nameExpression: KtSimpleNameExpression,
+    originalPosition: PsiElement,
+    prefixMatcher: PrefixMatcher
+  ): Collection<CallableDescriptor> {
     val file = nameExpression.containingFile as KtFile
     val searchScope = getResolveScope(file)
     val resolutionFacade = file.getResolutionFacade()
-
-    val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
+    val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_FOR_COMPLETION)
 
     val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
     fun isVisible(descriptor: DeclarationDescriptor): Boolean {
@@ -200,12 +203,15 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     val indicesHelper = KotlinIndicesHelper(resolutionFacade, searchScope, ::isVisible, file = file)
-    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext, null) { true }
+
+    val nameFilter = { name: String -> prefixMatcher.prefixMatches(name) }
+    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext, null, nameFilter)
   }
 
   private val PsiElement.isModifierProperty: Boolean
     get() {
-      val property = contextOfType<KtProperty>() ?: return false
+      // Case val myModifier:Modifier = <caret>
+      val property = parent?.parent?.safeAs<KtProperty>() ?: return false
       return property.type()?.fqName?.asString() == COMPOSE_MODIFIER_FQN
     }
 
