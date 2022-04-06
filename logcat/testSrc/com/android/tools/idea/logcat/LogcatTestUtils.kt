@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
 
+// Timeout when waiting for things to happen. 1 sec works too but when running stress test locally with --runs_per_test= it takes longer
+internal const val TIMEOUT_SEC = 5L
+
 /**
  * Waits for [MessageProcessor] to idle and execute some code.
  *
@@ -40,12 +43,12 @@ import javax.swing.SwingUtilities
  */
 internal fun MessageProcessor.onIdle(run: () -> Unit) {
   assert(!SwingUtilities.isEventDispatchThread())
-  waitForCondition(5, TimeUnit.SECONDS, this::isChannelEmpty)
+  waitForCondition(TIMEOUT_SEC, TimeUnit.SECONDS, this::isChannelEmpty)
 
   // This call depends on AndroidExecutors.workerThreadExecutor being replaced by a ThreadPoolExecutor that allows operations that are
   // prohibited by the one provided by the framework (BackendThreadPoolExecutor). See AndroidExecutorsRule for how to inject a compliant
   // executor.
-  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, TimeUnit.SECONDS)
   runInEdtAndWait {
     run()
   }
