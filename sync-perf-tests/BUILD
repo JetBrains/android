@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 SYNC_PERFGATE_TAGS = [
     "block-network",
@@ -104,9 +105,8 @@ iml_module(
         "ExtraLargeV2": {
             "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTestV2",
-            # Only run manually since this project requires too much memory (b/176172752)
-            "timeout": "long",
-            "tags": ["manual"],
+            "tags": SYNC_PERFGATE_TAGS,
+            "exec_properties": LARGE_MACHINE,
         },
         "SantaTrackerV1": {
             "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
