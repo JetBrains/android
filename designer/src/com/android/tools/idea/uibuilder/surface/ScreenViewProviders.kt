@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.visual.ColorBlindModeScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
@@ -53,7 +54,12 @@ interface ScreenViewProvider {
   fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
 
   /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
-  fun onViewProviderReplaced() { }
+  fun onViewProviderReplaced() {}
+
+  /**
+   * The [LayoutEditorState.Surfaces] to be reported by this scene view for metrics purposes.
+   */
+  val surfaceType: LayoutEditorState.Surfaces
 }
 
 /**
@@ -62,13 +68,15 @@ interface ScreenViewProvider {
 enum class NlScreenViewProvider(val displayName: String,
                                 val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView,
                                 val secondary: ((NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView)? = null,
-                                private val visibleToUser: Boolean = true): ScreenViewProvider {
+                                private val visibleToUser: Boolean = true,
+                                override val surfaceType: LayoutEditorState.Surfaces) : ScreenViewProvider {
 
-  RENDER("Design", ::defaultProvider),
-  BLUEPRINT("Blueprint", ::blueprintProvider),
-  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider),
-  COMPOSE("Compose", ::composeProvider, visibleToUser = false),
-  COMPOSE_BLUEPRINT("Compose Blueprint", ::composeBlueprintProvider, visibleToUser = false),
+  RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  BLUEPRINT("Blueprint", ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
+  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BOTH),
+  COMPOSE("Compose", ::composeProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  COMPOSE_BLUEPRINT("Compose Blueprint", ::composeBlueprintProvider, visibleToUser = false,
+                    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
   RESIZABLE_PREVIEW("Preview",
                     { surface, manager, _ ->
                       ScreenView.newBuilder(surface, manager)
@@ -76,9 +84,10 @@ enum class NlScreenViewProvider(val displayName: String,
                         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
                         .build()
                     },
-                    visibleToUser = false),
-  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false),
-  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false);
+                    visibleToUser = false,
+                    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
+  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE);
 
   override operator fun next(): NlScreenViewProvider {
     val values = values().filter { it.visibleToUser }

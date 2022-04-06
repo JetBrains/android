@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -95,6 +96,8 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
       .withLayersProvider { screenView -> createScreenLayer(screenView) }
       .build()
   }
+
+  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
 
   private fun createScreenLayer(screenView: ScreenView): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)

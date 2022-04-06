@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.analytics
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -33,29 +32,15 @@ private val LOG = Logger.getInstance(NlAnalyticsManager::class.java)
  */
 class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surface) {
 
-  private val nlSurface : NlDesignSurface = surface as NlDesignSurface
+  private val nlSurface: NlDesignSurface = surface as NlDesignSurface
 
   override val surfaceType
-    get() = when (nlSurface.screenViewProvider) {
-      NlScreenViewProvider.RENDER -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      NlScreenViewProvider.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-      NlScreenViewProvider.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
-      NlScreenViewProvider.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      NlScreenViewProvider.COMPOSE_BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-      NlScreenViewProvider.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      NlScreenViewProvider.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      NlScreenViewProvider.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      else -> {
-        // TODO(b/160827330): Consider setting the surface type from the ScreenViewProvider class itself.
-        LOG.warn("The current ScreenViewProvider does not have a set Surface type")
-        LayoutEditorState.Surfaces.UNKNOWN_SURFACES
-      }
-    }
+    get() = nlSurface.screenViewProvider.surfaceType
 
   override
   val layoutType
     get() =
-      when(val type = nlSurface.layoutType) {
+      when (val type = nlSurface.layoutType) {
         is LayoutEditorFileType -> type.getLayoutEditorStateType()
         is DrawableFileType -> LayoutEditorState.Type.DRAWABLE
         else -> super.layoutType
