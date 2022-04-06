@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
+import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.Severity
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AgpVersionNotLocatedError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.AllDone
@@ -276,9 +276,43 @@ class ContentManagerImplTest {
     val label = TreeWalker(view.detailsPanel).descendants().first { it.name == "label" } as JBLabel
     val comboBox = TreeWalker(view.detailsPanel).descendants().first { it.name == "selection" } as ComboBox<*>
     assertThat(label.text).contains("Action on no explicit Java language level")
-    assertThat(comboBox.selectedItem).isEqualTo(ACCEPT_NEW_DEFAULT)
-    comboBox.selectedItem = INSERT_OLD_DEFAULT
+    assertThat(comboBox.selectedItem).isEqualTo(NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)
+    comboBox.selectedItem = NoLanguageLevelAction.INSERT_OLD_DEFAULT
     assertThat(stepPresentation.treeText).isEqualTo("Insert directives to continue using Java 7")
+  }
+
+  @Test
+  fun testToolWindowViewDetailsPanelWithR8FullMode() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:7.3.0'
+          }
+        }
+      """.trimIndent()
+    )
+    projectRule.fixture.addFileToProject(
+      "gradle.properties", ""
+    )
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, { GradleVersion.parse("7.3.0") }, GradleVersion.parse("8.0.0"))
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    val r8FullModeProcessorPath = view.tree.getPathForRow(1)
+    view.tree.selectionPath = r8FullModeProcessorPath
+    val stepPresentation = (r8FullModeProcessorPath.lastPathComponent as CheckedTreeNode).userObject as ToolWindowModel.StepUiPresentation
+    assertThat(stepPresentation.treeText).isEqualTo("Accept the new R8 default of full mode")
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Update default R8 processing mode</b>")
+    assertThat(detailsPanelContent.text).contains("set explicitly in the gradle.properties file.")
+    val label = TreeWalker(view.detailsPanel).descendants().first { it.name == "label" } as JBLabel
+    val comboBox = TreeWalker(view.detailsPanel).descendants().first { it.name == "selection" } as ComboBox<*>
+    assertThat(label.text).contains("Action on no android.enableR8.fullMode property")
+    assertThat(comboBox.selectedItem).isEqualTo(NoPropertyPresentAction.ACCEPT_NEW_DEFAULT)
+    comboBox.selectedItem = NoPropertyPresentAction.INSERT_OLD_DEFAULT
+    assertThat(stepPresentation.treeText).isEqualTo("Insert property to continue using R8 in compat mode")
   }
 
   @Test

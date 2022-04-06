@@ -40,6 +40,10 @@ class RefactoringProcessorInstantiator {
     if (java8Processor == null) {
       LOG.error("no Java8Default processor found in AGP Upgrade Processor")
     }
+    val r8FullModeProcessor = processor.componentRefactoringProcessors.firstNotNullResult { it as? R8FullModeDefaultRefactoringProcessor }
+    if (r8FullModeProcessor == null) {
+      LOG.error("no R8FullModeDefault processor found in AGP Upgrade Processor")
+    }
     // we will need parsed models to decide what to show in the dialog.  Ensure that they are available now, while we are (in theory)
     // not on the EDT.
     processor.ensureParsedModels()
@@ -56,7 +60,7 @@ class RefactoringProcessorInstantiator {
         return@invokeAndWaitIfNeeded false
       }
       val dialog = AgpUpgradeRefactoringProcessorDialog(
-        processor, java8Processor!!, hasChangesInBuildFiles, preserveProcessorConfigurations
+        processor, java8Processor!!, r8FullModeProcessor!!, hasChangesInBuildFiles, preserveProcessorConfigurations
       )
       dialog.showAndGet()
     }

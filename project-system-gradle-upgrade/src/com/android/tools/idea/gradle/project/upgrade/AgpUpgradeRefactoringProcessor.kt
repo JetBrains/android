@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
-import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
@@ -275,6 +274,7 @@ class AgpUpgradeRefactoringProcessor(
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
     RedundantPropertiesRefactoringProcessor(this),
     AndroidManifestPackageToNamespaceRefactoringProcessor(this),
+    R8FullModeDefaultRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -322,7 +322,9 @@ class AgpUpgradeRefactoringProcessor(
     val filtered = refUsages.get().filter {
       when (it) {
         is KotlinLanguageLevelUsageInfo, is JavaLanguageLevelUsageInfo ->
-          (it.element as? WrappedPsiElement)?.usageType == INSERT_OLD_USAGE_TYPE
+          (it.element as? WrappedPsiElement)?.usageType == Java8DefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
+        is R8FullModeUsageInfo ->
+          (it.element as? WrappedPsiElement)?.usageType == R8FullModeDefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
         else -> true
       }
     }

@@ -475,6 +475,26 @@ class ToolWindowModel(
         selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
       }
     }
+    is R8FullModeDefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
+      override val label: String = "Action on no android.enableR8.fullMode property: "
+      override val pageHeader: String
+        get() = processor.commandName
+      override val treeText: String
+        get() = processor.noPropertyPresentAction.toString()
+      override val elements: List<R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction>
+        get() = listOf(
+          R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT,
+          R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
+        )
+      override var selectedValue: Any
+        get() = processor.noPropertyPresentAction
+        set(value) {
+          if (value is R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction) processor.noPropertyPresentAction = value
+        }
+      init {
+        selectedValue = R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
+      }
+    }
     is GradlePluginsRefactoringProcessor -> object : DefaultStepPresentation(processor) {
       override val additionalInfo =
         processor.cachedUsages
