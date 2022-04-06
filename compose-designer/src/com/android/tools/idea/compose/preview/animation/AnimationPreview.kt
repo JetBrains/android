@@ -176,7 +176,7 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
       timeline.revalidate()
       invokeLater {
         timeline.repaint()
-        timeline.sliderUI.elements = if (tabs.size == 1) {
+        timeline.sliderUI.elements = if (tabs.size == 1 && selectedAnimation != null) {
           // Paint single selected animation.
           val curve = TransitionCurve.create(tabs.first().elementState, tabs.first().currentTransition, minY,
                                              timeline.sliderUI.positionProxy)
