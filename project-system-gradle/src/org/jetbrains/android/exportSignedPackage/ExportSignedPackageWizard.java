@@ -45,6 +45,8 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -219,7 +221,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
           return;
         }
-        String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+
+        GradleProjectPath gradleProjectPath = GradleProjectPathKt.getGradleProjectPath(myFacet.getModule());
+        if (gradleProjectPath == null) {
+          getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
+          return;
+        }
+
         String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
         if (StringUtil.isEmpty(rootProjectPath)) {
           getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
@@ -241,7 +250,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
           return;
         }
-        List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
+        List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties

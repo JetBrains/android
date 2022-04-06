@@ -26,7 +26,6 @@ import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.ge
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Arrays.stream;
@@ -37,7 +36,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -45,7 +43,7 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
-import com.android.utils.Pair;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
@@ -55,7 +53,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -147,17 +144,15 @@ public class GradleTaskFinder {
       }
 
       Set<String> moduleTasks = new LinkedHashSet<>();
-      Pair<Module,String> moduleAndGradleProjectPath = findModuleAndGradleProjectPath(module);
-      if (moduleAndGradleProjectPath != null) {
-        module = moduleAndGradleProjectPath.getFirst();
-        String gradlePath = moduleAndGradleProjectPath.getSecond();
-        findAndAddGradleBuildTasks(module, gradlePath, buildMode, moduleTasks, testCompileType);
+      GradleProjectPath gradleProjectPath  = GradleProjectPathKt.getGradleProjectPath(module);
+      if (gradleProjectPath != null) {
+        findAndAddGradleBuildTasks(module, gradleProjectPath.getPath(), buildMode, moduleTasks, testCompileType);
         GradleProjectPath gradleProjectPathCore = getGradleProjectPath(module);
         if (gradleProjectPathCore == null) continue;
         Path keyPath = getBuildRootDir(gradleProjectPathCore).toPath();
         if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
           // Clean only if other tasks are needed
-          cleanTasks.put(keyPath, createFullTaskName(gradlePath, CLEAN_TASK_NAME));
+          cleanTasks.put(keyPath, createFullTaskName(gradleProjectPath.getPath(), CLEAN_TASK_NAME));
         }
 
         // Remove duplicates and prepend moduleTasks to tasks.
@@ -180,38 +175,6 @@ public class GradleTaskFinder {
     }
 
     return result;
-  }
-
-  private static @Nullable Pair<Module,String> findModuleAndGradleProjectPath(@NotNull Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    // TODO(b/203237539)
-    if (gradleFacet == null) {
-      int lastIndexOfDot = module.getName().lastIndexOf(".");
-      if (lastIndexOfDot > 0) {
-        String parentModuleName = module.getName().substring(0, lastIndexOfDot);
-        Module parentModule = ModuleManager.getInstance(module.getProject()).findModuleByName(parentModuleName);
-        if (parentModule != null) {
-          gradleFacet = GradleFacet.getInstance(parentModule);
-          module = parentModule;
-        }
-      }
-      if (gradleFacet == null) {
-        return null;
-      }
-    }
-
-    String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-    if (isEmpty(gradlePath)) {
-      // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
-      // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
-      // build the module.
-      String msg = String.format("Module '%1$s' does not have a Gradle path. It is likely that this module was manually added by the user.",
-                                 module.getName());
-      getLogger().info(msg);
-      return null;
-    }
-
-    return Pair.of(module, gradlePath);
   }
 
   private static void findAndAddGradleBuildTasks(@NotNull Module module,
