@@ -87,15 +87,12 @@ public class LaunchUtils {
     if (canDismissKeyguard.compareTo(device.getVersion()) <= 0) {
       // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
       // to take a while (6s on my machine)
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            Logger.getInstance(LaunchUtils.class).warn("Unable to dismiss keyguard before launching activity");
-          }
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
+        }
+        catch (Exception e) {
+          Logger.getInstance(LaunchUtils.class).warn("Unable to dismiss keyguard before launching activity");
         }
       });
     }
