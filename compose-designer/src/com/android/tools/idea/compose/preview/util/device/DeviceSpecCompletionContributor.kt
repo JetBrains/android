@@ -124,7 +124,7 @@ private val parametersToDefaultValues: Map<String, String> by lazy {
     DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
     DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
     DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
-    DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString(),
+    DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
   )
 }
 

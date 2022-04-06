@@ -42,6 +42,8 @@ internal const val PARAMETER_HARDWARE_HEIGHT = "Height"
 internal const val PARAMETER_HARDWARE_DIM_UNIT = "DimensionUnit"
 internal const val PARAMETER_HARDWARE_DENSITY = "Density"
 internal const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
+internal const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
+internal const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
 // endregion
 // region SpringSpec
 internal const val DECLARATION_SPRING_SPEC = "SpringSpec"
@@ -80,7 +82,7 @@ object Preview {
     internal val DEFAULT_UNIT = DimUnit.px
     internal const val DEFAULT_DPI = 480
     internal const val DEFAULT_IS_ROUND = false
-    internal const val DEFAULT_CHIN_SIZE_PX = 0
+    internal const val DEFAULT_CHIN_SIZE_ZERO = 0
 
     /**
      * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value

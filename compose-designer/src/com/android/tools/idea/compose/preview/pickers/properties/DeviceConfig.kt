@@ -18,7 +18,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_PX
+import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_PX
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_IS_ROUND
@@ -52,7 +52,8 @@ private const val HEIGHT_SUFFIX = "h"
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
  *
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
- * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables)
+ * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables).
+ * @param chinSize For round devices only, defines the height of the flat surface on a screen, measured from the bottom.
  */
 internal open class DeviceConfig(
   open val width: Int = DEFAULT_WIDTH_PX,
@@ -60,7 +61,7 @@ internal open class DeviceConfig(
   open val dimUnit: DimUnit = DEFAULT_UNIT,
   open val dpi: Int = DEFAULT_DPI,
   open val shape: Shape = DEFAULT_SHAPE,
-  open val chinSize: Int = DEFAULT_CHIN_SIZE_PX
+  open val chinSize: Int = DEFAULT_CHIN_SIZE_ZERO
 ) {
   open val orientation: Orientation
     get() = if (height >= width) Orientation.portrait else Orientation.landscape
@@ -96,7 +97,7 @@ internal open class DeviceConfig(
       if (isRound) {
         builder.appendSeparator()
         builder.appendParamValue(PARAMETER_IS_ROUND, isRound.toString())
-        if (chinSize != DEFAULT_CHIN_SIZE_PX) {
+        if (chinSize != DEFAULT_CHIN_SIZE_ZERO) {
           // ChinSize is only applicable to round devices, see com.android.sdklib.devices.Screen#getChin
           builder.appendSeparator()
           builder.appendParamValue(PARAMETER_CHIN_SIZE, chinSize.toString() + dimUnit.name)
@@ -185,14 +186,14 @@ internal open class DeviceConfig(
       }
       else {
         // Default value for optional parameter
-        AndroidDimension(DEFAULT_CHIN_SIZE_PX.toFloat(), DimUnit.dp).transformTo(dimUnit, dpi).value.roundToInt()
+        DEFAULT_CHIN_SIZE_ZERO
       }
       return DeviceConfig(
         width = width.value.roundToInt(),
         height = height.value.roundToInt(),
         dimUnit = dimUnit,
         dpi = dpi,
-        shape = if (isRound) Shape.Round else Shape.Normal,
+        shape = if (isRound || chinSizeValue > 0) Shape.Round else Shape.Normal,
         chinSize = chinSizeValue
       )
     }
@@ -224,11 +225,13 @@ internal class MutableDeviceConfig(
   initialDimUnit: DimUnit = DEFAULT_UNIT,
   initialDpi: Int = DEFAULT_DPI,
   initialShape: Shape = DEFAULT_SHAPE,
-  initialChinSize: Int = DEFAULT_CHIN_SIZE_PX
+  initialChinSize: Int = DEFAULT_CHIN_SIZE_ZERO
 ) : DeviceConfig(initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
   override var width: Int = initialWidth
   override var height: Int = initialHeight
   override var chinSize: Int = initialChinSize
+  override var dpi: Int = initialDpi
+  override var shape: Shape = initialShape
 
   /**
    * Defines the unit in which [width] and [height] should be considered. Modifying this property also changes [width] and [height].
@@ -248,8 +251,6 @@ internal class MutableDeviceConfig(
         chinSize = (chinSize * dpiFactor).roundToInt()
       }
     }
-  override var dpi: Int = initialDpi
-  override var shape: Shape = initialShape
 
   /**
    * When changed, swaps the [width] and [height] values appropriately.

@@ -20,10 +20,12 @@ import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_CHIN_SIZE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
@@ -38,7 +40,6 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
 import com.android.tools.property.panel.api.ControlType
-import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
@@ -80,6 +81,8 @@ internal class PreviewPropertiesInspectorBuilder(
       allProps.remove(PARAMETER_HARDWARE_WIDTH)?.let { put(PARAMETER_HARDWARE_WIDTH, it) }
       allProps.remove(PARAMETER_HARDWARE_HEIGHT)?.let { put(PARAMETER_HARDWARE_HEIGHT, it) }
       allProps.remove(PARAMETER_HARDWARE_DIM_UNIT)?.let { put(PARAMETER_HARDWARE_DIM_UNIT, it) }
+      allProps.remove(PARAMETER_HARDWARE_IS_ROUND)?.let { put(PARAMETER_HARDWARE_IS_ROUND, it) }
+      allProps.remove(PARAMETER_HARDWARE_CHIN_SIZE)?.let { put(PARAMETER_HARDWARE_CHIN_SIZE, it) }
     }
     val remainingProperties = allProps.values
 
@@ -133,6 +136,7 @@ private object PreviewControlTypeProvider : PsiPropertyItemControlTypeProvider {
     PARAMETER_UI_MODE,
     PARAMETER_DEVICE -> ControlType.DROPDOWN
     PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
+    PARAMETER_HARDWARE_IS_ROUND,
     PARAMETER_SHOW_DECORATION,
     PARAMETER_SHOW_SYSTEM_UI,
     PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN

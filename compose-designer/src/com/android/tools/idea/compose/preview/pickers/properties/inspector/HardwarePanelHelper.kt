@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.inspector
 
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_CHIN_SIZE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIMENSIONS
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.impl.ui.InspectorLayoutManager
 import com.android.tools.property.panel.impl.ui.Placement
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -37,6 +41,15 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+
+/**
+ * Object to get a class-named Logger.
+ */
+private object HardwarePanelHelper
+
+private val LOG: Logger
+  get() = Logger.getInstance(HardwarePanelHelper.javaClass)
+
 
 /**
  * Generates the UI for the Hardware section in the @Preview picker. See [PreviewPropertiesInspectorBuilder].
@@ -49,26 +62,35 @@ internal fun addHardwareView(
   val panelBuilder = HardwarePanelBuilder()
   val editors = mutableListOf<PropertyEditorModel>()
 
-  val typeProperty = properties[PARAMETER_HARDWARE_DEVICE]!!
-  panelBuilder.addLine(PARAMETER_HARDWARE_DEVICE, editorProvider.createEditor(typeProperty, editors)
-  )
+  /**
+   * Adds a new line on the [HardwarePanelBuilder] for the given [propertyName] with its corresponding editor.
+   */
+  fun addSinglePropertyLine(propertyName: String) {
+    val property = properties[propertyName]
+    if (property == null) {
+      LOG.warn("No property of name: $propertyName")
+      return
+    }
+    panelBuilder.addLine(propertyName, editorProvider.createEditor(property, editors))
+  }
+
+  addSinglePropertyLine(PARAMETER_HARDWARE_DEVICE)
 
   // The Dimensions parameter actually uses 3 other parameters: width, height, dimensionUnit.
   panelBuilder.addLine(PARAMETER_HARDWARE_DIMENSIONS, createDimensionLine(properties, editorProvider, editors))
 
-  val densityProperty = properties[PARAMETER_HARDWARE_DENSITY]!!
-  panelBuilder.addLine(
-    PARAMETER_HARDWARE_DENSITY,
-    editorProvider.createEditor(densityProperty, editors)
-  )
+  addSinglePropertyLine(PARAMETER_HARDWARE_DENSITY)
 
-  val orientationProperty = properties[PARAMETER_HARDWARE_ORIENTATION]!!
-  panelBuilder.addLine(
-    PARAMETER_HARDWARE_ORIENTATION,
-    editorProvider.createEditor(orientationProperty, editors)
-  )
+  addSinglePropertyLine(PARAMETER_HARDWARE_ORIENTATION)
+
+  if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
+    addSinglePropertyLine(PARAMETER_HARDWARE_IS_ROUND)
+
+    addSinglePropertyLine(PARAMETER_HARDWARE_CHIN_SIZE)
+  }
 
   inspector.addComponent(panelBuilder.build()).addValueChangedListener {
+    // Refresh the added editors on value changes
     editors.forEach { it.refresh() }
   }
 }

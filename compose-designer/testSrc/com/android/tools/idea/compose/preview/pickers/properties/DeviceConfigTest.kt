@@ -83,7 +83,7 @@ internal class DeviceConfigTest {
     assertEquals(200, config.width)
     assertEquals(300, config.height)
     assertEquals(480, config.dpi)
-    assertFalse(config.isRound)
+    assertTrue(config.isRound)
     assertEquals(10, config.chinSize)
     assertEquals(DimUnit.dp, config.dimUnit)
 

@@ -81,7 +81,7 @@ internal object LanguageParameterRule {
 
   val chinSize = DimensionParameterRule(
     name = DeviceSpec.PARAMETER_CHIN_SIZE,
-    defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_PX,
+    defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_ZERO,
   )
 
   val round = simpleParameterRule(
