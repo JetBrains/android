@@ -21,6 +21,8 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -47,6 +49,8 @@ public class AndroidRunConfigurations {
     return ApplicationManager.getApplication().getService(AndroidRunConfigurations.class);
   }
 
+  @Slow
+  @WorkerThread
   public void createRunConfiguration(@NotNull AndroidFacet facet) {
     // Android run configuration should always be created with the main module
     Module module = facet.getMainModule();

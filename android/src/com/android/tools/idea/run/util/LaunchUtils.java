@@ -20,6 +20,8 @@ import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
@@ -59,7 +61,11 @@ public class LaunchUtils {
   /**
    * Returns whether the watch hardware feature is required for the given facet.
    */
+  @Slow
+  @WorkerThread
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
+    ApplicationManager.getApplication().assertIsNonDispatchThread();
+
     if (AndroidFacet.getInstance(facet.getModule()) == null) {
       Logger.getInstance(LaunchUtils.class).warn("calling isWatchFeatureRequired when facet is not ready yet");
       return false;
