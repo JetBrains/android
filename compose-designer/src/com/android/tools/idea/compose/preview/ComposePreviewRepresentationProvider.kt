@@ -21,7 +21,6 @@ import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.actions.SetScreenViewProviderAction
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction
@@ -44,9 +43,9 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -151,18 +150,11 @@ class ComposePreviewRepresentationProvider(
 ) : PreviewRepresentationProvider {
   private val LOG = Logger.getInstance(ComposePreviewRepresentationProvider::class.java)
 
-  private object ComposeEditorFileType : LayoutEditorFileType() {
-    override fun getLayoutEditorStateType() = LayoutEditorState.Type.COMPOSE
-
-    override fun isResourceTypeOf(file: PsiFile): Boolean =
-      file.virtualFile is ComposeAdapterLightVirtualFile
-
-    override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
-      ComposePreviewToolbar(surface)
-
-    override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
-      DefaultActionGroup()
-  }
+  private object ComposeEditorFileType : CommonRepresentationEditorFileType(
+    ComposeAdapterLightVirtualFile::class.java,
+    LayoutEditorState.Type.COMPOSE,
+    ::ComposePreviewToolbar
+  )
 
   init {
     DesignerTypeRegistrar.register(ComposeEditorFileType)

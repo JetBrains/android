@@ -37,9 +37,9 @@ import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.ide.common.resources.Locale
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -50,7 +50,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
-import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.android.uipreview.ModuleRenderContext
@@ -84,22 +83,14 @@ const val MAX_HEIGHT = 2000
  */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
 
-internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
-
 /**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable functions.
- * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
+ * [FakeLightVirtualFile] for composable functions.
  */
 internal class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
-  private val originFileProvider: () -> VirtualFile?
-) : LightVirtualFile(name, content), BackedVirtualFile {
-  override fun getParent() = FAKE_LAYOUT_RES_DIR
-
-  override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
-}
+  originFileProvider: () -> VirtualFile?
+) : FakeLightVirtualFile(name, content, originFileProvider)
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value

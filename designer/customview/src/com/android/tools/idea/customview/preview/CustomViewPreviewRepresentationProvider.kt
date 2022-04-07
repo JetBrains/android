@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.hasSourceFileExtension
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -32,16 +29,11 @@ import com.intellij.psi.PsiManager
  * A [PreviewRepresentationProvider] coupled with [CustomViewPreviewRepresentation].
  */
 class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
-  private object CustomViewEditorFileType : LayoutEditorFileType() {
-    override fun getLayoutEditorStateType() = LayoutEditorState.Type.CUSTOM_VIEWS
-
-    override fun isResourceTypeOf(file: PsiFile) = file.virtualFile is CustomViewLightVirtualFile
-
-    override fun getToolbarActionGroups(surface: DesignSurface) = CustomViewPreviewToolbar(surface)
-
-    override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
-      DefaultActionGroup()
-
+  private object CustomViewEditorFileType : CommonRepresentationEditorFileType(
+    CustomViewLightVirtualFile::class.java,
+    LayoutEditorState.Type.CUSTOM_VIEWS,
+    ::CustomViewPreviewToolbar
+  ) {
     override fun isEditable() = true
   }
 

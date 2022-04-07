@@ -20,7 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
-import com.intellij.notebook.editor.BackedVirtualFile
+import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.vfs.VirtualFile
@@ -28,23 +28,19 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.InheritanceUtil
-import com.intellij.testFramework.LightVirtualFile
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidSlowOperations
 
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
-private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
-
+/**
+ * [FakeLightVirtualFile] for custom views.
+ */
 internal class CustomViewLightVirtualFile(
   name: String,
   content: String,
-  private val originFileProvider: () -> VirtualFile?
-) : LightVirtualFile(name, content), BackedVirtualFile {
-  override fun getParent() = FAKE_LAYOUT_RES_DIR
-
-  override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
-}
+  originFileProvider: () -> VirtualFile?
+) : FakeLightVirtualFile(name, content, originFileProvider)
 
 internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
   InheritanceUtil.isInheritor(this, CLASS_VIEW)
