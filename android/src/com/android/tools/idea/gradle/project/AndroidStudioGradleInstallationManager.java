@@ -22,13 +22,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class AndroidStudioGradleInstallationManager extends GradleInstallationManager {
-  @Nullable
-  public Sdk getGradleJdk(@Nullable Project project, @NotNull String linkedProjectPath) {
-    if (project != null) {
-      return ExternalSystemJdkProvider.getInstance().createJdk(null, getGradleJvmPath(project, linkedProjectPath));
-    }
-    return IdeSdks.getInstance().getJdk();
-  }
 
   @Nullable
   @Override

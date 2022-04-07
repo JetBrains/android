@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.junit.Test
 
 /**
@@ -33,10 +35,11 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
   fun testDescriptionContainsGradleJdk() {
     loadSimpleApplication()
     val description = SendFeedbackAction.getDescription(project)
-    val jdk = (AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager).getGradleJdk(project, project.basePath!!)
+    val jdk = createNewGradleJvmProjectJdk(project, testRootDisposable)
     assertThat(jdk).isNotNull()
-    assertThat(description).contains("Gradle JDK: ${jdk!!.versionString}")
+    assertThat(description).contains("Gradle JDK: ${jdk.versionString}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")
+    Disposer.dispose(jdk as Disposable)
   }
 
   /**

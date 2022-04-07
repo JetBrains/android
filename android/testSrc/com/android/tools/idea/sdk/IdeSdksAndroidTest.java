@@ -235,7 +235,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     assertThat(modifiedClassRoots).hasLength(originalClassRoots.length - 1);
 
     // Recreate Jdk
-    myIdeSdks.recreateOrAddJdkInTable(modifiedJdk);
+    myIdeSdks.recreateOrAddJdkInTable(modifiedJdk.getHomePath(), modifiedJdk.getName());
 
     // Jdk roots should be the same as original after recreating
     Sdk recreatedJdk = myIdeSdks.getJdk();

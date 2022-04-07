@@ -829,7 +829,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     syncAndroidSdks(SdkSync.getInstance(), projectPath);
 
     Project project = getProject();
-    JdkImportCheck.validateProjectGradleJdk(project, projectPath);
+    GradleExecutionSettings settings = resolverCtx.getSettings();
+    if (settings != null) { // In Android Studio we always have settings.
+      JdkImportCheck.validateProjectGradleJdk(settings.getJavaHome());
+    }
     validateGradleWrapper(projectPath);
 
     displayInternalWarningIfForcedUpgradesAreDisabled();

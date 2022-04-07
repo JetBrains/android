@@ -30,19 +30,28 @@ import com.android.tools.idea.sdk.Jdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import org.apache.commons.lang.StringUtils.isNotBlank
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Pair
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
@@ -55,37 +64,21 @@ class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
  * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
  * quick fixes.
  */
-fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
+fun validateProjectGradleJdk(javaHome: String) {
   // This method is a wrapper to provide a Jdk to checkJdkErrorMessage. Tests are run directly on checkJdkErrorMessage.
-  if (project == null) {
-    // If the project is not defined, assume default project
-    validateDefaultGradleJdk()
-    return
+  @Suppress("UnstableApiUsage")
+  val jdk: Sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, javaHome)
+  try {
+    validateJdk(jdk)
   }
-  val jdk: Sdk? =
-    if (isNotBlank(projectPath)) {
-      (AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager).getGradleJdk(project, projectPath!!)
-    }
-    else {
-      null
-    }
-  checkJdkErrorMessage(jdk)
-}
-
-/**
- * Validates the state of the default Gradle JDK.
- *
- * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
- * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
- * quick fixes.
- */
-fun validateDefaultGradleJdk() {
-  checkJdkErrorMessage(IdeSdks.getInstance().jdk)
+  finally {
+    (jdk as? Disposable)?.let { Disposer.dispose(jdk) }
+  }
 }
 
 @VisibleForTesting
-fun checkJdkErrorMessage(jdk: Sdk?) {
-  val jdkValidationError = validateJdk(jdk) ?: return // Valid jdk
+fun validateJdk(jdk: Sdk) {
+  val jdkValidationError = validateAndGetErrors(jdk) ?: return // Valid jdk
   throw JdkImportCheckException(jdkValidationError)
 }
 
@@ -189,10 +182,7 @@ private class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
  * 4. The selected Jdk is compatible with current platform.
  * Returns null if the [Sdk] is valid, an error message otherwise.
  */
-private fun validateJdk(jdk: Sdk?): String? {
-  if (jdk == null) {
-    return "Jdk location is not set."
-  }
+private fun validateAndGetErrors(jdk: Sdk): String? {
   val jdkHomePath = jdk.homePath ?: return "Could not find valid Jdk home from the selected Jdk location."
   val selectedJdkMsg = "Selected Jdk location is $jdkHomePath.\n"
   // Check if the version of selected Jdk is the same with the Jdk IDE uses.
@@ -218,10 +208,25 @@ private fun validateJdk(jdk: Sdk?): String? {
       // Recreate JDK table information for this JDK (b/187205058)
       if (StudioFlags.GRADLE_SYNC_RECREATE_JDK.get()) {
         WriteAction.runAndWait<RuntimeException> {
-          IdeSdks.getInstance().recreateOrAddJdkInTable(jdk)
+          IdeSdks.getInstance().recreateOrAddJdkInTable(jdkHomePath, jdk.name)
         }
       }
     }
     return null
   }
+}
+
+@TestOnly
+fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): ProjectJdkImpl {
+  val gradleExecutionSettings =
+    (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager).executionSettingsProvider.`fun`(
+      Pair(
+        project,
+        project.guessProjectDir()!!.path
+      )
+    )
+  @Suppress("UnstableApiUsage")
+  val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome!!)
+  Disposer.register(parent, sdk as Disposable)
+  return sdk as ProjectJdkImpl
 }
