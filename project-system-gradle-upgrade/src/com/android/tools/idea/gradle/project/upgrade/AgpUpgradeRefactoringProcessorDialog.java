@@ -47,7 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends DialogWrapper {
+public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   private JPanel myPanel;
   private JEditorPane myEditorPane;
   private JPanel myJava8SettingsPanel;
@@ -56,7 +56,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
   @NotNull private AgpUpgradeRefactoringProcessor myProcessor;
   @NotNull private Java8DefaultRefactoringProcessor myJava8Processor;
 
-  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+  AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
     boolean hasChangedBuildFiles
@@ -64,7 +64,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     this(processor, java8Processor, hasChangedBuildFiles, false, false);
   }
 
-  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+  AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
     boolean hasChangedBuildFiles,
@@ -74,7 +74,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
   }
 
   @VisibleForTesting
-  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+  AgpUpgradeRefactoringProcessorDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
     boolean hasChangedBuildFiles,
@@ -116,7 +116,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
           boolean runProcessor = ActionsKt.invokeAndWaitIfNeeded(
             NON_MODAL,
             () -> {
-              DialogWrapper dialog = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+              DialogWrapper dialog = new AgpUpgradeRefactoringProcessorDialog(
                 myProcessor, myJava8Processor, hasChangesInBuildFiles, true, true);
               return dialog.showAndGet();
             });
@@ -182,7 +182,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   @Override
   protected Action @NotNull [] createActions() {
-    Action previewAction = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog.PreviewRefactoringAction();
+    Action previewAction = new AgpUpgradeRefactoringProcessorDialog.PreviewRefactoringAction();
     return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }
 

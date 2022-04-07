@@ -32,7 +32,7 @@ import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO(xof): this is largely a copy of AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog, with some of the (unnecessary
+// TODO(xof): this is largely a copy of AgpUpgradeRefactoringProcessorDialog, with some of the (unnecessary
 //  for this case) functionality removed.  It would be nice to use inheritance or something to reduce the code duplication, but the
 //  way that the GUI designer injects code (in initializer blocks, after the super() constructor runs but before the rest of the
 //  constructor) makes it awkward, because DialogWrapper.init() depends on the GUI designer initialization having been done.
