@@ -122,7 +122,8 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.commandName")
 
-  override val groupingName: String = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.groupingName")
+  override val groupingName: String
+    get() = AndroidBundle.message("project.upgrade.java8DefaultRefactoringProcessor.groupingName")
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
