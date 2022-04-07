@@ -27,4 +27,7 @@ internal class ClientMonitorEvent(val addedProcesses: Map<Int, ProcessNames>, va
     val removed = removedProcesses.joinToString(prefix = "Removed: [", postfix = "]") { it.toString() }
     return "$added $removed"
   }
+
+  operator fun component1() = addedProcesses
+  operator fun component2() = removedProcesses
 }
