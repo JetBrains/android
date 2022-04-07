@@ -274,6 +274,7 @@ class LogcatMainPanelTest {
     }
     val logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
       size = Dimension(100, 100)
+      editor.document.setText("foo") // put some text so 'Fold Lines Like This' is enabled
     }
     val fakeUi = FakeUi(logcatMainPanel, createFakeWindow = true)
 
@@ -282,6 +283,8 @@ class LogcatMainPanelTest {
     val popupMenu = popupRule.popupContents as JPopupMenu
 
     assertThat(popupMenu.components.map { if (it is JPopupMenu.Separator) "-" else (it as ActionMenuItem).text }).containsExactly(
+      "Fold Lines Like This",
+      "-",
       "An Action",
       "-",
       "Clear Logcat",

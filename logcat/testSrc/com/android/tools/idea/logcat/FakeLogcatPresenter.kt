@@ -91,6 +91,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun foldImmediately() {
+    TODO("Not yet implemented")
+  }
+
   fun appendMessage(message: String) {
     lineBatches.add(listOf(message))
   }

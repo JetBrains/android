@@ -73,4 +73,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun selectDevice(device: IDevice)
 
   fun countFilterMatches(filter: String): Int
+
+  fun foldImmediately()
 }

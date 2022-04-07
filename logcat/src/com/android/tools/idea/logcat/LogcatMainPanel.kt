@@ -31,6 +31,7 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
+import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
@@ -186,7 +187,6 @@ internal class LogcatMainPanel(
       installPopupHandler(object : ContextMenuPopupHandler() {
         override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(popupActionGroup.getChildren(null))
       })
-      gutterComponentEx.isVisible = false
       settings.isUseSoftWraps = state?.isSoftWrap ?: false
     }
 
@@ -226,10 +226,16 @@ internal class LogcatMainPanel(
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
     return SimpleActionGroup().apply {
+      add(LogcatFoldLinesLikeThisAction(editor))
+      add(Separator.create())
       actions.forEach { add(it) }
       add(Separator.create())
       add(ClearLogcatAction(this@LogcatMainPanel))
     }
+  }
+
+  override fun foldImmediately() {
+    foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
   }
 
   /**
