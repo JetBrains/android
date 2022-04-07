@@ -2,7 +2,6 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="BUILD_PROCESS_HEAP_SIZE" value="2048" />
-    <option name="USE_RELEASE_OPTION" value="false" />
     <excludeFromCompile>
       <file url="file://$PROJECT_DIR$/../profilers/testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt" />
     </excludeFromCompile>
@@ -40,19 +39,42 @@
         <module name="aswb.jcgdi.blaze.plugin.base" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="8">
+    <bytecodeTargetLevel target="11">
       <module name="android.sdktools.android-annotations" target="8" />
+      <module name="android.sdktools.builder-model" target="8" />
       <module name="android.sdktools.chunkio" target="8" />
       <module name="android.sdktools.chunkio-processor" target="8" />
+      <module name="android.sdktools.common" target="8" />
+      <module name="android.sdktools.ddmlib" target="8" />
+      <module name="android.sdktools.dvlib" target="8" />
+      <module name="android.sdktools.layoutlib-api" target="8" />
       <module name="android.sdktools.pixelprobe" target="8" />
+      <module name="android.sdktools.repository" target="8" />
       <module name="android.sdktools.resource-repository" target="8" />
+      <module name="android.sdktools.sdk-common" target="8" />
+      <module name="android.sdktools.sdklib" target="8" />
       <module name="db-baseLibrary" target="8" />
       <module name="db-baseLibrarySupport" target="8" />
       <module name="db-compilationTests" target="8" />
       <module name="db-compiler" target="8" />
       <module name="db-compilerCommon" target="8" />
+      <module name="intellij.android.buildCommon" target="8" />
       <module name="intellij.android.common" target="8" />
+      <module name="intellij.android.gradle-tooling.api" target="8" />
+      <module name="intellij.android.gradle-tooling.impl" target="8" />
+      <module name="intellij.android.kotlin.extensions" target="8" />
+      <module name="intellij.android.projectSystem.gradle.models" target="8" />
+      <module name="intellij.android.projectSystem.gradle.sync" target="8" />
       <module name="intellij.android.rt" target="8" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="android-ndk.tests" options="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+      <module name="aswb.third_party.intellij.bazel.plugin.java" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+      <module name="intellij.android.adt.swingp" options="--add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
+      <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED" />
+      <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
+    </option>
   </component>
 </project>
