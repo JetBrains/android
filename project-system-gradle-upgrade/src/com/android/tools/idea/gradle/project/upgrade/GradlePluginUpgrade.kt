@@ -242,7 +242,7 @@ fun performForcedPluginUpgrade(
 
   if (upgradeAccepted) {
     // The user accepted the upgrade
-    // Note: we retrieve an AssistantInvokerImpl as a project service for the convenience of tests.
+    // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
     val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
     val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
     val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
