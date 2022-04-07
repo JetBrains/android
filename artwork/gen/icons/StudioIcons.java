@@ -647,6 +647,8 @@ public class StudioIcons {
 
   public static class Logcat {
     public static class Toolbar {
+      public static final Icon FAVORITE_FILLED = load("/studio/icons/logcat/toolbar/favorite-filled.svg"); // 16x16
+      public static final Icon FAVORITE_OUTLINE = load("/studio/icons/logcat/toolbar/favorite-outline.svg"); // 16x16
       public static final Icon FILTER_HISTORY = load("/studio/icons/logcat/toolbar/filter-history.svg"); // 16x16
       public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
       public static final Icon SNAPSHOT = load("/studio/icons/logcat/toolbar/snapshot.svg"); // 16x16
