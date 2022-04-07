@@ -2264,6 +2264,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/commonMain (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :network-kmm
+                                sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+                                    canBeConsumed                 : true
+                        - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :network-kmm
@@ -2360,6 +2366,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::feature-a@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/commonMain (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 SigningConfigName             : debug
@@ -2449,6 +2457,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::feature-a@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::network-kmm/commonMain (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::network-kmm/jvmMain (IdeModuleLibraryImpl) (*seen*)
                         - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar

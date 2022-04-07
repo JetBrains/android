@@ -67,6 +67,7 @@ import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import org.gradle.tooling.model.UnsupportedMethodException
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.linkProjectLibrary
@@ -358,9 +359,45 @@ fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseAr
 internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
   GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)
 
+class ResolvedLibraryTableBuilder(
+  private val gradlePathByModuleId: (String) -> GradleProjectPath?,
+  private val artifactToModuleIdMap: (String) -> String?,
+  private val resolvedSourceSets: (String) -> DataNode<GradleSourceSetData>?
+) {
+  fun buildResolvedLibraryTable(
+    ideLibraryTable: IdeUnresolvedLibraryTable,
+  ): IdeResolvedLibraryTable {
+    return resolveModuleDependencies(ideLibraryTable, ::resolveArtifact)
+  }
+
+  private fun resolveArtifact(artifact: File): List<GradleSourceSetProjectPath> {
+    val targetModuleId = artifactToModuleIdMap(artifact.path) ?: return emptyList()
+    return sequence {
+      yield(targetModuleId)
+      val targetSourceSetData = resolvedSourceSets(targetModuleId)
+        ?: let {
+        logError("Resolved source set not found for: $targetModuleId")
+        return@sequence
+      }
+      val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
+      yieldAll(kmpDependsOn)
+    }
+      .distinct()
+      .map { gradlePathByModuleId(it) }
+      .filterIsInstance<GradleSourceSetProjectPath>()
+      .toList()
+  }
+
+  private val logger = Logger.getInstance(this.javaClass)
+
+  private fun logError(message: String) {
+    logger.error(message, Throwable())
+  }
+}
+
 fun resolveModuleDependencies(
   libraryTable: IdeUnresolvedLibraryTable,
-  artifactResolver: (File) -> GradleSourceSetProjectPath?
+  artifactResolver: (File) -> Collection<GradleSourceSetProjectPath>
 ): IdeResolvedLibraryTable {
   return IdeResolvedLibraryTableImpl(
     libraryTable.libraries.map {
@@ -369,24 +406,8 @@ fun resolveModuleDependencies(
         is IdeAndroidLibrary -> listOf(it)
         is IdeModuleLibrary -> error("Unexpected resolved library: $it")
         is IdeUnresolvedModuleLibrary -> {
-          val projectPath = artifactResolver(it.artifact)
-          if (projectPath != null) {
-            if (projectPath.buildRoot != it.buildId) {
-              error("Unexpected resolved module build id ${projectPath.buildRoot} != ${it.buildId}")
-            }
-            if (projectPath.path != it.projectPath) {
-              error("Unexpected resolved module project path ${projectPath.path} != ${it.projectPath}")
-            }
-            listOf(
-              IdeModuleLibraryImpl(
-                buildId = it.buildId,
-                projectPath = it.projectPath,
-                variant = it.variant,
-                lintJar = it.lintJar,
-                sourceSet = projectPath.sourceSet
-              )
-            )
-          } else {
+          val projectPaths = artifactResolver(it.artifact)
+          if (projectPaths.isEmpty()) {
             listOf(
               IdeJavaLibraryImpl(
                 it.artifact.path,
@@ -394,6 +415,22 @@ fun resolveModuleDependencies(
                 it.artifact
               )
             )
+          } else {
+            projectPaths.map { projectPath ->
+              if (projectPath.buildRoot != it.buildId) {
+                error("Unexpected resolved module build id ${projectPath.buildRoot} != ${it.buildId}")
+              }
+              if (projectPath.path != it.projectPath) {
+                error("Unexpected resolved module project path ${projectPath.path} != ${it.projectPath}")
+              }
+              IdeModuleLibraryImpl(
+                buildId = it.buildId,
+                projectPath = it.projectPath,
+                variant = it.variant,
+                lintJar = it.lintJar,
+                sourceSet = projectPath.sourceSet
+              )
+            }
           }
         }
         is IdePreResolvedModuleLibrary -> listOf(

@@ -22,7 +22,6 @@ import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueMod
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.findSourceSetDataForArtifact;
-import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.resolveModuleDependencies;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -36,6 +35,7 @@ import static com.android.tools.idea.gradle.project.upgrade.ProjectUpgradeNotifi
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
@@ -46,6 +46,8 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static java.util.Collections.emptyList;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver.CONFIGURATION_ARTIFACTS;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver.RESOLVED_SOURCE_SETS;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
 import android.annotation.SuppressLint;
@@ -157,7 +159,6 @@ import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -735,14 +736,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private @NotNull IdeResolvedLibraryTable buildResolvedLibraryTable(@NotNull DataNode<ProjectData> ideProject,
                                                                      @NotNull IdeUnresolvedLibraryTable ideLibraryTable) {
-    Map<String, String> artifactToModuleIdMap = ideProject.getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS);
-    if (artifactToModuleIdMap == null) throw new IllegalStateException("Implementation of GradleProjectResolver has changed");
-    return resolveModuleDependencies(ideLibraryTable, (artifact) -> {
-      String moduleId = artifactToModuleIdMap.get(ExternalSystemApiUtil.toCanonicalPath(artifact.getPath()));
-      if (moduleId == null) return null;
-      GradleProjectPath projectPath = myGradlePathByModuleId.get(moduleId);
-      return projectPath instanceof GradleSourceSetProjectPath ? (GradleSourceSetProjectPath)projectPath : null;
-    });
+    Map<String, String> artifactToModuleIdMap = ideProject.getUserData(CONFIGURATION_ARTIFACTS);
+    Map<String, Pair<DataNode<GradleSourceSetData>, ExternalSourceSet>> resolvedSourceSets = ideProject.getUserData(RESOLVED_SOURCE_SETS);
+    checkNotNull(artifactToModuleIdMap, "Implementation of GradleProjectResolver has changed");
+    checkNotNull(resolvedSourceSets, "Implementation of GradleProjectResolver has changed");
+    return new ResolvedLibraryTableBuilder(myGradlePathByModuleId::get,
+                                           path -> artifactToModuleIdMap.get(ExternalSystemApiUtil.toCanonicalPath(path)),
+                                           moduleId -> {
+                                             Pair<DataNode<GradleSourceSetData>, ExternalSourceSet> pair = resolvedSourceSets.get(moduleId);
+                                             if (pair == null) return null;
+                                             return pair.first;
+                                           })
+      .buildResolvedLibraryTable(ideLibraryTable);
   }
 
   @SuppressWarnings("UnstableApiUsage")
