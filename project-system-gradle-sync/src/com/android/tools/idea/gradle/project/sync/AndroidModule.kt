@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -59,7 +59,7 @@ sealed interface GradleModelCollection {
 
 class GradleProject(
   private val buildModel: BuildModel,
-  private val ideLibraryTable: IdeLibraryTableImpl
+  private val ideLibraryTable: IdeUnresolvedLibraryTableImpl
 ) : GradleModelCollection {
 
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {

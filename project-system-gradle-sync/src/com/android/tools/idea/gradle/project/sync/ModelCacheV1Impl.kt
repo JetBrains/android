@@ -103,7 +103,7 @@ import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
@@ -1128,7 +1128,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   return object : ModelCache.V1 {
     private val lock = ReentrantLock()
     override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
-    override fun createLibraryTable(): IdeLibraryTableImpl = internedModels.createLibraryTable()
+    override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,

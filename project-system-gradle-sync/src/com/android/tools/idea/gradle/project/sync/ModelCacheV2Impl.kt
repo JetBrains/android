@@ -105,7 +105,6 @@ import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
@@ -117,6 +116,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -132,8 +132,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -1204,7 +1202,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   return object : ModelCache.V2 {
     private val lock = ReentrantLock()
     override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
-    override fun createLibraryTable(): IdeLibraryTableImpl = internedModels.createLibraryTable()
+    override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,

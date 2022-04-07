@@ -67,7 +67,9 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariantCore;
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl;
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -191,7 +193,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private @Nullable Project myProject;
   private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
   private final Map<String, GradleProjectPath> myGradlePathByModuleId = new LinkedHashMap<>();
-  private IdeLibraryTableImpl myResolvedModuleDependencies = null;
+  private IdeResolvedLibraryTable myResolvedModuleDependencies = null;
 
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs());
@@ -654,7 +656,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return;
     }
     if (myResolvedModuleDependencies == null) {
-      IdeLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeLibraryTableImpl.class);
+      IdeUnresolvedLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeUnresolvedLibraryTableImpl.class);
       if (ideLibraryTable == null) {
         throw new IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present");
       }
@@ -666,7 +668,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     androidModelNode.getData()
-      .setResolver(new IdeLibraryModelResolverImpl(it -> myResolvedModuleDependencies.getLibraries().get(it.getLibraryIndex())));
+      .setResolver(IdeLibraryModelResolverImpl.fromLibraryTable(myResolvedModuleDependencies));
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
@@ -731,8 +733,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     );
   }
 
-  private @NotNull IdeLibraryTableImpl buildResolvedLibraryTable(@NotNull DataNode<ProjectData> ideProject,
-                                                                 @NotNull IdeLibraryTableImpl ideLibraryTable) {
+  private @NotNull IdeResolvedLibraryTable buildResolvedLibraryTable(@NotNull DataNode<ProjectData> ideProject,
+                                                                     @NotNull IdeUnresolvedLibraryTable ideLibraryTable) {
     Map<String, String> artifactToModuleIdMap = ideProject.getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS);
     if (artifactToModuleIdMap == null) throw new IllegalStateException("Implementation of GradleProjectResolver has changed");
     return resolveModuleDependencies(ideLibraryTable, (artifact) -> {
@@ -779,7 +781,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       throw ideAndroidSyncErrorToException(syncError);
     }
 
-    IdeLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeLibraryTableImpl.class);
+    IdeUnresolvedLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeUnresolvedLibraryTableImpl.class);
     // If there is no ide library table it is not an Android project.
     if (ideLibraryTable != null) {
       // Special mode sync to fetch additional native variants.

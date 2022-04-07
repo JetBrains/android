@@ -1252,7 +1252,7 @@ private fun setupTestProjectFromAndroidModelCore(
 
   val androidModels = mutableListOf<GradleAndroidModel>()
   val internedModels = InternedModels(null)
-  val libraryResolver = IdeLibraryModelResolverImpl { internedModels.resolve(it) }
+  val libraryResolver = IdeLibraryModelResolverImpl { sequenceOf(internedModels.resolve(it)) }
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
     val moduleRelativeBasePath = gradlePath.substring(1).replace(':', File.separatorChar)
@@ -1313,7 +1313,7 @@ private fun setupTestProjectFromAndroidModelCore(
   }
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_LIBRARY_TABLE,
-    internedModels.createLibraryTable()
+    internedModels.createResolvedLibraryTable()
   )
 
   setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode)

@@ -48,9 +48,9 @@ interface IdeJavaLibraryDependency: IdeArtifactDependency<IdeJavaLibrary>
 data class LibraryReference(val libraryIndex: Int): Serializable
 
 interface IdeLibraryModelResolver {
-  fun resolveAndroidLibrary(unresolved: IdeDependencyCore): IdeAndroidLibraryDependency?
-  fun resolveJavaLibrary(unresolved: IdeDependencyCore): IdeJavaLibraryDependency?
-  fun resolveModule(unresolved: IdeDependencyCore): IdeModuleDependency?
+  fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
+  fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency>
+  fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
 }
 
 interface IdeModuleDependency: IdeDependency<IdeModuleLibrary> {

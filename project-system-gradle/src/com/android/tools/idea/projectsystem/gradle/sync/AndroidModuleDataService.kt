@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -102,7 +103,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     fun importAndroidModel(
       nodeToImport: DataNode<GradleAndroidModel>,
       mainModuleDataNode: DataNode<ModuleData>,
-      libraryResolver: IdeLibraryModelResolverImpl
+      libraryResolver: IdeLibraryModelResolver
     ) {
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
@@ -349,8 +350,8 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
   state.COMPILE_JAVA_TEST_TASK_NAME = ""
 }
 
-private fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolverImpl {
+private fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
     ?: error("IDE library table node not found")
-  return IdeLibraryModelResolverImpl { libraryTable.libraries[it.libraryIndex] }
+  return IdeLibraryModelResolverImpl.fromLibraryTable(libraryTable)
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
@@ -241,13 +241,13 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       }
     }
 
-  class ModuleSetupData(val module: Module, val dataNode: DataNode<out ModuleData>, val libraryResolver: IdeLibraryModelResolverImpl)
+  class ModuleSetupData(val module: Module, val dataNode: DataNode<out ModuleData>, val libraryResolver: IdeLibraryModelResolver)
 
   val moduleSetupData: Collection<ModuleSetupData> =
     projectDataNodes.flatMap { projectData ->
       val libraries =
         ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
-      val libraryResolver = IdeLibraryModelResolverImpl(fun(reference: LibraryReference) = libraries.libraries[reference.libraryIndex])
+      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(libraries)
       projectData
         .modules()
         .flatMap inner@{ node ->

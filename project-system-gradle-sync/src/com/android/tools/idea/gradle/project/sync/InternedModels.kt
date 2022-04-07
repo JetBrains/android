@@ -20,9 +20,10 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -118,8 +119,13 @@ class InternedModels(private val buildRootDirectory: File?) {
     }.first
   }
 
-  fun createLibraryTable(): IdeLibraryTableImpl {
-    return IdeLibraryTableImpl(libraries.toList())
+  fun createLibraryTable(): IdeUnresolvedLibraryTableImpl {
+    return IdeUnresolvedLibraryTableImpl(libraries.toList())
+  }
+
+  @TestOnly
+  fun createResolvedLibraryTable(): IdeResolvedLibraryTableImpl {
+    return IdeResolvedLibraryTableImpl(libraries.map(::listOf))
   }
 
   private fun nameLibrary(unnamed: IdeArtifactLibrary) =

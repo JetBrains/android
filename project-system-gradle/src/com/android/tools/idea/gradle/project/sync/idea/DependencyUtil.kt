@@ -38,8 +38,10 @@ import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.buildId
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.projectPath
 import com.android.tools.idea.gradle.model.sourceSet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -357,14 +359,14 @@ internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
   GradleSourceSetProjectPath(toSystemIndependentName(buildId), projectPath, sourceSet)
 
 fun resolveModuleDependencies(
-  libraryTable: IdeLibraryTableImpl,
+  libraryTable: IdeUnresolvedLibraryTable,
   artifactResolver: (File) -> GradleSourceSetProjectPath?
-): IdeLibraryTableImpl {
-  return IdeLibraryTableImpl(
+): IdeResolvedLibraryTable {
+  return IdeResolvedLibraryTableImpl(
     libraryTable.libraries.map {
       when (it) {
-        is IdeJavaLibrary -> it
-        is IdeAndroidLibrary -> it
+        is IdeJavaLibrary -> listOf(it)
+        is IdeAndroidLibrary -> listOf(it)
         is IdeModuleLibrary -> error("Unexpected resolved library: $it")
         is IdeUnresolvedModuleLibrary -> {
           val projectPath = artifactResolver(it.artifact)
@@ -375,27 +377,33 @@ fun resolveModuleDependencies(
             if (projectPath.path != it.projectPath) {
               error("Unexpected resolved module project path ${projectPath.path} != ${it.projectPath}")
             }
-            IdeModuleLibraryImpl(
-              buildId = it.buildId,
-              projectPath = it.projectPath,
-              variant = it.variant,
-              lintJar = it.lintJar,
-              sourceSet = projectPath.sourceSet
+            listOf(
+              IdeModuleLibraryImpl(
+                buildId = it.buildId,
+                projectPath = it.projectPath,
+                variant = it.variant,
+                lintJar = it.lintJar,
+                sourceSet = projectPath.sourceSet
+              )
             )
           } else {
-            IdeJavaLibraryImpl(
-              it.artifact.path,
-              it.artifact.path,
-              it.artifact
+            listOf(
+              IdeJavaLibraryImpl(
+                it.artifact.path,
+                it.artifact.path,
+                it.artifact
+              )
             )
           }
         }
-        is IdePreResolvedModuleLibrary -> IdeModuleLibraryImpl(
-          buildId = it.buildId,
-          projectPath = it.projectPath,
-          variant = it.variant,
-          lintJar = it.lintJar,
-          sourceSet = it.sourceSet
+        is IdePreResolvedModuleLibrary -> listOf(
+          IdeModuleLibraryImpl(
+            buildId = it.buildId,
+            projectPath = it.projectPath,
+            variant = it.variant,
+            lintJar = it.lintJar,
+            sourceSet = it.sourceSet
+          )
         )
       }
     }

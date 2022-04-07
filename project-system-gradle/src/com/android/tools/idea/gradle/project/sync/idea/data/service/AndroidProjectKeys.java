@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -66,8 +66,8 @@ public final class AndroidProjectKeys {
   public static final Key<GradleAndroidModel> ANDROID_MODEL = Key.create(GradleAndroidModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<IdeLibraryTableImpl> IDE_LIBRARY_TABLE =
-    Key.create(IdeLibraryTableImpl.class, ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<IdeResolvedLibraryTable> IDE_LIBRARY_TABLE =
+    Key.create(IdeResolvedLibraryTable.class, ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);

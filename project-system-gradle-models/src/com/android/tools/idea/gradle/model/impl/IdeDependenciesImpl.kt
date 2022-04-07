@@ -35,11 +35,11 @@ data class IdeDependenciesImpl(
   private val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
   override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
-    dependencyCores.dependencies.mapNotNull(resolver::resolveAndroidLibrary)
+    dependencyCores.dependencies.flatMap(resolver::resolveAndroidLibrary)
   override val javaLibraries: Collection<IdeJavaLibraryDependency> =
-    dependencyCores.dependencies.mapNotNull(resolver::resolveJavaLibrary)
+    dependencyCores.dependencies.flatMap(resolver::resolveJavaLibrary)
   override val moduleDependencies: Collection<IdeModuleDependency> =
-    dependencyCores.dependencies.mapNotNull(resolver::resolveModule)
+    dependencyCores.dependencies.flatMap(resolver::resolveModule)
   override val runtimeOnlyClasses: Collection<File> = dependencyCores.runtimeOnlyClasses
 }
 

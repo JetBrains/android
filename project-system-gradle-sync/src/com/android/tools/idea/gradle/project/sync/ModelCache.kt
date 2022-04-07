@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
@@ -49,7 +49,7 @@ import java.io.File
 
 interface ModelCache {
   val libraryResolver: (LibraryReference) -> IdeLibrary
-  fun createLibraryTable(): IdeLibraryTableImpl
+  fun createLibraryTable(): IdeUnresolvedLibraryTableImpl
 
   interface V1 : ModelCache {
     fun variantFrom(

@@ -27,28 +27,57 @@ import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
 
-class IdeLibraryModelResolverImpl(private val libraryTable: (LibraryReference) -> IdeLibrary) : IdeLibraryModelResolver {
-  override fun resolveAndroidLibrary(unresolved: IdeDependencyCore): IdeAndroidLibraryDependency? {
-    return IdeAndroidLibraryDependencyImpl(libraryTable(unresolved.target) as? IdeAndroidLibrary ?: return null, unresolved.isProvided)
+class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
+  private val libraryTable: (LibraryReference) -> Sequence<IdeLibrary>
+) : IdeLibraryModelResolver {
+  override fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency> {
+    return libraryTable(unresolved.target)
+      .filterIsInstance<IdeAndroidLibrary>()
+      .map { IdeAndroidLibraryDependencyImpl(it, unresolved.isProvided) }
   }
 
-  override fun resolveJavaLibrary(unresolved: IdeDependencyCore): IdeJavaLibraryDependency? {
-    return IdeJavaLibraryDependencyImpl(libraryTable(unresolved.target) as? IdeJavaLibrary ?: return null, unresolved.isProvided)
+  override fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency> {
+    return libraryTable(unresolved.target)
+      .filterIsInstance<IdeJavaLibrary>()
+      .map { IdeJavaLibraryDependencyImpl(it, unresolved.isProvided) }
   }
 
-  override fun resolveModule(unresolved: IdeDependencyCore): IdeModuleDependency? {
-    val moduleLibrary = when (val library = libraryTable(unresolved.target)) {
-      is IdeModuleLibrary -> library
-      is IdePreResolvedModuleLibrary -> error("Module dependencies are not yet resolved")
-      is IdeUnresolvedModuleLibrary -> error("Module dependencies are not yet resolved")
-      else -> return null
+  override fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency> {
+    return libraryTable(unresolved.target)
+      .mapNotNull {
+        when (it) {
+          is IdeModuleLibrary -> it
+          is IdePreResolvedModuleLibrary -> error("Module dependencies are not yet resolved")
+          is IdeUnresolvedModuleLibrary -> error("Module dependencies are not yet resolved")
+          else -> null
+        }
+      }
+      .map(::IdeModuleDependencyImpl)
+  }
+
+  companion object {
+    @JvmStatic
+    fun fromLibraryTable(resolvedLibraryTable: IdeResolvedLibraryTable): IdeLibraryModelResolver {
+      return IdeLibraryModelResolverImpl { resolvedLibraryTable.libraries[it.libraryIndex].asSequence() }
     }
-    return IdeModuleDependencyImpl(moduleLibrary)
   }
 }
 
-data class IdeLibraryTableImpl(
+interface IdeUnresolvedLibraryTable {
   val libraries: List<IdeLibrary>
-) : Serializable
+}
+
+interface IdeResolvedLibraryTable {
+  val libraries: List<List<IdeLibrary>>
+}
+
+data class IdeUnresolvedLibraryTableImpl(
+  override val libraries: List<IdeLibrary>
+) : IdeUnresolvedLibraryTable, Serializable
+
+data class IdeResolvedLibraryTableImpl(
+  override val libraries: List<List<IdeLibrary>>
+) : IdeResolvedLibraryTable, Serializable
