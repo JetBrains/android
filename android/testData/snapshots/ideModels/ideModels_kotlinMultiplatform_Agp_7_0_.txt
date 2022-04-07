@@ -2298,5 +2298,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :module2 (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.module2.androidTest
+MODULE                        : kotlinMultiPlatform.module2.commonMain
+MODULE                        : kotlinMultiPlatform.module2.commonTest
 MODULE                        : kotlinMultiPlatform.module2.main
 MODULE                        : kotlinMultiPlatform.module2.unitTest
