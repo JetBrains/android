@@ -1,7 +1,4 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the license/LICENSE.txt file.
- */
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package org.jetbrains.kotlin.android.configure
 
@@ -100,8 +97,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     private fun addDependency(manipulator: GradleBuildScriptManipulator<*>, groupId: String, artifactId: String, version: String) {
         manipulator.addKotlinLibraryToModuleBuildScript(
-          DependencyScope.COMPILE,
-          ExternalLibraryDescriptor(groupId, artifactId, version, version))
+            null,
+            DependencyScope.COMPILE,
+            ExternalLibraryDescriptor(groupId, artifactId, version, version),
+        )
     }
 
     // Return version string of the specified dependency if module depends on it, and null otherwise.
