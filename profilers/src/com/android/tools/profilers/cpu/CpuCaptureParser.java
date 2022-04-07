@@ -527,8 +527,9 @@ public class CpuCaptureParser {
           myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
         }
         else if (throwable.getCause() instanceof PreProcessorFailureException) {
-          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
           myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
+          // More granular preprocess failures are logged by preprocessors. Skip logging here.
+          return;
         }
         else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);

@@ -24,6 +24,7 @@ import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
@@ -104,7 +105,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     if (StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get()) {
       proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
     }
-    SimpleperfPipelinePreprocessor traceProcessor = new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter());
+    SimpleperfPipelinePreprocessor traceProcessor =
+      new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
     proxy.registerEventPreprocessor(traceProcessor);
     proxy.registerDataPreprocessor(traceProcessor);
   }
@@ -148,12 +150,14 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       // This prevents a bug in heapprofd from terminating early.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
       configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
-    } else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
+    }
+    else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
       // Delay JVMTI instrumentation when a user is doing a startup cpu capture.
       // This is for consistency with native memory recording.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
       configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
-    } else {
+    }
+    else {
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);
     }
   }

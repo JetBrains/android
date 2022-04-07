@@ -20,6 +20,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.TracePreProcessor
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import org.junit.Rule
@@ -37,7 +38,7 @@ class SimpleperfSampleReporterTest {
 
   @Before
   fun setUp() {
-    sampleReporter = SimpleperfSampleReporter()
+    sampleReporter = SimpleperfSampleReporter(DeviceInfo.getDefaultInstance())
   }
 
   @Test
@@ -135,7 +136,7 @@ class SimpleperfSampleReporterTest {
     // When providing multiples path to SimpleperfSampleReporter, we should include a --symdir flag in the report-sample command
     // corresponding to each directory passed.
     val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true),
-                                                  listOf(symDir1, symDir2))
+                                                        listOf(symDir1, symDir2))
     assertThat(command.count { it == "--symdir" }).isEqualTo(2)
 
     val firstSymDirIndex = command.indexOfFirst { it == "--symdir" }
