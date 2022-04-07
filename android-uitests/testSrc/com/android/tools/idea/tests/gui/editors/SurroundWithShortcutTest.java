@@ -134,7 +134,7 @@ public class SurroundWithShortcutTest {
     ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
 
     Ref<JPanel> unwrapRemoveJPanel = new Ref<>();
-    Wait.seconds(5).expecting("Unwrap/Remove popup list to show.").until(() -> {
+    Wait.seconds(7).expecting("Unwrap/Remove popup list to show.").until(() -> {
       Collection<JPanel> allFound =
         ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
 

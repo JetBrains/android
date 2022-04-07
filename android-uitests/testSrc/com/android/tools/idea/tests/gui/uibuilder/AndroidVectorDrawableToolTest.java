@@ -68,7 +68,7 @@ public class AndroidVectorDrawableToolTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void androidVectorDrawableTool() throws Exception {
-    String contents = guiTest.importSimpleApplication()
+    guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
@@ -79,10 +79,12 @@ public class AndroidVectorDrawableToolTest {
       .setOpacity(50)
       .enableAutoMirror()
       .clickNext()
-      .clickFinish()
-      .getEditor()
-      .open("app/src/main/res/drawable/ic_baseline_10k_24.xml")
-      .getCurrentFileContents();
+      .clickFinish();
+
+    guiTest.robot().waitForIdle();
+
+    String contents = guiTest.getProjectFileText("app/src/main/res/drawable/ic_baseline_10k_24.xml");
+
     assertThat(contents).contains("android:width=\"48dp\"");
     assertThat(contents).contains("android:height=\"48dp\"");
     assertThat(contents).contains("xmlns:android=\"http://schemas.android.com/apk/res/android\"");

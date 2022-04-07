@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,17 +67,13 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
-    NewModuleWizardFixture.find(ideFrame)
+    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
-      .projectView
-      .selectAndroidPane()
-      .clickPath("benchmark")
 
     guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
@@ -117,17 +114,13 @@ class AddBenchmarkModuleTest {
   @Throws(Exception::class)
   fun addKotlinMicrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
-    NewModuleWizardFixture.find(ideFrame)
+    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
-      .projectView
-      .selectAndroidPane()
-      .clickPath("benchmark")
 
     guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
@@ -171,8 +164,7 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
-    NewModuleWizardFixture.find(ideFrame)
+    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
       .enterPackageName("com.example.macrobenchmark")
@@ -181,9 +173,6 @@ class AddBenchmarkModuleTest {
       .setSourceLanguage(Java)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
-      .projectView
-      .selectAndroidPane()
-      .clickPath("benchmark")
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
@@ -226,8 +215,7 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
-    NewModuleWizardFixture.find(ideFrame)
+    NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
       .enterPackageName("com.example.macrobenchmark")
@@ -236,9 +224,6 @@ class AddBenchmarkModuleTest {
       .setSourceLanguage(Kotlin)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
-      .projectView
-      .selectAndroidPane()
-      .clickPath("benchmark")
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
       assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")

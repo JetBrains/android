@@ -751,7 +751,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "1: Project"))).deselect();
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Project"))).deselect();
     return this;
   }
 

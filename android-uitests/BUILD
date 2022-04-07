@@ -198,6 +198,7 @@ maven_repository(
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.10",
