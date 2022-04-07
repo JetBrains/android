@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.util.containers.Stack;
 
@@ -26,20 +23,9 @@ import java.util.*;
 
 public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiElement> {
 
-  // Synthetic root for the dominator tree
-  private static final PsiElement SENTINEL_ROOT = new FakePsiElement() {
-    @Override
-    public PsiElement getParent() {
-      return null;
-    }
-  };
-
   private final Set<PsiElement> myRoots;
   private final Map<PsiElement, Map<PsiElement, Integer>> myGraph;
-  private final Map<PsiElement, Set<PsiElement>> myReverseGraph;
   private final Set<PsiElement> myReferencedExternally;
-
-  private final Map<PsiElement, PsiElement> myImmediateDominator; // Dominator tree (in reverse)
 
   public AndroidCodeAndResourcesGraph(Map<PsiElement, Map<PsiElement, Integer>> graph,
                                       Set<PsiElement> roots,
@@ -47,21 +33,6 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
     myGraph = graph;
     myRoots = roots;
     myReferencedExternally = referencedExternally;
-    myReverseGraph = Maps.newHashMapWithExpectedSize(graph.size());
-    for (PsiElement node : myGraph.keySet()) {
-      for (PsiElement succ : myGraph.get(node).keySet()) {
-        Set<PsiElement> predecessors = myReverseGraph.get(succ);
-        if (predecessors == null) {
-          predecessors = new HashSet<>();
-        }
-        predecessors.add(node);
-        myReverseGraph.put(succ, predecessors);
-      }
-    }
-    myImmediateDominator = Maps.newHashMapWithExpectedSize(myGraph.size());
-    for (PsiElement node : roots) {
-      myImmediateDominator.put(node, SENTINEL_ROOT);
-    }
   }
 
   @Override
@@ -104,78 +75,6 @@ public class AndroidCodeAndResourcesGraph implements RefactoringUtil.Graph<PsiEl
       return 0;
     }
     return targets.getOrDefault(target, 0);
-  }
-
-  public Map<PsiElement, PsiElement> computeDominators() {
-    List<PsiElement> sorted = computeTopologicalSort();
-
-    boolean changed = true;  // We need to iterate on the dominator computation because the graph may contain cycles.
-    while (changed) {
-      changed = false;
-      for (PsiElement node : sorted) {
-        // Root nodes and nodes immediately dominated by the SENTINEL_ROOT are skipped.
-        if (myImmediateDominator.get(node) != SENTINEL_ROOT) {
-          PsiElement dominator = null;
-
-          for (PsiElement predecessor : myReverseGraph.get(node)) {
-            if (myImmediateDominator.get(predecessor) == null) {
-              // If we don't have a dominator/approximation for predecessor, skip it
-              continue;
-            }
-            if (dominator == null) {
-              dominator = predecessor;
-            }
-            else {
-              PsiElement fingerA = dominator;
-              PsiElement fingerB = predecessor;
-              while (fingerA != fingerB) {
-                if (sorted.indexOf(fingerA) < sorted.indexOf(fingerB)) {
-                  fingerB = myImmediateDominator.get(fingerB);
-                }
-                else {
-                  fingerA = myImmediateDominator.get(fingerA);
-                }
-              }
-              dominator = fingerA;
-            }
-          }
-
-          if (myImmediateDominator.get(node) != dominator) {
-            myImmediateDominator.put(node, dominator);
-            changed = true;
-          }
-        }
-      }
-    }
-    return myImmediateDominator;
-  }
-
-  private List<PsiElement> computeTopologicalSort() {
-    Stack<PsiElement> stack = new Stack<>();
-    Stack<PsiElement> head = new Stack<>();
-    Set<PsiElement> visited = new HashSet<>();
-    List<PsiElement> sorted = new ArrayList<>(myGraph.size());
-
-    for (PsiElement root : myRoots) {
-      stack.push(root);
-    }
-    while (!stack.isEmpty()) {
-      PsiElement current = stack.peek();
-      if (!head.isEmpty() && current == head.peek()) {
-        stack.pop();
-        head.pop();
-        sorted.add(current);
-      }
-      else {
-        head.push(current);
-        for (PsiElement succ : getTargets(current)) {
-          if (visited.add(succ)) {
-            stack.push(succ);
-          }
-        }
-      }
-    }
-    return Lists.reverse(sorted);
   }
 
 

@@ -47,7 +47,6 @@ import java.util.*;
 
 public class AndroidModularizePreviewPanel {
   private static final Logger LOGGER = Logger.getInstance(AndroidModularizePreviewPanel.class);
-  private static final boolean USE_DOMINATORS = false;
 
   private JPanel myPanel;
   private JPanel myDependenciesPanel;
@@ -98,24 +97,7 @@ public class AndroidModularizePreviewPanel {
 
     myTreeView.getTree().getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
-    if (USE_DOMINATORS) {
-      // TODO: If we were computing on the dominator tree, we could do incremental updates (simply add/remove this node's contributions).
-      myTreeView.addCheckboxTreeListener(new CheckboxTreeListener() {
-        @Override
-        public void mouseDoubleClicked(@NotNull CheckedTreeNode node) {
-        }
-
-        @Override
-        public void nodeStateChanged(@NotNull CheckedTreeNode node) {
-        }
-
-        @Override
-        public void beforeNodeStateChanged(@NotNull CheckedTreeNode node) {
-        }
-      });
-    } else {
-      myTreeView.getTree().addTreeSelectionListener(e -> ApplicationManager.getApplication().invokeLater(this::updateCounts));
-    }
+    myTreeView.getTree().addTreeSelectionListener(e -> ApplicationManager.getApplication().invokeLater(this::updateCounts));
 
     updateCounts();
     return myPanel;
