@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.dev
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceTabletConfig
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParam
@@ -115,6 +116,32 @@ private fun <T : PsiElement> PsiElementPattern<T, PsiElementPattern.Capture<T>>.
   })
 
 /**
+ * Supported parameters to autocomplete for DeviceSpec Language.
+ */
+private val parametersToDefaultValues: Map<String, String> by lazy {
+  mapOf(
+    DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
+    DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
+    DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
+    DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
+    DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString(),
+  )
+}
+
+/**
+ * A [LiveTemplateFormat] that includes all supported DeviceSpec parameters with their default values.
+ */
+private val baseDeviceSpecTemplate: LiveTemplateFormat by lazy {
+  val template = parametersToDefaultValues.map { entry ->
+    val suffix = if (DeviceSpec.isDimensionParameter(entry.key)) DeviceSpec.DEFAULT_UNIT.name else ""
+
+    // param=<default_value>suffix
+    entry.key + DeviceSpec.OPERATOR + "<${entry.value}>" + suffix
+  }.joinToString(DeviceSpec.SEPARATOR.toString())
+  LiveTemplateFormat(template)
+}
+
+/**
  * Provides completions for the Id of the Devices present in the Sdk.
  */
 private object SdkDeviceIdProvider : CompletionProvider<CompletionParameters>() {
@@ -143,6 +170,11 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
       result.addLookupElement(lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId, tailText = " Default Device")
     }
 
+    result.addLookupElement(
+      lookupString = DEVICE_BY_SPEC_PREFIX,
+      tailText = "width=px,height=px,dpi=int,isRound=boolean,chinSize=px",
+      format = baseDeviceSpecTemplate
+    )
     result.addLookupElement(lookupString = ReferencePhoneConfig.deviceSpec(), tailText = " Reference Phone")
     result.addLookupElement(lookupString = ReferenceTabletConfig.deviceSpec(), tailText = " Reference Tablet")
     result.addLookupElement(lookupString = ReferenceDesktopConfig.deviceSpec(), tailText = " Reference Desktop")
@@ -152,13 +184,7 @@ private object DeviceReferenceProvider : CompletionProvider<CompletionParameters
 
 private object MissingParameterProvider : CompletionProvider<CompletionParameters>() {
   override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-    val remainingParameters = mutableMapOf<String, String>(
-      DeviceSpec.PARAMETER_WIDTH to DeviceSpec.DEFAULT_WIDTH_PX.toString(),
-      DeviceSpec.PARAMETER_HEIGHT to DeviceSpec.DEFAULT_HEIGHT_PX.toString(),
-      DeviceSpec.PARAMETER_DPI to DeviceSpec.DEFAULT_DPI.toString(),
-      DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
-      DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_PX.toString(),
-    )
+    val remainingParameters = parametersToDefaultValues.toMutableMap()
 
     val deviceSpecImplElement = parameters.position.getParentOfType<DeviceSpecPsiFile>(false)?.getChildOfType<DeviceSpecSpecImpl>()
     val expectedUnit = deviceSpecImplElement?.getFirstValidUnit() ?: DeviceSpec.DEFAULT_UNIT
@@ -175,14 +201,12 @@ private object MissingParameterProvider : CompletionProvider<CompletionParameter
     }
 
     remainingParameters.forEach {
-      when (it.key) {
-        DeviceSpec.PARAMETER_WIDTH,
-        DeviceSpec.PARAMETER_HEIGHT,
-        DeviceSpec.PARAMETER_CHIN_SIZE -> {
-          // For parameters that take a dimension, use an appropriate InsertionFormat that includes the expected dimension unit.
-          result.addLookupElement(lookupString = it.key, format = createDimensionFormat(it.value))
-        }
-        else -> result.addLookupElement(lookupString = it.key, format = createCommonFormat(it.value))
+      if (DeviceSpec.isDimensionParameter(it.key)) {
+        // For parameters that take a dimension, use an appropriate InsertionFormat that includes the expected dimension unit.
+        result.addLookupElement(lookupString = it.key, format = createDimensionFormat(it.value))
+      }
+      else {
+        result.addLookupElement(lookupString = it.key, format = createCommonFormat(it.value))
       }
     }
   }

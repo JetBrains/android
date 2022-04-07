@@ -81,5 +81,16 @@ object Preview {
     internal const val DEFAULT_DPI = 480
     internal const val DEFAULT_IS_ROUND = false
     internal const val DEFAULT_CHIN_SIZE_PX = 0
+
+    /**
+     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value
+     * (with a dp/px suffix).
+     */
+    internal fun isDimensionParameter(parameterName: String): Boolean = when (parameterName) {
+      PARAMETER_WIDTH,
+      PARAMETER_HEIGHT,
+      PARAMETER_CHIN_SIZE -> true
+      else -> false
+    }
   }
 }

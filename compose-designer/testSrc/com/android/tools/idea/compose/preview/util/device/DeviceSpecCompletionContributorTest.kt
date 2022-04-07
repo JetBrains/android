@@ -99,12 +99,13 @@ internal class DeviceSpecCompletionContributorTest {
   fun prefixCompletion() {
     // Blank, should provide all possible options
     fixture.completeDeviceSpec("$caret")
-    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals(6, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
-    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
-    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
+    assertEquals("spec:", fixture.lookupElementStrings!![1]) // Driven by Live Template
+    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![3])
+    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![4])
+    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![5])
 
     // 'pix' should only match the default device (pixel_5)
     fixture.completeDeviceSpec("pix$caret")
@@ -122,11 +123,12 @@ internal class DeviceSpecCompletionContributorTest {
 
     // completion for 'spec' prefix
     fixture.completeDeviceSpec("spe$caret")
-    assertEquals(4, fixture.lookupElementStrings!!.size)
-    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![0])
-    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![1])
-    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![2])
-    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![3])
+    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals("spec:", fixture.lookupElementStrings!![0]) // Driven by Live Template
+    assertEquals("spec:width=360dp,height=640dp", fixture.lookupElementStrings!![1])
+    assertEquals("spec:width=673dp,height=841dp", fixture.lookupElementStrings!![2])
+    assertEquals("spec:width=1280dp,height=800dp", fixture.lookupElementStrings!![3])
+    assertEquals("spec:width=1920dp,height=1080dp", fixture.lookupElementStrings!![4])
   }
 
   @Test
