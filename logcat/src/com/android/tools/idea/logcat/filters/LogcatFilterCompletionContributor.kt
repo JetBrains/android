@@ -70,6 +70,15 @@ private val LEVEL_LOOKUPS = Log.LogLevel.values()
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"
 
+private val HINTS = listOf(
+  LogcatBundle.message("logcat.filter.completion.hint1"),
+  LogcatBundle.message("logcat.filter.completion.hint2"),
+  LogcatBundle.message("logcat.filter.completion.hint3"),
+  LogcatBundle.message("logcat.filter.completion.hint4"),
+  LogcatBundle.message("logcat.filter.completion.hint5"),
+  LogcatBundle.message("logcat.filter.completion.hint6"),
+)
+
 /**
  * A [CompletionContributor] for the Logcat Filter Language.
  */
@@ -104,7 +113,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                if (hasAndroidProject(parameters.editor)) {
                  result.addElement(MY_PACKAGE.toLookupElement())
                }
-               result.addLookupAdvertisement(LogcatBundle.message("logcat.filter.completion.hint"))
+               result.addHints()
              }
            })
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.KVALUE),
@@ -113,6 +122,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                if (parameters.findPreviousText() == LEVEL_KEY) {
                  result.addAllElements(LEVEL_LOOKUPS)
                }
+               result.addHints()
              }
            })
     extend(CompletionType.BASIC, or(psiElement(STRING_KVALUE), psiElement(REGEX_KVALUE)),
@@ -130,9 +140,14 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
                  in TAG_KEYS ->
                    result.addAllElements(parameters.getTags().filter(String::isNotBlank).map { it.toLookupElement(suffix = " ") })
                }
+               result.addHints()
              }
            })
   }
+}
+
+private fun CompletionResultSet.addHints() {
+  HINTS.forEach { addLookupAdvertisement(it) }
 }
 
 @VisibleForTesting
