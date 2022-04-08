@@ -18,74 +18,57 @@ package com.android.tools.idea.refactoring.modularize
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.util.RefactoringUtil
 import com.intellij.util.containers.Stack
-import java.util.Collections
 
 class AndroidCodeAndResourcesGraph(
-  private val graph: MutableMap<PsiElement, MutableMap<PsiElement, Int>>,
-  private val roots: MutableSet<PsiElement>,
-  private val referencedExternally: MutableSet<PsiElement>,
+  private val graph: Map<PsiElement, Map<PsiElement, Int>>,
+  val roots: Set<PsiElement>,
+  private val referencedExternally: Set<PsiElement>,
 ) : RefactoringUtil.Graph<PsiElement> {
 
-  override fun getVertices(): MutableSet<PsiElement> {
-    return graph.keys
-  }
+  override fun getVertices() = graph.keys
 
-  override fun getTargets(source: PsiElement?): MutableSet<PsiElement> {
-    val targets = graph.get(source)
-    return if (targets == null) Collections.emptySet() else targets.keys
-  }
+  override fun getTargets(source: PsiElement?): Set<PsiElement> = graph[source]?.keys ?: emptySet()
 
-  fun getRoots(): MutableSet<PsiElement> {
-    return roots
-  }
+  val referencedOutsideScope: Set<PsiElement>
+    get() {
+      val stack = Stack<PsiElement>()
+      val visited = HashSet<PsiElement>(graph.size)
 
-  fun getReferencedOutsideScope(): MutableSet<PsiElement> {
-    val stack = Stack<PsiElement>()
-    val visited = HashSet<PsiElement>(graph.size)
-
-    for (root in referencedExternally) {
-      stack.push(root)
-    }
-    while (!stack.isEmpty()) {
-      val current = stack.pop()
-      if (visited.add(current)) {
-        for (succ in getTargets(current)) {
-          stack.push(succ)
+      stack.addAll(referencedExternally)
+      while (!stack.empty()) {
+        val current = stack.pop()
+        if (current !in visited) {
+          visited += current
+          stack += getTargets(current)
         }
       }
+
+      return visited
     }
 
-    return visited
-  }
-
-  fun getFrequency(source: PsiElement?, target: PsiElement?): Int {
-    val targets = graph.get(source)
-    if (targets == null) {
-      return 0
-    }
-    return targets.getOrDefault(target, 0)
-  }
+  fun getFrequency(source: PsiElement?, target: PsiElement?) = graph[source]?.get(target) ?: 0
 
   class Builder {
-    private val roots: MutableSet<PsiElement> = mutableSetOf()
-    private val referenceGraph: MutableMap<PsiElement, MutableMap<PsiElement, Int>> = mutableMapOf()
-    private val referencedExternally: MutableSet<PsiElement> = mutableSetOf()
+    private val roots: MutableSet<PsiElement> = hashSetOf()
+    private val graph: MutableMap<PsiElement, MutableMap<PsiElement, Int>> = hashMapOf()
+    private val referencedExternally: MutableSet<PsiElement> = hashSetOf()
 
-    fun markReference(source: PsiElement, target: PsiElement): Unit {
-      val references = referenceGraph.computeIfAbsent(source, { k -> mutableMapOf() })
-      val count = references.getOrDefault(target, 0)
-      references.put(target, count + 1)
+    fun markReference(source: PsiElement, target: PsiElement) {
+      val references = graph.getOrPut(source) { hashMapOf() }
+      val count = references[target] ?: 0
+      references[target] = count + 1
     }
-    fun markReferencedOutsideScope(elm: PsiElement): Unit {
-      if (!roots.contains(elm)) {
-        referencedExternally.add(elm)
+
+    fun markReferencedOutsideScope(elm: PsiElement) {
+      if (elm !in roots) {
+        referencedExternally += elm
       }
     }
-    fun addRoot(root: PsiElement): Unit {
-      roots.add(root)
+
+    fun addRoot(root: PsiElement) {
+      roots += root
     }
-    fun build(): AndroidCodeAndResourcesGraph {
-      return AndroidCodeAndResourcesGraph(referenceGraph, roots, referencedExternally)
-    }
+
+    fun build() = AndroidCodeAndResourcesGraph(graph, roots, referencedExternally)
   }
 }
