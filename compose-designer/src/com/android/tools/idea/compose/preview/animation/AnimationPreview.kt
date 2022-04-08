@@ -54,6 +54,13 @@ import kotlin.math.max
 private val LOG = Logger.getInstance(AnimationPreview::class.java)
 
 /**
+ * Minimum duration for the timeline.
+ * For transitions as snaps duration is 0.
+ * Minimum timeline duration allows interact with timeline even for 0-duration animations.
+ */
+private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
+
+/**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
  * animated grouped by animation (e.g. `TransitionAnimation`, `AnimatedValue`). In addition, [Timeline] is a timeline view
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationPreview]
@@ -309,8 +316,8 @@ class AnimationPreview(override val surface: DesignSurface) : JPanel(
 
   private fun updateTimelineMaximum() {
     val timelineMax = animations.mapNotNull { it.timelineMaximumMs }.maxOrNull()?.toLong()
-                                ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
-    clockControl.updateMaxDuration(timelineMax)
+                        ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
+    clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
     updateTimelineElements()
   }
 
