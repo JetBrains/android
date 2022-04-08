@@ -22,7 +22,8 @@ import kotlin.math.min
  * Represents a y position in swing space
  * Corresponds to the [SwingCoordinate] attribute
  */
-inline class SwingY(val value: Float) {
+@JvmInline
+value class SwingY(val value: Float) {
   operator fun plus(rhs: SwingLength) = SwingY(value + rhs.value)
   operator fun minus(rhs: SwingLength) = SwingY(value - rhs.value)
   operator fun minus(rhs: SwingY) = SwingLength(value - rhs.value)

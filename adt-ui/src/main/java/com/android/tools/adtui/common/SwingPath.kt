@@ -20,7 +20,8 @@ import java.awt.geom.Path2D
 /**
  * Represents a path in swing space
  */
-inline class SwingPath(override val value: Path2D.Float) : SwingShape {
+@JvmInline
+value class SwingPath(override val value: Path2D.Float) : SwingShape {
   constructor() : this(Path2D.Float())
 
   val currentPoint: SwingPoint

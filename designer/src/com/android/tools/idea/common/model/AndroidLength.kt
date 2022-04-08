@@ -21,7 +21,8 @@ import com.intellij.ui.scale.JBUIScale
  * Represents the distance between two points in android space
  * Corresponds to the [AndroidCoordinate] attribute
  */
-inline class AndroidLength(val value: Float) {
+@JvmInline
+value class AndroidLength(val value: Float) {
   operator fun plus(rhs: AndroidLength) = AndroidLength(value + rhs.value)
   operator fun minus(rhs: AndroidLength) = AndroidLength(value - rhs.value)
   operator fun times(rhs: Int) = AndroidLength(value * rhs)
