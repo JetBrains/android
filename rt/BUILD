@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.rt",
     srcs = ["src"],
     iml_files = ["intellij.android.rt.iml"],
+    jvm_target = "8",
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],

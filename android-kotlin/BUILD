@@ -45,6 +45,7 @@ iml_module(
     name = "intellij.android.kotlin.extensions",
     srcs = ["android-extensions-idea/src"],
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
+    jvm_target = "8",
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
