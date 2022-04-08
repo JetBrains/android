@@ -69,7 +69,11 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     return Logger.getInstance(ForcedPluginPreviewVersionUpgradeDialog.class);
   }
 
-  public ForcedPluginPreviewVersionUpgradeDialog(@NotNull Project project, @Nullable GradleVersion currentPluginVersion) {
+  public ForcedPluginPreviewVersionUpgradeDialog(
+    @NotNull Project project,
+    @Nullable GradleVersion currentPluginVersion,
+    @NotNull GradleVersion newPluginVersion
+  ) {
     super(project);
     myProject = project;
 
@@ -78,9 +82,8 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessagePane);
 
-    String pluginVersion = LatestKnownPluginVersionProvider.INSTANCE.get();
-    String url = releaseNotesUrl(GradleVersion.parse(pluginVersion));
-    myRecommendedPluginVersion = pluginVersion;
+    String url = releaseNotesUrl(newPluginVersion);
+    myRecommendedPluginVersion = newPluginVersion.toString();
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     String versionText = (myCurrentPluginVersion != null) ?
                          ("version " + myCurrentPluginVersion + " of the " + AndroidPluginInfo.DESCRIPTION +
@@ -89,8 +92,8 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myMessage = "<p><b>This project is using " + versionText + ".</b></p>" +
                 "<p>To continue importing this project (" + myProject.getName() +
                 "), Android Studio will upgrade the project's build files to use version " +
-                pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
-                "from the <a href='"+ url + "'>release notes</a>).</p>";
+                myRecommendedPluginVersion + " of " + AndroidPluginInfo.DESCRIPTION +
+                " (you can learn more about this version of the plugin from the <a href='"+ url + "'>release notes</a>).</p>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override

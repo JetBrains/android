@@ -234,10 +234,14 @@ fun versionsAreIncompatible(
 fun performForcedPluginUpgrade(
   project: Project,
   currentPluginVersion: GradleVersion,
-  newPluginVersion: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  newPluginVersion: GradleVersion = computeGradlePluginUpgradeState(
+    currentPluginVersion,
+    GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+    IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  ).target
 ) : Boolean {
   val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-    ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion).showAndGet()
+    ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion, newPluginVersion).showAndGet()
   }
 
   if (upgradeAccepted) {
