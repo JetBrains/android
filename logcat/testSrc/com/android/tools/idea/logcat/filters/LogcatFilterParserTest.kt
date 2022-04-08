@@ -18,7 +18,9 @@ package com.android.tools.idea.logcat.filters
 import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -57,6 +59,11 @@ private val AGE_VALUES = mapOf(
   "10d" to Duration.ofSeconds(TimeUnit.DAYS.toSeconds(10)),
 )
 
+private val IS_VALUES = mapOf(
+  "crash" to CrashFilter,
+  "stacktrace" to StackTraceFilter
+)
+
 private val INVALID_AGES = listOf(
   "10",
   "10f",
@@ -75,7 +82,7 @@ class LogcatFilterParserTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun parse_emptyFilter() {
@@ -181,9 +188,26 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_is() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    for ((value, filter) in IS_VALUES) {
+      assertThat(logcatFilterParser().parse("is:$value")).isEqualTo(filter)
+    }
+  }
+
+  @Test
+  fun parse_is_invalid() {
+    val query = "if:foo"
+
+    assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
+  }
+
+
+  @Test
   fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_true() {
 
-    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:INFO foo    bar   tag:bar foo  package:foobar")).isEqualTo(
+    assertThat(
+      logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:INFO foo    bar   tag:bar foo  package:foobar")).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO),
         StringFilter("foo    bar", IMPLICIT_LINE),

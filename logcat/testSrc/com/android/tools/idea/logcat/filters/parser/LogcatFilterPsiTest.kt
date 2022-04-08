@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
@@ -37,7 +39,7 @@ import org.junit.Test
 import java.text.ParseException
 
 private val STRING_KEYS = listOf("tag", "package", "message", "line")
-private val NON_STRING_KEYS = listOf("level", "age")
+private val NON_STRING_KEYS = listOf("level", "age", "is")
 
 @RunsInEdt
 class LogcatFilterPsiTest {
@@ -45,10 +47,11 @@ class LogcatFilterPsiTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun nonStringKeys() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
     for (key in NON_STRING_KEYS) {
       assertThat(parse("$key: bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))
       assertThat(parse("$key:bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))

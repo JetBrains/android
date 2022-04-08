@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -60,14 +61,23 @@ private const val LEVEL_KEY = "level:"
 
 private const val AGE_KEY = "age:"
 
-private val KEYS = STRING_KEYS + LEVEL_KEY + AGE_KEY
-private val ALL_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
+private const val IS_KEY = "is:"
+
+// The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
+private val KEYS
+  get() = STRING_KEYS + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
+private val ALL_KEYS
+  get() = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
+
+private fun maybeAddIsKey() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf(IS_KEY) else emptyList()
 
 private val LEVEL_LOOKUPS_LOWERCASE = Log.LogLevel.values()
   .map { it.name.lowercase().toLookupElement(suffix = " ") }
 
 private val LEVEL_LOOKUPS_UPPERCASE = Log.LogLevel.values()
   .map { it.name.uppercase().toLookupElement(suffix = " ") }
+
+private val IS_LOOKUPS = listOf("crash", "stacktrace").map { it.toLookupElement(suffix = " ") }
 
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"
@@ -121,10 +131,9 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.KVALUE),
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-               if (parameters.findPreviousText() == LEVEL_KEY) {
-                 val prefix = result.prefixMatcher.prefix
-                 val lookups = if (prefix.isEmpty() || prefix.first().isLowerCase()) LEVEL_LOOKUPS_LOWERCASE else LEVEL_LOOKUPS_UPPERCASE
-                 result.addAllElements(lookups)
+               when {
+                 parameters.findPreviousText() == LEVEL_KEY -> result.addLevelLookups()
+                 parameters.findPreviousText() == IS_KEY && StudioFlags.LOGCAT_IS_FILTER.get() -> result.addAllElements(IS_LOOKUPS)
                }
                result.addHints()
              }
@@ -148,6 +157,12 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
              }
            })
   }
+}
+
+private fun CompletionResultSet.addLevelLookups() {
+  val prefix = prefixMatcher.prefix
+  val lookups = if (prefix.isEmpty() || prefix.first().isLowerCase()) LEVEL_LOOKUPS_LOWERCASE else LEVEL_LOOKUPS_UPPERCASE
+  addAllElements(lookups)
 }
 
 private fun CompletionResultSet.addHints() {

@@ -31,6 +31,7 @@ internal class LogcatFilterErrorAnnotator : Annotator {
       when (element.firstChild.text) {
         "level:" -> element.lastChild.checkForError(holder, String::isValidLogLevel, message("logcat.filter.error.log.level"))
         "age:" -> element.lastChild.checkForError(holder, String::isValidLogAge, message("logcat.filter.error.duration"))
+        "is:" -> element.lastChild.checkForError(holder, String::isValidIsFilter, message("logcat.filter.error.qualifier"))
       }
     }
   }

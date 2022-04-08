@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
@@ -39,7 +41,7 @@ class LogcatFilterErrorAnnotatorTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, LogcatFilterLanguageRule(), EdtRule())
+  val rule = RuleChain(projectRule, LogcatFilterLanguageRule(), EdtRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   private val annotator = LogcatFilterErrorAnnotator()
 
@@ -64,6 +66,18 @@ class LogcatFilterErrorAnnotatorTest {
     assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
       AnnotationInfo(4, 5, "Invalid duration: 2", ERROR),
       AnnotationInfo(17, 20, "Invalid duration: 20M", ERROR),
+    )
+  }
+
+  @Test
+  fun is_filter() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    val psi = parse("is:crash is:stacktrace is:foo")
+
+    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
+
+    assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
+      AnnotationInfo(26, 29, "Invalid qualifier: foo", ERROR),
     )
   }
 

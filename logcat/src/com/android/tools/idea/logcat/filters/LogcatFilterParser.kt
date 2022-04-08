@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log.LogLevel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -258,6 +259,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   return when (val key = firstChild.text.trim(':', '-', '~')) {
     "level" -> LevelFilter(lastChild.asLogLevel())
     "age" -> AgeFilter(lastChild.asDuration(), clock)
+    "is" -> createIsFilter(lastChild.text)
     else -> {
       val value = lastChild.toText()
       val isNegated = firstChild.text.startsWith('-')
@@ -285,11 +287,21 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
   }
 }
 
+private fun createIsFilter(text: String): LogcatFilter {
+  return when {
+    !StudioFlags.LOGCAT_IS_FILTER.get() -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
+    text == "crash" -> CrashFilter
+    text == "stacktrace" -> StackTraceFilter
+    else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
+  }
+}
+
 private fun PsiElement.asLogLevel(): LogLevel =
   LogLevel.getByString(text.lowercase())
   ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid Log Level: $text"))
 
 internal fun String.isValidLogLevel(): Boolean = LogLevel.getByString(lowercase()) != null
+internal fun String.isValidIsFilter(): Boolean = this == "crash" || this == "stacktrace"
 
 private fun PsiElement.asDuration(): Duration {
   DURATION_RE.matchEntire(text) ?: throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
@@ -357,6 +369,8 @@ private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
     this is RegexFilter -> FilterType(field)
     this is LevelFilter -> FilterType("level")
     this is AgeFilter -> FilterType("age")
+    this == CrashFilter -> FilterType("is")
+    this == StackTraceFilter -> FilterType("is")
     else -> FilterType(index)
   }
 }

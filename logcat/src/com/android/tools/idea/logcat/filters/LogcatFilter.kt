@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
+import com.android.ddmlib.Log.LogLevel.ASSERT
 import com.android.ddmlib.Log.LogLevel.ERROR
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.PackageNamesProvider
@@ -159,4 +160,40 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
   override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
 
   override fun hashCode() = packageNamesProvider.hashCode()
+}
+
+/*
+  A JVM crash looks like:
+
+    2022-04-19 10:20:30.892 13253-13253/com.example.nativeapplication E/AndroidRuntime: FATAL EXCEPTION: main
+      Process: com.example.nativeapplication, PID: 13253
+      java.lang.RuntimeException: ...
+        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3449)
+        at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3601)
+    etc
+
+  A native crash looks like:
+
+  2022-04-19 10:24:34.051 13445-13445/com.example.nativeapplication A/libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 13445 (tiveapplication), pid 13445 (tiveapplication)
+  2022-04-19 10:24:34.092 13474-13474/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+  2022-04-19 10:24:34.092 13474-13474/? A/DEBUG: Build fingerprint: 'google/sdk_gphone_x86_64/generic_x86_64_arm64:11/RSR1.201211.001/7027799:user/release-keys'
+  2022-04-19 10:24:34.092 13474-13474/? A/DEBUG: Revision: '0'
+  2022-04-19 10:24:34.092 13474-13474/? A/DEBUG: ABI: 'x86_64'
+  2022-04-19 10:24:34.095 13474-13474/? A/DEBUG: Timestamp: 2022-04-19 10:24:34-0700
+  etc
+*/
+internal object CrashFilter : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper): Boolean {
+    val header = message.logCatMessage.header
+    val level = header.logLevel
+    val tag = header.tag
+    return (level == ERROR && tag == "AndroidRuntime" && message.logCatMessage.message.startsWith("FATAL EXCEPTION"))
+           || (level == ASSERT && (tag == "DEBUG" || tag == "libc"))
+  }
+}
+
+private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")
+
+internal object StackTraceFilter : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logCatMessage.message) != null
 }

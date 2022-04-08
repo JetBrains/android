@@ -687,6 +687,14 @@ public final class StudioFlags {
     "Enable Logcat click to add/remove filter feature",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_IS_FILTER = Flag.create(
+    LOGCAT,
+    "logcat.is.filter",
+    "Enable Logcat 'is:...' filter",
+    "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
+    false
+  );
   //endregion
 
   //region Gradle Project System

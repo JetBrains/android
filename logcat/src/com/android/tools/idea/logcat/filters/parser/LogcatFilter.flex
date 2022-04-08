@@ -91,6 +91,7 @@ TEXT_KEY
 KEY
   = "age"
   | "level"
+  | "is"
 
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE

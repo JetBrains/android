@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.REGEX_KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.STRING_KVALUE_STATE
@@ -38,12 +39,14 @@ private val STRING_KEYS_REGEX = listOf(
   "package",
   "tag",
 ).joinToString("|")
-val KEYS = listOf(
-  "age",
-  "level",
-)
-private val KEYS_REGEX = KEYS.joinToString("|")
-private val KEY_VALUE_REGEX = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()
+
+// The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
+val KEYS: List<String>
+  get() = if (StudioFlags.LOGCAT_IS_FILTER.get()) listOf("age", "level", "is") else listOf("age", "level")
+private val KEYS_REGEX
+  get() = KEYS.joinToString("|")
+private val KEY_VALUE_REGEX
+  get() = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()
 
 /**
  * A wrapper around [LogcatFilterLexer] that allows to tweak its behavior.

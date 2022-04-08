@@ -19,6 +19,7 @@ import com.android.ddmlib.Log.LogLevel
 import com.android.ddmlib.Log.LogLevel.ASSERT
 import com.android.ddmlib.Log.LogLevel.ERROR
 import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.ddmlib.Log.LogLevel.VERBOSE
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.FakePackageNamesProvider
@@ -209,6 +210,49 @@ class LogcatFilterTest {
     val message4 = logCatMessage(logLevel = ERROR, message = "Error message from com.app3")
 
     assertThat(ProjectAppFilter(FakePackageNamesProvider("app1", "app2")).filter(listOf(message1, message2, message3, message4)))
+      .containsExactly(
+        message1,
+        message2,
+      ).inOrder()
+  }
+
+  @Test
+  fun stackTraceFilter() {
+    val message = """
+      Failed metering RPC
+        io.grpc.StatusRuntimeException: UNAVAILABLE
+          at io.grpc.stub.ClientCalls.toStatusRuntimeException(ClientCalls.java:262)
+          at io.grpc.stub.ClientCalls.getUnchecked(ClientCalls.java:243)
+    """.trimIndent()
+    val message1 = logCatMessage(logLevel = ERROR, message = message)
+    val message2 = logCatMessage(logLevel = VERBOSE, message = message)
+    val message3 = logCatMessage(logLevel = INFO, message = "Not a stacktrace")
+
+    assertThat(StackTraceFilter.filter(listOf(message1, message2, message3)))
+      .containsExactly(
+        message1,
+        message2,
+      ).inOrder()
+  }
+
+  @Test
+  fun crashFilter_jvm() {
+    val message1 = logCatMessage(tag = "AndroidRuntime", logLevel = ERROR, message = "FATAL EXCEPTION")
+    val message2 = logCatMessage(tag = "Foo", logLevel = ERROR, message = "FATAL EXCEPTION")
+    val message3 = logCatMessage(tag = "AndroidRuntime", logLevel = ASSERT, message = "FATAL EXCEPTION")
+    val message4 = logCatMessage(tag = "AndroidRuntime", logLevel = ERROR, message = "Not a FATAL EXCEPTION")
+
+    assertThat(CrashFilter.filter(listOf(message1, message2, message3, message4))).containsExactly(message1)
+  }
+
+  @Test
+  fun crashFilter_native() {
+    val message1 = logCatMessage(tag = "libc", logLevel = ASSERT, message = "Native crash")
+    val message2 = logCatMessage(tag = "DEBUG", logLevel = ASSERT, message = "Native crash")
+    val message3 = logCatMessage(tag = "libc", logLevel = ERROR, message = "Not a native crash")
+    val message4 = logCatMessage(tag = "DEBUG", logLevel = ERROR, message = "Not a native crash")
+
+    assertThat(CrashFilter.filter(listOf(message1, message2, message3, message4)))
       .containsExactly(
         message1,
         message2,

@@ -16,7 +16,9 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log.LogLevel
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -27,10 +29,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 
 private val STRING_KEYS = listOf(
@@ -42,7 +45,8 @@ private val STRING_KEYS = listOf(
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val KEYS = STRING_KEYS + "level:" + "age:" + "package:mine "
+private val KEYS = STRING_KEYS + "level:" + "age:" + "package:mine " + "is:"
+private val IS_VALUES = listOf("crash ", "stacktrace ")
 
 /**
  * Tests for [LogcatFilterCompletionContributor]
@@ -51,9 +55,14 @@ class LogcatFilterCompletionContributorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val chain: RuleChain = RuleChain(projectRule, EdtRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
+
+  @Before
+  fun setUp() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+  }
 
   @Test
   fun complete_keys() {
@@ -136,6 +145,24 @@ class LogcatFilterCompletionContributorTest {
       fixture.completeBasic()
       assertThat(fixture.editor.document.text).named(it).isEqualTo("level:$it ")
     }
+  }
+
+  @Test
+  fun complete_is_withoutWhitespace() {
+    fixture.configure("is:$caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).named("is with no whitespace").containsExactlyElementsIn(IS_VALUES)
+  }
+
+  @Test
+  fun complete_is_withWhitespace() {
+    fixture.configure("is:   $caret")
+
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementStrings).named("is with no whitespace").containsExactlyElementsIn(IS_VALUES)
   }
 
   @Test
@@ -253,7 +280,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun nonAndroidProject_doesNotProvideProjectPackageKey() {
-    fixture.configure("package$caret",androidProjectDetector = FakeAndroidProjectDetector(false))
+    fixture.configure("package$caret", androidProjectDetector = FakeAndroidProjectDetector(false))
 
     fixture.completeBasic()
 
