@@ -106,7 +106,7 @@ internal data class NegatedStringFilter(val string: String, val field: LogcatFil
 
 internal data class RegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
   private val regex = try {
-    string.toRegex(IGNORE_CASE)
+    string.toRegex()
   }
   catch (e: PatternSyntaxException) {
     throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
@@ -117,7 +117,7 @@ internal data class RegexFilter(val string: String, val field: LogcatFilterField
 
 internal data class NegatedRegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
   private val regex = try {
-    string.toRegex(IGNORE_CASE)
+    string.toRegex()
   }
   catch (e: PatternSyntaxException) {
     throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
@@ -144,7 +144,7 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
 
   override fun prepare() {
     packageNames = packageNamesProvider.getPackageNames()
-    packageNamesRegex = packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex(IGNORE_CASE)
+    packageNamesRegex = packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex()
   }
 
   override fun matches(message: LogcatMessageWrapper): Boolean {

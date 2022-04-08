@@ -142,8 +142,8 @@ class LogcatFilterTest {
 
   @Test
   fun regexFilter() {
-    assertThat(RegexFilter("tag1.*message", LINE).matches(MESSAGE1)).isTrue()
-    assertThat(RegexFilter("tag2.*message", LINE).matches(MESSAGE1)).isFalse()
+    assertThat(RegexFilter("Tag1.*message", LINE).matches(MESSAGE1)).isTrue()
+    assertThat(RegexFilter("Tag2.*message", LINE).matches(MESSAGE1)).isFalse()
   }
 
   @Test
@@ -153,8 +153,8 @@ class LogcatFilterTest {
 
   @Test
   fun negatedRegexFilter() {
-    assertThat(NegatedRegexFilter("tag1.*message", LINE).matches(MESSAGE1)).isFalse()
-    assertThat(NegatedRegexFilter("tag2.*message", LINE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedRegexFilter("Tag1.*message", LINE).matches(MESSAGE1)).isFalse()
+    assertThat(NegatedRegexFilter("Tag2.*message", LINE).matches(MESSAGE1)).isTrue()
   }
 
   @Test
