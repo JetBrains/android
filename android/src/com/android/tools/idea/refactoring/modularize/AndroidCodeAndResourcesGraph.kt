@@ -29,22 +29,21 @@ class AndroidCodeAndResourcesGraph(
 
   override fun getTargets(source: PsiElement?): Set<PsiElement> = graph[source]?.keys ?: emptySet()
 
-  val referencedOutsideScope: Set<PsiElement>
-    get() {
-      val stack = Stack<PsiElement>()
-      val visited = HashSet<PsiElement>(graph.size)
+  val referencedOutsideScope: Set<PsiElement> by lazy {
+    val stack = Stack<PsiElement>()
+    val visited = HashSet<PsiElement>(graph.size)
 
-      stack.addAll(referencedExternally)
-      while (!stack.empty()) {
-        val current = stack.pop()
-        if (current !in visited) {
-          visited += current
-          stack += getTargets(current)
-        }
+    stack.addAll(referencedExternally)
+    while (!stack.empty()) {
+      val current = stack.pop()
+      if (current !in visited) {
+        visited += current
+        stack += getTargets(current)
       }
-
-      return visited
     }
+
+    visited
+  }
 
   fun getFrequency(source: PsiElement?, target: PsiElement?) = graph[source]?.get(target) ?: 0
 
