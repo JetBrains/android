@@ -437,13 +437,9 @@ public final class GradleUtil {
     return false;
   }
 
-  @Nullable
+  @NotNull
   public static File getGradleUserSettingsFile() {
-    String homePath = getUserHome();
-    if (homePath == null) {
-      return null;
-    }
-    return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
+    return GradleProperties.getUserGradlePropertiesFile();
   }
 
   /**

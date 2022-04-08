@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getGradleDaemonXmx;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotlinDaemonXmx;
 
@@ -37,17 +38,11 @@ public class GradleUserProperties {
   private int kotlinXmx = -1;
 
   GradleUserProperties() {
-    String userHome = System.getProperty("gradle.user.home");
-    if (Strings.isNullOrEmpty(userHome)) {
-      userHome = getUserHome();
-    }
-    if (userHome != null) {
-      gradleUserHomeProperties = getProperties(userHome);
-      if (gradleUserHomeProperties != null && GradlePropertiesUtil.hasJvmArgs(gradleUserHomeProperties)) {
-        propertiesPath = gradleUserHomeProperties.getPath();
-        findGradleDaemonXmx(gradleUserHomeProperties);
-        findKotlinDaemonXmx(gradleUserHomeProperties);
-      }
+    gradleUserHomeProperties = getProperties();
+    if (GradlePropertiesUtil.hasJvmArgs(gradleUserHomeProperties)) {
+      propertiesPath = gradleUserHomeProperties.getPath();
+      findGradleDaemonXmx(gradleUserHomeProperties);
+      findKotlinDaemonXmx(gradleUserHomeProperties);
     }
   }
 
@@ -87,9 +82,9 @@ public class GradleUserProperties {
   }
 
   @Nullable
-  private static GradleProperties getProperties(String dir) {
+  private static GradleProperties getProperties() {
+    File file = getUserGradlePropertiesFile();
     try {
-      File file = new File(dir, "gradle.properties");
       if (file.exists()) {
         return new GradleProperties(file);
       } else {
@@ -97,18 +92,8 @@ public class GradleUserProperties {
       }
     }
     catch (IOException e) {
-      LOG.info("Failed to read gradle.properties from " + dir, e);
+      LOG.info("Failed to read " + file, e);
       return null;
     }
-  }
-
-  @Nullable
-  private static String getUserHome() {
-    String gradleUserHome = System.getenv("GRADLE_USER_HOME");
-    if (gradleUserHome == null) {
-      // If GRADLE_USER_HOME is not defined, use "user.home"
-      gradleUserHome = System.getProperty("user.home") + File.separator + ".gradle";
-    }
-    return gradleUserHome;
   }
 }
