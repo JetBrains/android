@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package asdriver.proto;
+option java_package = "com.android.tools.asdriver.proto";
+option java_outer_classname = "ASDriver";
+
+service AndroidStudio {
+  rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
+
+  rpc Kill(KillRequest) returns (KillResponse) {}
+
+  rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
+
+  rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+  string version = 1;
+}
+
+message KillRequest {
+  int32 exit_code = 1;
+}
+
+message KillResponse {}
+
+message ExecuteActionRequest {
+  string action_id = 1;
+}
+
+message ExecuteActionResponse {
+  enum Result {
+    OK = 0;
+    ACTION_NOT_FOUND = 1;
+  }
+  ExecuteActionResponse.Result result = 1;
+}
+
+message ShowToolWindowRequest {
+  string tool_window_id = 1;
+}
+
+message ShowToolWindowResponse {
+  enum Result {
+    OK = 0;
+    PROJECT_NOT_FOUND = 1;
+    TOOL_WINDOW_NOT_FOUND = 2;
+  }
+  ShowToolWindowResponse.Result result = 1;
+}
