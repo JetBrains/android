@@ -17,6 +17,8 @@ package com.android.build.attribution.data
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.PropertiesFiles
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -43,6 +45,8 @@ data class StudioProvidedInfo(
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
+        // First check global properties as it overrides project properties
+        PropertiesFiles.getProperties(GradleUtil.getGradleUserSettingsFile()).getProperty(CONFIGURATION_CACHE_PROPERTY_NAME) ?:
         project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
       },
       buildInvocationType = buildInvocationType,
