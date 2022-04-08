@@ -74,6 +74,7 @@ public class AndroidVectorDrawableToolTest {
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .chooseIcon()
+      .filterByNameAndSelect("360")
       .clickOk()
       .setWidth(48)
       .setOpacity(50)
@@ -83,7 +84,7 @@ public class AndroidVectorDrawableToolTest {
 
     guiTest.robot().waitForIdle();
 
-    String contents = guiTest.getProjectFileText("app/src/main/res/drawable/ic_baseline_10k_24.xml");
+    String contents = guiTest.getProjectFileText("app/src/main/res/drawable/ic_baseline_360_24.xml");
 
     assertThat(contents).contains("android:width=\"48dp\"");
     assertThat(contents).contains("android:height=\"48dp\"");

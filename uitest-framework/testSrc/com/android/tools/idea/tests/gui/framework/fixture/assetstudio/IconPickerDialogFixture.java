@@ -55,8 +55,12 @@ public class IconPickerDialogFixture extends IdeaDialogFixture<IconPickerDialog>
   }
 
   public IconPickerDialogFixture filterByNameAndSelect(@NotNull String name) {
+    JTableFixture tableFixture =
+      new JTableFixture(robot(), robot().finder().findByType(target(), JTable.class));
+    Wait.seconds(60L).expecting("Table should be populated.").until(() -> tableFixture.contents().length > 10);
     new SearchTextFieldFixture(robot(), robot().finder().findByType(this.target(), SearchTextField.class))
       .enterText(name);
+    Wait.seconds(60L).expecting("Table should be populated.").until(() -> tableFixture.contents().length > 0);
     new JTableFixture(robot(), robot().finder().findByType(target(), JTable.class))
       .click(TableCell.row(0).column(0), MouseButton.LEFT_BUTTON);
     return this;

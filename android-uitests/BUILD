@@ -1824,9 +1824,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AndroidVectorDrawableToolTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
-        "qa_unreliable",  # b/115539594
-        "qa_fast_unreliable",  # b/115539594
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
