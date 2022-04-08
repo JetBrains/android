@@ -19,6 +19,7 @@ import static com.android.SdkConstants.DOT_KTS;
 import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
   @Override
@@ -74,6 +76,18 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
 
   public void testJdkPathFromProjectJavaCurrent() throws Exception {
     verifyJdkPathFromProject(IdeSdks.getInstance().getJdkPath().toAbsolutePath().toString());
+  }
+
+  public void testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() throws Exception {
+    loadSimpleApplication();
+    String gradleHome = Paths.get(getBaseTestPath(), "gradleHome").toString();
+
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      GradleSettings.getInstance(getProject()).setServiceDirectoryPath(gradleHome);
+    });
+
+    File userGradlePropertiesFile = GradleUtil.getGradleUserSettingsFile(getProject());
+    assertThat(userGradlePropertiesFile).isEqualTo(new File(gradleHome, "gradle.properties"));
   }
 
   private void verifyBuildFile(@NotNull Module module, @NotNull String... expectedPath) {

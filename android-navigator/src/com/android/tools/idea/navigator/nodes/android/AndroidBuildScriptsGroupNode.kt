@@ -93,7 +93,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
       findChildAndAddToMapIfFound(SdkConstants.FN_LOCAL_PROPERTIES, projectRootFolder, "SDK Location", buildScripts)
     }
     if (!ApplicationManager.getApplication().isUnitTestMode) {
-      val userSettingsFile = GradleUtil.getGradleUserSettingsFile()
+      val userSettingsFile = GradleUtil.getGradleUserSettingsFile(myProject)
       if (userSettingsFile != null) {
         val file = VfsUtil.findFileByIoFile(userSettingsFile, false)
         if (file != null) {

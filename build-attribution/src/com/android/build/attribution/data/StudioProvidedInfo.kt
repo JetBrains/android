@@ -45,9 +45,9 @@ data class StudioProvidedInfo(
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
-        // First check global properties as it overrides project properties
-        PropertiesFiles.getProperties(GradleUtil.getGradleUserSettingsFile()).getProperty(CONFIGURATION_CACHE_PROPERTY_NAME) ?:
-        project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+        // First check global user properties as it overrides project properties
+        getUserPropertiesConfigurationCachePropertyState(project) ?:
+        getProjectPropertiesConfigurationCachePropertyState(project)
       },
       buildInvocationType = buildInvocationType,
       enableJetifierPropertyState = project.isEnableJetifier(),
@@ -65,5 +65,15 @@ data class StudioProvidedInfo(
         OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
       }
     }
+
+    private fun getUserPropertiesConfigurationCachePropertyState(project: Project): String? {
+      val propertiesFileResult = runCatching {
+        PropertiesFiles.getProperties(GradleUtil.getGradleUserSettingsFile(project))
+      }
+      return propertiesFileResult.getOrNull()?.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+    }
+
+    private fun getProjectPropertiesConfigurationCachePropertyState(project: Project) =
+      project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
   }
 }

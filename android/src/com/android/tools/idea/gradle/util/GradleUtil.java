@@ -58,6 +58,7 @@ import com.android.utils.BuildScriptUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
@@ -437,8 +438,21 @@ public final class GradleUtil {
     return false;
   }
 
+  /**
+   * This method calculates the path for user gradle.properties file based on gradle user home folder
+   * defined in execution settings for this project.
+   *
+   * In case this is not possible use default location as described in {@link  GradleProperties#getUserGradlePropertiesFile()}.
+   */
   @NotNull
-  public static File getGradleUserSettingsFile() {
+  public static File getGradleUserSettingsFile(@NotNull Project project) {
+    GradleExecutionSettings settings = getGradleExecutionSettings(project);
+    if (settings != null) {
+      String gradleHomePath = settings.getServiceDirectory();
+      if (!Strings.isNullOrEmpty(gradleHomePath)) {
+        return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
+      }
+    }
     return GradleProperties.getUserGradlePropertiesFile();
   }
 
