@@ -192,7 +192,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final CommandLineArgs myCommandLineArgs;
 
   private @Nullable Project myProject;
-  private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
+  private final Map<GradleProjectPath, DataNode<? extends ModuleData>> myModuleDataByGradlePath = new LinkedHashMap<>();
   private final Map<String, GradleProjectPath> myGradlePathByModuleId = new LinkedHashMap<>();
   private IdeResolvedLibraryTable myResolvedModuleDependencies = null;
 
@@ -256,7 +256,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
             projectIdentifier.getProjectPath(),
             sourceSet
           );
-          myModuleDataByGradlePath.put(gradleProjectPath, node.getData());
+          myModuleDataByGradlePath.put(gradleProjectPath, node);
           myGradlePathByModuleId.put(node.getData().getId(), gradleProjectPath);
         }
       });
@@ -726,7 +726,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     DependencyUtilKt.setupAndroidDependenciesForMpss(
       ideModule,
-      myModuleDataByGradlePath::get,
+      gradleProjectPath -> {
+        DataNode<? extends ModuleData> node = myModuleDataByGradlePath.get(gradleProjectPath);
+        if (node == null) return null;
+        return node.getData();
+      },
       artifactLookup::apply,
       androidModelNode.getData(),
       androidModelNode.getData().getSelectedVariant(),
@@ -740,14 +744,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Map<String, Pair<DataNode<GradleSourceSetData>, ExternalSourceSet>> resolvedSourceSets = ideProject.getUserData(RESOLVED_SOURCE_SETS);
     checkNotNull(artifactToModuleIdMap, "Implementation of GradleProjectResolver has changed");
     checkNotNull(resolvedSourceSets, "Implementation of GradleProjectResolver has changed");
-    return new ResolvedLibraryTableBuilder(myGradlePathByModuleId::get,
-                                           path -> artifactToModuleIdMap.get(ExternalSystemApiUtil.toCanonicalPath(path)),
-                                           moduleId -> {
-                                             Pair<DataNode<GradleSourceSetData>, ExternalSourceSet> pair = resolvedSourceSets.get(moduleId);
-                                             if (pair == null) return null;
-                                             return pair.first;
-                                           })
-      .buildResolvedLibraryTable(ideLibraryTable);
+    return new ResolvedLibraryTableBuilder(
+      myGradlePathByModuleId::get,
+      myModuleDataByGradlePath::get,
+      artifact -> resolveArtifact(artifactToModuleIdMap, artifact)
+    ).buildResolvedLibraryTable(ideLibraryTable);
+  }
+
+  private @Nullable GradleProjectPath resolveArtifact(@NotNull Map<String, String> artifactToModuleIdMap, @NotNull File artifact) {
+    return myGradlePathByModuleId.get(artifactToModuleIdMap.get(ExternalSystemApiUtil.toCanonicalPath(artifact.getPath())));
   }
 
   @SuppressWarnings("UnstableApiUsage")

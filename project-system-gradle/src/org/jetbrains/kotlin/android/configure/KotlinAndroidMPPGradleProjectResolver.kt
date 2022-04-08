@@ -75,14 +75,11 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
       val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
       val kotlinSourceSet = sourceSetDesc.getRootKotlinSourceSet(compilation) ?: continue
 
-      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets + kotlinSourceSet.additionalVisibleSourceSets) {
+      for (dependsOn in kotlinSourceSet.declaredDependsOnSourceSets) {
         val dependsOnGradleSourceSet = sourceSetByName[dependsOn] ?: continue
         androidGradleSourceSetDataNode.createChild(
           ProjectKeys.MODULE_DEPENDENCY,
-          ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data).also {
-            // Set up dependencies as exported since when an Android module depends on MPP module it depends on its `main` module only.
-            it.isExported = true
-          }
+          ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
         )
       }
     }

@@ -1306,6 +1306,14 @@ MODULE                        : kotlinMultiPlatform.app
                                 projectPath                   : :module2
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/module2/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                                projectPath                   : :module2
+                                sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+                                    canBeConsumed                 : true
+                                variant                       : debug
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1504,6 +1512,8 @@ MODULE                        : kotlinMultiPlatform.app
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1611,6 +1621,8 @@ MODULE                        : kotlinMultiPlatform.app
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
@@ -2250,6 +2262,8 @@ MODULE                        : kotlinMultiPlatform.module2
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2295,6 +2309,8 @@ MODULE                        : kotlinMultiPlatform.module2
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::module2@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : IdeModuleDependencyImpl
+                            target                        : <ROOT>::module2@debug/commonMain (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :module2 (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.module2.androidTest
