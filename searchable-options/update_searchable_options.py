@@ -45,7 +45,7 @@ def generate_searchable_options(work_dir, out_dir):
   env = {
       "STUDIO_VM_OPTIONS": vmoptions_file,
       "XDG_DATA_HOME": "%s/data" % work_dir,
-      "SHELL": os.getenv("SHELL")
+      "SHELL": os.getenv("SHELL", "")
   }
   options_dir = os.path.join(work_dir, "options")
 

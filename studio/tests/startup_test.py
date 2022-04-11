@@ -67,7 +67,7 @@ class StartUpTest(unittest.TestCase):
     env = {
         "STUDIO_VM_OPTIONS": vmoptions_file,
         "XDG_DATA_HOME": "%s/data" % work_dir,
-        "SHELL": os.getenv("SHELL"),
+        "SHELL": os.getenv("SHELL", ""),
         "DISPLAY": display,
     }
 
