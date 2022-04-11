@@ -94,6 +94,13 @@ internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Thr
 internal fun UMethod?.hasPreviewElements() = this?.let { getPreviewElements(it).firstOrNull() } != null
 
 /**
+ * Returns true if this is not a Preview annotation, but a MultiPreview annotation,
+ * i.e. an annotation that is annotated with @Preview or with other MultiPreview.
+ */
+fun UAnnotation?.isMultiPreviewAnnotation() =
+  this?.let { !it.isPreviewAnnotation() && it.getPreviewElements().firstOrNull() != null } == true
+
+/**
  * Given a Composable method, return a sequence of [PreviewElement] corresponding to its Preview annotations
  */
 internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) = runReadAction {
@@ -104,11 +111,13 @@ internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = n
   else emptySequence() // for non-composable methods, return an empty sequence
 }
 
-private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<String>,
+private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<String> = mutableSetOf(),
                                            uMethod: UMethod? = getContainingComposableUMethod(),
-                                           rootAnnotation: UAnnotation,
+                                           rootAnnotation: UAnnotation = this,
                                            overrideGroupName: String? = null,
                                            parentAnnotationInfo: String? = null): Sequence<PreviewElement> = runReadAction {
+  if (uMethod == null) return@runReadAction emptySequence()
+
   if (this.isPreviewAnnotation()) {
     return@runReadAction sequenceOfNotNull(this.toPreviewElement(uMethod, rootAnnotation, overrideGroupName, parentAnnotationInfo))
   }
@@ -130,7 +139,6 @@ private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<
           it.getPreviewElements(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName)
         }
       }
-    ?: emptySequence()
   }
   else emptySequence()
 }

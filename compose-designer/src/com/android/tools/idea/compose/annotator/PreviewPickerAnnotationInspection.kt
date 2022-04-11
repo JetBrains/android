@@ -35,6 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.uast.UAnnotation
@@ -48,7 +49,25 @@ import org.jetbrains.uast.toUElement
  */
 class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
 
-  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      function: KtNamedFunction,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+  }
+
+  override fun visitPreviewAnnotation(holder: ProblemsHolder,
+                                      annotationClass: KtClass,
+                                      previewAnnotation: KtAnnotationEntry,
+                                      isMultiPreview: Boolean) {
+    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+  }
+
+
+  private fun runPreviewPickerChecks(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry, isMultiPreview: Boolean) {
+    // MultiPreviews are not relevant for the PreviewPicker
+    if (isMultiPreview) return
+
     if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
 
     val result = PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(previewAnnotation)
