@@ -40,6 +40,18 @@
         <module name="aswb.jcgdi.blaze.plugin.base" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="8" />
+    <bytecodeTargetLevel target="8">
+      <module name="android.sdktools.android-annotations" target="8" />
+      <module name="android.sdktools.chunkio" target="8" />
+      <module name="android.sdktools.chunkio-processor" target="8" />
+      <module name="android.sdktools.pixelprobe" target="8" />
+      <module name="db-baseLibrary" target="8" />
+      <module name="db-baseLibrarySupport" target="8" />
+      <module name="db-compilationTests" target="8" />
+      <module name="db-compiler" target="8" />
+      <module name="db-compilerCommon" target="8" />
+      <module name="intellij.android.common" target="8" />
+      <module name="intellij.android.rt" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
