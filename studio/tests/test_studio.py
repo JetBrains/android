@@ -184,8 +184,8 @@ class StudioTests(unittest.TestCase):
       name = "tools/adt/idea/studio/android-studio.%s.zip" % platform
       with zipfile.ZipFile(name) as file:
         for f in file.infolist():
-          print("%s %x" % (f.filename, f.external_attr))
-          self.assertTrue(f.external_attr & 0x1800000 == 0x1800000, "All files have to be readable and writable by the owner")
+          if f.external_attr & 0x1800000 != 0x1800000:
+            self.fail("Found file without full read/write permissions: %s %x" % (f.filename, f.external_attr))
 
   def test_kotlin_plugin_not_duplicated(self):
     # Motive: bundling the Kotlin plugin is handled specially in BaseIdeaProperties.groovy
