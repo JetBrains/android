@@ -406,12 +406,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           Application application = ApplicationManager.getApplication();
           if (buildError != null) {
             if (buildAttributionManager != null) {
-              final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
-              application.invokeLater(() -> {
-                if (!project.isDisposed()) {
-                  finalBuildAttributionManager.onBuildFailure(myRequest);
-                }
-              });
+              buildAttributionManager.onBuildFailure(myRequest);
             }
 
             if (wasBuildCanceled(buildError)) {

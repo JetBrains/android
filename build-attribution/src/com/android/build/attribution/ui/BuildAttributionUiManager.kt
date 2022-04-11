@@ -275,11 +275,12 @@ class BuildAttributionUiManagerImpl(
 
   override fun dispose() = cleanUp()
 
-  private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
-    runnable,
-    { project.isDisposed }
-  )
+  private fun invokeLaterIfNotDisposed(runnable: () -> Unit) = project.invokeLaterIfNotDisposed(runnable)
 }
+
+fun Project.invokeLaterIfNotDisposed(runnable: () -> Unit) = ApplicationManager.getApplication().invokeLater(
+  runnable
+) { this.isDisposed }
 
 private class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,

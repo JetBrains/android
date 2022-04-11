@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
+import com.android.build.attribution.ui.invokeLaterIfNotDisposed
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo
@@ -37,6 +38,7 @@ import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.util.UUID
@@ -105,8 +107,10 @@ class BuildAttributionManagerImpl(
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
     val attributionFileDir = getAgpAttributionFileDir(request)
     FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
-    analyzersWrapper.onBuildFailure()
-    BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())
+    project.invokeLaterIfNotDisposed {
+      analyzersWrapper.onBuildFailure()
+      BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())
+    }
   }
 
   override fun statusChanged(event: ProgressEvent?) {
