@@ -46,7 +46,7 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   null,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(0L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(false), Futures.immediateFuture(0L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -69,7 +69,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -92,7 +94,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -116,7 +120,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -138,7 +144,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -158,7 +166,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -178,7 +188,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -198,7 +210,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);
@@ -218,7 +232,9 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(1_024L));
+    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
+                                                                      Futures.immediateFuture(false),
+                                                                      Futures.immediateFuture(1_024L));
 
     Future<VirtualDevice> future = builder.buildAsync();
     VirtualDevice device = TestDeviceManagerFutures.get(future);

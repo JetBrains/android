@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
@@ -37,16 +38,22 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 final class AsyncVirtualDeviceBuilder {
   private final @NotNull AvdInfo myDevice;
+  private final @NotNull ListenableFuture<@NotNull Boolean> myOnlineFuture;
   private final @NotNull ListenableFuture<@NotNull Long> mySizeOnDiskFuture;
 
   @UiThread
   AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListeningExecutorService service) {
-    this(device, service.submit(() -> recursiveSize(device)));
+    this(device,
+         service.submit(() -> AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device)),
+         service.submit(() -> recursiveSize(device)));
   }
 
   @VisibleForTesting
-  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListenableFuture<@NotNull Long> sizeOnDiskFuture) {
+  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device,
+                            @NotNull ListenableFuture<@NotNull Boolean> onlineFuture,
+                            @NotNull ListenableFuture<@NotNull Long> sizeOnDiskFuture) {
     myDevice = device;
+    myOnlineFuture = onlineFuture;
     mySizeOnDiskFuture = sizeOnDiskFuture;
   }
 
@@ -63,7 +70,7 @@ final class AsyncVirtualDeviceBuilder {
   @UiThread
   @NotNull ListenableFuture<@NotNull VirtualDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(mySizeOnDiskFuture).call(this::build, EdtExecutorService.getInstance());
+    return Futures.whenAllComplete(myOnlineFuture, mySizeOnDiskFuture).call(this::build, EdtExecutorService.getInstance());
   }
 
   @UiThread
@@ -75,6 +82,7 @@ final class AsyncVirtualDeviceBuilder {
       .setKey(new VirtualDeviceName(myDevice.getName()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
+      .setOnline(DeviceManagerFutures.getDoneOrElse(myOnlineFuture, false))
       .setTarget(Targets.toString(version, tag))
       .setCpuArchitecture(myDevice.getCpuArch())
       .setAndroidVersion(version)
