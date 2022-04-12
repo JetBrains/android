@@ -18,20 +18,15 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
 import java.beans.PropertyChangeListener;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.beans.PropertyChangeListener;
 
 /**
  * Represents a generic designer editor. Subclasses are specific editors (e.g. navigation, layout), and should have their own ID (specified
@@ -108,12 +103,6 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
       myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel);
     }
     return myBackgroundHighlighter;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
   }
 
   @Nullable

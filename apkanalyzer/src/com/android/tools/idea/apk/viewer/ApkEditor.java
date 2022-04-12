@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+
 import com.android.SdkConstants;
-import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.ApkSizeCalculator;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
+import com.android.tools.apk.analyzer.Archives;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
@@ -31,7 +37,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
@@ -52,10 +57,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,8 +64,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
@@ -246,12 +248,6 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   @Nullable
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
     return null;
   }
 

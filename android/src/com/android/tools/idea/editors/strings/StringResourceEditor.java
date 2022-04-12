@@ -18,17 +18,15 @@ package com.android.tools.idea.editors.strings;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import java.awt.Font;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
-import javax.swing.Icon;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,12 +111,6 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Nullable
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
     return null;
   }
 
