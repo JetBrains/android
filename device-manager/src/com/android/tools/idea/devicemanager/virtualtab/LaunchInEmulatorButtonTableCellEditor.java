@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.awt.Component;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -41,9 +40,14 @@ import org.jetbrains.annotations.Nullable;
 final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEditor {
   private final @Nullable Project myProject;
   private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
-  private final @NotNull BiFunction<@NotNull Component, @Nullable Project, @NotNull FutureCallback<@Nullable Object>> myNewSetEnabled;
+  private final @NotNull NewSetEnabled myNewSetEnabled;
 
   private VirtualDevice myDevice;
+
+  @VisibleForTesting
+  interface NewSetEnabled {
+    @NotNull FutureCallback<@NotNull Object> apply(@NotNull LaunchInEmulatorButtonTableCellEditor editor);
+  }
 
   LaunchInEmulatorButtonTableCellEditor(@Nullable Project project) {
     this(project, AvdManagerConnection::getDefaultAvdManagerConnection, SetEnabled::new);
@@ -52,7 +56,7 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
   @VisibleForTesting
   LaunchInEmulatorButtonTableCellEditor(@Nullable Project project,
                                         @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                                        @NotNull BiFunction<@NotNull Component, @Nullable Project, @NotNull FutureCallback<@Nullable Object>> newSetEnabled) {
+                                        @NotNull NewSetEnabled newSetEnabled) {
     super(StudioIcons.Avd.RUN, LaunchInEmulatorValue.INSTANCE, "Launch this AVD in the emulator");
 
     myProject = project;
@@ -78,7 +82,7 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
     myButton.setEnabled(false);
 
     ListenableFuture<Void> future = myGetDefaultAvdManagerConnection.get().stopAvdAsync(myDevice.getAvdInfo());
-    Futures.addCallback(future, myNewSetEnabled.apply(myButton, myProject), EdtExecutorService.getInstance());
+    Futures.addCallback(future, myNewSetEnabled.apply(this), EdtExecutorService.getInstance());
   }
 
   private void launch(@Nullable Project project) {
@@ -90,29 +94,30 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
     myButton.setEnabled(false);
 
     ListenableFuture<IDevice> future = myGetDefaultAvdManagerConnection.get().startAvd(project, myDevice.getAvdInfo());
-    Futures.addCallback(future, myNewSetEnabled.apply(myButton, myProject), EdtExecutorService.getInstance());
+    Futures.addCallback(future, myNewSetEnabled.apply(this), EdtExecutorService.getInstance());
   }
 
   @VisibleForTesting
   static final class SetEnabled implements FutureCallback<Object> {
-    private final @NotNull Component myButton;
-    private final @Nullable Project myProject;
+    private final @NotNull LaunchInEmulatorButtonTableCellEditor myEditor;
 
     @VisibleForTesting
-    SetEnabled(@NotNull Component button, @Nullable Project project) {
-      myButton = button;
-      myProject = project;
+    SetEnabled(@NotNull LaunchInEmulatorButtonTableCellEditor editor) {
+      myEditor = editor;
     }
 
     @Override
     public void onSuccess(@Nullable Object result) {
-      myButton.setEnabled(true);
+      myEditor.myButton.setEnabled(true);
+      myEditor.fireEditingCanceled();
     }
 
     @Override
     public void onFailure(@NotNull Throwable throwable) {
-      myButton.setEnabled(true);
-      VirtualTabMessages.showErrorDialog(throwable, myProject);
+      myEditor.myButton.setEnabled(true);
+      myEditor.fireEditingCanceled();
+
+      VirtualTabMessages.showErrorDialog(throwable, myEditor.myProject);
     }
   }
 

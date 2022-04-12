@@ -21,6 +21,7 @@ import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Icon;
 import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +46,11 @@ public class IconButtonTableCellEditor extends AbstractCellEditor implements Tab
   @VisibleForTesting
   public final @NotNull AbstractButton getButton() {
     return myButton;
+  }
+
+  @VisibleForTesting
+  public final @Nullable ChangeEvent getChangeEvent() {
+    return changeEvent;
   }
 
   @Override

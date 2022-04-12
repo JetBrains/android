@@ -45,7 +45,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,7 +58,6 @@ import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -109,6 +107,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
+    // noinspection ConstantConditions
     this(panel, new VirtualDeviceAsyncSupplier(), SetDevices::new);
   }
 
@@ -304,17 +303,5 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   void refreshAvdsAndSelect(@Nullable Key key) {
     FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(this, key));
-  }
-
-  // TODO: Remove together with the icon update side effect in getTableCellEditorComponent
-  //       when the update is changed to be triggered by a device state change event.
-  public Component getEditorComponent() {
-    TableCellEditor cellEditor = getCellEditor();
-    if (cellEditor instanceof LaunchInEmulatorButtonTableCellEditor) {
-      // Trigger icon update that is a side effect of calling getTableCellEditorComponent.
-      LaunchInEmulatorButtonTableCellEditor editor = (LaunchInEmulatorButtonTableCellEditor)cellEditor;
-      editor.getTableCellEditorComponent(this, LaunchInEmulatorValue.INSTANCE, true, getEditingRow(), getEditingColumn());
-    }
-    return super.getEditorComponent();
   }
 }

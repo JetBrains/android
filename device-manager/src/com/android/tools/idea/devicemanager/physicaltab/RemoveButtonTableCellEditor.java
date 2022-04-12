@@ -27,9 +27,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
 import java.util.function.BiPredicate;
 import javax.swing.JTable;
-import javax.swing.event.ChangeEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
   private Device myDevice;
@@ -66,11 +64,6 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
     return MessageDialogBuilder.okCancel("Remove " + device + " Device", device + " will be removed from the device manager.")
       .yesText("Remove")
       .ask(project);
-  }
-
-  @VisibleForTesting
-  @Nullable ChangeEvent getChangeEvent() {
-    return changeEvent;
   }
 
   @Override
