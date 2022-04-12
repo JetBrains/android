@@ -599,9 +599,11 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
             val model = manager.model
             val result = manager.renderResult
             if (result != null) {
-              analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues, myVisualLintAnalyticsManager)
-              if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                updateVisualLintIssues(model.file, myLintIssueProvider)
+              ApplicationManager.getApplication().executeOnPooledThread {
+                analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues, myVisualLintAnalyticsManager)
+                if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
+                  updateVisualLintIssues(model.file, myLintIssueProvider)
+                }
               }
             }
 
