@@ -57,16 +57,14 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
   @Test
   public void onSuccessDeviceIsOnline() throws InterruptedException {
     // Arrange
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
     Mockito.when(myConnection.stopAvdAsync(myAvd)).thenReturn(Futures.immediateVoidFuture());
-
     CountDownLatch latch = new CountDownLatch(1);
 
     myEditor = new LaunchInEmulatorButtonTableCellEditor(null,
                                                          () -> myConnection,
                                                          (button, project) -> newSetEnabled(button, project, latch));
 
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    JTable table = DeviceTables.mock(TestVirtualDevices.onlinePixel5Api31(myAvd));
     myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
@@ -90,7 +88,7 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
                                                          () -> myConnection,
                                                          (button, project) -> newSetEnabled(button, project, latch));
 
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd));
     myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
 
     AbstractButton button = myEditor.getButton();
@@ -113,8 +111,7 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
   public void getTableCellEditorComponentDeviceIsOnline() {
     // Arrange
     myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    JTable table = DeviceTables.mock(TestVirtualDevices.onlinePixel5Api31(myAvd));
 
     // Act
     Object component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
@@ -139,7 +136,6 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
       .setTarget("Android 12.0")
       .setCpuArchitecture("arm")
       .setAndroidVersion(new AndroidVersion(31))
-      .setGetDefaultAvdManagerConnection(() -> myConnection)
       .setAvdInfo(myAvd)
       .build();
 
@@ -161,7 +157,7 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
     // Arrange
     myEditor = new LaunchInEmulatorButtonTableCellEditor(null);
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd));
 
     // Act
     Object component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);

@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.Key;
@@ -64,10 +63,7 @@ public final class VirtualDeviceTableTest {
                                   Mockito.mock(SystemImage.class),
                                   null);
 
-    AvdManagerConnection avdManagerConnection = Mockito.mock(AvdManagerConnection.class);
-
-    VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo,
-                                                          () -> avdManagerConnection);
+    VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo);
 
     VirtualDeviceTable table = new VirtualDeviceTable(myPanel, mockSupplier(Collections.singletonList(device)), this::newSetDevices);
 

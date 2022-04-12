@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 
 final class VirtualDeviceChangeListener implements IDeviceChangeListener {
   private final @NotNull VirtualDeviceTableModel myModel;
-  private final boolean myNewOnlineEnabled;
   private final @NotNull NewSetOnline myNewSetOnline;
 
   @VisibleForTesting
@@ -44,13 +43,12 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
 
   @UiThread
   VirtualDeviceChangeListener(@NotNull VirtualDeviceTableModel model) {
-    this(model, VirtualDevice.NEW_ONLINE_ENABLED, VirtualDeviceChangeListener::newSetOnline);
+    this(model, VirtualDeviceChangeListener::newSetOnline);
   }
 
   @VisibleForTesting
-  VirtualDeviceChangeListener(@NotNull VirtualDeviceTableModel model, boolean newOnlineEnabled, @NotNull NewSetOnline newSetOnline) {
+  VirtualDeviceChangeListener(@NotNull VirtualDeviceTableModel model, @NotNull NewSetOnline newSetOnline) {
     myModel = model;
-    myNewOnlineEnabled = newOnlineEnabled;
     myNewSetOnline = newSetOnline;
   }
 
@@ -102,10 +100,6 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
   @WorkerThread
   @Override
   public void deviceChanged(@NotNull IDevice device, int mask) {
-    if (!myNewOnlineEnabled) {
-      return;
-    }
-
     if (!device.isEmulator()) {
       return;
     }

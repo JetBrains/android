@@ -40,7 +40,7 @@ public final class VirtualDeviceChangeListenerTest {
   @Test
   public void deviceChangedDeviceIsntVirtualDevice() {
     // Arrange
-    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, true, VirtualDeviceChangeListener::newSetOnline);
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel);
 
     // Act
     listener.deviceChanged(myDevice, 0);
@@ -52,7 +52,7 @@ public final class VirtualDeviceChangeListenerTest {
   @Test
   public void deviceChangedChangeStateIsntSet() {
     // Arrange
-    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, true, VirtualDeviceChangeListener::newSetOnline);
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel);
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
 
     // Act
@@ -65,7 +65,7 @@ public final class VirtualDeviceChangeListenerTest {
   @Test
   public void deviceChangedStateIsNull() {
     // Arrange
-    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, true, VirtualDeviceChangeListener::newSetOnline);
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel);
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
 
     // Act
@@ -79,7 +79,7 @@ public final class VirtualDeviceChangeListenerTest {
   public void deviceChangedCaseOffline() throws InterruptedException {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
-    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, true, (model, online) -> newSetOnline(model, online, latch));
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, (model, online) -> newSetOnline(model, online, latch));
 
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
     Mockito.when(myDevice.getState()).thenReturn(DeviceState.OFFLINE);
@@ -98,7 +98,7 @@ public final class VirtualDeviceChangeListenerTest {
   public void deviceChanged() throws InterruptedException {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
-    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, true, (model, online) -> newSetOnline(model, online, latch));
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, (model, online) -> newSetOnline(model, online, latch));
 
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
     Mockito.when(myDevice.getState()).thenReturn(DeviceState.ONLINE);

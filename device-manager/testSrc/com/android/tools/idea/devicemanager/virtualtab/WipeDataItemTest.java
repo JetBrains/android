@@ -41,14 +41,13 @@ public final class WipeDataItemTest {
     Mockito.when(panel.getTable()).thenReturn(myTable);
 
     myEditor = Mockito.mock(VirtualDevicePopUpMenuButtonTableCellEditor.class);
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
     Mockito.when(myEditor.getPanel()).thenReturn(panel);
   }
 
   @Test
   public void wipeDataItemDeviceIsOnline() {
     // Arrange
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.onlinePixel5Api31(myAvd));
 
     AbstractButton item = new WipeDataItem(myEditor,
                                            WipeDataItemTest::showCannotWipeARunningAvdDialog,
@@ -66,6 +65,8 @@ public final class WipeDataItemTest {
   @Test
   public void wipeDataItemNotWipe() {
     // Arrange
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+
     AbstractButton item = new WipeDataItem(myEditor,
                                            WipeDataItemTest::showCannotWipeARunningAvdDialog,
                                            (device, component) -> false,
@@ -82,6 +83,8 @@ public final class WipeDataItemTest {
   @Test
   public void wipeDataItem() {
     // Arrange
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+
     AbstractButton item = new WipeDataItem(myEditor,
                                            WipeDataItemTest::showCannotWipeARunningAvdDialog,
                                            (device, component) -> true,

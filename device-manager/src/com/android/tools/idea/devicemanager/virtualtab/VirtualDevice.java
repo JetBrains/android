@@ -17,35 +17,26 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import java.util.Objects;
-import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
-  static final boolean NEW_ONLINE_ENABLED = false;
-
   private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final long mySizeOnDisk;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
     private boolean myOnline;
     private @Nullable String myCpuArchitecture;
     private long mySizeOnDisk;
-
-    private @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection =
-      AvdManagerConnection::getDefaultAvdManagerConnection;
-
     private @Nullable AvdInfo myAvdInfo;
 
     @NotNull Builder setKey(@NotNull Key key) {
@@ -98,11 +89,6 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setGetDefaultAvdManagerConnection(@NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
-      myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
-      return this;
-    }
-
     @NotNull Builder setAvdInfo(@NotNull AvdInfo avdInfo) {
       myAvdInfo = avdInfo;
       return this;
@@ -132,7 +118,6 @@ public final class VirtualDevice extends Device {
     myCpuArchitecture = builder.myCpuArchitecture;
 
     mySizeOnDisk = builder.mySizeOnDisk;
-    myGetDefaultAvdManagerConnection = builder.myGetDefaultAvdManagerConnection;
 
     assert builder.myAvdInfo != null;
     myAvdInfo = builder.myAvdInfo;
@@ -145,13 +130,7 @@ public final class VirtualDevice extends Device {
 
   @Override
   public boolean isOnline() {
-    if (NEW_ONLINE_ENABLED) {
-      return myOnline;
-    }
-
-    // TODO online should be a boolean property. Notify the Virtual tab of devices that come online in a way similar to
-    //  PhysicalDeviceChangeListener.
-    return myGetDefaultAvdManagerConnection.get().isAvdRunning(myAvdInfo);
+    return myOnline;
   }
 
   @NotNull String getCpuArchitecture() {
@@ -210,7 +189,6 @@ public final class VirtualDevice extends Device {
     hashCode = 31 * hashCode + Long.hashCode(mySizeOnDisk);
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
-    hashCode = 31 * hashCode + myGetDefaultAvdManagerConnection.hashCode();
     hashCode = 31 * hashCode + myAvdInfo.hashCode();
 
     return hashCode;
@@ -234,7 +212,6 @@ public final class VirtualDevice extends Device {
            mySizeOnDisk == device.mySizeOnDisk &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
-           myGetDefaultAvdManagerConnection.equals(device.myGetDefaultAvdManagerConnection) &&
            myAvdInfo.equals(device.myAvdInfo);
   }
 }

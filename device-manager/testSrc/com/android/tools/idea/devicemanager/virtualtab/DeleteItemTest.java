@@ -51,14 +51,13 @@ public final class DeleteItemTest {
     Mockito.when(panel.getTable()).thenReturn(myTable);
 
     myEditor = Mockito.mock(VirtualDevicePopUpMenuButtonTableCellEditor.class);
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd, () -> myConnection));
     Mockito.when(myEditor.getPanel()).thenReturn(panel);
   }
 
   @Test
   public void deleteItemDeviceIsOnline() {
     // Arrange
-    Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.onlinePixel5Api31(myAvd));
 
     AbstractButton item = new DeleteItem(myEditor,
                                          DeleteItemTest::showCannotDeleteRunningAvdDialog,
@@ -76,6 +75,8 @@ public final class DeleteItemTest {
   @Test
   public void deleteItemNotDelete() {
     // Arrange
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+
     AbstractButton item = new DeleteItem(myEditor,
                                          DeleteItemTest::showCannotDeleteRunningAvdDialog,
                                          (device, component) -> false,
@@ -92,6 +93,8 @@ public final class DeleteItemTest {
   @Test
   public void deleteItem() throws Exception {
     // Arrange
+    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+
     AbstractButton item = new DeleteItem(myEditor,
                                          DeleteItemTest::showCannotDeleteRunningAvdDialog,
                                          (device, component) -> true,
