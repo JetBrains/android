@@ -255,8 +255,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       parentDisposable: Disposable,
                                       onPinFileAction: AnAction,
                                       onUnPinAction: AnAction) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0),
   ComposePreviewView, Pannable, DataProvider {
+
+  private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0)
+
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -273,8 +275,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override val mainSurface = createPreviewDesignSurface(
     project, navigationHandler, delegateInteractionHandler, { key ->
-    if (PANNABLE_KEY.`is`(key) || InteractionManager.CURSOR_RECEIVER.`is`(key)) {
+    if (PANNABLE_KEY.`is`(key)) {
       this@ComposePreviewViewImpl
+    } else if (InteractionManager.CURSOR_RECEIVER.`is`(key)) {
+      workbench
     } else dataProvider.getData(key)
   }, parentDisposable,
     DesignSurface.ZoomControlsPolicy.HIDDEN) { surface, model ->
@@ -300,7 +304,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
       mainSurface.isPanning = value
     }
 
-  override val component: JComponent = this
+  override val component: JComponent = workbench
 
   private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
   private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction)
@@ -367,7 +371,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
       val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
         psiFilePointer.element?.virtualFile?.let { requestBuild(project, it, true) }
-        repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
+        workbench.repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
       }
     }
 
@@ -411,8 +415,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
     val issueErrorSplitter = IssuePanelSplitter(mainSurface, mainPanelSplitter)
 
-    init(issueErrorSplitter, mainSurface, listOf(), false)
-    hideContent()
+    workbench.init(issueErrorSplitter, mainSurface, listOf(), false)
+    workbench.hideContent()
     if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
       log.debug("Project needs build")
       showNeedsToBuildErrorPanel()
@@ -424,17 +428,17 @@ internal class ComposePreviewViewImpl(private val project: Project,
         else -> message("panel.initializing")
       }
       log.debug("Show loading: $message")
-      showLoading(message)
+      workbench.showLoading(message)
     }
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    isFocusCycleRoot = true
+    workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    workbench.isFocusCycleRoot = true
   }
 
   override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
     log.debug("updateProgress: $message")
-    if (isMessageVisible) {
-      showLoading(message)
-      hideContent()
+    if (workbench.isMessageVisible) {
+      workbench.showLoading(message)
+      workbench.hideContent()
     }
   }
 
@@ -461,11 +465,11 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   private fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
     log.debug("showModelErrorMessage: $message")
-    loadingStopped(message, actionData)
+    workbench.loadingStopped(message, actionData)
   }
 
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
-    if (Disposer.isDisposed(this) || project.isDisposed || !parentEditor.isValid) return@invokeLaterIfNeeded
+    if (Disposer.isDisposed(workbench) || project.isDisposed || !parentEditor.isValid) return@invokeLaterIfNeeded
 
     notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
@@ -504,16 +508,16 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * Calling this method will also update the FileEditor notifications.
    */
   override fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
-    if (isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+    if (workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
       log.debug("Needs successful build")
       showNeedsToBuildErrorPanel()
     }
     else {
       if (hasRendered) {
         log.debug("Show content")
-        hideLoading()
+        workbench.hideLoading()
         if (hasContent) {
-          if (showContent()) {
+          if (workbench.showContent()) {
             // We invoke later to allow the panel to layout itself before calling zoomToFit.
             ApplicationManager.getApplication().invokeLater {
               // We zoom to fit the pinned surface to have better initial zoom level when first build is completed.
@@ -525,8 +529,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
           }
         }
         else {
-          hideContent()
-          loadingStopped(message("panel.no.previews.defined"),
+          workbench.hideContent()
+          workbench.loadingStopped(message("panel.no.previews.defined"),
                          null,
                          UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
                          null)
@@ -574,7 +578,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
   override var hasContent: Boolean = false
 
   override val isMessageBeingDisplayed: Boolean
-    get() = this.isMessageVisible
+    get() = this.workbench.isMessageVisible
 
   @get:Synchronized
   override var hasRendered: Boolean = false

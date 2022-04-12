@@ -176,12 +176,12 @@ class ComposePreviewViewImplTest {
     val composePreviewViewImpl = ComposePreviewViewImpl(project, mainFileSmartPointer, statusManager, PreviewNavigationHandler(),
                                                         nopDataProvider,
                                                         fixture.testRootDisposable, nopAction, nopAction)
-    Disposer.register(fixture.testRootDisposable, composePreviewViewImpl)
+
     previewView = composePreviewViewImpl
     fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(1000, 800)
-      add(composePreviewViewImpl, BorderLayout.CENTER)
+      add(composePreviewViewImpl.component, BorderLayout.CENTER)
     }, 1.0, true)
     fakeUi.root.validate()
   }
