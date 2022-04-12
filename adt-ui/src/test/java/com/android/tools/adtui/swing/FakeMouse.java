@@ -264,6 +264,7 @@ public final class FakeMouse {
 
   public enum Button {
     LEFT(MouseEvent.BUTTON1, InputEvent.BUTTON1_DOWN_MASK),
+    CTRL_LEFT(MouseEvent.BUTTON1, InputEvent.BUTTON1_DOWN_MASK | InputEvent.CTRL_DOWN_MASK),
     RIGHT(MouseEvent.BUTTON3, InputEvent.BUTTON3_DOWN_MASK),
     MIDDLE(MouseEvent.BUTTON2, InputEvent.BUTTON2_DOWN_MASK);
 

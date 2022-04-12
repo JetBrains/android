@@ -25,7 +25,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.ZoneId
 import java.util.regex.PatternSyntaxException
-import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
  * The top level filter that prepares and executes a [LogcatFilter]
@@ -54,6 +53,10 @@ internal interface LogcatFilter {
   fun prepare() {}
 
   fun matches(message: LogcatMessageWrapper): Boolean
+
+  companion object {
+    const val MY_PACKAGE = "package:mine"
+  }
 }
 
 internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {

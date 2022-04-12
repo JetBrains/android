@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.actions.DeviceScreenshotAction
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
@@ -48,12 +49,14 @@ import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.LOGCAT_FILTER_HINT_KEY
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AdbAdapter
@@ -96,16 +99,23 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Cursor
+import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
+import kotlin.text.RegexOption.LITERAL
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
 private const val MAX_TAGS = 1000
 private const val MAX_PACKAGE_NAMES = 1000
+
+private val HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 
 /**
  * The top level Logcat panel.
@@ -173,7 +183,7 @@ internal class LogcatMainPanel(
   internal val messageProcessor = MessageProcessor(
     this,
     ::formatMessages,
-    logcatFilterParser.parse(headerPanel.getFilterText()))
+    logcatFilterParser.parse(headerPanel.filter))
 
   @VisibleForTesting
   internal var deviceManager: LogcatDeviceManager? = null
@@ -188,6 +198,9 @@ internal class LogcatMainPanel(
         override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(popupActionGroup.getChildren(null))
       })
       settings.isUseSoftWraps = state?.isSoftWrap ?: false
+      if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
+        addFilterHintHandlers()
+      }
     }
 
     toolbar.targetComponent = this
@@ -210,7 +223,7 @@ internal class LogcatMainPanel(
         .setPanelAdded(
           LogcatPanelEvent.newBuilder()
             .setIsRestored(state != null)
-            .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.getFilterText()))
+            .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter))
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
 
     project.messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
@@ -284,7 +297,7 @@ internal class LogcatMainPanel(
       LogcatPanelConfig(
         headerPanel.getSelectedDevice()?.copy(isOnline = false),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
-        headerPanel.getFilterText(),
+        headerPanel.filter,
         editor.settings.isUseSoftWraps))
   }
 
@@ -452,6 +465,62 @@ internal class LogcatMainPanel(
     else {
       devices.find { device.deviceId == it.serialNumber }
     }
+  }
+
+  private fun MouseEvent.getHintFilter(): String? {
+    val position = editor.xyToLogicalPosition(Point(x, y))
+    val offset = editor.logicalPositionToOffset(position)
+    var filterHint: FilterHint? = null
+    document.processRangeMarkersOverlappingWith(offset, offset) {
+      filterHint = it.getUserData(LOGCAT_FILTER_HINT_KEY)
+      false
+    }
+    return filterHint?.getFilter()
+  }
+
+  private fun EditorEx.addFilterHintHandlers() {
+    // Note that adding & removing a filter to an existing filter properly is not trivial. For example, if the existing filter contains
+    // logical operators & parens, just appending/deleting the filter term can result in unexpected results or even in an invalid filter.
+    // For example: If the existing filter is "package:mine | level:error", trying to remove "level:error" will result in an invalid filter
+    // "package:mine |".
+    // Since this is an extreme use case, we don't attempt to be 100% correct when add/removing filters. We just verify that the resulting
+    // filter is a valid filter. If it's not, we disable the action.
+    contentComponent.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (e.isControlDown && e.button == BUTTON1) {
+          val hintFilter = e.getHintFilter()
+          if (hintFilter != null) {
+            val newFilter = calculateNewFilter(hintFilter)
+            if (newFilter != null) {
+              headerPanel.filter = newFilter
+            }
+          }
+        }
+      }
+    })
+    contentComponent.addMouseMotionListener(object : MouseAdapter() {
+      override fun mouseMoved(e: MouseEvent) {
+        if (e.isControlDown) {
+          val hintFilter = e.getHintFilter()
+          if (hintFilter != null && calculateNewFilter(hintFilter) != null) {
+            contentComponent.cursor = HAND_CURSOR
+            return
+          }
+        }
+        contentComponent.cursor = TEXT_CURSOR
+      }
+    })
+  }
+
+  private fun calculateNewFilter(filter: String): String? {
+    val oldFilter = headerPanel.filter
+    val newFilter = when {
+      oldFilter.contains(filter) -> oldFilter.replace("""\b+${filter.toRegex(LITERAL)}\b+""".toRegex(), " ").trim()
+      oldFilter.isEmpty() -> filter
+      else -> headerPanel.filter + " $filter"
+    }
+
+    return if (logcatFilterParser.isValid(newFilter)) newFilter else null
   }
 }
 

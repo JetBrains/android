@@ -399,7 +399,7 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_hints() {
+  fun formatMessages_filterHints() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
@@ -407,12 +407,38 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", TIMESTAMP), "message1"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", TIMESTAMP), "message2"),
+        LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", TIMESTAMP), "message2"),
       ))
 
-    textAccumulator.hintRanges.forEach {
-      assertThat(it.getText(textAccumulator.text).trim()).isEqualTo(it.data)
-    }
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "app1" to "package:app1",
+      "tag1" to "tag:tag1",
+      " W " to "level:WARN",
+      "app2" to "package:app2",
+      "tag2" to "tag:tag2",
+      " I " to "level:INFO",
+    )
+  }
+
+  @Test
+  fun formatMessages_filterHints_unknownApp() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "tag1", TIMESTAMP), "message1"),
+      ))
+
+
+    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
+    assertThat(filterHints).containsExactly(
+      "tag1" to "tag:tag1",
+      " W " to "level:WARN",
+    )
   }
 
   @Test

@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
-internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
+internal val LOGCAT_FILTER_HINT_KEY = Key.create<TextAccumulator.FilterHint>("LogcatHint")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
@@ -36,7 +36,7 @@ internal class DocumentAppender(project: Project, private val document: Document
    * they are valid.
    */
   @VisibleForTesting
-  internal val hintRanges = ArrayDeque<RangeMarker>()
+  internal val filterHintRanges = ArrayDeque<RangeMarker>()
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
@@ -62,16 +62,16 @@ internal class DocumentAppender(project: Project, private val document: Document
         markupModel.addRangeHighlighter(textAttributesKey, start, end, HighlighterLayer.SYNTAX, HighlighterTargetArea.EXACT_RANGE)
       }
     }
-    for (range in buffer.hintRanges) {
+    for (range in buffer.filterHintRanges) {
       range.applyRange(offset) { start, end, hint ->
-        hintRanges.add(document.createRangeMarker(start, end).apply {
-          putUserData(LOGCAT_HINT_KEY, hint)
+        filterHintRanges.add(document.createRangeMarker(start, end).apply {
+          putUserData(LOGCAT_FILTER_HINT_KEY, hint)
         })
       }
     }
 
-    while (!hintRanges.isEmpty() && !hintRanges.first().isReallyValid()) {
-      hintRanges.removeFirst()
+    while (!filterHintRanges.isEmpty() && !filterHintRanges.first().isReallyValid()) {
+      filterHintRanges.removeFirst()
     }
   }
 

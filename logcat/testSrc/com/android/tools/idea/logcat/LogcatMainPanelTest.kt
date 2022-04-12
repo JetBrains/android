@@ -21,6 +21,7 @@ import com.android.adblib.testing.FakeAdbLibSession
 import com.android.ddmlib.AvdData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
+import com.android.ddmlib.Log.LogLevel.ERROR
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
@@ -28,12 +29,14 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -89,6 +92,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -132,6 +136,12 @@ class LogcatMainPanelTest {
       AndroidLogcatFormattingOptions::class.java,
       androidLogcatFormattingOptions,
       projectRule.project)
+    StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.clearOverride()
   }
 
   @RunsInEdt
@@ -541,7 +551,7 @@ class LogcatMainPanelTest {
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow testing.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
-    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("filter")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isTrue()
   }
 
@@ -552,7 +562,7 @@ class LogcatMainPanelTest {
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isInstanceOf(ProjectAppFilter::class.java)
-    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("package:mine")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isFalse()
   }
 
@@ -563,7 +573,7 @@ class LogcatMainPanelTest {
 
     val logcatMainPanel = logcatMainPanel(state = null)
 
-    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("foo")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
   }
 
   @RunsInEdt
@@ -576,7 +586,7 @@ class LogcatMainPanelTest {
 
     val logcatMainPanel = logcatMainPanel(state = null)
 
-    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("bar")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("bar")
   }
 
   @RunsInEdt
@@ -585,7 +595,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = logcatMainPanel(state = null, androidProjectDetector = FakeAndroidProjectDetector(false))
 
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isNull()
-    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("")
   }
 
   @Test
@@ -808,6 +818,126 @@ class LogcatMainPanelTest {
               LogcatFilterEvent.newBuilder()
                 .setImplicitLineTerms(1)))
         .build())
+  }
+
+  @Test
+  fun clickToSetFilter_addToEmpty() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().apply {
+        size = Dimension(100, 100)
+        headerPanel.filter = ""
+      }
+    }
+    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      runInEdtAndWait {
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app2")
+        val point = logcatMainPanel.editor.offsetToXY(offset)
+        fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:app2")
+      }
+    }
+  }
+
+  @Test
+  fun clickToSetFilter_addToNotEmpty() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().apply {
+        size = Dimension(100, 100)
+        headerPanel.filter = "foo"
+      }
+    }
+    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      runInEdtAndWait {
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app2")
+        val point = logcatMainPanel.editor.offsetToXY(offset)
+        fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo package:app2")
+      }
+    }
+  }
+
+  @Test
+  fun clickToSetFilter_remove() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().apply {
+        size = Dimension(100, 100)
+        headerPanel.filter = "package:mine level:INFO"
+      }
+    }
+    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      runInEdtAndWait {
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
+        val point = logcatMainPanel.editor.offsetToXY(offset)
+        fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
+      }
+    }
+  }
+
+  @Test
+  fun clickToSetFilter_removeMultiple() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().apply {
+        size = Dimension(100, 100)
+        headerPanel.filter = "level:INFO package:mine level:INFO"
+      }
+    }
+    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      runInEdtAndWait {
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
+        val point = logcatMainPanel.editor.offsetToXY(offset)
+        fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine")
+      }
+    }
+  }
+
+  @Test
+  fun clickToSetFilter_invalidFilter() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().apply {
+        size = Dimension(100, 100)
+        headerPanel.filter = "package:mine | level:error"
+      }
+    }
+    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(ERROR, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      runInEdtAndWait {
+        val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
+        val point = logcatMainPanel.editor.offsetToXY(offset)
+        fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
+        assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine | level:error")
+      }
+    }
   }
 
   private fun logcatMainPanel(

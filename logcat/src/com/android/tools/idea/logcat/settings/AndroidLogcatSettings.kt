@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.settings
 
+import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -22,7 +23,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 private const val DEFAULT_BUFFER_SIZE = 1024 * 1024
-private const val DEFAULT_FILTER = "package:mine"
+private const val DEFAULT_FILTER = LogcatFilter.MY_PACKAGE
 
 @State(name = "AndroidLogcatSettings", storages = [Storage("androidLogcatSettings.xml")])
 internal data class AndroidLogcatSettings(

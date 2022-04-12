@@ -679,6 +679,14 @@ public final class StudioFlags {
     "Enables the custom format action in the Logcat tool window action bar",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_CLICK_TO_ADD_FILTER = Flag.create(
+    LOGCAT,
+    "logcat.click.to.add.filter",
+    "Enable Logcat click to add/remove filter feature",
+    "Enable Logcat click to add/remove filter feature",
+    false
+  );
   //endregion
 
   //region Gradle Project System

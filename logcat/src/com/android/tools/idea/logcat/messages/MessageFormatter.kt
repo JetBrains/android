@@ -17,7 +17,12 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.SYSTEM_HEADER
+import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.AppName
+import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Level
+import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import java.time.ZoneId
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -43,12 +48,19 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
 
       textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
       textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
-      textAccumulator.accumulate(formattingOptions.tagFormat.format(tag, previousTag), textAttributes = logcatColors.getTagColor(tag),
-                                 hint = tag)
-      textAccumulator.accumulate(formattingOptions.appNameFormat.format(appName, header.pid, previousPid), hint = appName)
-      textAccumulator.accumulate(" ${header.logLevel.priorityLetter} ", textAttributesKey = logcatColors.getLogLevelKey(header.logLevel))
       textAccumulator.accumulate(
-        " ${message.message.replace("\n", newline)}\n",
+        text = formattingOptions.tagFormat.format(tag, previousTag),
+        textAttributes = logcatColors.getTagColor(tag),
+        filterHint = Tag(tag, min(tag.length, formattingOptions.tagFormat.maxLength)))
+      textAccumulator.accumulate(
+        text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid),
+        filterHint = if (appName != "?") AppName(appName, min(appName.length, formattingOptions.appNameFormat.maxLength - 1)) else null)
+      textAccumulator.accumulate(
+        text = " ${header.logLevel.priorityLetter} ",
+        textAttributesKey = logcatColors.getLogLevelKey(header.logLevel),
+        filterHint = Level(header.logLevel))
+      textAccumulator.accumulate(
+        text = " ${message.message.replace("\n", newline)}\n",
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
 
       previousTag = tag

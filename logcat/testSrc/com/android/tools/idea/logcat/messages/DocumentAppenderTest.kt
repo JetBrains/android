@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -47,8 +48,8 @@ class DocumentAppenderTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  private val document: DocumentEx = DocumentImpl("", /* allowUpdatesWithoutWriteAction= */ true)
-  private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, /* create= */ false) }
+  private val document: DocumentEx = DocumentImpl("", true)
+  private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, false) }
 
   @Test
   fun appendToDocument_appendsText() {
@@ -229,27 +230,27 @@ class DocumentAppenderTest {
   }
 
   @Test
-  fun appendToDocument_setsHintRanges() {
+  fun appendToDocument_setsFilterHintRanges() {
     val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
     documentAppender.appendToDocument(TextAccumulator().apply {
       accumulate("No hint\n")
-      accumulate("Foo\n", hint = "foo")
-      accumulate("Bar\n", hint = "bar")
+      accumulate("Foo\n", filterHint = Tag("foo", 3))
+      accumulate("Bar\n", filterHint = Tag("bar", 3))
     })
 
     System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
-      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+      if (it.getUserData(LOGCAT_FILTER_HINT_KEY) != null) {
         rangeMarkers.add(it)
       }
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      getRangeForText("Foo\n", "foo"),
-      getRangeForText("Bar\n", "bar")
+      getRangeForText("Foo", Tag("foo", 3)),
+      getRangeForText("Bar", Tag("bar", 3))
     )
   }
 
@@ -259,22 +260,22 @@ class DocumentAppenderTest {
     val documentAppender = documentAppender(document, 8)
 
     documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("abcd\n", hint = "foo")
-      accumulate("efgh\n", hint = "bar")
-      accumulate("ijkl\n", hint = "duh")
+      accumulate("abcd\n", filterHint = Tag("abcd", 4))
+      accumulate("efgh\n", filterHint = Tag("efgh", 4))
+      accumulate("ijkl\n", filterHint = Tag("ijkl", 4))
     })
 
     System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
-      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+      if (it.getUserData(LOGCAT_FILTER_HINT_KEY) != null) {
         rangeMarkers.add(it)
       }
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      getRangeForText("efgh\n", "bar"),
-      getRangeForText("ijkl\n", "duh"),
+      getRangeForText("efgh", Tag("efgh", 4)),
+      getRangeForText("ijkl", Tag("ijkl", 4)),
     )
   }
 
@@ -287,27 +288,27 @@ class DocumentAppenderTest {
 
     documentAppender.appendToDocument(TextAccumulator().apply {
       accumulate("1")
-      accumulate("234\n", hint = "pre")
+      accumulate("234\n", filterHint = Tag("234", 3))
     })
     documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("abcd\n", hint = "foo")
-      accumulate("efgh\n", hint = "bar")
-      accumulate("ijkl\n", hint = "duh")
+      accumulate("abcd\n", filterHint = Tag("abcd", 4))
+      accumulate("efgh\n", filterHint = Tag("efgh", 4))
+      accumulate("ijkl\n", filterHint = Tag("ijkl", 4))
     })
 
     System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
-      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+      if (it.getUserData(LOGCAT_FILTER_HINT_KEY) != null) {
         rangeMarkers.add(it)
       }
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      getRangeForText("efgh\n", "bar"),
-      getRangeForText("ijkl\n", "duh"),
+      getRangeForText("efgh", Tag("efgh", 4)),
+      getRangeForText("ijkl", Tag("ijkl", 4)),
     )
-    assertThat(documentAppender.hintRanges).containsExactlyElementsIn(rangeMarkers)
+    assertThat(documentAppender.filterHintRanges).containsExactlyElementsIn(rangeMarkers)
   }
 
   // There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size.
@@ -318,27 +319,27 @@ class DocumentAppenderTest {
     val documentAppender = documentAppender(document, 8)
 
     documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("1234\n", hint = "pre")
+      accumulate("1234\n", filterHint = Tag("1234", 4))
     })
     documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("abcd\n", hint = "foo")
-      accumulate("efgh\n", hint = "bar")
-      accumulate("ijkl\n", hint = "duh")
+      accumulate("abcd\n", filterHint = Tag("abcd", 4))
+      accumulate("efgh\n", filterHint = Tag("efgh", 4))
+      accumulate("ijkl\n", filterHint = Tag("ijkl", 4))
     })
 
     System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
-      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+      if (it.getUserData(LOGCAT_FILTER_HINT_KEY) != null) {
         rangeMarkers.add(it)
       }
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      getRangeForText("efgh\n", "bar"),
-      getRangeForText("ijkl\n", "duh"),
+      getRangeForText("efgh", Tag("efgh", 4)),
+      getRangeForText("ijkl", Tag("ijkl", 4)),
     )
-    assertThat(documentAppender.hintRanges).containsExactlyElementsIn(rangeMarkers)
+    assertThat(documentAppender.filterHintRanges).containsExactlyElementsIn(rangeMarkers)
   }
 
   private fun <T> getRangeForText(text: String, data: T): TextAccumulator.Range<T>? {
@@ -359,4 +360,4 @@ private fun RangeHighlighter.toTextAttributesRange() =
 private fun RangeHighlighter.toTextAttributesKeyRange() =
   TextAccumulator.Range(range!!.startOffset, range!!.endOffset, textAttributesKey!!)
 
-private fun RangeMarker.toHintRange() = TextAccumulator.Range(startOffset, endOffset, getUserData(LOGCAT_HINT_KEY))
+private fun RangeMarker.toHintRange() = TextAccumulator.Range(startOffset, endOffset, getUserData(LOGCAT_FILTER_HINT_KEY))

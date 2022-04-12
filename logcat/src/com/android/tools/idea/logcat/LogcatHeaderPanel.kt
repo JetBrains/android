@@ -79,7 +79,7 @@ internal class LogcatHeaderPanel(
 
     helpIcon.let {
       toolTipText = LogcatBundle.message("logcat.help.tooltip")
-      it.addMouseListener(object: MouseAdapter(){
+      it.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
           BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
         }
@@ -89,7 +89,11 @@ internal class LogcatHeaderPanel(
 
   fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
 
-  fun getFilterText() = filterComponent.text
+  var filter: String
+    get() = filterComponent.text
+    set(value) {
+      filterComponent.text = value
+    }
 
   fun selectDevice(device: IDevice) {
     deviceComboBox.selectedItem = device

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.ddmlib.Log.LogLevel
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 
@@ -28,13 +29,13 @@ internal class TextAccumulator {
 
   val textAttributesRanges = mutableListOf<Range<TextAttributes>>()
   val textAttributesKeyRanges = mutableListOf<Range<TextAttributesKey>>()
-  val hintRanges = mutableListOf<Range<String>>()
+  val filterHintRanges = mutableListOf<Range<FilterHint>>()
 
   fun accumulate(
     text: String,
     textAttributes: TextAttributes? = null,
     textAttributesKey: TextAttributesKey? = null,
-    hint: String? = null): TextAccumulator {
+    filterHint: FilterHint? = null): TextAccumulator {
     assert(textAttributes == null || textAttributesKey == null) { "Only one of textAttributesKey and textAttributesKeyKey can be set" }
     val start = stringBuilder.length
     val end = start + text.length
@@ -45,11 +46,47 @@ internal class TextAccumulator {
     else if (textAttributesKey != null) {
       textAttributesKeyRanges.add(Range(start, end, textAttributesKey))
     }
-    if (hint != null) {
-      hintRanges.add(Range(start, end, hint))
+    if (filterHint != null) {
+      filterHintRanges.add(Range(start, start + filterHint.length, filterHint))
     }
     return this
   }
 
   internal data class Range<T>(val start: Int, val end: Int, val data: T)
+
+  internal sealed class FilterHint {
+    /**
+     * A [FilterHint] representing a Tag. Note that the length of the hint can be different from the length of the tag. For example, if
+     * the tag is elided, the length will be shorter than the actual tag.
+     */
+    data class Tag(val tag: String, override val length: Int) : FilterHint() {
+      override fun getFilter(): String = "tag:$tag"
+    }
+
+    /**
+     * A [FilterHint] representing an AppName. Note that the length of the hint can be different from the length of the name. For example,
+     * if the name is elided, the length will be shorter than the actual name.
+     */
+    data class AppName(val appName: String, override val length: Int) : FilterHint() {
+      override fun getFilter(): String = "package:$appName"
+    }
+
+    /**
+     * A [FilterHint] representing a [LogLevel]. The length of this hint is always 3 as in " I ".
+     */
+    data class Level(val level: LogLevel) : FilterHint() {
+      override val length = 3
+      override fun getFilter(): String = "level:${level.name}"
+    }
+
+    /**
+     * The length of the range to be created.
+     */
+    abstract val length: Int
+
+    /**
+     * A filter this hint represents.
+     */
+    abstract fun getFilter(): String
+  }
 }
