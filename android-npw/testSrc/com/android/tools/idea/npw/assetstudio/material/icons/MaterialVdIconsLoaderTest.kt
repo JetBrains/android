@@ -19,38 +19,26 @@ import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIcon
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils
+import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.android.utils.SdkUtils
 import com.google.common.truth.Truth
-import com.intellij.openapi.util.io.FileUtil
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import java.io.File
 import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLConnection
 import java.net.URLStreamHandler
-import java.util.Locale
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.stream.Stream
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createDirectory
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.writeText
 import kotlin.test.assertFailsWith
-
-private const val PATH = "images/material/icons/"
-private const val SIMPLE_VD =
-  "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-  "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-  "    android:height=\"100dp\"\n" +
-  "    android:width=\"100dp\"\n" +
-  "    android:viewportHeight=\"100\"\n" +
-  "    android:viewportWidth=\"100\">\n" +
-  "  <path\n" +
-  "      android:fillColor=\"#FF000000\"\n" +
-  "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
-  "\n" +
-  "</vector>"
 
 class MaterialVdIconsLoaderTest {
 
@@ -58,26 +46,15 @@ class MaterialVdIconsLoaderTest {
   fun testLoaderWithMockJarProvider() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, MockStyleJarUrlProvider())
-    var icons = MaterialVdIcons.EMPTY
-    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
-    checkIcons(icons)
-  }
-
-  @Test
-  fun testLoaderWithMockFileProvider() {
-    val metadata = createMaterialIconsMetadata()
-    val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider("icons/material"))
-    var icons = MaterialVdIcons.EMPTY
-    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    val icons = loader.loadAll(metadata)
     checkIcons(icons)
   }
 
   @Test
   fun testLoaderWithMockFileProviderUsingWhitespace() {
     val metadata = createMaterialIconsMetadata()
-    val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider("material icons/"))
-    var icons = MaterialVdIcons.EMPTY
-    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    val loader = MaterialVdIconsLoader(metadata, TempFileUrlProvider("with White Spaces"))
+    val icons = loader.loadAll(metadata)
     checkIcons(icons)
   }
 
@@ -93,8 +70,7 @@ class MaterialVdIconsLoaderTest {
   fun testLoaderWithTestProvider() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
-    var icons = MaterialVdIcons.EMPTY
-    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    val icons = loader.loadAll(metadata)
     checkIcons(icons)
   }
 
@@ -119,6 +95,31 @@ class MaterialVdIconsLoaderTest {
     icons = loader2.loadMaterialVdIcons("style 1")
     checkIcons(icons)
     icons = loader1.loadMaterialVdIcons("style 2")
+    checkIcons(icons)
+  }
+
+  @Test
+  fun testLoadIconsWithFileProviderAndMissingFile() {
+    val iconsMetadataArray = createMaterialMetadataIconArray().toMutableList().apply {
+      add(
+        // Add a reference to an icon that doesn't exist.
+        MaterialMetadataIcon(
+          name = "fake",
+          version = 1,
+          categories = emptyArray(),
+          unsupportedFamilies = emptyArray(),
+          tags = emptyArray()
+        )
+      )
+    }.toTypedArray()
+    val metadata = MaterialIconsMetadata(
+      host = "",
+      urlPattern = "",
+      families = arrayOf("style 1", "style 2"),
+      icons = iconsMetadataArray
+    )
+    val icons = MaterialVdIconsLoader(metadata, TempFileUrlProvider("withMissingFile")).loadAll(metadata)
+    // The check should still pass since the non-existing icon shouldn't load and is skipped.
     checkIcons(icons)
   }
 
@@ -215,32 +216,34 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
 }
 
 /**
- * [MaterialIconsUrlProvider] implementation that returns a [URL] with a temp [File] for [MaterialIconsUrlProvider.getStyleUrl] and
- * references the test resources for [MaterialIconsUrlProvider.getIconUrl].
+ * [MaterialIconsUrlProvider] implementation that returns [URL]s based on a temp directory.
+ *
+ * Populated similarly to the test resources in /images/material/icons.
  */
-private class FakeStyleFileUrlProvider(private val tempFilePath: String) : MaterialIconsUrlProvider {
+private class TempFileUrlProvider(tempDirPrefix: String) : MaterialIconsUrlProvider {
+  private val tempDirPath = createTempDirectory(tempDirPrefix)
 
-  private val fileUrls: Map<String, URL> = mapOf(
-    Pair("style 1", createFakeFileUrl("style1")),
-    Pair("style 2", createFakeFileUrl("style2"))
+  private val styleToStyleDirUrl: Map<String, URL> = mapOf(
+    Pair("style 1", populateStylePathAndReturnUrl("style1")),
+    Pair("style 2", populateStylePathAndReturnUrl("style2"))
   )
 
-  override fun getStyleUrl(style: String): URL? = fileUrls[style]
+  override fun getStyleUrl(style: String): URL? = styleToStyleDirUrl[style]
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(
-      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName"
+    return SdkUtils.fileToUrl(
+      tempDirPath.resolve(style.toDirFormat()).resolve(iconName).resolve(iconFileName).toFile()
     )
   }
 
-  private fun createFakeFileUrl(styleDir: String): URL {
-    val styleFile = FileUtil.createTempDirectory(javaClass.simpleName, null).resolve("${tempFilePath}$styleDir/").apply { mkdirs() }.also {
-      it.resolve("my_icon_1").apply { mkdir() }.resolve("${styleDir}_my_icon_1_24.xml").writeText(SIMPLE_VD)
-      it.resolve("my_icon_2").apply { mkdir() }.resolve("${styleDir}_my_icon_2_24.xml").writeText(SIMPLE_VD)
-      it.resolve("my_icon_3").apply { mkdir() }.resolve("${styleDir}_my_icon_3_24.xml").writeText(SIMPLE_VD)
+  private fun populateStylePathAndReturnUrl(styleDir: String): URL {
+    val stylePath = tempDirPath.resolve(styleDir).apply { createDirectories() }.also {
+      it.resolve("my_icon_1").apply { createDirectory() }.resolve("${styleDir}_my_icon_1_24.xml").writeText(SIMPLE_VD)
+      it.resolve("my_icon_2").apply { createDirectory() }.resolve("${styleDir}_my_icon_2_24.xml").writeText(SIMPLE_VD)
+      it.resolve("my_icon_3").apply { createDirectory() }.resolve("${styleDir}_my_icon_3_24.xml").writeText(SIMPLE_VD)
       it.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
     }
-    return SdkUtils.fileToUrl(styleFile)
+    return SdkUtils.fileToUrl(stylePath.toFile())
   }
 }
 
@@ -280,3 +283,9 @@ private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arr
     tags = emptyArray()
   )
 )
+
+private fun MaterialVdIconsLoader.loadAll(metadata: MaterialIconsMetadata): MaterialVdIcons {
+  var icons: MaterialVdIcons = MaterialVdIcons.EMPTY
+  metadata.families.forEach { icons = loadMaterialVdIcons(it) }
+  return icons
+}

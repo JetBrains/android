@@ -21,10 +21,10 @@ import com.android.ide.common.vectordrawable.VdIcon
 import com.android.tools.idea.npw.assetstudio.material.icons.common.BundledIconsUrlProvider
 import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadata
-import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.material.icons.utils.MaterialIconsUtils.getIconFileNameWithoutExtension
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
+import java.io.IOException
 
 private val LOG = Logger.getInstance(MaterialVdIconsLoader::class.java)
 
@@ -38,13 +38,6 @@ class MaterialVdIconsLoader(
 
   private val styleCategoryToSortedIcons: HashMap<String, Map<String, Array<VdIcon>>> = HashMap()
   private val styleToSortedIcons = HashMap<String, Array<VdIcon>>()
-
-  // Helper map to quickly verify the icon file exists in the metadata and get the icon's metadata.
-  private val iconNameToIconMetadata = HashMap<String, MaterialMetadataIcon>().apply {
-    metadata.icons.forEach { iconMetadata ->
-      this[iconMetadata.name] = iconMetadata
-    }
-  }
 
   /**
    * Loads the icons bundled with AndroidStudio that correspond to the given [style], returns an updated [MaterialVdIcons].
@@ -96,8 +89,15 @@ class MaterialVdIconsLoader(
   private fun loadVdIcon(styleName: String, iconName: String, fileName: String): VdIcon? {
     val iconUrl = urlProvider.getIconUrl(styleName, iconName, fileName)
     if (iconUrl == null) {
-      LOG.warn("Could not load icon: Name=$iconName FileName=$fileName. From provider: ${urlProvider::class.java.name}.")
+      LOG.warn("Could not obtain Icon URL: Name=$iconName FileName=$fileName. From provider: ${urlProvider::class.java.name}.")
+      return null
     }
-    return iconUrl?.let { VdIcon(it).apply { setShowName(true) } }
+    return try {
+      VdIcon(iconUrl).apply { setShowName(true) }
+    }
+    catch (e: IOException) {
+      LOG.warn("Failed to load material icon $iconUrl", e)
+      return null
+    }
   }
 }

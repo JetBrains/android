@@ -20,7 +20,6 @@ import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIc
 import com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialMetadataIcon
 import com.android.utils.SdkUtils
 import com.intellij.openapi.util.io.FileUtil
-import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -51,20 +50,6 @@ private const val INCOMPLETE_METADATA =
   "    }\n" +
   "  ]\n" +
   "}"
-
-@Language("XML")
-private const val SIMPLE_VD =
-  "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-  "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-  "    android:height=\"100dp\"\n" +
-  "    android:width=\"100dp\"\n" +
-  "    android:viewportHeight=\"100\"\n" +
-  "    android:viewportWidth=\"100\">\n" +
-  "  <path\n" +
-  "      android:fillColor=\"#FF000000\"\n" +
-  "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
-  "\n" +
-  "</vector>"
 
 class MaterialIconsCopyHandlerTest {
 
