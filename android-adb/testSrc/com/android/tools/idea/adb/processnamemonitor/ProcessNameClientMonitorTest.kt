@@ -149,7 +149,7 @@ class ProcessNameClientMonitorTest {
       projectRule.project,
       device,
       flows,
-      this,
+      coroutineContext,
       maxPids)
       .apply { start() }
   }

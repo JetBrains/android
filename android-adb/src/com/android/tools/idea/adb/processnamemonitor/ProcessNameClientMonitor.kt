@@ -24,8 +24,9 @@ import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private const val MAX_PIDS = 1000
 
@@ -36,26 +37,23 @@ private const val MAX_PIDS = 1000
  *
  * @param project The [Project]
  * @param device The [IDevice] to monitor
- * @param flows A flow where [ProcessNames] are sent to.
- * @param coroutineScope Optional scope to run coroutines in
+ * @param flows A flow where [ProcessNames] are sent to
+ * @param coroutineContext The coroutine context to run coroutines with
  * @param maxPidsBeforeEviction The maximum number of entries in the cache before we start evicting dead processes
  */
-internal class ProcessNameClientMonitor @TestOnly internal constructor(
+internal class ProcessNameClientMonitor(
   project: Project,
   private val device: IDevice,
   private val flows: ProcessNameMonitorFlows,
-  coroutineScope: CoroutineScope?,
-  private val maxPidsBeforeEviction: Int,
+  coroutineContext: CoroutineContext = EmptyCoroutineContext,
+  private val maxPidsBeforeEviction: Int = MAX_PIDS,
 ) : Disposable {
-
-  constructor(project: Project, device: IDevice, flows: ProcessNameMonitorFlows) : this(project, device, flows, null, MAX_PIDS)
-
   /**
    * The map of pid -> [ProcessNames] for currently alive processes, plus recently terminated processes.
    */
   private val processes = ConcurrentHashMap<Int, ProcessNames>()
 
-  private val coroutineScope: CoroutineScope = coroutineScope ?: AndroidCoroutineScope(this)
+  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
   init {
     Disposer.register(project, this)
