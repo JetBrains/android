@@ -18,7 +18,7 @@ package com.android.tools.idea.adb.processnamemonitor
 /**
  * Contains an Android process application id (or "package name") and process name
  */
-class ProcessNames(val applicationId: String, val processName: String) {
+data class ProcessNames(val applicationId: String, val processName: String) {
   fun isInitialized(): Boolean = applicationId.isNotEmpty() && processName.isNotEmpty()
 
   fun isNotInitialized(): Boolean = !isInitialized()

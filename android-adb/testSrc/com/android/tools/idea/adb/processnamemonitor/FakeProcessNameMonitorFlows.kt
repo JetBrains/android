@@ -19,18 +19,21 @@ import com.android.ddmlib.IDevice
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 
 internal class FakeProcessNameMonitorFlows : ProcessNameMonitorFlows, Closeable {
   private val deviceEventsChannel = Channel<DeviceMonitorEvent>(10)
   private val clientEventsChannels = mutableMapOf<String, Channel<ClientMonitorEvent>>()
 
-  fun sendClientEvents(serialNumber: String, vararg events: ClientMonitorEvent) {
-    val channel = clientEventsChannels[serialNumber] ?: throw IllegalArgumentException("Channel for device $serialNumber not found.")
-    runBlocking {
-      events.forEach { channel.send(it) }
+  suspend fun sendDeviceEvents(vararg events: DeviceMonitorEvent) {
+    events.forEach {
+      deviceEventsChannel.send(it)
     }
+  }
+
+  suspend fun sendClientEvents(serialNumber: String, vararg events: ClientMonitorEvent) {
+    val channel = clientEventsChannels[serialNumber] ?: throw IllegalArgumentException("Channel for device $serialNumber not found.")
+    events.forEach { channel.send(it) }
   }
 
   override fun trackDevices(): Flow<DeviceMonitorEvent> = deviceEventsChannel.consumeAsFlow()

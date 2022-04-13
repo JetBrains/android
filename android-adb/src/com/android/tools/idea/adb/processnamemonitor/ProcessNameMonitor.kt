@@ -17,11 +17,16 @@ package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 
 /**
  * Monitors devices and keeps track of process names.
  */
 interface ProcessNameMonitor {
+  /**
+   * Starts the monitor if not already started
+   */
+  fun start()
 
   /**
    * Returns a [ProcessNames] for a given pid or null if not found.
@@ -30,5 +35,7 @@ interface ProcessNameMonitor {
 
   companion object {
     internal val LOGGER = Logger.getInstance(ProcessNameMonitor::class.java)
+
+    fun getInstance(project: Project): ProcessNameMonitor = project.getService(ProcessNameMonitorImpl::class.java)
   }
 }

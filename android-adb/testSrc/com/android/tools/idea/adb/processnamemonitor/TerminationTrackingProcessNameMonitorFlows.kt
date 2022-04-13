@@ -32,6 +32,12 @@ internal class TerminationTrackingProcessNameMonitorFlows : ProcessNameMonitorFl
   private val clientFlowStarted = mutableMapOf<String, Boolean>()
   private val clientFlowTerminated = mutableMapOf<String, Boolean>()
 
+  suspend fun sendDeviceEvents(vararg events: DeviceMonitorEvent) {
+    events.forEach {
+      deviceEventsChannel.send(it)
+    }
+  }
+
   fun isClientFlowStarted(serialNumber: String) = clientFlowStarted.getOrDefault(serialNumber, false)
   fun isClientFlowTerminated(serialNumber: String) = clientFlowTerminated.getOrDefault(serialNumber, false)
 
