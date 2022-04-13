@@ -76,7 +76,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
           public abstract static class MyBackupAgent extends android.app.backup.BackupAgent { }
           public static class MyView extends android.view.View { }
           public abstract static class MyActionProvider extends android.view.ActionProvider { }
-          <warning descr="Access can be private">public</warning> static class Pojo { }
+          <warning descr="Access can be 'private'">public</warning> static class Pojo { }
 
           private Pojo pojo;
           private MyService myService;
