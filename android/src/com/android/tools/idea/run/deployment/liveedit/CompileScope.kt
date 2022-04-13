@@ -91,8 +91,7 @@ private fun handleCompilerErrors(e: Throwable) {
       var nameEnd = message.indexOf("'", nameStart)
       var name = message.substring(nameStart, nameEnd)
 
-      throw LiveEditUpdateException.knownIssue(223485031,
-                                               "Unable to update function that references" +
+      throw LiveEditUpdateException.inlineFailure("Unable to update function that references" +
                                                " an inline function from another source file: $name")
     }
   }
@@ -218,8 +217,7 @@ private object CompileScopeImpl : CompileScope {
 
     try {
       KotlinCodegenFacade.compileCorrectFiles(generationState)
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       handleCompilerErrors(e) // handleCompilerErrors() always throws.
     }
 

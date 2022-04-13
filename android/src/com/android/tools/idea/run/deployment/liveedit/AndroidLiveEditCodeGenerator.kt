@@ -108,33 +108,41 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       ProgressManager.checkCanceled()
       var bindingContext = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
 
-      // 1.1) Add any extra source file this compilation need in order to support the input file calling an inline function
-      //      from another source file.
-      //      Note: This can be potentially be very expensive. We might consider doing this only if the initial compile
-      //      fails because of an inlining issue.
-      if (LiveEditConfig.getInstance().useInlineAnalysis) {
-        inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
-
-        // We need to perform the analysis once more with the new set of input files.
-        val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
-
-        // We will need to start using the binding context from the new analysis for code gen.
-        bindingContext = newAnalysisResult.bindingContext
-      }
-
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
       //    the complexity of the input .kt file.
       ProgressManager.checkCanceled()
-      val generationState = tracker.record({
-                                             backendCodeGen(project, resolution, bindingContext, inputFiles,
-                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
-                                           }, "codegen")
+      var generationState : GenerationState? = null
+      try {
+        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                         AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
+                                         "codegen")
+      } catch (e : LiveEditUpdateException) {
+        if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
+          throw e
+        }
+
+        // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
+        //      from another source file then perform a compilation again.
+        if (LiveEditConfig.getInstance().useInlineAnalysis) {
+          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
+
+          // We need to perform the analysis once more with the new set of input files.
+          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+
+          // We will need to start using the binding context from the new analysis for code gen.
+          bindingContext = newAnalysisResult.bindingContext
+
+          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                           AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
+                                           "codegen_inline")
+        }
+      }
 
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
       //    decide which classes we want to send to the device along with what extra meta-information the
       //    agent need.
-      return@runWithCompileLock inputs.map { getGeneratedCode(it, generationState)}
+      return@runWithCompileLock inputs.map { getGeneratedCode(it, generationState!!)}
     }
   }
 

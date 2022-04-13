@@ -27,6 +27,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", cause 
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true),
     COMPILATION_ERROR("Compilation Error", "%", true),
+    UNABLE_TO_INLINE("Unable to inline function", "%", true),
     INTERNAL_ERROR("Internal Error", "%", false),
     KNOWN_ISSUE("Known Issue", "%", true),
   }
@@ -42,6 +43,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", cause 
     fun internalError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.INTERNAL_ERROR, details, cause)
 
     fun knownIssue(bugNumber: Int, details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.KNOWN_ISSUE, "(b/$bugNumber) $details", cause)
+
+    fun inlineFailure(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", cause)
   }
 }
 
