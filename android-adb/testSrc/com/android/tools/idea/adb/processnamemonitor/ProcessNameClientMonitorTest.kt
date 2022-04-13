@@ -16,13 +16,16 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit.SECONDS
 
 /**
  * Tests for [ProcessNameClientMonitor]
@@ -139,6 +142,15 @@ class ProcessNameClientMonitorTest {
     }
   }
 
+  @Test
+  fun dispose_closesFlow() {
+    val flows = TerminationTrackingProcessNameMonitorFlows()
+    val monitor = ProcessNameClientMonitor(projectRule.project, device, flows).apply { start() }
+    waitForCondition(5, SECONDS) {flows.isClientFlowStarted(device.serialNumber)}
+    Disposer.dispose(monitor)
+
+    waitForCondition(5, SECONDS) { flows.isClientFlowTerminated(device.serialNumber) }
+  }
 
   private fun TestCoroutineScope.processNameClientMonitor(
     device: IDevice = this@ProcessNameClientMonitorTest.device,
