@@ -129,12 +129,25 @@ class RuleDetailsViewTest {
     assertThat(rule.criteria.host).isEqualTo(url)
 
     val headerPanel = ruleDetailsView.getCategoryPanel("Header rules") as JPanel
-    val table = TreeWalker(headerPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
-    assertThat(table.rowCount).isEqualTo(0)
+    val headerTable = TreeWalker(headerPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
+    assertThat(headerTable.rowCount).isEqualTo(0)
     val headerAddedRule = RuleData.HeaderAddedRuleData("header", "value")
     rule.headerRuleTableModel.insertRow(0, headerAddedRule)
-    assertThat(table.rowCount).isEqualTo(1)
-    assertThat(table.items[0]).isEqualTo(headerAddedRule)
+    assertThat(headerTable.rowCount).isEqualTo(1)
+    assertThat(headerTable.items[0]).isEqualTo(headerAddedRule)
+
+    val bodyPanel = ruleDetailsView.getCategoryPanel("Body rules") as JPanel
+    val bodyTable = TreeWalker(bodyPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
+    assertThat(bodyTable.rowCount).isEqualTo(0)
+    val bodyReplacedRule = RuleData.BodyReplacedRuleData("body")
+    rule.bodyRuleTableModel.insertRow(0, bodyReplacedRule)
+    assertThat(bodyTable.rowCount).isEqualTo(1)
+    assertThat(bodyTable.items[0]).isEqualTo(bodyReplacedRule)
+
+    val bodyModifiedRule = RuleData.BodyModifiedRuleData("body", true, "newBody")
+    rule.bodyRuleTableModel.insertRow(0, bodyModifiedRule)
+    assertThat(bodyTable.rowCount).isEqualTo(2)
+    assertThat(bodyTable.items[0]).isEqualTo(bodyModifiedRule)
   }
 
   private fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)

@@ -15,16 +15,27 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
+import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Font
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -131,4 +142,51 @@ fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
     .toList()
   check(matches.size <= 1) { "More than one component found with the name: $name" }
   return if (matches.size == 1) matches[0] as JComponent else null
+}
+
+/**
+ * Create a component that shows a category [name] with [TitledSeparator] and a list of following
+ * [entryComponents].
+ */
+fun createCategoryPanel(name: String, entryComponents: List<JComponent>): JPanel {
+  val panel = JPanel(VerticalLayout(6))
+
+  val headingPanel = TitledSeparator(name)
+  headingPanel.minimumSize = Dimension(0, 34)
+  panel.add(headingPanel)
+
+  for (component in entryComponents) {
+    component.border = BorderFactory.createEmptyBorder()
+    panel.add(component)
+  }
+  return panel
+}
+
+/**
+ * Create a panel that shows a pair of key label and value component.
+ */
+fun createKeyValuePair(key: String, componentProvider: () -> JComponent): JPanel {
+  val panel = JPanel(TabularLayout("155px,Fit")).apply {
+    border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
+  }
+  val keyPanel = JPanel(BorderLayout())
+  keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
+  panel.add(keyPanel, TabularLayout.Constraint(0, 0))
+  panel.add(componentProvider(), TabularLayout.Constraint(0, 1))
+  return panel
+}
+
+/**
+ * Create a [JBTextField] with preferred [width] and focus lost listener.
+ */
+fun createTextField(defaultText: String, width: Int, focusLost: (String) -> Unit = {}): JBTextField {
+  return JBTextField(defaultText).apply {
+    preferredSize = Dimension(width, preferredSize.height)
+    border = BorderFactory.createLineBorder(borderLight)
+    addFocusListener(object : FocusAdapter() {
+      override fun focusLost(e: FocusEvent) {
+        focusLost(text)
+      }
+    })
+  }
 }

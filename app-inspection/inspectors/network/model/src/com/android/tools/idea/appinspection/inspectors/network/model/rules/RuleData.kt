@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
+import com.android.tools.idea.protobuf.ByteString
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
+import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import studio.network.inspection.NetworkInspectorProtocol.Transformation
 import kotlin.reflect.KProperty
 
@@ -114,15 +116,63 @@ class RuleData(
     }
   }
 
-  var name: String by Delegate(name, ruleDataListener::onRuleNameChanged)
+  class BodyReplacedRuleData(val body: String) : TransformationRuleData {
+    override fun toProto(): Transformation = Transformation.newBuilder().apply {
+      bodyReplacedBuilder.apply {
+        body = ByteString.copyFrom(this@BodyReplacedRuleData.body.toByteArray())
+      }
+    }.build()
+  }
 
+  class BodyModifiedRuleData(val targetText: String, val isRegex: Boolean, val newText: String) : TransformationRuleData {
+    override fun toProto(): Transformation = Transformation.newBuilder().apply {
+      bodyModifiedBuilder.apply {
+        targetTextBuilder.apply {
+          text = this@BodyModifiedRuleData.targetText
+          type = if (this@BodyModifiedRuleData.isRegex) Type.REGEX else Type.PLAIN
+        }
+        newText = this@BodyModifiedRuleData.newText
+      }
+    }.build()
+  }
+
+  inner class BodyRulesTableModel : ListTableModel<TransformationRuleData>() {
+    init {
+      columnInfos = arrayOf(
+        object : ColumnInfo<TransformationRuleData, String>("Action") {
+          override fun valueOf(item: TransformationRuleData): String {
+            return when (item) {
+              is BodyReplacedRuleData -> "Replace All"
+              is BodyModifiedRuleData -> "Replace \"${item.targetText}\""
+              else -> ""
+            }
+          }
+        },
+        object : ColumnInfo<TransformationRuleData, String>("Body") {
+          override fun valueOf(item: TransformationRuleData): String {
+            return when (item) {
+              is BodyReplacedRuleData -> item.body
+              is BodyModifiedRuleData -> item.newText
+              else -> ""
+            }
+          }
+        })
+      addTableModelListener {
+        ruleDataListener.onRuleDataChanged(this@RuleData)
+      }
+    }
+  }
+
+  var name: String by Delegate(name, ruleDataListener::onRuleNameChanged)
   var isActive: Boolean by Delegate(isActive, ruleDataListener::onRuleIsActiveChanged)
 
   val criteria = CriteriaData()
   val headerRuleTableModel = HeaderRulesTableModel()
+  val bodyRuleTableModel = BodyRulesTableModel()
 
   fun toProto(): InterceptRule = InterceptRule.newBuilder().apply {
     criteria = this@RuleData.criteria.toProto()
     addAllTransformation(headerRuleTableModel.items.map { it.toProto() })
+    addAllTransformation(bodyRuleTableModel.items.map { it.toProto() })
   }.build()
 }
