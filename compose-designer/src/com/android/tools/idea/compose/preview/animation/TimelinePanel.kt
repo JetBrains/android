@@ -225,6 +225,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       g.drawLine(xPos, InspectorLayout.timelineHeaderHeightScaled(), xPos, tickRect.height)
     }
     totalHeight = InspectorLayout.timelineHeaderHeightScaled()
+    g.color = InspectorColors.TIMELINE_HORIZONTAL_TICK_COLOR
     if (separateElements()) elements.forEach { element ->
       totalHeight += element.heightScaled()
       g.drawLine(0, totalHeight, slider.width, totalHeight)
