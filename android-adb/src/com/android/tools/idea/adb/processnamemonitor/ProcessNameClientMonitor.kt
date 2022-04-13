@@ -16,9 +16,9 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
@@ -50,8 +50,6 @@ internal class ProcessNameClientMonitor @TestOnly internal constructor(
 
   constructor(project: Project, device: IDevice, flows: ProcessNameMonitorFlows) : this(project, device, flows, null, MAX_PIDS)
 
-  private val logger = thisLogger()
-
   /**
    * The map of pid -> [ProcessNames] for currently alive processes, plus recently terminated processes.
    */
@@ -75,7 +73,7 @@ internal class ProcessNameClientMonitor @TestOnly internal constructor(
 
         // New processes are stored in the map and removed from (dead processes) eviction list
         addedProcesses.forEach { (pid, names) ->
-          logger.debug("${device.serialNumber}: Adding client $pid -> $names")
+          LOGGER.debug("${device.serialNumber}: Adding client $pid -> $names")
           processes[pid] = names
           // Do not evict a pid that is being reused
           evictionList.remove(pid)
@@ -87,7 +85,7 @@ internal class ProcessNameClientMonitor @TestOnly internal constructor(
           val pid = evictionList.first()
           evictionList.remove(pid)
           val evicted = processes.remove(pid)
-          logger.debug("${device.serialNumber}: Evicting $pid -> $evicted")
+          LOGGER.debug("${device.serialNumber}: Evicting $pid -> $evicted")
         }
       }
     }
