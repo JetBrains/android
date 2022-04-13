@@ -1255,7 +1255,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_MULTIPREVIEW = Flag.create(
     COMPOSE, "preview.multipreview.enabled", "Enable Compose Multipreview",
     "If enabled, annotation classes annotated with Preview, and its usages, will be considered when finding Previews in a file",
-    false);
+    true);
   //endregion
 
   // region App Inspection
