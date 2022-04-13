@@ -132,7 +132,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
 
-  private var clipboardInternal = AtomicReference("")
+  private val clipboardInternal = AtomicReference("")
   var clipboard: String
     get() = clipboardInternal.get()
     set(value) {
@@ -239,6 +239,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     synchronized(lifeCycleLock) {
       if (startTime != 0L) {
         grpcServer.shutdownNow()
+        startTime = 0
       }
     }
   }
