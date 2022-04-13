@@ -33,6 +33,7 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -204,7 +205,7 @@ object InspectorPainter {
       val label = "${timelineUnit.propertyLabel} :  "
       val value = if (grouped) timelineUnit.unit?.toString() else timelineUnit.unit?.toString(componentId)
       val color = if (timelineUnit.unit is ComposeUnit.Color) timelineUnit.unit.color else null
-      g.font = UIUtil.getFont(UIUtil.FontSize.NORMAL, null)
+      g.font = JBFont.medium()
       val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
       val valueLayout = TextLayout(value, g.font, g.fontRenderContext)
       val textBoxHeight = (labelLayout.bounds.height + OFFSET * 2).toInt()
