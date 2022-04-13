@@ -77,13 +77,16 @@ static void throwException(JNIEnv* env, const char* exceptionClassName, const ch
  */
 JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_initNative(JNIEnv* env, jclass thisClass) {
 #if defined(__x86_64__)
-  // Check if the MOVBE instruction is available.
-  uint32_t a = 0;
-  uint32_t b = 0;
-  uint32_t c = 0;
-  uint32_t d = 0;
-  __cpuid(0, a, b, c, d);
-  hasMovbe = (c & bit_MOVBE) != 0;
+  int m = __get_cpuid_max(0, 0);
+  if (m >= 1) {
+    // Check if the MOVBE instruction is available.
+    uint32_t a = 0;
+    uint32_t b = 0;
+    uint32_t c = 0;
+    uint32_t d = 0;
+    __cpuid(1, a, b, c, d);
+    hasMovbe = (c & bit_MOVBE) != 0;
+  }
 #endif // defined(__x86_64__)
 }
 
@@ -150,6 +153,8 @@ JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_unpackRgb888(
     if (tailLength != 0) {
       unpackRgb888Universal(bytes + numPixelsRounded * 3, tailLength, pixels + numPixelsRounded);
     }
+  } else {
+    unpackRgb888Universal(bytes, numPixels, pixels);
   }
 #else // !defined(__x86_64__)
   unpackRgb888Universal(bytes, numPixels, pixels);
