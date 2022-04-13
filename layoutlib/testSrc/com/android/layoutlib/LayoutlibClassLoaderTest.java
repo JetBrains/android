@@ -59,8 +59,11 @@ public class LayoutlibClassLoaderTest {
 
     Assert.assertEquals(3, definedClasses.size()); // Outer class + 2 inner classes
     Assert.assertEquals("public class android/os/Build {\n" +
+                        "  NESTMEMBER android/os/Build$InnerClass2\n" +
+                        "  NESTMEMBER android/os/Build$InnerClass\n" +
                         "  public static INNERCLASS android/os/Build$InnerClass2 android/os/Build InnerClass2\n" +
                         "  public static INNERCLASS android/os/Build$InnerClass android/os/Build InnerClass\n" +
+                        "  public final static INNERCLASS java/lang/invoke/MethodHandles$Lookup java/lang/invoke/MethodHandles Lookup\n" +
                         "  public final static Ljava/lang/String; TEST_FIELD = \"TestValue\"\n" +
                         "  public <init>()V\n" +
                         "  private static privateMethod()Ljava/lang/String;\n" +
@@ -69,6 +72,7 @@ public class LayoutlibClassLoaderTest {
                         definedClasses.get("android.os.Build"));
 
     Assert.assertEquals("public class android/os/Build$InnerClass {\n" +
+                        "  NESTHOST android/os/Build\n" +
                         "  public static INNERCLASS android/os/Build$InnerClass android/os/Build InnerClass\n" +
                         "  public final static Ljava/lang/String; TEST_INNER_FIELD = \"TestInnerValue\"\n" +
                         "  public final static I INNER_VALUE = 1\n" +
@@ -77,6 +81,7 @@ public class LayoutlibClassLoaderTest {
                         definedClasses.get("android.os.Build$InnerClass"));
 
     Assert.assertEquals("public class android/os/Build$InnerClass2 {\n" +
+                        "  NESTHOST android/os/Build\n" +
                         "  public static INNERCLASS android/os/Build$InnerClass2 android/os/Build InnerClass2\n" +
                         "  public final static Ljava/lang/String; TEST_INNER_FIELD2\n" +
                         "  public <init>()V\n" +
