@@ -571,7 +571,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
                         - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
@@ -579,6 +578,8 @@ MODULE                        : project.app
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                ProvidedDependencies
+                    - provided                    : __wrapped_aars__::library-debug:unspecified@aar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

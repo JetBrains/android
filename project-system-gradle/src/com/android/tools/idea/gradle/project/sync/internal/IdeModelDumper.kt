@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeProductFlavor
@@ -40,9 +42,6 @@ import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
-import com.android.tools.idea.gradle.model.buildId
-import com.android.tools.idea.gradle.model.projectPath
-import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -163,9 +162,9 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = IdeDependencies::moduleDependencies) {
     prop(propertyName, it.asUnordered())
   },
-  SpecializedDumper(property = IdeDependencies::runtimeOnlyClasses) {
-    prop(propertyName, it.asUnordered())
-  }
+  SpecializedDumper(property = IdeDependencies::runtimeOnlyClasses) {},
+  SpecializedDumper(property = IdeAndroidLibraryDependency::isProvided) {},
+  SpecializedDumper(property = IdeJavaLibraryDependency::isProvided) {},
 )
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
@@ -336,6 +335,31 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       head("Level2Dependencies")
       nest {
         modelDumper.dumpModel(this@with, "dependencies", ideBaseArtifact.level2Dependencies)
+      }
+      val providedDependencies =
+        (ideBaseArtifact.level2Dependencies.androidLibraries + ideBaseArtifact.level2Dependencies.javaLibraries)
+          .filter { it.isProvided }
+      if (providedDependencies.isNotEmpty()) {
+        head("ProvidedDependencies")
+        nest {
+          providedDependencies
+            .sortedBy { it.target.name }
+            .forEach {
+              prop("- provided") { it.target.name }
+            }
+        }
+      }
+      val runtimeOnlyClasses = ideBaseArtifact.level2Dependencies.runtimeOnlyClasses
+      if (runtimeOnlyClasses.isNotEmpty()) {
+        head("RuntimeOnlyClasses")
+        nest {
+          runtimeOnlyClasses
+            .map { it.toPrintablePath() }
+            .sorted()
+            .forEach {
+              prop("- class") { it }
+            }
+        }
       }
     }
 
@@ -630,8 +654,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
         prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
         prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
-        model.gradlePlugins.forEach { prop("- gradlePlugins") { it }}
-        model.taskNames.forEach { prop("- taskNames") { it }}
+        model.gradlePlugins.forEach { prop("- gradlePlugins") { it } }
+        model.taskNames.forEach { prop("- taskNames") { it } }
       }
     }
 

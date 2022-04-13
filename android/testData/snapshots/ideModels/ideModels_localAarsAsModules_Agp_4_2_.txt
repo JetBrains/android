@@ -591,7 +591,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
                         - androidLibraries            : artifacts:library-debug:unspecified (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : artifacts:library-debug:unspecified (IdeAndroidLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
@@ -599,6 +598,8 @@ MODULE                        : project.app
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                ProvidedDependencies
+                    - provided                    : artifacts:library-debug:unspecified
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

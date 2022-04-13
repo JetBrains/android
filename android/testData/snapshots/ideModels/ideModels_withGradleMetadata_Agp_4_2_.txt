@@ -447,25 +447,18 @@ MODULE                        : withGradleMetadata.app
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
@@ -473,6 +466,14 @@ MODULE                        : withGradleMetadata.app
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                ProvidedDependencies
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.30
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.30
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.30
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:1.5.30
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
+                    - provided                    : org.jetbrains:annotations:13.0
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

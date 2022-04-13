@@ -18,9 +18,12 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.google.common.base.CaseFormat
 import java.io.File
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * A helper which given a class extracts and holds the list of Kotlin properties and Java property like getters.
@@ -42,7 +45,7 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
     klass.memberFunctions.filter {
       it.visibility == KVisibility.PUBLIC && it.parameters.size == 1
     }.mapNotNull { function ->
-      maybeMapJavaGetterToKotlinProperty(function.name)?.let { name -> name to function }
+      maybeMapJavaGetterToKotlinProperty(function)?.let { name -> name to function }
     }
       .toMap()
 
@@ -75,7 +78,18 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
   companion object {
     private fun String.toCamelCase(): String = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, this)
 
-    fun maybeMapJavaGetterToKotlinProperty(name: String): String? {
+    fun maybeMapJavaGetterToKotlinProperty(property: KProperty1<*, *>): String? {
+      if (property.javaGetter != null) return null
+      val name = property.name
+      return when {
+        name.startsWith("get") -> name.removePrefix("get").toCamelCase()
+        name.startsWith("is") -> name.removePrefix("is").toCamelCase()
+        else -> null
+      }
+    }
+
+    fun maybeMapJavaGetterToKotlinProperty(property: KFunction<*>): String? {
+      val name = property.name
       return when {
         name.startsWith("get") -> name.removePrefix("get").toCamelCase()
         name.startsWith("is") -> name.removePrefix("is").toCamelCase()

@@ -325,10 +325,11 @@ class SpecializedDumperImpl private constructor(
       property: KProperty1<T, V?>,
       dumper: ModelDumperContext.(V) -> Unit
     ): SpecializedDumper {
+      val expectedPropertyName = ModelClassDumperDescriptor.maybeMapJavaGetterToKotlinProperty(property) ?: property.name
       fun dumperImpl(projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?): Boolean {
         val h: T = hClass.safeCast(holder) ?: return false
         val v: V = kClass.safeCast(value) ?: return false
-        if (propertyName != (ModelClassDumperDescriptor.maybeMapJavaGetterToKotlinProperty(property.name) ?: property.name)) return false
+        if (propertyName != expectedPropertyName) return false
         dumper(ContextImpl(propertyName, modelDumper, projectDumper), v)
         return true
       }

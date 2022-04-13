@@ -1264,7 +1264,8 @@ MODULE                        : navgraph.app
                                 projectPath                   : :lib
                                 sourceSet                     : MAIN
                                 variant                       : debug
-                        - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1296,19 +1297,14 @@ MODULE                        : navgraph.app
                 Level2Dependencies
                     dependencies                  : IdeDependenciesImpl
                         - androidLibraries            : androidx.activity:activity:1.2.3@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.activity:activity:1.2.3@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.annotation:annotation-experimental:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.annotation:annotation-experimental:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.appcompat:appcompat-resources:1.3.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.appcompat:appcompat-resources:1.3.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.appcompat:appcompat:1.3.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.appcompat:appcompat:1.3.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
                                 artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -1327,91 +1323,62 @@ MODULE                        : navgraph.app
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         - androidLibraries            : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.cardview:cardview:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.cardview:cardview:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.constraintlayout:constraintlayout:1.1.3@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.constraintlayout:constraintlayout:1.1.3@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.core:core:1.5.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.core:core:1.5.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.cursoradapter:cursoradapter:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.cursoradapter:cursoradapter:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.customview:customview:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.customview:customview:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.documentfile:documentfile:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.documentfile:documentfile:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.drawerlayout:drawerlayout:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.drawerlayout:drawerlayout:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.fragment:fragment:1.3.4@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.fragment:fragment:1.3.4@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.interpolator:interpolator:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.interpolator:interpolator:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.legacy:legacy-support-core-ui:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.legacy:legacy-support-core-ui:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.legacy:legacy-support-core-utils:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.legacy:legacy-support-core-utils:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-livedata:2.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.lifecycle:lifecycle-livedata:2.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.navigation:navigation-common:2.3.5@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.navigation:navigation-common:2.3.5@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.navigation:navigation-fragment:2.3.5@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.navigation:navigation-fragment:2.3.5@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.navigation:navigation-runtime:2.3.5@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.navigation:navigation-runtime:2.3.5@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.navigation:navigation-ui:2.3.5@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.navigation:navigation-ui:2.3.5@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.print:print:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.print:print:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.recyclerview:recyclerview:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.recyclerview:recyclerview:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.savedstate:savedstate:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.savedstate:savedstate:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test.espresso:espresso-core:3.2.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test.espresso:espresso-core:3.2.0@aar (IdeAndroidLibraryImpl)
@@ -1522,7 +1489,6 @@ MODULE                        : navgraph.app
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/R.txt
                         - androidLibraries            : androidx.transition:transition:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.transition:transition:1.0.0@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.0.0/aidl [-]
                                 artifact                      : <M2>/androidx/transition/transition/1.0.0/transition-1.0.0.aar
@@ -1541,30 +1507,22 @@ MODULE                        : navgraph.app
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.0.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/transition-1.0.0/R.txt
                         - androidLibraries            : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.vectordrawable:vectordrawable:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.vectordrawable:vectordrawable:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : com.google.android.material:material:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : com.google.android.material:material:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.collection:collection:1.1.0 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryDependencyImpl)
-                            isProvided                    : true
                             target                        : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl) (*seen*)
@@ -1608,6 +1566,50 @@ MODULE                        : navgraph.app
                                 variant                       : debug
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                ProvidedDependencies
+                    - provided                    : androidx.activity:activity:1.2.3@aar
+                    - provided                    : androidx.annotation:annotation-experimental:1.0.0@aar
+                    - provided                    : androidx.appcompat:appcompat-resources:1.3.0@aar
+                    - provided                    : androidx.appcompat:appcompat:1.3.0@aar
+                    - provided                    : androidx.arch.core:core-common:2.1.0
+                    - provided                    : androidx.arch.core:core-runtime:2.0.0@aar
+                    - provided                    : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
+                    - provided                    : androidx.cardview:cardview:1.0.0@aar
+                    - provided                    : androidx.collection:collection:1.1.0
+                    - provided                    : androidx.constraintlayout:constraintlayout-solver:1.1.3
+                    - provided                    : androidx.constraintlayout:constraintlayout:1.1.3@aar
+                    - provided                    : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    - provided                    : androidx.core:core:1.5.0@aar
+                    - provided                    : androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    - provided                    : androidx.customview:customview:1.1.0@aar
+                    - provided                    : androidx.documentfile:documentfile:1.0.0@aar
+                    - provided                    : androidx.drawerlayout:drawerlayout:1.1.1@aar
+                    - provided                    : androidx.fragment:fragment:1.3.4@aar
+                    - provided                    : androidx.interpolator:interpolator:1.0.0@aar
+                    - provided                    : androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    - provided                    : androidx.legacy:legacy-support-core-utils:1.0.0@aar
+                    - provided                    : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+                    - provided                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    - provided                    : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+                    - provided                    : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
+                    - provided                    : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+                    - provided                    : androidx.loader:loader:1.0.0@aar
+                    - provided                    : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    - provided                    : androidx.navigation:navigation-common:2.3.5@aar
+                    - provided                    : androidx.navigation:navigation-fragment:2.3.5@aar
+                    - provided                    : androidx.navigation:navigation-runtime:2.3.5@aar
+                    - provided                    : androidx.navigation:navigation-ui:2.3.5@aar
+                    - provided                    : androidx.print:print:1.0.0@aar
+                    - provided                    : androidx.recyclerview:recyclerview:1.0.0@aar
+                    - provided                    : androidx.savedstate:savedstate:1.1.0@aar
+                    - provided                    : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    - provided                    : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    - provided                    : androidx.transition:transition:1.0.0@aar
+                    - provided                    : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    - provided                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+                    - provided                    : androidx.viewpager:viewpager:1.0.0@aar
+                    - provided                    : com.google.android.material:material:1.0.0@aar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1728,7 +1730,8 @@ MODULE                        : navgraph.app
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : navgraph.app.androidTest
@@ -2089,7 +2092,8 @@ MODULE                        : navgraph.lib
                             target                        : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl) (*seen*)
-                        - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2234,7 +2238,8 @@ MODULE                        : navgraph.lib
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2353,7 +2358,8 @@ MODULE                        : navgraph.lib
                             target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : IdeModuleDependencyImpl
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - runtimeOnlyClasses          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : navgraph.lib.androidTest
