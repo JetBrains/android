@@ -81,7 +81,7 @@ object InspectorLayout {
   /**
    * Height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
    */
-  private const val TIMELINE_HEADER_HEIGHT = 25
+  const val TIMELINE_HEADER_HEIGHT = 25
 
   /**
    * Scaled height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.

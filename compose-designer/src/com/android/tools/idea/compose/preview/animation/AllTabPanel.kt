@@ -108,7 +108,7 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
     splitter.firstComponent.revalidate()
   }
 
-  private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.timelineHeaderHeightScaled())
+  private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.TIMELINE_HEADER_HEIGHT)
 
   init {
     add(scrollPane, TabularLayout.Constraint(1, 0, 2))
