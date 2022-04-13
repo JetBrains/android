@@ -17,32 +17,27 @@ package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
-import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import javax.swing.JTable
 
-class RulesTableModel : ListTableModel<RulesTableModel.RuleInfo>() {
-  class RuleInfo {
-    var name: String = "New Rule"
-    var isActive: Boolean = true
-    var rule: InterceptRule.Builder = InterceptRule.newBuilder()
-  }
+class RulesTableModel : ListTableModel<RuleData>() {
 
   init {
     columnInfos = arrayOf(
-      object : ColumnInfo<RuleInfo, Boolean>("Active") {
-        override fun valueOf(item: RuleInfo): Boolean {
+      object : ColumnInfo<RuleData, Boolean>("Active") {
+        override fun valueOf(item: RuleData): Boolean {
           return item.isActive
         }
 
-        override fun setValue(item: RuleInfo, value: Boolean) {
+        override fun setValue(item: RuleData, value: Boolean) {
           item.isActive = value
         }
+
         override fun getWidth(table: JTable) = 60
-        override fun isCellEditable(item: RuleInfo) = true
+        override fun isCellEditable(item: RuleData) = true
         override fun getColumnClass() = Boolean::class.java
       },
-      object : ColumnInfo<RuleInfo, String>("Name") {
-        override fun valueOf(item: RuleInfo): String {
+      object : ColumnInfo<RuleData, String>("Name") {
+        override fun valueOf(item: RuleData): String {
           return item.name
         }
       })

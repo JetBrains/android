@@ -24,13 +24,12 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
-import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import kotlinx.coroutines.asExecutor
-import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
@@ -51,7 +50,7 @@ class NetworkInspectorModel(
     private set
 
   // If null, means no rule to show in the details pane.
-  var selectedRule: RulesTableModel.RuleInfo? = null
+  var selectedRule: RuleData? = null
     private set
 
   val aspect = AspectModel<NetworkInspectorAspect>()
@@ -107,7 +106,7 @@ class NetworkInspectorModel(
    * Sets the active interception rule, or clears the previously selected one if given rule is null.
    * Setting a non-null rule will deselect [selectedConnection].
    */
-  fun setSelectedRule(rule: RulesTableModel.RuleInfo?): Boolean {
+  fun setSelectedRule(rule: RuleData?): Boolean {
     if (selectedRule == rule) {
       return false
     }

@@ -56,6 +56,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.Component
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
@@ -88,20 +89,8 @@ private fun <T : TabContent?> ConnectionDetailsView.findTab(tabClass: Class<T>):
 class ConnectionDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    private var lastInterceptedUrl: String? = null
-    private var lastInterceptedBody: String? = null
-
     override suspend fun getStartTimeStampNs() = 0L
-
-    override suspend fun interceptResponse(url: String, body: String) {
-      lastInterceptedUrl = url
-      lastInterceptedBody = body
-    }
-
-    fun verifyInterceptResponse(url: String, body: String) {
-      assertThat(lastInterceptedUrl).isEqualTo(url)
-      assertThat(lastInterceptedBody).isEqualTo(body)
-    }
+    override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
   }
 
   private val setFlagRule = SetFlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
@@ -175,22 +164,6 @@ class ConnectionDetailsViewTest {
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Source" }).isTrue()
-  }
-
-  @Test
-  fun sendsInterceptResponseFromDialog() {
-    enableHeadlessDialogs(disposable)
-    val newText = "NEW TEXT"
-    val dialog = ResponseTabContent.ResponseInterceptDialog(DEFAULT_DATA, services, scope)
-    createModalDialogAndInteractWithIt({ dialog.show() }) {
-      val textArea = firstDescendantWithType(dialog.contentPane, JTextArea::class.java)
-      assertThat(textArea.isEditable).isTrue()
-      assertThat(textArea.text).isEqualTo("RESPONSE")
-      textArea.text = newText
-      dialog.clickDefaultButton()
-    }
-    assertThat(dialog.exitCode).isEqualTo(DialogWrapper.OK_EXIT_CODE)
-    client.verifyInterceptResponse(DEFAULT_DATA.url, newText)
   }
 
   @Test

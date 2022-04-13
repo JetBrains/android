@@ -15,25 +15,81 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.rules
 
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import studio.network.inspection.NetworkInspectorProtocol
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 
-class RulesTableView(private val model: NetworkInspectorModel) {
+class RulesTableView(
+  private val client: NetworkInspectorClient,
+  private val scope: CoroutineScope,
+  model: NetworkInspectorModel
+) {
   val component: JComponent
 
+  val tableModel = RulesTableModel()
+  val table = TableView(tableModel)
+
   init {
-    val tableModel = RulesTableModel()
-    val table = TableView(tableModel)
-    val decorator = ToolbarDecorator.createDecorator(table)
+    val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
+      tableModel.addRow(createRuleDataWithListener())
+      val selectedRow = tableModel.rowCount - 1
+      table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
+    }
     component = createDecoratedTable(table, decorator)
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
     }
+  }
+
+  private fun createRuleDataWithListener(): RuleData {
+    val id = RuleData.newId()
+    return RuleData(id, "New Rule", true, object : RuleDataListener {
+      override fun onRuleDataChanged(ruleData: RuleData) {
+        scope.launch {
+          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+            interceptRuleAddedBuilder.apply {
+              ruleId = id
+              rule = ruleData.toProto()
+            }
+          }.build())
+        }
+      }
+
+      override fun onRuleNameChanged(ruleData: RuleData) {
+        val index = tableModel.indexOf(ruleData)
+        if (index != -1) {
+          tableModel.fireTableCellUpdated(index, 1)
+        }
+      }
+
+      override fun onRuleIsActiveChanged(ruleData: RuleData) {
+        scope.launch {
+          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+            if (ruleData.isActive) {
+              interceptRuleAddedBuilder.apply {
+                ruleId = ruleData.id
+                rule = ruleData.toProto()
+              }
+            }
+            else {
+              interceptRuleRemovedBuilder.apply {
+                ruleId = ruleData.id
+              }
+            }
+          }.build())
+        }
+      }
+    })
   }
 }

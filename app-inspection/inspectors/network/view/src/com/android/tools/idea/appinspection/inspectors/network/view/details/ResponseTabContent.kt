@@ -15,27 +15,18 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
-import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTextArea
 
 /**
  * Tab which shows a response's headers and payload.
  */
 class ResponseTabContent(
-  private val componentsProvider: UiComponentsProvider,
-  private val inspectorServices: NetworkInspectorServices,
-  private val scope: CoroutineScope
+  private val componentsProvider: UiComponentsProvider
 ) : TabContent() {
   private lateinit var panel: JPanel
   override val title: String
@@ -62,38 +53,5 @@ class ResponseTabContent(
   @VisibleForTesting
   fun findPayloadBody(): JComponent? {
     return findComponentWithUniqueName(panel, HttpDataComponentFactory.ConnectionType.RESPONSE.bodyComponentId)
-  }
-
-  class ResponseInterceptDialog(val data: HttpData,
-                                private val inspectorServices: NetworkInspectorServices,
-                                private val scope: CoroutineScope) : DialogWrapper(false) {
-
-    private var textArea: JTextArea? = null
-
-    init {
-      title = "Intercept Network Response"
-      init()
-    }
-
-    override fun createNorthPanel(): JComponent? {
-      val type = HttpDataComponentFactory.ConnectionType.RESPONSE
-      val payload = type.getPayload(data)
-      val viewer = IntellijDataViewer.createRawTextViewer(payload.toByteArray(), true)
-      textArea = viewer.component as? JTextArea ?: return null
-      return createVerticalScrollPane(textArea!!).apply {
-        border = JBUI.Borders.empty(0, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
-        preferredSize = Dimension(800, 300)
-      }
-    }
-
-    override fun createCenterPanel(): JComponent? = null
-
-    override fun doOKAction() {
-      textArea?.also { textArea ->
-        scope.launch { inspectorServices.client.interceptResponse(data.url, textArea.text) }
-      }
-
-      super.doOKAction()
-    }
   }
 }

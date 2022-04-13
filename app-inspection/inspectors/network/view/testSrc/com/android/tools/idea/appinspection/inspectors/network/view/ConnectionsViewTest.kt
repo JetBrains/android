@@ -18,23 +18,20 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_CONTENT_TYPE
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_RESPONSE_CODE
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -60,6 +57,9 @@ private val FAKE_DATA = listOf(
 class ConnectionsViewTest {
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView

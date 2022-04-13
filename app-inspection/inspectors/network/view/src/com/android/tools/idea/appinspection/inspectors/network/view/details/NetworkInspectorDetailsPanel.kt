@@ -19,7 +19,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
@@ -30,12 +30,12 @@ import java.awt.CardLayout
 import javax.swing.JPanel
 
 /**
- * View to display a single network request and its detailed information.
+ * View to display detailed information of an interception rule or connection.
  */
 class NetworkInspectorDetailsPanel(
   private val inspectorView: NetworkInspectorView,
-  private val scope: CoroutineScope,
-  private val usageTracker: NetworkInspectorTracker
+  scope: CoroutineScope,
+  usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
 
   @VisibleForTesting
@@ -56,7 +56,7 @@ class NetworkInspectorDetailsPanel(
     val rootPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
 
     cardLayoutView = JPanel(cardLayout)
-    connectionDetailsView = ConnectionDetailsView(inspectorView, scope, usageTracker)
+    connectionDetailsView = ConnectionDetailsView(inspectorView, usageTracker)
     ruleDetailsView = RuleDetailsView()
     cardLayoutView.add(connectionDetailsView, ConnectionDetailsView::class.java.name)
     cardLayoutView.add(ruleDetailsView, RuleDetailsView::class.java.name)
@@ -84,9 +84,9 @@ class NetworkInspectorDetailsPanel(
   /**
    * Updates the view to show given [rule].
    */
-  fun setRule(rule: RulesTableModel.RuleInfo) {
+  fun setRule(rule: RuleData) {
     background = JBColor.background()
-    ruleDetailsView.setRule(rule)
+    ruleDetailsView.selectedRule = rule
     cardLayout.show(cardLayoutView, RuleDetailsView::class.java.name)
     isVisible = true
   }

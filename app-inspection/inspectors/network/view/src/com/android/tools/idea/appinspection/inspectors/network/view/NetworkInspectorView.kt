@@ -101,7 +101,7 @@ class NetworkInspectorView(
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
-  val inspectorServices: NetworkInspectorServices,
+  private val inspectorServices: NetworkInspectorServices,
   scope: CoroutineScope
 ) : AspectObserver() {
 
@@ -124,6 +124,8 @@ class NetworkInspectorView(
 
   @VisibleForTesting
   val connectionsView = ConnectionsView(model, parentPane)
+
+  val rulesView = RulesTableView(inspectorServices.client, scope, model)
 
   @VisibleForTesting
   val detailsPanel = NetworkInspectorDetailsPanel(this, scope, inspectorServices.usageTracker)
@@ -160,7 +162,6 @@ class NetworkInspectorView(
     connectionsTab.addTab("Connection View", connectionScrollPane)
     connectionsTab.addTab("Thread View", threadsViewScrollPane)
     if (StudioFlags.ENABLE_NETWORK_INTERCEPTION.get()) {
-      val rulesView = RulesTableView(model)
       val rulesViewScrollPane = JBScrollPane(rulesView.component)
       rulesViewScrollPane.border = JBUI.Borders.empty()
       connectionsTab.addTab("Rules", rulesViewScrollPane)

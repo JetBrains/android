@@ -20,13 +20,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
-import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.function.Consumer
 
 class ConnectionDetailsView(
   private val inspectorView: NetworkInspectorView,
-  private val scope: CoroutineScope,
   private val usageTracker: NetworkInspectorTracker
 ) : CommonTabbedPane() {
 
@@ -49,7 +47,7 @@ class ConnectionDetailsView(
 
   private fun populateTabs() {
     tabs.add(OverviewTabContent(inspectorView.componentsProvider))
-    tabs.add(ResponseTabContent(inspectorView.componentsProvider, inspectorView.inspectorServices, scope))
+    tabs.add(ResponseTabContent(inspectorView.componentsProvider))
     tabs.add(RequestTabContent(inspectorView.componentsProvider))
     tabs.add(
       CallStackTabContent(

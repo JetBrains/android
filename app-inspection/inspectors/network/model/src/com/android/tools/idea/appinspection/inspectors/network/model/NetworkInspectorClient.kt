@@ -16,22 +16,19 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.protobuf.ByteString
-import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Command
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
-import java.net.URL
 
 interface NetworkInspectorClient {
   suspend fun getStartTimeStampNs(): Long
-  suspend fun interceptResponse(url: String, body: String)
+  suspend fun interceptResponse(command: InterceptCommand)
 }
 
 class NetworkInspectorClientImpl(
   private val messenger: AppInspectorMessenger
 ) : NetworkInspectorClient {
-  private var ruleCount = 0
 
   override suspend fun getStartTimeStampNs(): Long {
     val response = messenger.sendRawCommand {
@@ -40,32 +37,9 @@ class NetworkInspectorClientImpl(
     return response.startInspectionResponse.timestamp
   }
 
-  override suspend fun interceptResponse(url: String, body: String) {
-    val urlObject = URL(url)
+  override suspend fun interceptResponse(command: InterceptCommand) {
     messenger.sendRawCommand {
-      interceptCommand = NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-        interceptRuleAddedBuilder.apply {
-          ruleId = ruleCount
-          ruleCount += 1
-          ruleBuilder.apply {
-            criteriaBuilder.apply {
-              protocol = urlObject.protocol
-              host = urlObject.host
-              path = urlObject.path
-              port = if (urlObject.port == -1) "" else urlObject.port.toString()
-              query = urlObject.query
-              method = ""
-            }
-            addTransformation(
-              NetworkInspectorProtocol.Transformation.newBuilder().apply {
-                bodyReplacedBuilder.apply {
-                  this.body = ByteString.copyFrom(body.toByteArray())
-                }
-              })
-          }
-        }
-
-      }.build()
+      interceptCommand = command
     }
   }
 

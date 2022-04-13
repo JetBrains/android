@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
@@ -37,6 +38,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.table.TableView
+import com.intellij.util.containers.getIfSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -45,10 +48,17 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
+import java.awt.Component
+import java.awt.Container
+import java.awt.event.FocusEvent
+import java.util.stream.Stream
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextField
 
 @RunsInEdt
-class NetworkInspectorDetailsPanelTest {
+class RuleDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
@@ -80,10 +90,7 @@ class NetworkInspectorDetailsPanelTest {
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
-      private val dataList = listOf(DEFAULT_DATA)
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
-      }
+      override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
@@ -101,28 +108,43 @@ class NetworkInspectorDetailsPanelTest {
   }
 
   @Test
-  fun viewIsVisibleWhenDataIsNotNull() {
-    detailsPanel.isVisible = false
-    model.setSelectedConnection(DEFAULT_DATA)
-    assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
-    // Setting a null rule does not matter when we have a non-null connection data.
-    model.setSelectedRule(null)
-    assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.ruleDetailsView.isVisible).isFalse()
-    model.setSelectedConnection(null)
-    assertThat(detailsPanel.isVisible).isFalse()
+  fun displayRuleDetailsInfo() {
+    val rule = RuleData(1, "", true)
+    rule.name = "Test"
+    model.setSelectedRule(rule)
+    val ruleDetailsView = detailsPanel.ruleDetailsView
 
-    model.setSelectedRule(RuleData(1, "NewRule", true))
-    assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
-    // Setting a null connection does not matter when we have a non-null rule data.
-    model.setSelectedConnection(null)
-    assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    model.setSelectedRule(null)
-    assertThat(detailsPanel.isVisible).isFalse()
+    val nameComponent = ruleDetailsView.getValueComponent("Name") as JTextField
+    assertThat(nameComponent.text).isEqualTo("Test")
+    nameComponent.text = "Test2"
+    nameComponent.onFocusLost()
+    assertThat(rule.name).isEqualTo("Test2")
+
+    val originPanel = ruleDetailsView.getCategoryPanel("Origin") as JPanel
+    val urlComponent = originPanel.getValueComponent("Host url") as JTextField
+    assertThat(urlComponent.text).isEmpty()
+    val url = "www.google.com"
+    urlComponent.text = url
+    urlComponent.onFocusLost()
+    assertThat(rule.criteria.host).isEqualTo(url)
+
+    val headerPanel = ruleDetailsView.getCategoryPanel("Header rules") as JPanel
+    val table = TreeWalker(headerPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
+    assertThat(table.rowCount).isEqualTo(0)
+    val headerAddedRule = RuleData.HeaderAddedRuleData("header", "value")
+    rule.headerRuleTableModel.insertRow(0, headerAddedRule)
+    assertThat(table.rowCount).isEqualTo(1)
+    assertThat(table.items[0]).isEqualTo(headerAddedRule)
+  }
+
+  private fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)
+
+  private fun JComponent.getCategoryPanel(key: String): Container = findLabels(key).findFirst().get().parent.parent
+
+  private fun JComponent.findLabels(text: String): Stream<Component> =
+    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }
+
+  private fun JComponent.onFocusLost() {
+    focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
   }
 }
