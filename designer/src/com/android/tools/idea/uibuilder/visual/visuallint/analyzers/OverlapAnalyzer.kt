@@ -95,6 +95,9 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     val secondBounds = Rectangle(secondViewInfo.left, secondViewInfo.top, secondViewInfo.right - secondViewInfo.left,
                                  secondViewInfo.bottom - secondViewInfo.top)
     val intersection = firstBounds.intersection(secondBounds)
+    if (intersection.isEmpty) {
+      return false
+    }
     val coveredRatio = 1.0 * intersection.width * intersection.height / (firstWidth * firstHeight)
     return coveredRatio >= OVERLAP_RATIO_THRESHOLD
   }

@@ -158,4 +158,24 @@ class OverlapAnalyzerTest: LayoutTestCase() {
     val issues = OverlapAnalyzer.findIssues(renderResult, model)
     assertEquals(0, issues.size)
   }
+
+  fun testNoOverlap() {
+    val model =
+      model("no_overlap.xml",
+            component(SdkConstants.CONSTRAINT_LAYOUT.newName())
+              .withBounds(0, 0, 200, 200)
+              .withMockView()
+              .children(
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 20, 20)
+                  .withMockView(android.widget.TextView::class.java),
+                component(SdkConstants.IMAGE_VIEW)
+                  .withBounds(160, 160, 30, 30)
+                  .withMockView()
+              )
+      ).build()
+    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot ().viewInfo!!))
+    val issues = OverlapAnalyzer.findIssues(renderResult, model)
+    assertEquals(0, issues.size)
+  }
 }
