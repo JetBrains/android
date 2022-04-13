@@ -98,7 +98,7 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
 
   suspend fun handleClientListChanged(flow: FlowCollector<ClientMonitorEvent>, newClients: MutableSet<Client>) {
     val addedClients = newClients - clients
-    val addedProcessNames = addedClients.associateTo(hashMapOf()) { it.pid() to ProcessNames(it.packageName(), it.processName()) }
+    val addedProcessNames = addedClients.associateTo(hashMapOf()) { it.pid() to ProcessNames(it.applicationId(), it.processName()) }
     handlePreInitializedClients(addedProcessNames, newClients)
     val removedClients = clients - newClients
     clients = newClients
@@ -112,7 +112,7 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
   suspend fun handleClientChanged(flow: FlowCollector<ClientMonitorEvent>, client: Client) {
     if (preInitializedClients.contains(client)) {
       val pid = client.pid()
-      val names = ProcessNames(client.packageName(), client.processName())
+      val names = ProcessNames(client.applicationId(), client.processName())
       if (names.isInitialized()) {
         thisLogger().debug("Process initialized: $pid -> ($names)")
         preInitializedClients.remove(client)
@@ -144,4 +144,4 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
 
 private fun Client.pid(): Int = clientData.pid
 private fun Client.processName(): String = clientData.clientDescription ?: ""
-private fun Client.packageName(): String = clientData.packageName ?: ""
+private fun Client.applicationId(): String = clientData.packageName ?: ""

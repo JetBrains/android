@@ -16,12 +16,12 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 /**
- * Contains an Android process package name and process name
+ * Contains an Android process application id (or "package name") and process name
  */
-class ProcessNames(val packageName: String, val processName: String) {
-  fun isInitialized(): Boolean = packageName.isNotEmpty() && processName.isNotEmpty()
+class ProcessNames(val applicationId: String, val processName: String) {
+  fun isInitialized(): Boolean = applicationId.isNotEmpty() && processName.isNotEmpty()
 
   fun isNotInitialized(): Boolean = !isInitialized()
 
-  override fun toString(): String = "($packageName/$processName)"
+  override fun toString(): String = "($applicationId/$processName)"
 }
