@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
@@ -40,7 +41,9 @@ class DesignerCommonIssuePanelTest {
     val infoSeverityIssue = TestIssue(severity = HighlightSeverity.INFORMATION)
     val warningSeverityIssue = TestIssue(severity = HighlightSeverity.WARNING)
     val provider = DesignerCommonIssueTestProvider(listOf(infoSeverityIssue, warningSeverityIssue))
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, provider)
+    val model = DesignerCommonIssueModel()
+    Disposer.register(rule.testRootDisposable, model)
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
     val treeModel = tree.model
 
@@ -78,7 +81,9 @@ class DesignerCommonIssuePanelTest {
   @Test
   fun testShowSidePanelWhenSelectIssueNode() {
     val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, provider)
+    val model = DesignerCommonIssueModel()
+    Disposer.register(rule.testRootDisposable, model)
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)

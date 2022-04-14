@@ -60,7 +60,7 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
 /**
  * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
  */
-class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project,
+class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project, private val treeModel: DesignerCommonIssueModel,
                                val issueProvider: DesignerCommonIssueProvider<Any>) : Disposable {
 
   var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
@@ -95,20 +95,16 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   }
 
   private val tree: Tree
-  private val treeModel: DesignerCommonIssueModel
-  private val asyncModel: AsyncTreeModel
-
   private val splitter: OnePixelSplitter
 
   init {
     Disposer.register(parentDisposable, this)
 
-    treeModel = DesignerCommonIssueModel(this)
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider)
     issueProvider.registerUpdateListener {
       updateTree()
     }
-    asyncModel = AsyncTreeModel(treeModel, this)
+    val asyncModel = AsyncTreeModel(treeModel, this)
     tree = Tree(asyncModel)
     tree.emptyText.text = "No design issue is found"
     PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")

@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.NodeDescriptor
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
 import com.intellij.util.concurrency.Invoker
@@ -35,7 +36,8 @@ class DesignerCommonIssueModelTest {
   @Test
   fun test() {
     val invoker = Invoker.forEventDispatchThread(rule.testRootDisposable)
-    val model = DesignerCommonIssueModel(rule.testRootDisposable, invoker)
+    val model = DesignerCommonIssueModel()
+    Disposer.register(rule.testRootDisposable, model)
     val root = TestNode()
 
     runInEdtAndGet {

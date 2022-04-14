@@ -16,36 +16,21 @@
 package com.android.tools.idea.common.error
 
 import com.intellij.ide.util.treeView.NodeDescriptor
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.tree.BaseTreeModel
 import com.intellij.util.concurrency.Invoker
 import com.intellij.util.concurrency.InvokerSupplier
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.tree.TreePath
 
-// For IJ's Async tree purpose, this model needs to implement InvokerSupplier.
-class DesignerCommonIssueModel @TestOnly constructor(parent: Disposable, invoker: Invoker?)
-  : BaseTreeModel<NodeDescriptor<*>>(), InvokerSupplier {
+open class DesignerCommonIssueModel : BaseTreeModel<NodeDescriptor<*>>() {
 
-  constructor(parent: Disposable): this(parent, null)
-
-  private val _invoker = invoker ?: Invoker.forBackgroundThreadWithReadAction(this)
   private val root = AtomicReference<DesignerCommonIssueNode>()
-
-  init {
-    Disposer.register(parent, this)
-  }
-
-  override fun getInvoker() = _invoker
 
   override fun getRoot(): DesignerCommonIssueNode? {
     return root.get()
   }
 
   override fun getChildren(parent: Any): List<NodeDescriptor<*>> {
-    assert(invoker.isValidThread) { "unexpected thread" }
     val node = parent as? DesignerCommonIssueNode ?: return emptyList()
     val children = node.getChildren()
     if (children.isEmpty()) {
@@ -69,4 +54,12 @@ class DesignerCommonIssueModel @TestOnly constructor(parent: Disposable, invoker
     super.dispose()
     setRoot(null)
   }
+}
+
+/**
+ * Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to have different background thread.
+ */
+class AsyncableDesignerCommonIssueModel : DesignerCommonIssueModel(), InvokerSupplier {
+  private val invoker = Invoker.forBackgroundThreadWithReadAction(this)
+  override fun getInvoker(): Invoker = invoker
 }

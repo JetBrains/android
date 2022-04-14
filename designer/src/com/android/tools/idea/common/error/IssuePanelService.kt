@@ -110,7 +110,8 @@ class IssuePanelService(private val project: Project) {
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       val issueProvider = DesignToolsIssueProvider(project)
-      val issuePanel = DesignerCommonIssuePanel(project, project, issueProvider)
+      val treeModel = AsyncableDesignerCommonIssueModel()
+      val issuePanel = DesignerCommonIssuePanel(project, project, treeModel, issueProvider)
       issueProvider.registerUpdateListener {
         updateSharedIssuePanelTabName()
       }
