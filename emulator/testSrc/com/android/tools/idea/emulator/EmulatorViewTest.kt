@@ -41,6 +41,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
 import com.intellij.testFramework.replaceService
+import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -141,7 +142,7 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo(
       // Available space is slightly wider on Mac due to a narrower scrollbar.
-      if (SystemInfo.isMac) "format: RGB888 width: 427 height: 740" else "format: RGB888 width: 423 height: 740")
+      if (UIUtil.isRetina()) "format: RGB888 width: 427 height: 740" else "format: RGB888 width: 423 height: 740")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()

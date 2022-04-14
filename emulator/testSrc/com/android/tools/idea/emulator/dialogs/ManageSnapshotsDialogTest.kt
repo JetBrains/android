@@ -37,7 +37,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -45,6 +44,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
+import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -456,7 +456,7 @@ class ManageSnapshotsDialogTest {
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
     // The image is slightly taller on Mac due to a slight layout difference.
-    val platformSuffix = if (SystemInfo.isMac) "_Mac" else ""
+    val platformSuffix = if (UIUtil.isRetina()) "_Mac" else ""
     return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
   }
 }
