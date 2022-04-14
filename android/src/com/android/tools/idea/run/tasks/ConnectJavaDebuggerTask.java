@@ -60,6 +60,7 @@ import com.intellij.openapi.util.Key;
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
@@ -92,7 +93,10 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
           processHandler.detachProcess();
           return null;
         },
-        null
+        (device) -> {
+          device.forceStop(myApplicationIds.get(0));
+          return Unit.INSTANCE;
+        }
       ).onSuccess(session -> {
         processHandler.copyUserDataTo(session.getDebugProcess().getProcessHandler());
         session.showSessionTab();
