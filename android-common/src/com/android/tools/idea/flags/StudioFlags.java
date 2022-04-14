@@ -610,13 +610,6 @@ public final class StudioFlags {
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
     true);
 
-  public static final Flag<Boolean> ADBLIB_MIGRATION_LOGCAT_V2 = Flag.create(
-    RUNDEBUG,
-    "adblib.migration.logcatv2",
-    "Use adblib in the logcat v2 toolwindow",
-    "Use adblib instead of ddmlib in the logcat v2 toolwindow",
-    true);
-
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",
@@ -633,30 +626,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
-    RUNDEBUG,
-    "logcat.expression.filter.enable",
-    "Enable expression filter in Logcat",
-    "Enables the expression filter in Logcat",
-    false
-  );
-
-  public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
-    RUNDEBUG,
-    "logcat.suppressed.tags.enable",
-    "Enable Suppressed Tags Dialog in Logcat",
-    "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
-    false
-  );
-
-  public static final Flag<Boolean> LOGCAT_V2_NAMED_FILTERS_ENABLE = Flag.create(
-    RUNDEBUG,
-    "logcat.v2.named.filters.enable",
-    "Enable Logcat named filters feature",
-    "Enables the named filters feature in the Logcat tool window",
-    false
-  );
-
   public static final Flag<Boolean> DDMLIB_ABB_EXEC_INSTALL_ENABLE = Flag.create(
     RUNDEBUG,
     "ddmlib.abb.exec.install.enable",
@@ -665,9 +634,47 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> LOGCAT_V2_CUSTOM_FORMAT_ACTION = Flag.create(
-    RUNDEBUG,
-    "logcat.v2.custom.format.action",
+  //endregion
+
+  //region Logcat
+  private static final FlagGroup LOGCAT = new FlagGroup(FLAGS, "logcat", "Logcat");
+
+  // Deprecated: Old logcat tool window
+  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
+    LOGCAT,
+    "logcat.expression.filter.enable",
+    "Enable expression filter in Logcat",
+    "Enables the expression filter in Logcat",
+    false
+  );
+
+  // Deprecated: Old logcat tool window
+  public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
+    LOGCAT,
+    "logcat.suppressed.tags.enable",
+    "Enable Suppressed Tags Dialog in Logcat",
+    "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
+    false
+  );
+
+  public static final Flag<Boolean> ADBLIB_MIGRATION_LOGCAT = Flag.create(
+    LOGCAT,
+    "adblib.migration.logcat",
+    "Use adblib in the logcat toolwindow",
+    "Use adblib instead of ddmlib in the logcat toolwindow",
+    true);
+
+  public static final Flag<Boolean> LOGCAT_NAMED_FILTERS_ENABLE = Flag.create(
+    LOGCAT,
+    "logcat.named.filters.enable",
+    "Enable Logcat named filters feature",
+    "Enables the named filters feature in the Logcat tool window",
+    false
+  );
+
+  public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
+    LOGCAT,
+    "logcat.custom.format.action",
     "Enable Logcat custom format action",
     "Enables the custom format action in the Logcat tool window action bar",
     false

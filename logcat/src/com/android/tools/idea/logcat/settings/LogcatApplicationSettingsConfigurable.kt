@@ -85,7 +85,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
     add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).anchor(WEST))
 
-    if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get()) {
+    if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
       add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
     }
     // Add an empty panel that consumes all vertical space bellow.

@@ -61,7 +61,7 @@ internal abstract class LogcatDeviceManager(
   companion object {
     fun getFactory(project: Project, packageNamesProvider: PackageNamesProvider): (LogcatPresenter, IDevice) -> LogcatDeviceManager {
       return { logcatPresenter, device ->
-        if (StudioFlags.ADBLIB_MIGRATION_LOGCAT_V2.get()) {
+        if (StudioFlags.ADBLIB_MIGRATION_LOGCAT.get()) {
           DeviceManagerAdbLib(project, device, logcatPresenter, packageNamesProvider)
         }
         else {

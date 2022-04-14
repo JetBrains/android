@@ -39,7 +39,7 @@ internal interface FilterTextComponent {
       filterParser: LogcatFilterParser,
       initialText: String,
     ): FilterTextComponent =
-      if (StudioFlags.LOGCAT_V2_NAMED_FILTERS_ENABLE.get() && AndroidLogcatSettings.getInstance().namedFiltersEnabled) {
+      if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get() && AndroidLogcatSettings.getInstance().namedFiltersEnabled) {
         NamedFilterComponent(project, logcatPresenter, filterParser, initialText)
       }
       else {

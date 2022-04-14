@@ -37,7 +37,7 @@ internal class LogcatFormatAction(private val project: Project, private val logc
     val actions = mutableListOf<AnAction>()
     actions.add(LogcatFormatPresetAction.Standard(logcatPresenter))
     actions.add(LogcatFormatPresetAction.Compact(logcatPresenter))
-    if (StudioFlags.LOGCAT_V2_CUSTOM_FORMAT_ACTION.get()) {
+    if (StudioFlags.LOGCAT_CUSTOM_FORMAT_ACTION.get()) {
       actions.add(LogcatFormatCustomViewAction(project, logcatPresenter))
     }
     actions.add(Separator.create())
