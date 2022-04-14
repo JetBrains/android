@@ -31,8 +31,8 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
 
   override fun update(clockType: ClockType, range: Range) {
     // how much time was spent in this call stack path, and in the functions it called
-    myGlobalTotal = 0.0
-    myThreadTotal = 0.0
+    globalTotal = 0.0
+    threadTotal = 0.0
 
     // The node that is at the top of the call stack, e.g if the call stack looks like B [0..30] -> B [1..20],
     // then the second method can't be outerSoFarByParent.
@@ -46,7 +46,7 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
     var self = 0.0
     // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first
-    for (node in myNodes) {
+    for (node in nodes) {
       // We use the root node to distinguish if two nodes share the same tree. In the event of multi-select we want to compute the bottom
       // up calculation independently for each tree then sum them after the fact.
       // TODO(153306735): Cache the root calculation, otherwise our update algorithm is going to be O(n*depth) instead of O(n)
@@ -55,8 +55,8 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
       if (outerSoFar == null || node.end > outerSoFar.end) {
         if (outerSoFar != null) {
           // |outerSoFarByParent| is at the top of the call stack
-          myGlobalTotal += getIntersection(range, outerSoFar, clockType)
-          myThreadTotal += getIntersection(range, outerSoFar, clockType)
+          globalTotal += getIntersection(range, outerSoFar, clockType)
+          threadTotal += getIntersection(range, outerSoFar, clockType)
         }
         outerSoFarByParent[root] = node
       }
@@ -65,21 +65,21 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
     }
     for (outerSoFar in outerSoFarByParent.values) {
       // |outerSoFarByParent| is at the top of the call stack
-      myGlobalTotal += getIntersection(range, outerSoFar, clockType)
-      myThreadTotal += getIntersection(range, outerSoFar, clockType)
+      globalTotal += getIntersection(range, outerSoFar, clockType)
+      threadTotal += getIntersection(range, outerSoFar, clockType)
     }
-    myGlobalChildrenTotal = myGlobalTotal - self
-    myThreadChildrenTotal = myThreadTotal - self
+    globalChildrenTotal = globalTotal - self
+    threadChildrenTotal = threadTotal - self
   }
 
   private class Root(node: CaptureNode): BottomUpNode("Root") {
-    override fun getMethodModel() = SingleNameModel("") // sample entry for the root.
-    override fun getFilterType() = CaptureNode.FilterType.MATCH
+    override val methodModel = SingleNameModel("") // sample entry for the root.
+    override val filterType get() = CaptureNode.FilterType.MATCH
     override fun buildChildren() = false
     init {
       addChildren(node.preOrderTraversal().map { it to it })
       addNode(node)
-      getChildren().forEach(BottomUpNode::buildChildren)
+      children.forEach(BottomUpNode::buildChildren)
     }
   }
 
@@ -87,8 +87,8 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
     private val pathNodes = mutableListOf<CaptureNode>()
     private var childrenBuilt = false
 
-    override fun getMethodModel() = pathNodes[0].data
-    override fun getFilterType() = pathNodes[0].filterType
+    override val methodModel get() = pathNodes[0].data
+    override val filterType get() = pathNodes[0].filterType
 
     override fun buildChildren(): Boolean = when {
       childrenBuilt -> false
@@ -106,9 +106,7 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
   protected fun addChildren(pathNodesAndNodes: Sequence<Pair<CaptureNode, CaptureNode>>) {
     // We use a separate map for unmatched children, because we can not merge unmatched with matched,
     // i.e all merged children should have the same {@link CaptureNode.FilterType};
-    val matchedChildren = hashMapOf<String, Child>()
-    val unmatchedChildren = hashMapOf<String, Child>()
-    fun childrenMap(unmatched: Boolean) = if (unmatched) unmatchedChildren else matchedChildren
+    val childrenMap = mapPair<String, Child>()
     pathNodesAndNodes.forEach { (pathNode, node) ->
       val id = pathNode.data.id
       val child = childrenMap(pathNode.isUnmatched).getOrPut(id) { Child(id).also(::addChild) }

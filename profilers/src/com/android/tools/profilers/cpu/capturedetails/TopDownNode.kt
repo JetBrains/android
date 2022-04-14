@@ -23,6 +23,9 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
  * It's created from an execution tree by merging the nodes with the same path from the root.
  */
 class TopDownNode(node: CaptureNode) : CpuTreeNode<TopDownNode>(node.data.id) {
+  override val methodModel get() = nodes[0].data
+  override val filterType get() = nodes[0].filterType
+
   init {
     addNode(node)
 
@@ -56,10 +59,8 @@ class TopDownNode(node: CaptureNode) : CpuTreeNode<TopDownNode>(node.data.id) {
 
     // We use a separate map for unmatched children, because we can not merge unmatched with matched,
     // i.e all merged children should have the same {@link CaptureNode.FilterType};
-    val matchedChildren = hashMapOf<String, TopDownNode>()
-    val unmatchedChildren = hashMapOf<String, TopDownNode>()
-    fun childrenMap(unmatched: Boolean) = if (unmatched) unmatchedChildren else matchedChildren
-    getChildren().forEach { childrenMap(it.isUnmatched)[it.id] = it }
+    val childrenMap = mapPair<String, TopDownNode>()
+    children.forEach { childrenMap(it.isUnmatched)[it.id] = it }
     for (otherChild in other.children) {
       when (val existing = childrenMap(otherChild.isUnmatched)[otherChild.id]) {
         null -> addChild(otherChild)
@@ -67,7 +68,4 @@ class TopDownNode(node: CaptureNode) : CpuTreeNode<TopDownNode>(node.data.id) {
       }
     }
   }
-
-  override fun getMethodModel(): CaptureNodeModel = nodes[0].data
-  override fun getFilterType(): CaptureNode.FilterType = nodes[0].filterType
 }
