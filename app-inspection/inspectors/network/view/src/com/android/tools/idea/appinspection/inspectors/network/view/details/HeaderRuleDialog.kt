@@ -17,8 +17,13 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
+import java.awt.CardLayout
+import javax.swing.ButtonGroup
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -29,25 +34,97 @@ class HeaderRuleDialog(private val saveAction: (RuleData.TransformationRuleData)
 
   companion object {
     private const val DEFAULT_TEXT = "Text"
+    private const val REGEX_TEXT = "Regex"
   }
 
-  private val nameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
-  private val valueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  private val newAddedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  private val newAddedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  private val findNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  private val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
+  private val findValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  private val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
+  private val newReplacedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  private val newReplacedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  private val addRadioButton = JBRadioButton("Add new header")
+  private val replaceRadioButton = JBRadioButton("Edit existing header")
 
   init {
     title = "New Header Rule"
     init()
   }
 
-  override fun createNorthPanel() = JPanel(VerticalLayout(18)).apply {
-    add(createKeyValuePair("Name") { nameLabel })
-    add(createKeyValuePair("Value") { valueLabel })
+  override fun createNorthPanel() = JPanel(VerticalLayout(20)).apply {
+    val addPanel = JPanel(VerticalLayout(10)).apply {
+      add(createKeyValuePair("Name", newAddedNameLabel))
+      add(createKeyValuePair("Value", newAddedValueLabel))
+    }
+
+    val replacePanel = JPanel(VerticalLayout(10)).apply {
+      add(createCategoryPanel("Find", listOf(
+        createKeyValuePair("Name", findNameLabel.withRegexCheckBox(findNameRegexCheckBox)),
+        createKeyValuePair("Value", findValueLabel.withRegexCheckBox(findValueRegexCheckBox))
+      )))
+      add(createCategoryPanel("Replace with", listOf(
+        createKeyValuePair("Name", newReplacedNameLabel),
+        createKeyValuePair("Value", newReplacedValueLabel)
+      )))
+    }
+
+    val cardLayout = CardLayout()
+    val cardView = JPanel(cardLayout)
+    val addKey = "add"
+    val replaceKey = "replace"
+    cardView.add(addPanel, addKey)
+    cardView.add(replacePanel, replaceKey)
+
+    addRadioButton.addActionListener {
+      if (addRadioButton.isSelected) {
+        cardLayout.show(cardView, addKey)
+      }
+    }
+    replaceRadioButton.addActionListener {
+      if (replaceRadioButton.isSelected) {
+        cardLayout.show(cardView, replaceKey)
+      }
+    }
+    ButtonGroup().apply {
+      add(addRadioButton)
+      add(replaceRadioButton)
+    }
+    add(createKeyValuePair(
+      "Rule action",
+      JPanel(HorizontalLayout(20)).apply {
+        add(addRadioButton)
+        add(replaceRadioButton)
+      }
+    ))
+    add(cardView)
+    addRadioButton.isSelected = true
   }
 
   override fun createCenterPanel(): JComponent? = null
 
   override fun doOKAction() {
     super.doOKAction()
-    saveAction(RuleData.HeaderAddedRuleData(nameLabel.text, valueLabel.text))
+    if (addRadioButton.isSelected) {
+      saveAction(RuleData.HeaderAddedRuleData(newAddedNameLabel.text, newAddedValueLabel.text))
+    }
+    else {
+      saveAction(RuleData.HeaderReplacedRuleData(
+        findNameLabel.text,
+        findNameRegexCheckBox.isSelected,
+        findValueLabel.text,
+        findValueRegexCheckBox.isSelected,
+        newReplacedNameLabel.text,
+        newReplacedValueLabel.text
+      ))
+    }
+  }
+
+  private fun JBTextField.withRegexCheckBox(checkBox: JBCheckBox) = JPanel(HorizontalLayout(20)).apply {
+    add(this@withRegexCheckBox)
+    add(checkBox)
   }
 }

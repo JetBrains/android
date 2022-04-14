@@ -136,6 +136,19 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(1)
     assertThat(headerTable.items[0]).isEqualTo(headerAddedRule)
 
+    val headerReplacedRule = RuleData.HeaderReplacedRuleData(
+      "findHeader",
+      false,
+      "findValue",
+      false,
+      "newHeader",
+      "newName"
+    )
+    rule.headerRuleTableModel.insertRow(0, headerReplacedRule)
+    assertThat(headerTable.rowCount).isEqualTo(2)
+    assertThat(headerTable.items[0]).isEqualTo(headerReplacedRule)
+
+
     val bodyPanel = ruleDetailsView.getCategoryPanel("Body rules") as JPanel
     val bodyTable = TreeWalker(bodyPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
     assertThat(bodyTable.rowCount).isEqualTo(0)

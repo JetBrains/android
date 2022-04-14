@@ -74,19 +74,23 @@ class RuleDetailsView : JPanel() {
   }
 
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
-    detailsPanel.add(createKeyValuePair("Name") {
-      createTextField(rule.name, TEXT_LABEL_WIDTH) { text ->
-        rule.name = text
-      }
-    })
+    detailsPanel.add(
+      createKeyValuePair(
+        "Name",
+        createTextField(rule.name, TEXT_LABEL_WIDTH) { text ->
+          rule.name = text
+        }
+      )
+    )
     detailsPanel.add(createCategoryPanel("Origin", listOf(
-      createKeyValuePair("Host url") {
+      createKeyValuePair(
+        "Host url",
         createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text ->
           rule.criteria.apply {
             host = text
           }
         }
-      }
+      )
     )))
 
     detailsPanel.add(createCategoryPanel("Header rules", listOf(

@@ -91,6 +91,29 @@ class RuleData(
     }.build()
   }
 
+  class HeaderReplacedRuleData(
+    val findName: String,
+    val isFindNameRegex: Boolean,
+    val findValue: String,
+    val isFindValueRegex: Boolean,
+    val newName: String,
+    val newValue: String) : TransformationRuleData {
+    override fun toProto(): Transformation = Transformation.newBuilder().apply {
+      headerReplacedBuilder.apply {
+        targetNameBuilder.apply {
+          text = findName
+          type = matchingTextTypeFrom(isFindNameRegex)
+        }
+        targetValueBuilder.apply {
+          text = findValue
+          type = matchingTextTypeFrom(isFindValueRegex)
+        }
+        newName = this@HeaderReplacedRuleData.newName
+        newValue = this@HeaderReplacedRuleData.newValue
+      }
+    }.build()
+  }
+
   inner class HeaderRulesTableModel : ListTableModel<TransformationRuleData>() {
     init {
       columnInfos = arrayOf(
@@ -98,6 +121,7 @@ class RuleData(
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
               is HeaderAddedRuleData -> item.name
+              is HeaderReplacedRuleData -> item.findName
               else -> ""
             }
           }
@@ -106,6 +130,7 @@ class RuleData(
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
               is HeaderAddedRuleData -> item.value
+              is HeaderReplacedRuleData -> item.findValue
               else -> ""
             }
           }
@@ -129,7 +154,7 @@ class RuleData(
       bodyModifiedBuilder.apply {
         targetTextBuilder.apply {
           text = this@BodyModifiedRuleData.targetText
-          type = if (this@BodyModifiedRuleData.isRegex) Type.REGEX else Type.PLAIN
+          type = matchingTextTypeFrom(isRegex)
         }
         newText = this@BodyModifiedRuleData.newText
       }
@@ -176,3 +201,5 @@ class RuleData(
     addAllTransformation(bodyRuleTableModel.items.map { it.toProto() })
   }.build()
 }
+
+fun matchingTextTypeFrom(isRegex: Boolean): Type = if (isRegex) Type.REGEX else Type.PLAIN

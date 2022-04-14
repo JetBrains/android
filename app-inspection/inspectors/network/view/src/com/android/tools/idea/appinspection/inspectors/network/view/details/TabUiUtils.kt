@@ -165,14 +165,14 @@ fun createCategoryPanel(name: String, entryComponents: List<JComponent>): JPanel
 /**
  * Create a panel that shows a pair of key label and value component.
  */
-fun createKeyValuePair(key: String, componentProvider: () -> JComponent): JPanel {
+fun createKeyValuePair(key: String, valueComponent: JComponent): JPanel {
   val panel = JPanel(TabularLayout("155px,Fit")).apply {
-    border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
+    border = JBUI.Borders.empty()
   }
   val keyPanel = JPanel(BorderLayout())
   keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
   panel.add(keyPanel, TabularLayout.Constraint(0, 0))
-  panel.add(componentProvider(), TabularLayout.Constraint(0, 1))
+  panel.add(valueComponent, TabularLayout.Constraint(0, 1))
   return panel
 }
 
