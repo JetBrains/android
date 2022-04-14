@@ -34,7 +34,7 @@ public class BottomUpTreeModelTest {
   @Before
   public void setUp() {
     myRange = new Range(0, 40);
-    myModel = new BottomUpTreeModel(ClockType.GLOBAL, myRange, new BottomUpNode(BottomUpNodeTest.createComplexTree()));
+    myModel = new BottomUpTreeModel(ClockType.GLOBAL, myRange, BottomUpNode.rootAt(BottomUpNodeTest.createComplexTree()));
   }
 
   @Test

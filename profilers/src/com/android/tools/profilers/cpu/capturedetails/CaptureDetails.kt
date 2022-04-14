@@ -63,7 +63,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
 
   class BottomUp internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
     : Aggregate<BottomUpNode, BottomUpTreeModel>(clockType, range, nodes, cpuCapture,
-                                                 { BottomUpNode(it).apply { update(clockType, range) } },
+                                                 { BottomUpNode.rootAt(it).apply { update(clockType, range) } },
                                                  ::BottomUpTreeModel) {
     override val type get() = Type.BOTTOM_UP
   }

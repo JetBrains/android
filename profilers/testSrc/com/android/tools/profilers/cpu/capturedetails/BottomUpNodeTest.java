@@ -101,7 +101,7 @@ public class BottomUpNodeTest {
     childA.addChild(newNode("B", 2, 7));
     childA.getChildren().get(0).addChild(newNode("C", 3, 4));
 
-    BottomUpNode node = new BottomUpNode(root);
+    BottomUpNode node = BottomUpNode.rootAt(root);
     assertTrue(node.getChildren().stream().noneMatch((bottomUpNode) -> bottomUpNode.getId().equals(root.getData().getId())));
   }
 
@@ -269,7 +269,7 @@ public class BottomUpNodeTest {
     addChainSubtree(root.getChildren().get(0).getChildren().get(0), newNode("B", 21, 40),
                     newNode("A", 25, 28));
 
-    BottomUpNode node = new BottomUpNode(root);
+    BottomUpNode node = BottomUpNode.rootAt(root);
 
     BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals("A")).findAny().orElseThrow(AssertionError::new);
     nodeA.update(ClockType.GLOBAL, new Range(0, 100));
@@ -339,7 +339,7 @@ public class BottomUpNodeTest {
 
   private static void traverseAndCheck(CaptureNode root, List<ExpectedNode> expectedNodes) {
     List<BottomUpNode> traverseOrder = new ArrayList<>();
-    traverse(new BottomUpNode(root), traverseOrder);
+    traverse(BottomUpNode.rootAt(root), traverseOrder);
 
     Range viewRange = new Range(root.getStart(), root.getEnd());
     traverseOrder.forEach(node -> node.update(ClockType.GLOBAL, viewRange));
