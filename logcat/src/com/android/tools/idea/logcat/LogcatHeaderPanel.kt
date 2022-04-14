@@ -79,7 +79,7 @@ internal class LogcatHeaderPanel(
 
     helpIcon.let {
       toolTipText = LogcatBundle.message("logcat.help.tooltip")
-      addMouseListener(object: MouseAdapter(){
+      it.addMouseListener(object: MouseAdapter(){
         override fun mouseClicked(e: MouseEvent) {
           BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
         }
