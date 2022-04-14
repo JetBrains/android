@@ -212,7 +212,9 @@ def _studio_plugin_impl(ctx):
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
-        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
+        fail("Plugin '" + ctx.attr.name + "' has some compile-time dependencies which are not on the " +
+             "runtime classpath in release builds. You may need to edit the plugin definition at " +
+             str(ctx.label) + " to include the following dependencies: " + ", ".join(missing))
 
     return [
         PluginInfo(
