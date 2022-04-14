@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbDeviceServices
+import com.android.adblib.DeviceSelector
+import com.android.adblib.shellAsLines
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 private const val MAX_PIDS = 1000
+
+private const val DEVICE_PROCESSES_UPDATE_INTERVAL_MS = 2000L
 
 /**
  * Monitors a device and keeps track of process names.
@@ -44,13 +50,14 @@ internal class ProcessNameClientMonitor(
   parentScope: CoroutineScope,
   private val device: IDevice,
   private val flows: ProcessNameMonitorFlows,
+  private val adbDeviceServicesFactory: () -> AdbDeviceServices,
   private val maxPidsBeforeEviction: Int = MAX_PIDS,
 ) : Disposable {
   /**
    * The map of pid -> [ProcessNames] for currently alive processes, plus recently terminated processes.
    */
   private val processes = ConcurrentHashMap<Int, ProcessNames>()
-
+  private val deviceProcessUpdater = DeviceProcessUpdater()
   private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
 
   init {
@@ -85,9 +92,41 @@ internal class ProcessNameClientMonitor(
         }
       }
     }
+    coroutineScope.launch {
+      while (true) {
+        deviceProcessUpdater.updateNow()
+        delay(DEVICE_PROCESSES_UPDATE_INTERVAL_MS)
+      }
+    }
   }
 
-  fun getProcessNames(pid: Int): ProcessNames? = processes[pid]
+  fun getProcessNames(pid: Int): ProcessNames? = processes[pid] ?: deviceProcessUpdater.getPidName(pid)
 
   override fun dispose() {}
+
+  private inner class DeviceProcessUpdater {
+    private val lastKnownPids = AtomicReference(mapOf<Int, ProcessNames>())
+
+    suspend fun updateNow() {
+      try {
+        val names = mutableMapOf<Int, ProcessNames>()
+        adbDeviceServicesFactory().shellAsLines(DeviceSelector.fromSerialNumber(device.serialNumber),
+                                                "ps -A -o PID,NAME").collect shellAsLines@{
+          val split = it.trim().split(" ")
+          val pid = split[0].toIntOrNull() ?: return@shellAsLines
+          val processName = split[1]
+          names[pid] = ProcessNames("", processName)
+        }
+        LOGGER.debug("${device.serialNumber}: Adding ${names.size} processes from ps command")
+        lastKnownPids.set(names)
+      }
+      catch (e: Throwable) {
+        LOGGER.warn("Error listing device processes", e)
+        // We have no idea what error to expect here and how long this may last, so safer to discard old data.
+        lastKnownPids.set(mapOf())
+      }
+    }
+
+    fun getPidName(pid: Int): ProcessNames? = lastKnownPids.get()[pid]
+  }
 }

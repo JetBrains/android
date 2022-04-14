@@ -264,26 +264,6 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_missingAppName() {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      formattingOptions,
-      textAccumulator,
-      listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "Tag", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "", "Tag", TIMESTAMP), "multiline\nmessage"),
-      ))
-
-    assertThat(textAccumulator.text).isEqualTo("""
-      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
-      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  multiline
-                                                                                                          message
-
-    """.trimIndent())
-  }
-
-  @Test
   fun formatMessages_hideDuplicateAppNames() {
     val textAccumulator = TextAccumulator()
     formattingOptions.appNameFormat = AppNameFormat(hideDuplicates = true)

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbDeviceServices
+import com.android.adblib.DeviceSelector
+import com.android.adblib.testing.FakeAdbDeviceServices
+import com.android.adblib.testing.FakeAdbLibSession
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.android.tools.idea.concurrency.waitForCondition
@@ -24,6 +28,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -31,7 +36,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Tests for [ProcessNameMonitor]
  */
-@Suppress("EXPERIMENTAL_API_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class ProcessNameMonitorImplTest {
   private val projectRule = ProjectRule()
 
@@ -43,6 +48,15 @@ class ProcessNameMonitorImplTest {
   @get:Rule
   val rule = RuleChain(projectRule)
 
+  private val fakeAdbDeviceServices = FakeAdbDeviceServices(FakeAdbLibSession())
+
+  @Before
+  fun setUp() {
+    fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device1.serialNumber), "ps -A -o PID,NAME", "")
+    fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device2.serialNumber), "ps -A -o PID,NAME", "")
+  }
+
+
   @Test
   fun devicesOnline() = runBlockingTest {
     FakeProcessNameMonitorFlows().use { flows ->
@@ -53,7 +67,6 @@ class ProcessNameMonitorImplTest {
         flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
         flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
 
-        advanceUntilIdle()
         assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
         assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
         assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
@@ -73,7 +86,6 @@ class ProcessNameMonitorImplTest {
         flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
         flows.sendDeviceEvents(Disconnected(device1))
 
-        advanceUntilIdle()
         assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isNull()
         assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
         assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
@@ -86,7 +98,7 @@ class ProcessNameMonitorImplTest {
   fun disconnect_disposes() {
     runBlockingTest {
       val flows = TerminationTrackingProcessNameMonitorFlows()
-      processNameMonitor(flows).use { monitor ->
+      processNameMonitor(flows).use {
 
         flows.sendDeviceEvents(Online(device1))
         waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowStarted(device1.serialNumber) }
@@ -98,8 +110,9 @@ class ProcessNameMonitorImplTest {
   }
 
   private fun CoroutineScope.processNameMonitor(
-    flows: ProcessNameMonitorFlows = FakeProcessNameMonitorFlows()
+    flows: ProcessNameMonitorFlows = FakeProcessNameMonitorFlows(),
+    adbDeviceServices: AdbDeviceServices = fakeAdbDeviceServices,
   ): ProcessNameMonitorImpl {
-    return ProcessNameMonitorImpl(projectRule.project, flows, this).apply { start() }
+    return ProcessNameMonitorImpl(projectRule.project, flows, this) { adbDeviceServices }.apply { start() }
   }
 }

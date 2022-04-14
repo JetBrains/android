@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbDeviceServices
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbAdapterImpl
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.openapi.Disposable
@@ -38,10 +40,17 @@ internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal construc
   private val project: Project,
   private val flows: ProcessNameMonitorFlows,
   parentScope: CoroutineScope,
+  private val adbDeviceServicesFactory: () -> AdbDeviceServices,
 ) : ProcessNameMonitor, Disposable {
 
   @Suppress("unused") // Actually used by the getService() mechanism
-  constructor(project: Project) : this(project, ProcessNameMonitorFlowsImpl(AdbAdapterImpl(project)), project.coroutineScope)
+  constructor(project: Project)
+    : this(
+    project,
+    ProcessNameMonitorFlowsImpl(AdbAdapterImpl(project)),
+    project.coroutineScope,
+    { AdbLibService.getInstance(project).session.deviceServices }
+  )
 
   private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
 
@@ -83,7 +92,9 @@ internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal construc
 
   private fun addDevice(device: IDevice) {
     LOGGER.info("Adding ${device.serialNumber}")
-    devices[device.serialNumber] = ProcessNameClientMonitor(project, coroutineScope, device, flows).apply { start() }
+    devices[device.serialNumber] = ProcessNameClientMonitor(project, coroutineScope, device, flows, adbDeviceServicesFactory).apply {
+      start()
+    }
   }
 
   private fun removeDevice(device: IDevice) {
