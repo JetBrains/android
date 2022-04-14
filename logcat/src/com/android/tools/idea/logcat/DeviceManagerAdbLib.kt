@@ -58,6 +58,7 @@ internal class DeviceManagerAdbLib(
    * The [LogcatReceiver] instance used to process incoming `logcat` messages
    */
   private val logcatReceiver = LogcatReceiver(
+    project,
     device,
     this,
     object : LogcatReceiver.LogcatListener {

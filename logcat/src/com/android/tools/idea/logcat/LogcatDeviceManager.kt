@@ -65,7 +65,7 @@ internal abstract class LogcatDeviceManager(
           DeviceManagerAdbLib(project, device, logcatPresenter, packageNamesProvider)
         }
         else {
-          DeviceManagerDdmLib(device, logcatPresenter, packageNamesProvider)
+          DeviceManagerDdmLib(project, device, logcatPresenter, packageNamesProvider)
         }
       }
     }

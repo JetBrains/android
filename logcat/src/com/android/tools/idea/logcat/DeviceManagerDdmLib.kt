@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors
  * Starts a background thread that reads logcat messages and sends them back to the caller.
  */
 internal class DeviceManagerDdmLib(
+  project: Project,
   device: IDevice,
   logcatPresenter: LogcatPresenter,
   packageNamesProvider: PackageNamesProvider
@@ -42,6 +44,7 @@ internal class DeviceManagerDdmLib(
   )
 
   private val logcatReceiver = LogcatReceiver(
+    project,
     device,
     this,
     object : LogcatReceiver.LogcatListener {

@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
+import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
@@ -33,10 +34,16 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.EventQueue
 
-internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
+internal class LogcatToolWindowFactory @TestOnly internal constructor(
+  private val processNameMonitorFactory: (Project) -> ProcessNameMonitor
+) : SplittingTabsToolWindowFactory(), DumbAware {
+
+  constructor() : this({ ProcessNameMonitor.getInstance(it) })
+
   init {
     if (isLogcatV2Enabled()) {
       ColorSettingsPages.getInstance().apply {
@@ -51,6 +58,8 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(project)
       .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, _ -> showLogcat(toolWindow, device) })
+
+    processNameMonitorFactory(project).start()
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, device: IDevice) {

@@ -23,9 +23,12 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatHeaderParser;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor;
+import com.android.tools.idea.adb.processnamemonitor.ProcessNames;
 import com.android.tools.idea.logcat.folding.StackTraceExpander;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Alarm;
@@ -60,6 +63,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   private static final String SYSTEM_LINE_PREFIX = "--------- beginning of ";
 
   private final @NotNull LogCatHeaderParser myLogCatHeaderParser;
+  private final @NotNull ProcessNameMonitor myProcessNameMonitor;
   private final @NotNull IDevice myDevice;
   private final @NotNull LogcatListener myLogcatListener;
   private volatile boolean myCanceled;
@@ -73,10 +77,15 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   // Hold on to the last message in a batch to send if no new batch arrives in a reasonable time.
   private @Nullable LogCatMessage myPendingMessage;
 
-  LogcatReceiver(@NotNull IDevice device, @NotNull Disposable parentDisposable, @NotNull LogcatListener listener) {
+  LogcatReceiver(
+    @NotNull Project project,
+    @NotNull IDevice device,
+    @NotNull Disposable parentDisposable,
+    @NotNull LogcatListener listener) {
     myLogCatHeaderParser = new LogCatHeaderParser();
     myDevice = device;
     myLogcatListener = listener;
+    myProcessNameMonitor = ProcessNameMonitor.getInstance(project);
     Disposer.register(parentDisposable, this);
     myAlarm = new TempSafeAlarm(POOLED_THREAD, this);
   }
@@ -185,7 +194,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
       }
       line = fixLine(line);
 
-      LogCatHeader header = myLogCatHeaderParser.parseHeader(line, myDevice);
+      LogCatHeader header = myLogCatHeaderParser.parseHeader(line, this::getPackageName);
 
       if (header != null) {
         // It's a header, flush active lines.
@@ -202,6 +211,11 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
       }
     }
     return new Batch(batchMessages.build(), activeHeader, activeLines);
+  }
+
+  private @NotNull String getPackageName(int pid) {
+    ProcessNames names = myProcessNameMonitor.getProcessNames(myDevice, pid);
+    return names != null ? names.getApplicationId() : "pid-" + pid;
   }
 
   private static boolean isSystemLine(String line) {
