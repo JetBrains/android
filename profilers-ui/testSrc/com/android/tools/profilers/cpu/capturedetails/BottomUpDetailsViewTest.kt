@@ -72,7 +72,7 @@ class BottomUpDetailsViewTest {
   @Test
   fun showsContentWhenNodeIsNotNull() {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
@@ -92,7 +92,7 @@ class BottomUpDetailsViewTest {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, range,
-                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 

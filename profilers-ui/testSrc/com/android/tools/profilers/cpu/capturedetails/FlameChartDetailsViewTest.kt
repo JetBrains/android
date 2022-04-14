@@ -82,7 +82,7 @@ class FlameChartDetailsViewTest {
     val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
+                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),
                                                            atraceCapture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
@@ -92,7 +92,7 @@ class FlameChartDetailsViewTest {
   @Test
   fun showsContentWhenNodeIsNotNull() {
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                           listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                            capture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 

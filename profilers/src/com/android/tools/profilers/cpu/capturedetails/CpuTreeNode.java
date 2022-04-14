@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class CpuTreeNode<T extends CpuTreeNode> {
+public abstract class CpuTreeNode<T extends CpuTreeNode<T>> {
   /**
    * References to {@link CaptureNode} that are used to extract information from to represent this CpuTreeNode,
    * such as {@link #getGlobalTotal()}, {@link #getGlobalChildrenTotal()}, etc...
