@@ -136,7 +136,7 @@ class AarResourceRepositoryCache private constructor() {
         get() = ApplicationManager.getApplication().getService(AarResourceRepositoryCache::class.java)
 
     private fun <K, T : AarResourceRepository> getRepository(key: K, libraryName: String, cache: Cache<K, T>, factory: () -> T): T {
-      val aarRepository = cache.getAndUnwrap(key, { factory() })
+      val aarRepository = cache.getAndUnwrap(key) { factory() }
 
       if (libraryName != aarRepository.libraryName) {
         thisLogger().error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
