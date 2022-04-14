@@ -34,7 +34,7 @@ public class TopDownTreeModelTest {
   @Test
   public void testTreeUpdate() {
     CaptureNode tree = TopDownNodeTest.createTree();
-    TopDownNode topDown = new TopDownNode(tree);
+    TopDownNode topDown = TopDownNode.rootAt(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
@@ -107,12 +107,12 @@ public class TopDownTreeModelTest {
 
   @Test
   public void testRootNodeIdValid() {
-    TopDownNode topDown = new TopDownNode(newNode("", 0, 10));
+    TopDownNode topDown = TopDownNode.rootAt(newNode("", 0, 10));
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
     Truth.assertThat(model.isRootNodeIdValid()).isFalse();
 
-    topDown = new TopDownNode(newNode("Valid", 0, 10));
+    topDown = TopDownNode.rootAt(newNode("Valid", 0, 10));
     model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
     Truth.assertThat(model.isRootNodeIdValid()).isTrue();
   }
@@ -120,7 +120,7 @@ public class TopDownTreeModelTest {
   @Test
   public void testAspectFiredAfterTreeModelChange() {
     CaptureNode tree = TopDownNodeTest.createTree();
-    TopDownNode topDown = new TopDownNode(tree);
+    TopDownNode topDown = TopDownNode.rootAt(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);

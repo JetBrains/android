@@ -25,8 +25,6 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
    * References to [CaptureNode] that are used to extract information from to represent this CpuTreeNode,
    * such as [.getGlobalTotal], [.getGlobalChildrenTotal], etc...
    */
-  private val nodeList = mutableListOf<CaptureNode>()
-  private val childrenList = mutableListOf<T>()
   var globalTotal = 0.0
     protected set
   var globalChildrenTotal = 0.0
@@ -36,16 +34,12 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
   var threadChildrenTotal = 0.0
     protected set
 
-  val nodes: List<CaptureNode> get() = nodeList
-  val children: List<T> get() = childrenList
+  abstract val nodes: List<CaptureNode>
+  abstract val children: List<T>
 
   abstract val methodModel: CaptureNodeModel
   abstract val filterType: CaptureNode.FilterType
   val isUnmatched: Boolean get() = filterType === CaptureNode.FilterType.UNMATCH
-
-  protected fun addNode(node: CaptureNode) = nodeList.add(node)
-  protected fun addNodes(nodes: List<CaptureNode>) = nodes.forEach(::addNode)
-  protected fun addChild(child: T) = childrenList.add(child)
 
   fun getTotal(clockType: ClockType): Double = when (clockType) {
     ClockType.GLOBAL -> globalTotal
@@ -61,7 +55,7 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
 
   open fun update(clockType: ClockType, range: Range) {
     reset()
-    for (node in nodeList) {
+    for (node in nodes) {
       globalTotal += getIntersection(range, node, ClockType.GLOBAL)
       threadTotal += getIntersection(range, node, ClockType.THREAD)
       for (child in node.children) {
@@ -71,7 +65,7 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
     }
   }
 
-  fun inRange(range: Range): Boolean = nodeList.any { it.start < range.max && range.min < it.end }
+  fun inRange(range: Range): Boolean = nodes.any { it.start < range.max && range.min < it.end }
 
   fun reset() {
     globalTotal = 0.0

@@ -76,44 +76,42 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
     override val methodModel = SingleNameModel("") // sample entry for the root.
     override val filterType get() = CaptureNode.FilterType.MATCH
     override fun buildChildren() = false
+    override val nodes = listOf(node)
+    override val children = buildChildren(node.preOrderTraversal().map { it to it })
+
     init {
-      addChildren(node.preOrderTraversal().map { it to it })
-      addNode(node)
       children.forEach(BottomUpNode::buildChildren)
     }
   }
 
-  private class Child(id: String): BottomUpNode(id) {
-    private val pathNodes = mutableListOf<CaptureNode>()
+  private class Child(id: String, private val pathNodes: List<CaptureNode>, override val nodes: List<CaptureNode>): BottomUpNode(id) {
     private var childrenBuilt = false
 
     override val methodModel get() = pathNodes[0].data
     override val filterType get() = pathNodes[0].filterType
 
+    override var children = listOf<BottomUpNode>()
+
     override fun buildChildren(): Boolean = when {
       childrenBuilt -> false
       else -> true.also {
         assert(pathNodes.size == nodes.size)
-        addChildren((pathNodes.asSequence() zip nodes.asSequence())
-                      .mapNotNull { (pathNode, node) -> pathNode.parent?.let { it to node } })
+        children = buildChildren((pathNodes.asSequence() zip nodes.asSequence())
+                                   .mapNotNull { (pathNode, node) -> pathNode.parent?.let { it to node } })
         childrenBuilt = true
       }
     }
-
-    fun addPathNode(node: CaptureNode) = pathNodes.add(node)
   }
 
-  protected fun addChildren(pathNodesAndNodes: Sequence<Pair<CaptureNode, CaptureNode>>) {
-    // We use a separate map for unmatched children, because we can not merge unmatched with matched,
-    // i.e all merged children should have the same {@link CaptureNode.FilterType};
-    val childrenMap = mapPair<String, Child>()
-    pathNodesAndNodes.forEach { (pathNode, node) ->
-      val id = pathNode.data.id
-      val child = childrenMap(pathNode.isUnmatched).getOrPut(id) { Child(id).also(::addChild) }
-      child.addPathNode(pathNode)
-      child.addNode(node)
-    }
-  }
+  protected fun buildChildren(pathNodesAndNodes: Sequence<Pair<CaptureNode, CaptureNode>>): List<BottomUpNode> =
+    pathNodesAndNodes
+      // We use a separate map for unmatched children, because we can not merge unmatched with matched,
+      // i.e all merged children should have the same {@link CaptureNode.FilterType};
+      .groupBy { (pathNode, _) -> pathNode.isUnmatched to pathNode.data.id }
+      .map { (key, nodePairs) ->
+        val (pathNodes, nodes) = nodePairs.unzip()
+        Child(key.second, pathNodes, nodes)
+      }
 
   companion object {
     @JvmStatic fun rootAt(node: CaptureNode): BottomUpNode = Root(node)

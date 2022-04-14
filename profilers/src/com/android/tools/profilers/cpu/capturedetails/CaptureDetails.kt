@@ -57,7 +57,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   }
 
   class TopDown internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : Aggregate<TopDownNode, TopDownTreeModel>(clockType, range, nodes, cpuCapture, ::TopDownNode, ::TopDownTreeModel) {
+    : Aggregate<TopDownNode, TopDownTreeModel>(clockType, range, nodes, cpuCapture, TopDownNode::rootAt, ::TopDownTreeModel) {
     override val type get() = Type.TOP_DOWN
   }
 
@@ -96,7 +96,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         visual.startGlobal = captureNodes[0].startGlobal
         visual.startThread = captureNodes[0].startThread
 
-        val topDownNode = TopDownNode(visual).apply {
+        val topDownNode = TopDownNode.rootAt(visual).apply {
           update(clockType, Range(0.0, Double.MAX_VALUE)) // to compute the total children time
         }
 

@@ -117,7 +117,7 @@ public class CpuTreeSorterTest {
 
     // Add a new child to the end of root's children list
     DefaultMutableTreeNode treeNodeRoot = (DefaultMutableTreeNode) model.getRoot();
-    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new TopDownNode(newNode("C", 0, 0)));
+    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(TopDownNode.rootAt(newNode("C", 0, 0)));
     model.insertNodeInto(newNode, treeNodeRoot, treeNodeRoot.getChildCount());
 
     // The order of the model is not right after the insertion, as "C" was inserted after "D"
@@ -148,7 +148,7 @@ public class CpuTreeSorterTest {
 
   private static CpuTreeModel createTreeModel(CaptureNode tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    return new TopDownTreeModel(ClockType.GLOBAL, range, new TopDownNode(tree));
+    return new TopDownTreeModel(ClockType.GLOBAL, range, TopDownNode.rootAt(tree));
   }
 
   /**

@@ -16,46 +16,20 @@
 package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.profilers.cpu.CaptureNode
-import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 
 /**
  * A top-down CPU usage tree. This is a node on that tree and represents all the calls that share the same callstack upto a point.
  * It's created from an execution tree by merging the nodes with the same path from the root.
  */
-class TopDownNode(node: CaptureNode) : CpuTreeNode<TopDownNode>(node.data.id) {
+class TopDownNode private constructor(id: String,
+                                      override val nodes: MutableList<CaptureNode>,
+                                      override val children: MutableList<TopDownNode>)
+  : CpuTreeNode<TopDownNode>(id) {
   override val methodModel get() = nodes[0].data
   override val filterType get() = nodes[0].filterType
 
-  init {
-    addNode(node)
-
-    // We're adding unmatched children separately, because we don't want to merge unmatched with matched,
-    // i.e all merged children should have the same {@link CaptureNode.FilterType}.
-    addChildren(node, false)
-    addChildren(node, true)
-  }
-
-  /**
-   * Adds children of {@param node} whose filter type matches to the flag {@param unmatched}.
-   */
-  private fun addChildren(node: CaptureNode, unmatched: Boolean) {
-    val children = HashMap<String, TopDownNode>()
-    for (child in node.children) {
-      if (unmatched == child.isUnmatched) {
-        val other = TopDownNode(child)
-        when (val prev = children[child.data.id]) {
-          null -> {
-            children[child.data.id] = other
-            addChild(other)
-          }
-          else -> prev.merge(other)
-        }
-      }
-    }
-  }
-
   private fun merge(other: TopDownNode) {
-    addNodes(other.nodes)
+    nodes.addAll(other.nodes)
 
     // We use a separate map for unmatched children, because we can not merge unmatched with matched,
     // i.e all merged children should have the same {@link CaptureNode.FilterType};
@@ -63,8 +37,34 @@ class TopDownNode(node: CaptureNode) : CpuTreeNode<TopDownNode>(node.data.id) {
     children.forEach { childrenMap(it.isUnmatched)[it.id] = it }
     for (otherChild in other.children) {
       when (val existing = childrenMap(otherChild.isUnmatched)[otherChild.id]) {
-        null -> addChild(otherChild)
+        null -> children.add(otherChild)
         else -> existing.merge(otherChild)
+      }
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun rootAt(node: CaptureNode) = TopDownNode(node.data.id, mutableListOf(node), childrenOf(node))
+
+    private fun childrenOf(node: CaptureNode): MutableList<TopDownNode> =
+      mutableListOf<TopDownNode>()
+        // We're adding unmatched children separately, because we don't want to merge unmatched with matched,
+        // i.e all merged children should have the same {@link CaptureNode.FilterType}.
+        .addNodes(node.children.asSequence().filter { !it.isUnmatched })
+        .addNodes(node.children.asSequence().filter { it.isUnmatched })
+
+    private fun MutableList<TopDownNode>.addNodes(nodes: Sequence<CaptureNode>) = this.apply {
+      val nodesById = HashMap<String, TopDownNode>()
+      for (node in nodes) {
+        val other = rootAt(node)
+        when (val prev = nodesById[node.data.id]) {
+          null -> {
+            nodesById[node.data.id] = other
+            add(other)
+          }
+          else -> prev.merge(other)
+        }
       }
     }
   }

@@ -42,7 +42,7 @@ public class TopDownNodeTest {
     // +- C
     //    +-F
 
-    TopDownNode topDown = new TopDownNode(root);
+    TopDownNode topDown = TopDownNode.rootAt(root);
     assertEquals("A", topDown.getId());
     assertEquals(2, topDown.getChildren().size());
     assertEquals("B", topDown.getChildren().get(0).getId());
@@ -74,7 +74,7 @@ public class TopDownNodeTest {
     // set node "A->B->E" and "A->B->G" unmatch.
     root.getChildren().get(2).getChildren().forEach(n -> n.setFilterType(CaptureNode.FilterType.UNMATCH));
 
-    TopDownNode topDown = new TopDownNode(root);
+    TopDownNode topDown = TopDownNode.rootAt(root);
 
     // A
     assertEquals("A", topDown.getId());
@@ -98,7 +98,7 @@ public class TopDownNodeTest {
     root.addChild(newNode("D", 3, 5));
     root.addChild(newNode("E", 7, 9));
 
-    TopDownNode topDown = new TopDownNode(root);
+    TopDownNode topDown = TopDownNode.rootAt(root);
     topDown.update(ClockType.GLOBAL, new Range(root.getStart(), root.getEnd()));
     for (TopDownNode child : topDown.getChildren()) {
       child.update(ClockType.GLOBAL, new Range(root.getStart(), root.getEnd()));
@@ -114,7 +114,7 @@ public class TopDownNodeTest {
   @Test
   public void testTreeData() {
     CaptureNodeModel rootModel = new JavaMethodModel("A", "com.package.Class");
-    TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10, ClockType.GLOBAL));
+    TopDownNode topDown = TopDownNode.rootAt(newNode(rootModel, 0, 10, ClockType.GLOBAL));
 
     CaptureNodeModel model = topDown.getMethodModel();
     assertEquals(rootModel, topDown.getMethodModel());
@@ -130,7 +130,7 @@ public class TopDownNodeTest {
     root.addChild(newNode("D", 3, 5));
     root.addChild(newNode("E", 7, 9));
 
-    TopDownNode topDown = new TopDownNode(root);
+    TopDownNode topDown = TopDownNode.rootAt(root);
     topDown.update(ClockType.THREAD, new Range(root.getStart(), root.getEnd()));
     for (TopDownNode child : topDown.getChildren()) {
       child.update(ClockType.THREAD, new Range(root.getStart(), root.getEnd()));
