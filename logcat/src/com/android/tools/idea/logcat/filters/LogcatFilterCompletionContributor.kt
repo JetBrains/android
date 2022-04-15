@@ -63,9 +63,11 @@ private const val AGE_KEY = "age:"
 private val KEYS = STRING_KEYS + LEVEL_KEY + AGE_KEY
 private val ALL_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY
 
-private val LEVEL_LOOKUPS = Log.LogLevel.values()
-  .flatMap { sequenceOf(it.name, it.name.lowercase()) }
-  .map { it.toLookupElement(suffix = " ") }
+private val LEVEL_LOOKUPS_LOWERCASE = Log.LogLevel.values()
+  .map { it.name.lowercase().toLookupElement(suffix = " ") }
+
+private val LEVEL_LOOKUPS_UPPERCASE = Log.LogLevel.values()
+  .map { it.name.uppercase().toLookupElement(suffix = " ") }
 
 // Do not complete a key if previous char is one of these
 private const val NON_KEY_MARKER = "'\")"
@@ -120,7 +122,9 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                if (parameters.findPreviousText() == LEVEL_KEY) {
-                 result.addAllElements(LEVEL_LOOKUPS)
+                 val prefix = result.prefixMatcher.prefix
+                 val lookups = if (prefix.isEmpty() || prefix.first().isLowerCase()) LEVEL_LOOKUPS_LOWERCASE else LEVEL_LOOKUPS_UPPERCASE
+                 result.addAllElements(lookups)
                }
                result.addHints()
              }

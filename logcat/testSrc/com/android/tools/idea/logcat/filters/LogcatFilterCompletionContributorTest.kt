@@ -100,22 +100,42 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_levels_withoutWhitespace() {
-    val levels = LogLevel.values().map { "${it.name} " } + LogLevel.values().map { "${it.name.lowercase()} " }
+    val levels = LogLevel.values().map { "${it.name.lowercase()} " }
     fixture.configure("level:$caret")
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings).named("level with no whitespace").containsExactlyElementsIn(levels)
+    assertThat(fixture.lookupElementStrings).containsExactlyElementsIn(levels)
   }
 
   @Test
   fun complete_levels_withWhitespace() {
-    val levels = LogLevel.values().map { "${it.name} " } + LogLevel.values().map { "${it.name.lowercase()} " }
+    val levels = LogLevel.values().map { "${it.name.lowercase()} " }
     fixture.configure("level:  $caret")
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings).named("level with whitespace").containsExactlyElementsIn(levels)
+    assertThat(fixture.lookupElementStrings).containsExactlyElementsIn(levels)
+  }
+
+  @Test
+  fun complete_levels_lowercase() {
+    LogLevel.values().map { it.name.lowercase() }.forEach {
+      //Use a prefix of 3 letters so all levels get a single completion and insert it rather than some showing a list
+      fixture.configure("level:${it.substring(0, 3)}$caret")
+      fixture.completeBasic()
+      assertThat(fixture.editor.document.text).named(it).isEqualTo("level:$it ")
+    }
+  }
+
+  @Test
+  fun complete_levels_uppercase() {
+    LogLevel.values().map { it.name.uppercase() }.forEach {
+      //Use a prefix of 3 letters so all levels get a single completion and insert it rather than some showing a list
+      fixture.configure("level:${it.substring(0, 3)}$caret")
+      fixture.completeBasic()
+      assertThat(fixture.editor.document.text).named(it).isEqualTo("level:$it ")
+    }
   }
 
   @Test
