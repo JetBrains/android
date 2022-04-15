@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-class LiveEditUpdateException(val error: Error, val details: String = "", cause : Throwable?) : RuntimeException(details, cause) {
+import com.intellij.psi.PsiFile
+
+class LiveEditUpdateException(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
 
   /**
    * @param message Short description
@@ -35,16 +37,18 @@ class LiveEditUpdateException(val error: Error, val details: String = "", cause 
   companion object {
     // Sorted lexicographically for readability and consistency
 
-    fun analysisError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.ANALYSIS_ERROR, details, cause)
+    fun analysisError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source, cause)
 
     @JvmStatic
-    fun compilationError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.COMPILATION_ERROR, details, cause)
+    fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.COMPILATION_ERROR, details, source, cause)
 
-    fun internalError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.INTERNAL_ERROR, details, cause)
+    fun internalError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR, details, source, cause)
 
-    fun knownIssue(bugNumber: Int, details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.KNOWN_ISSUE, "(b/$bugNumber) $details", cause)
-
-    fun inlineFailure(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", cause)
+    fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source, cause)
   }
 }
 

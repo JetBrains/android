@@ -74,17 +74,7 @@ private fun handleCompilerErrors(e: Throwable) {
     }
 
     var message = cause.message!!
-    if (message.contains("Unhandled intrinsic in ExpressionCodegen")) {
-      // This bug should be fixed as of Dolphin C5. We should leave it in in case of regression / other scenerios that triggers it again.
-      var nameStart = message.indexOf("name:") + "name:".length
-      var nameEnd = message.indexOf(' ', nameStart)
-      var name = message.substring(nameStart, nameEnd)
-
-      throw LiveEditUpdateException.knownIssue(201728545,
-                                               "unable to compile a file that reference a top level function in another source file.\n" +
-                                               "For now work around this by moving function $name inside the class.")
-    }
-    else if (message.contains("Back-end (JVM) Internal error: Couldn't inline method call")) {
+    if (message.contains("Back-end (JVM) Internal error: Couldn't inline method call")) {
       // We currently don't support inline function calls to another source code file.
 
       var nameStart = message.indexOf("Couldn't inline method call: CALL '") + "Couldn't inline method call: CALL '".length
@@ -95,7 +85,7 @@ private fun handleCompilerErrors(e: Throwable) {
                                                " an inline function from another source file: $name")
     }
   }
-  throw LiveEditUpdateException.compilationError(e.message ?: "No error message", e)
+  throw LiveEditUpdateException.compilationError(e.message ?: "No error message", null, e)
 }
 
 /**
@@ -151,7 +141,7 @@ private object CompileScopeImpl : CompileScope {
       var exception: LiveEditUpdateException? = null
       val analysisResult = resolution.analyzeWithAllCompilerChecks(input) {
         if (it.severity == Severity.ERROR) {
-          exception = LiveEditUpdateException.analysisError("Analyze Error. $it")
+          exception = LiveEditUpdateException.analysisError("Analyze Error. $it", it.psiFile)
         }
       }
       if (exception != null) {
@@ -164,7 +154,7 @@ private object CompileScopeImpl : CompileScope {
 
       for (diagnostic in analysisResult.bindingContext.diagnostics) {
         if (diagnostic.severity == Severity.ERROR) {
-          throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
+          throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic", diagnostic.psiFile)
         }
       }
 

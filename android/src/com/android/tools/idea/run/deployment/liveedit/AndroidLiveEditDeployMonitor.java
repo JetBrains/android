@@ -297,13 +297,13 @@ public class AndroidLiveEditDeployMonitor {
     }
 
     if (!found) {
-      throw LiveEditUpdateException.compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null);
+      throw LiveEditUpdateException.compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null);
     }
   }
 
   private static void checkIwiAvailable() {
     if (StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() == StudioFlags.OptimisticInstallSupportLevel.DISABLED) {
-      throw LiveEditUpdateException.compilationError("Cannot perform Live Edit without optimistic install support", null);
+      throw LiveEditUpdateException.compilationError("Cannot perform Live Edit without optimistic install support", null, null);
     }
   }
 

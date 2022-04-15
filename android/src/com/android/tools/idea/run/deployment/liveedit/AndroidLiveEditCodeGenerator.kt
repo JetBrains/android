@@ -161,7 +161,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
-        throw LiveEditUpdateException.internalError("Could not find a non-null named method");
+        throw LiveEditUpdateException.internalError("Unable to retrieve context for function ${targetFunction.name}", elem.containingFile);
       }
       elem = elem.parent
     }
@@ -176,11 +176,11 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     }
 
     if (className.isEmpty() || methodSignature.isEmpty()) {
-      throw LiveEditUpdateException.internalError("Empty class name / method signature.")
+      throw LiveEditUpdateException.internalError("Empty class name / method signature.", function.containingFile)
     }
 
     if (compilerOutput.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.")
+      throw LiveEditUpdateException.internalError("No compiler output.", function.containingFile)
     }
 
     fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
@@ -188,7 +188,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
                                                          clazzFile.className.contains("ComposableSingletons\$")
 
-    val internalClassName = getInternalClassName(desc.containingPackage(), className)
+    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
     var primaryClass = ByteArray(0)
     val supportClasses = mutableMapOf<String, ByteArray>()
     // TODO: Remove all these println once we are more stable.
@@ -292,7 +292,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
   // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
   // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
   // and class name in "import" format and returns the same class name in "internal" format.
-  private fun getInternalClassName(packageName : FqName?, className : String) : String {
+  private fun getInternalClassName(packageName : FqName?, className : String, file: PsiFile) : String {
     var packagePrefix = ""
     if (packageName != null && !packageName.isRoot) {
       packagePrefix = "$packageName."
