@@ -25,8 +25,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentsOfType
 import com.intellij.serviceContainer.AlreadyDisposedException
-import org.jetbrains.kotlin.idea.core.util.range
-import org.jetbrains.kotlin.idea.core.util.start
 
 private fun SmartPsiElementPointer<PsiElement>.isValid() = range != null && ReadAction.compute<Boolean, Throwable> { element != null }
 
@@ -39,7 +37,7 @@ private fun SmartPsiElementPointer<PsiElement>.isValid() = range != null && Read
  * @param onReattach callback when the [PsiElement] handled by this smart pointer changes.
  */
 class ReattachableSmartPsiElementPointer(originalElement: PsiElement, private val onReattach: (PsiElement) -> Unit = {}): SmartPsiElementPointer<PsiElement> {
-  private val originalStartOffset = originalElement.range.start
+  private val originalStartOffset = originalElement.textRange.startOffset
   private val originalElementClass = originalElement::class.java
   private var elementPointer = SmartPointerManager.createPointer(originalElement)
 
@@ -59,7 +57,7 @@ class ReattachableSmartPsiElementPointer(originalElement: PsiElement, private va
           elementPointer.containingFile
             ?.findElementAt(originalStartOffset)
             ?.parentsOfType(originalElementClass, true)
-            ?.firstOrNull { it.range.start == originalStartOffset }
+            ?.firstOrNull { it.textRange.startOffset == originalStartOffset }
             ?.let {
               elementPointer = SmartPointerManager.createPointer(it)
               onReattach(it)

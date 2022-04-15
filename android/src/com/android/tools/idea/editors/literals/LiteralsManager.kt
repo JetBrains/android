@@ -38,8 +38,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.util.end
-import org.jetbrains.kotlin.idea.core.util.start
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -218,8 +216,8 @@ private object KotlinLiteralTemplateConstantEvaluator : ConstantEvaluator {
     }
     else {
       TextRange(
-        element.entries.map { it.textRange.start }.minOrNull() ?: 0,
-        element.entries.map { it.textRange.end }.maxOrNull() ?: 0
+        element.entries.map { it.textRange.startOffset }.minOrNull() ?: 0,
+        element.entries.map { it.textRange.endOffset }.maxOrNull() ?: 0
       )
     }
   }
