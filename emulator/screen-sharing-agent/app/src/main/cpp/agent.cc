@@ -100,16 +100,16 @@ void Agent::Run() {
   display_streamer_->Run();
 }
 
-void Agent::OnVideoOrientationChanged(int32_t orientation) {
+void Agent::SetVideoOrientation(int32_t orientation) {
   if (instance_ != nullptr) {
-    instance_->display_streamer_->OnVideoOrientationChanged(orientation);
+    instance_->display_streamer_->SetVideoOrientation(orientation);
   }
 }
 
-void Agent::OnMaxVideoResolutionChanged(Size max_video_resolution) {
+void Agent::SetMaxVideoResolution(Size max_video_resolution) {
   if (instance_ != nullptr) {
     instance_->max_video_resolution_ = max_video_resolution;
-    instance_->display_streamer_->OnMaxVideoResolutionChanged(max_video_resolution);
+    instance_->display_streamer_->SetVideoResolution(max_video_resolution);
   }
 }
 

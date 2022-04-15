@@ -165,7 +165,8 @@ void DisplayStreamer::Run() {
       scoped_lock lock(mutex_);
       int32_t extra_rotation = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(extra_rotation), max_video_resolution_);
-      Log::D("DisplayStreamer::Run: video_size=%dx%d", video_size.width, video_size.height);
+      Log::D("DisplayStreamer::Run: video_size=%dx%d, video_orientation=%d, display_orientation=%d",
+             video_size.width, video_size.height, video_orientation_, display_info.rotation);
       AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
       AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
       AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
@@ -194,15 +195,29 @@ void DisplayStreamer::Run() {
   Agent::Shutdown();
 }
 
-void DisplayStreamer::OnVideoOrientationChanged(int32_t orientation) {
+void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
+  Jni jni = Jvm::GetJni();
+  bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni);
+
   scoped_lock lock(mutex_);
-  if (video_orientation_ != orientation) {
-    video_orientation_ = orientation;
-    StopCodecUnlocked();
+  if (orientation < 0) {
+    orientation = video_orientation_;
+  }
+  if (orientation >= 0) {
+    WindowManager::FreezeRotation(jni, orientation);
+    // Restore the original state of auto-display_rotation.
+    if (!rotation_was_frozen) {
+      WindowManager::ThawRotation(jni);
+    }
+
+    if (video_orientation_ != orientation) {
+      video_orientation_ = orientation;
+      StopCodecUnlocked();
+    }
   }
 }
 
-void DisplayStreamer::OnMaxVideoResolutionChanged(Size max_video_resolution) {
+void DisplayStreamer::SetVideoResolution(Size max_video_resolution) {
   scoped_lock lock(mutex_);
   if (max_video_resolution_ != max_video_resolution) {
     max_video_resolution_ = max_video_resolution;
@@ -281,6 +296,7 @@ DisplayStreamer::DisplayRotationWatcher::~DisplayRotationWatcher() {
 }
 
 void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rotation) {
+  Log::D("DisplayRotationWatcher::OnRotationChanged: new_rotation=%d", new_rotation);
   auto old_rotation = display_rotation.exchange(new_rotation);
   if (new_rotation != old_rotation) {
     display_streamer->StopCodec();

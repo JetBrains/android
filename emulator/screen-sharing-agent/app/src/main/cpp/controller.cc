@@ -84,7 +84,9 @@ Controller::Controller(int socket_fd)
 Controller::~Controller() {
   input_stream_.Close();
   StopClipboardSync();
-  clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
+  if (clipboard_manager_ != nullptr) {
+    clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
+  }
   if (thread_.joinable()) {
     thread_.join();
   }
@@ -100,8 +102,8 @@ void Controller::Start() {
     jni_ = Jvm::AttachCurrentThread("Controller");
     Initialize();
     Run();
-    Jvm::DetachCurrentThread();
     Agent::Shutdown();
+    Jvm::DetachCurrentThread();
   });
 }
 
@@ -237,6 +239,11 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.action = AMOTION_EVENT_ACTION_UP;
   }
   input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+
+  if (event.action == AMOTION_EVENT_ACTION_UP) {
+    // This event may have started an app. Update the app-level display orientation.
+    Agent::SetVideoOrientation(-1);
+  }
 }
 
 void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
@@ -280,15 +287,7 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
     Log::E("An attempt to set an invalid device orientation: %d", orientation);
     return;
   }
-  bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni_);
-
-  WindowManager::FreezeRotation(jni_, orientation);
-  // Restore the original state of auto-display_rotation.
-  if (!rotation_was_frozen) {
-    WindowManager::ThawRotation(jni_);
-  }
-
-  Agent::OnVideoOrientationChanged(orientation);
+  Agent::SetVideoOrientation(orientation);
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
@@ -296,8 +295,7 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
     Log::E("An attempt to set an invalid video resolution: %dx%d", message.get_width(), message.get_height());
     return;
   }
-  Size max_size(message.get_width(), message.get_height());
-  Agent::OnMaxVideoResolutionChanged(max_size);
+  Agent::SetMaxVideoResolution(Size(message.get_width(), message.get_height()));
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {

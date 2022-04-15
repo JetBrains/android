@@ -37,8 +37,11 @@ public:
   DisplayStreamer(int display_id, Size max_video_resolution, int socket_fd);
 
   void Run();
-  void OnVideoOrientationChanged(int32_t orientation);
-  void OnMaxVideoResolutionChanged(Size max_video_resolution);
+  // Sets orientation of the device display. A negative value tells the agent to update
+  // the app-level orientation according to the previously set display orientation.
+  void SetVideoOrientation(int32_t orientation);
+
+  void SetVideoResolution(Size max_video_resolution);
   void Shutdown();
 
 private:

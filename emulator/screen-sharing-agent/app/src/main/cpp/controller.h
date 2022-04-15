@@ -60,7 +60,7 @@ private:
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
-  void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
+  static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
