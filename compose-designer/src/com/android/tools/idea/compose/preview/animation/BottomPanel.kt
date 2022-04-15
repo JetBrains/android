@@ -27,6 +27,8 @@ import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -64,8 +66,9 @@ class BottomPanel(val previewState: AnimationPreviewState,
     override fun createCustomComponent(presentation: Presentation,
                                        place: String): JComponent =
       (super.createCustomComponent(presentation, place) as JBLabel).apply {
-        font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+        font = JBFont.small()
         foreground = UIUtil.getContextHelpForeground()
+        border = JBUI.Borders.empty(6) // Empty border to align label vertically.
       }
 
     override fun update(e: AnActionEvent) {
