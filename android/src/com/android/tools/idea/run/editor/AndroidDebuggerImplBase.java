@@ -24,6 +24,7 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -58,14 +59,18 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
 
     final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
 
-    if (processHandler.isProcessTerminated()) {
-      RunContentManager.getInstance(project).removeRunContent(executor, descriptor);
-      return false;
-    }
-    content.getManager().setSelectedContent(content);
-    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(executor.getToolWindowId());
-    window.activate(null, false, true);
-    return true;
+    boolean processTerminated = processHandler.isProcessTerminated();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (processTerminated) {
+        RunContentManager.getInstance(project).removeRunContent(executor, descriptor);
+      } else {
+        // Switch to the debug tab associated with the existing debug session, and open the debug tool window.
+        content.getManager().setSelectedContent(content);
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(executor.getToolWindowId());
+        window.activate(null, false, true);
+      }
+    });
+    return !processTerminated;
   }
 
   @Override

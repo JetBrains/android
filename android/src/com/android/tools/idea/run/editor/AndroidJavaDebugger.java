@@ -124,10 +124,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     String runConfigName = getRunConfigurationName(debugPort);
 
     // Try to find existing debug session
-    Ref<Boolean> existingSession = new Ref<>();
-    ApplicationManager.getApplication()
-      .invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
-    if (existingSession.get()) {
+    if (hasExistingDebugSession(project, debugPort, runConfigName)) {
       return;
     }
 
