@@ -55,15 +55,50 @@ iml_module(
 kotlin_test(
     name = "intellij.android.profilersAndroid.performance",
     timeout = "long",
-    srcs = glob([
-        "testSrc/com/android/tools/idea/profilers/performance/**/*.kt",
-        "testSrc/com/android/tools/idea/profilers/performance/**/*.java",
-    ]),
+    srcs = [
+        "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerAtraceCaptureTest.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerEmptyCaptureTest.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerMemoryLoadTestBase.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/CpuProfilerPerfettoCaptureTest.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/MemoryClassifierViewFindSuperSetNodeTest.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/MemoryProfilerHeapDumpTest.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/TraceProcessorDaemonBenchmarkTest.kt",
+    ],
     data = [
         "//prebuilts/tools/common/trace-processor-daemon",
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"],
+    tags = [
+        "no_test_mac",  # b/168793471
+    ],
+    test_class = "com.android.testutils.JarTestSuite",
+    deps = [
+        ":intellij.android.profilersAndroid_testlib",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/adt/idea/android-transport:intellij.android.transport",
+        "//tools/adt/idea/profilers:intellij.android.profilers",
+        "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
+        "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+    ],
+)
+
+kotlin_test(
+    name = "intellij.android.profilersAndroid.performance.captureDetails",
+    timeout = "long",
+    srcs = [
+        "testSrc/com/android/tools/idea/profilers/performance/CaptureDetailsTest.kt",
+    ],
+    data = [
+        "//prebuilts/tools/common/trace-processor-daemon",
+        "//tools/adt/idea/profilers:test_data",
+    ],
+    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"],
     tags = [
         "no_test_mac",  # b/168793471
     ],

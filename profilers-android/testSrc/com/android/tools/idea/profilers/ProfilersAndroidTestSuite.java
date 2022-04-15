@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.profilers.performance.CaptureDetailsTest;
 import com.android.tools.idea.profilers.performance.CpuProfilerAtraceCaptureTest;
 import com.android.tools.idea.profilers.performance.CpuProfilerEmptyCaptureTest;
 import com.android.tools.idea.profilers.performance.CpuProfilerPerfettoCaptureTest;
@@ -36,6 +37,7 @@ import org.junit.runner.RunWith;
   MemoryProfilerHeapDumpTest.class, // b/152344964
   MemoryClassifierViewFindSuperSetNodeTest.class,
   TraceProcessorDaemonBenchmarkTest.class,
+  CaptureDetailsTest.class,
 })
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
 }
