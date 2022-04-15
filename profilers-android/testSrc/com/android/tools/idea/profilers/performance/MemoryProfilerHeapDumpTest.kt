@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflib.heap.io.InMemoryBuffer
-import com.android.tools.perflogger.Benchmark
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -33,19 +32,11 @@ import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.system.measureTimeMillis
 
 class MemoryProfilerHeapDumpTest {
-  private val memoryBenchmark = Benchmark.Builder("Heap Dump Memory (mb)")
-    .setProject("Android Studio Profilers")
-    .build()
-  private val timingBenchmark = Benchmark.Builder("Heap Dump Time (millis)")
-    .setProject("Android Studio Profilers")
-    .build()
-
+  private val benchmark = benchmarkMemoryAndTime("Heap Dump", "Load-Capture")
   private val ideServices = FakeIdeProfilerServices()
   private val timer = FakeTimer()
 
@@ -76,11 +67,6 @@ class MemoryProfilerHeapDumpTest {
       MemoryProfiler.getHeapDumpsForSession(profilers.client, profilers.session, Range(0.0, 1.0), ideServices)[0]
     val capture =
       HeapDumpCaptureObject(profilers.client, profilers.session, dumpInfo, null, ideServices.featureTracker, ideServices)
-
-    val beforeMem = getMemoryUsed()
-    val elapsedMillis = measureTimeMillis { capture.load(InMemoryBuffer(file.readBytes())) }
-    val afterMem = getMemoryUsed()
-    timingBenchmark.log("$name-Load-Capture", elapsedMillis)
-    memoryBenchmark.log("$name-Load-Capture-Used", (afterMem - beforeMem) / (1024 * 1024))
+    benchmark(name) { capture.load(InMemoryBuffer(file.readBytes())) }
   }
 }
