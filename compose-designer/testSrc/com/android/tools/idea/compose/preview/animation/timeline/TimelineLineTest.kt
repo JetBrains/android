@@ -17,8 +17,10 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -29,9 +31,9 @@ class TimelineLineTest {
   fun `check line contains points`(): Unit = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply {
       maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
     }
+    // Call layoutAndDispatchEvents() so positionProxy returns correct values
+    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     slider.sliderUI.apply {
       val line = TimelineLine(ElementState(), 50, 150, 50, positionProxy)
       assertFalse(line.contains(30, 85))
@@ -43,6 +45,9 @@ class TimelineLineTest {
       assertTrue(line.contains(50 - 100, 85))
       assertTrue(line.contains(150 - 100, 85))
       assertFalse(line.contains(160 - 100, 85))
+      // No tooltips.
+      ui.render()
+      assertEquals(0, slider.scanForTooltips().size)
     }
   }
 

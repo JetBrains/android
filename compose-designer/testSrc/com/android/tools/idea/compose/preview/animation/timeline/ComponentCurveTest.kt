@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -45,6 +46,10 @@ class ComponentCurveTest {
       positionProxy = slider.sliderUI.positionProxy, colorIndex = 0)
     slider.sliderUI.elements.add(componentCurve)
     val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
+
+    // No tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    assertEquals(0, slider.scanForTooltips().size)
 
     assertTrue { componentCurve.height > 0 }
     // Point in the middle of curve baseline

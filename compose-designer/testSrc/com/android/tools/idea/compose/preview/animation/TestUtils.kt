@@ -17,12 +17,14 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics2D
+import java.awt.Point
 import javax.swing.JPanel
 import kotlin.test.assertTrue
 
@@ -43,6 +45,9 @@ object TestUtils {
     override fun paint(g: Graphics2D) {
       g.fillRect(x + offsetPx, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }
+
+    override fun getTooltip(point: Point): TooltipInfo? =
+      if (contains(point)) TooltipInfo("$x", "$y") else null
   }
 
   fun testPreviewState(withCoordination: Boolean = true) = object : AnimationPreviewState {
@@ -51,10 +56,11 @@ object TestUtils {
 
   /** Create [TimelinePanel] with 300x500 size. */
   fun createTestSlider(): TimelinePanel {
-    val slider = TimelinePanel(testPreviewState()) {}
+    val root = JPanel(BorderLayout())
+    val slider = TimelinePanel(Tooltip(root, TooltipLayeredPane(root)), testPreviewState()) {}
     slider.maximum = 100
-    JPanel(BorderLayout()).apply {
-      // Extra parent panel is required for slider to properly set all sizes.
+    root.apply {
+      // Extra parent panel is required for slider to properly set all sizes and to enable tooltips.
       setSize(300, 500)
       add(slider, BorderLayout.CENTER)
     }
@@ -71,4 +77,14 @@ object TestUtils {
 
   fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
     assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
+
+  fun TimelinePanel.scanForTooltips(): Set<TooltipInfo> =
+    this.sliderUI.elements.flatMap { it.scanForTooltips(this.size) }.toSet()
+
+  fun TimelineElement.scanForTooltips(dimension: Dimension): Set<TooltipInfo> {
+    val set = mutableSetOf<TooltipInfo>()
+    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5)
+      this.getTooltip(Point(x, y))?.let { set.add(it) }
+    return set
+  }
 }

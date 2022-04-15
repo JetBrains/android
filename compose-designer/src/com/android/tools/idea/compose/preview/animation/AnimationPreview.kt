@@ -19,6 +19,7 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
@@ -66,8 +67,11 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationPreview]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager>) : JPanel(
-  TabularLayout("Fit,*", "Fit,*,30px")), ComposeAnimationPreview {
+class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager>) : ComposeAnimationPreview {
+
+  private val animationPreviewPanel = JPanel(TabularLayout("Fit,*", "Fit,*,30px"))
+
+  override val component = TooltipLayeredPane(animationPreviewPanel)
 
   private val tracker: (ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
     AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
@@ -159,7 +163,6 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
     addPlayback(playbackControls.createToolbar())
   }
 
-  override val component = this
 
   override fun animationsCount(): Int = animations.size
 
@@ -348,17 +351,17 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
   private fun showNoAnimationsPanel() {
-    remove(tabbedPane.component)
-    remove(bottomPanel)
+    animationPreviewPanel.remove(tabbedPane.component)
+    animationPreviewPanel.remove(bottomPanel)
     noAnimationsPanel.startLoading()
-    add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+    animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
     tabNames.clear()
     timeline.cachedVal = -1 // Reset the timeline cached value, so when new tabs are added, any new value will trigger an update
     // The animation panel might not have the focus when the "No animations" panel is displayed, i.e. when a live literal is changed in the
     // editor and we need to refresh the animation preview so it displays the most up-to-date animations. For that reason, we need to make
     // sure the animation panel is repainted correctly.
-    repaint()
+    animationPreviewPanel.repaint()
     playbackControls.pause()
   }
 
@@ -381,11 +384,11 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
     if (isAddingFirstTab) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
       noAnimationsPanel.stopLoading()
-      remove(noAnimationsPanel)
+      animationPreviewPanel.remove(noAnimationsPanel)
       tabbedPane.addTab(TabInfo(coordinationTab).apply { text = "${message("animation.inspector.tab.all.title")}  " }, 0)
       coordinationTab.addTimeline(timeline)
-      add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
-      add(bottomPanel, TabularLayout.Constraint(2, 0, 2))
+      animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
+      animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(2, 0, 2))
     }
   }
 
@@ -424,9 +427,9 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
   }
 
   init {
-    name = "Animation Preview"
+    animationPreviewPanel.name = "Animation Preview"
     noAnimationsPanel.startLoading()
-    add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
+    animationPreviewPanel.add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
   }
 
   /**
@@ -655,7 +658,7 @@ class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager
    *  Timeline panel ranging from 0 to the max duration (in ms) of the animations being inspected, listing all the animations and their
    *  corresponding range as well. The timeline should respond to mouse commands, allowing users to jump to specific points, scrub it, etc.
    */
-  private inner class Timeline : TimelinePanel(previewState, tracker) {
+  private inner class Timeline : TimelinePanel(Tooltip(animationPreviewPanel, component), previewState, tracker) {
     var cachedVal = -1
 
     init {

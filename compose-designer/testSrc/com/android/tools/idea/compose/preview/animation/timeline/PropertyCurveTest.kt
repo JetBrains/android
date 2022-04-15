@@ -20,8 +20,11 @@ import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class PropertyCurveTest {
 
@@ -48,6 +51,19 @@ class PropertyCurveTest {
 
     slider.sliderUI.elements.add(propertyCurveOne)
     slider.sliderUI.elements.add(propertyCurveTwo)
+
+    // Component has tooltips.
+    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+    slider.scanForTooltips().also { tooltip ->
+      val widthTooltip = tooltip.firstOrNull { it.description.startsWith("width") }
+      val heightTooltip = tooltip.firstOrNull { it.description.startsWith("height") }
+      assertNotNull(widthTooltip)
+      assertNotNull(heightTooltip)
+      assertEquals("UnitOne", widthTooltip.header)
+      assertEquals("UnitOne", heightTooltip.header)
+      assertEquals("width ( 1 , _ )", widthTooltip.description)
+      assertEquals("height ( _ , 2 )", heightTooltip.description)
+    }
 
     // Uncomment to preview ui.
     //ui.render()

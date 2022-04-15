@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.adtui.common.canvasTooltipBackground
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -59,7 +60,7 @@ object InspectorColors {
   val TIMELINE_BACKGROUND_COLOR = JBColor(Gray._245, JBColor.background())
 
   /** Background color for the timeline for frozen elements. */
-  val TIMELINE_FROZEN_BACKGROUND_COLOR = JBColor(Gray._234,Gray._58)
+  val TIMELINE_FROZEN_BACKGROUND_COLOR = JBColor(Gray._234, Gray._58)
 
   /** Color of the ticks for the timeline. */
   val TIMELINE_TICK_COLOR = JBColor(Gray._223, Gray._50)
@@ -69,4 +70,15 @@ object InspectorColors {
 
   /** Color of the vertical line showing the freeze position. */
   val FREEZE_LINE_COLOR = JBColor(Gray._176, Gray._176)
+
+  val BOXED_LABEL_BACKGROUND = JBColor(Gray._225, UIUtil.getToolTipActionBackground())
+
+  val BOXED_LABEL_OUTLINE = Gray._194
+
+  val BOXED_LABEL_NAME_COLOR = UIUtil.getContextHelpForeground()
+  val BOXED_LABEL_VALUE_COLOR = UIUtil.getLabelDisabledForeground()
+
+  val TOOLTIP_BACKGROUND_COLOR = canvasTooltipBackground
+  val TOOLTIP_TEXT_COLOR = JBColor.foreground()
+
 }

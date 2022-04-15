@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.ParentTimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
@@ -339,6 +340,39 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertTrue { slider.sliderUI.elements[0].state.valueOffset > 0 }
   }
 
+  @Test
+  fun `tooltips in timeline are available`() {
+    invokeAndWaitIfNeeded {
+      val slider = TestUtils.createTestSlider()
+      // Call layoutAndDispatchEvents() so positionProxy returns correct values
+      val ui = FakeUi(slider.parent).apply {
+        layoutAndDispatchEvents()
+      }
+      slider.sliderUI.apply {
+        elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
+        elements.add(TestUtils.TestTimelineElement(50, 100, positionProxy))
+      }
+      assertEquals(setOf(TooltipInfo("50", "50"), TooltipInfo("50", "100")),
+                   slider.scanForTooltips())
+      assertNotNull(slider.tooltip)
+      // Hover first element
+      ui.mouse.moveTo(51, 51)
+      assertEquals(TooltipInfo("50", "50"), slider.tooltip?.tooltipInfo)
+      assertTrue(slider.tooltip!!.isVisible)
+      // Move to the empty space.
+      ui.mouse.moveTo(51, 70)
+      assertNull(slider.tooltip?.tooltipInfo)
+      assertFalse(slider.tooltip!!.isVisible)
+      // Hover second element
+      ui.mouse.moveTo(51, 101)
+      assertEquals(TooltipInfo("50", "100"), slider.tooltip?.tooltipInfo)
+      assertTrue(slider.tooltip!!.isVisible)
+      // Move to the empty space.
+      ui.mouse.moveTo(51, 70)
+      assertNull(slider.tooltip?.tooltipInfo)
+      assertFalse(slider.tooltip!!.isVisible)
+    }
+  }
 
   @Test
   fun `ui with frozen elements`(): Unit = invokeAndWaitIfNeeded {

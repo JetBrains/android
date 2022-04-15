@@ -152,6 +152,7 @@ object InspectorPainter {
 
   /** Label displayed below each animation curve. */
   @SuppressLint("JbUiStored")
+  @Deprecated("Part of preview without coordination, to be deleted in b/220739243")
   object BoxedLabel {
 
     init {

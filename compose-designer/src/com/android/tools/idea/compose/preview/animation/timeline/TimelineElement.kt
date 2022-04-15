@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
+import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import com.android.tools.idea.res.clamp
 import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
@@ -57,6 +58,10 @@ open class ParentTimelineElement(state: ElementState, private val children: List
     }
   }
 
+  override fun getTooltip(point: Point): TooltipInfo? {
+    return children.firstNotNullOfOrNull { it.getTooltip(point) }
+  }
+
   override fun reset() {
     super.reset()
     children.forEach { it.reset() }
@@ -83,6 +88,8 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
     set(value) {
       state.frozen = value
     }
+
+  open fun getTooltip(point: Point): TooltipInfo? = null
 
   open var status: TimelineElementStatus = TimelineElementStatus.Inactive
 

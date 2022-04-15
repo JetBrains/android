@@ -41,8 +41,11 @@ internal const val DEFAULT_MAX_DURATION_MS = 10000L
 
 /**
  * Timeline slider with auto-resized ticks and labels distance.
+ * TODO(b/220739243) [tooltip] is nullable because it's not available in [AnimationInspectorPanel]. Remove nullability.
  */
-open class TimelinePanel(val previewState: AnimationPreviewState, val tracker: ComposeAnimationEventTracker)
+open class TimelinePanel(val tooltip: Tooltip?,
+                         val previewState: AnimationPreviewState,
+                         val tracker: ComposeAnimationEventTracker)
   : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
@@ -262,6 +265,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
    */
   inner class TimelineTrackListener : TrackListener() {
 
+    private val tooltipAdapter = timeline.tooltip?.adapter
+
     private var isDragging = false
 
     private var dragStartXPoint = 0
@@ -278,6 +283,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseDragged(e: MouseEvent) {
       super.mouseDragged(e)
+      tooltipAdapter?.mouseDragged(e)
       if (activeElement?.status == TimelineElementStatus.Dragged) {
         activeElement?.move(e.x - dragStartXPoint)
         dragStartXPoint = e.x
@@ -286,6 +292,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
         updateThumbLocationAndSliderValue()
       }
       isDragging = true
+      updateTooltip(e)
       slider.repaint()
     }
 
@@ -303,7 +310,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
         }
       )
       isDragging = false
-      if(activeElement?.status == TimelineElementStatus.Dragged) {
+      if (activeElement?.status == TimelineElementStatus.Dragged) {
         timeline.dragEndListeners.forEach { it() }
       }
       activeElement?.status = TimelineElementStatus.Inactive
@@ -313,11 +320,30 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseMoved(e: MouseEvent) {
       super.mouseMoved(e)
+      tooltipAdapter?.mouseMoved(e)
       slider.repaint()
       if (isDragging) return
       activeElement?.status = TimelineElementStatus.Inactive
       activeElement = elements.firstOrNull { it.contains(e.point) }
       activeElement?.status = TimelineElementStatus.Hovered
+      updateTooltip(e)
+    }
+
+    override fun mouseExited(e: MouseEvent?) {
+      super.mouseExited(e)
+      tooltipAdapter?.mouseExited(e)
+    }
+
+    private fun updateTooltip(e: MouseEvent) {
+      val tooltipInfo = elements.firstNotNullOfOrNull { it.getTooltip(e.point) }
+      if (tooltipInfo != null) {
+        if (timeline.tooltip?.tooltipInfo == null) tooltipAdapter?.mouseEntered(e)
+        timeline.tooltip?.tooltipInfo = tooltipInfo
+      }
+      else {
+        if (timeline.tooltip?.tooltipInfo != null) tooltipAdapter?.mouseExited(e)
+        timeline.tooltip?.tooltipInfo = null
+      }
     }
 
     private fun updateThumbLocationAndSliderValue() {

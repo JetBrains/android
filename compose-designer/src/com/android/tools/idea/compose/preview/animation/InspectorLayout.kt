@@ -36,6 +36,7 @@ object InspectorLayout {
   }
 
   private fun updateSizes() {
+    boxedLabelOffset = JBUI.scale(6)
     labelOffset = JBUI.scale(10)
     dashedStroke = BasicStroke(JBUI.scale(1).toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
                                floatArrayOf(JBUI.scale(3).toFloat()), 0f)
@@ -96,6 +97,16 @@ object InspectorLayout {
 
   /** Number of ticks per label in the timeline. */
   const val TIMELINE_TICKS_PER_LABEL = 5
+
+  /** Offset between components. */
+  var boxedLabelOffset = JBUI.scale(6)
+
+  /** Size of the color box for [ComposeUnit.Color] property. */
+  val boxedLabelColorBoxSize = JBUI.size(10)
+  val boxedLabelColorBoxArc = JBUI.size(4)
+
+  /** Outline offset of the color box for [ComposeUnit.Color] property. */
+  const val BOXED_LABEL_COLOR_OUTLINE_OFFSET = 1
 
   /** Label offset from the curve. */
   var labelOffset = JBUI.scale(10)

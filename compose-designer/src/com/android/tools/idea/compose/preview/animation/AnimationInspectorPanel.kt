@@ -791,7 +791,7 @@ internal class AnimationInspectorPanel(override val surface: DesignSurface<Layou
     }
 
 
-    private val slider = object : TimelinePanel(object : AnimationPreviewState {}, logger) {
+    private val slider = object : TimelinePanel(null, object : AnimationPreviewState {}, logger) {
       override fun createSliderUI() = TimelineSlider(this)
     }.apply {
       setUI(TimelineSlider(this))
