@@ -120,11 +120,6 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @Slow
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable AndroidDebuggerState debugState) {
-    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
-      StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
-      return;
-    }
-
     String debugPort = getClientDebugPort(client);
     String runConfigName = getRunConfigurationName(debugPort);
 
@@ -133,6 +128,11 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ApplicationManager.getApplication()
       .invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
     if (existingSession.get()) {
+      return;
+    }
+
+    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
+      StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
       return;
     }
 
