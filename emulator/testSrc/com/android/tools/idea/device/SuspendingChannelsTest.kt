@@ -24,6 +24,7 @@ import org.junit.After
 import org.junit.Test
 import java.io.IOException
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -49,7 +50,7 @@ class SuspendingChannelsTest {
     val buffer = ByteArray(20)
     val steps = Array(4) { CountDownLatch(1) }
 
-    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(null))
+    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))
     coroutineScope.launch {
       serverChannel.use {
         serverChannel.accept().use { socketChannel ->
@@ -92,7 +93,7 @@ class SuspendingChannelsTest {
   fun testOutputStream() {
     val steps = Array(2) { CountDownLatch(1) }
 
-    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(null))
+    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))
     coroutineScope.launch {
       serverChannel.use {
         serverChannel.accept().use { socketChannel ->
