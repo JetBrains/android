@@ -673,7 +673,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       ).distinct(), // The source model can contain duplicates.
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      dependencyCores = dependenciesFrom(artifact, variantName, androidModuleId),
+      compileClasspath = dependenciesFrom(artifact, variantName, androidModuleId),
       unresolvedDependencies = emptyList(),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
@@ -717,7 +717,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       generatedSourceFolders = copy(artifact::getGeneratedSourceFolders, ::deduplicateFile).distinct(),
       variantSourceProvider = copyNewModel(artifact::getVariantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
-      ideDependenciesCore = dependenciesFrom(artifact, variantName, androidModuleId),
+      compileClasspath = dependenciesFrom(artifact, variantName, androidModuleId),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST

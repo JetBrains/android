@@ -40,7 +40,7 @@ data class IdeAndroidArtifactCoreImpl(
   override val ideSetupTaskNames: Collection<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  val dependencyCores: IdeDependenciesCore,
+  val compileClasspath: IdeDependenciesCore,
   override val unresolvedDependencies: List<IdeUnresolvedDependency>,
   override val applicationId: String,
   override val signingConfigName: String?,
@@ -60,5 +60,5 @@ data class IdeAndroidArtifactImpl(
   private val core: IdeAndroidArtifactCoreImpl,
   private val resolver: IdeLibraryModelResolver
 ): IdeAndroidArtifact, IdeAndroidArtifactCore by core {
-  override val level2Dependencies: IdeDependencies = IdeDependenciesImpl(core.dependencyCores, resolver)
+  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspath, resolver)
 }

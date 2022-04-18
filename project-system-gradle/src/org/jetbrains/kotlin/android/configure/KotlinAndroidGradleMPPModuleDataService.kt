@@ -153,7 +153,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             val dependencies = if (testScope) {
                 androidModel.selectedAndroidTestCompileDependencies
             } else {
-                androidModel.selectedMainCompileLevel2Dependencies
+                androidModel.selectedMainCompileDependencies
             } ?: return emptyList()
             return dependencies
                 .moduleDependencies

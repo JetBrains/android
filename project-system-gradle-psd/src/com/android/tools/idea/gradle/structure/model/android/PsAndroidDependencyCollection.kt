@@ -106,7 +106,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   override fun collectResolvedDependencies(container: PsAndroidArtifact) {
     val artifact = container
     val resolvedArtifact = artifact.resolvedModel ?: return
-    val dependencies = resolvedArtifact.level2Dependencies
+    val dependencies = resolvedArtifact.compileClasspath
 
     for (androidLibrary in dependencies.androidLibraries) {
       addLibrary(androidLibrary.target, artifact)

@@ -197,10 +197,10 @@ class GradleModuleSystem(
     val gradleModel = GradleAndroidModel.get(module) ?: return null
 
     return when (scope) {
-             DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
-             DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.level2Dependencies
-             DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.level2Dependencies
-             DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.level2Dependencies
+             DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
+             DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.compileClasspath
+             DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.compileClasspath
+             DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
            }
   }
 
@@ -415,7 +415,7 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
     (listOf(this) + dependencies)
       .flatMap {
         GradleAndroidModel.get(it)
-          ?.selectedMainCompileLevel2Dependencies
+          ?.selectedMainCompileDependencies
           ?.androidLibraries
           ?.mapNotNull { it.target.manifestFile() }
           .orEmpty()

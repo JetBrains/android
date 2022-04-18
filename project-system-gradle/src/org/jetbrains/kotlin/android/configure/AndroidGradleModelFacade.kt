@@ -18,7 +18,7 @@ class AndroidGradleModelFacade : KotlinGradleModelFacade {
     override fun getDependencyModules(ideModule: DataNode<ModuleData>, gradleIdeaProject: IdeaProject): Collection<DataNode<ModuleData>> {
         val ideProject = ideModule.parent as DataNode<ProjectData>
         ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL)?.let { androidModel ->
-            val modules = androidModel.data.mainArtifact.level2Dependencies.moduleDependencies
+            val modules = androidModel.data.mainArtifact.compileClasspath.moduleDependencies
             val projectIds = modules.mapNotNull { it.projectPath }
             return projectIds.mapNotNullTo(LinkedHashSet()) { projectId ->
                 ExternalSystemApiUtil.findFirstRecursively(ideProject) {

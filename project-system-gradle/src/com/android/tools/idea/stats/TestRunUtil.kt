@@ -37,7 +37,7 @@ fun findTestLibrariesVersions(artifact: IdeBaseArtifact): TestLibraries {
  * Fills in a [TestLibraries] protocol buffer based on dependencies in the given [IdeAndroidArtifact].
  */
 fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifact) {
-  val dependencies = artifact.level2Dependencies
+  val dependencies = artifact.compileClasspath
 
   for (lib in Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries)) {
     val coordinate = GradleCoordinate.parseCoordinateString(lib.target.artifactAddress) ?: continue

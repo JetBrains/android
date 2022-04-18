@@ -365,7 +365,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    IdeDependencies dependencies = artifact.getCompileClasspath();
     for (IdeJavaLibraryDependency gradleLibrary : dependencies.getJavaLibraries()) {
       IdeJavaLibrary libraryTarget = gradleLibrary.getTarget();
       String libraryName = getNameWithoutExtension(libraryTarget.getArtifact());

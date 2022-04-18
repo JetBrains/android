@@ -31,16 +31,16 @@ data class IdeDependenciesCoreImpl(
 ) : IdeDependenciesCore, Serializable
 
 data class IdeDependenciesImpl(
-  private val dependencyCores: IdeDependenciesCore,
+  private val classpath: IdeDependenciesCore,
   private val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
   override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
-    dependencyCores.dependencies.flatMap(resolver::resolveAndroidLibrary)
+    classpath.dependencies.flatMap(resolver::resolveAndroidLibrary)
   override val javaLibraries: Collection<IdeJavaLibraryDependency> =
-    dependencyCores.dependencies.flatMap(resolver::resolveJavaLibrary)
+    classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
   override val moduleDependencies: Collection<IdeModuleDependency> =
-    dependencyCores.dependencies.flatMap(resolver::resolveModule)
-  override val runtimeOnlyClasses: Collection<File> = dependencyCores.runtimeOnlyClasses
+    classpath.dependencies.flatMap(resolver::resolveModule)
+  override val runtimeOnlyClasses: Collection<File> = classpath.runtimeOnlyClasses
 }
 
 class ThrowingIdeDependencies : IdeDependenciesCore, Serializable {

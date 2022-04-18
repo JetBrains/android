@@ -334,10 +334,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       head("Level2Dependencies")
       nest {
-        modelDumper.dumpModel(this@with, "dependencies", ideBaseArtifact.level2Dependencies)
+        modelDumper.dumpModel(this@with, "dependencies", ideBaseArtifact.compileClasspath)
       }
       val providedDependencies =
-        (ideBaseArtifact.level2Dependencies.androidLibraries + ideBaseArtifact.level2Dependencies.javaLibraries)
+        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries)
           .filter { it.isProvided }
       if (providedDependencies.isNotEmpty()) {
         head("ProvidedDependencies")
@@ -349,7 +349,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
             }
         }
       }
-      val runtimeOnlyClasses = ideBaseArtifact.level2Dependencies.runtimeOnlyClasses
+      val runtimeOnlyClasses = ideBaseArtifact.compileClasspath.runtimeOnlyClasses
       if (runtimeOnlyClasses.isNotEmpty()) {
         head("RuntimeOnlyClasses")
         nest {

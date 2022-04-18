@@ -148,10 +148,10 @@ class ConflictSet private constructor(
 
     private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleDependency> {
       val variant = selectedVariant
-      val allModuleDependencies = variant.mainArtifact.level2Dependencies.moduleDependencies.asSequence() +
-                                  variant.androidTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-                                  variant.testFixturesArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
-                                  variant.unitTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty()
+      val allModuleDependencies = variant.mainArtifact.compileClasspath.moduleDependencies.asSequence() +
+                                  variant.androidTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.testFixturesArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty() +
+                                  variant.unitTestArtifact?.compileClasspath?.moduleDependencies?.asSequence().orEmpty()
       return allModuleDependencies.distinct()
     }
   }

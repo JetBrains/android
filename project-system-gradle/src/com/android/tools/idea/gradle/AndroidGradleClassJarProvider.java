@@ -44,11 +44,11 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
       return Lists.transform(AndroidRootUtil.getExternalLibraries(module), VfsUtilCore::virtualToIoFile);
     }
 
-    return Stream.of(model.getSelectedMainCompileLevel2Dependencies().getRuntimeOnlyClasses().stream(),
-                     model.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
+    return Stream.of(model.getSelectedMainCompileDependencies().getRuntimeOnlyClasses().stream(),
+                     model.getSelectedMainCompileDependencies().getAndroidLibraries().stream()
                        .flatMap(
                          library -> library.getTarget().getRuntimeJarFiles().stream()),
-                     model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
+                     model.getSelectedMainCompileDependencies().getJavaLibraries().stream()
                        .map(IdeJavaLibraryDependency::getTarget)
                        .map(IdeJavaLibrary::getArtifact))
       // Flat map the concatenated streams

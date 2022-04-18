@@ -54,7 +54,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
-import java.io.File
 import java.util.LinkedList
 import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
@@ -773,10 +772,10 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
-      return (ideVariant.mainArtifact.dependencyCores.dependencies
-              + ideVariant.unitTestArtifact?.ideDependenciesCore?.dependencies.orEmpty()
-              + ideVariant.androidTestArtifact?.dependencyCores?.dependencies.orEmpty()
-              + ideVariant.testFixturesArtifact?.dependencyCores?.dependencies.orEmpty()
+      return (ideVariant.mainArtifact.compileClasspath.dependencies
+              + ideVariant.unitTestArtifact?.compileClasspath?.dependencies.orEmpty()
+              + ideVariant.androidTestArtifact?.compileClasspath?.dependencies.orEmpty()
+              + ideVariant.testFixturesArtifact?.compileClasspath?.dependencies.orEmpty()
              )
         .distinct()
         .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }

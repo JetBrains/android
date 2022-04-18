@@ -236,7 +236,7 @@ private class AndroidDependenciesSetupContext(
   }
 
   fun setupForArtifact(artifact: IdeBaseArtifact, scope: DependencyScope) {
-    val dependencies = artifact.level2Dependencies
+    val dependencies = artifact.compileClasspath
 
     // TODO(rework-12): Sort out the order of dependencies.
     (dependencies.javaLibraries.map(::JavaLibraryWorkItem) +

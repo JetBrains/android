@@ -207,10 +207,10 @@ private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Se
         queue.addAll(
           head.androidModel.selectedVariant
             .let {
-              it.mainArtifact.level2Dependencies.moduleDependencies +
-              it.unitTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty() +
-              it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty() +
-              it.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+              it.mainArtifact.compileClasspath.moduleDependencies +
+              it.unitTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
+              it.androidTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
+              it.testFixturesArtifact?.compileClasspath?.moduleDependencies.orEmpty()
             }
             .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).toHolder()] }
         )

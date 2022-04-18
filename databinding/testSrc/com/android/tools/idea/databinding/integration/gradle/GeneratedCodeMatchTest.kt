@@ -219,7 +219,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
   private fun findViewDataBindingClass(): ClassReader {
     val model = GradleAndroidModel.get(projectRule.androidFacet(":app"))!!
-    val classJar = model.mainArtifact.level2Dependencies.androidLibraries.first { lib ->
+    val classJar = model.mainArtifact.compileClasspath.androidLibraries.first { lib ->
       lib.target.artifactAddress.startsWith(parameters.dataBindingLibArtifact)
     }.target.runtimeJarFiles.find {
       it.name == "classes.jar"

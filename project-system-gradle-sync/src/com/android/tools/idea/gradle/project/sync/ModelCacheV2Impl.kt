@@ -797,7 +797,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
       multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
-      dependencyCores = ThrowingIdeDependencies(),
+      compileClasspath = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       applicationId = "",
       generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
@@ -823,7 +823,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     buildNameMap: Map<String, BuildId>,
   ): IdeAndroidArtifactCoreImpl {
     return artifact.copy(
-      dependencyCores =
+      compileClasspath =
       dependenciesFrom(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap),
       unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
@@ -843,7 +843,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       generatedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct(),
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
       multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
-      ideDependenciesCore = ThrowingIdeDependencies(),
+      compileClasspath = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = artifact.mockablePlatformJar,
       isTestArtifact = name == "_unit_test_"
@@ -860,7 +860,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     buildNameMap: Map<String, BuildId>
   ): IdeJavaArtifactCoreImpl {
     return artifact.copy(
-      ideDependenciesCore = dependenciesFrom(buildId, projectPath, variantDependencies, libraries, androidProjectPathResolver, buildNameMap),
+      compileClasspath = dependenciesFrom(buildId, projectPath, variantDependencies, libraries, androidProjectPathResolver, buildNameMap),
       unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }

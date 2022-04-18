@@ -35,7 +35,7 @@ data class IdeJavaArtifactCoreImpl(
   override val ideSetupTaskNames: Collection<String>,
   override val generatedSourceFolders: Collection<File>,
   override val isTestArtifact: Boolean,
-  val ideDependenciesCore: IdeDependenciesCore,
+  val compileClasspath: IdeDependenciesCore,
   override val unresolvedDependencies: List<IdeUnresolvedDependency>,
   override val mockablePlatformJar: File?
 ) : IdeJavaArtifactCore
@@ -44,5 +44,5 @@ data class IdeJavaArtifactImpl(
   private val core: IdeJavaArtifactCoreImpl,
   private val resolver: IdeLibraryModelResolver
 ): IdeJavaArtifact, IdeJavaArtifactCore by core {
-  override val level2Dependencies: IdeDependencies = IdeDependenciesImpl(core.ideDependenciesCore, resolver)
+  override val compileClasspath: IdeDependencies = IdeDependenciesImpl(core.compileClasspath, resolver)
 }

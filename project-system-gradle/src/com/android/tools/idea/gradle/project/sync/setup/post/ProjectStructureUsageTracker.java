@@ -210,7 +210,7 @@ public class ProjectStructureUsageTracker {
       chosenVariant.set(model.getSelectedVariant());
     }
 
-    IdeDependencies dependencies = chosenVariant.get().getMainArtifact().getLevel2Dependencies();
+    IdeDependencies dependencies = chosenVariant.get().getMainArtifact().getCompileClasspath();
     // @formatter:off
     return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.getAndroidLibraries().size())
                                      .setJarDependencyCount(dependencies.getJavaLibraries().size())

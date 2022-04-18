@@ -244,7 +244,7 @@ class LintModelFactory : LintModelModuleLoader {
     ): LintModelDependencies {
         val compileItems = mutableListOf<LintModelDependency>()
         val packagedItems = mutableListOf<LintModelDependency>()
-        val dependencies = artifact.level2Dependencies
+        val dependencies = artifact.compileClasspath
 
         for (dependency in dependencies.androidLibraries) {
           val androidLibrary = dependency.target
