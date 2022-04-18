@@ -57,6 +57,12 @@ public class IdeaTestSuiteBase {
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
+    // Run in headless mode by default. This property is set by the IntelliJ test framework too,
+    // but we want to set it sooner before any test initializers have run.
+    if (System.getProperty("java.awt.headless") == null) {
+      System.setProperty("java.awt.headless", "true");
+    }
+
     // Set roots for java.util.prefs API.
     System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
     System.setProperty("java.util.prefs.systemRoot", createTmpDir("systemRoot").toString());
