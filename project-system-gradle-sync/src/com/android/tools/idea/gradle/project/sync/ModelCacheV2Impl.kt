@@ -945,52 +945,54 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     variantDependencies: VariantDependencies,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
-  ): IdeVariantCoreImpl {
-    return variant.copy(
-      mainArtifact = variant.mainArtifact.let {
-        androidArtifactFrom(
-          ownerBuildId = ownerBuildId,
-          ownerProjectPath = ownerProjectPath,
-          artifact = it,
-          artifactDependencies = variantDependencies.mainArtifact,
-          libraries = variantDependencies.libraries,
-          androidProjectPathResolver = androidProjectPathResolver,
-          buildNameMap = buildNameMap
-        )
-      },
-      unitTestArtifact = variant.unitTestArtifact?.let {
-        javaArtifactFrom(
-          buildId = ownerBuildId,
-          projectPath = ownerProjectPath,
-          artifact = it,
-          variantDependencies = variantDependencies.unitTestArtifact!!,
-          libraries = variantDependencies.libraries,
-          androidProjectPathResolver = androidProjectPathResolver,
-          buildNameMap = buildNameMap
-        )
-      },
-      androidTestArtifact = variant.androidTestArtifact?.let {
-        androidArtifactFrom(
-          ownerBuildId = ownerBuildId,
-          ownerProjectPath = ownerProjectPath,
-          artifact = it,
-          artifactDependencies = variantDependencies.androidTestArtifact!!,
-          libraries = variantDependencies.libraries,
-          androidProjectPathResolver = androidProjectPathResolver,
-          buildNameMap = buildNameMap
-        )
-      },
-      testFixturesArtifact = variant.testFixturesArtifact?.let {
-        androidArtifactFrom(
-          ownerBuildId = ownerBuildId,
-          ownerProjectPath = ownerProjectPath,
-          artifact = it,
-          artifactDependencies = variantDependencies.testFixturesArtifact!!,
-          libraries = variantDependencies.libraries,
-          androidProjectPathResolver = androidProjectPathResolver,
-          buildNameMap = buildNameMap
-        )
-      },
+  ): IdeVariantWithPostProcessor {
+    return IdeVariantWithPostProcessor(
+      variant.copy(
+        mainArtifact = variant.mainArtifact.let {
+          androidArtifactFrom(
+            ownerBuildId = ownerBuildId,
+            ownerProjectPath = ownerProjectPath,
+            artifact = it,
+            artifactDependencies = variantDependencies.mainArtifact,
+            libraries = variantDependencies.libraries,
+            androidProjectPathResolver = androidProjectPathResolver,
+            buildNameMap = buildNameMap
+          )
+        },
+        unitTestArtifact = variant.unitTestArtifact?.let {
+          javaArtifactFrom(
+            buildId = ownerBuildId,
+            projectPath = ownerProjectPath,
+            artifact = it,
+            variantDependencies = variantDependencies.unitTestArtifact!!,
+            libraries = variantDependencies.libraries,
+            androidProjectPathResolver = androidProjectPathResolver,
+            buildNameMap = buildNameMap
+          )
+        },
+        androidTestArtifact = variant.androidTestArtifact?.let {
+          androidArtifactFrom(
+            ownerBuildId = ownerBuildId,
+            ownerProjectPath = ownerProjectPath,
+            artifact = it,
+            artifactDependencies = variantDependencies.androidTestArtifact!!,
+            libraries = variantDependencies.libraries,
+            androidProjectPathResolver = androidProjectPathResolver,
+            buildNameMap = buildNameMap
+          )
+        },
+        testFixturesArtifact = variant.testFixturesArtifact?.let {
+          androidArtifactFrom(
+            ownerBuildId = ownerBuildId,
+            ownerProjectPath = ownerProjectPath,
+            artifact = it,
+            artifactDependencies = variantDependencies.testFixturesArtifact!!,
+            libraries = variantDependencies.libraries,
+            androidProjectPathResolver = androidProjectPathResolver,
+            buildNameMap = buildNameMap
+          )
+        }
+      )
     )
   }
 
@@ -1218,7 +1220,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       variantDependencies: VariantDependencies,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
-    ): IdeVariantCoreImpl =
+    ): IdeVariantWithPostProcessor =
       lock.withLock { variantFrom(ownerBuildId, ownerProjectPath, variant, variantDependencies, androidProjectPathResolver, buildNameMap) }
 
     override fun androidProjectFrom(

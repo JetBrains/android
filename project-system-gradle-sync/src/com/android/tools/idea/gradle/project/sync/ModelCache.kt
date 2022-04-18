@@ -34,8 +34,10 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -57,7 +59,7 @@ interface ModelCache {
       variant: Variant,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantCoreImpl
+    ): IdeVariantWithPostProcessor
 
     fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
 
@@ -86,7 +88,7 @@ interface ModelCache {
       variantDependencies: VariantDependencies,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
-    ): IdeVariantCoreImpl
+    ): IdeVariantWithPostProcessor
 
     fun androidProjectFrom(
       basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
@@ -133,6 +135,28 @@ interface ModelCache {
 
 data class ModuleId(val gradlePath: String, val buildId: String)
 
+/**
+ * A [model] wrapper that knows how to post-process it once all models are fetched. [postProcess] method is expected to be invoked when the
+ * cache is populated with all models and the returned value is supposed to be used instead the original [model].
+ *
+ * These wrappers are needed when data for an IDE model are scattered across multiple source models and might not yet be available at the
+ * time when [model] is instantiated.
+ */
+class IdeModelWithPostProcessor<T>(
+  val model: T,
+  private val postProcessor: () -> T = { model }
+) {
+  fun postProcess(): T = postProcessor()
+}
+
+typealias IdeVariantWithPostProcessor = IdeModelWithPostProcessor<IdeVariantCoreImpl>
+
+val IdeVariantWithPostProcessor.variant: IdeVariantCoreImpl get() = model
+val IdeVariantWithPostProcessor.name: String get() = variant.name
+val IdeVariantWithPostProcessor.mainArtifact: IdeAndroidArtifactCoreImpl get() = variant.mainArtifact
+val IdeVariantWithPostProcessor.unitTestArtifact: IdeJavaArtifactCoreImpl? get() = variant.unitTestArtifact
+val IdeVariantWithPostProcessor.androidTestArtifact: IdeAndroidArtifactCoreImpl? get() = variant.androidTestArtifact
+val IdeVariantWithPostProcessor.testFixturesArtifact: IdeAndroidArtifactCoreImpl? get() = variant.testFixturesArtifact
 
 @VisibleForTesting
   /** For older AGP versions pick a variant name based on a heuristic  */

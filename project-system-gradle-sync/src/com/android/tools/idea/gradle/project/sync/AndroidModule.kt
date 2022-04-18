@@ -51,7 +51,7 @@ typealias IdeVariantFetcher = (
   androidProjectPathResolver: AndroidProjectPathResolver,
   module: AndroidModule,
   configuration: ModuleConfiguration
-) -> IdeVariantCoreImpl?
+) -> IdeVariantWithPostProcessor?
 
 sealed interface GradleModelCollection {
   fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
@@ -186,10 +186,10 @@ sealed class AndroidModule constructor(
     else -> NativeModelVersion.None
   }
 
-  var syncedVariant: IdeVariantCoreImpl? = null
+  var syncedVariant: IdeVariantWithPostProcessor? = null
   var syncedNativeVariantAbiName: String? = null
   var syncedNativeVariant: IdeNativeVariantAbi? = null
-  var allVariants: List<IdeVariantCoreImpl>? = null
+  var allVariants: List<IdeVariantWithPostProcessor>? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
   var kotlinGradleModel: KotlinGradleModel? = null
@@ -201,7 +201,7 @@ sealed class AndroidModule constructor(
    * libraries other variants depend on).
    **/
   fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): Collection<ArtifactIdentifier> {
-    return collectIdentifiers(listOfNotNull(syncedVariant), libraryResolver)
+    return collectIdentifiers(listOfNotNull(syncedVariant?.variant), libraryResolver)
   }
 
   class V1(
@@ -276,7 +276,7 @@ sealed class AndroidModule constructor(
       selectedVariantName = selectedVariantName,
       selectedAbiName = syncedNativeVariantAbiName,
       androidProject = androidProject.patchForKapt(kaptGradleModel),
-      fetchedVariants = (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).patchForKapt(kaptGradleModel),
+      fetchedVariants = (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).map { it.postProcess() }.patchForKapt(kaptGradleModel),
       nativeModule = nativeModule,
       nativeAndroidProject = nativeAndroidProject,
       syncedNativeVariant = syncedNativeVariant,
