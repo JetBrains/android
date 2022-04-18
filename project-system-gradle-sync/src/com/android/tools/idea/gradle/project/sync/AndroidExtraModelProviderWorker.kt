@@ -183,8 +183,7 @@ internal class AndroidExtraModelProviderWorker(
       // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
       populateProjectSyncIssues(androidModules, canFetchV2Models)
-
-      return modules + GradleProject(buildModel, modelCache.createLibraryTable())
+      return modules.map { it.prepare() } + GradleProject(buildModel, modelCache.createLibraryTable())
     }
 
     private fun fetchGradleModulesAction(
@@ -473,7 +472,7 @@ internal class AndroidExtraModelProviderWorker(
     // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
     private val actionRunner = safeActionRunner
 
-    fun fetchNativeVariantsAndroidModels(): List<GradleModule> {
+    fun fetchNativeVariantsAndroidModels(): List<GradleModelCollection> {
       val modelCache = ModelCache.create(false)
       val nativeModules = actionRunner.runActions(
         buildModels.projects.map { gradleProject ->
@@ -513,7 +512,7 @@ internal class AndroidExtraModelProviderWorker(
 
       populateProjectSyncIssues(nativeModules)
 
-      return nativeModules
+      return nativeModules.map { it.prepare() }
     }
   }
 

@@ -75,7 +75,7 @@ class GradleProject(
   }
 }
 
-sealed class GradleModule(val gradleProject: BasicGradleProject) : GradleModelCollection {
+sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
 
@@ -84,6 +84,19 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) : GradleModelCo
     projectSyncIssues = issues
   }
 
+  /**
+   * Prepares the final collection of models for delivery to the IDE.
+   */
+  abstract fun prepare(): DeliverableGradleModule
+}
+
+/**
+ * The final collection of models representing [gradleProject] prepared for consumption by the IDE.
+ */
+sealed class DeliverableGradleModule(
+  val gradleProject: BasicGradleProject,
+  val projectSyncIssues: List<IdeSyncIssue>?
+) : GradleModelCollection {
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
       buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
@@ -118,6 +131,17 @@ class JavaModule(
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
 ) : GradleModule(gradleProject) {
+  override fun prepare(): DeliverableGradleModule {
+    return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
+  }
+}
+
+class DeliverableJavaModule(
+  gradleProject: BasicGradleProject,
+  projectSyncIssues: List<IdeSyncIssue>?,
+  private val kotlinGradleModel: KotlinGradleModel?,
+  private val kaptGradleModel: KaptGradleModel?
+): DeliverableGradleModule(gradleProject, projectSyncIssues) {
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
       kotlinGradleModel?.deliver()
@@ -180,34 +204,6 @@ sealed class AndroidModule constructor(
     return collectIdentifiers(listOfNotNull(syncedVariant), libraryResolver)
   }
 
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
-    // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
-    // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
-    val selectedVariantName =
-      syncedVariant?.name
-      ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
-      ?: throw AndroidSyncException(
-        "No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
-
-    val ideAndroidModels = IdeAndroidModels(
-      androidProject.patchForKapt(kaptGradleModel),
-      (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).patchForKapt(kaptGradleModel),
-      selectedVariantName,
-      syncedNativeVariantAbiName,
-      projectSyncIssues.orEmpty(),
-      nativeModule,
-      nativeAndroidProject,
-      syncedNativeVariant,
-      kaptGradleModel
-    )
-    with(ModelConsumer(consumer)) {
-      ideAndroidModels.deliver()
-      kotlinGradleModel?.deliver()
-      additionalClassifierArtifacts?.deliver()
-    }
-  }
-
   class V1(
     agpVersion: GradleVersion?,
     buildName: String?,
@@ -264,6 +260,66 @@ sealed class AndroidModule constructor(
     nativeAndroidProject = null,
     nativeModule = nativeModule
   )
+
+  override fun prepare(): DeliverableGradleModule {
+    // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
+    // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
+    // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
+    val selectedVariantName =
+      syncedVariant?.name
+        ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
+        ?: throw AndroidSyncException(
+          "No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
+    return DeliverableAndroidModule(
+      gradleProject = gradleProject,
+      projectSyncIssues = projectSyncIssues,
+      selectedVariantName = selectedVariantName,
+      selectedAbiName = syncedNativeVariantAbiName,
+      androidProject = androidProject.patchForKapt(kaptGradleModel),
+      fetchedVariants = (syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty()).patchForKapt(kaptGradleModel),
+      nativeModule = nativeModule,
+      nativeAndroidProject = nativeAndroidProject,
+      syncedNativeVariant = syncedNativeVariant,
+      kotlinGradleModel = kotlinGradleModel,
+      kaptGradleModel = kaptGradleModel,
+      additionalClassifierArtifacts = additionalClassifierArtifacts
+    )
+  }
+}
+
+class DeliverableAndroidModule(
+  gradleProject: BasicGradleProject,
+  projectSyncIssues: List<IdeSyncIssue>?,
+  val selectedVariantName: String,
+  val selectedAbiName: String?,
+  val androidProject: IdeAndroidProjectImpl,
+  val fetchedVariants: List<IdeVariantCoreImpl>,
+  val nativeModule: IdeNativeModule?,
+  val nativeAndroidProject: IdeNativeAndroidProject?,
+  val syncedNativeVariant: IdeNativeVariantAbi?,
+  val kotlinGradleModel: KotlinGradleModel?,
+  val kaptGradleModel: KaptGradleModel?,
+  val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
+): DeliverableGradleModule(gradleProject, projectSyncIssues) {
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+
+    val ideAndroidModels = IdeAndroidModels(
+      androidProject,
+      fetchedVariants,
+      selectedVariantName,
+      selectedAbiName,
+      projectSyncIssues.orEmpty(),
+      nativeModule,
+      nativeAndroidProject,
+      syncedNativeVariant,
+      kaptGradleModel
+    )
+    with(ModelConsumer(consumer)) {
+      ideAndroidModels.deliver()
+      kotlinGradleModel?.deliver()
+      additionalClassifierArtifacts?.deliver()
+    }
+  }
 }
 
 private fun IdeAndroidProjectImpl.patchForKapt(kaptModel: KaptGradleModel?) = copy(isKaptEnabled = kaptModel?.isEnabled ?: false)
@@ -307,6 +363,16 @@ class NativeVariantsAndroidModule private constructor(
       NativeVariantsAndroidModule(gradleProject, nativeVariants)
   }
 
+  override fun prepare(): DeliverableGradleModule {
+    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, nativeVariants)
+  }
+}
+
+class DeliverableNativeVariantsAndroidModule(
+  gradleProject: BasicGradleProject,
+  projectSyncIssues: List<IdeSyncIssue>?,
+  private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
+) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
       IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues.orEmpty()).deliver()
