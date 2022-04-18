@@ -559,6 +559,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   }
 
   private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = mutableMapOf()
+  private val myParameterizedTestMethodNameRegex: Regex = "\\[.*\\]$".toRegex()
 
   fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
     val androidTestSourceScope = scopes?.androidTestSourceScope ?: return null
@@ -567,9 +568,13 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
         val testClasses = androidTestResults.getFullTestClassName().let {
           javaPsiFacade.findClasses(it, androidTestSourceScope)
         }
-        testClasses.mapNotNull {
+        testClasses.firstNotNullOfOrNull {
           it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
-        }.firstOrNull() ?: testClasses.firstOrNull()
+        }
+        ?: testClasses.firstNotNullOfOrNull {
+          it.findMethodsByName(androidTestResults.methodName.replace(myParameterizedTestMethodNameRegex, ""), true).firstOrNull()
+        }
+        ?: testClasses.firstOrNull()
       }
     }.value
   }

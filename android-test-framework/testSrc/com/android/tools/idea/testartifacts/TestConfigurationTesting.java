@@ -17,12 +17,14 @@ package com.android.tools.idea.testartifacts;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.truth.Truth;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
@@ -30,6 +32,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -40,11 +43,18 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.
  */
 public class TestConfigurationTesting {
+  @Nullable
+  public static AndroidTestRunConfiguration createAndroidTestConfigurationFromMethod(
+    @NotNull Project project, @NotNull String qualifiedName, @NotNull String methodName) {
+    return createConfigurationFromMethod(project, qualifiedName, methodName, AndroidTestRunConfiguration.class);
+  }
+
   @Nullable
   public static AndroidTestRunConfiguration createAndroidTestConfigurationFromClass(@NotNull Project project, @NotNull String qualifiedName) {
     return createConfigurationFromClass(project, qualifiedName, AndroidTestRunConfiguration.class);
@@ -58,6 +68,19 @@ public class TestConfigurationTesting {
   @Nullable
   public static AndroidTestRunConfiguration createAndroidTestConfigurationFromFile(@NotNull Project project, @NotNull String file) {
     return createConfigurationFromFile(project, file, AndroidTestRunConfiguration.class);
+  }
+
+  @Nullable
+  private static <T extends RunConfiguration> T createConfigurationFromMethod(@NotNull Project project,
+                                                                              @NotNull String qualifiedName,
+                                                                              @NotNull String methodName,
+                                                                              @NotNull Class<T> expectedType) {
+    PsiClass classElement = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project));
+    assertNotNull(classElement);
+    JvmMethod[] elements = classElement.findMethodsByName(methodName);
+    Truth.assertThat(elements).hasLength(1);
+    RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, elements[0].getSourceElement());
+    return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;
   }
 
   @Nullable

@@ -53,6 +53,7 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
         runConfiguration.PACKAGE_NAME,
         runConfiguration.CLASS_NAME,
         runConfiguration.METHOD_NAME,
+        runConfiguration.TEST_NAME_REGEX,
         RetentionConfiguration(
           runConfiguration.RETENTION_ENABLED,
           runConfiguration.RETENTION_MAX_SNAPSHOTS,

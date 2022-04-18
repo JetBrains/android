@@ -102,6 +102,7 @@ class GradleConnectedAndroidTestInvoker(
                testPackageName: String,
                testClassName: String,
                testMethodName: String,
+               testRegex: String,
                device: IDevice,
                retentionConfiguration: RetentionConfiguration,
                extraInstrumentationOptions: String) {
@@ -116,6 +117,7 @@ class GradleConnectedAndroidTestInvoker(
                     testPackageName,
                     testClassName,
                     testMethodName,
+                    testRegex,
                     retentionConfiguration,
                     extraInstrumentationOptions)
     }
@@ -134,6 +136,7 @@ class GradleConnectedAndroidTestInvoker(
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
+    testRegex: String,
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ) {
@@ -224,6 +227,7 @@ class GradleConnectedAndroidTestInvoker(
               testPackageName,
               testClassName,
               testMethodName,
+              testRegex,
               it.iDevice,
               retentionConfiguration,
               extraInstrumentationOptions
@@ -255,7 +259,8 @@ class GradleConnectedAndroidTestInvoker(
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration, extraInstrumentationOptions)
+      project, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
+      retentionConfiguration, extraInstrumentationOptions)
 
     backgroundTaskExecutor {
       try {
@@ -287,6 +292,7 @@ class GradleConnectedAndroidTestInvoker(
     testPackageName: String,
     testClassName: String,
     testMethodName: String,
+    testRegex: String,
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ): GradleExecutionSettings {
@@ -310,7 +316,9 @@ class GradleConnectedAndroidTestInvoker(
       }
 
       // Add a test filter.
-      if (testPackageName != "" || testClassName != "") {
+      if (testRegex.isNotBlank()) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
+      } else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"

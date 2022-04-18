@@ -53,6 +53,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
                                                       packageName: String,
                                                       className: String,
                                                       methodName: String,
+                                                      private val testRegex: String,
                                                       private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
   private val myFacet: AndroidFacet = facet
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
@@ -100,6 +101,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
           launchStatus.processHandler,
           consolePrinter,
           device,
+          testRegex,
           myGradleConnectedAndroidTestInvoker,
           retentionConfiguration,
           myExtraInstrumentationOptions)

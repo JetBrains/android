@@ -67,6 +67,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
+      "testRegex",
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration,
       extraInstrumentationParams
@@ -86,6 +87,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(""),
+      eq("testRegex"),
       eq(mockDevice),
       eq(retentionConfiguration),
       eq(extraInstrumentationParams)
@@ -119,6 +121,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(mockAndroidModuleModel),
       eq(false),
       eq("com.example.test"),
+      eq(""),
       eq(""),
       eq(""),
       eq(mockDevice),
@@ -156,6 +159,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq(""),
+      eq(""),
       eq(mockDevice),
       eq(retentionConfiguration),
       eq(extraInstrumentationParams)
@@ -192,6 +196,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq("testMethod"),
+      eq(""),
       eq(mockDevice),
       eq(retentionConfiguration),
       eq(extraInstrumentationParams)
@@ -209,6 +214,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
+      "",
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration,
       extraInstrumentationParams
@@ -225,6 +231,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(mockPrinter),
       eq(mockAndroidModuleModel),
       eq(false),
+      eq(""),
       eq(""),
       eq(""),
       eq(""),
@@ -260,6 +267,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(mockAndroidModuleModel),
       eq(false),
       eq("com.example.test"),
+      eq(""),
       eq(""),
       eq(""),
       eq(mockDevice),

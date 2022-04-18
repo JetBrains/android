@@ -108,6 +108,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -151,6 +152,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -191,6 +193,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -229,6 +232,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -267,6 +271,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -304,6 +309,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
@@ -341,6 +347,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       "PACKAGE_NAME",
       "CLASS_NAME",
       "METHOD_NAME",
+      "TEST_NAME_REGEX",
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);

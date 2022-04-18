@@ -20,6 +20,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -37,7 +38,6 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
-import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
@@ -52,7 +52,6 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
@@ -108,6 +107,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull public String METHOD_NAME = "";
   @NotNull public String CLASS_NAME = "";
   @NotNull public String PACKAGE_NAME = "";
+
+  /**
+   * A regular expression to filter test cases to be executed.
+   * This param is passed to a test runner along with an instrumentation flag "-e tests_regex".
+   * This param is only used when the testing type is TEST_ALL_IN_MODULE, otherwise ignored.
+   */
+  @NotNull public String TEST_NAME_REGEX = "";
 
   /**
    * A fully qualified name of an instrumentation runner class to use. If this is an empty string, the value is inferred from the project:
@@ -175,10 +181,16 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
     }
     else if (TESTING_TYPE == TEST_CLASS) {
-      return ProgramRunnerUtil.shortenName(JavaExecutionUtil.getShortClassName(CLASS_NAME), 0);
+      return JavaExecutionUtil.getShortClassName(CLASS_NAME);
     }
     else if (TESTING_TYPE == TEST_METHOD) {
-      return ProgramRunnerUtil.shortenName(METHOD_NAME, 2) + "()";
+      return METHOD_NAME + "()";
+    }
+    else if (TESTING_TYPE == TEST_ALL_IN_MODULE && isNotEmpty(TEST_NAME_REGEX)) {
+      if (isNotEmpty(METHOD_NAME)) {
+        return METHOD_NAME + "()";
+      }
+      return TEST_NAME_REGEX;
     }
     return TestRunnerBundle.message("all.tests.scope.presentable.text");
   }

@@ -101,6 +101,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private TitledSeparator myTestExecutionOptionsSeparator;
   private LabeledComponent myEnableEmulatorSnapshotsComponent;
   private JBLabel myEmulatorSnapshotsForTestFailuresHelper;
+  private LabeledComponent myTestRegexComponent;
   private ComboBox<EnableRetention> myEnableEmulatorSnapshotItemsComboBox;
 
   private final Project myProject;
@@ -113,6 +114,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private final TextProperty myTestPackage;
   private final TextProperty myTestClass;
   private final TextProperty myTestMethod;
+  private final TextProperty myTestRegex;
   private final TextProperty myInstrumentationClass;
   private final TextProperty myInstrumentationArgs;
   private final SelectedItemProperty<EnableRetention> myEnableRetention;
@@ -141,6 +143,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
                            BooleanExpressions.any(mySelectedTestType.isEqualTo(TEST_CLASS),
                                                   mySelectedTestType.isEqualTo(TEST_METHOD)));
     myBindingsManager.bind(new VisibleProperty(myTestMethodComponent), mySelectedTestType.isEqualTo(TEST_METHOD));
+    myBindingsManager.bind(new VisibleProperty(myTestRegexComponent), mySelectedTestType.isEqualTo(TEST_ALL_IN_MODULE));
 
     EditorTextFieldWithBrowseButton testPackageEditorText = new EditorTextFieldWithBrowseButton(project, false);
     new BrowseModuleValueActionListener<EditorTextField>(myProject) {
@@ -197,6 +200,10 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     }.setField(testMethodEditorText);
     myTestMethod = new TextProperty(testMethodEditorText.getChildComponent());
     myTestMethodComponent.setComponent(testMethodEditorText);
+
+    EditorTextField testRegexEditorText = new EditorTextField();
+    myTestRegex = new TextProperty(testRegexEditorText);
+    myTestRegexComponent.setComponent(testRegexEditorText);
 
     EditorTextFieldWithBrowseButton instrClassEditorText = new EditorTextFieldWithBrowseButton(
       project,
@@ -278,6 +285,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.PACKAGE_NAME = myTestPackage.get();
     configuration.CLASS_NAME = myTestClass.get();
     configuration.METHOD_NAME = myTestMethod.get();
+    configuration.TEST_NAME_REGEX = myTestRegex.get();
     configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
     configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
@@ -302,6 +310,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myTestPackage.set(configuration.PACKAGE_NAME);
     myTestClass.set(configuration.CLASS_NAME);
     myTestMethod.set(configuration.METHOD_NAME);
+    myTestRegex.set(configuration.TEST_NAME_REGEX);
     myInstrumentationClass.set(
       isBuildWithGradle
       ? AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet)

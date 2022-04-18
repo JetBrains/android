@@ -32,6 +32,7 @@ import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
+import com.intellij.execution.junit2.PsiMemberParameterizedLocation
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
@@ -54,7 +55,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
   override fun setupConfigurationFromContext(configuration: AndroidTestRunConfiguration,
                                              context: ConfigurationContext,
                                              sourceElementRef: Ref<PsiElement>): Boolean {
-    val configurator = AndroidTestConfigurator(context) ?: return false
+    val configurator = AndroidTestConfigurator.createFromContext(context) ?: return false
     if (!configurator.configure(configuration, sourceElementRef)) {
       return false
     }
@@ -84,7 +85,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {
     val expectedConfig = configurationFactory.createTemplateConfiguration(configuration.project) as AndroidTestRunConfiguration
-    val configurator = AndroidTestConfigurator(context) ?: return false
+    val configurator = AndroidTestConfigurator.createFromContext(context) ?: return false
     if (!configurator.configure(expectedConfig, Ref())) {
       return false
     }
@@ -93,7 +94,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     }
 
     return when (configuration.TESTING_TYPE) {
-      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.PACKAGE_NAME.isEmpty()
+      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.TEST_NAME_REGEX == expectedConfig.TEST_NAME_REGEX
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> configuration.PACKAGE_NAME == expectedConfig.PACKAGE_NAME
       AndroidTestRunConfiguration.TEST_CLASS -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME
       AndroidTestRunConfiguration.TEST_METHOD -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME &&
@@ -132,7 +133,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
      * Creates [AndroidTestConfigurator] from a given context.
      * Returns null if the context is not applicable for android test.
      */
-    operator fun invoke(context: ConfigurationContext): AndroidTestConfigurator? {
+    fun createFromContext(context: ConfigurationContext): AndroidTestConfigurator? {
       val location = context.location ?: return null
       val module = AndroidUtils.getAndroidModule(context) ?: return null
       val facet = module.androidFacet ?: return null
@@ -201,9 +202,22 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
     getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
       if (isTestMethod(elementMethod)) {
         sourceElementRef.set(elementMethod)
-        configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
-        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!)?: ""
-        configuration.METHOD_NAME = elementMethod.name
+
+        val className = JavaExecutionUtil.getRuntimeQualifiedName(elementMethod.containingClass!!) ?: ""
+        val methodName = elementMethod.name
+        val parameterizedLocation = PsiMemberParameterizedLocation.getParameterizedLocation(elementMethod.containingClass!!, null)
+
+        if (parameterizedLocation != null) {
+          configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
+          configuration.CLASS_NAME = className
+          configuration.METHOD_NAME = methodName
+          configuration.TEST_NAME_REGEX = "${className}.${methodName}\\[.*\\]"
+        } else {
+          configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
+          configuration.CLASS_NAME = className
+          configuration.METHOD_NAME = methodName
+        }
+
         configuration.setGeneratedName()
         return true
       }
