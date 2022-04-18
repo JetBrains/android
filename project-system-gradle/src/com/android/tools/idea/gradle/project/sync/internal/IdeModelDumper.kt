@@ -345,7 +345,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           providedDependencies
             .sortedBy { it.target.name }
             .forEach {
-              prop("- provided") { it.target.name }
+              prop("- provided") { it.target.name.replaceKnownPatterns().replaceKnownPaths() }
             }
         }
       }

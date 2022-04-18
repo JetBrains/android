@@ -1441,10 +1441,10 @@ MODULE                        : TestCompositeLib1.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:1.6.20
+                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2968,10 +2968,10 @@ MODULE                        : TestCompositeLib3.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:1.6.20
+                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -4946,10 +4946,10 @@ MODULE                        : project.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:1.6.20
+                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 SigningConfigName             : debug
                 IsSigned                      : true

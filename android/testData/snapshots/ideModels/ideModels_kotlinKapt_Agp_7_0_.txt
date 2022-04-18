@@ -1210,11 +1210,11 @@ MODULE                        : MainActivity.app
                     - provided                    : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     - provided                    : com.google.dagger:dagger:2.6
-                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.20
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:1.6.20
+                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 SigningConfigName             : debug
                 IsSigned                      : true
