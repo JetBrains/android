@@ -54,7 +54,8 @@ fun RecipeExecutor.generateAndroidModule(
       theme = "@style/${data.themesData.main.name}",
       addBackupRules = addBackupRules
     ),
-    generateTests = true,
+    generateGenericLocalTests = data.useGenericLocalTests,
+    generateGenericInstrumentedTests = data.useGenericInstrumentedTests,
     themesXml = if (isMaterial3)
       androidModuleThemesMaterial3(data.themesData.main.name)
     else

@@ -144,6 +144,8 @@ class RenderTemplateModel private constructor(
         )
         category = newTemplate.category
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
+        useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
+        useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)

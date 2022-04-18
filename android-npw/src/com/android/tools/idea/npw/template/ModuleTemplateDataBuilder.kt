@@ -81,6 +81,8 @@ class ModuleTemplateDataBuilder(
   var apis: ApiTemplateData? = null
   var category: Category? = null
   var isMaterial3: Boolean = false
+  var useGenericLocalTests: Boolean = true
+  var useGenericInstrumentedTests: Boolean = true
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -230,7 +232,9 @@ class ModuleTemplateDataBuilder(
     apis!!,
     viewBindingSupport = viewBindingSupport,
     category!!,
-    isMaterial3
+    isMaterial3,
+    useGenericLocalTests = useGenericLocalTests,
+    useGenericInstrumentedTests = useGenericInstrumentedTests
   )
 }
 
