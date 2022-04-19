@@ -154,7 +154,8 @@ void DisplayStreamer::Run() {
     if (codec == nullptr) {
       Log::Fatal("Unable to create AMediaCodec");
     }
-    JObject display = surface_control.CreateDisplay("screen-sharing-agent", false); // secure = true doesn't work with API 31+.
+    bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
+    JObject display = surface_control.CreateDisplay("screen-sharing-agent", secure);
     if (display.IsNull()) {
       Log::Fatal("Unable to create a virtual display");
     }
