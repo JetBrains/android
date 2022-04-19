@@ -43,30 +43,30 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * This represents the build status of the project without taking into account any file modifications.
  */
-private sealed class ProjectBuildStatus {
+private enum class ProjectBuildStatus {
   /** The project is indexing or not synced yet */
-  object NotReady : ProjectBuildStatus()
+  NotReady,
 
   /** The project has not been built */
-  object NeedsBuild : ProjectBuildStatus()
+  NeedsBuild,
 
   /** The project is compiled and up to date */
-  object Built : ProjectBuildStatus()
+  Built
 }
 
 /** The project status */
-sealed class ProjectStatus {
+enum class ProjectStatus {
   /** The project is indexing or not synced yet */
-  object NotReady : ProjectStatus()
+  NotReady,
 
   /** The project needs to be built */
-  object NeedsBuild : ProjectStatus()
+  NeedsBuild,
 
   /** The project is compiled but one or more files are out of date **/
-  object OutOfDate : ProjectStatus()
+  OutOfDate,
 
   /** The project is compiled and up to date */
-  object Ready : ProjectStatus()
+  Ready
 }
 
 private val LOG = Logger.getInstance(ProjectStatus::class.java)
@@ -145,7 +145,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       if (psiFilter.modificationCount != lastFilterModificationCount) {
         lastFilterModificationCount = psiFilter.modificationCount
 
-        if (projectBuildStatus !is ProjectBuildStatus.NotReady) {
+        if (projectBuildStatus != ProjectBuildStatus.NotReady) {
           fileChangeDetector.forceMarkFileAsUpToDate(editorFile.element)
         }
       }

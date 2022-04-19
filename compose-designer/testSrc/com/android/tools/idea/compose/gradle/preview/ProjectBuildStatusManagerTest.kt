@@ -72,7 +72,7 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.file,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
-    assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
+    assertTrue("Builds status is not Ready after successful build", statusManager.status == ProjectStatus.Ready)
 
     // Status of files created after a build should be NeedsBuild until a new build happens
     val newFile = projectRule.fixture.addFileToProject("${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile", "")
@@ -136,7 +136,7 @@ class ProjectBuildStatusManagerTest {
 
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     projectRule.buildAndAssertIsSuccessful()
-    assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
+    assertTrue("Builds status is not Ready after successful build", statusManager.status == ProjectStatus.Ready)
   }
 
   /**
