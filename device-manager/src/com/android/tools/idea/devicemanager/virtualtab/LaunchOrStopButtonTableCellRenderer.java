@@ -22,8 +22,8 @@ import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-final class LaunchInEmulatorButtonTableCellRenderer extends IconButtonTableCellRenderer {
-  LaunchInEmulatorButtonTableCellRenderer() {
+final class LaunchOrStopButtonTableCellRenderer extends IconButtonTableCellRenderer {
+  LaunchOrStopButtonTableCellRenderer() {
     super(StudioIcons.Avd.RUN, "Launch this AVD in the emulator");
   }
 

@@ -20,7 +20,7 @@ import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchOrStopValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // TODO The EDT, application pool threads, and who knows what other ones are accessing the AvdInfo. I don't like that.
-final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEditor {
+final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor {
   private final @Nullable Project myProject;
   private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
   private final @NotNull NewSetEnabled myNewSetEnabled;
@@ -46,18 +46,18 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
 
   @VisibleForTesting
   interface NewSetEnabled {
-    @NotNull FutureCallback<@NotNull Object> apply(@NotNull LaunchInEmulatorButtonTableCellEditor editor);
+    @NotNull FutureCallback<@NotNull Object> apply(@NotNull LaunchOrStopButtonTableCellEditor editor);
   }
 
-  LaunchInEmulatorButtonTableCellEditor(@Nullable Project project) {
+  LaunchOrStopButtonTableCellEditor(@Nullable Project project) {
     this(project, AvdManagerConnection::getDefaultAvdManagerConnection, SetEnabled::new);
   }
 
   @VisibleForTesting
-  LaunchInEmulatorButtonTableCellEditor(@Nullable Project project,
-                                        @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
-                                        @NotNull NewSetEnabled newSetEnabled) {
-    super(StudioIcons.Avd.RUN, LaunchInEmulatorValue.INSTANCE, "Launch this AVD in the emulator");
+  LaunchOrStopButtonTableCellEditor(@Nullable Project project,
+                                    @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
+                                    @NotNull NewSetEnabled newSetEnabled) {
+    super(StudioIcons.Avd.RUN, LaunchOrStopValue.INSTANCE, "Launch this AVD in the emulator");
 
     myProject = project;
     myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
@@ -99,10 +99,10 @@ final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEdi
 
   @VisibleForTesting
   static final class SetEnabled implements FutureCallback<Object> {
-    private final @NotNull LaunchInEmulatorButtonTableCellEditor myEditor;
+    private final @NotNull LaunchOrStopButtonTableCellEditor myEditor;
 
     @VisibleForTesting
-    SetEnabled(@NotNull LaunchInEmulatorButtonTableCellEditor editor) {
+    SetEnabled(@NotNull LaunchOrStopButtonTableCellEditor editor) {
       myEditor = editor;
     }
 

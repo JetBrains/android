@@ -35,22 +35,22 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
-  static final int LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX = 3;
+  static final int LAUNCH_OR_STOP_MODEL_COLUMN_INDEX = 3;
   static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
   static final int EDIT_MODEL_COLUMN_INDEX = 5;
   static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull VirtualDevice> myDevices;
 
-  static final class LaunchInEmulatorValue {
-    static final LaunchInEmulatorValue INSTANCE = new LaunchInEmulatorValue();
+  static final class LaunchOrStopValue {
+    static final LaunchOrStopValue INSTANCE = new LaunchOrStopValue();
 
-    private LaunchInEmulatorValue() {
+    private LaunchOrStopValue() {
     }
 
     @Override
     public @NotNull String toString() {
-      return "Launch in emulator";
+      return "Launch or stop";
     }
   }
 
@@ -130,7 +130,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return "API";
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return "Size on Disk";
-      case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
       case EDIT_MODEL_COLUMN_INDEX:
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
@@ -149,8 +149,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return AndroidVersion.class;
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return Long.class;
-      case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
-        return LaunchInEmulatorValue.class;
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
+        return LaunchOrStopValue.class;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.class;
       case EDIT_MODEL_COLUMN_INDEX:
@@ -169,7 +169,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return false;
-      case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
       case EDIT_MODEL_COLUMN_INDEX:
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
@@ -188,8 +188,8 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return myDevices.get(modelRowIndex).getAndroidVersion();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getSizeOnDisk();
-      case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
-        return LaunchInEmulatorValue.INSTANCE;
+      case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
+        return LaunchOrStopValue.INSTANCE;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.INSTANCE;
       case EDIT_MODEL_COLUMN_INDEX:
