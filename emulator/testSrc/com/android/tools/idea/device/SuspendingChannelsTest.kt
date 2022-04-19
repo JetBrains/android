@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device
 
-import com.android.utils.TraceUtils
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,16 +66,12 @@ class SuspendingChannelsTest {
           steps[2].countDown()
           try {
             exception = null
-            println("${TraceUtils.currentTime()} Investigating b/229378637: calling stream.waitForData")
             stream.waitForData(1, 10, TimeUnit.MILLISECONDS)
-            println("${TraceUtils.currentTime()} Investigating b/229378637: 1 byte is available when it is not supposed to be")
           }
           catch (e: Throwable) {
             exception = e
-            println("${TraceUtils.currentTime()} Investigating b/229378637: caught ${TraceUtils.getStackTrace(e)}")
           }
           finally {
-            println("${TraceUtils.currentTime()} Investigating b/229378637: counting down step 3 latch")
             steps[3].countDown()
           }
         }
@@ -96,9 +91,7 @@ class SuspendingChannelsTest {
     out.writeAndFlush("ijkl".toByteArray(UTF_8))
     assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 4, 16) should return.
     assertThat(buffer.toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
-    println("${TraceUtils.currentTime()} Investigating b/229378637: waiting for step 3")
     assertThat(steps[3].await(500, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(1, 10, TimeUnit.MILLISECONDS) should throw.
-    println("${TraceUtils.currentTime()} Investigating b/229378637: step 3 completed")
     assertThat(exception).isInstanceOf(InterruptedByTimeoutException::class.java)
   }
 
