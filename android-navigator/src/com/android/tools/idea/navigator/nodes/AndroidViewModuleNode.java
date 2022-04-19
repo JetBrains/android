@@ -107,10 +107,16 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
     // We also need to check extra content roots from the source set modules since the super method is only based off the
     // holders roots.
     Module module = getValue();
+    if (module.isDisposed()) {
+      return false;
+    }
     List<Module> sourceSetModules = ModuleSystemUtil.getAllLinkedModules(module);
     for (Module m : sourceSetModules) {
       // The module from getValue() has already been checked by super.contains
       if (m == module) {
+        continue;
+      }
+      if (m.isDisposed()) {
         continue;
       }
       for (VirtualFile root : ModuleRootManager.getInstance(m).getContentRoots()) {
