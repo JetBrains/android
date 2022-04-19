@@ -13,10 +13,8 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
