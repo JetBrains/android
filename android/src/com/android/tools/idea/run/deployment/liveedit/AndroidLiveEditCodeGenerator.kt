@@ -23,6 +23,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -34,6 +35,8 @@ import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -47,11 +50,10 @@ const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
 
 class AndroidLiveEditCodeGenerator(val project: Project){
-
-  data class CodeGeneratorInput(val file: PsiFile, var function: KtNamedFunction, val state: FunctionState)
+  data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, val state: FunctionState)
 
   enum class FunctionType {
-    KOTLIN, COMPOSABLE
+    NONE, KOTLIN, COMPOSABLE
   }
 
   data class CodeGeneratorOutput(val className: String,
@@ -150,11 +152,45 @@ class AndroidLiveEditCodeGenerator(val project: Project){
    * Pick out what classes we need from the generated list of .class files.
    */
   private fun getGeneratedCode(input: CodeGeneratorInput, generationState: GenerationState): CodeGeneratorOutput {
-    var targetFunction = input.function
     val compilerOutput = generationState.factory.asList()
-    var bindingContext = generationState.bindingContext
-    val desc = bindingContext[BindingContext.FUNCTION, targetFunction]!!
+    val bindingContext = generationState.bindingContext
 
+    if (compilerOutput.isEmpty()) {
+      throw LiveEditUpdateException.internalError("No compiler output.", input.file)
+    }
+
+    when(input.element) {
+      // When the edit event was contained in a function
+      is KtNamedFunction -> {
+        val targetFunction = input.element as KtNamedFunction
+        return getGeneratedMethodCode(compilerOutput, targetFunction, input.state, generationState)
+      }
+
+      // When the edit event was at class level
+      is KtClass -> {
+        val targetClass = input.element as KtClass
+        val desc = bindingContext[BindingContext.CLASS, targetClass]!!
+        val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE,
+                                   FunctionState.NULL_OFFSET, supportClasses)
+      }
+
+      // When the edit was at top level
+      is KtFile -> {
+        val targetFile = input.element as KtFile
+        val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE,
+                                   FunctionState.NULL_OFFSET, supportClasses)
+      }
+    }
+
+    throw LiveEditUpdateException.compilationError("Event was generated for unsupported kotlin element")
+  }
+
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtNamedFunction, functionState: FunctionState, generationState: GenerationState) : CodeGeneratorOutput {
+    val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
     val methodSignature = remapFunctionSignatureIfNeeded(desc, generationState.typeMapper)
     val isCompose = desc.hasComposableAnnotation()
 
@@ -179,16 +215,24 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       throw LiveEditUpdateException.internalError("Empty class name / method signature.", function.containingFile)
     }
 
-    if (compilerOutput.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.", function.containingFile)
-    }
+    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
+    val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
 
+    val idx = methodSignature.indexOf('(')
+    val methodName = methodSignature.substring(0, idx);
+    val methodDesc = methodSignature.substring(idx)
+    val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
+    val offset = functionState.initialOffsetOf(function) ?: FunctionState.NULL_OFFSET
+    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType,
+                               offset, supportClasses)
+  }
+
+  fun getCompiledClasses(internalClassName: String, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
     fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
                                                          clazzFile.className.contains("ComposableSingletons\$")
 
-    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
     var primaryClass = ByteArray(0)
     val supportClasses = mutableMapOf<String, ByteArray>()
     // TODO: Remove all these println once we are more stable.
@@ -221,13 +265,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       // TODO: New classes (or existing unmodified classes) are not handled here. We should let the user know here.
     }
     println("Lived edit classes summary end")
-    val idx = methodSignature.indexOf('(')
-    val methodName = methodSignature.substring(0, idx);
-    val methodDesc = methodSignature.substring(idx)
-    val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
-
-    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType,
-                               input.state.initialOffsetOf(function)!!, supportClasses)
+    return Pair(primaryClass, supportClasses)
   }
 
   fun remapFunctionSignatureIfNeeded(desc: SimpleFunctionDescriptor, mapper: KotlinTypeMapper) : String {

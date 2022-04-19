@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.literals
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -27,6 +28,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -35,7 +38,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
 data class EditEvent(val file: PsiFile,
-                     val namedFunction: KtNamedFunction?,
+                     val element: KtElement,
                      val function: KtFunction?,
                      val functionState: FunctionState) {
   fun isWithinFunction() = function != null
@@ -134,6 +137,11 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
       // While this works "ok" for the most part, we need to figure out a better way to detect
       // the change is actually a function change somehow.
 
+      if (event.file == null || event.file !is KtFile) {
+        return
+      }
+
+      val file = event.file as KtFile
       var parent = event.parent;
 
       // The code might not be valid at this point, so we should not be making any
@@ -147,17 +155,25 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
             if (unNamedFunction == null) {
               unNamedFunction = parent
             }
-            val event = EditEvent(event.file!!, parent, unNamedFunction,
-                                  functionStateMap.computeIfAbsent(event.file!!) { it -> FunctionState(it as KtFile) })
+            val event = EditEvent(file, parent, unNamedFunction, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
             editListener(event)
             break;
           }
           is KtFunction -> {
             unNamedFunction = parent
           }
+          is KtClass -> {
+            val event = EditEvent(file, parent, null, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
+            editListener(event)
+            break;
+          }
         }
         parent = parent.parent
       }
+
+      // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
+      val event = EditEvent(file, file, null, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
+      editListener(event)
     }
 
     override fun childAdded(event: PsiTreeChangeEvent) {

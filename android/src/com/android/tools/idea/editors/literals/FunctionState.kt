@@ -29,6 +29,10 @@ import java.util.WeakHashMap
  * Keeps track of stateful information about all the functions within a file being edited.
  */
 class FunctionState (file: KtFile) {
+  companion object {
+    val NULL_OFFSET = Offset(-1, -1)
+  }
+
   data class Offset(var start : Int, var end : Int)
   private val initialOffsets = Collections.synchronizedMap(WeakHashMap<KtFunction, Offset>())
 
