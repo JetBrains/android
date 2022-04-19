@@ -159,8 +159,8 @@ private class SuspendingChannelInputStream(val channel: SuspendingSocketChannel,
 
   override suspend fun waitForData(numBytes: Int, timeout: Long, unit: TimeUnit) {
     require(numBytes <= buffer.capacity())
-    var remainingTime = unit.convert(timeout, TimeUnit.MILLISECONDS)
-    val deadline = if (timeout == 0L) 0 else System.currentTimeMillis() + unit.toMillis(timeout)
+    var remainingTime = unit.toMillis(timeout)
+    val deadline = if (timeout == 0L) 0 else System.currentTimeMillis() + remainingTime
     while (buffer.remaining() < numBytes) {
       buffer.compact()
       channel.read(buffer, remainingTime, TimeUnit.MILLISECONDS)
