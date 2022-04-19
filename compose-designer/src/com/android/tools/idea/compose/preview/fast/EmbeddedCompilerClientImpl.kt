@@ -16,7 +16,9 @@
 package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -33,6 +35,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
@@ -82,8 +85,17 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
  * to compile fragments of code in-process similar to how Live Edit does for the emulator.
+ *
+ * [useInlineAnalysis] should return the value of the Live Edit inline analysis setting.
  */
-class EmbeddedCompilerClientImpl(private val project: Project, private val log: Logger) : CompilerDaemonClient {
+class EmbeddedCompilerClientImpl(
+  private val project: Project,
+  private val log: Logger,
+  private val useInlineAnalysis: () -> Boolean = { LiveEditConfig.getInstance().useInlineAnalysis }) : CompilerDaemonClient {
+
+  @TestOnly
+  constructor(project: Project, log: Logger, useInlineAnalysis: Boolean): this(project, log, { useInlineAnalysis })
+
   private val daemonLock = Mutex()
   override val isRunning: Boolean
     get() = daemonLock.holdsLock(this)
@@ -103,8 +115,30 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
         val bindingContext = analyze(inputs, resolution)
         ProgressManager.checkCanceled()
         log.debug("backCodeGen")
-        backendCodeGen(project, resolution, bindingContext, inputs,
-                       AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+        try {
+          backendCodeGen(project, resolution, bindingContext, inputs,
+                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+        }
+        catch (e: LiveEditUpdateException) {
+          if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE || !useInlineAnalysis()) {
+            throw e
+          }
+
+          // Add any extra source file this compilation need in order to support the input file calling an inline function
+          // from another source file then perform a compilation again.
+          val inputFilesWithInlines = inputs.flatMap {
+            performInlineSourceDependencyAnalysis(resolution, it, bindingContext)
+          }
+
+          // We need to perform the analysis once more with the new set of input files.
+          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFilesWithInlines)
+
+          // We will need to start using the binding context from the new analysis for code gen.
+          val newBindingContext = newAnalysisResult.bindingContext
+
+          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines,
+                         AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
+        }
       }
     }
 
@@ -133,7 +167,8 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
           if (compilationIndicator.isRunning) {
             if (coroutineContext.job.isCancelled) compilationIndicator.cancel() else compilationIndicator.stop()
           }
-        } catch (t: Throwable) {
+        }
+        catch (t: Throwable) {
           // stop might throw if the indicator is already stopped
           log.warn(t)
         }

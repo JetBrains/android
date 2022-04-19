@@ -32,12 +32,9 @@ import java.nio.file.Files
 internal class EmbeddedCompilerClientImplTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
-  private lateinit var compiler: EmbeddedCompilerClientImpl
-
-  @Before
-  fun setUp() {
-    compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
-                                          log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))
+  private val compiler: EmbeddedCompilerClientImpl by lazy {
+    EmbeddedCompilerClientImpl(project = projectRule.project,
+                               log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))
   }
 
   @Test
@@ -105,6 +102,53 @@ internal class EmbeddedCompilerClientImplTest {
     }
     finally {
       outputDirectories.forEach { it.delete(true) }
+    }
+  }
+
+  @Test
+  fun `inline test`() {
+    projectRule.fixture.addFileToProject(
+      "src/com/test/Inline.kt",
+      """
+        inline fun inlineMethod() {
+        }
+      """.trimIndent())
+    val file = projectRule.fixture.addFileToProject(
+      "src/com/test/Source.kt",
+      """
+        fun testMethod() {
+          inlineMethod()
+        }
+      """.trimIndent())
+
+    // Test with inline analysis enabled. This should fail when using inline methods in other files.
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), false)
+      val outputDirectory = Files.createTempDirectory("out")
+      runBlocking {
+        val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+        assertTrue(result.toString(), result is CompilationResult.RequestException)
+        assertEquals(
+          "Unable to update function that references an inline function from another source file: public final fun inlineMethod (): kotlin.Unit [inline] declared in <root>.InlineKt",
+          (result as CompilationResult.RequestException).e?.message?.substringAfter(':')?.trim())
+      }
+    }
+
+    // Test with inline analysis disabled. This should fail when using inline methods in other files.
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), true)
+      val outputDirectory = Files.createTempDirectory("out")
+      runBlocking {
+        val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+        assertTrue(result.toString(), result is CompilationResult.Success)
+        assertEquals("""
+              InlineKt.class
+              SourceKt.class
+              light_idea_test_case.kotlin_module
+            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
+      }
     }
   }
 
