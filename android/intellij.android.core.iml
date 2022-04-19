@@ -15,6 +15,7 @@
     <orderEntry type="module" module-name="analytics-publisher" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.rt" />
     <orderEntry type="module" module-name="android.sdktools.draw9patch" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
