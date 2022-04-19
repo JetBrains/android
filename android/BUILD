@@ -1,7 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
@@ -130,7 +129,6 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
-    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         "modularize": {
@@ -161,13 +159,13 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
-            "shard_count": 4,
+            "shard_count": 5,
             # Timeout waiting to lock Artifact transforms cache (b/152652501)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
-            "shard_count": 2,
+            "shard_count": 3,
             "data": [
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",

@@ -1,6 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -29,7 +28,6 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.templates.tests",
-    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.templates.tests.iml"],
     split_test_targets = {
         "TemplateTest": {
