@@ -31,6 +31,8 @@ fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidL
 private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
   private val file = lib.artifact
 
+  override fun libraryName(): String = lib.name
+
   @Suppress("FileComparisons")
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
