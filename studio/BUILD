@@ -577,6 +577,19 @@ py_test(
 )
 
 py_test(
+    name = "test_updater",
+    srcs = ["tests/test_updater.py"],
+    data = [
+        ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
+        ":android-studio.mac_arm.zip",
+        ":android-studio.win.zip",
+        ":updater",
+        ":updater.jar",
+    ],
+)
+
+py_test(
     name = "startup_test",
     srcs = [
         "tests/startup_test.py",
