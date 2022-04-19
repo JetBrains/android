@@ -19,5 +19,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android.sdktools.resource-repository" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
   </component>
 </module>

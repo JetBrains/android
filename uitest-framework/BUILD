@@ -50,5 +50,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )

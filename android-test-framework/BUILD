@@ -30,5 +30,6 @@ iml_module(
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )

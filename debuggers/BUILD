@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module]",
     ],
 )
 
@@ -44,6 +45,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 

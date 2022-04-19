@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />

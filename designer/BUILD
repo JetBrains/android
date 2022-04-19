@@ -115,6 +115,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 

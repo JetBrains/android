@@ -22,6 +22,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
+        "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
     ],
 )
 

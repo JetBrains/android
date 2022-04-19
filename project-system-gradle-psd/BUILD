@@ -31,6 +31,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module]",
     ],
 )
 

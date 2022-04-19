@@ -28,5 +28,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" />
   </component>
 </module>
