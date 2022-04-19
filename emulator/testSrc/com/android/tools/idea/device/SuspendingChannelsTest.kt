@@ -97,7 +97,7 @@ class SuspendingChannelsTest {
     assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 4, 16) should return.
     assertThat(buffer.toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
     println("${TraceUtils.currentTime()} Investigating b/229378637: waiting for step 3")
-    assertThat(steps[3].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(1, 10, TimeUnit.MILLISECONDS) should throw.
+    assertThat(steps[3].await(500, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(1, 10, TimeUnit.MILLISECONDS) should throw.
     println("${TraceUtils.currentTime()} Investigating b/229378637: step 3 completed")
     assertThat(exception).isInstanceOf(InterruptedByTimeoutException::class.java)
   }
