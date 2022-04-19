@@ -56,10 +56,16 @@ fun attachJavaDebuggerToClient(
   onDebugProcessDestroyed: (IDevice) -> Unit,
 ): Promise<XDebugSessionImpl> {
   return getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted, onDebugProcessDestroyed, false)
-    .then { starter ->
-      val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
-      session.debugProcess.processHandler.startNotify()
-      session as XDebugSessionImpl
+    .thenAsync { starter ->
+      val promise = AsyncPromise<XDebugSessionImpl>()
+      runInEdt {
+        promise.catchError {
+          val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
+          session.debugProcess.processHandler.startNotify()
+          promise.setResult(session as XDebugSessionImpl)
+        }
+      }
+      promise
     }
     // TODO: delete error handling when [StudioFlags.NEW_EXECUTION_FLOW_ENABLED] is enabled
     .onError {
