@@ -1413,5 +1413,12 @@ public final class StudioFlags {
       "Enable App Insights tool window and highlighting support.",
       false);
   // endregion App Insights
+
+  // region App Links Assistant
+  private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "applinksassistant", "App Links Assistant");
+  public static final Flag<Boolean> KOTLIN_INTENT_HANDLING =
+    Flag.create(APP_LINKS_ASSISTANT, "kotlin.intent.handling", "Kotlin Intent Handling",
+                "Support adding logic for intent handling in Kotlin.", false);
+  // endregion App Links Assistant
   private StudioFlags() { }
 }
