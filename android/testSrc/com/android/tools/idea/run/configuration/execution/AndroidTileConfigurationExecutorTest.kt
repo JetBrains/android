@@ -68,7 +68,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = getMockDevice(mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"3\"",
-      addTile to "Broadcast completed: result=1, Index=[101]",
+      addTile to "Broadcast completed: result=1, data=\"Index=[101]\"",
       // Unsuccessful execution of show tile.
       showTile to "Broadcast completed: result=2"
     ).toCommandHandlers())
@@ -153,7 +153,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val addTileCommandHandler: CommandHandler = { device, receiver ->
       runnableClientsService.startClient(device, appId)
-      receiver.addOutput("Broadcast completed: result=1, Index=[101]")
+      receiver.addOutput("Broadcast completed: result=1, data=\"Index=[101]\"")
     }
 
     val removeTileCommandHandler: CommandHandler = { device, receiver ->
