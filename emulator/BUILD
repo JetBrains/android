@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",

@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",

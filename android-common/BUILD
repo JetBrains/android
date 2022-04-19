@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
     iml_files = ["intellij.android.common.iml"],
-    jvm_target = "8",
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
@@ -31,5 +30,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
     ],
 )

@@ -79,6 +79,7 @@ studio_plugin(
         ],
         "android-common.jar": [
             "//tools/adt/idea/android-common:intellij.android.common",
+            "//tools/adt/idea/jps-model:intellij.android.jps.model",
         ],
         "android-extensions-ide.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",

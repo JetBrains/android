@@ -17,6 +17,7 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",

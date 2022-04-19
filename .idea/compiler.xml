@@ -59,9 +59,9 @@
       <module name="db-compiler" target="8" />
       <module name="db-compilerCommon" target="8" />
       <module name="intellij.android.buildCommon" target="8" />
-      <module name="intellij.android.common" target="8" />
       <module name="intellij.android.gradle-tooling.api" target="8" />
       <module name="intellij.android.gradle-tooling.impl" target="8" />
+      <module name="intellij.android.jps.model" target="8" />
       <module name="intellij.android.kotlin.extensions" target="8" />
       <module name="intellij.android.projectSystem.gradle.models" target="8" />
       <module name="intellij.android.projectSystem.gradle.sync" target="8" />
