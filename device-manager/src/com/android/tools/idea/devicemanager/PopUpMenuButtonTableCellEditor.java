@@ -44,7 +44,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
   protected Device myDevice;
 
   protected PopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel) {
-    super(AllIcons.Actions.More, PopUpMenuValue.INSTANCE);
+    super(PopUpMenuValue.INSTANCE, AllIcons.Actions.More);
 
     myPanel = panel;
     myManager = WearPairingManager.INSTANCE;

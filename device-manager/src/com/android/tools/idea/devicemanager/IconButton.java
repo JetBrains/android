@@ -21,11 +21,12 @@ import java.util.Optional;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class IconButton extends JButton implements IconTableCell {
-  private @NotNull Icon myDefaultIcon;
+  private @Nullable Icon myDefaultIcon;
 
-  public IconButton(@NotNull Icon defaultIcon) {
+  IconButton(@Nullable Icon defaultIcon) {
     super(defaultIcon);
     Dimension size = new JBDimension(22, 22);
 
@@ -40,7 +41,7 @@ public final class IconButton extends JButton implements IconTableCell {
 
   @Override
   public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
-    return Optional.of(myDefaultIcon);
+    return Optional.ofNullable(myDefaultIcon);
   }
 
   public void setDefaultIcon(@NotNull Icon defaultIcon) {

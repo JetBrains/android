@@ -30,11 +30,15 @@ public class IconButtonTableCellEditor extends AbstractCellEditor implements Tab
   protected final @NotNull IconButton myButton;
   private final @NotNull Object myValue;
 
-  protected IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value) {
-    this(icon, value, null);
+  protected IconButtonTableCellEditor(@NotNull Object value) {
+    this(value, null);
   }
 
-  protected IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value, @Nullable String tooltipText) {
+  protected IconButtonTableCellEditor(@NotNull Object value, @Nullable Icon icon) {
+    this(value, icon, null);
+  }
+
+  protected IconButtonTableCellEditor(@NotNull Object value, @Nullable Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
 
     myButton.setOpaque(true);

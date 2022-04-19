@@ -25,11 +25,15 @@ import org.jetbrains.annotations.Nullable;
 public class IconButtonTableCellRenderer implements TableCellRenderer {
   protected final @NotNull IconButton myButton;
 
-  public IconButtonTableCellRenderer(@NotNull Icon icon) {
+  protected IconButtonTableCellRenderer() {
+    this(null);
+  }
+
+  public IconButtonTableCellRenderer(@Nullable Icon icon) {
     this(icon, null);
   }
 
-  public IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
+  public IconButtonTableCellRenderer(@Nullable Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
     myButton.setToolTipText(tooltipText);
   }

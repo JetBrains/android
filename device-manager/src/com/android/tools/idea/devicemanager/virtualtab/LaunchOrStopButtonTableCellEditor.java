@@ -57,7 +57,7 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
   LaunchOrStopButtonTableCellEditor(@Nullable Project project,
                                     @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
                                     @NotNull NewSetEnabled newSetEnabled) {
-    super(StudioIcons.Avd.RUN, LaunchOrStopValue.INSTANCE, "Launch this AVD in the emulator");
+    super(LaunchOrStopValue.INSTANCE);
 
     myProject = project;
     myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;

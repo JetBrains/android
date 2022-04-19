@@ -38,7 +38,7 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
 
   @VisibleForTesting
   RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull BiPredicate<@NotNull Object, @NotNull Project> askToRemove) {
-    super(AllIcons.Actions.GC, RemoveValue.INSTANCE);
+    super(RemoveValue.INSTANCE, AllIcons.Actions.GC);
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()

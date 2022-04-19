@@ -30,7 +30,7 @@ final class EditButtonTableCellEditor extends IconButtonTableCellEditor {
   private VirtualDevice myDevice;
 
   EditButtonTableCellEditor(@NotNull VirtualDevicePanel panel) {
-    super(AllIcons.Actions.Edit, EditValue.INSTANCE, "Edit this AVD");
+    super(EditValue.INSTANCE, AllIcons.Actions.Edit, "Edit this AVD");
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()

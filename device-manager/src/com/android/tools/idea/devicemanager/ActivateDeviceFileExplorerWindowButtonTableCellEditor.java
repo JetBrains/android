@@ -37,7 +37,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
   public ActivateDeviceFileExplorerWindowButtonTableCellEditor(@Nullable Project project,
                                                                @NotNull DeviceTable<@NotNull D> table,
                                                                @NotNull EventKind kind) {
-    super(AllIcons.Actions.MenuOpen, ActivateDeviceFileExplorerWindowValue.INSTANCE, "Open this device in the Device File Explorer.");
+    super(ActivateDeviceFileExplorerWindowValue.INSTANCE, AllIcons.Actions.MenuOpen, "Open this device in the Device File Explorer.");
 
     myProject = project;
     myTable = table;
@@ -82,10 +82,12 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
     ApplicationManager.getApplication().invokeLater(() -> {
       if (myProject != null && !myProject.isDisposed()) {
         if (myDevice instanceof VirtualDevice) {
-          DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice) myDevice).getAvdInfo());
-        } else if (myDevice instanceof PhysicalDevice) {
+          DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
+        }
+        else if (myDevice instanceof PhysicalDevice) {
           DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
-        } else {
+        }
+        else {
           assert false;
         }
       }
