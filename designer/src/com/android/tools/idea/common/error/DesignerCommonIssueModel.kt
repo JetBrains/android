@@ -55,11 +55,3 @@ open class DesignerCommonIssueModel : BaseTreeModel<NodeDescriptor<*>>() {
     setRoot(null)
   }
 }
-
-/**
- * Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to have different background thread.
- */
-class AsyncableDesignerCommonIssueModel : DesignerCommonIssueModel(), InvokerSupplier {
-  private val invoker = Invoker.forBackgroundThreadWithReadAction(this)
-  override fun getInvoker(): Invoker = invoker
-}

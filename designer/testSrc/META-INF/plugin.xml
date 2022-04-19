@@ -27,4 +27,10 @@
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layoutlib.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
+                    serviceImplementation="com.android.tools.idea.common.error.TestIssuePanelModelProvider"
+                    overrides="true" />
+  </extensions>
 </idea-plugin>
