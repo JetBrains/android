@@ -24,7 +24,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidConfigurationEx
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
-import com.intellij.execution.configurations.RuntimeConfigurationException
+import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -60,18 +60,18 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   internal fun verifyProviderTypes(supportedTypes: List<Complication.ComplicationType>) {
     if (supportedTypes.isEmpty()) {
-      throw RuntimeConfigurationException(AndroidBundle.message("no.provider.type.error"))
+      throw RuntimeConfigurationWarning(AndroidBundle.message("no.provider.type.error"))
     }
     for (slot in chosenSlots) {
-      val slotType = slot.type ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.type.empty"))
+      val slotType = slot.type ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.empty"))
       if (!supportedTypes.contains(slotType)) {
-        throw RuntimeConfigurationException(AndroidBundle.message("provider.type.mismatch.error", slotType))
+        throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.mismatch.error", slotType))
       }
     }
   }
 
-  internal fun getTypesFromManifest(): List<Complication.ComplicationType>? {
-    val module = this.module ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.module.not.chosen"))
+  internal fun getTypesFromManifest(): List<String>? {
+    val module = this.module ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.module.not.chosen"))
     val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
     if (snapshotFuture.isDone) {
       return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName ?: "")
@@ -81,12 +81,13 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   override fun checkConfiguration() {
     super.checkConfiguration()
-    val types = getTypesFromManifest()
-                ?: throw RuntimeConfigurationException(AndroidBundle.message("provider.type.manifest.not.available"))
+    val rawTypes = getTypesFromManifest()
+                ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
-    verifyProviderTypes(types)
+    verifyProviderTypes(parseRawTypes(rawTypes))
+    checkRawTypes(rawTypes) // Make sure Errors are thrown before Warnings.
   }
 
   var chosenSlots: List<ChosenSlot> = listOf()

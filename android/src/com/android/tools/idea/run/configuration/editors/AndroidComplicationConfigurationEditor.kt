@@ -19,6 +19,7 @@ import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
+import com.android.tools.idea.run.configuration.parseRawTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -67,7 +68,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     super.resetEditorFrom(runConfiguration)
     allAvailableSlots = runConfiguration.watchFaceInfo.complicationSlots
     originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
-    sourceTypes = runConfiguration.getTypesFromManifest()
+    updateSourceTypes(runConfiguration)
     currentChosenSlots.apply {
       beginUpdate()
       clear()
@@ -75,6 +76,10 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
       endUpdate()
     }
     update()
+  }
+
+  private fun updateSourceTypes(runConfiguration: AndroidComplicationConfiguration) {
+    sourceTypes = parseRawTypes(runConfiguration.getTypesFromManifest() ?: emptyList())
   }
 
   private fun removeInvalidTypes(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): AndroidComplicationConfiguration.ChosenSlot{
@@ -100,7 +105,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     super.applyEditorTo(runConfiguration)
     runConfiguration.chosenSlots = currentChosenSlots.map { it.copy() }
     originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
-    sourceTypes = runConfiguration.getTypesFromManifest()
+    updateSourceTypes(runConfiguration)
   }
 
   override fun onComponentNameChanged(newComponent: String?) {

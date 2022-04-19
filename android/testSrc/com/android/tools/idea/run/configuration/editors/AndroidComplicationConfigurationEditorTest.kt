@@ -51,7 +51,7 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     val runConfigurationFactory = AndroidComplicationConfigurationType().configurationFactories[0]
     runConfiguration = Mockito.spy(AndroidComplicationConfiguration(project, runConfigurationFactory))
     settingsEditor = runConfiguration.configurationEditor
-    doReturn(listOf(ComplicationType.RANGED_VALUE, ComplicationType.SHORT_TEXT, ComplicationType.ICON))
+    doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON"))
       .`when`(runConfiguration).getTypesFromManifest()
   }
 

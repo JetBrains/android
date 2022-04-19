@@ -21,6 +21,7 @@ import com.android.tools.deployer.model.component.Complication.ComplicationType.
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
 import com.intellij.execution.configurations.RuntimeConfigurationException
+import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import junit.framework.TestCase
@@ -55,19 +56,27 @@ class AndroidComplicationConfigurationTest : AndroidTestCase() {
 """
 
   fun testExtractSupportedTypes() {
-    val mergedManifest: MergedManifestSnapshot = getMergedManifest(String.format(manifestString, "RANGED_VALUE,SHORT_TEXT,LONG_TEXT"))!!
+    val mergedManifest: MergedManifestSnapshot =
+      getMergedManifest(String.format(manifestString, "RANGED_VALUE,, , INVALID, SHORT_TEXT, LONG_TEXT"))!!
     assertEquals(
-      listOf(RANGED_VALUE, SHORT_TEXT, LONG_TEXT),
+      listOf(RANGED_VALUE.toString(), "", "", "INVALID", SHORT_TEXT.toString(), LONG_TEXT.toString()),
       extractComplicationSupportedTypes(mergedManifest,
                                         "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
     )
   }
 
-  fun testInvalidType() {
-    val mergedManifest: MergedManifestSnapshot = getMergedManifest(String.format(manifestString, "RANGED_VALUE,INVALID,LONG_TEXT"))!!
-    assertThrows(RuntimeConfigurationException::class.java) {
-      extractComplicationSupportedTypes(mergedManifest,
-                                        "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
+  fun testParseTypes() {
+    val typesStr = listOf("RANGED_VALUE", "INVALID", "LONG_TEXT")
+    assertEquals(
+      listOf(RANGED_VALUE, LONG_TEXT),
+      parseRawTypes(typesStr,)
+    )
+  }
+
+  fun testParseTypesWarning() {
+    val typesStr = listOf("RANGED_VALUE", "INVALID", "LONG_TEXT")
+    assertThrows(RuntimeConfigurationWarning::class.java) {
+      checkRawTypes(typesStr)
     }
   }
 

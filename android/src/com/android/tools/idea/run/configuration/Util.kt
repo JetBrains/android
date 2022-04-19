@@ -25,14 +25,14 @@ import com.android.tools.manifest.parser.XmlNode
 import com.android.utils.forEach
 import com.android.zipflinger.ZipRepo
 import com.intellij.execution.Executor
-import com.intellij.execution.configurations.RuntimeConfigurationException
+import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.psi.KtClass
 import kotlin.IllegalStateException
+import org.jetbrains.android.util.AndroidBundle
 
 object WearBaseClasses {
   val WATCH_FACES = arrayOf(SdkConstants.CLASS_WATCHFACE_WSL, SdkConstants.CLASS_WATCHFACE_ANDROIDX)
@@ -81,14 +81,14 @@ internal fun extractServiceFromXmlFileNode(parsedXml: XmlNode, componentName: St
   throw IllegalStateException("Complication service not found in the manifest.")
 }
 
-internal fun extractComplicationSupportedTypes(service: XmlNode): List<Complication.ComplicationType> {
+internal fun extractComplicationSupportedTypes(service: XmlNode): List<String> {
   val supportedTypesNode = service.children().find { it.attributes()["name"] == VALUE_COMPLICATION_SUPPORTED_TYPES }
   val rawTypes =  supportedTypesNode?.attributes()?.get("value") ?: ""
-  return parseRawTypes(rawTypes)
+  return splitTypesString(rawTypes)
 }
 
 internal fun extractComplicationSupportedTypes(snapshot: MergedManifestSnapshot, complicationServiceName: String):
-  List<Complication.ComplicationType> {
+  List<String> {
   val complicationTag = snapshot.services.find {
     complicationServiceName == it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
   } ?: return emptyList()
@@ -97,27 +97,39 @@ internal fun extractComplicationSupportedTypes(snapshot: MergedManifestSnapshot,
     val metaDataType = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.nodeValue
     if (metaDataType == VALUE_COMPLICATION_SUPPORTED_TYPES) {
       val rawTypes = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_VALUE)?.nodeValue ?: ""
-      return parseRawTypes(rawTypes)
+      return splitTypesString(rawTypes)
     }
   }
   return emptyList()
 }
 
-internal fun parseRawTypes(rawTypes: String): List<Complication.ComplicationType>{
-  val supportedTypesStr = mutableListOf<String>()
-  supportedTypesStr.addAll(rawTypes.split(","))
+internal fun splitTypesString(types: String): List<String> {
+    return types.replace("\\s+".toRegex(),"").split(",")
+}
+
+internal fun parseRawTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
   val supportedTypes = mutableListOf<Complication.ComplicationType>()
   for (typeStr in supportedTypesStr) {
     try {
       supportedTypes.add(Complication.ComplicationType.valueOf(typeStr))
     } catch (e: IllegalArgumentException) {
-      throw RuntimeConfigurationException(AndroidBundle.message("provider.type.invalid.error", typeStr));
+      // Ignore unrecognised types, a warning is shows by the checkRawTypes method.
     }
   }
   return supportedTypes
 }
 
-internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>, componentName: String): List<Complication.ComplicationType>{
+internal fun checkRawTypes(supportedTypesStr: List<String>) {
+  for (typeStr in supportedTypesStr) {
+    try {
+      Complication.ComplicationType.valueOf(typeStr)
+    } catch (e: IllegalArgumentException) {
+      throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.invalid.error", typeStr));
+    }
+  }
+}
+
+internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>, componentName: String): List<String>{
   val xmlFileNode = extractXmlNodeFromApk(apks)
   val complicationService = extractServiceFromXmlFileNode(xmlFileNode, componentName)
   return extractComplicationSupportedTypes(complicationService)
