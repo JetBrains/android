@@ -431,8 +431,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     // Update track groups.
     updateTrackGroupList();
 
-    onActiveSelectionChange();
-
     // Show/hide "Deselect All" label.
     myDeselectAllToolbar.setVisible(!getStage().getMultiSelectionModel().getSelections().isEmpty());
   }

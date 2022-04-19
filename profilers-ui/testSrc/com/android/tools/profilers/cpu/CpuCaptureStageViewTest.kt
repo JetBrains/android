@@ -285,6 +285,13 @@ class CpuCaptureStageViewTest {
     stageView.deselectAllLabel.doClick()
     assertThat(stage.multiSelectionModel.selections).isEmpty()
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
+
+    // Select a track and the clear the selection (b/228447505).
+    stageView.trackGroupList.trackGroups[0].trackList.selectedIndex = 0
+    assertThat(stage.multiSelectionModel.selections).isNotEmpty()
+    stageView.deselectAllLabel.doClick()
+    assertThat(stage.multiSelectionModel.selections).isEmpty()
+    stageView.trackGroupList.trackGroups.forEach { assertThat(it.trackList.selectedIndices).isEmpty() }
   }
 
   @Test
