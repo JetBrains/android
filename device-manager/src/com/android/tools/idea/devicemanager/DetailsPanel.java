@@ -48,6 +48,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   private final @NotNull Component myHeadingLabel;
   private final @NotNull AbstractButton myCloseButton;
   protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
+  protected @Nullable Component myScreenDiagram;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable Component myPairedDevicesPanel;
@@ -92,8 +93,20 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     Iterator<InfoSection> i = myInfoSections.iterator();
     Component section = i.next();
 
-    horizontalGroup.addComponent(section);
-    verticalGroup.addComponent(section);
+    if (myScreenDiagram == null) {
+      horizontalGroup.addComponent(section);
+      verticalGroup.addComponent(section);
+    }
+    else {
+      horizontalGroup.addGroup(layout.createSequentialGroup()
+                                 .addComponent(section)
+                                 .addPreferredGap(ComponentPlacement.UNRELATED)
+                                 .addComponent(myScreenDiagram));
+
+      verticalGroup.addGroup(layout.createParallelGroup()
+                               .addComponent(section)
+                               .addComponent(myScreenDiagram));
+    }
 
     while (i.hasNext()) {
       section = i.next();

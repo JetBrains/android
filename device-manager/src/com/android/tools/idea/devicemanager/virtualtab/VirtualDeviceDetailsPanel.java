@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
+import com.android.tools.idea.devicemanager.ScreenDiagram;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -72,6 +73,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       myInfoSections.add(myPropertiesSection);
     }
 
+    myScreenDiagram = new ScreenDiagram(myDevice);
     init();
   }
 

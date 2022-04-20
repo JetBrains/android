@@ -118,8 +118,7 @@ public final class ScreenDiagram extends JPanel {
     graphics2d.setStroke(new BasicStroke(getDimensionLineWidth()));
 
     FontMetrics metrics = graphics2d.getFontMetrics(AvdWizardUtils.FIGURE_FONT);
-    int textHeight = metrics.getHeight() - metrics.getDescent();
-    int lineY = textHeight / 2;
+    int lineY = metrics.getHeight() / 2;
 
     graphics2d.drawLine(getLeftPadding(), lineY, round(getLeftPadding() + scaledDimension.width), lineY);
 
@@ -138,7 +137,7 @@ public final class ScreenDiagram extends JPanel {
 
     // Paint the text
     graphics2d.setColor(getForeground());
-    graphics2d.drawString(text, textX, textHeight);
+    graphics2d.drawString(text, textX, metrics.getHeight() - metrics.getDescent());
   }
 
   private void paintScreen(@NotNull Graphics2D graphics2d, @NotNull Dimension scaledDimension) {
