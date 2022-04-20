@@ -34,6 +34,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NativeLibrary {
+
   // These fields get serialized to/from XML in ApkFacet.
   @NotNull public String name = "";
 
@@ -60,6 +61,9 @@ public class NativeLibrary {
   @Transient @Nullable List<String> sourceFolderPaths;
 
   public boolean hasDebugSymbols;
+
+  // Needed for deserialization from disk.
+  public NativeLibrary() {}
 
   public NativeLibrary(@NotNull String name) {
     this.name = name;

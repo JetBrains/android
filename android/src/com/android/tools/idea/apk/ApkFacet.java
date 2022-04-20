@@ -21,6 +21,7 @@ import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -77,5 +78,17 @@ public class ApkFacet extends Facet<ApkFacetConfiguration> {
   @NotNull
   public static String getFacetName() {
     return "APK";
+  }
+
+  // Marks this facet's configuration as dirty so that the configuration gets
+  // written to disk soon.
+  public void signalFacetConfigurationChanged() {
+    Runnable work = () -> FacetManager.getInstance(getModule()).facetConfigurationChanged(this);
+
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      work.run();
+    } else {
+      ApplicationManager.getApplication().invokeLater(work);
+    }
   }
 }
