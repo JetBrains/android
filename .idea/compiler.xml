@@ -40,6 +40,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="11">
+      <module name="analytics-shared" target="8" />
       <module name="android.sdktools.android-annotations" target="8" />
       <module name="android.sdktools.builder-model" target="8" />
       <module name="android.sdktools.chunkio" target="8" />
