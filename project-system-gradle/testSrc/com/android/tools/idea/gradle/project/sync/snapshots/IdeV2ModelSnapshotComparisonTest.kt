@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
@@ -59,7 +60,8 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     val template: String,
     val pathToOpen: String = "",
     val skipV1toV2Comparison: Boolean = false,
-    val v1toV2PropertiesToSkip: Set<String> = emptySet()
+    val v1toV2PropertiesToSkip: Set<String> = emptySet(),
+    val patch: (projectRoot: File) -> Unit = {}
   ) {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
@@ -75,7 +77,9 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
+      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD) { projectRoot ->
+        truncateForV2(projectRoot.resolve("settings.gradle"))
+      },
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES, skipV1toV2Comparison = true),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
@@ -122,6 +126,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       projectName.template,
       "project"
     )
+    projectName.patch(root)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
       val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
@@ -201,3 +206,9 @@ private val VALUES_TO_SUPPRESS = mapOf(
   "/Level2Dependencies/dependencies/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
   "/Level2Dependencies/dependencies/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
+
+private fun truncateForV2(settingsFile: File) {
+  val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
+  assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
+  settingsFile.writeText(patchedText)
+}
