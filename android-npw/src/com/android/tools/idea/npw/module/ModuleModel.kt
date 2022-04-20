@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
@@ -59,7 +60,7 @@ abstract class ModuleModel(
   override val isLibrary: Boolean,
   projectModelData: ProjectModelData,
   _template: NamedModuleTemplate = with(projectModelData) {
-    createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
+    if (isNewProject) createSampleTemplate() else createDefaultModuleTemplate(project, name)
   },
   val moduleParent: String,
   override val wizardContext: WizardUiContext

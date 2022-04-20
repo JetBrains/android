@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.CharMatcher.anyOf
 import com.google.common.base.CharMatcher.inRange
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.SystemIndependent
 
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.SystemIndependent
 class ModuleValidator(
   val project: Project
 ) : Validator<String> {
-  private val projectPath: @SystemIndependent String = project.basePath!!
+  private val projectPath: @SystemIndependent String = project.guessProjectDir()!!.path
   private val pathValidator: PathValidator = PathValidator.createDefault("module location")
   private val ILLEGAL_CHAR_MATCHER =
     inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-: ")).negate()

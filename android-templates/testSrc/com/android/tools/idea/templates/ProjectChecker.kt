@@ -161,7 +161,7 @@ data class ProjectChecker(
       throw IOException("Unable to create directory '$projectRoot'.")
     }
 
-    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectRoot.path, moduleName).paths.moduleRoot!!
+    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName)).paths.moduleRoot!!
 
     val appTitle = "Template Test App Title"
 

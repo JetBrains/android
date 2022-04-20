@@ -23,7 +23,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
@@ -268,7 +268,7 @@ internal fun getDefaultModuleState(project: Project, template: Template): Module
     isNewModule = true,
     viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE).apply { name = "Template test module"
     packageName = defaultPackage
-    val paths = createDefaultTemplateAt(project.basePath!!, name!!).paths
+    val paths = createDefaultModuleTemplate(project, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = template.formFactor

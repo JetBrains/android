@@ -178,7 +178,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
   override fun onProceeding() {
     // Now that the module name was validated, update the model template
-    model.template.set(GradleAndroidModuleTemplate.createDefaultTemplateAt(model.project.basePath!!, model.moduleName.get()))
+    model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get()))
 
     installRequests = androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
     installLicenseRequests = installRequests.map { it.remote!! }

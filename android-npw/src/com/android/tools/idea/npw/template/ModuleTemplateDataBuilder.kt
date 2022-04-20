@@ -247,7 +247,7 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
   return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported()).apply {
     name = "Fake module state"
     packageName = ""
-    val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths
+    val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile

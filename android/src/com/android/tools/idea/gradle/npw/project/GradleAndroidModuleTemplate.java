@@ -27,6 +27,7 @@ import static com.android.SdkConstants.FD_UNIT_TEST;
 import com.android.tools.idea.projectsystem.AndroidModulePathsImpl;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,20 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GradleAndroidModuleTemplate {
   public static NamedModuleTemplate createSampleTemplate() {
-    return createDefaultTemplateAt("", "");
+    return createDefaultTemplateAt(new File(""));
+  }
+
+  /**
+   * Create an {@link NamedModuleTemplate} with default values for a new Module inside an existing project.
+   * Assumes the 'main' flavor and default android locations for the source, test, res,
+   * aidl and manifest.
+   * @param moduleName Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user
+   *                   can later customize the Module Path (called Project Path in gradle world) in "settings.gradle"
+   */
+  public static NamedModuleTemplate createDefaultModuleTemplate(@NotNull Project project, @NotNull String moduleName) {
+    String projectLocation = project.getBasePath();
+    File moduleRoot = getModuleRootForNewModule(projectLocation, moduleName);
+    return createDefaultTemplateAt(moduleRoot);
   }
 
   /**
@@ -59,8 +73,7 @@ public class GradleAndroidModuleTemplate {
    * Assumes the 'main' flavor and default android locations for the source, test, res,
    * aidl and manifest.
    */
-  public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
-    File moduleRoot = getModuleRootForNewModule(projectPath, moduleName);
+  public static NamedModuleTemplate createDefaultTemplateAt(@NotNull File moduleRoot) {
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     return new NamedModuleTemplate("main", new AndroidModulePathsImpl(

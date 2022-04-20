@@ -31,6 +31,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_PROJECT
 import org.jetbrains.android.util.AndroidBundle.message
+import java.io.File
 import java.util.Locale
 
 /**
@@ -102,10 +103,10 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     else
       SdkConstants.APP_PREFIX
 
-    val projectLocation = projectModel.projectLocation.get()
+    val moduleRoot = File(projectModel.projectLocation.get(), moduleName)
 
     newModuleModel.moduleName.set(moduleName)
-    newModuleModel.template.set(createDefaultTemplateAt(projectLocation, moduleName))
+    newModuleModel.template.set(createDefaultTemplateAt(moduleRoot))
   }
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
@@ -125,7 +126,8 @@ internal const val EMPTY_ACTIVITY = "Empty Activity"
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
   val moduleName = getModuleName(FormFactor.Mobile)
-  val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
+  val moduleRoot = File(projectModel.projectLocation.get(), moduleName)
+  val namedModuleTemplate = createDefaultTemplateAt(moduleRoot)
   val companionModuleModel = NewAndroidModuleModel(
     projectModel,
     namedModuleTemplate,
@@ -160,4 +162,3 @@ private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateMo
 private fun getModuleName(formFactor: FormFactor): String =
   // Form factors like Android Auto build upon another form factor
   formFactor.name.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
-
