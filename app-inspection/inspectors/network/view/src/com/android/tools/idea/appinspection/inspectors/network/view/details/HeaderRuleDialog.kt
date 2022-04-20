@@ -31,7 +31,10 @@ import javax.swing.JPanel
 /**
  * A dialog box that allows adding and editing header rules.
  */
-class HeaderRuleDialog(private val saveAction: (RuleData.TransformationRuleData) -> Unit) : DialogWrapper(false) {
+class HeaderRuleDialog(
+  transformation: RuleData.TransformationRuleData?,
+  private val saveAction: (RuleData.TransformationRuleData) -> Unit
+) : DialogWrapper(false) {
 
   companion object {
     private const val DEFAULT_TEXT = "Text"
@@ -70,7 +73,31 @@ class HeaderRuleDialog(private val saveAction: (RuleData.TransformationRuleData)
 
   init {
     title = "New Header Rule"
+    applySavedHeader(transformation)
     init()
+  }
+
+  private fun applySavedHeader(headerRule: RuleData.TransformationRuleData?) {
+    if (headerRule == null) {
+      addRadioButton.isSelected = true
+      return
+    }
+    when (headerRule) {
+      is RuleData.HeaderAddedRuleData -> {
+        newAddedNameLabel.text = headerRule.name
+        newAddedValueLabel.text = headerRule.value
+        addRadioButton.isSelected = true
+      }
+      is RuleData.HeaderReplacedRuleData -> {
+        findNameLabel.text = headerRule.findName
+        findNameRegexCheckBox.isSelected = headerRule.isFindNameRegex
+        findValueLabel.text = headerRule.findValue
+        findValueRegexCheckBox.isSelected = headerRule.isFindValueRegex
+        newReplacedNameLabel.text = headerRule.newName
+        newReplacedValueLabel.text = headerRule.newValue
+        replaceRadioButton.isSelected = true
+      }
+    }
   }
 
   override fun createNorthPanel() = JPanel(VerticalLayout(20)).apply {
@@ -119,7 +146,7 @@ class HeaderRuleDialog(private val saveAction: (RuleData.TransformationRuleData)
       }
     ))
     add(cardView)
-    addRadioButton.isSelected = true
+    cardLayout.show(cardView, if (addRadioButton.isSelected) addKey else replaceKey)
   }
 
   override fun createCenterPanel(): JComponent? = null

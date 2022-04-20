@@ -321,6 +321,58 @@ class RuleDetailsViewTest {
   }
 
   @Test
+  fun editExistingHeaderRulesFromDetailsView() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val headerPanel = ruleDetailsView.getCategoryPanel("Header rules") as JPanel
+    val headerTable = TreeWalker(headerPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
+    assertThat(headerTable.rowCount).isEqualTo(0)
+
+    val addAction = findAction(headerPanel, "Add")
+    val newAddedNameText = "newAddedName"
+    val newAddedValueText = "newAddedValue"
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as HeaderRuleDialog
+      dialog.newAddedNameLabel.text = newAddedNameText
+      dialog.newAddedValueLabel.text = newAddedValueText
+      dialog.clickDefaultButton()
+    }
+
+    val editAction = findAction(headerPanel, "Edit")
+    val findNameText = "findName"
+    val findValueText = "findValue"
+    val replaceNameText = "replaceName"
+    val replaceValueText = "replaceValue"
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as HeaderRuleDialog
+      // Check existing rule data.
+      assertThat(dialog.addRadioButton.isSelected).isTrue()
+      assertThat(dialog.newAddedNameLabel.text).isEqualTo(newAddedNameText)
+      assertThat(dialog.newAddedValueLabel.text).isEqualTo(newAddedValueText)
+
+      // Change to replaced rule.
+      dialog.replaceRadioButton.isSelected = true
+      dialog.findNameLabel.text = findNameText
+      dialog.findNameRegexCheckBox.isSelected = true
+      dialog.findValueLabel.text = findValueText
+      dialog.newReplacedNameLabel.text = replaceNameText
+      dialog.newReplacedValueLabel.text = replaceValueText
+      dialog.clickDefaultButton()
+    }
+
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as HeaderRuleDialog
+      // Check existing rule data.
+      assertThat(dialog.replaceRadioButton.isSelected).isTrue()
+      assertThat(dialog.findNameLabel.text).isEqualTo(findNameText)
+      assertThat(dialog.findValueLabel.text).isEqualTo(findValueText)
+      assertThat(dialog.newReplacedNameLabel.text).isEqualTo(replaceNameText)
+      assertThat(dialog.newReplacedValueLabel.text).isEqualTo(replaceValueText)
+      dialog.clickDefaultButton()
+    }
+  }
+
+  @Test
   fun changeHeaderRulesOrder() {
     val ruleData = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
@@ -431,6 +483,40 @@ class RuleDetailsViewTest {
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(0)
+    }
+  }
+
+  @Test
+  fun editExistingBodyRulesFromDetailsView() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val bodyPanel = ruleDetailsView.getCategoryPanel("Body rules") as JPanel
+    val bodyTable = TreeWalker(bodyPanel).descendantStream().filter { it is TableView<*> }.getIfSingle() as TableView<*>
+    assertThat(bodyTable.rowCount).isEqualTo(0)
+
+    val addAction = findAction(bodyPanel, "Add")
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as BodyRuleDialog
+      dialog.findTextArea.text = ""
+      dialog.replaceTextArea.text = "Test"
+      dialog.clickDefaultButton()
+    }
+
+    val editAction = findAction(bodyPanel, "Edit")
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as BodyRuleDialog
+      assertThat(dialog.findTextArea.text).isEmpty()
+      assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
+
+      dialog.findTextArea.text = "Find"
+      dialog.clickDefaultButton()
+    }
+
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as BodyRuleDialog
+      assertThat(dialog.findTextArea.text).isEqualTo("Find")
+      assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
+      dialog.clickDefaultButton()
     }
   }
 

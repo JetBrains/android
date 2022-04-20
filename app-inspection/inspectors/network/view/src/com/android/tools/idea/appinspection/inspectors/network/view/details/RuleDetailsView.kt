@@ -23,7 +23,6 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.createDecoratedTable
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
@@ -94,11 +93,11 @@ class RuleDetailsView : JPanel() {
     )))
 
     detailsPanel.add(createCategoryPanel("Header rules", listOf(
-      createHeaderRulesTable(rule)
+      createRulesTable(rule.headerRuleTableModel)
     )))
 
     detailsPanel.add(createCategoryPanel("Body rules", listOf(
-      createBodyRulesTable(rule)
+      createRulesTable(rule.bodyRuleTableModel)
     )))
 
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
@@ -106,12 +105,40 @@ class RuleDetailsView : JPanel() {
     detailsPanel.isOpaque
   }
 
-  private fun <Item> createRulesTable(model: ListTableModel<Item>, createDialog: (selectedItem: Item?) -> DialogWrapper): JComponent {
+  private fun createRulesTable(model: ListTableModel<RuleData.TransformationRuleData>): JComponent {
     val table = TableView(model)
     val decorator = ToolbarDecorator.createDecorator(table)
 
+    val addRowAction: (RuleData.TransformationRuleData) -> Unit = { newItem ->
+      model.addRow(newItem)
+      val index = table.convertRowIndexToView(model.rowCount - 1)
+      table.selectionModel.setSelectionInterval(index, index)
+    }
     decorator.setAddAction {
-      createDialog(null).show()
+      when (model) {
+        is RuleData.HeaderRulesTableModel -> HeaderRuleDialog(null, addRowAction).show()
+        is RuleData.BodyRulesTableModel -> BodyRuleDialog(null, addRowAction).show()
+      }
+    }
+
+    val replaceRowAction: (RuleData.TransformationRuleData) -> Unit = { newItem ->
+      val selectedItem = table.selectedObject
+      val replaceIndex = model.items.indexOf(selectedItem)
+      if (replaceIndex != -1) {
+        model.items = model.items.map {
+          if (it == selectedItem) newItem else it
+        }
+        model.fireTableRowsUpdated(replaceIndex, replaceIndex)
+        val tableIndex = table.convertRowIndexToView(replaceIndex)
+        table.selectionModel.setSelectionInterval(tableIndex, tableIndex)
+      }
+    }
+    decorator.setEditAction {
+      val selectedItem = table.selectedObject
+      when (model) {
+        is RuleData.HeaderRulesTableModel -> HeaderRuleDialog(selectedItem, replaceRowAction).show()
+        is RuleData.BodyRulesTableModel -> BodyRuleDialog(selectedItem, replaceRowAction).show()
+      }
     }
 
     val container = ScrollablePanel(TabularLayout("*", "200px"))
@@ -119,23 +146,5 @@ class RuleDetailsView : JPanel() {
       border = BorderFactory.createLineBorder(borderLight)
     }, TabularLayout.Constraint(0, 0))
     return JBScrollPane().apply { setViewportView(container) }
-  }
-
-  private fun createHeaderRulesTable(rule: RuleData): JComponent {
-    val model = rule.headerRuleTableModel
-    return createRulesTable(model) {
-      HeaderRuleDialog { headerRule ->
-        model.addRow(headerRule)
-      }
-    }
-  }
-
-  private fun createBodyRulesTable(rule: RuleData): JComponent {
-    val model = rule.bodyRuleTableModel
-    return createRulesTable(model) {
-      BodyRuleDialog { bodyRule ->
-        model.addRow(bodyRule)
-      }
-    }
   }
 }
