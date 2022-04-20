@@ -777,9 +777,9 @@ android-studio/plugins/Kotlin/lib/javaslang-match-2.0.6.jar
 android-studio/plugins/Kotlin/lib/javax.inject-1.jar
 android-studio/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlin-common.jar
-android-studio/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-release-for-android-studio.jar
-android-studio/plugins/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.20-release-for-android-studio.jar
-android-studio/plugins/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.20-release-for-android-studio.jar
+android-studio/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.21-release-for-android-studio.jar
+android-studio/plugins/Kotlin/lib/kotlin-compiler-fe10-for-ide-1.6.21-release-for-android-studio.jar
+android-studio/plugins/Kotlin/lib/kotlin-compiler-ir-for-ide-1.6.21-release-for-android-studio.jar
 android-studio/plugins/Kotlin/lib/kotlin-jps-common.jar
 android-studio/plugins/Kotlin/lib/kotlin-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc_kotlin-reflect.jar
