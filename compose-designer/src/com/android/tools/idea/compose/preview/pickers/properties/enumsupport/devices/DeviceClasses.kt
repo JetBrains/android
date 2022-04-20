@@ -22,15 +22,22 @@ import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
+import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
+import com.android.tools.idea.configurations.PREDEFINED_WINDOW_SIZES_DEFINITIONS
+import com.android.tools.idea.configurations.WindowSizeData
 import com.android.tools.property.panel.api.EnumValue
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -39,16 +46,24 @@ import kotlin.math.sqrt
 internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 /** Default device configuration for Phones */
-internal val ReferencePhoneConfig = deviceConfigWithDpDimensions(width = 360, height = 640)
+internal val ReferencePhoneConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Foldables */
-internal val ReferenceFoldableConfig = deviceConfigWithDpDimensions(width = 673, height = 841)
+internal val ReferenceFoldableConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Tablets */
-internal val ReferenceTabletConfig = deviceConfigWithDpDimensions(width = 1280, height = 800)
+internal val ReferenceTabletConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /** Default device configuration for Desktops */
-internal val ReferenceDesktopConfig = deviceConfigWithDpDimensions(width = 1920, height = 1080)
+internal val ReferenceDesktopConfig: DeviceConfig by lazy {
+  PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }.toDeviceConfigWithDpDimensions()
+}
 
 /**
  * The different types of devices that'll be available on the picker 'Device' DropDown.
@@ -209,11 +224,11 @@ internal class DeviceEnumValueBuilder {
   }
 }
 
-private fun deviceConfigWithDpDimensions(width: Int, height: Int) =
+private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
   DeviceConfig(
-    width = width,
-    height = height,
+    width = widthDp.roundToInt(),
+    height = heightDp.roundToInt(),
     dimUnit = DimUnit.dp,
-    dpi = DEFAULT_DPI,
+    dpi = density.dpiValue,
     shape = Shape.Normal
   )

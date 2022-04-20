@@ -383,10 +383,10 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       .includeDefaultsAndBuild().associateBy { it.display } // Easier to test
 
     deviceOptions["Phone"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=360,height=640,unit=dp,dpi=480", deviceProperty.value)
+    assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
 
     deviceOptions["Foldable"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=673,height=841,unit=dp,dpi=480", deviceProperty.value)
+    assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
 
     deviceOptions["Tablet"]!!.select(deviceProperty)
     assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=480", deviceProperty.value)
