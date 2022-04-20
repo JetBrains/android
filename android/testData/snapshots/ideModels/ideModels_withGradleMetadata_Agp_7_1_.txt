@@ -395,8 +395,8 @@ MODULE                        : withGradleMetadata.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
@@ -425,6 +425,21 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 artifactAddress               : org.jetbrains:annotations:13.0@jar
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -449,8 +464,8 @@ MODULE                        : withGradleMetadata.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -465,12 +480,15 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -499,8 +517,8 @@ MODULE                        : withGradleMetadata.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -515,7 +533,24 @@ MODULE                        : withGradleMetadata.app
                             target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)

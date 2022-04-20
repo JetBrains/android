@@ -91,6 +91,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
         TestProjectToSnapshotPaths.TEST_ONLY_MODULE,
         v1toV2PropertiesToSkip =
         setOf(
+          "moduleDependencies",
           "moduleDependencies/target",
           "moduleDependencies/target/buildId",
           "moduleDependencies/target/projectPath",
@@ -169,10 +170,11 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       .nameProperties()
       .filter { (property, line) ->
         !PROPERTIES_TO_SKIP.any { property.endsWith(it) } &&
+        !ENTITIES_TO_SKIP.any { property.contains(it) } &&
         !testProjectName!!.v1toV2PropertiesToSkip.any { property.endsWith(it) }
       }
       .filter { (property, line) -> !VALUES_TO_SUPPRESS.any { property.endsWith(it.key) and it.value.any { value -> line.contains(value) } } }
-      .map { it.second }
+      .map { it.first + " <> " + it.second }
       .joinToString(separator = "\n")
 
 }
@@ -183,15 +185,17 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
  * we skip:
  * [IdeAndroidLibrary.lintJar] because in V2 we do check that the jar exists before populating the property.
  * [ModelSyncFile] as these are not present in V1.
+ * [runetimeClasspath] as it is not available in V1.
  *
  */
 private val PROPERTIES_TO_SKIP = setOf(
-  "/Level2Dependencies/dependencies/androidLibraries/target/lintJar",
-  "/Level2Dependencies/dependencies/moduleDependencies/target/artifact",
-  "/ModelSyncFile",
-  "/ModelSyncFile/Type",
-  "/ModelSyncFile/TaskName",
-  "/ModelSyncFile/File",
+  "/Dependencies/compileClasspath/androidLibraries/target/lintJar",
+)
+
+private val ENTITIES_TO_SKIP = setOf(
+  "/Dependencies/compileClasspath/moduleDependencies/target",
+  "/Dependencies/runtimeClasspath",
+  "/MainArtifact/ModelSyncFile",
 )
 
 /**
@@ -202,9 +206,9 @@ private val PROPERTIES_TO_SKIP = setOf(
  * AndroidLibrary.ArtifactAddress: the same rules from above apply to ArtifactAddress as well, plus the distinction of local aars paths.
  */
 private val VALUES_TO_SUPPRESS = mapOf(
-  "/Level2Dependencies/dependencies/androidLibraries" to listOf("__wrapped_aars__", "artifacts"),
-  "/Level2Dependencies/dependencies/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
-  "/Level2Dependencies/dependencies/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
+  "/Dependencies/compileClasspath/androidLibraries" to listOf("__wrapped_aars__", "artifacts"),
+  "/Dependencies/compileClasspath/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
+  "/Dependencies/compileClasspath/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
 
 private fun truncateForV2(settingsFile: File) {

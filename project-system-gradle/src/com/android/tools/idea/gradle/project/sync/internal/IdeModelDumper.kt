@@ -327,9 +327,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         head("MultiFlavorSourceProvider")
         nest { dump(it) }
       }
-      head("Level2Dependencies")
+      head("Dependencies")
       nest {
-        modelDumper.dumpModel(this@with, "dependencies", ideBaseArtifact.compileClasspath)
+        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath)
+        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath)
       }
       val runtimeNames =
         (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()

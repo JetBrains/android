@@ -17,8 +17,12 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import org.jetbrains.annotations.TestOnly
 import java.io.Serializable
 
 data class IdeModuleDependencyImpl(
   override val target: IdeModuleLibrary,
-): IdeModuleDependency, Serializable
+): IdeModuleDependency, Serializable {
+  @get:TestOnly
+  val displayName: String get() = moduleLibraryDisplayName(target.buildId, target.projectPath, target.variant, target.sourceSet)
+}

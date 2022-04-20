@@ -520,8 +520,8 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/aidl [-]
@@ -540,6 +540,9 @@ MODULE                        : project.app
                                 resStaticLibrary              : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/res.apk [-]
                                 - runtimeJarFiles             : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/jars/classes.jar
                                 symbolFile                    : <ROOT>/library-debug/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/library-debug/R.txt
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -568,16 +571,17 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
                 ProvidedDependencies
                     - provided                    : __wrapped_aars__::library-debug:unspecified@aar
                 SigningConfigName             : debug
@@ -600,11 +604,16 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : __wrapped_aars__::library-debug:unspecified@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
@@ -870,8 +879,9 @@ MODULE                        : project.library
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debug/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                    runtimeClasspath              : IdeDependenciesImpl
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -894,15 +904,18 @@ MODULE                        : project.library
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                                 projectPath                   : :library
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -923,9 +936,12 @@ MODULE                        : project.library
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)

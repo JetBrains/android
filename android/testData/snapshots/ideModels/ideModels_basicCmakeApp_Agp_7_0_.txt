@@ -393,8 +393,9 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                    runtimeClasspath              : IdeDependenciesImpl
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -420,14 +421,17 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -449,9 +453,12 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     SelectedVariantName           : debug

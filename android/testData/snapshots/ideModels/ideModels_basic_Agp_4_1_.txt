@@ -303,8 +303,8 @@ MODULE                        : project
                 GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/build/intermediates/javac/debug/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
@@ -815,32 +815,7 @@ MODULE                        : project
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                                 artifactAddress               : com.android.support:support-annotations:28.0.0@jar
-                SigningConfigName             : myConfig
-                IsSigned                      : true
-                CodeShrinker                  : null
-                BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/build/outputs/apk/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                    ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
-                GeneratedResourceFolders      : <ROOT>/build/generated/res/rs/debug [-]
-                GeneratedResourceFolders      : <ROOT>/build/generated/res/resValues/debug [-]
-            AndroidTestArtifact
-                Name                          : ANDROID_TEST
-                CompileTaskName               : compileDebugAndroidTestSources
-                AssembleTaskName              : assembleDebugAndroidTest
-                IsTestArtifact                : true
-                IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/androidTest/debug [-]
-                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugAndroidTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                    runtimeClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -901,12 +876,101 @@ MODULE                        : project
                             target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                SigningConfigName             : myConfig
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/build/generated/res/resValues/debug [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::@debug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :
                                 sourceSet                     : MAIN
                                 variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::@debug (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
                     - provided                    : android.arch.core:common:1.1.1
                     - provided                    : android.arch.core:runtime:1.1.1@aar
@@ -958,8 +1022,8 @@ MODULE                        : project
                 GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/build/intermediates/javac/debugUnitTest/classes [-]
-                Level2Dependencies
-                    dependencies                  : IdeDependenciesImpl
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1020,7 +1084,70 @@ MODULE                        : project
                             target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : IdeModuleDependencyImpl
+                        - moduleDependencies          : <ROOT>::@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::@debug (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : project (DefaultExternalProject)

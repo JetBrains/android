@@ -80,7 +80,7 @@ data class IdeModuleLibraryImpl constructor(
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
 }
 
-private fun moduleLibraryDisplayName(
+internal fun moduleLibraryDisplayName(
   buildId: String,
   projectPath: String,
   variant: String?,
