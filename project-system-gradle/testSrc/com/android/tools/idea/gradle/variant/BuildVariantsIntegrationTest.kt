@@ -185,6 +185,65 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   }
 
   @Test
+  fun testSwitchVariantsWithAbiFilters() {
+    assumeNotWindows()
+    val rootPath = prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
+    val buildFile = rootPath.resolve("app").resolve("build.gradle")
+    buildFile.writeText(
+      buildFile
+        .readText()
+        .replace(
+          "buildTypes {",
+          """
+            flavorDimensions "dim1"
+            productFlavors {
+                aa {
+                    dimension "dim1"
+                    ndk {
+                        abiFilters 'armeabi-v7a'
+                    }
+                }
+                xx {
+                    dimension "dim1"
+                    ndk {
+                        abiFilters 'x86'
+                    }
+                }
+            }
+            buildTypes {
+          """
+        )
+    )
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "aaDebug", abi = "armeabi-v7a")
+      expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
+      expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "armeabi-v7a")
+      expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "armeabi-v7a")
+      val debugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "xxRelease")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "xxRelease", abi = "x86")
+      expect.thatModuleVariantIs(project, ":lib1", "release", abi = NOT_SET)
+      expect.thatModuleVariantIs(project, ":lib2", "release", abi = "x86")
+      expect.thatModuleVariantIs(project, ":lib3", "release", abi = "x86")
+
+      switchVariant(project, ":app", "aaDebug")
+// TODO(b/229736426): Uncomment when switching variants from cache with different ABIs is supported.
+      //  expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      //  expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "aaDebug", abi = "armeabi-v7a")
+      expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
+      expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "armeabi-v7a")
+      expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "armeabi-v7a")
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+    }
+  }
+
+  @Test
   fun testSwitchAbiWithDependentNativeModules() {
     assumeNotWindows()
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
