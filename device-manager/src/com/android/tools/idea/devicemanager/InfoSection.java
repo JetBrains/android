@@ -62,6 +62,7 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public final void setLayout() {
     GroupLayout layout = new GroupLayout(this);
+    layout.linkSize(myNameLabels.toArray(Component[]::new));
 
     Group horizontalGroup = layout.createParallelGroup().addComponent(myHeadingLabel);
     Group verticalGroup = layout.createSequentialGroup().addComponent(myHeadingLabel);
@@ -132,9 +133,5 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
     label.setText(String.join(", ", values));
-  }
-
-  public final @NotNull Collection<@NotNull Component> getNameLabels() {
-    return myNameLabels;
   }
 }

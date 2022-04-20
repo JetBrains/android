@@ -26,14 +26,11 @@ import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -81,34 +78,9 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   }
 
   protected final void init() {
-    setNameLabelPreferredWidthsToMax();
     setInfoSectionPanelLayout();
     initTabbedPane();
     setLayout();
-  }
-
-  private void setNameLabelPreferredWidthsToMax() {
-    Collection<Component> labels = myInfoSections.stream()
-      .map(InfoSection::getNameLabels)
-      .flatMap(Collection::stream)
-      .collect(Collectors.toList());
-
-    OptionalInt optionalWidth = labels.stream()
-      .map(Component::getPreferredSize)
-      .mapToInt(size -> size.width)
-      .max();
-
-    optionalWidth.ifPresent(width -> setPreferredWidths(labels, width));
-  }
-
-  private static void setPreferredWidths(@NotNull Iterable<@NotNull Component> components, int width) {
-    components.forEach(component -> {
-      Dimension size = component.getPreferredSize();
-      size.width = width;
-
-      component.setPreferredSize(size);
-      component.setMaximumSize(size);
-    });
   }
 
   protected void setInfoSectionPanelLayout() {
