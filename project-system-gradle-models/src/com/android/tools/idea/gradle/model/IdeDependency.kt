@@ -21,25 +21,10 @@ sealed interface IdeDependency<T>
 
 sealed interface IdeArtifactDependency<T: IdeArtifactLibrary> : IdeDependency<T> {
   val target: T
-  /**
-   * Returns whether the dependency is on the compile class path but is not on the runtime class
-   * path.
-   */
-  val isProvided: Boolean
 }
 
 interface IdeDependencyCore {
   val target: LibraryReference
-  /**
-   * Returns whether the dependency is on the compile class path but is not on the runtime class
-   * path.
-   */
-
-  /**
-   * This property does apply to dependencies that resolve into modules. This will become irrelevant when the compile and runtime class
-   * paths are separated.
-   */
-  val isProvided: Boolean
 }
 
 interface IdeAndroidLibraryDependency: IdeArtifactDependency<IdeAndroidLibrary>

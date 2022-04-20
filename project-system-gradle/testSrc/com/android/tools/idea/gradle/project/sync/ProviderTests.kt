@@ -45,6 +45,7 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.hamcrest.Matchers
 import org.jetbrains.annotations.Contract
@@ -141,66 +142,73 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
     )
 
     openPreparedProject("project") { project ->
-      val variant = scenario.variant
-      if (variant != null) {
-        switchVariant(project, variant.first, variant.second)
-      }
-      fun manuallyAssemble(
-        gradlePath: String,
-        forTests: Boolean
-      ): AssembleInvocationResult {
-        val module = project.gradleModule(gradlePath)!!
-        return try {
-          GradleBuildInvoker.getInstance(project)
-            .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
-            .get(3, TimeUnit.MINUTES)
+      try {
+        val variant = scenario.variant
+        if (variant != null) {
+          switchVariant(project, variant.first, variant.second)
         }
-        finally {
-          runInEdtAndWait {
-            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        fun manuallyAssemble(
+          gradlePath: String,
+          forTests: Boolean
+        ): AssembleInvocationResult {
+          val module = project.gradleModule(gradlePath)!!
+          return try {
+            GradleBuildInvoker.getInstance(project)
+              .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
+              .get(3, TimeUnit.MINUTES)
+          } finally {
+            runInEdtAndWait {
+              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+            }
           }
         }
-      }
 
-      fun androidRunConfigurations() = RunManager
-        .getInstance(project)
-        .allConfigurationsList
-        .filterIsInstance<AndroidRunConfiguration>()
+        fun androidRunConfigurations() = RunManager
+          .getInstance(project)
+          .allConfigurationsList
+          .filterIsInstance<AndroidRunConfiguration>()
 
-      val (runConfiguration, assembleResult) =
-        when (val target = scenario.target) {
-          Target.AppTargetRunConfiguration ->
-            androidRunConfigurations()
-              .single()
-              .also {
-                it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
-              } to null
-          is Target.NamedAppTargetRunConfiguration ->
-            androidRunConfigurations()
-              .single {
-                it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
+        val (runConfiguration, assembleResult) =
+          when (val target = scenario.target) {
+            Target.AppTargetRunConfiguration ->
+              androidRunConfigurations()
+                .single()
+                .also {
+                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                } to null
+            is Target.NamedAppTargetRunConfiguration ->
+              androidRunConfigurations()
+                .single {
+                  it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
+                }
+                .also {
+                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                } to null
+            is Target.TestTargetRunConfiguration ->
+              runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
+            is Target.ManuallyAssembled ->
+              if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
+              else {
+                null to manuallyAssemble(target.gradlePath, target.forTests)
               }
-              .also {
-                it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
-              } to null
-          is Target.TestTargetRunConfiguration ->
-            runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
-          is Target.ManuallyAssembled ->
-            if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
-            else {
-              null to manuallyAssemble(target.gradlePath, target.forTests)
-            }
+          }
+
+        val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
+        if (scenario.executeMakeBeforeRun) {
+          runConfiguration?.executeMakeBeforeRunStepInTest(device)
+        }
+        if (scenario.profileable) {
+          runConfiguration!!.profilerState.PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
         }
 
-      val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
-      if (scenario.executeMakeBeforeRun) {
-        runConfiguration?.executeMakeBeforeRunStepInTest(device)
+        verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
       }
-      if (scenario.profileable) {
-        runConfiguration!!.profilerState.PROFILING_MODE = ProfilerState.ProfilingMode.PROFILEABLE
+      finally {
+        runInEdtAndWait {
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+        }
       }
-
-      verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
     }
   }
 }

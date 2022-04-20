@@ -230,6 +230,5 @@ private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
       artifact = gradleCacheRoot.resolve(File("artifactFile")),
       symbolFile = "symbolFile",
       deduplicate = { this }
-    ),
-    isProvided = false
+    )
   )

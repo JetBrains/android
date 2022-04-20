@@ -36,13 +36,13 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
   override fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency> {
     return libraryTable(unresolved.target)
       .filterIsInstance<IdeAndroidLibrary>()
-      .map { IdeAndroidLibraryDependencyImpl(it, unresolved.isProvided) }
+      .map { IdeAndroidLibraryDependencyImpl(it) }
   }
 
   override fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency> {
     return libraryTable(unresolved.target)
       .filterIsInstance<IdeJavaLibrary>()
-      .map { IdeJavaLibraryDependencyImpl(it, unresolved.isProvided) }
+      .map { IdeJavaLibraryDependencyImpl(it) }
   }
 
   override fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency> {

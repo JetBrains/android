@@ -183,6 +183,7 @@ internal class AndroidExtraModelProviderWorker(
       // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
       // Note that "last" here means last among Android models since many non-Android models are requested after this point.
       populateProjectSyncIssues(androidModules, canFetchV2Models)
+      modelCache.prepare()
       return modules.map { it.prepare() } + GradleProject(buildModel, modelCache.createLibraryTable())
     }
 

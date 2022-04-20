@@ -436,7 +436,6 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
         gradleCacheRoot.toPath().resolve("artifactFile").toFile(),
         "symbolFile",
         it -> it
-      ),
-      false);
+      ));
   }
 }

@@ -15,18 +15,9 @@
  */
 package com.android.tools.idea.gradle.model
 
-import java.io.File
-
 interface IdeDependenciesCore {
   /**
    * Returns the dependencies, both direct and transitive.
    */
   val dependencies: Collection<IdeDependencyCore>
-
-  /**
-   * Returns the list of runtime only classes.
-   *
-   * @return the list of runtime only classes.
-   */
-  val runtimeOnlyClasses: Collection<File>
 }

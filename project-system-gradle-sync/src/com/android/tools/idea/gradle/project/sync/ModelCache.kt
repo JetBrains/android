@@ -43,6 +43,8 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_AARS
+import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.LOCAL_JARS
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSortedSet
 import com.intellij.openapi.util.io.FileUtil
@@ -102,8 +104,14 @@ interface ModelCache {
   fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
   fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl
 
+  /**
+   * Prepares [ModelCache] for running any post-processors previously returned in [IdeModelWithPostProcessor] instances.
+   */
+  fun prepare()
+
   companion object {
     const val LOCAL_AARS = "__local_aars__"
+    const val LOCAL_JARS = "__local_jars__"
 
     @JvmStatic
     fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache {
@@ -193,9 +201,13 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
 internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File?): String {
-  if (libraryArtifactAddress.startsWith("${ModelCache.LOCAL_AARS}:")) {
+  when {
+    libraryArtifactAddress.startsWith("$LOCAL_AARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_AARS:")
+    libraryArtifactAddress.startsWith("$LOCAL_JARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_JARS:")
+    else -> null
+  }?.let { addressWithoutPrefix ->
     return adjustLocalLibraryName(
-      File(libraryArtifactAddress.removePrefix("${ModelCache.LOCAL_AARS}:").substringBefore(":")),
+      File(addressWithoutPrefix.substringBefore(":")),
       projectBasePath
     )
   }
@@ -224,7 +236,8 @@ private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String
  * directories in CI environments may exceed this limit.
  */
 private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: File?): @SystemIndependent String {
-  val maybeRelative = if (projectBasePath != null) artifactFile.relativeToOrSelf(projectBasePath) else artifactFile
+  val maybeRelative =
+    if (projectBasePath != null && artifactFile.startsWith(projectBasePath)) artifactFile.relativeToOrSelf(projectBasePath) else artifactFile
   if (!FileUtil.filesEqual(maybeRelative, artifactFile)) {
     return FileUtil.toSystemIndependentName(File(".${File.separator}${maybeRelative}").path)
   }

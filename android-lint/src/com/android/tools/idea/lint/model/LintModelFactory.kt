@@ -164,7 +164,7 @@ class LintModelFactory : LintModelModuleLoader {
       )
     )
 
-    private fun getLibrary(dependency: IdeAndroidLibraryDependency): LintModelLibrary {
+    private fun getLibrary(dependency: IdeAndroidLibraryDependency, isProvided: Boolean): LintModelLibrary {
         val library = dependency.target
         // TODO: Construct file objects lazily!
         return DefaultLintModelAndroidLibrary(
@@ -179,19 +179,19 @@ class LintModelFactory : LintModelModuleLoader {
           publicResources = library.publicResources,
           symbolFile = library.symbolFile,
           externalAnnotations = library.externalAnnotations,
-          provided = dependency.isProvided,
+          provided = isProvided,
           resolvedCoordinates = library.getMavenName(),
           proguardRules = library.proguardRules
         )
     }
 
-    private fun getLibrary(dependency: IdeJavaLibraryDependency): LintModelLibrary {
+    private fun getLibrary(dependency: IdeJavaLibraryDependency, isProvided: Boolean): LintModelLibrary {
         val library = dependency.target
         return DefaultLintModelJavaLibrary(
           identifier = library.getIdentifier(),
           // TODO - expose compile jar vs impl jar?
           jarFiles = listOf(library.artifact),
-          provided = dependency.isProvided,
+          provided = isProvided,
           resolvedCoordinates = library.getMavenName()
         )
     }
@@ -245,33 +245,37 @@ class LintModelFactory : LintModelModuleLoader {
         val compileItems = mutableListOf<LintModelDependency>()
         val packagedItems = mutableListOf<LintModelDependency>()
         val dependencies = artifact.compileClasspath
+        val runtimeAndroid = artifact.runtimeClasspath.androidLibraries.map { it.target.getIdentifier() }.toSet()
+        val runtimeJava = artifact.runtimeClasspath.javaLibraries.associateBy { it.target.getIdentifier() }
 
         for (dependency in dependencies.androidLibraries) {
-          val androidLibrary = dependency.target
-          if (androidLibrary.isValid()) {
+            val androidLibrary = dependency.target
+            if (androidLibrary.isValid()) {
+                val isProvided = !runtimeAndroid.contains(androidLibrary.getIdentifier())
                 val lintModelDependency = getGraphItem(
                   androidLibrary.getIdentifier(),
                   androidLibrary.getArtifactName(),
                 ) {
-                    getLibrary(dependency)
+                    getLibrary(dependency, isProvided)
                 }
                 compileItems.add(lintModelDependency)
-                if (!dependency.isProvided) {
+                if (!isProvided) {
                     packagedItems.add(lintModelDependency)
                 }
             }
         }
         for (dependency in dependencies.javaLibraries) {
-          val javaLibrary = dependency.target
-          if (javaLibrary.isValid()) {
+            val javaLibrary = dependency.target
+            if (javaLibrary.isValid()) {
+                val isProvided = !runtimeJava.containsKey(javaLibrary.getIdentifier())
                 val lintModelDependency = getGraphItem(
                   javaLibrary.getIdentifier(),
                   javaLibrary.getArtifactName(),
                 ) {
-                    getLibrary(dependency)
+                    getLibrary(dependency, isProvided)
                 }
                 compileItems.add(lintModelDependency)
-                if (!dependency.isProvided) {
+                if (!isProvided) {
                     packagedItems.add(lintModelDependency)
                 }
             }

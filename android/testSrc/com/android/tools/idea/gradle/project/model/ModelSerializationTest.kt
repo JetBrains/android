@@ -220,8 +220,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
         File("artifactFile"),
         "symbolFile",
         deduplicate = { this }
-      ),
-      true
+      )
     )
   }
 

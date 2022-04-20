@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -24,7 +25,6 @@ import com.android.tools.idea.testing.findAppModule
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class AndroidGradleClassJarProviderTest {
   @JvmField
@@ -45,11 +45,14 @@ class AndroidGradleClassJarProviderTest {
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
     assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency)))
 
+    fun IdeDependencies.all() =
+      (this.androidLibraries.flatMap { it.target.runtimeJarFiles } + this.javaLibraries.map { it.target.artifact })
+
     val model = GradleAndroidModel.get(module)!!
-    val runtimeDependencies = model.selectedMainCompileDependencies.runtimeOnlyClasses.map(File::getAbsolutePath)
+    val runtimeDependencies = model.selectedMainRuntimeDependencies.all().toSet() - model.selectedMainCompileDependencies.all().toSet()
     assertTrue(runtimeDependencies.isNotEmpty())
 
     val classJarProvider = AndroidGradleClassJarProvider()
-    assertTrue(classJarProvider.getModuleExternalLibraries(module).map(File::getAbsolutePath).containsAll(runtimeDependencies))
+    assertTrue(classJarProvider.getModuleExternalLibraries(module).containsAll(runtimeDependencies))
   }
 }

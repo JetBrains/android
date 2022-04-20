@@ -26,8 +26,7 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeDependenciesCoreImpl(
-  override val dependencies: Collection<IdeDependencyCore>,
-  override val runtimeOnlyClasses: Collection<File>
+  override val dependencies: Collection<IdeDependencyCore>
 ) : IdeDependenciesCore, Serializable
 
 data class IdeDependenciesImpl(
@@ -40,10 +39,8 @@ data class IdeDependenciesImpl(
     classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
   override val moduleDependencies: Collection<IdeModuleDependency> =
     classpath.dependencies.flatMap(resolver::resolveModule)
-  override val runtimeOnlyClasses: Collection<File> = classpath.runtimeOnlyClasses
 }
 
 class ThrowingIdeDependencies : IdeDependenciesCore, Serializable {
   override val dependencies: Nothing get() = throw NotImplementedError()
-  override val runtimeOnlyClasses: Nothing get() = throw NotImplementedError()
 }

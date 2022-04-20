@@ -250,7 +250,7 @@ data class JavaModuleModelBuilder(
 }
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
-data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl, val isProvided: Boolean = false)
+data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl)
 
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
@@ -701,8 +701,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = androidLibraryDependencies.map {
       IdeDependencyCoreImpl(
-        internedModels.getOrCreate(it.library),
-        it.isProvided
+        internedModels.getOrCreate(it.library)
       )
     } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
   )
@@ -723,6 +722,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     ),
     isTestArtifact = false,
     compileClasspath = dependenciesStub,
+    runtimeClasspath = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -763,8 +763,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
               lintJar = null,
               sourceSet = IdeModuleWellKnownSourceSet.MAIN
             )
-          ),
-          isProvided = false
+          )
         )
       )
   )
@@ -785,6 +784,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     ),
     isTestArtifact = true,
     compileClasspath = dependenciesStub,
+    runtimeClasspath = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -825,8 +825,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
               lintJar = null,
               sourceSet = IdeModuleWellKnownSourceSet.MAIN
             )
-          ),
-          isProvided = false
+          )
         )
       )
   ),
@@ -845,6 +844,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     ),
     isTestArtifact = true,
     compileClasspath = dependencies,
+    runtimeClasspath = dependencies,
     unresolvedDependencies = emptyList(),
     mockablePlatformJar = mockablePlatformJar
   )
@@ -861,8 +861,7 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
           lintJar = null,
           sourceSet = IdeModuleWellKnownSourceSet.MAIN
         )
-      ),
-      isProvided = false
+      )
     )
   }
 
@@ -880,8 +879,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
             lintJar = null,
             sourceSet = IdeModuleWellKnownSourceSet.MAIN
           )
-        ),
-        isProvided = false
+        )
       )
     )
   )
@@ -897,6 +895,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     generatedSourceFolders = emptyList(),
     isTestArtifact = false,
     compileClasspath = dependenciesStub,
+    runtimeClasspath = dependenciesStub,
     unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
@@ -1075,9 +1074,8 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 }
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
-  dependencies: List<IdeDependencyCoreImpl> = listOf(),
-  runtimeOnlyClasses: List<File> = listOf()
-): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(dependencies, runtimeOnlyClasses)
+  dependencies: List<IdeDependencyCoreImpl> = listOf()
+): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(dependencies)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.

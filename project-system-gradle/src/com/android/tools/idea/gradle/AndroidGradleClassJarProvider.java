@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
 import com.android.tools.idea.gradle.project.model.ClassFileUtil;
@@ -44,11 +45,11 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
       return Lists.transform(AndroidRootUtil.getExternalLibraries(module), VfsUtilCore::virtualToIoFile);
     }
 
-    return Stream.of(model.getSelectedMainCompileDependencies().getRuntimeOnlyClasses().stream(),
-                     model.getSelectedMainCompileDependencies().getAndroidLibraries().stream()
-                       .flatMap(
-                         library -> library.getTarget().getRuntimeJarFiles().stream()),
-                     model.getSelectedMainCompileDependencies().getJavaLibraries().stream()
+    return Stream.of(
+                     model.getSelectedMainRuntimeDependencies().getAndroidLibraries().stream()
+                       .map(IdeAndroidLibraryDependency::getTarget)
+                       .flatMap(it -> it.getRuntimeJarFiles().stream()),
+                     model.getSelectedMainRuntimeDependencies().getJavaLibraries().stream()
                        .map(IdeJavaLibraryDependency::getTarget)
                        .map(IdeJavaLibrary::getArtifact))
       // Flat map the concatenated streams

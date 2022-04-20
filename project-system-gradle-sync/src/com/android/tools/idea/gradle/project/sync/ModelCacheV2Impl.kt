@@ -520,7 +520,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   fun createFromDependencies(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    dependencies: ArtifactDependencies,
+    dependencies: List<GraphItem>,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
@@ -558,8 +558,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
               lintJar = lintJar,
               isTestFixturesComponent = isTestFixturesComponent,
               artifact = artifact
-            ),
-            isProvided = false
+            )
           )
         }
       }
@@ -589,16 +588,14 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
 
     fun populateJavaLibraries(
       javaLibraries: Collection<Library>,
-      providedLibraries: Set<LibraryIdentity>,
       visited: MutableSet<String>
     ) {
       for (javaLibrary in javaLibraries) {
         val address = javaLibrary.artifact!!.path
         if (!visited.contains(address)) {
           visited.add(address)
-          val isProvided = providedLibraries.contains(javaLibrary.libraryInfo?.toIdentity())
           librariesById.computeIfAbsent(address) {
-            IdeDependencyCoreImpl(javaLibraryFrom(javaLibrary), isProvided)
+            IdeDependencyCoreImpl(javaLibraryFrom(javaLibrary))
           }
         }
       }
@@ -662,49 +659,35 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
 
     fun populateAndroidLibraries(
       androidLibraries: Collection<Library>,
-      providedLibraries: Set<LibraryIdentity>,
       visited: MutableSet<String>
     ) {
       for (androidLibrary in androidLibraries) {
         val address = androidLibrary.key
         if (!visited.contains(address)) {
           visited.add(address)
-          val isProvided = providedLibraries.contains(androidLibrary.libraryInfo?.toIdentity())
           librariesById.computeIfAbsent(address) {
-            IdeDependencyCoreImpl(androidLibraryFrom(androidLibrary), isProvided)
+            IdeDependencyCoreImpl(androidLibraryFrom(androidLibrary))
           }
         }
       }
     }
 
-    fun getProvidedLibraries(
-      compileDependencies: List<Library>,
-      runtimeDependencies: List<Library>
-    ): Set<LibraryIdentity> =
-      compileDependencies.mapNotNull { it.libraryInfo?.toIdentity() }.toSet() -
-      runtimeDependencies.mapNotNull { it.libraryInfo?.toIdentity() }.toSet()
-
     fun createIdeDependencies(
-      artifactAddresses: Collection<String>,
-      runtimeOnlyJars: Collection<File>
+      artifactAddresses: Collection<String>
     ): IdeDependenciesCore {
       return IdeDependenciesCoreImpl(
-        dependencies = artifactAddresses.map { address -> librariesById[address]!! },
-        runtimeOnlyClasses = ImmutableList.copyOf(runtimeOnlyJars)
+        dependencies = artifactAddresses.map { address -> librariesById[address]!! }
       )
     }
 
     fun createIdeDependenciesInstance(): IdeDependenciesCore {
       val visited = mutableSetOf<String>()
-      val compileDependencies = dependencies.compileDependencies.toFlatLibraryList()
-      val runtimeDependencies = dependencies.runtimeDependencies.toFlatLibraryList()
-      val typedLibraries = getTypedLibraries(compileDependencies)
-      val providedLibraries = getProvidedLibraries(compileDependencies, runtimeDependencies)
-      populateAndroidLibraries(typedLibraries.androidLibraries, providedLibraries, visited)
-      populateJavaLibraries(typedLibraries.javaLibraries, providedLibraries, visited)
+      val dependencyList = dependencies.toFlatLibraryList()
+      val typedLibraries = getTypedLibraries(dependencyList)
+      populateAndroidLibraries(typedLibraries.androidLibraries, visited)
+      populateJavaLibraries(typedLibraries.javaLibraries, visited)
       populateProjectDependencies(typedLibraries.projectLibraries, visited)
-      val runtimeLibraries = getRuntimeLibraries(runtimeDependencies, compileDependencies)
-      return createIdeDependencies(visited, runtimeLibraries)
+      return createIdeDependencies(visited)
     }
     return createIdeDependenciesInstance()
   }
@@ -715,12 +698,19 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   fun dependenciesFrom(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    artifactDependencies: ArtifactDependencies,
+    dependencies: List<GraphItem>,
     libraries: Map<String, Library>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
   ): IdeDependenciesCore {
-    return createFromDependencies(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap)
+    return createFromDependencies(
+      ownerBuildId,
+      ownerProjectPath,
+      dependencies,
+      libraries,
+      androidProjectPathResolver,
+      buildNameMap
+    )
   }
 
   fun List<UnresolvedDependency>.unresolvedDependenciesFrom(): List<IdeUnresolvedDependency> {
@@ -798,6 +788,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
       multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
       compileClasspath = ThrowingIdeDependencies(),
+      runtimeClasspath = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       applicationId = "",
       generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
@@ -824,7 +815,23 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   ): IdeAndroidArtifactCoreImpl {
     return artifact.copy(
       compileClasspath =
-      dependenciesFrom(ownerBuildId, ownerProjectPath, artifactDependencies, libraries, androidProjectPathResolver, buildNameMap),
+      dependenciesFrom(
+        ownerBuildId,
+        ownerProjectPath,
+        artifactDependencies.compileDependencies,
+        libraries,
+        androidProjectPathResolver,
+        buildNameMap
+      ),
+      runtimeClasspath =
+      dependenciesFrom(
+        ownerBuildId,
+        ownerProjectPath,
+        artifactDependencies.runtimeDependencies,
+        libraries,
+        androidProjectPathResolver,
+        buildNameMap
+      ),
       unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }
@@ -844,6 +851,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
       multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
       compileClasspath = ThrowingIdeDependencies(),
+      runtimeClasspath = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = artifact.mockablePlatformJar,
       isTestArtifact = name == "_unit_test_"
@@ -860,7 +868,22 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     buildNameMap: Map<String, BuildId>
   ): IdeJavaArtifactCoreImpl {
     return artifact.copy(
-      compileClasspath = dependenciesFrom(buildId, projectPath, variantDependencies, libraries, androidProjectPathResolver, buildNameMap),
+      compileClasspath = dependenciesFrom(
+        buildId,
+        projectPath,
+        variantDependencies.compileDependencies,
+        libraries,
+        androidProjectPathResolver,
+        buildNameMap
+      ),
+      runtimeClasspath = dependenciesFrom(
+        buildId,
+        projectPath,
+        variantDependencies.runtimeDependencies,
+        libraries,
+        androidProjectPathResolver,
+        buildNameMap
+      ),
       unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }
@@ -1205,6 +1228,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     private val lock = ReentrantLock()
     override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
+    override fun prepare() = Unit
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,

@@ -213,6 +213,12 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return mainArtifact.getCompileClasspath();
   }
 
+  @NotNull
+  public IdeDependencies getSelectedMainRuntimeDependencies() {
+    IdeAndroidArtifact mainArtifact = getMainArtifact();
+    return mainArtifact.getRuntimeClasspath();
+  }
+
   /**
    * @return Instance of {@link IdeDependencies} from test artifact, or {@code null} if current module has no test artifact.
    */

@@ -517,6 +517,5 @@ private fun ideAndroidLibrary(artifactAddress: String) =
       _publicResources = "publicResources",
       _artifact = "artifactFile",
       _symbolFile = "symbolFile"
-    ),
-    isProvided = false
+    )
   )

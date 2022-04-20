@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -70,6 +71,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.versions.LOG
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -106,7 +108,7 @@ class GradleModuleSystem(
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   override val type: AndroidModuleSystem.Type
-    get() = when(GradleAndroidModel.get(module)?.androidProject?.projectType) {
+    get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidModuleSystem.Type.TYPE_APP
       IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidModuleSystem.Type.TYPE_ATOM
       IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
@@ -131,17 +133,17 @@ class GradleModuleSystem(
     if (sourceFile == null || isAndroidTestFile(module.project, sourceFile)) androidTestsClassFileFinder else moduleClassFileFinder
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
-    return getDependenciesFor(module, scope)
+    return getCompileDependenciesFor(module, scope)
       ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
       ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
       ?.find { it.matches(coordinate) }
   }
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
-    return getDependenciesFor(module, DependencyScopeType.MAIN)
+    return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.let { dependencies ->
         dependencies.androidLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact } +
-        dependencies.javaLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact }
+          dependencies.javaLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact }
       }
       ?.find { GradleCoordinate.parseCoordinateString(it.first)?.matches(coordinate) ?: false }
       ?.second?.toPath()
@@ -163,15 +165,15 @@ class GradleModuleSystem(
           .asSequence()
           .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
       }
-    }
-    else {
-      getDependenciesFor(module, DependencyScopeType.MAIN)
+    } else {
+      getCompileDependenciesFor(module, DependencyScopeType.MAIN)
         ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
         ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) } ?: emptySequence()
     }
   }
 
-  override fun getResourceModuleDependencies() = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
+  override fun getResourceModuleDependencies() =
+    AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
     val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
@@ -183,26 +185,61 @@ class GradleModuleSystem(
   }
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
-    module)
+    module
+  )
 
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
-    return getDependenciesFor(module, scope)
-             ?.androidLibraries
-             ?.map(IdeAndroidLibraryDependency::target)
-             ?.map(::convertLibraryToExternalLibrary)
-           ?: emptyList()
+    return getRuntimeDependenciesFor(module, scope)
+      .flatMap { it.androidLibraries }
+      .distinct()
+      .map(IdeAndroidLibraryDependency::target)
+      .map(::convertLibraryToExternalLibrary)
+      .toList()
   }
 
-  private fun getDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
+  private fun getCompileDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
     val gradleModel = GradleAndroidModel.get(module) ?: return null
 
     return when (scope) {
-             DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
-             DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.compileClasspath
-             DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.compileClasspath
-             DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
-           }
+      DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
+      DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.compileClasspath
+      DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.compileClasspath
+      DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
+    }
+  }
+
+  private fun getRuntimeDependenciesFor(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> {
+    fun impl(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> = sequence {
+      val gradleModel = GradleAndroidModel.get(module) ?: return@sequence
+
+      val selectedVariant = gradleModel.selectedVariant
+      val artifact = when (scope) {
+        DependencyScopeType.MAIN -> selectedVariant.mainArtifact
+        DependencyScopeType.ANDROID_TEST -> selectedVariant.androidTestArtifact
+        DependencyScopeType.UNIT_TEST -> selectedVariant.unitTestArtifact
+        DependencyScopeType.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
+      }
+      if (artifact != null) yield(artifact.runtimeClasspath)
+
+      yieldAll(
+        when {
+          scope != DependencyScopeType.MAIN -> impl(module, DependencyScopeType.MAIN)
+          gradleModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> {
+            val baseFeature = DynamicAppUtils.getBaseFeature(module)
+            if (baseFeature != null) {
+              impl(baseFeature, DependencyScopeType.MAIN)
+            } else {
+              LOG.error("Cannot find base feature module for: $module")
+              emptySequence()
+            }
+          }
+          else -> emptySequence()
+        }
+      )
+    }
+
+    return impl(module, scope)
   }
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
@@ -248,7 +285,7 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-                                  ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+      ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
@@ -282,7 +319,7 @@ class GradleModuleSystem(
             IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> null
             IdeAndroidProjectType.PROJECT_TYPE_TEST -> null
           }
-        )
+          )
     )
     val variant = androidModel.selectedVariant
     val placeholders = getManifestPlaceholders()
@@ -427,7 +464,7 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
 
   // Local library manifests come first because they have higher priority.
   return localLibManifests +
-         // If any of these are null, then the file is specified in the model,
-         // but not actually available yet, such as exploded AAR manifests.
-         aarManifests.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
+    // If any of these are null, then the file is specified in the model,
+    // but not actually available yet, such as exploded AAR manifests.
+    aarManifests.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
 }

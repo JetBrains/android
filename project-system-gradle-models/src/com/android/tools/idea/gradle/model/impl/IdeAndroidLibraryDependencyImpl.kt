@@ -19,8 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 
 data class IdeAndroidLibraryDependencyImpl(
-  override val target: IdeAndroidLibrary,
-  override val isProvided: Boolean
+  override val target: IdeAndroidLibrary
 ) : IdeAndroidLibraryDependency {
   val displayName: String get() = target.name
 }

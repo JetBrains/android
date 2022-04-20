@@ -1404,6 +1404,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                 ProvidedDependencies
+                    - provided                    : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - provided                    : __wrapped_aars__::aarWrapperLib:unspecified@aar
                 SigningConfigName             : debug
                 IsSigned                      : true
