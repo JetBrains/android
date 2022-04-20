@@ -143,7 +143,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       consoleViewImpl.flushDeferredText()
       consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
     }
-    val consoleOutput = consoleOutputPromise.get(1, TimeUnit.SECONDS)
+    val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
                 "affect debugging. To avoid this, please update the Wear OS app on your device to the latest version.")
