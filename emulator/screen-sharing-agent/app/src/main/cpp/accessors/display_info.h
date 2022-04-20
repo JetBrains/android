@@ -25,6 +25,7 @@ namespace screensharing {
 
 // Native code analogue of the android.view.DisplayInfo class.
 struct DisplayInfo {
+  DisplayInfo();
   DisplayInfo(int32_t logical_width, int32_t logical_height, int32_t rotation, int32_t layer_stack, int32_t flags);
 
   // Returns the display dimensions in the canonical orientation.

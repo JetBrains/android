@@ -24,7 +24,6 @@
 #include <chrono>
 #include <cmath>
 
-#include "accessors/display_manager.h"
 #include "accessors/surface_control.h"
 #include "agent.h"
 #include "jvm.h"
@@ -133,10 +132,11 @@ void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_tok
 DisplayStreamer::DisplayStreamer(int display_id, Size max_video_resolution, int socket_fd)
     : display_rotation_watcher_(this),
       display_id_(display_id),
-      max_video_resolution_(max_video_resolution),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
       stopped_(),
+      display_info_(),
+      max_video_resolution_(max_video_resolution),
       video_orientation_(-1),
       running_codec_() {
   assert(socket_fd > 0);
@@ -164,6 +164,7 @@ void DisplayStreamer::Run() {
     ANativeWindow* surface = nullptr;
     {
       scoped_lock lock(mutex_);
+      display_info_ = display_info;
       int32_t extra_rotation = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(extra_rotation), max_video_resolution_);
       Log::D("DisplayStreamer::Run: video_size=%dx%d, video_orientation=%d, display_orientation=%d",
@@ -218,12 +219,17 @@ void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   }
 }
 
-void DisplayStreamer::SetVideoResolution(Size max_video_resolution) {
+void DisplayStreamer::SetMaxVideoResolution(Size max_video_resolution) {
   scoped_lock lock(mutex_);
   if (max_video_resolution_ != max_video_resolution) {
     max_video_resolution_ = max_video_resolution;
     StopCodecUnlocked();
   }
+}
+
+DisplayInfo DisplayStreamer::GetDisplayInfo() {
+  scoped_lock lock(mutex_);
+  return display_info_;
 }
 
 void DisplayStreamer::Shutdown() {

@@ -37,6 +37,7 @@ public:
   // the app-level orientation according to the previously set display orientation.
   static void SetVideoOrientation(int32_t orientation);
   static void SetMaxVideoResolution(Size max_video_resolution);
+  static DisplayInfo GetDisplayInfo();
 
   static void Shutdown();
 

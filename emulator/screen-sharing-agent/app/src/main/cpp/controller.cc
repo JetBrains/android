@@ -61,6 +61,23 @@ int Utf8CharacterCount(const string& str) {
   return count;
 }
 
+Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& display_info) {
+  auto size = display_info.NaturalSize();
+  switch (display_info.rotation) {
+    case 1:
+      return { y, size.width - x };
+
+    case 2:
+      return { size.width - x, size.height - y };
+
+    case 3:
+      return { size.height - y, x };
+
+    default:
+      return { x, y };
+  }
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -208,11 +225,14 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     motion_event_start_time_ = 0;
   }
 
+  DisplayInfo display_info = Agent::GetDisplayInfo();
+
   for (auto& pointer : message.get_pointers()) {
     JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
     pointer_helper_->SetPointerId(properties, pointer.pointer_id);
     JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
-    pointer_helper_->SetPointerCoords(coordinates, pointer.x, pointer.y);
+    Point point = AdjustedDisplayCoordinates(pointer.x, pointer.y, display_info);
+    pointer_helper_->SetPointerCoords(coordinates, point.x, point.y);
     float pressure =
         (action == AMOTION_EVENT_ACTION_POINTER_UP && event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
     pointer_helper_->SetPointerPressure(coordinates, pressure);

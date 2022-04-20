@@ -109,8 +109,15 @@ void Agent::SetVideoOrientation(int32_t orientation) {
 void Agent::SetMaxVideoResolution(Size max_video_resolution) {
   if (instance_ != nullptr) {
     instance_->max_video_resolution_ = max_video_resolution;
-    instance_->display_streamer_->SetVideoResolution(max_video_resolution);
+    instance_->display_streamer_->SetMaxVideoResolution(max_video_resolution);
   }
+}
+
+DisplayInfo Agent::GetDisplayInfo() {
+  if (instance_ == nullptr || instance_->display_streamer_ == nullptr) {
+    Log::Fatal("Display information has not been obtained yet");
+  }
+  return instance_->display_streamer_->GetDisplayInfo();
 }
 
 void Agent::Shutdown() {

@@ -22,6 +22,13 @@ namespace screensharing {
 
 using namespace std;
 
+DisplayInfo::DisplayInfo()
+    : logical_size { 0, 0 },
+      rotation(),
+      layer_stack(),
+      flags() {
+}
+
 DisplayInfo::DisplayInfo(int32_t logical_width, int32_t logical_height, int32_t rotation, int32_t layer_stack, int32_t flags)
     : logical_size { logical_width, logical_height },
       rotation(rotation),
