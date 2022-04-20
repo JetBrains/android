@@ -278,6 +278,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     if (PANNABLE_KEY.`is`(key)) {
       this@ComposePreviewViewImpl
     } else if (InteractionManager.CURSOR_RECEIVER.`is`(key)) {
+      // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
       workbench
     } else dataProvider.getData(key)
   }, parentDisposable,
