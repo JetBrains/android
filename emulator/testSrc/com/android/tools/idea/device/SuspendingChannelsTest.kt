@@ -73,7 +73,7 @@ class SuspendingChannelsTest {
           }
           catch (e: Throwable) {
             exception = e
-            println("${TraceUtils.currentTime()} Investigating b/229378637: caught $e")
+            println("${TraceUtils.currentTime()} Investigating b/229378637: caught ${TraceUtils.getStackTrace(e)}")
           }
           finally {
             println("${TraceUtils.currentTime()} Investigating b/229378637: counting down step 3 latch")
