@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -87,11 +88,11 @@ class AgpVersionNotSupportedIssueCheckerTest {
 
   @Test
   fun testCheckIssueIncompatiblePreview() {
+    val latestKnown = GradleVersion.parseAndroidGradlePluginVersion(Version.ANDROID_GRADLE_PLUGIN_VERSION)
     val expectedNotificationMessage =
       "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin."
     val error = "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin. " +
-                "Current compatible preview version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}."
-
+                "Current compatible ${if (latestKnown.isPreview) "preview " else ""}version is AGP $latestKnown."
     val issueData = GradleIssueData(":", Throwable(error), null, null)
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
