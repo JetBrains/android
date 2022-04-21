@@ -1869,6 +1869,42 @@ MODULE                        : NonStandardSourceSetDependencies.app
                                 sourceSet                     : MAIN
                                 variant                       : debug
                     runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.example:runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:runtime:1.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/aidl [-]
+                                artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/runtime/1.0/runtime-1.0.aar
+                                artifactAddress               : com.example:runtime:1.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/api.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/res [-]
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/R.txt
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/aidl [-]
+                                artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/with-runtime/1.0/with-runtime-1.0.aar
+                                artifactAddress               : com.example:with-runtime:1.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/public.txt [-]
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/R.txt
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -1884,6 +1920,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ProvidedDependencies
                     - provided                    : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - provided                    : __wrapped_aars__::aarWrapperLib:unspecified@aar
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1978,6 +2017,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             target                        : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryDependencyImpl)
                             target                        : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryDependencyImpl)
@@ -2028,12 +2071,14 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
                     - class                       : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
                     - class                       : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
                     - class                       : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
@@ -3484,6 +3529,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -3495,6 +3542,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.example:runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
@@ -3505,6 +3556,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -3638,6 +3691,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                                 resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res.apk [-]
                                 - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
                                 symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/R.txt
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.0.0 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
@@ -3703,6 +3758,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             target                        : androidx.test:monitor:1.2.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test:runner:1.2.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.test:runner:1.2.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.annotation:annotation:1.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation:1.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : androidx.lifecycle:lifecycle-common:2.0.0 (IdeJavaLibraryDependencyImpl)
@@ -3735,6 +3794,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3758,6 +3819,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
@@ -3775,6 +3838,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : com.example:runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.example:with-runtime:1.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.example:with-runtime:1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
                             target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
@@ -3791,6 +3858,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
+                RuntimeOnlyClasses
+                    - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
@@ -3809,6 +3878,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
@@ -3849,6 +3919,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
@@ -3878,6 +3949,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
