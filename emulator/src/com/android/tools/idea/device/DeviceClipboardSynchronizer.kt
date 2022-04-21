@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ide.CopyPasteManager
@@ -34,6 +35,7 @@ internal class DeviceClipboardSynchronizer(
 ) : CopyPasteManager.ContentChangedListener, DeviceController.DeviceClipboardListener, Disposable {
 
   private val copyPasteManager = CopyPasteManager.getInstance()
+  private var lastClipboardText = ""
 
   init {
     Disposer.register(parentDisposable, this)
@@ -62,6 +64,7 @@ internal class DeviceClipboardSynchronizer(
     deviceController.removeDeviceClipboardListener(this)
     val message = StopClipboardSyncMessage()
     deviceController.sendControlMessage(message)
+    lastClipboardText = ""
   }
 
   @UiThread
@@ -74,6 +77,7 @@ internal class DeviceClipboardSynchronizer(
     }
   }
 
+  @UiThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {
     val text = try {
       newTransferable?.getTransferData(DataFlavor.stringFlavor) as? String ?: return
@@ -81,14 +85,19 @@ internal class DeviceClipboardSynchronizer(
     catch (e: IOException) {
       return
     }
-    if (text.isNotEmpty()) {
+    if (text.isNotEmpty() && text != lastClipboardText) {
+      lastClipboardText = text
       sendClipboardSyncMessage(text)
     }
   }
 
+  @AnyThread
   override fun onDeviceClipboardChanged(text: String) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-      copyPasteManager.setContents(StringSelection(text))
+      if (text != lastClipboardText) {
+        lastClipboardText = text
+        copyPasteManager.setContents(StringSelection(text))
+      }
     }
   }
 }

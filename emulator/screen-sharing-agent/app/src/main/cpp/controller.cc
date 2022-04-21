@@ -101,9 +101,6 @@ Controller::Controller(int socket_fd)
 Controller::~Controller() {
   input_stream_.Close();
   StopClipboardSync();
-  if (clipboard_manager_ != nullptr) {
-    clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
-  }
   if (thread_.joinable()) {
     thread_.join();
   }
@@ -319,37 +316,62 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
-  int old_synced_clipboard_length = max_synced_clipboard_length_.exchange(message.get_max_synced_length());
-  clipboard_manager_ = ClipboardManager::GetInstance(jni_);
-  setting_clipboard_ = true;
-  clipboard_manager_->SetText(jni_, message.get_text());
-  if (old_synced_clipboard_length == 0) {
-    clipboard_manager_->AddClipboardListener(&clipboard_listener_);
+  {
+    scoped_lock lock(clipboard_mutex_);
+    if (message.get_text() != last_clipboard_text_) {
+      last_clipboard_text_ = message.get_text();
+      setting_clipboard_ = true;
+    }
+    clipboard_manager_ = ClipboardManager::GetInstance(jni_);
+    if (setting_clipboard_) {
+      clipboard_manager_->SetText(jni_, message.get_text());
+    }
+    setting_clipboard_ = false;
+    bool was_stopped = max_synced_clipboard_length_ == 0;
+    max_synced_clipboard_length_ = message.get_max_synced_length();
+    if (was_stopped) {
+      clipboard_manager_->AddClipboardListener(&clipboard_listener_);
+    }
   }
-  setting_clipboard_ = false;
 }
 
 void Controller::StopClipboardSync() {
-  max_synced_clipboard_length_ = 0;
+  scoped_lock lock(clipboard_mutex_);
+  if (max_synced_clipboard_length_ != 0) {
+    clipboard_manager_ = ClipboardManager::GetInstance(jni_);
+    clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
+    max_synced_clipboard_length_ = 0;
+    last_clipboard_text_.resize(0);
+  }
 }
 
 void Controller::OnPrimaryClipChanged() {
-  if (setting_clipboard_) {
-    return;
-  }
-  // Can't use jni_ because this method may be called on an arbitrary thread.
-  auto text = clipboard_manager_->GetText(Jvm::GetJni());
-  int max_length = max_synced_clipboard_length_;
-  if (!text.empty() && text.size() <= max_length * UTF8_MAX_BYTES_PER_CHARACTER && Utf8CharacterCount(text) <= max_length) {
-    ClipboardChangedMessage message(move(text));
-    try {
-      message.Serialize(output_stream_);
-      output_stream_.Flush();
-    } catch (StreamClosedException& e) {
-      // The stream has been closed - ignore.
-    } catch (EndOfFile& e) {
-      // The socket has been closed - ignore.
+  string text;
+  {
+    scoped_lock lock(clipboard_mutex_);
+    if (setting_clipboard_) {
+      return;
     }
+    // Cannot use jni_ because this method may be called on an arbitrary thread.
+    text = clipboard_manager_->GetText(Jvm::GetJni());
+    if (text.empty() || text == last_clipboard_text_) {
+      return;
+    }
+    int max_length = max_synced_clipboard_length_;
+    if (text.size() > max_length * UTF8_MAX_BYTES_PER_CHARACTER || Utf8CharacterCount(text) > max_length) {
+      return;
+    }
+    last_clipboard_text_ = text;
+  }
+
+  ClipboardChangedMessage message(move(text));
+  try {
+    message.Serialize(output_stream_);
+    output_stream_.Flush();
+  } catch (StreamClosedException& e) {
+    // The stream has been closed - ignore.
+  } catch (EndOfFile& e) {
+    // The socket has been closed - ignore.
   }
 }
 
