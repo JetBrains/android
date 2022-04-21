@@ -48,7 +48,9 @@ import java.nio.file.Paths
 
 
 /**
- * Abstraction over the application logic of the Device Explorer UI
+ * Default implementation of [DeviceExplorerFileManager] that integrates with
+ * [VirtualFile], [com.intellij.openapi.fileEditor.FileEditorManager] and
+ * [com.intellij.openapi.application.Application.runWriteAction]
  */
 class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructor(
   private val project: Project,
