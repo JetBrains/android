@@ -18,21 +18,29 @@ package com.android.tools.idea.run.tasks
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
@@ -43,7 +51,6 @@ private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
  */
 class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 
-  @Mock
   lateinit var mockLaunchInfo: LaunchInfo
 
   @Mock
@@ -57,9 +64,6 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 
   @Mock
   lateinit var mockAndroidSessionInfo: AndroidSessionInfo
-
-  @Mock
-  lateinit var mockDescriptor: RunContentDescriptor
 
   @Mock
   lateinit var mockClient: Client
@@ -84,14 +88,24 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 
     `when`(mockStatus.processHandler).thenReturn(mockProcessHandler)
     `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockAndroidSessionInfo)
-    `when`(mockAndroidSessionInfo.descriptor).thenReturn(mockDescriptor)
     `when`(mockClient.clientData).thenReturn(mockClientData)
     `when`(mockClientData.clientDescription).thenReturn(TEST_APP_PACKAGE_NAME)
     `when`(mockClientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
+
+    mockLaunchInfo = LaunchInfo(
+      DefaultDebugExecutor.getDebugExecutorInstance(),
+      mock(ProgramRunner::class.java),
+      mock(ExecutionEnvironment::class.java),
+      mock(ConsoleProvider::class.java)
+    )
   }
 
   @Test
   fun testPerform() {
+    val mockRunContentManager = mock(RunContentManager::class.java)
+    `when`(mockRunContentManager.findContentDescriptor(any(), any())).thenReturn(mock(RunContentDescriptor::class.java))
+    project.replaceService(RunContentManager::class.java, mockRunContentManager, testRootDisposable)
+
     val listener = TestListener()
     val debugger = ReattachingConnectDebuggerTask(baseConnector, masterAndroidProcessName = "", listener)
 

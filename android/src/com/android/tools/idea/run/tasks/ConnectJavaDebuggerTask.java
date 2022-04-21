@@ -40,7 +40,6 @@ import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
-import com.google.common.base.Preconditions;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
@@ -54,6 +53,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -110,7 +110,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
     final int pid = client.getClientData().getPid();
     logger.info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
-    RunContentDescriptor descriptor = Preconditions.checkNotNull(processHandler.getUserData(AndroidSessionInfo.KEY)).getDescriptor();
+    RunContentDescriptor descriptor =
+      RunContentManager.getInstance(myProject).findContentDescriptor(currentLaunchInfo.executor, processHandler);
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
@@ -168,7 +169,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
     RunProfile runProfile = currentLaunchInfo.env.getRunProfile();
     RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
-    AndroidSessionInfo.create(debugProcessHandler, debugDescriptor, runConfiguration, currentLaunchInfo.executor.getId(),
+    AndroidSessionInfo.create(debugProcessHandler, runConfiguration, currentLaunchInfo.executor.getId(),
                               currentLaunchInfo.executor.getActionName(),
                               currentLaunchInfo.env.getExecutionTarget()
     );

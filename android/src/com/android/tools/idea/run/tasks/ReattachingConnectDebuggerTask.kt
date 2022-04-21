@@ -21,7 +21,6 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.debug.startJavaReattachingDebugger
@@ -30,6 +29,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_T
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
@@ -97,7 +97,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
         if (changeMask and CHANGE_MASK != 0 && data.debuggerConnectionStatus == ClientData.DebuggerStatus.WAITING) {
           ApplicationManager.getApplication().invokeLater {
             // Make sure the Android session is still active. b/156897049.
-            val descriptor = status.processHandler.getUserData(AndroidSessionInfo.KEY)?.descriptor
+            val descriptor = RunContentManager.getInstance(base.myProject).findContentDescriptor(launchInfo.executor, status.processHandler)
             if (descriptor != null && !Disposer.isDisposed(descriptor)) {
               base.launchDebugger(launchInfo, client, status, printer)
             }
