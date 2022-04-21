@@ -106,7 +106,8 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     messageConsumer: Consumer<in BuildEvent>
   ): Boolean {
     return AgpVersionTooOld.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
-           AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
+           AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
+           AgpVersionTooNew.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
   }
 
   companion object {
