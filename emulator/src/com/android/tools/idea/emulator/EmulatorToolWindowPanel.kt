@@ -89,7 +89,7 @@ class EmulatorToolWindowPanel(
     val lost = oldFocus is EmulatorView && oldFocus.emulator == emulator
     if (gained != lost) {
       if (gained) {
-        if (connected) {
+        if (connected && EmulatorSettings.getInstance().synchronizeClipboard) {
           clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
         }
       }
@@ -154,7 +154,7 @@ class EmulatorToolWindowPanel(
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (isFocusOwner) {
+        if (isFocusOwner && EmulatorSettings.getInstance().synchronizeClipboard) {
           clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
         }
       }

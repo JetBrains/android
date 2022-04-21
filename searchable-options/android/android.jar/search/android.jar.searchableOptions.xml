@@ -743,6 +743,9 @@
     <option name="do" hit="Do not delete" />
     <option name="not" hit="Do not delete" />
     <option name="emulator" hit="Emulator" />
+    <option name="clipboard" hit="Enable clipboard sharing" />
+    <option name="enable" hit="Enable clipboard sharing" />
+    <option name="sharing" hit="Enable clipboard sharing" />
     <option name="a" hit="Launch in a tool window" />
     <option name="in" hit="Launch in a tool window" />
     <option name="launch" hit="Launch in a tool window" />
