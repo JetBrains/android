@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.literals
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
+import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -60,9 +61,13 @@ data class EditStatus(val editState: EditState, val message: String)
 @Service
 class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
 
+  val inlineCandidateCache = SourceInlineCandidateCache()
+
   constructor(project: Project) : this(project,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
+
+  fun resetState() = inlineCandidateCache.clear()
 
   fun interface EditListener {
     operator fun invoke(method: EditEvent)

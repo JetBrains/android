@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -49,7 +50,7 @@ import java.lang.Math.ceil
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
 
-class AndroidLiveEditCodeGenerator(val project: Project){
+class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
   data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
 
   enum class FunctionType {
@@ -110,6 +111,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
 
       ProgressManager.checkCanceled()
       var bindingContext = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
+      var inlineCandidates = inlineCandidateCache?.let { analyzeSingleDepthInlinedFunctions(resolution, file, bindingContext, it) }
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
@@ -117,7 +119,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       ProgressManager.checkCanceled()
       var generationState : GenerationState? = null
       try {
-        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+        generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles, inlineCandidates,
                                                          AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
                                          "codegen")
       } catch (e : LiveEditUpdateException) {
@@ -136,7 +138,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
           // We will need to start using the binding context from the new analysis for code gen.
           bindingContext = newAnalysisResult.bindingContext
 
-          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
+          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles, inlineCandidates,
                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
                                            "codegen_inline")
         } else {
@@ -181,7 +183,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
         val targetClass = input.element as KtClass
         val desc = bindingContext[BindingContext.CLASS, targetClass]!!
         val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
-        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
         return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
       }
 
@@ -189,7 +191,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       is KtFile -> {
         val targetFile = input.element as KtFile
         val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
-        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
+        val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput)
         return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
       }
     }
@@ -224,7 +226,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     }
 
     val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
+    val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
 
     val idx = methodSignature.indexOf('(')
     val methodName = methodSignature.substring(0, idx);
@@ -233,7 +235,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
   }
 
-  private fun getCompiledClasses(internalClassName: String, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
+  private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
     fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
@@ -260,6 +262,10 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       if (c.relativePath == "$internalClassName.class") {
         primaryClass = c.asByteArray()
         println("   Primary class: ${c.relativePath}")
+        inlineCandidateCache?.let { cache ->
+          cache.computeIfAbsent(internalClassName) {
+          SourceInlineCandidate(input, it, input.module!!)
+        }.setByteCode(primaryClass)}
         continue
       }
 
@@ -269,6 +275,10 @@ class AndroidLiveEditCodeGenerator(val project: Project){
         println("   Proxiable class: ${c.relativePath}")
         val name = c.relativePath.substringBefore(".class")
         supportClasses[name] = c.asByteArray()
+        inlineCandidateCache?.let { cache ->
+          cache.computeIfAbsent(name) {
+          SourceInlineCandidate(input, it, input.module!!)
+        }.setByteCode(supportClasses[name]!!)}
         continue
       }
 

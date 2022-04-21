@@ -115,8 +115,8 @@ interface CompileScope {
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                     input: List<KtFile>, langVersion: LanguageVersionSettings): GenerationState
+  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
+                     inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -165,8 +165,9 @@ private object CompileScopeImpl : CompileScope {
     }
   }
 
-  override fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
-                              input: List<KtFile>, langVersion: LanguageVersionSettings): GenerationState {
+  override fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
+                              inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState {
+
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
 
@@ -204,6 +205,10 @@ private object CompileScopeImpl : CompileScope {
     }
 
     val generationState = generationStateBuilder.build();
+    inlineClassRequest?.forEach {
+      it.fetchByteCodeFromBuildIfNeeded()
+      it.fillInlineCache(generationState.inlineCache)
+    }
 
     try {
       KotlinCodegenFacade.compileCorrectFiles(generationState)

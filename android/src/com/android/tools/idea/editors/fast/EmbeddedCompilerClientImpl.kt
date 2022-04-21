@@ -116,7 +116,15 @@ class EmbeddedCompilerClientImpl(
         ProgressManager.checkCanceled()
         log.debug("backCodeGen")
         try {
-          backendCodeGen(project, resolution, bindingContext, inputs,
+          /**
+           * TODO: Use SourceInlineCandidateCache to avoid full source analysis for better performance:
+           *
+           * It should:
+           *
+           * 1) Created once per project and reused on every edit
+           * 2) If a real gradle build is invoked, clear all the entries there.
+           */
+          backendCodeGen(project, resolution, bindingContext, inputs, null,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
         catch (e: LiveEditUpdateException) {
@@ -136,7 +144,7 @@ class EmbeddedCompilerClientImpl(
           // We will need to start using the binding context from the new analysis for code gen.
           val newBindingContext = newAnalysisResult.bindingContext
 
-          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines,
+          backendCodeGen(project, resolution, newBindingContext, inputFilesWithInlines, null,
                          AndroidLiveEditLanguageVersionSettings(languageVersionSettings))
         }
       }

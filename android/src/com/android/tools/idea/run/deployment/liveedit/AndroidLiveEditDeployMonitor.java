@@ -40,7 +40,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator.CodeGeneratorOutput;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
@@ -60,6 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.LinkedHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -153,6 +153,8 @@ public class AndroidLiveEditDeployMonitor {
 
   private final @NotNull Project project;
 
+  private final @NotNull LinkedHashMap<String, SourceInlineCandidate> sourceInlineCandidateCache;
+
   private @Nullable String applicationId;
 
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -243,6 +245,7 @@ public class AndroidLiveEditDeployMonitor {
 
   public AndroidLiveEditDeployMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
+    this.sourceInlineCandidateCache = liveEditService.getInlineCandidateCache();
     EditsListener editsListener = new EditsListener();
     liveEditService.addOnEditListener(editsListener::onLiteralsChanged);
     liveEditService.addEditStatusProvider(new EditStatusGetter());
@@ -270,8 +273,8 @@ public class AndroidLiveEditDeployMonitor {
     return () -> methodChangesExecutor
       .schedule(
         () -> {
-          this.applicationId = null;
           this.applicationId = applicationId;
+          LiveEditService.getInstance(project).resetState();
           editStatusChanged(editStatus.getAndSet(LiveEditService.UP_TO_DATE_STATUS));
 
           LiveLiteralsMonitorHandler.DeviceType deviceType;
@@ -321,7 +324,7 @@ public class AndroidLiveEditDeployMonitor {
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
-    ArrayList<CodeGeneratorOutput> compiled = new ArrayList<>();
+    ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
     try {
       // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
       // unclear BackendException
@@ -331,7 +334,7 @@ public class AndroidLiveEditDeployMonitor {
         change ->
           new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
-      if (!new AndroidLiveEditCodeGenerator(project).compile(inputs, compiled)) {
+      if (!new AndroidLiveEditCodeGenerator(project, sourceInlineCandidateCache).compile(inputs, compiled)) {
         return false;
       }
     } catch (LiveEditUpdateException e) {
@@ -424,7 +427,7 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   private static List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
-      String packageName, IDevice device, List<CodeGeneratorOutput> updates) {
+      String packageName, IDevice device, List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates) {
     AdbClient adb = new AdbClient(device, LOGGER);
     MetricsRecorder metrics = new MetricsRecorder();
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
