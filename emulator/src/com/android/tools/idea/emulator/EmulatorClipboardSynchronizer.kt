@@ -44,6 +44,8 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
 
+  private var lastClipboardText = ""
+
   init {
     Disposer.register(parentDisposable, this)
   }
@@ -54,10 +56,11 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
       active = true
     }
     val text = getClipboardText()
-    if (text.isEmpty()) {
+    if (text.isEmpty() || text == lastClipboardText) {
       requestClipboardFeed()
     }
     else {
+      lastClipboardText = text
       emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
           requestClipboardFeed()
@@ -71,6 +74,7 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
     synchronized(lock) {
       active = false
       cancelClipboardFeed()
+      lastClipboardText = ""
     }
   }
 
@@ -105,21 +109,21 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
   }
 
   private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-    var responseCount = 0
 
     override fun onNext(response: ClipData) {
       if (clipboardReceiver != this) {
         return // This clipboard feed has already been cancelled.
       }
 
-      // Skip the first response that reflects the current clipboard state.
-      if (responseCount != 0 && response.text.isNotEmpty()) {
+      if (response.text.isNotEmpty()) {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          val content = StringSelection(response.text)
-          ClipboardSynchronizer.getInstance().setContent(content, content)
+          if (response.text != lastClipboardText) {
+            lastClipboardText = response.text
+            val content = StringSelection(response.text)
+            ClipboardSynchronizer.getInstance().setContent(content, content)
+          }
         }
       }
-      responseCount++
     }
   }
 
