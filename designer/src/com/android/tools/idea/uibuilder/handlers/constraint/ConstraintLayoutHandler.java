@@ -54,7 +54,6 @@ import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.adtui.ImageUtils.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
@@ -85,7 +84,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
@@ -106,8 +104,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
@@ -201,43 +197,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
-
-  /**
-   * Base constructor
-   */
-  public ConstraintLayoutHandler() {
-    loadWidgetDecoratorImages();
-  }
-
-  private static void loadWidgetDecoratorImages() {
-    if (WidgetDecoratorConstants.sLockImageIcon == null) {
-      WidgetDecoratorConstants.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
-    }
-    if (WidgetDecoratorConstants.sUnlockImageIcon == null) {
-      WidgetDecoratorConstants.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
-    }
-    if (WidgetDecoratorConstants.sDeleteConnectionsImageIcon == null) {
-      WidgetDecoratorConstants.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
-    }
-    if (WidgetDecoratorConstants.sPackChainImageIcon == null) {
-      WidgetDecoratorConstants.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
-    }
-    if (WidgetDraw.sGuidelineArrowLeft == null) {
-      WidgetDraw.sGuidelineArrowLeft = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_LEFT);
-    }
-    if (WidgetDraw.sGuidelineArrowRight == null) {
-      WidgetDraw.sGuidelineArrowRight = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_RIGHT);
-    }
-    if (WidgetDraw.sGuidelineArrowUp == null) {
-      WidgetDraw.sGuidelineArrowUp = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_UP);
-    }
-    if (WidgetDraw.sGuidelineArrowDown == null) {
-      WidgetDraw.sGuidelineArrowDown = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_DOWN);
-    }
-    if (WidgetDraw.sGuidelinePercent == null) {
-      WidgetDraw.sGuidelinePercent = iconToImage(StudioIcons.LayoutEditor.Toolbar.PERCENT);
-    }
-  }
 
   @NotNull
   private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
