@@ -16,7 +16,6 @@
 package com.android.tools.idea.adb
 
 import com.android.adblib.ShellCollector
-import com.android.adblib.utils.MultiLineShellCollector
 import com.android.adblib.utils.TextShellCollector
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
@@ -29,7 +28,6 @@ import com.android.tools.idea.adblib.ddmlibcompatibility.toDeviceSelector
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
