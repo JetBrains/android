@@ -134,6 +134,7 @@ public class GradleSyncExecutor {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
+      if (request.getDontFocusSyncFailureOutput()) builder.dontReportRefreshErrors();
       myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.getTrigger()));
       refreshProject(rootPath, builder.build());
     }
