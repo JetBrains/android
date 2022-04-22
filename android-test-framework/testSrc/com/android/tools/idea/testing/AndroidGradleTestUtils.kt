@@ -166,6 +166,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
+import org.jetbrains.kotlin.idea.gradleTooling.arguments.CompilerArgumentsCacheHolder
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -180,6 +182,8 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -1730,13 +1734,14 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
   AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectPath, projectPatcher)
 }
 
-data class OpenPreparedProjectOptions(
+data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val verifyOpened: (Project) -> Unit = ::verifySyncedSuccessfully,
   val outputHandler: (String) -> Unit = {},
   val syncExceptionHandler: (Exception) -> Unit = { e ->
     println(e.message)
     e.printStackTrace()
-  }
+  },
+  val doNotClearKotlinPluginCompilerArgumentCaches_bug228441874: Boolean = false
 )
 
 /**
@@ -1762,9 +1767,21 @@ private fun <T> openPreparedProject(
   // Use per-project code style settings so we never modify the IDE defaults.
   CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
+  fun clearKotlinPluginCompilerArgumentCaches() {
+    val privateCache = CompilerArgumentsCacheHolder::class.memberProperties.single { it.name == "cacheAwareWithMergeByIdentifier" }
+    privateCache.isAccessible = true
+    (privateCache.get(CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder) as MutableMap<*, *>).clear()
+  }
+
   fun body(): T {
     val project = runInEdtAndGet {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      // TODO(b/215522894): Remove when fixed in the Koltin IDE plugin.
+      if (!options.doNotClearKotlinPluginCompilerArgumentCaches_bug228441874) {
+        // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
+        // that cannot be reproduced otherwise.
+        clearKotlinPluginCompilerArgumentCaches()
+      }
       val project = GradleProjectImporter.withAfterCreate(
         afterCreate = { project -> injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler) }
       ) {
