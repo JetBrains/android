@@ -850,6 +850,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "ui_test",
+        "very_flaky",  # b/230003185
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -930,6 +931,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
         "ui_test",
+        "very_flaky",  # b/230003185
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1104,6 +1106,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
+        "very_flaky",  # b/230003185
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1122,6 +1125,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
+        "very_flaky",  # b/230003185
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1438,6 +1442,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
+        "very_flaky",  # b/230003185
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
