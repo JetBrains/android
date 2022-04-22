@@ -120,7 +120,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_6_7_1(GradleVersion.parse("6.7.1")),
   VERSION_7_0_2(GradleVersion.parse("7.0.2")),
   VERSION_7_2(GradleVersion.parse("7.2")),
-  VERSION_7_3(GradleVersion.parse("7.3")),
+  VERSION_7_3_3(GradleVersion.parse("7.3.3")),
   VERSION_FOR_DEV(GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)),
 
   ;
@@ -140,7 +140,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
         GradleVersion.parse("4.2") >= agpVersionMajorMinor -> VERSION_6_7_1
         GradleVersion.parse("7.0") >= agpVersionMajorMinor -> VERSION_7_0_2
         GradleVersion.parse("7.1") >= agpVersionMajorMinor -> VERSION_7_2
-        GradleVersion.parse("7.2") >= agpVersionMajorMinor -> VERSION_7_3
+        GradleVersion.parse("7.2") >= agpVersionMajorMinor -> VERSION_7_3_3
         else -> VERSION_FOR_DEV
       }
       return when {
