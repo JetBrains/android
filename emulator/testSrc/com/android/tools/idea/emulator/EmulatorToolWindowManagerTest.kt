@@ -189,7 +189,7 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
     assertThat(controllers).isNotEmpty()
-    waitForCondition(2, TimeUnit.SECONDS) { controllers.first().connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, TimeUnit.SECONDS) { controllers.first().connectionState == EmulatorController.ConnectionState.CONNECTED }
 
     // Simulate an emulator crash.
     emulator.crash()
