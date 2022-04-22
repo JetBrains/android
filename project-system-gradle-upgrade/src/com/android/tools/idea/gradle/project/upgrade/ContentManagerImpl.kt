@@ -397,6 +397,7 @@ class ToolWindowModel(
       uiState.set(oldState)
     }
     else {
+      newProcessor.showBuildOutputOnSyncFailure = false
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         parseAndSetEnabled(newProcessor)
