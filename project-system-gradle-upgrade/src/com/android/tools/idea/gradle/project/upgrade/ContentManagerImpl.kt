@@ -226,6 +226,15 @@ class ToolWindowModel(
       override val runTooltip: String
         get() = statusMessage.text
     }
+    class SyncFailed(
+      val errorMessage: String
+    ): UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.HIDE_TREE
+      override val statusMessage: StatusMessage = StatusMessage(Severity.ERROR, errorMessage.lines().first())
+      override val runTooltip: String
+        get() = statusMessage.text
+    }
 
     enum class ControlsEnabledState(val runEnabled: Boolean, val comboEnabled: Boolean) {
       BOTH(true, true),
@@ -302,13 +311,15 @@ class ToolWindowModel(
   }
 
   override fun syncStarted(project: Project) = uiState.set(UIState.RunningSync)
-  override fun syncFailed(project: Project, errorMessage: String) = syncFinished()
+  override fun syncFailed(project: Project, errorMessage: String) = syncFinished(success = false, errorMessage = errorMessage)
   override fun syncSucceeded(project: Project) = syncFinished()
   override fun syncSkipped(project: Project) = syncFinished()
 
-  private fun syncFinished() {
-    uiState.set(UIState.Loading)
-    refresh(true)
+  private fun syncFinished(success: Boolean = true, errorMessage: String = "") {
+    when (success) {
+      true -> uiState.set(UIState.Loading).also { refresh(true) }
+      false -> uiState.set(UIState.SyncFailed(errorMessage))
+    }
   }
 
   override fun dispose() {
@@ -820,6 +831,17 @@ class ContentManagerImpl(val project: Project): ContentManager {
           sb.append("<p>Something went wrong (an internal exception occured).  The status message is:<br/>")
           sb.append(uiState.statusMessage.text)
           sb.append("</p>")
+          sb.append("<p>You should revert to a known-good state before doing anything else.</p>")
+          label.text = sb.toString()
+          detailsPanel.add(label)
+        }
+        uiState is ToolWindowModel.UIState.SyncFailed -> {
+          val sb = StringBuilder()
+          sb.append("<div><b>Sync Failed</b></div>")
+          sb.append("<p>The project failed to sync with the IDE.  The error message from sync is:</p>")
+          sb.append("<pre>\n")
+          sb.append(uiState.errorMessage)
+          sb.append("\n</pre>")
           sb.append("<p>You should revert to a known-good state before doing anything else.</p>")
           label.text = sb.toString()
           detailsPanel.add(label)
