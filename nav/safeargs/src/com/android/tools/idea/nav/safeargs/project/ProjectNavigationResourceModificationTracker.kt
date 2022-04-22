@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
@@ -33,7 +34,9 @@ class ProjectNavigationResourceModificationTracker(val project: Project) : Modif
       if (!startupManager.postStartupActivityPassed()) {
         // If query happens before indexing when project just starts up, invalid queried results are cached.
         // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
-        startupManager.registerPostStartupActivity { navigationChanged() }
+        startupManager.runAfterOpened {
+          DumbService.getInstance(project).runWhenSmart(::navigationChanged)
+        }
       }
     }
   }
