@@ -957,7 +957,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
       deprecatedPreMergedApplicationId = null,
-      desugaredMethodsFiles = variant.desugaredMethods
+      desugaredMethodsFiles = if(modelVersion?.isAtLeast(7, 3, 0, "alpha", 6, false) == true) variant.desugaredMethods else emptyList()
     )
   }
 
