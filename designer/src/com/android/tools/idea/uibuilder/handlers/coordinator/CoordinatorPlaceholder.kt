@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
@@ -79,7 +78,6 @@ class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComp
     Type.RIGHT_BOTTOM -> "end|bottom"
   }
 
-  @VisibleForTesting
   enum class Type {
     LEFT_TOP,
     LEFT,
