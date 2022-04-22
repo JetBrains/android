@@ -57,10 +57,10 @@ class BuildOverviewPageViewTest {
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(model.reportUiData.buildSummary.buildFinishedTimestamp)
     Truth.assertThat(text).isEqualTo("""
       <b>Build finished on $expectedBuildFinishedString</b>
-      Total build duration was 20.0s.
+      Total build duration was 20.0s
       
       Includes:
-      Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>.
+      Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>
       Critical path tasks execution: 15.0s
       
       """.trimIndent())

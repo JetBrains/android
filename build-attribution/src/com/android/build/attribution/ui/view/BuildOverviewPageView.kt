@@ -57,11 +57,11 @@ class BuildOverviewPageView(
     val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
       linksHandler.actionLink("Optimize this", "configuration-cache") {
         actionHandlers.openConfigurationCacheWarnings()
-      }.let { " - $it." }
+      }.let { " - $it" }
     else ""
     val text = """
       <b>Build finished on ${buildFinishedTime}</b><br/>
-      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}.<br/>
+      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}<br/>
       <br/>
       Includes:<br/>
       Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
