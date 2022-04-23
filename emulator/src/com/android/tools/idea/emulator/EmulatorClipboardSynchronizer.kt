@@ -23,6 +23,7 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import java.awt.EventQueue
@@ -65,7 +66,7 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
     }
     else {
       lastClipboardText = text
-      logger.debug("EmulatorClipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync: \"$text\"")
+      logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync: \"$text\"" }
       emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
           requestClipboardFeed()
@@ -116,7 +117,7 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
   private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
 
     override fun onNext(response: ClipData) {
-      logger.debug("ClipboardReceiver.onNext: \"${response.text}\"")
+      logger.debug { "ClipboardReceiver.onNext: \"${response.text}\"" }
       if (clipboardReceiver != this) {
         return // This clipboard feed has already been cancelled.
       }
