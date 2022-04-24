@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.panels.VerticalLayout
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -30,9 +31,14 @@ import javax.swing.JSeparator
  */
 class BodyRuleDialog(private val saveAction: (RuleData.TransformationRuleData) -> Unit) : DialogWrapper(false) {
 
-  private val findTextArea = JBTextArea("Find body goes here...")
-  private val replaceTextArea = JBTextArea("Replace body goes here...")
-  private val regexCheckBox = JBCheckBox("Regex")
+  @VisibleForTesting
+  val findTextArea = JBTextArea("Find body goes here...")
+
+  @VisibleForTesting
+  val replaceTextArea = JBTextArea("Replace body goes here...")
+
+  @VisibleForTesting
+  val regexCheckBox = JBCheckBox("Regex")
 
   init {
     title = "New Header Rule"

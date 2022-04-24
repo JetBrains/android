@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.CardLayout
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
@@ -37,18 +38,35 @@ class HeaderRuleDialog(private val saveAction: (RuleData.TransformationRuleData)
     private const val REGEX_TEXT = "Regex"
   }
 
-  private val newAddedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
-  private val newAddedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  @VisibleForTesting
+  val newAddedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
 
-  private val findNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
-  private val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
-  private val findValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
-  private val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
-  private val newReplacedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
-  private val newReplacedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  @VisibleForTesting
+  val newAddedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
 
-  private val addRadioButton = JBRadioButton("Add new header")
-  private val replaceRadioButton = JBRadioButton("Edit existing header")
+  @VisibleForTesting
+  val findNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  @VisibleForTesting
+  val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
+
+  @VisibleForTesting
+  val findValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  @VisibleForTesting
+  val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
+
+  @VisibleForTesting
+  val newReplacedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  @VisibleForTesting
+  val newReplacedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+
+  @VisibleForTesting
+  val addRadioButton = JBRadioButton("Add new header")
+
+  @VisibleForTesting
+  val replaceRadioButton = JBRadioButton("Edit existing header")
 
   init {
     title = "New Header Rule"
