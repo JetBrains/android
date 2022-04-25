@@ -39,35 +39,6 @@
         <module name="aswb.jcgdi.blaze.plugin.base" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="11">
-      <module name="analytics-shared" target="8" />
-      <module name="android.sdktools.android-annotations" target="8" />
-      <module name="android.sdktools.builder-model" target="8" />
-      <module name="android.sdktools.chunkio" target="8" />
-      <module name="android.sdktools.chunkio-processor" target="8" />
-      <module name="android.sdktools.common" target="8" />
-      <module name="android.sdktools.ddmlib" target="8" />
-      <module name="android.sdktools.dvlib" target="8" />
-      <module name="android.sdktools.layoutlib-api" target="8" />
-      <module name="android.sdktools.pixelprobe" target="8" />
-      <module name="android.sdktools.repository" target="8" />
-      <module name="android.sdktools.resource-repository" target="8" />
-      <module name="android.sdktools.sdk-common" target="8" />
-      <module name="android.sdktools.sdklib" target="8" />
-      <module name="db-baseLibrary" target="8" />
-      <module name="db-baseLibrarySupport" target="8" />
-      <module name="db-compilationTests" target="8" />
-      <module name="db-compiler" target="8" />
-      <module name="db-compilerCommon" target="8" />
-      <module name="intellij.android.buildCommon" target="8" />
-      <module name="intellij.android.gradle-tooling.api" target="8" />
-      <module name="intellij.android.gradle-tooling.impl" target="8" />
-      <module name="intellij.android.jps.model" target="8" />
-      <module name="intellij.android.kotlin.extensions.common" target="8" />
-      <module name="intellij.android.projectSystem.gradle.models" target="8" />
-      <module name="intellij.android.projectSystem.gradle.sync" target="8" />
-      <module name="intellij.android.rt" target="8" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
