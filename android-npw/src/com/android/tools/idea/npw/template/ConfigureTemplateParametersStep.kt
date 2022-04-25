@@ -261,6 +261,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
         model.language.value = Language.Kotlin
         it.setEnabled(false)
+        it.setVisible(false)
       }
     }
     is PackageNameWidget -> {

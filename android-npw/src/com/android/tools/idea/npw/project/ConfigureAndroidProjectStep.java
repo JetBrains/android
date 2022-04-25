@@ -112,6 +112,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
+  private JBLabel myProjectLanguageLabel;
+  private JPanel myAppCompatPanel;
   private JBCheckBox myAppCompatCheck;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
@@ -233,11 +235,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     ensureDefaultApiLevelAtLeastRecommended();
     myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
-    boolean isKotlinOnly;
     setTemplateThumbnail(newTemplate);
-    isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
+    boolean isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
 
-    myProjectLanguage.setEnabled(!isKotlinOnly);
+    myProjectLanguage.setVisible(!isKotlinOnly);
+    myProjectLanguageLabel.setVisible(!isKotlinOnly);
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
@@ -324,6 +326,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myAppCompatCheck.setEnabled(true);
     }
+
+    boolean isKotlin = template != null && template.getConstraints().contains(TemplateConstraint.Kotlin);
+    myAppCompatPanel.setVisible(!isKotlin);
   }
 
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
