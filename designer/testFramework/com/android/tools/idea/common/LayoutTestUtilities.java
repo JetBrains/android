@@ -85,7 +85,7 @@ public class LayoutTestUtilities {
     double xSlope = (x2 - x) / frames;
     double ySlope = (y2 - y) / frames;
 
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
         .withSource(layeredPane)
@@ -107,7 +107,7 @@ public class LayoutTestUtilities {
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
 
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     int frames = 5;
     double x = x1;
     double y = y1;
@@ -128,7 +128,7 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     mouseListener.mousePressed(new MouseEventBuilder(x, y)
                                  .withSource(layeredPane)
                                  .withMask(modifiers)
@@ -141,7 +141,7 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     mouseListener.mouseReleased(new MouseEventBuilder(x, y)
                                   .withSource(layeredPane)
                                   .withMask(modifiers)
@@ -155,7 +155,7 @@ public class LayoutTestUtilities {
                                 @SwingCoordinate int x,
                                 @SwingCoordinate int y,
                                 int modifiers) {
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     for (int i = 0; i < count; i++) {
       pressMouse(manager, button, x, y, modifiers);
       releaseMouse(manager, button, x, y, modifiers);
@@ -220,7 +220,7 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof KeyListener);
     KeyListener keyListener = (KeyListener)listener;
-    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    JComponent layeredPane = manager.getInteractable().getLayeredPane();
     keyListener.keyReleased(new KeyEventBuilder(keyCode, KeyEvent.CHAR_UNDEFINED)
                               .withSource(layeredPane)
                               .build());

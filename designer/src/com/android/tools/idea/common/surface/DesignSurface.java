@@ -341,7 +341,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     };
     mySelectionModel.addListener(selectionListener);
-    myInteractionManager = new InteractionManager(this, interactionProviderCreator.apply(this));
 
     myProgressPanel = new MyProgressPanel();
     myProgressPanel.setName("Layout Editor Progress Panel");
@@ -424,6 +423,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     });
 
+    Interactable interactable = new SurfaceInteractable(this);
+    myInteractionManager = new InteractionManager(this, interactable, interactionProviderCreator.apply(this));
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);

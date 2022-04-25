@@ -39,6 +39,8 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.common.LayoutTestUtilities
+import com.android.tools.idea.common.surface.SurfaceInteractable
+import com.android.tools.idea.common.surface.TestInteractable
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
@@ -74,6 +76,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlin.test.assertNotEquals
 
 /**
@@ -298,8 +301,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
-
-    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -525,7 +527,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     try {

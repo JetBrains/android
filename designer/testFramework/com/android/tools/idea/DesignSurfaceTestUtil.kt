@@ -20,12 +20,12 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.SelectionModel
-import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -49,15 +49,16 @@ object DesignSurfaceTestUtil {
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
     Mockito.`when`(surface.getData(ArgumentMatchers.any())).thenCallRealMethod()
-    Mockito.`when`(surface.layeredPane).thenReturn(JPanel())
-    Mockito.`when`(surface.interactionPane).thenReturn(JPanel())
+    val layeredPane = JPanel()
+    Mockito.`when`(surface.layeredPane).thenReturn(layeredPane)
     val selectionModel: SelectionModel = DefaultSelectionModel()
     Mockito.`when`(surface.selectionModel).thenReturn(selectionModel)
     Mockito.`when`(surface.size).thenReturn(Dimension(1000, 1000))
     Mockito.`when`(surface.scale).thenReturn(0.5)
     Mockito.`when`(surface.selectionAsTransferable).thenCallRealMethod()
     Mockito.`when`(surface.actionManager).thenReturn(TestActionManager(surface))
-    Mockito.`when`(surface.interactionManager).thenReturn(InteractionManager(surface, interactionHandlerCreator(surface)))
+    val interactable = TestInteractable(surface, JPanel(), surface, layeredPane)
+    Mockito.`when`(surface.interactionManager).thenReturn(InteractionManager(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
       Mockito.`when`<DesignerAnalyticsManager>(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
     }
