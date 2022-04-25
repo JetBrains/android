@@ -521,28 +521,35 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new DefaultUastParser(project, myProject) {
-      @NonNull
-      @Override
-      protected DefaultJavaEvaluator createEvaluator(@Nullable com.android.tools.lint.detector.api.Project project,
-                                                     @NonNull Project p) {
-        return new DefaultJavaEvaluator(p, project) {
-          // Use JavaDirectoryService. From the CLI we avoid it.
-          @Nullable
-          @Override
-          public PsiPackage getPackage(@NonNull PsiElement node) {
-            PsiFile containingFile = node.getContainingFile();
-            if (containingFile != null) {
-              PsiDirectory dir = containingFile.getParent();
-              if (dir != null) {
-                return JavaDirectoryService.getInstance().getPackage(dir);
-              }
+    return new IdeUastParser(project, myProject);
+  }
+
+  private static class IdeUastParser extends DefaultUastParser {
+    IdeUastParser(com.android.tools.lint.detector.api.Project project, Project ideaProject) {
+      super(project, ideaProject);
+      setPrepared(true);
+    }
+
+    @NonNull
+    @Override
+    protected DefaultJavaEvaluator createEvaluator(@Nullable com.android.tools.lint.detector.api.Project project,
+                                                   @NonNull Project p) {
+      return new DefaultJavaEvaluator(p, project) {
+        // Use JavaDirectoryService. From the CLI we avoid it.
+        @Nullable
+        @Override
+        public PsiPackage getPackage(@NonNull PsiElement node) {
+          PsiFile containingFile = node.getContainingFile();
+          if (containingFile != null) {
+            PsiDirectory dir = containingFile.getParent();
+            if (dir != null) {
+              return JavaDirectoryService.getInstance().getPackage(dir);
             }
-            return null;
           }
-        };
-      }
-    };
+          return null;
+        }
+      };
+    }
   }
 
   @NonNull

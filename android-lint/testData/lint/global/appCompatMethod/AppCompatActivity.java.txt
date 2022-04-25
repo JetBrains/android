@@ -4,9 +4,9 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.support.v7.view.ActionMode;
 /**
- * Just a dumb stub for unit test
+ * Just a simple stub for unit test
  */
-public class ActionBarActivity extends Activity {
+public class AppCompatActivity extends Activity {
     protected ActionBar getSupportActionBar() {
         return null;
     }

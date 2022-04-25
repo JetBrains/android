@@ -687,7 +687,7 @@ class AndroidLintTest : AndroidTestCase() {
     testProjectSystem.useInTests()
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.module,
                                     GradleVersion.parse("+"))
-    myFixture.copyFileToProject("$globalTestDir/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java")
+    myFixture.copyFileToProject("$globalTestDir/AppCompatActivity.java.txt", "src/android/support/v7/app/AppCompatActivity.java")
     myFixture.copyFileToProject("$globalTestDir/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java")
     doTestWithFix(AndroidLintAppCompatMethodInspection(),
                   "Replace with getSupportActionBar()", "/src/test/pkg/AppCompatTest.java", "java")
@@ -1428,7 +1428,7 @@ class AndroidLintTest : AndroidTestCase() {
     }
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
-    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.module,
+    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myFixture.module,
                                     GradleVersion.parse("+"))
     doTestWithFix(AndroidLintAppCompatCustomViewInspection(),
                   "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java")
