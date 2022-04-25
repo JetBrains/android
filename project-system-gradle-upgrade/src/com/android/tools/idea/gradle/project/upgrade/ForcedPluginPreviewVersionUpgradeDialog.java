@@ -97,7 +97,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

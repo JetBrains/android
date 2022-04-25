@@ -115,7 +115,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

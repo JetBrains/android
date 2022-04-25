@@ -106,7 +106,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     setUpAsHtmlLabel(myEditorPane);
     myEditorPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

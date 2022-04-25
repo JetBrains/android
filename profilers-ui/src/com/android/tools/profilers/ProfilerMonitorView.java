@@ -155,7 +155,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
         linkToConfigMessage.setTextWithHyperlink("Configure this setting in the <hyperlink>Run Configuration</hyperlink>");
         linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
           }
         });

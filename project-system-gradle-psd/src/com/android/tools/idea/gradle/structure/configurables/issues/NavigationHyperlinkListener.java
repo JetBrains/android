@@ -38,7 +38,7 @@ public class NavigationHyperlinkListener extends HyperlinkAdapter {
   }
 
   @Override
-  protected void hyperlinkActivated(HyperlinkEvent e) {
+  protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
     navigate(e.getDescription());
   }
 

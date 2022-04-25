@@ -83,7 +83,7 @@ public class FormFactorSdkControls implements Disposable {
     myLearnMoreLink.setHyperlinkText(message("android.wizard.module.help.choose"));
     myLearnMoreLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         int minApiLevel = getSelectedApiLevel().getMinApiLevel();
         ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel);
         Disposer.register(FormFactorSdkControls.this, chooseApiLevelDialog.getDisposable());

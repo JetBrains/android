@@ -52,7 +52,7 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
     myGoToLabel.setHyperlinkText("See Dependencies");
     myGoToLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         assert myDependency != null;
         myContext.getMainConfigurable().navigateTo(
           myContext

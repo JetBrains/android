@@ -46,7 +46,7 @@ public abstract class AbstractDependencyScopesPanel extends JPanel implements Di
     instructionsPane.setText("<html><body><b>Step 2.</b><br/>" + instructions + "</body></html>");
     instructionsPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

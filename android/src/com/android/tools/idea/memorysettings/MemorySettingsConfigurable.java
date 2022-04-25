@@ -157,7 +157,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myApplyRecommendationLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.use.recommended.values"));
         myApplyRecommendationLabel.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
             mySelectedIdeXmx = myRecommendedIdeXmx;
             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
@@ -244,7 +244,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           DaemonsUi myUi;
 
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myUi = new DaemonsUi(myProject) {
               @Override
               public void dispose() {
