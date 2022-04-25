@@ -222,7 +222,7 @@ public class SystemImagePreview {
     private int myApiLevel = -1;
 
     @Override
-    protected void hyperlinkActivated(HyperlinkEvent e) {
+    protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
       ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(null, myApiLevel) {
         @NotNull
         @Override

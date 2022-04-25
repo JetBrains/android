@@ -28,24 +28,16 @@ import static javax.swing.Action.NAME;
 
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction;
 import com.intellij.openapi.application.ActionsKt;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.usages.UsageView;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +87,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     setUpAsHtmlLabel(myEditorPane);
     myEditorPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

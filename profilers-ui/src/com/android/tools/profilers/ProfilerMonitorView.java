@@ -27,14 +27,10 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
-import com.intellij.ui.scale.JBUIScale;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -146,7 +142,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
         linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
         linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
           }
         });

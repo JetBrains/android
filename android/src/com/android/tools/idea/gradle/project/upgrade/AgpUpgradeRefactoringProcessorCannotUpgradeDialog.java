@@ -21,10 +21,7 @@ import static com.intellij.ide.BrowserUtil.browse;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.JBDimension;
-import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +39,7 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
     setUpAsHtmlLabel(myEditorPane);
     myEditorPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });

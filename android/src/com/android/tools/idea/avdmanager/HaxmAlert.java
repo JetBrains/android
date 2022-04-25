@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TAGS_WITH_GOOGLE_API;
+
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.FutureCallback;
@@ -28,16 +31,12 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.concurrency.EdtExecutorService;
-import org.jetbrains.annotations.NotNull;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
-import java.awt.*;
-
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.TAGS_WITH_GOOGLE_API;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -111,7 +110,7 @@ public class HaxmAlert extends JPanel {
           final Runnable action = AccelerationErrorSolution.getActionForFix(result, null, () -> refresh(), null);
           myErrorLinkListener = new HyperlinkAdapter() {
               @Override
-              protected void hyperlinkActivated(HyperlinkEvent e) {
+              protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
                 action.run();
               }
             };

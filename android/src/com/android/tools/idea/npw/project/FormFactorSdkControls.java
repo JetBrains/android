@@ -45,8 +45,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +82,7 @@ public class FormFactorSdkControls implements Disposable {
     myLearnMoreLink.setHyperlinkText(message("android.wizard.module.help.choose"));
     myLearnMoreLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         int minApiLevel = getSelectedApiLevel().getMinApiLevel();
         ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel);
         Disposer.register(FormFactorSdkControls.this, chooseApiLevelDialog.getDisposable());

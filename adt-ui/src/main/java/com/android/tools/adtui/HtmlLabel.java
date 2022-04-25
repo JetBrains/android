@@ -34,7 +34,7 @@ public class HtmlLabel extends JEditorPane {
   public HtmlLabel() {
     addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent event) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
           String uri = event.getDescription();
           try {

@@ -39,10 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -160,7 +157,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         myApplyRecommendationLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.use.recommended.values"));
         myApplyRecommendationLabel.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
             mySelectedIdeXmx = myRecommendedIdeXmx;
             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
@@ -247,7 +244,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           DaemonsUi myUi;
 
           @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
+          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myUi = new DaemonsUi(myProject) {
               @Override
               public void dispose() {

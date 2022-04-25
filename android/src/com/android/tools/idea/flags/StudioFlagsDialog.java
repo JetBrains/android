@@ -206,7 +206,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
           HyperlinkLabel resetLink = new HyperlinkLabel("Reset to default");
           resetLink.addHyperlinkListener(new HyperlinkAdapter() {
             @Override
-            protected void hyperlinkActivated(HyperlinkEvent e) {
+            protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
               flagEditor.flagProperty().clearOverride();
             }
           });

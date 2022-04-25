@@ -273,7 +273,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable(false);
         ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
         channelChangedCallback.run();
@@ -333,7 +333,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.setHyperlinkText("Edit");
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         final DynamicWizardHost host = new DialogWrapperHost(null);
         DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup", host) {
           @Override

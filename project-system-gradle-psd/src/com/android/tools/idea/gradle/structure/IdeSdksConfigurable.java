@@ -294,7 +294,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myJdkMovedLabel.setTextWithHyperlink(JDK_MOVED_TEXT);
     myJdkMovedLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         if (myProject != null) {
           showGradleSettings(myProject);
         }
@@ -443,7 +443,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myNdkDownloadHyperlinkLabel.setHyperlinkText("", "Download", " Android NDK.");
     myNdkDownloadHyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         if (validateAndroidSdkPath() != null) {
           Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
           return;
