@@ -19,7 +19,6 @@ import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconne
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
@@ -56,10 +55,10 @@ class ProcessNameMonitorImplTest {
       flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
 
       advanceUntilIdle()
-      assertThat(monitor.getProcessNames(device1, 1)).isEqualTo(process1.names)
-      assertThat(monitor.getProcessNames(device2, 2)).isEqualTo(process2.names)
-      assertThat(monitor.getProcessNames(device1, 2)).isNull()
-      assertThat(monitor.getProcessNames(device2, 1)).isNull()
+      assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
+      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
+      assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
+      assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
     }
   }
 
@@ -75,10 +74,10 @@ class ProcessNameMonitorImplTest {
       flows.sendDeviceEvents(Disconnected(device1))
 
       advanceUntilIdle()
-      assertThat(monitor.getProcessNames(device1, 1)).isNull()
-      assertThat(monitor.getProcessNames(device2, 2)).isEqualTo(process2.names)
-      assertThat(monitor.getProcessNames(device1, 2)).isNull()
-      assertThat(monitor.getProcessNames(device2, 1)).isNull()
+      assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isNull()
+      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
+      assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
+      assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
     }
   }
 

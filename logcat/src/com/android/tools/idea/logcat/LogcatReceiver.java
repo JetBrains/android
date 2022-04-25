@@ -214,7 +214,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   }
 
   private @NotNull String getPackageName(int pid) {
-    ProcessNames names = myProcessNameMonitor.getProcessNames(myDevice, pid);
+    ProcessNames names = myProcessNameMonitor.getProcessNames(myDevice.getSerialNumber(), pid);
     return names != null ? names.getApplicationId() : "pid-" + pid;
   }
 

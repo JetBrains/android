@@ -71,8 +71,8 @@ internal open class ProcessNameMonitorImpl @TestOnly @NonInjectable internal con
     }
   }
 
-  override fun getProcessNames(device: IDevice, pid: Int): ProcessNames? {
-    return devices[device.serialNumber]?.getProcessNames(pid)
+  override fun getProcessNames(serialNumber: String, pid: Int): ProcessNames? {
+    return devices[serialNumber]?.getProcessNames(pid)
   }
 
   private fun addDevice(device: IDevice) {
