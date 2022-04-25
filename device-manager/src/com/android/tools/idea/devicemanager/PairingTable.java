@@ -41,7 +41,7 @@ final class PairingTable extends JBTable {
 
     getEmptyText()
       .appendLine("Device is not paired to companion device.")
-      .appendLine("Pair device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, event -> pairDevice());
+      .appendLine("Pair wearable", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, event -> pairWearable());
 
     tableHeader.setReorderingAllowed(false);
     tableHeader.setResizingAllowed(false);
@@ -55,7 +55,7 @@ final class PairingTable extends JBTable {
     });
   }
 
-  private void pairDevice() {
+  private void pairWearable() {
     new WearDevicePairingWizard().show(myProject, myKey.toString());
   }
 

@@ -78,7 +78,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
   }
 
   @Test
-  public void newPairDeviceItemWearOs() {
+  public void newPairWearableItemWearOs() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_28"))
@@ -101,12 +101,12 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     AbstractButton item = (AbstractButton)items.get(5);
 
     assertTrue(item.isEnabled());
-    assertEquals("Pair Device", item.getText());
+    assertEquals("Pair Wearable", item.getText());
     assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
   }
 
   @Test
-  public void newPairDeviceItemApiLevelIsLessThan30() {
+  public void newPairWearableItemApiLevelIsLessThan30() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Pixel_4_API_29"))
@@ -127,12 +127,12 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     AbstractButton item = (AbstractButton)items.get(5);
 
     assertFalse(item.isEnabled());
-    assertEquals("Pair Device", item.getText());
+    assertEquals("Pair Wearable", item.getText());
     assertEquals("Wear pairing requires API level >= 30", item.getToolTipText());
   }
 
   @Test
-  public void newPairDeviceItemAvdDoesntHavePlayStore() {
+  public void newPairWearableItemAvdDoesntHavePlayStore() {
     // Arrange
     JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
     myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
@@ -146,12 +146,12 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     AbstractButton item = (AbstractButton)items.get(5);
 
     assertFalse(item.isEnabled());
-    assertEquals("Pair Device", item.getText());
+    assertEquals("Pair Wearable", item.getText());
     assertEquals("Wear pairing requires Google Play", item.getToolTipText());
   }
 
   @Test
-  public void newPairDeviceItem() {
+  public void newPairWearableItem() {
     // Arrange
     AvdInfo avd = Mockito.mock(AvdInfo.class);
     Mockito.when(avd.hasPlayStore()).thenReturn(true);
@@ -177,7 +177,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     AbstractButton item = (AbstractButton)items.get(5);
 
     assertTrue(item.isEnabled());
-    assertEquals("Pair Device", item.getText());
+    assertEquals("Pair Wearable", item.getText());
     assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
 
     assertTrue(items.get(6) instanceof Separator);

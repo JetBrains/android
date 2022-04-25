@@ -41,14 +41,14 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
 
     items.add(MenuItems.newViewDetailsItem(myPanel));
     optionalItem.ifPresent(item -> items.add(new Separator()));
-    items.add(newPairDeviceItem());
+    items.add(newPairWearableItem());
     optionalItem.ifPresent(items::add);
 
     return items;
   }
 
-  private @NotNull JComponent newPairDeviceItem() {
-    JComponent item = newPairDeviceItem(EventKind.PHYSICAL_PAIR_DEVICE_ACTION);
+  private @NotNull JComponent newPairWearableItem() {
+    JComponent item = newPairWearableItem(EventKind.PHYSICAL_PAIR_DEVICE_ACTION);
 
     boolean phone = myDevice.getType().equals(DeviceType.PHONE);
     boolean online = myDevice.isOnline();

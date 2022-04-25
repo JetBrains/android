@@ -60,8 +60,8 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
   @VisibleForTesting
   public abstract @NotNull List<@NotNull JComponent> newItems();
 
-  protected final @NotNull JComponent newPairDeviceItem(@NotNull EventKind kind) {
-    AbstractButton item = new JBMenuItem("Pair Device");
+  protected final @NotNull JComponent newPairWearableItem(@NotNull EventKind kind) {
+    AbstractButton item = new JBMenuItem("Pair Wearable");
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()

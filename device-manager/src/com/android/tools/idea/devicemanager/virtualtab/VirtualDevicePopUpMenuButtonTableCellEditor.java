@@ -175,7 +175,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   }
 
   private @NotNull JComponent newPairDeviceItem() {
-    JComponent item = newPairDeviceItem(EventKind.VIRTUAL_PAIR_DEVICE_ACTION);
+    JComponent item = newPairWearableItem(EventKind.VIRTUAL_PAIR_DEVICE_ACTION);
     VirtualDevice device = getDevice();
 
     item.setEnabled(device.isPairable());
