@@ -108,7 +108,8 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       packageHash,
       offset,
       lineNumber,
-      flags
+      flags,
+      anchorHash
     )
 
     composeFlags = composeFlags or flags

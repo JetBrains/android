@@ -180,6 +180,7 @@ class AppInspectionInspectorClientTest {
     composeCommands.take().let { command ->
       assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isFalse()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
     // View Inspector layout event -> Compose Inspector get composables commands
     composeCommands.take().let { command ->
@@ -192,6 +193,7 @@ class AppInspectionInspectorClientTest {
     composeCommands.take().let { command ->
       assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
   }
 
@@ -224,6 +226,7 @@ class AppInspectionInspectorClientTest {
     composeCommands.take().let { command ->
       assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
       assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
+      assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
     // View Inspector layout event -> Compose Inspector get composables commands
     composeCommands.take().let { command ->

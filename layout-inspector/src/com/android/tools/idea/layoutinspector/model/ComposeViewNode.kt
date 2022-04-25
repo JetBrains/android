@@ -130,7 +130,10 @@ class ComposeViewNode(
   var composeLineNumber: Int,
 
   /** Flags as defined byh the FLAG_* constants above. */
-  var composeFlags: Int
+  var composeFlags: Int,
+
+  /** The hash of an anchor which can identify the composable after a recomposition. */
+  var anchorHash: Int
 ): ViewNode(drawId, qualifiedName, layout, x, y, width, height, transformedBounds, viewId, textValue, layoutFlags) {
 
   val recompositions = RecompositionData(recomposeCount, recomposeSkips)

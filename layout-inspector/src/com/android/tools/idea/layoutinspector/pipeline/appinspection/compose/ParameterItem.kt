@@ -157,6 +157,7 @@ class ParameterGroupItem(
  */
 class ParameterReference(
   val nodeId: Long,
+  val anchorHash: Int,
   val kind: ParameterKind,
   val parameterIndex: Int,
   val indices: IntArray

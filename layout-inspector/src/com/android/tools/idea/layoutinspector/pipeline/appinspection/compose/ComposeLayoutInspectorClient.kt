@@ -173,24 +173,26 @@ class ComposeLayoutInspectorClient(
    */
   private var lastGenerationReset = 0
 
-  suspend fun getComposeables(rootViewId: Long, newGeneration: Int): GetComposablesResult {
+  suspend fun getComposeables(rootViewId: Long, newGeneration: Int, forSnapshot: Boolean): GetComposablesResult {
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         generation = lastGeneration
+        extractAllParameters = forSnapshot
       }.build()
     }
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
     return GetComposablesResult(response.getComposablesResponse, lastGenerationReset >= newGeneration)
   }
 
-  suspend fun getParameters(rootViewId: Long, composableId: Long): GetParametersResponse {
+  suspend fun getParameters(rootViewId: Long, composableId: Long, anchorHash: Int): GetParametersResponse {
     val response = messenger.sendCommand {
       getParametersCommand = GetParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         this.composableId = composableId
+        this.anchorHash = anchorHash
         generation = lastGeneration
       }.build()
     }
@@ -221,6 +223,7 @@ class ComposeLayoutInspectorClient(
         this.maxElements = maxElements
         referenceBuilder.apply {
           composableId = reference.nodeId
+          anchorHash = reference.anchorHash
           kind = reference.kind.convert()
           parameterIndex = reference.parameterIndex
           addAllCompositeIndex(reference.indices.asIterable())
@@ -235,6 +238,7 @@ class ComposeLayoutInspectorClient(
     val response = messenger.sendCommand {
       updateSettingsCommand = UpdateSettingsCommand.newBuilder().apply {
         includeRecomposeCounts = treeSettings.showRecompositions
+        delayParameterExtractions = true
       }.build()
     }
     if (response.hasUpdateSettingsResponse()) {

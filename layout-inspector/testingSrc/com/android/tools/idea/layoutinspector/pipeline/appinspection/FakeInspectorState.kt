@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
+import com.google.common.truth.Truth.assertThat
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -365,6 +366,7 @@ class FakeInspectorState(
     viewId = 6
     ComposableNode {
       id = -2 // -1 reserved by inspectorModel
+      anchorHash = 102
       packageHash = 1
       filename = 2
       name = 4
@@ -373,12 +375,14 @@ class FakeInspectorState(
 
       ComposableNode {
         id = -3
+        anchorHash = 103
         packageHash = 1
         filename = 2
         name = 5
 
         ComposableNode {
           id = -4
+          anchorHash = 104
           packageHash = 1
           filename = 2
           name = 6
@@ -388,6 +392,7 @@ class FakeInspectorState(
 
       ComposableNode {
         id = -5
+        anchorHash = 105
         packageHash = 1
         filename = 3
         name = 7
@@ -395,12 +400,14 @@ class FakeInspectorState(
 
       ComposableNode {
         id = -6
+        anchorHash = 106
         packageHash = 1
         filename = 3
         name = 8
 
         ComposableNode {
           id = -7
+          anchorHash = 107
           packageHash = 1
           filename = 3
           name = 9
@@ -416,6 +423,7 @@ class FakeInspectorState(
     viewId = 6
     ComposableNode {
       id = -2 // -1 reserved by inspectorModel
+      anchorHash = 102
       packageHash = 1
       filename = 2
       name = 4
@@ -491,6 +499,7 @@ class FakeInspectorState(
           index = 0
           Reference {
             composableId = -5
+            anchorHash = 105
             kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
           }
@@ -508,6 +517,7 @@ class FakeInspectorState(
           index = 11
           Reference {
             composableId = -5
+            anchorHash = 105
             kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
             addCompositeIndex(11)
@@ -560,6 +570,7 @@ class FakeInspectorState(
         index = 3
         Reference {
           composableId = -5
+          anchorHash = 105
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
           addAllCompositeIndex(listOf(11, 3))
@@ -599,6 +610,7 @@ class FakeInspectorState(
       index = 3
       Reference {
         composableId = -5
+        anchorHash = 105
         kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
         parameterIndex = 1
         addAllCompositeIndex(listOf(11, 3))
@@ -681,6 +693,7 @@ class FakeInspectorState(
         referenceBuilder.apply {
           generation = 2
           composableId = -5L
+          anchorHash = 105
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
           addCompositeIndex(11)
@@ -699,6 +712,7 @@ class FakeInspectorState(
         referenceBuilder.apply {
           generation = 2
           composableId = -5L
+          anchorHash = 105
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
           addAllCompositeIndex(listOf(11, 3))
@@ -718,6 +732,7 @@ class FakeInspectorState(
         rootViewId = 1L
         referenceBuilder.apply {
           composableId = -5L
+          anchorHash = 105
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
           addAllCompositeIndex(listOf(11, 3))
@@ -796,6 +811,7 @@ class FakeInspectorState(
       LayoutInspectorComposeProtocol.Response.newBuilder().apply {
         getParametersResponseBuilder.apply {
           parameterGroups.firstOrNull { it.composableId == command.getParametersCommand.composableId }?.let { group ->
+            assertThat(100L - command.getParametersCommand.anchorHash).isEqualTo(command.getParametersCommand.composableId)
             addAllStrings(composeStrings)
             parameterGroup = group
           }

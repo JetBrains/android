@@ -94,6 +94,11 @@ class AppInspectionPropertiesProviderTest {
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
 
+    // Check that generated getComposablesCommands has the `extractAllParameters` set in snapshot mode.
+    inspectionRule.composeInspector.listenWhen({it.hasGetComposablesCommand()}) { command ->
+      assertThat(command.getComposablesCommand.extractAllParameters).isEqualTo(!InspectorClientSettings.isCapturingModeOn)
+    }
+
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
     inspectorRule.attachDevice(MODERN_DEVICE)

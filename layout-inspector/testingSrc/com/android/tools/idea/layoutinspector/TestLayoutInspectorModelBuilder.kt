@@ -180,7 +180,7 @@ class InspectorViewDescriptor(private val drawId: Long,
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
       else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0, composeCount, composeSkips,
-                           composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags)
+                           composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags, 0)
     ViewNode.writeAccess {
       children.forEach {
         when (it) {

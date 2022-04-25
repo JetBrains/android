@@ -278,7 +278,7 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
+    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.id, generation, !isFetchingContinuously)
 
     val data = Data(
       generation,
@@ -390,7 +390,7 @@ class ViewLayoutInspectorClient(
       val composeInfo = composeInspector?.let { composeInspector ->
         generation++
         snapshotResponse.windowRoots.idsList.associateWith { id ->
-          Pair(composeInspector.getComposeables(id, generation),
+          Pair(composeInspector.getComposeables(id, generation, forSnapshot = true),
                composeInspector.getAllParameters(id))
         }
       } ?: mapOf()

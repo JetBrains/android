@@ -57,6 +57,7 @@ fun LayoutInspectorComposeProtocol.ParameterReference.convert(): ParameterRefere
   }
   return ParameterReference(
     composableId,
+    anchorHash,
     kind.convert(),
     parameterIndex,
     convertCompositeIndexList(compositeIndexList)
