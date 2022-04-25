@@ -35,16 +35,15 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
  * @param format InsertionFormat to handle the rest of the completion. See different implementations of [InsertionFormat] for more.
  */
 fun CompletionResultSet.addLookupElement(lookupString: String, tailText: String? = null, format: InsertionFormat? = null) {
-  var lookupBuilder = if (format == null) {
-    LookupElementBuilder.create(lookupString)
-  }
-  else {
+  // Populate the lookupObject param to allow multiple LookupElements with the same lookupString, differentiated by the tailText.
+  var lookupBuilder = LookupElementBuilder.create(tailText ?: lookupString, lookupString)
+  if (format != null) {
     val insertionHandler = when (format) {
       is LiteralWithCaretFormat -> FormatWithCaretInsertHandler(format)
       is LiteralNewLineFormat -> FormatWithNewLineInsertHandler(format)
       is LiveTemplateFormat -> FormatWithLiveTemplateInsertHandler(format)
     }
-    LookupElementBuilder.create(lookupString).withInsertHandler(insertionHandler)
+    lookupBuilder = lookupBuilder.withInsertHandler(insertionHandler)
   }
   lookupBuilder = lookupBuilder.withCaseSensitivity(false)
   if (tailText != null) {

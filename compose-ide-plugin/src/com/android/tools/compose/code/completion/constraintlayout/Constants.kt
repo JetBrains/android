@@ -41,6 +41,15 @@ internal object KeyWords {
    * Name of the Visibility property in a constraint block.
    */
   const val Visibility = "visibility"
+
+  /**
+   * Name of the Clear property in a constraint block.
+   *
+   * Populated by an array of options to clear inherited parameters from [Extends].
+   *
+   * @see ClearOption
+   */
+  const val Clear = "clear"
 }
 
 /**
@@ -122,6 +131,12 @@ internal enum class VisibilityMode(override val keyWord: String): ConstraintLayo
   Visible("visible"),
   Invisible("invisible"),
   Gone("gone")
+}
+
+internal enum class ClearOption(override val keyWord: String): ConstraintLayoutKeyWord {
+  Constraints("constraints"),
+  Dimensions("dimensions"),
+  Transforms("transforms")
 }
 
 internal enum class TransitionField(override val keyWord: String): ConstraintLayoutKeyWord {

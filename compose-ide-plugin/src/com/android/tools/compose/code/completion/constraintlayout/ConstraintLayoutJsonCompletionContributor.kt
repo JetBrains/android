@@ -16,6 +16,7 @@
 package com.android.tools.compose.code.completion.constraintlayout
 
 import com.android.tools.compose.code.completion.constraintlayout.provider.AnchorablesProvider
+import com.android.tools.compose.code.completion.constraintlayout.provider.ClearOptionsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintIdsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
@@ -97,6 +98,13 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
         .withParent(psiElement<JsonStringLiteral>().atIndexOfJsonArray(1))
         .insideConstraintArray(),
       AnchorablesProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete a clear option within the 'clear' array
+      jsonStringValue()
+        .insideClearArray(),
+      ClearOptionsProvider
     )
     extend(
       CompletionType.BASIC,

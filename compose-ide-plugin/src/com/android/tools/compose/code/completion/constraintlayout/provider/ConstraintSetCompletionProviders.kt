@@ -15,11 +15,13 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
+import com.android.tools.compose.code.completion.constraintlayout.ClearOption
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
 import com.android.tools.compose.code.completion.constraintlayout.Dimension
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonNumericValueTemplate
+import com.android.tools.compose.code.completion.constraintlayout.JsonStringArrayTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
@@ -32,11 +34,14 @@ import com.android.tools.compose.code.completion.constraintlayout.provider.model
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintsModel
 import com.android.tools.compose.completion.addLookupElement
 import com.android.tools.compose.completion.inserthandler.InsertionFormat
+import com.android.tools.compose.completion.inserthandler.LiteralWithCaretFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.json.psi.JsonArray
 import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonProperty
+import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
@@ -139,7 +144,8 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
     parameters: CompletionParameters,
     result: CompletionResultSet
   ) {
-    val currentConstraintsModel = getJsonPropertyParent(parameters)?.let { ConstraintsModel(it) }
+    val jsonPropertyParent = getJsonPropertyParent(parameters)
+    val currentConstraintsModel = jsonPropertyParent?.let { ConstraintsModel(it) }
     val existingFields = currentConstraintsModel?.declaredFieldNames?.toHashSet() ?: emptySet<String>()
     StandardAnchor.values().forEach {
       if (!existingFields.contains(it.keyWord)) {
@@ -152,6 +158,20 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
     result.addEnumKeyWordsWithStringValueTemplate<SpecialAnchor>(existingFields)
     result.addEnumKeyWordsWithNumericValueTemplate<Dimension>(existingFields)
     result.addEnumKeyWordsWithNumericValueTemplate<RenderTransform>(existingFields)
+
+    // Complete 'clear' if the containing ConstraintSet has `extendsFrom`
+    val containingConstraintSetModel = jsonPropertyParent?.parentOfType<JsonProperty>(withSelf = false)?.let { ConstraintSetModel(it) }
+    if (containingConstraintSetModel?.extendsFrom != null) {
+      // Add an option with an empty string array and another one with all clear options
+      result.addLookupElement(lookupString = KeyWords.Clear, format = JsonStringArrayTemplate)
+      result.addLookupElement(
+        lookupString = KeyWords.Clear,
+        tailText = " [<all>]",
+        format = LiteralWithCaretFormat(
+          literalFormat = ": ['${ClearOption.Constraints}', '${ClearOption.Dimensions}', '${ClearOption.Transforms}'],"
+        )
+      )
+    }
   }
 }
 
@@ -198,6 +218,25 @@ internal object AnchorablesProvider : BaseConstraintSetsCompletionProvider() {
       else -> emptyList()
     }
     possibleAnchors.forEach { result.addLookupElement(lookupString = it.keyWord) }
+  }
+}
+
+/**
+ * Provides the appropriate options when completing string literals within a `clear` array.
+ *
+ * @see ClearOption
+ */
+internal object ClearOptionsProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    val existing = parameters.position.parentOfType<JsonArray>(withSelf = false)?.valueList
+                     ?.filterIsInstance<JsonStringLiteral>()
+                     ?.map { it.value }
+                     ?.toSet() ?: emptySet()
+    addEnumKeywords<ClearOption>(result, existing)
   }
 }
 

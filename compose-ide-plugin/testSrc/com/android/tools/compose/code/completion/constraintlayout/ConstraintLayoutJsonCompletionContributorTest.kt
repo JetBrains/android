@@ -358,6 +358,59 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     """.trimIndent())
     assertThat(myFixture.lookupElementStrings!!).containsExactly("e", "f", "g", "h")
   }
+
+  @Test
+  fun completeClearField() {
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          a: {},
+          b: {
+            Extends: 'a',
+            box: {
+              clea$caret
+            }
+          },
+        }
+      }
+    """.trimIndent())
+    // The repeated clear is to autocomplete with all options populated
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("clear", "clear")
+  }
+
+  @Test
+  fun completeClearOptions() {
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          a: {},
+          b: {
+            Extends: 'a',
+            box: {
+              clear: ['$caret'],
+            }
+          },
+        }
+      }
+    """.trimIndent())
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("constraints", "dimensions", "transforms")
+
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          a: {},
+          b: {
+            Extends: 'a',
+            box: {
+              clear: ['constraints', '$caret'],
+            }
+          },
+        }
+      }
+    """.trimIndent())
+    // 'constraints' options is already populated
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("dimensions", "transforms")
+  }
 }
 
 private fun CodeInsightTestFixture.completeJson5Text(@Language("JSON5") text: String) {

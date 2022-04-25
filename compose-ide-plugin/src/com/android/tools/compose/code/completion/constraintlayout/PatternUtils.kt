@@ -25,6 +25,7 @@ import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PsiElementPattern
 import com.intellij.patterns.StandardPatterns
+import com.intellij.patterns.StringPattern
 import com.intellij.psi.PsiElement
 import com.intellij.util.ProcessingContext
 
@@ -37,13 +38,27 @@ internal fun jsonStringValue() =
 internal fun PsiElementPattern<*, *>.withConstraintSetsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.ConstraintSets)
 internal fun PsiElementPattern<*, *>.withTransitionsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.Transitions)
 
-internal fun PsiElementPattern<*, *>.insideConstraintArray() =
+internal fun PsiElementPattern<*, *>.insideClearArray() = inArrayWithinConstraintBlockProperty {
+  // For the 'clear' constraint block property
+  matches(KeyWords.Clear)
+}
+
+internal fun PsiElementPattern<*, *>.insideConstraintArray() = inArrayWithinConstraintBlockProperty {
+  // The parent property name may only be a StandardAnchor
+  oneOf(StandardAnchor.values().map { it.keyWord })
+}
+
+/**
+ * [PsiElementPattern] that matches an element in a [JsonArray] within a Constraint block. Where the property the array is assigned to, has
+ * a name that is matched by [matchPropertyName].
+ */
+internal fun PsiElementPattern<*, *>.inArrayWithinConstraintBlockProperty(matchPropertyName: StringPattern.() -> StringPattern) =
   withSuperParent(2, psiElement<JsonArray>())
     .withSuperParent(
       BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + 1, // JsonArray adds one level
       psiElement<JsonProperty>().withChild(
-        // The parent property name may only be a StandardAnchor
-        psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(StandardAnchor.values().map { it.keyWord }))
+        // The first expression in a JsonProperty corresponds to the name of the property
+        psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().matchPropertyName())
       )
     )
     .withConstraintSetsParentAtLevel(CONSTRAINT_BLOCK_PROPERTY_DEPTH + 1) // JsonArray adds one level

@@ -25,4 +25,6 @@ internal val JsonNumericValueTemplate = LiteralWithCaretFormat(": |,")
 
 internal val JsonNewObjectTemplate = LiteralNewLineFormat(": {\n}")
 
+internal val JsonStringArrayTemplate = LiteralWithCaretFormat(": ['|'],")
+
 internal val ConstrainAnchorTemplate = LiveTemplateFormat(": ['<>', '<>', <0>],")
