@@ -10,6 +10,7 @@ iml_module(
     ],
     iml_files = ["intellij.android.logcat.iml"],
     resources = ["resources"],
+    test_resources = ["testResources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
