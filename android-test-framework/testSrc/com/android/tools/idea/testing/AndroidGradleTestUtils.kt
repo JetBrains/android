@@ -1740,8 +1740,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncExceptionHandler: (Exception) -> Unit = { e ->
     println(e.message)
     e.printStackTrace()
-  },
-  val doNotClearKotlinPluginCompilerArgumentCaches_bug228441874: Boolean = false
+  }
 )
 
 /**
@@ -1776,12 +1775,11 @@ private fun <T> openPreparedProject(
   fun body(): T {
     val project = runInEdtAndGet {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-      // TODO(b/215522894): Remove when fixed in the Koltin IDE plugin.
-      if (!options.doNotClearKotlinPluginCompilerArgumentCaches_bug228441874) {
-        // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
-        // that cannot be reproduced otherwise.
-        clearKotlinPluginCompilerArgumentCaches()
-      }
+
+      // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
+      // that cannot be reproduced otherwise.
+      clearKotlinPluginCompilerArgumentCaches()
+
       val project = GradleProjectImporter.withAfterCreate(
         afterCreate = { project -> injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler) }
       ) {

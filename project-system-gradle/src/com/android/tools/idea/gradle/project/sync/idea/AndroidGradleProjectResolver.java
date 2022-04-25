@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueMod
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.findSourceSetDataForArtifact;
+import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.preserveKotlinUserDataInDataNodes;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -150,6 +151,8 @@ import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel;
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel;
@@ -180,6 +183,16 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
     com.intellij.openapi.externalSystem.model.Key.create(VariantProjectDataNodes.class, 1 /* not used */);
 
+  /**
+   * Stores a collection of internal in-memory properties used by Kotlin 1.6.20 IDE plugin so that they can be restored when the data node
+   * tree is re-used to re-import a build variant it represents.
+   * <p>
+   * NOTE: This key/data is not directly processed by any data importers.
+   */
+  @NotNull public static final com.intellij.openapi.externalSystem.model.Key<KotlinProperties>
+    KOTLIN_PROPERTIES =
+    com.intellij.openapi.externalSystem.model.Key.create(KotlinProperties.class, 1 /* not used */);
+
   public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
 
@@ -195,6 +208,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private final Map<GradleProjectPath, DataNode<? extends ModuleData>> myModuleDataByGradlePath = new LinkedHashMap<>();
   private final Map<String, GradleProjectPath> myGradlePathByModuleId = new LinkedHashMap<>();
   private IdeResolvedLibraryTable myResolvedModuleDependencies = null;
+  private final List<Long> myKotlinCacheOriginIdentifiers = new ArrayList<>();
 
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs());
@@ -216,6 +230,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // Similarly for KAPT.
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY, true);
     myResolvedModuleDependencies = null;
+    myKotlinCacheOriginIdentifiers.clear();
     super.setProjectResolverContext(projectResolverContext);
   }
 
@@ -236,6 +251,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels != null ? androidModels.getAndroidProject() : null);
 
     registerModuleData(gradleModule, moduleDataNode);
+    recordKotlinCacheOriginIdentifiers(gradleModule);
+
     return moduleDataNode;
   }
 
@@ -260,6 +277,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
           myGradlePathByModuleId.put(node.getData().getId(), gradleProjectPath);
         }
       });
+    }
+  }
+
+  private void recordKotlinCacheOriginIdentifiers(@NotNull IdeaModule gradleModule) {
+    var mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel.class);
+    var kotlinModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel.class);
+    if (mppModel != null && kotlinModel != null) {
+      if (mppModel.getPartialCacheAware().getCacheOriginIdentifier() != kotlinModel.getPartialCacheAware().getCacheOriginIdentifier()) {
+        throw new IllegalStateException("Mpp and Kotlin model cacheOriginIdentifier's do not match");
+      }
+    }
+    var cacheOriginIdentifier = 0L;
+    if (mppModel != null) cacheOriginIdentifier = mppModel.getPartialCacheAware().getCacheOriginIdentifier();
+    if (kotlinModel != null) cacheOriginIdentifier = kotlinModel.getPartialCacheAware().getCacheOriginIdentifier();
+    if (cacheOriginIdentifier != 0L) {
+      myKotlinCacheOriginIdentifiers.add(cacheOriginIdentifier);
     }
   }
 
@@ -758,6 +791,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @SuppressWarnings("UnstableApiUsage")
   @Override
   public void resolveFinished(@NotNull DataNode<ProjectData> projectDataNode) {
+    preserveKotlinUserDataInDataNodes(projectDataNode, myKotlinCacheOriginIdentifiers);
     disableOrphanModuleNotifications();
   }
 

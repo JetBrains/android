@@ -28,7 +28,6 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
@@ -449,11 +448,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "release")
       debugSnapshot to project.saveAndDump()
     }
-    openPreparedProject(
-      "project",
-      // TODO(b/228441874): Switching variants after re-opening does not work for projects using Kotlin. Remove when fixed.
-      options = OpenPreparedProjectOptions(doNotClearKotlinPluginCompilerArgumentCaches_bug228441874 = true)
-    ) { project ->
+    openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
