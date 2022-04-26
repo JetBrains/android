@@ -19,6 +19,7 @@ import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -209,14 +210,45 @@ class RuleDetailsViewTest {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val originPanel = ruleDetailsView.getCategoryPanel("Origin") as JPanel
+    val protocolComponent = originPanel.getValueComponent("Protocol") as CommonComboBox<*, *>
+    assertThat(protocolComponent.getModel().text).isEqualTo("https")
+    protocolComponent.setSelectedIndex(1)
+
     val urlComponent = originPanel.getValueComponent("Host url") as JTextField
     assertThat(urlComponent.text).isEmpty()
     val url = "www.google.com"
     urlComponent.text = url
     urlComponent.onFocusLost()
+
+    val portComponent = originPanel.getValueComponent("Port") as JTextField
+    assertThat(portComponent.text).isEmpty()
+    portComponent.text = "8080"
+    portComponent.onFocusLost()
+
+    val pathComponent = originPanel.getValueComponent("Path") as JTextField
+    assertThat(pathComponent.text).isEmpty()
+    pathComponent.text = "/path"
+    pathComponent.onFocusLost()
+
+    val queryComponent = originPanel.getValueComponent("Query") as JTextField
+    assertThat(queryComponent.text).isEmpty()
+    queryComponent.text = "/query"
+    queryComponent.onFocusLost()
+
+    val methodComponent = originPanel.getValueComponent("Method") as CommonComboBox<*, *>
+    assertThat(methodComponent.getModel().text).isEqualTo("GET")
+    methodComponent.setSelectedIndex(1)
+
     assertThat(rule.criteria.host).isEqualTo(url)
     client.verifyLatestCommand {
-      assertThat(it.interceptRuleAdded.rule.criteria.host).isEqualTo(url)
+      it.interceptRuleAdded.rule.criteria.also { criteria ->
+        assertThat(criteria.protocol).isEqualTo("http")
+        assertThat(criteria.host).isEqualTo(url)
+        assertThat(criteria.port).isEqualTo("8080")
+        assertThat(criteria.path).isEqualTo("/path")
+        assertThat(criteria.query).isEqualTo("/query")
+        assertThat(criteria.method).isEqualTo("POST")
+      }
     }
   }
 

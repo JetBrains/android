@@ -20,6 +20,8 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
+import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.createDecoratedTable
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
@@ -38,6 +40,7 @@ import javax.swing.JPanel
 
 private const val MINIMUM_DETAILS_VIEW_WIDTH = 400
 const val TEXT_LABEL_WIDTH = 220
+const val NUMBER_LABEL_WIDTH = 80
 
 /**
  * View to display a single network interception rule and its detailed information.
@@ -81,16 +84,8 @@ class RuleDetailsView : JPanel() {
         }
       )
     )
-    detailsPanel.add(createCategoryPanel("Origin", listOf(
-      createKeyValuePair(
-        "Host url",
-        createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text ->
-          rule.criteria.apply {
-            host = text
-          }
-        }
-      )
-    )))
+
+    detailsPanel.add(createOriginCategoryPanel(rule))
 
     detailsPanel.add(createCategoryPanel("Header rules", listOf(
       createRulesTable(rule.headerRuleTableModel)
@@ -103,6 +98,39 @@ class RuleDetailsView : JPanel() {
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
     detailsPanel.isOpaque
+  }
+
+  private fun createOriginCategoryPanel(rule: RuleData): JPanel {
+    val protocolComboBox = CommonComboBox(DefaultCommonComboBoxModel("", listOf("https", "http"))).apply {
+      isEditable = false
+      selectedIndex = 0
+      addActionListener {
+        rule.criteria.protocol = selectedItem?.toString() ?: ""
+      }
+    }
+    val urlTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text ->
+      rule.criteria.apply {
+        host = text
+      }
+    }
+    val portTextField = createTextField(rule.criteria.host, NUMBER_LABEL_WIDTH) { text -> rule.criteria.port = text }
+    val pathTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text -> rule.criteria.path = text }
+    val queryTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text -> rule.criteria.query = text }
+    val methodComboBox = CommonComboBox(DefaultCommonComboBoxModel("", listOf("GET", "POST"))).apply {
+      isEditable = false
+      selectedIndex = 0
+      addActionListener {
+        rule.criteria.method = selectedItem?.toString() ?: ""
+      }
+    }
+    return createCategoryPanel("Origin", listOf(
+      createKeyValuePair("Protocol", protocolComboBox),
+      createKeyValuePair("Host url", urlTextField),
+      createKeyValuePair("Port", portTextField),
+      createKeyValuePair("Path", pathTextField),
+      createKeyValuePair("Query", queryTextField),
+      createKeyValuePair("Method", methodComboBox)
+    ))
   }
 
   private fun createRulesTable(model: ListTableModel<RuleData.TransformationRuleData>): JComponent {

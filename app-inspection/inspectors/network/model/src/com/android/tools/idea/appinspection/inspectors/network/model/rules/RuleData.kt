@@ -55,13 +55,14 @@ class RuleData(
   }
 
   inner class CriteriaData(
-    var protocol: String = "https",
+    protocol: String = "",
     host: String = "",
     port: String = "",
     path: String = "",
     query: String = "",
     method: String = ""
   ) {
+    var protocol: String by Delegate(protocol, ruleDataListener::onRuleDataChanged)
     var host: String by Delegate(host, ruleDataListener::onRuleDataChanged)
     var port: String by Delegate(port, ruleDataListener::onRuleDataChanged)
     var path: String by Delegate(path, ruleDataListener::onRuleDataChanged)
