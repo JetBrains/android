@@ -34,8 +34,8 @@ private const val PROP_AVD_NAME_PRE_31 = "ro.kernel.qemu.avd_name"
 internal class TestDevice(
   val serialNumber: String,
   state: DeviceState,
-  val release: String,
-  val sdk: String,
+  val release: Int,
+  val sdk: Int,
   val manufacturer: String,
   val model: String,
   val avdName: String,
@@ -50,8 +50,8 @@ internal class TestDevice(
   }
 
   private val properties = mapOf(
-    PROP_RELEASE to release,
-    PROP_SDK to sdk,
+    PROP_RELEASE to "$release",
+    PROP_SDK to "$sdk",
     PROP_MANUFACTURER to manufacturer,
     PROP_MODEL to model,
     PROP_AVD_NAME to avdName,

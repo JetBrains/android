@@ -345,7 +345,7 @@ class LogcatMainPanelTest {
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
     val device = mockDevice("device1")
-    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "Google", "Pixel", "")
+    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbLibSession.hostServices.setDevices(testDevice)
@@ -367,8 +367,8 @@ class LogcatMainPanelTest {
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
     val device1 = mockDevice("device1")
     val device2 = mockDevice("device2")
-    val testDevice1 = TestDevice(device1.serialNumber, DeviceState.ONLINE, "11", "30", "Google", "Pixel", "")
-    val testDevice2 = TestDevice(device2.serialNumber, DeviceState.ONLINE, "11", "30", "Google", "Pixel", "")
+    val testDevice1 = TestDevice(device1.serialNumber, DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice2 = TestDevice(device2.serialNumber, DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbAdapter.mutableDevices.addAll(listOf(device1, device2))
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice1)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice2)
@@ -391,7 +391,7 @@ class LogcatMainPanelTest {
   @Test
   fun identifiesIDeviceFromDevice() {
     val device = mockDevice("device1")
-    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "Google", "Pixel", "")
+    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbLibSession.hostServices.setDevices(testDevice)
@@ -406,7 +406,7 @@ class LogcatMainPanelTest {
   @Test
   fun identifiesIDeviceFromDevice_emulator() {
     val device = mockDevice("emulator-1", "avd1")
-    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "", "", avdName = "avd1")
+    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, 11, 30, "", "", avdName = "avd1")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbLibSession.hostServices.setDevices(testDevice)
@@ -421,7 +421,7 @@ class LogcatMainPanelTest {
   @Test
   fun identifiesIDeviceFromDevice_emulatorWithLegacyAvdName() {
     val device = mockDevice("emulator-1", "avd1")
-    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "", "", avdName = "", avdNamePre31 = "avd1")
+    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, 11, 30, "", "", avdName = "", avdNamePre31 = "avd1")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbLibSession.hostServices.setDevices(testDevice)
@@ -436,7 +436,7 @@ class LogcatMainPanelTest {
   @Test
   fun identifiesIDeviceFromDevice_emulatorWithoutAvdName() {
     val device = mockDevice("emulator-1", "avd1")
-    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, "11", "30", "", "", avdName = "", avdNamePre31 = "")
+    val testDevice = TestDevice(device.serialNumber, DeviceState.ONLINE, 11, 30, "", "", avdName = "", avdNamePre31 = "")
     fakeAdbAdapter.mutableDevices.add(device)
     fakeAdbLibSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbLibSession.hostServices.setDevices(testDevice)

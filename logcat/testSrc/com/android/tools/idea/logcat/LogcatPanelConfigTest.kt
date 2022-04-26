@@ -75,7 +75,7 @@ class LogcatPanelConfigTest {
     """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", "30", "Google", "Pixel 2"))
+      .isEqualTo(Device.createPhysical("HT85F1A00630", false, 11, 30, "Google", "Pixel 2"))
   }
 
   @Test
@@ -103,8 +103,33 @@ class LogcatPanelConfigTest {
     """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createEmulator("emulator-5554", false, "11", "30", "Pixel_4_API_30"))
+      .isEqualTo(Device.createEmulator("emulator-5554", false, 11, 30, "Pixel_4_API_30"))
   }
+
+  @Test
+  fun restoreDeviceStateFromPreviousVersion_intsAsString() {
+    val state = """
+{
+  'device': {
+    'deviceId': 'HT85F1A00630',
+    'name': 'Google Pixel 2',
+    'serialNumber': 'HT85F1A00630',
+    'isOnline': false,
+    'release': '11',
+    'sdk': '30',
+    'isEmulator': false
+  },
+  'formattingConfig': {
+    'preset': 'STANDARD'
+  },
+  'filter': 'tag:ActivityManager ',
+  'isSoftWrap': false
+}    """.trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state)?.device)
+      .isEqualTo(Device.createPhysical("HT85F1A00630", false, 11, 30, "Google", "Pixel 2"))
+  }
+
 }
 
 private fun logcatPanelConfig(

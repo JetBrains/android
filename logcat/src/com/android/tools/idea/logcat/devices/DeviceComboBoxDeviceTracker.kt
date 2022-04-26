@@ -118,7 +118,10 @@ internal class DeviceComboBoxDeviceTracker(
             }
             else {
               val properties = deviceInfo.getProperties(PROP_RELEASE, PROP_SDK)
-              existingDevice.copy(isOnline = true, release = properties.getValue(PROP_RELEASE), sdk = properties.getValue(PROP_SDK))
+              existingDevice.copy(
+                isOnline = true,
+                release = properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
+                sdk = properties.getValue(PROP_SDK).toIntOrNull() ?: 0)
 
             }
             onlineDevicesBySerial[serialNumber] = copy
@@ -151,8 +154,8 @@ internal class DeviceComboBoxDeviceTracker(
       return Device.createEmulator(
         serialNumber,
         isOnline = true,
-        properties.getValue(PROP_RELEASE),
-        properties.getValue(PROP_SDK),
+        properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(PROP_SDK).toIntOrNull() ?: 0,
         getAvdName(properties))
     }
     else {
@@ -160,8 +163,8 @@ internal class DeviceComboBoxDeviceTracker(
       return Device.createPhysical(
         serialNumber,
         isOnline = true,
-        properties.getValue(PROP_RELEASE),
-        properties.getValue(PROP_SDK),
+        properties.getValue(PROP_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(PROP_SDK).toIntOrNull() ?: 0,
         properties.getValue(PROP_MANUFACTURER),
         properties.getValue(PROP_MODEL))
     }

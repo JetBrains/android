@@ -42,7 +42,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 /**
  * Tests for [DeviceComboBoxDeviceTracker]
  */
-@Suppress("EXPERIMENTAL_API_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class DeviceComboBoxDeviceTrackerTest {
   @get:Rule
   val projectRule = ProjectRule()
@@ -51,9 +51,9 @@ class DeviceComboBoxDeviceTrackerTest {
   private val hostServices = adbSession.hostServices
   private val deviceServices = adbSession.deviceServices
 
-  private val device1 = TestDevice("device-1", ONLINE, "release1", "sdk1", "manufacturer1", "model1", avdName = "")
-  private val device2 = TestDevice("device-2", ONLINE, "release2", "sdk2", "manufacturer2", "model2", avdName = "")
-  private val emulator1 = TestDevice("emulator-1", ONLINE, "release1", "sdk1", manufacturer = "", model = "", avdName = "avd1")
+  private val device1 = TestDevice("device-1", ONLINE, 11, 30, "manufacturer1", "model1", avdName = "")
+  private val device2 = TestDevice("device-2", ONLINE, 12, 31, "manufacturer2", "model2", avdName = "")
+  private val emulator1 = TestDevice("emulator-1", ONLINE, 11, 30, manufacturer = "", model = "", avdName = "avd1")
 
   @Before
   fun setUp() {
@@ -80,7 +80,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun emulatorWithLegacyAvdName(): Unit = runBlockingTest {
     val emulator =
-      TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "avd3")
+      TestDevice("emulator-3", ONLINE, 10, 29, manufacturer = "", model = "", avdName = "", avdNamePre31 = "avd3")
     adbSession.deviceServices.setupCommandsForDevice(emulator)
     val deviceTracker = deviceComboBoxDeviceTracker(adbSession = adbSession)
 
@@ -102,7 +102,7 @@ class DeviceComboBoxDeviceTrackerTest {
   @Test
   fun emulatorWithoutAvdProperty(): Unit = runBlockingTest {
     val emulator =
-      TestDevice("emulator-3", ONLINE, "release3", "sdk3", manufacturer = "", model = "", avdName = "", avdNamePre31 = "")
+      TestDevice("emulator-3", ONLINE, 10, 29, manufacturer = "", model = "", avdName = "", avdNamePre31 = "")
     adbSession.deviceServices.setupCommandsForDevice(emulator)
 
     val deviceTracker = deviceComboBoxDeviceTracker(adbSession = adbSession)

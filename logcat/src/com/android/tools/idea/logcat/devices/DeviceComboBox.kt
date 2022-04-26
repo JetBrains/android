@@ -145,7 +145,7 @@ internal class DeviceComboBox(
       if (device.isOnline) {
         append(" (${device.serialNumber})", REGULAR_ATTRIBUTES)
       }
-      append(LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk), GRAY_ATTRIBUTES)
+      append(LogcatBundle.message("logcat.device.combo.version", device.release.toString(), device.sdk.toString()), GRAY_ATTRIBUTES)
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)
       }

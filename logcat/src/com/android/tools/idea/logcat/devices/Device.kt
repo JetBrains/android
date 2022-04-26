@@ -24,8 +24,8 @@ internal data class Device private constructor(
   val name: String,
   val serialNumber: String,
   val isOnline: Boolean,
-  val release: String,
-  val sdk: String,
+  val release: Int,
+  val sdk: Int,
 ) {
 
   val isEmulator: Boolean = serialNumber.startsWith("emulator-")
@@ -34,8 +34,8 @@ internal data class Device private constructor(
     fun createPhysical(
       serialNumber: String,
       isOnline: Boolean,
-      release: String,
-      sdk: String,
+      release: Int,
+      sdk: Int,
       manufacturer: String,
       model: String,
     ): Device {
@@ -45,8 +45,8 @@ internal data class Device private constructor(
     fun createEmulator(
       serialNumber: String,
       isOnline: Boolean,
-      release: String,
-      sdk: String,
+      release: Int,
+      sdk: Int,
       avdName: String,
     ): Device {
       return Device(deviceId = avdName, name = avdName.replace('_', ' '), serialNumber, isOnline, release, sdk)
