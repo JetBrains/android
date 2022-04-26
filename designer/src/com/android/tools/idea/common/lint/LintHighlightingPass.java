@@ -33,6 +33,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ui.UIUtil;
 import java.lang.ref.WeakReference;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -63,11 +64,15 @@ public class LintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    myLintAnnotationsModel = getAnnotations(sceneView.getModel(), progress);
+    myLintAnnotationsModel = getAnnotations(sceneView.getModel());
+    UIUtil.invokeLaterIfNeeded(this::updateLintAnnotationsModelToSurface);
   }
 
   @Override
   public void applyInformationToEditor() {
+  }
+
+  private void updateLintAnnotationsModelToSurface() {
     DesignSurface surface = mySurfaceRef.get();
     if (surface == null) {
       // The surface is gone, no need to keep going
@@ -88,7 +93,7 @@ public class LintHighlightingPass implements HighlightingPass {
   }
 
   @NotNull
-  private static LintAnnotationsModel getAnnotations(@NotNull NlModel model, @NotNull ProgressIndicator progress) {
+  private static LintAnnotationsModel getAnnotations(@NotNull NlModel model) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     LintAnnotationsModel lintModel = new LintAnnotationsModel();
 
@@ -106,10 +111,6 @@ public class LintHighlightingPass implements HighlightingPass {
     }
 
     for (LintProblemData problemData : lintResult.getProblems()) {
-      if (progress.isCanceled()) {
-        break;
-      }
-
       TextRange range = problemData.getTextRange();
       final PsiElement startElement = xmlFile.findElementAt(range.getStartOffset());
       final PsiElement endElement = xmlFile.findElementAt(range.getEndOffset());
