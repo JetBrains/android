@@ -47,9 +47,6 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
    */
   @Override
   public @NotNull ChannelStatus changeDefaultChannel(@NotNull ChannelStatus currentChannel) {
-    if (!ApplicationManager.getApplication().isEAP()) {
-      return ChannelStatus.RELEASE;
-    }
     //TODO find a better way to obtain release channel. (extend AndroidStudioApplicationInfo.xml schema ?)
     String versionName = ApplicationInfo.getInstance().getFullVersion();
     return versionNameToChannelStatus(versionName);
