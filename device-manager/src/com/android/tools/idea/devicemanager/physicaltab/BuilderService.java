@@ -38,9 +38,14 @@ final class BuilderService {
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {
-    String value = device.getSerialNumber();
-    Key key = DeviceUtils.isMdnsAutoConnectTls(value) ? new DomainName(value) : new SerialNumber(value);
+    return new AsyncPhysicalDeviceBuilder(device, parse(device.getSerialNumber())).buildAsync();
+  }
 
-    return new AsyncPhysicalDeviceBuilder(device, key).buildAsync();
+  private static @NotNull Key parse(@NotNull String value) {
+    if (DeviceUtils.isMdnsAutoConnectTls(value)) {
+      return new DomainName(value);
+    }
+
+    return Ipv4Address.parse(value).orElseGet(() -> new SerialNumber(value));
   }
 }

@@ -83,4 +83,17 @@ public final class BuilderServiceTest {
     // Assert
     assertEquals(EnumSet.of(ConnectionType.WI_FI), TestDeviceManagerFutures.get(future).getConnectionTypes());
   }
+
+  @Test
+  public void buildIpv4AddressPresent() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("192.168.1.123:5555");
+
+    // Act
+    Future<PhysicalDevice> future = myService.build(myDevice);
+
+    // Assert
+    assertEquals(EnumSet.of(ConnectionType.WI_FI), TestDeviceManagerFutures.get(future).getConnectionTypes());
+  }
 }

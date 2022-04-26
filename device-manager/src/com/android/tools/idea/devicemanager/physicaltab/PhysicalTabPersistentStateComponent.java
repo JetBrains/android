@@ -239,6 +239,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       @NotNull Key newKey(@NotNull String value) {
         return new DomainName(value);
       }
+    },
+
+    IPV4_ADDRESS {
+      @Override
+      @NotNull Key newKey(@NotNull String value) {
+        return Ipv4Address.parse(value).orElseThrow();
+      }
     };
 
     private static @NotNull KeyType get(@NotNull Key key) {
@@ -248,6 +255,10 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       if (key instanceof DomainName) {
         return DOMAIN_NAME;
+      }
+
+      if (key instanceof Ipv4Address) {
+        return IPV4_ADDRESS; // TODO(b/199905897): do not persist IP address keys
       }
 
       throw new AssertionError(key);
