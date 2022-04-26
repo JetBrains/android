@@ -179,3 +179,34 @@ internal enum class OnSwipeMode(override val keyWord: String): ConstraintLayoutK
   Velocity("velocity"),
   Spring("spring")
 }
+
+internal enum class KeyFrameField(override val keyWord: String): ConstraintLayoutKeyWord {
+  Positions("KeyPositions"),
+  Attributes("KeyAttributes"),
+  Cycles("KeyCycles")
+}
+
+/**
+ * Common fields used by any of [KeyFrameField].
+ */
+internal enum class KeyFrameChildCommonField(override val keyWord: String): ConstraintLayoutKeyWord {
+  TargetId("target"),
+  Frames("frames"),
+  Easing("transitionEasing"),
+  Fit("curveFit"),
+}
+
+internal enum class KeyPositionField(override val keyWord: String): ConstraintLayoutKeyWord {
+  PercentX("percentX"),
+  PercentY("percentY"),
+  PercentWidth("percentWidth"),
+  PercentHeight("percentHeight"),
+  PathArc("pathMotionArc"),
+  Type("type")
+}
+
+internal enum class KeyCycleField(override val keyWord: String): ConstraintLayoutKeyWord {
+  Period("period"),
+  Offset("offset"),
+  Phase("phase")
+}

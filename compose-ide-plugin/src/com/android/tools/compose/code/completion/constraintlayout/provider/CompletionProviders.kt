@@ -22,14 +22,20 @@ import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayo
 import com.android.tools.compose.code.completion.constraintlayout.Dimension
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonNumericValueTemplate
+import com.android.tools.compose.code.completion.constraintlayout.JsonObjectArrayTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringArrayTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
+import com.android.tools.compose.code.completion.constraintlayout.KeyCycleField
+import com.android.tools.compose.code.completion.constraintlayout.KeyFrameChildCommonField
+import com.android.tools.compose.code.completion.constraintlayout.KeyFrameField
+import com.android.tools.compose.code.completion.constraintlayout.KeyPositionField
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
 import com.android.tools.compose.code.completion.constraintlayout.OnSwipeField
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
 import com.android.tools.compose.code.completion.constraintlayout.TransitionField
+import com.android.tools.compose.code.completion.constraintlayout.buildJsonNumberArrayTemplate
 import com.android.tools.compose.code.completion.constraintlayout.getJsonPropertyParent
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
@@ -43,6 +49,7 @@ import com.intellij.json.psi.JsonArray
 import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
@@ -272,6 +279,110 @@ internal object OnSwipeFieldsProvider : CompletionProvider<CompletionParameters>
     val parentPropertyModel = JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
     result.addEnumKeyWordsWithStringValueTemplate<OnSwipeField>(parentPropertyModel.declaredFieldNamesSet)
   }
+}
+
+/**
+ * Provides completion for the fields of a `KeyFrames` block.
+ *
+ * @see KeyFrameField
+ */
+internal object KeyFramesFieldsProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    val parentPropertyModel = JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
+    addEnumKeywords<KeyFrameField>(
+      result = result,
+      format = JsonObjectArrayTemplate,
+      existing = parentPropertyModel.declaredFieldNamesSet
+    )
+  }
+}
+
+/**
+ * Provides completion for the fields of KeyFrame children. A KeyFrame child can be any of [KeyFrameField].
+ */
+internal object KeyFrameChildFieldsCompletionProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    // TODO(b/207030860): For consistency, make it so that JsonPropertyModel may be used here. It currently won't work because the model
+    //  doesn't consider a property defined by an array of objects.
+
+    // Obtain existing list of existing properties
+    val parentObject = parameters.position.parentOfType<JsonObject>(withSelf = false) ?: return
+    val existingFieldsSet = parentObject.propertyList.map { it.name }.toSet()
+
+    // We have to know the type of KeyFrame we are autocompleting for (KeyPositions, KeyAttributes, etc)
+    val keyFrameTypeName = parentObject.parentOfType<JsonProperty>(withSelf = false)?.name ?: return
+
+    // Look for the `frames` property, we want to know the size of its array (if present), since all other numeric properties should have an
+    // array of the same size
+    val framesProperty = parentObject.findProperty(KeyFrameChildCommonField.Frames.keyWord)
+    val arrayCountInFramesProperty = (framesProperty?.value as? JsonArray)?.valueList?.size ?: 1
+
+    // Create the template that will be used by any numeric property we autocomplete
+    val jsonNumberArrayTemplate = buildJsonNumberArrayTemplate(count = arrayCountInFramesProperty)
+
+    // We've done some read operations, check for cancellation
+    ProgressManager.checkCanceled()
+
+    // Common fields for any type of KeyFrame
+    KeyFrameChildCommonField.values().forEach {
+      if (existingFieldsSet.contains(it.keyWord)) {
+        return@forEach
+      }
+      when (it) {
+        KeyFrameChildCommonField.Frames -> result.addLookupElement(lookupString = it.keyWord, format = jsonNumberArrayTemplate)
+        else -> result.addLookupElement(lookupString = it.keyWord, format = JsonStringValueTemplate)
+      }
+    }
+
+    // Figure out which type of KeyFrame the completion is being called on, and offer completion for their respective fields
+    when (keyFrameTypeName) {
+      KeyFrameField.Positions.keyWord -> {
+        addKeyPositionFields(result, existingFieldsSet) {
+          // Some KeyPosition fields take either a Number Array value or a String value
+          if (isNumberArrayType(it)) jsonNumberArrayTemplate else JsonStringValueTemplate
+        }
+      }
+      KeyFrameField.Attributes.keyWord -> {
+        // KeyAttributes properties are the same as the RenderTransform fields
+        addEnumKeywords<RenderTransform>(result = result, format = jsonNumberArrayTemplate, existing = existingFieldsSet)
+      }
+      KeyFrameField.Cycles.keyWord -> {
+        // KeyCycles properties are a mix of RenderTransform fields and KeyCycles specific fields
+        addEnumKeywords<RenderTransform>(result = result, format = jsonNumberArrayTemplate, existing = existingFieldsSet)
+        addEnumKeywords<KeyCycleField>(result = result, format = jsonNumberArrayTemplate, existing = existingFieldsSet)
+      }
+      else -> {
+        thisLogger().warn("Completion on unknown KeyFrame type: $keyFrameTypeName")
+      }
+    }
+  }
+
+  /**
+   * Add LookupElements to the [result] for each non-repeated [KeyPositionField] using the [InsertionFormat] returned by [templateProvider].
+   */
+  private fun addKeyPositionFields(
+    result: CompletionResultSet,
+    existing: Set<String>,
+    templateProvider: (KeyPositionField) -> InsertionFormat
+  ) {
+    KeyPositionField.values().forEach { keyPositionField ->
+      if (existing.contains(keyPositionField.keyWord)) {
+        // Skip repeated fields
+        return@forEach
+      }
+      result.addLookupElement(lookupString = keyPositionField.keyWord, format = templateProvider(keyPositionField))
+    }
+  }
+
+  private fun isNumberArrayType(keyPositionField: KeyPositionField) =
+    when (keyPositionField) {
+      // Only some KeyPosition fields receive a Number value
+      KeyPositionField.PercentX,
+      KeyPositionField.PercentY,
+      KeyPositionField.PercentWidth,
+      KeyPositionField.PercentHeight -> true
+      else -> false
+    }
 }
 
 /**
