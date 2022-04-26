@@ -28,16 +28,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import com.android.annotations.concurrency.Slow;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.ui.scale.ScaleContext;
-import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.ImageUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -205,46 +201,6 @@ public class ImageUtils {
 
   public static BufferedImage createDipImage(int width, int height, int type) {
     return ImageUtil.createImage(width, height, type);
-  }
-
-  public static boolean supportsRetina() {
-    return ourRetinaCapable;
-  }
-
-  private static boolean ourRetinaCapable = true;
-
-  @Nullable
-  public static BufferedImage convertToRetina(@NotNull BufferedImage image) {
-    return convertToRetina(image, null);
-  }
-
-  /**
-   * Scale the input image to be displayed on a HiDPI screen with scaling specified by ScaleContext ctx.
-   * If ctx is null, get the scale from the system.
-   */
-  @Nullable
-  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable ScaleContext ctx) {
-    if (image.getWidth() < RETINA_SCALE || image.getHeight() < RETINA_SCALE) {
-      // Can't convert to Retina; see issue 65676
-      return null;
-    }
-
-    try {
-      Image retina = RetinaImage.createFrom(image, JBUIScale.sysScale(ctx), null);
-
-      if (!(retina instanceof BufferedImage)) {
-        // Don't try this again
-        ourRetinaCapable = false;
-        return null;
-      }
-
-      return (BufferedImage)retina;
-    }
-    catch (Throwable ignored) {
-      // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
-      ourRetinaCapable = false;
-      return null;
-    }
   }
 
   /**

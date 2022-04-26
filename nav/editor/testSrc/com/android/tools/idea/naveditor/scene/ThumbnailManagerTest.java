@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.testutils.ImageDiffUtil;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -37,6 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Paths;
@@ -73,7 +73,7 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
-    BufferedImage image = imageFuture.getTerminalImage();
+    Image image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     assertSame(image, imageFuture.getTerminalImage());
 
@@ -133,7 +133,7 @@ public class ThumbnailManagerTest extends NavTestCase {
       .build();
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
-    BufferedImage orig = thumbnail.getTerminalImage();
+    Image orig = thumbnail.getTerminalImage();
     assertNull(thumbnail.getImage());
 
     inProgressCheckDone.release(); // This was acquired when doing the first thumbnail rendering
@@ -147,7 +147,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     assertFalse(image.getRefined().isDone());
     assertEquals(image.getImage(), orig);
     inProgressCheckDone.release();
-    BufferedImage newVersion = image.getTerminalImage();
+    Image newVersion = image.getTerminalImage();
     assertNotSame(orig, newVersion);
     assertNotNull(newVersion);
   }
@@ -203,11 +203,11 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
-    BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
+    Image image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
 
     String fileName = "basic_activity_1.png";
 
-    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+    if (UIUtil.isRetina()) {
       image = ImageUtil.toBufferedImage(image);
       fileName = "basic_activity_1_retina.png";
     }
