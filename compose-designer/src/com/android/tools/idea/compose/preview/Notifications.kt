@@ -22,7 +22,8 @@ import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -183,9 +184,11 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       }
     }
 
-    val status = GradleBuildState.getInstance(project).lastFinishedBuildSummary?.status
-    // If there was no build or the project is loading, we won't have a status. We do not consider that as a build failure yet.
-    val lastBuildSuccessful = status == null || status.isBuildSuccessful
+    val lastBuildSuccessful = when (ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult().status) {
+      // If there was no build or the project is loading, we will have an UNKNOWN status. We do not consider that as a build failure yet.
+      ProjectSystemBuildManager.BuildStatus.UNKNOWN, ProjectSystemBuildManager.BuildStatus.SUCCESS -> true
+      else -> false
+    }
 
     return when {
       // Check if the project has compiled correctly
