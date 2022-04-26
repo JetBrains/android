@@ -26,8 +26,8 @@ import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -173,5 +173,5 @@ class AndroidVersionsInfoTest {
   }
 }
 
-private const val OLDER_VERSION = HIGHEST_KNOWN_STABLE_API - 1
-private const val FUTURE_VERSION = HIGHEST_KNOWN_STABLE_API + 1
+private const val OLDER_VERSION = HIGHEST_KNOWN_API - 1
+private const val FUTURE_VERSION = HIGHEST_KNOWN_API + 1

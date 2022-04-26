@@ -292,7 +292,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
-    assertEquals("Android API 32 x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
+    assertEquals("Android 12L x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
   }
 
   public void testPopulateSnapshotList() throws Exception {
