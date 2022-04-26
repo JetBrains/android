@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.NameMatcher;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.tree.TreeModel;
-import java.awt.Component;
 
 public class RefactorToolWindowFixture extends ToolWindowFixture {
   public RefactorToolWindowFixture(@NotNull IdeFrameFixture ideFrame) {
@@ -46,4 +44,10 @@ public class RefactorToolWindowFixture extends ToolWindowFixture {
     int numChildren = model.getChildCount(root);
     return numChildren == 0;
   }
+
+  public void clickDoRefactorButton() {
+    JButton doRefactorButton = myRobot.finder().find(Matchers.byText(JButton.class, "Do Refactor"));
+    myRobot.click(doRefactorButton);
+  }
+
 }
