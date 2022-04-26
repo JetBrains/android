@@ -23,7 +23,7 @@ import com.intellij.json.psi.JsonProperty
  * Constraints are a set of instructions that define the widget's dimensions, position with respect to other widgets and render-time
  * transforms.
  */
-internal class ConstraintsModel(jsonProperty: JsonProperty): BaseJsonPropertyModel(jsonProperty) {
+internal class ConstraintsModel(jsonProperty: JsonProperty): JsonPropertyModel(jsonProperty) {
   // TODO(b/207030860): Fill the contents of this model as is necessary, keeping in mind that it would be useful to have fields like
   //   'verticalConstraints', 'hasBaseline', 'dimensionBehavior', etc...
 }

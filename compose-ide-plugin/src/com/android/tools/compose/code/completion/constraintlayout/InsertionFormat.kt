@@ -28,3 +28,7 @@ internal val JsonNewObjectTemplate = LiteralNewLineFormat(": {\n}")
 internal val JsonStringArrayTemplate = LiteralWithCaretFormat(": ['|'],")
 
 internal val ConstrainAnchorTemplate = LiveTemplateFormat(": ['<>', '<>', <0>],")
+
+internal val ClearAllTemplate = LiteralWithCaretFormat(
+  literalFormat = ": ['${ClearOption.Constraints}', '${ClearOption.Dimensions}', '${ClearOption.Transforms}'],"
+)

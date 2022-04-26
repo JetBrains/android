@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
+import com.android.tools.compose.code.completion.constraintlayout.ClearAllTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ClearOption
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutKeyWord
@@ -28,13 +29,12 @@ import com.android.tools.compose.code.completion.constraintlayout.RenderTransfor
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
 import com.android.tools.compose.code.completion.constraintlayout.TransitionField
-import com.android.tools.compose.code.completion.constraintlayout.provider.model.BaseJsonPropertyModel
+import com.android.tools.compose.code.completion.constraintlayout.getJsonPropertyParent
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
-import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintsModel
+import com.android.tools.compose.code.completion.constraintlayout.provider.model.JsonPropertyModel
 import com.android.tools.compose.completion.addLookupElement
 import com.android.tools.compose.completion.inserthandler.InsertionFormat
-import com.android.tools.compose.completion.inserthandler.LiteralWithCaretFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -107,7 +107,7 @@ internal object ConstraintSetFieldsProvider : BaseConstraintSetsCompletionProvid
     parameters: CompletionParameters,
     result: CompletionResultSet
   ) {
-    val currentConstraintSet = getJsonPropertyParent(parameters)?.let { ConstraintSetModel(it) } ?: return
+    val currentConstraintSet = ConstraintSetModel.getModelForCompletionOnConstraintSetProperty(parameters) ?: return
     val currentSetName = currentConstraintSet.name ?: return
     constraintSetsPropertyModel.getRemainingFieldsForConstraintSet(currentSetName).forEach { fieldName ->
       val template = if (fieldName == KeyWords.Extends) JsonStringValueTemplate else JsonNewObjectTemplate
@@ -125,7 +125,7 @@ internal object ConstraintSetNamesProvider : BaseConstraintSetsCompletionProvide
     parameters: CompletionParameters,
     result: CompletionResultSet
   ) {
-    val currentConstraintSet = getJsonPropertyParent(parameters)?.let { ConstraintSetModel(it) }
+    val currentConstraintSet = ConstraintSetModel.getModelForCompletionOnConstraintSetProperty(parameters)
     val currentSetName = currentConstraintSet?.name
     val names = constraintSetsPropertyModel.getConstraintSetNames().toMutableSet()
     if (currentSetName != null) {
@@ -144,33 +144,28 @@ internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
     parameters: CompletionParameters,
     result: CompletionResultSet
   ) {
-    val jsonPropertyParent = getJsonPropertyParent(parameters)
-    val currentConstraintsModel = jsonPropertyParent?.let { ConstraintsModel(it) }
-    val existingFields = currentConstraintsModel?.declaredFieldNames?.toHashSet() ?: emptySet<String>()
+    val parentPropertyModel = JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
+    val existingFieldsSet = parentPropertyModel.declaredFieldNamesSet
     StandardAnchor.values().forEach {
-      if (!existingFields.contains(it.keyWord)) {
+      if (!existingFieldsSet.contains(it.keyWord)) {
         result.addLookupElement(lookupString = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
       }
     }
-    if (!existingFields.contains(KeyWords.Visibility)) {
+    if (!existingFieldsSet.contains(KeyWords.Visibility)) {
       result.addLookupElement(lookupString = KeyWords.Visibility, format = JsonStringValueTemplate)
     }
-    result.addEnumKeyWordsWithStringValueTemplate<SpecialAnchor>(existingFields)
-    result.addEnumKeyWordsWithNumericValueTemplate<Dimension>(existingFields)
-    result.addEnumKeyWordsWithNumericValueTemplate<RenderTransform>(existingFields)
+    result.addEnumKeyWordsWithStringValueTemplate<SpecialAnchor>(existingFieldsSet)
+    result.addEnumKeyWordsWithNumericValueTemplate<Dimension>(existingFieldsSet)
+    result.addEnumKeyWordsWithNumericValueTemplate<RenderTransform>(existingFieldsSet)
 
     // Complete 'clear' if the containing ConstraintSet has `extendsFrom`
-    val containingConstraintSetModel = jsonPropertyParent?.parentOfType<JsonProperty>(withSelf = false)?.let { ConstraintSetModel(it) }
+    val containingConstraintSetModel = parentPropertyModel.getParentProperty()?.let {
+      ConstraintSetModel(it)
+    }
     if (containingConstraintSetModel?.extendsFrom != null) {
       // Add an option with an empty string array and another one with all clear options
       result.addLookupElement(lookupString = KeyWords.Clear, format = JsonStringArrayTemplate)
-      result.addLookupElement(
-        lookupString = KeyWords.Clear,
-        tailText = " [<all>]",
-        format = LiteralWithCaretFormat(
-          literalFormat = ": ['${ClearOption.Constraints}', '${ClearOption.Dimensions}', '${ClearOption.Transforms}'],"
-        )
-      )
+      result.addLookupElement(lookupString = KeyWords.Clear, format = ClearAllTemplate, tailText = " [<all>]")
     }
   }
 }
@@ -247,10 +242,9 @@ internal object ClearOptionsProvider : BaseConstraintSetsCompletionProvider() {
  */
 internal object TransitionFieldsProvider : CompletionProvider<CompletionParameters>() {
   override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-    val transitionPropertyModel = getJsonPropertyParent(parameters)?.let { BaseJsonPropertyModel(it) }
-    val existing = transitionPropertyModel?.declaredFieldNames?.toHashSet() ?: emptySet()
+    val parentPropertyModel = JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
     TransitionField.values().forEach {
-      if (existing.contains(it.keyWord)) {
+      if (parentPropertyModel.containsPropertyOfName(it.keyWord)) {
         // skip
         return@forEach
       }
@@ -280,13 +274,6 @@ internal class EnumValuesCompletionProvider<E>(private val enumClass: KClass<E>)
     }
   }
 }
-
-/**
- * From the element being invoked, returns the [JsonProperty] parent that also includes the [JsonProperty] from which completion is
- * triggered.
- */
-private fun getJsonPropertyParent(parameters: CompletionParameters): JsonProperty? =
-  parameters.position.parentOfType<JsonProperty>(withSelf = true)?.parentOfType<JsonProperty>(withSelf = false)
 
 /**
  * Add the [ConstraintLayoutKeyWord.keyWord] of the enum constants as a completion result that takes a string for its value.

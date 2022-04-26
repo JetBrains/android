@@ -28,7 +28,7 @@ import com.intellij.json.psi.JsonProperty
  */
 internal class ConstraintSetsPropertyModel(
   constraintSetsElement: JsonProperty
-) : BaseJsonPropertyModel(constraintSetsElement) {
+) : JsonPropertyModel(constraintSetsElement) {
   // TODO(b/209839226): Explore how we could use these models to validate the syntax or structure of the JSON as well as to check logic
   //  correctness through Inspections/Lint
   /**
@@ -39,8 +39,8 @@ internal class ConstraintSetsPropertyModel(
   /**
    * The names of all ConstraintSets in this block.
    */
-  fun getConstraintSetNames(): List<String> {
-    return declaredFieldNames
+  fun getConstraintSetNames(): Collection<String> {
+    return declaredFieldNamesSet
   }
 
   /**
@@ -51,7 +51,7 @@ internal class ConstraintSetsPropertyModel(
     val availableNames = mutableSetOf(KeyWords.Extends)
     val usedNames = mutableSetOf<String>()
     constraintSets.forEach { constraintSet ->
-      constraintSet.declaredFieldNames.forEach { propertyName ->
+      constraintSet.declaredFieldNamesSet.forEach { propertyName ->
         if (constraintSet.name == constraintSetName) {
           usedNames.add(propertyName)
         }

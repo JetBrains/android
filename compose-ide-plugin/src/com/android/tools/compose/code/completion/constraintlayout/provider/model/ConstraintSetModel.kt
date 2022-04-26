@@ -16,24 +16,22 @@
 package com.android.tools.compose.code.completion.constraintlayout.provider.model
 
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
+import com.android.tools.compose.code.completion.constraintlayout.getJsonPropertyParent
+import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
+import com.intellij.openapi.progress.ProgressManager
 
 /**
  * Model for the JSON block corresponding to a single ConstraintSet.
  *
  * A ConstraintSet is a state that defines a specific layout of the contents in a ConstraintLayout.
  */
-internal class ConstraintSetModel(jsonProperty: JsonProperty) : BaseJsonPropertyModel(jsonProperty) {
+internal class ConstraintSetModel(jsonProperty: JsonProperty) : JsonPropertyModel(jsonProperty) {
   /**
    * List of properties that have a constraint block assigned to it.
    */
   private val propertiesWithConstraints = innerProperties.filter { it.name != KeyWords.Extends }
-
-  /**
-   * Name of the ConstraintSet.
-   */
-  val name: String? = elementPointer.element?.name
 
   /**
    * Name of the ConstraintSet this is extending constraints from.
@@ -57,4 +55,16 @@ internal class ConstraintSetModel(jsonProperty: JsonProperty) : BaseJsonProperty
 
   // TODO(b/207030860): Add a method that can pull all resolved constraints for each widget ID, it could be useful to make sure we are not
   //  offering options that are implicitly present from the 'Extends' ConstraintSet
+
+  companion object {
+    /**
+     * Returns a [ConstraintSetModel], for when the completion is performed on a property or the value of a property within a ConstraintSet
+     * declaration.
+     */
+    fun getModelForCompletionOnConstraintSetProperty(parameters: CompletionParameters): ConstraintSetModel? {
+      val parentJsonProperty = getJsonPropertyParent(parameters) ?: return null
+      ProgressManager.checkCanceled()
+      return ConstraintSetModel(parentJsonProperty)
+    }
+  }
 }
