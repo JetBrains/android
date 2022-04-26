@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.ide.common.resources.Locale
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.idea.compose.preview.PreviewNode
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
@@ -373,7 +374,7 @@ data class PreviewParameter(val name: String,
 /**
  * Definition of a preview element
  */
-interface PreviewElement {
+interface PreviewElement : PreviewNode {
   /** Fully Qualified Name of the composable method */
   val composableMethodFqn: String
 

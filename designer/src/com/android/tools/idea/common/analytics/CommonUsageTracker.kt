@@ -92,9 +92,9 @@ interface CommonUsageTracker {
 /**
  * Adds the application id information to the event.
  */
-fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
-  getApplicationId(facet)?.let {
-    setRawProjectId(it).setProjectId(AnonymizerUtil.anonymizeUtf8(it))
+fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet?): AndroidStudioEvent.Builder {
+  facet?.let {
+    getApplicationId(it)?.let { id -> setRawProjectId(id).setProjectId(AnonymizerUtil.anonymizeUtf8(id)) }
   }
   return this
 }
