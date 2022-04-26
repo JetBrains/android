@@ -255,6 +255,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     }
     event.action = AMOTION_EVENT_ACTION_UP;
   }
+  Agent::RecordTouchEvent();
   input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
@@ -264,7 +265,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 }
 
 void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
-  int64_t now = UptimeMillis();
+  int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
   KeyEvent event(jni_);
   event.down_time_millis = now;
   event.event_time_millis = now;

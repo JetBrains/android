@@ -24,6 +24,7 @@ import com.android.adblib.shellV2AsLines
 import com.android.adblib.syncSend
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PluginPathManager
@@ -188,7 +189,7 @@ internal class DeviceClient(
   private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
     startAgentTime = System.currentTimeMillis()
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
-                  " com.android.tools.screensharing.Main --log=debug"
+                  " com.android.tools.screensharing.Main --log=debug --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
     // the agent has a chance to terminate gracefully when the client is disposed rather than
     // be killed by adb.
@@ -220,7 +221,7 @@ internal class DeviceClient(
     var opened = false
 
     suspend fun startForwarding() {
-      adb.reverseForward(deviceSelector, deviceSocket, localSocket)
+      adb.reverseForward(deviceSelector, deviceSocket, localSocket, rebind = true)
       opened = true
     }
 

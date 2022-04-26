@@ -21,6 +21,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 
 #include "log.h"
@@ -28,6 +29,7 @@
 namespace screensharing {
 
 using namespace std;
+using namespace std::chrono;
 
 namespace {
 
@@ -56,7 +58,8 @@ int CreateAndConnectSocket(const char* socket_name) {
 }  // namespace
 
 Agent::Agent(const vector<string>& args)
-    : max_video_resolution_(Size(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max())) {
+    : max_video_resolution_(Size(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max())),
+      codec_name_("VP8") {
   assert(instance_ == nullptr);
   instance_ = this;
 
@@ -81,7 +84,9 @@ Agent::Agent(const vector<string>& args)
       } else {
         InvalidCommandLineArgument(arg);
       }
-    } else {
+    } else if (arg.rfind("--codec=", 0) == 0) {
+      codec_name_ = arg.substr(sizeof("--codec=") - 1, arg.size());
+    } else if (!arg.empty()) {  // For some unclear reason some command line arguments are empty strings.
       InvalidCommandLineArgument(arg);
     }
   }
@@ -93,7 +98,8 @@ Agent::~Agent() {
 }
 
 void Agent::Run() {
-  display_streamer_ = new DisplayStreamer(display_id_, max_video_resolution_, CreateAndConnectSocket(SOCKET_NAME));
+  display_streamer_ =
+      new DisplayStreamer(display_id_, codec_name_, max_video_resolution_, CreateAndConnectSocket(SOCKET_NAME));
   controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
   Log::D("Created video and control sockets");
   controller_->Start();
@@ -132,6 +138,16 @@ void Agent::ShutdownInternal() {
   }
   if (display_streamer_ != nullptr) {
     display_streamer_->Shutdown();
+  }
+}
+
+int64_t Agent::GetLastTouchEventTime() {
+  return instance_ == nullptr ? 0 : instance_->last_touch_time_millis_.load();
+}
+
+void Agent::RecordTouchEvent() {
+  if (instance_ != nullptr) {
+    instance_->last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
   }
 }
 

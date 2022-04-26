@@ -41,6 +41,11 @@ public:
 
   static void Shutdown();
 
+  // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
+  static int64_t GetLastTouchEventTime();
+  // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
+  static void RecordTouchEvent();
+
 private:
   void ShutdownInternal();
 
@@ -50,8 +55,10 @@ private:
 
   int32_t display_id_ = 0;
   Size max_video_resolution_;
+  std::string codec_name_;
   DisplayStreamer* display_streamer_ = nullptr;
   Controller* controller_ = nullptr;
+  std::atomic_int64_t last_touch_time_millis_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(Agent);
 };

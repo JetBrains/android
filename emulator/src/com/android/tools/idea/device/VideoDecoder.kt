@@ -18,6 +18,7 @@ package com.android.tools.idea.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.emulator.coerceAtMost
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,8 @@ import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.AV_PKT_FLAG_KEY
 import org.bytedeco.ffmpeg.global.avcodec.av_grow_packet
 import org.bytedeco.ffmpeg.global.avcodec.av_new_packet
@@ -76,6 +79,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.nio.channels.ClosedChannelException
 import java.util.function.Consumer
+import kotlin.text.Charsets.UTF_8
 
 internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @Volatile var maxOutputSize: Dimension) {
 
@@ -106,7 +110,10 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
   fun start(coroutineScope: CoroutineScope) {
     firstPacketArrival = 0L
     coroutineScope.launch {
-      val decodingContext = DecodingContext()
+      val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
+      videoChannel.readFully(header)
+      val codecName = String(header.array(), UTF_8).trim()
+      val decodingContext = DecodingContext(codecName)
       try {
         while (true) {
           decodingContext.readAndProcessPacket()
@@ -147,7 +154,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       val frameNumber: Long,
       val originationTime: Long)
 
-  private inner class DecodingContext : AutoCloseable {
+  private inner class DecodingContext(codecName: String) : AutoCloseable {
 
     private val codec: AVCodec
     private val codecContext: AVCodecContext
@@ -171,11 +178,18 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       }
 
     init {
-      parserContext = av_parser_init(CODEC_ID)?.apply {
+      val codecId = when (codecName) {
+        "H.264" -> AV_CODEC_ID_H264 // TODO: Remove H.264 support
+        "VP8" -> AV_CODEC_ID_VP8
+        "VP9" -> AV_CODEC_ID_VP9
+        else -> throw VideoDecoderException("Unsupported video codec $codecName")
+      }
+      thisLogger().debug { "Receiving $codecName video stream" }
+      parserContext = av_parser_init(codecId)?.apply {
         flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)
       } ?: throw VideoDecoderException("Could not initialize parser")
 
-      codec = avcodec_find_decoder(CODEC_ID) ?: throw VideoDecoderException("H.264 decoder not found")
+      codec = avcodec_find_decoder(codecId) ?: throw VideoDecoderException("$codecName decoder not found")
       codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
 
       if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0) {
@@ -398,7 +412,7 @@ private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
 private fun AVPacket.toDebugString(): String =
   "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
 
-private const val CODEC_ID = AV_CODEC_ID_H264
+private const val CHANNEL_HEADER_LENGTH = 20
 
 private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24

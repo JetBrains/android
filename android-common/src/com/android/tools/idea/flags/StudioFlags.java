@@ -817,6 +817,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "clipboard.synchronization.enabled", "Enable Clipboard Synchronization with Mirrored Physical Devices",
     "Synchronizes clipboard contents between the host computer and the mirrored physical devices",
     true);
+  public static final Flag<String> DEVICE_MIRRORING_VIDEO_CODEC = Flag.create(
+    DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring Physical Devices",
+    "The name of a video codec, e.g. \"VP8\", \"VP9\" or \"H.264\"",
+    "VP8");
   //endregion
 
   //region Refactorings
