@@ -43,13 +43,13 @@ internal class AndroidAdbLogger(private val logger: Logger) : AdbLogger() {
     }
   }
 
-  override fun log(level: Level, exception: Throwable, message: String) {
+  override fun log(level: Level, exception: Throwable?, message: String) {
     when (level) {
       Level.VERBOSE -> {
         // At the time of this writing, the IJ logger does not have an overload
         // for `trace` that takes both a message and an exception.
         logger.trace(message)
-        logger.trace(exception)
+        exception?.let { logger.trace(exception) }
       }
       Level.DEBUG -> logger.debug(message, exception)
       Level.INFO -> logger.info(message, exception)
