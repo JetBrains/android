@@ -66,10 +66,11 @@ public class AndroidSdkInitializer implements Runnable {
     File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
   };
   // Default install location from users home dir.
-  @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR =
-    SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
-                         : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
-                                            : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
+  @NonNls private static String getAndroidSdkDefaultInstallDir() {
+    return SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
+                                : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
+                                                   : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
+  }
 
   @Override
   public void run() {
@@ -241,7 +242,9 @@ public class AndroidSdkInitializer implements Runnable {
         LOG.info("Exception during SDK lookup", e);
       }
     }
-    LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
-    return FilePaths.stringToFile(ANDROID_SDK_DEFAULT_INSTALL_DIR);
+
+    String defaultDir = getAndroidSdkDefaultInstallDir();
+    LOG.info("Using default SDK path: " + defaultDir);
+    return FilePaths.stringToFile(defaultDir);
   }
 }

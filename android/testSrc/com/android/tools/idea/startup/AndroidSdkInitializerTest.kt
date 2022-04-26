@@ -66,7 +66,6 @@ class AndroidSdkInitializerTest {
   @get:Rule
   val ignoreTests = IgnoreTestRule()
 
-  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun `getAndroidSdkPathOrDefault() should fallback to default`() {
     val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
@@ -105,7 +104,6 @@ class AndroidSdkInitializerTest {
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
-  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun `getAndroidSdkPathOrDefault() for game tools should return default if no env var set`() {
     val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(
