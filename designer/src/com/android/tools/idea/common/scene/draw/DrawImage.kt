@@ -17,6 +17,7 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.SceneContext
+import com.intellij.util.ui.UIUtil
 import java.awt.Graphics2D
 import java.awt.Image
 
@@ -25,6 +26,6 @@ class DrawImage(private val rectangle: SwingRectangle,
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
-    g.drawImage(image, rectangle.x.toInt(), rectangle.y.toInt(), rectangle.width.toInt(), rectangle.height.toInt(), null)
+    UIUtil.drawImage(g, image, rectangle.x.toInt(), rectangle.y.toInt(), null)
   }
 }
