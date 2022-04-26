@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewRule
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.TestActionEvent
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -33,12 +32,7 @@ internal class ToggleFastPreviewActionTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
-
-  @After
-  fun tearDown() {
-    FastPreviewApplicationConfiguration.getInstance().resetDefault()
-  }
+  val fastPreviewFlagRule = FastPreviewRule()
 
   @Test
   fun `is action visible when Fast Preview depending on the flag values`() {
@@ -55,6 +49,7 @@ internal class ToggleFastPreviewActionTest {
     }
     finally {
       StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
+      FastPreviewApplicationConfiguration.getInstance().resetDefault()
     }
   }
 

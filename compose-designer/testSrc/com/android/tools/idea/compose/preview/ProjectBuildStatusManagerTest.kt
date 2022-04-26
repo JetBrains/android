@@ -19,8 +19,10 @@ import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.preview.ProjectBuildStatusManagerTest
 import com.android.tools.idea.compose.preview.fast.BlockingDaemonClient
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.FastPreviewRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
@@ -29,7 +31,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -42,7 +46,7 @@ class ProjectBuildStatusManagerTest {
     get() = projectRule.project
 
   @get:Rule
-  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  val fastPreviewFlagRule = FastPreviewRule()
 
   @Test
   fun testFastPreviewTriggersCompileState() {

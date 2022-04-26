@@ -24,11 +24,13 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import org.jetbrains.annotations.TestOnly
 
+private const val ENABLED_SETTING_DEFAULT = false
+
 @com.intellij.openapi.components.State(name = "FastPreviewConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
 class FastPreviewApplicationConfiguration : SimplePersistentStateComponent<FastPreviewApplicationConfiguration.State>(State()) {
   class State : BaseState() {
-    var isEnabled by property(true)
+    var isEnabled by property(ENABLED_SETTING_DEFAULT)
   }
 
   /**
@@ -44,7 +46,7 @@ class FastPreviewApplicationConfiguration : SimplePersistentStateComponent<FastP
 
   @TestOnly
   fun resetDefault() {
-    state.isEnabled = true
+    state.isEnabled = ENABLED_SETTING_DEFAULT
   }
 
   companion object {

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -41,7 +39,7 @@ class FastPreviewDisableNotificationProviderTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  val fastPreviewFlagRule = FastPreviewRule()
 
   private lateinit var notificationProvider: FastPreviewDisableNotificationProvider
   private lateinit var file: PsiFile
@@ -60,6 +58,7 @@ class FastPreviewDisableNotificationProviderTest {
 
   @Before
   fun setUp() {
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = true
     notificationProvider = FastPreviewDisableNotificationProvider()
     file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}

@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
+import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
@@ -85,6 +86,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Before
   fun setUp() {
+    FastPreviewApplicationConfiguration.getInstance().isEnabled = true
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
@@ -112,6 +114,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     runBlocking {
       fastPreviewManager.stopAllDaemons().join()
     }
+    FastPreviewApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test

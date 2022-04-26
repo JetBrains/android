@@ -891,11 +891,27 @@
     <option name="so" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
     <option name="the" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
     <option name="work" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
+    <option name="" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="a" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="enables" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="faster" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="file" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="modifying" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="of" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="preview" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="refresh" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="single" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="the" hit=" Enables faster refresh of the Preview when modifying a single file." />
+    <option name="when" hit=" Enables faster refresh of the Preview when modifying a single file." />
     <option name="edit" hit="Enable Live Edit of literals" />
     <option name="enable" hit="Enable Live Edit of literals" />
     <option name="literals" hit="Enable Live Edit of literals" />
     <option name="live" hit="Enable Live Edit of literals" />
     <option name="of" hit="Enable Live Edit of literals" />
+    <option name="enable" hit="Enable Preview Quick Refresh" />
+    <option name="preview" hit="Enable Preview Quick Refresh" />
+    <option name="quick" hit="Enable Preview Quick Refresh" />
+    <option name="refresh" hit="Enable Preview Quick Refresh" />
     <option name="compose" hit="Live Edit of Compose Literals" />
     <option name="edit" hit="Live Edit of Compose Literals" />
     <option name="literals" hit="Live Edit of Compose Literals" />

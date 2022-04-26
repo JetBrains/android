@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.fast
 
 import com.android.flags.junit.RestoreFlagRule
-import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
@@ -71,7 +70,7 @@ internal class FastPreviewManagerTest {
     get() = projectRule.project
 
   @get:Rule
-  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  val fastPreviewFlagRule = FastPreviewRule()
 
   @get:Rule
   val restoreLiteralsFlagRule = RestoreFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS)
