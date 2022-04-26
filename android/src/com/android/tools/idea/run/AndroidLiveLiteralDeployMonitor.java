@@ -222,7 +222,7 @@ class AndroidLiveLiteralDeployMonitor {
             List<LiveUpdateDeployer.UpdateLiveEditError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
             LiveLiteralsService.getInstance(project)
                 .liveLiteralPushed(deviceId, pushKey, errors.stream().map(
-                  e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
+                  e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.getMessage())
                 ).collect(Collectors.toList()));
           }
         }

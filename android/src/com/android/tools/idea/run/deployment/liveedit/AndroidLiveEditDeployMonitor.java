@@ -344,7 +344,7 @@ public class AndroidLiveEditDeployMonitor {
       .findFirst();
 
     if (error.isPresent()) {
-      updateEditStatus(new EditStatus(EditState.ERROR, error.get().msg));
+      updateEditStatus(new EditStatus(EditState.ERROR, error.get().getMessage()));
     } else {
       updateEditStatus(LiveEditService.UP_TO_DATE_STATUS);
     }

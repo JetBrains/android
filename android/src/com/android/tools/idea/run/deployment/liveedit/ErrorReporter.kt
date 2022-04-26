@@ -46,7 +46,7 @@ fun errorMessage(exception: LiveEditUpdateException) : String {
  */
 fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit ${error.msg}\n")
+  report("E: Live Edit ${error.message}\n")
 }
 
 fun reportDeployPerformance(metric: PerformanceTracker) {
