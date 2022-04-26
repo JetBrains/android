@@ -124,8 +124,11 @@ class ToolWindowModel(
   )
 
   sealed class UIState{
-    abstract val runEnabled: Boolean
-    abstract val comboEnabled: Boolean
+    protected abstract val controlsEnabledState: ControlsEnabledState
+    val runEnabled: Boolean
+      get() = controlsEnabledState.runEnabled
+    val comboEnabled: Boolean
+      get() = controlsEnabledState.comboEnabled
     protected abstract val layoutState: LayoutState
     val showLoadingState: Boolean
       get() = layoutState.showLoadingState
@@ -139,8 +142,7 @@ class ToolWindowModel(
       if (this === other) return true
       if (other !is UIState) return false
 
-      if (runEnabled != other.runEnabled) return false
-      if (comboEnabled != other.comboEnabled) return false
+      if (controlsEnabledState != other.controlsEnabledState) return false
       if (layoutState != other.layoutState) return false
       if (runTooltip != other.runTooltip) return false
       if (loadingText != other.loadingText) return false
@@ -150,8 +152,7 @@ class ToolWindowModel(
     }
 
     override fun hashCode(): Int {
-      var result = runEnabled.hashCode()
-      result = 31 * result + comboEnabled.hashCode()
+      var result = controlsEnabledState.hashCode()
       result = 31 * result + layoutState.hashCode()
       result = 31 * result + runTooltip.hashCode()
       result = 31 * result + loadingText.hashCode()
@@ -160,41 +161,35 @@ class ToolWindowModel(
     }
 
     object ReadyToRun : UIState() {
-      override val runEnabled = true
-      override val comboEnabled = true
+      override val controlsEnabledState = ControlsEnabledState.BOTH
       override val layoutState = LayoutState.READY
       override val runTooltip = ""
     }
     object Loading : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = false
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Loading"
     }
     object RunningUpgrade : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = false
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Upgrade"
     }
     object RunningSync : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = false
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Sync"
     }
     object AllDone : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = true
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.HIDE_TREE
       override val runTooltip = "Nothing to do for this upgrade."
     }
     object ProjectFilesNotCleanWarning : UIState() {
-      override val runEnabled = true
-      override val comboEnabled = true
+      override val controlsEnabledState = ControlsEnabledState.BOTH
       override val layoutState = LayoutState.READY
       override val loadingText = ""
       override val statusMessage = StatusMessage(Severity.WARNING, "Uncommitted changes in build files.")
@@ -203,8 +198,7 @@ class ToolWindowModel(
                                  "can be handled separately."
     }
     object AgpVersionNotLocatedError : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = true
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.READY
       override val loadingText = ""
       override val statusMessage = StatusMessage(
@@ -219,8 +213,7 @@ class ToolWindowModel(
     class InvalidVersionError(
       override val statusMessage: StatusMessage
     ) : UIState() {
-      override val runEnabled = false
-      override val comboEnabled = true
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.READY
       override val runTooltip: String
         get() = statusMessage.text
@@ -228,11 +221,16 @@ class ToolWindowModel(
     class CaughtException(
       override val statusMessage: StatusMessage
     ): UIState() {
-      override val runEnabled = false
-      override val comboEnabled = false
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
       override val runTooltip: String
         get() = statusMessage.text
+    }
+
+    enum class ControlsEnabledState(val runEnabled: Boolean, val comboEnabled: Boolean) {
+      BOTH(true, true),
+      NO_RUN(false, true),
+      NEITHER(false, false),
     }
 
     enum class LayoutState(val showLoadingState: Boolean, val showTree: Boolean) {
