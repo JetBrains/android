@@ -31,7 +31,7 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
 
   init {
     table.selectionModel.addListSelectionListener {
-      if (!isUpdating) {
+      if (!isUpdating && !it.valueIsAdjusting) {
         val newSelection = currentSelection
         selectionListeners.forEach { it.invoke(newSelection) }
       }

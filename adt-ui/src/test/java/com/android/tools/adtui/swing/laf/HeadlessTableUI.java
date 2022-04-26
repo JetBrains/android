@@ -18,17 +18,18 @@ package com.android.tools.adtui.swing.laf;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
 import com.intellij.util.ui.UIUtilities;
-
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
-import javax.swing.plaf.basic.BasicListUI;
-import javax.swing.plaf.basic.BasicTableUI;
-import javax.swing.table.TableCellEditor;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.HeadlessException;
+import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import javax.swing.CellEditor;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
+import javax.swing.plaf.basic.BasicTableUI;
 
 /**
  * A stubbed {@link BasicTableUI} for use in headless unit tests, where some functionality is
@@ -86,6 +87,15 @@ public class HeadlessTableUI extends BasicTableUI {
       UIUtilities.adjustFocus(table);
       setValueIsAdjusting(true);
       adjustSelection(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      if (UIUtilities.shouldIgnore(e, table)) {
+        return;
+      }
+      repostEvent(e);
+      setValueIsAdjusting(false);
     }
 
     private void setValueIsAdjusting(boolean flag) {

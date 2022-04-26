@@ -544,6 +544,22 @@ class TreeTableImplTest {
     assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = true)).isEqualTo(UIUtil.getTableForeground(true, true))
   }
 
+  @RunsInEdt
+  @Test
+  fun testClickResultsInOnlyOneSelectionEvent() {
+    val table = createTreeTable()
+    var selectionEvents = 0
+    table.treeTableSelectionModel.addSelectionListener { selectionEvents++ }
+    setScrollPaneSize(table, 400, 700)
+    val ui = FakeUi(table)
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+
+    val cell = table.getCellRect(0, 0, true)
+    ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
+    assertThat(selectionEvents).isEqualTo(1)
+  }
+
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
     val renderer = table.getCellRenderer(0, column)
     val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 2), isSelected, hasFocus, 0, column)
