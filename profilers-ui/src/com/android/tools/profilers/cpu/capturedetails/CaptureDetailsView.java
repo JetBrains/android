@@ -46,6 +46,8 @@ public abstract class CaptureDetailsView {
     myProfilersView = profilersView;
   }
 
+  public abstract void onRemoved();
+
   @NotNull
   public abstract JComponent getComponent();
 

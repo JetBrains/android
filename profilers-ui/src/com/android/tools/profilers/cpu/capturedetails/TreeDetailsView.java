@@ -435,8 +435,10 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
   }
 
   public static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
+    private final CaptureDetails.TopDown myTopDown;
     public TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
       super(profilersView, topDown.getCapture(), topDown.getModel());
+      myTopDown = topDown;
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         return;
@@ -453,6 +455,11 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       });
     }
 
+    @Override
+    public void onRemoved() {
+      myTopDown.onDestroyed();
+    }
+
     /**
      * Expands a few nodes in order to improve the visual feedback of the list.
      */
@@ -466,8 +473,10 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
   }
 
   public static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
+    private final CaptureDetails.BottomUp myBottomUp;
     public BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
       super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
+      myBottomUp = bottomUp;
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         return;
@@ -502,6 +511,11 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
+    }
+
+    @Override
+    public void onRemoved() {
+      myBottomUp.onDestroyed();
     }
   }
 

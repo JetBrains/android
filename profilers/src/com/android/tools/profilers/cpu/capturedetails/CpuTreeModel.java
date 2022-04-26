@@ -63,6 +63,10 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
     return myAspectModel;
   }
 
+  public void onDestroyed() {
+    myRange.removeDependencies(myAspectObserver);
+  }
+
   /**
    * @return True if the root node has a valid Id. Otherwise False.
    */

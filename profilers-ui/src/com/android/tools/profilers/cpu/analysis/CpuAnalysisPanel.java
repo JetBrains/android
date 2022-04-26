@@ -194,7 +194,14 @@ public class CpuAnalysisPanel extends AspectObserver {
       }
 
       // We reset the last tab to an empty panel so when range / data changes hidden panels are not updating UI.
+      // In addition to resetting the tab, we also call `onRemoved` to give it a chance to clean up;
+      // otherwise the tab would still continue to listen to changes until being GC'ed, and its handling can be
+      // expensive.
       if (myLastSelectedIndex >= 0 && myLastSelectedIndex < myTabView.getTabCount()) {
+        CpuAnalysisTab<?> tab = (CpuAnalysisTab<?>)myTabView.getComponentAt(myLastSelectedIndex);
+        if (tab != null) {
+          tab.onRemoved();
+        }
         myTabView.setComponentAt(myLastSelectedIndex, new JPanel());
       }
       if (newIndex >= 0 && newIndex < myTabView.getTabCount()) {

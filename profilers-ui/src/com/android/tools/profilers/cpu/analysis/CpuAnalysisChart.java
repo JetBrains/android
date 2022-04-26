@@ -157,6 +157,11 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
   }
 
+  @Override
+  public void onRemoved() {
+    myActiveDetailsView.onRemoved();
+  }
+
   @VisibleForTesting
   @NotNull
   FilterComponent getFilterComponent() {

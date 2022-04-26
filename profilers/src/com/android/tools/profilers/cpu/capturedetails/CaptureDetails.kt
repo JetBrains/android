@@ -26,6 +26,7 @@ import kotlin.math.max
 
 sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   abstract val type: Type
+  abstract fun onDestroyed()
 
   sealed class ChartDetails(clockType: ClockType, cpuCapture: CpuCapture): CaptureDetails(clockType, cpuCapture) {
     abstract val node: CaptureNode?
@@ -54,6 +55,10 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         model(clockType, range, rootNode(visual))
       }
     }
+
+    override fun onDestroyed() {
+      model?.onDestroyed();
+    }
   }
 
   class TopDown internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
@@ -72,6 +77,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     : ChartDetails(clockType, cpuCapture) {
     override val node = nodes.firstOrNull()
     override val type get() = Type.CALL_CHART
+    override fun onDestroyed() { }
   }
 
   class FlameChart internal constructor(clockType: ClockType,
@@ -141,6 +147,10 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         selectionRange.addDependency(aspect).onChange(Range.Aspect.RANGE, ::selectionRangeChanged)
         selectionRangeChanged()
       }
+    }
+
+    override fun onDestroyed() {
+      selectionRange.removeDependencies(aspect)
     }
 
     /**
