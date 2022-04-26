@@ -411,6 +411,117 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
     // 'constraints' options is already populated
     assertThat(myFixture.lookupElementStrings!!).containsExactly("dimensions", "transforms")
   }
+
+  @Test
+  fun completeOnSwipeFieldsAndValues() {
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              anchor: 'a',
+              $caret
+            }
+          }
+        }
+      }
+    """.trimIndent())
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("side", "direction", "mode")
+
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              side: 'midd$caret',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+    myFixture.checkResult("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              side: 'middle',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              direction: 'anticl$caret',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+    myFixture.checkResult("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              direction: 'anticlockwise',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              mode: 'sp$caret',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+    myFixture.checkResult("""
+      {
+        Transitions: {
+          default: {
+            onSwipe: {
+              mode: 'spring',
+            }
+          }
+        }
+      }
+    """.trimIndent())
+
+    myFixture.completeJson5Text("""
+      {
+        ConstraintSets: {
+          start: {
+            a: {},
+            b: {},
+            c: {}
+          },
+          end: {
+            c: {},
+            d: {},
+            e: {}
+          }
+        },
+        Transitions: {
+          default: {
+            onSwipe: {
+              anchor: '$caret'
+            }
+          }
+        }
+      }
+    """.trimIndent())
+    assertThat(myFixture.lookupElementStrings!!).containsExactly("parent", "a", "b", "c", "d", "e")
+  }
 }
 
 private fun CodeInsightTestFixture.completeJson5Text(@Language("JSON5") text: String) {

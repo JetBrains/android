@@ -25,6 +25,7 @@ import com.android.tools.compose.code.completion.constraintlayout.JsonNumericVal
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringArrayTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
+import com.android.tools.compose.code.completion.constraintlayout.OnSwipeField
 import com.android.tools.compose.code.completion.constraintlayout.RenderTransform
 import com.android.tools.compose.code.completion.constraintlayout.SpecialAnchor
 import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
@@ -258,6 +259,18 @@ internal object TransitionFieldsProvider : CompletionProvider<CompletionParamete
         }
       }
     }
+  }
+}
+
+/**
+ * Provides completion for the fields of an `OnSwipe` block.
+ *
+ * @see OnSwipeField
+ */
+internal object OnSwipeFieldsProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    val parentPropertyModel = JsonPropertyModel.getModelForCompletionOnInnerJsonProperty(parameters) ?: return
+    result.addEnumKeyWordsWithStringValueTemplate<OnSwipeField>(parentPropertyModel.declaredFieldNamesSet)
   }
 }
 

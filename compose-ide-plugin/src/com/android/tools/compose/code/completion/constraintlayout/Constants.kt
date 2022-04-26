@@ -146,3 +146,36 @@ internal enum class TransitionField(override val keyWord: String): ConstraintLay
   KeyFrames("KeyFrames"),
   OnSwipe("onSwipe")
 }
+
+internal enum class OnSwipeField(override val keyWord: String): ConstraintLayoutKeyWord {
+  AnchorId("anchor"),
+  Direction("direction"),
+  Side("side"),
+  Mode("mode")
+}
+
+internal enum class OnSwipeSide(override val keyWord: String): ConstraintLayoutKeyWord {
+  Top("top"),
+  Left("left"),
+  Right("right"),
+  Bottom("bottom"),
+  Middle("middle"),
+  Start("start"),
+  End("end")
+}
+
+internal enum class OnSwipeDirection(override val keyWord: String): ConstraintLayoutKeyWord {
+  Up("up"),
+  Down("down"),
+  Left("left"),
+  Right("right"),
+  Start("start"),
+  End("end"),
+  Clockwise("clockwise"),
+  AntiClockwise("anticlockwise")
+}
+
+internal enum class OnSwipeMode(override val keyWord: String): ConstraintLayoutKeyWord {
+  Velocity("velocity"),
+  Spring("spring")
+}
