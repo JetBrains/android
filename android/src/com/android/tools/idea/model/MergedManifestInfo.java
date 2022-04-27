@@ -24,6 +24,7 @@ import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
 import com.android.tools.idea.project.SyncTimestampUtil;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -333,7 +334,12 @@ final class MergedManifestInfo {
     }
     manifestMergerInvoker.addBundleManifests(libraryManifests);
 
-    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
+    AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
+    String packageName = androidModuleSystem.getPackageName();
+    if (packageName != null) {
+      manifestMergerInvoker.setNamespace(packageName);
+    }
+    ManifestOverrides overrides = androidModuleSystem.getManifestOverrides();
     overrides.getPlaceholders().forEach(manifestMergerInvoker::setPlaceHolderValue);
     overrides.getDirectOverrides().forEach(manifestMergerInvoker::setOverride);
 

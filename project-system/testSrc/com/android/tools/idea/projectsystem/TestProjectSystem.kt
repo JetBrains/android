@@ -71,6 +71,8 @@ class TestProjectSystem @JvmOverloads constructor(
   private val availableStableDependencies: List<GradleCoordinate>
   private val incompatibleDependencyPairs: HashMap<GradleCoordinate, GradleCoordinate>
   private val coordinateToFakeRegisterDependencyError: HashMap<GradleCoordinate, String>
+  var namespace: String? = null
+  var manifestOverrides = ManifestOverrides()
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
@@ -183,12 +185,15 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getSampleDataDirectory(): PathString? = null
 
       override fun getPackageName(): String? {
+        if (namespace != null) {
+          return namespace
+        }
         val facet = module.androidFacet ?: return null
         val primaryManifest = facet.sourceProviders.mainManifestFile ?: return null
         return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
       }
 
-      override fun getManifestOverrides() = ManifestOverrides()
+      override fun getManifestOverrides() = manifestOverrides
 
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
