@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
+import com.android.tools.adtui.common.borderLight
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
@@ -23,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.ChessBoardPanel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
@@ -89,7 +91,7 @@ private class AssetSetWidget(private val cellHeight: Int) : JPanel(BorderLayout(
   private val iconWrapper = ChessBoardPanel(cellHeight.div(6).coerceAtLeast(2)).apply {
     isOpaque = false
     add(iconLabel)
-    border = JBEmptyBorder(4, 0, 4, 0)
+    border = JBUI.Borders.merge(JBUI.Borders.customLine(borderLight), JBUI.Borders.empty(4, 0), true)
   }
 
   init {
