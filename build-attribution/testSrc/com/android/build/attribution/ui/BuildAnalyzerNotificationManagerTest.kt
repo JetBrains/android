@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.BuildAnalyzerSettings
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
@@ -90,6 +91,20 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     setNewReportData(reportUiData, buildSessionId)
 
     verifyNotificationShownForSessions(listOf(buildSessionId))
+  }
+
+  fun testBalloonNotShownOnReportWithWarningWhenSettingIsOff() {
+    BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings = false
+
+    val buildSessionId = UUID.randomUUID().toString()
+    val taskWithWarning = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+    }
+    // Data has task warning, annotation processors and jetifier warning.
+    val reportUiData = MockUiData(tasksList = listOf(taskWithWarning))
+    setNewReportData(reportUiData, buildSessionId)
+
+    verifyNotificationShownForSessions(emptyList())
   }
 
   fun testBalloonNotShownOnSecondReportWithSameWarning() {

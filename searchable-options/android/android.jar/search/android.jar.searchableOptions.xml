@@ -1366,4 +1366,13 @@
     <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
   </configurable>
+  <configurable id="build.analyzer" configurable_name="Build Analyzer">
+    <option name="analyzer" hit="Build Analyzer" />
+    <option name="build" hit="Build Analyzer" />
+    <option name="about" hit="Notify about new warning types" />
+    <option name="new" hit="Notify about new warning types" />
+    <option name="notify" hit="Notify about new warning types" />
+    <option name="types" hit="Notify about new warning types" />
+    <option name="warning" hit="Notify about new warning types" />
+  </configurable>
 </options>

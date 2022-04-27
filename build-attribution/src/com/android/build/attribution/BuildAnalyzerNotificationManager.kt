@@ -20,7 +20,6 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.model.shouldShowWarning
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.build.BuildContentManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
@@ -35,8 +34,10 @@ class BuildAnalyzerNotificationManager(
 ) {
 
   private val alreadyNotifiedAbout: MutableSet<WarningType> = mutableSetOf()
+  private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
 
   fun showToolWindowBalloonIfNeeded(reportUiData: BuildAttributionReportUiData, viewDetailsLinkClickListener: () -> Unit) {
+    if (!buildAnalyzerSettings.settingsState.notifyAboutWarnings) return
     if (reportUiData.isBuildAnalyzerSpecialBuild()) return
     val warningTypesInCurrentBuild = reportUiData.warningTypes().filter { it.triggerNotification }
     if (!alreadyNotifiedAbout.containsAll(warningTypesInCurrentBuild)) {
