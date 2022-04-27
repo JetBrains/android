@@ -19,6 +19,8 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
@@ -31,9 +33,7 @@ import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.util.parentOfType
 import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -45,8 +45,6 @@ import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
-import org.jetbrains.uast.getContainingUMethod
-import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
@@ -163,17 +161,12 @@ internal fun UAnnotation.toPreviewElement(uMethod: UMethod? = getContainingCompo
  * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating
  * a method, or if the method is not also annotated with @Composable
  */
-internal fun UAnnotation.getContainingComposableUMethod(): UMethod? = runReadAction {
-  val uMethod = getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
-  if (uMethod.isComposable()) uMethod else null
-}
+internal fun UAnnotation.getContainingComposableUMethod() = this.getContainingUMethodAnnotatedWith(COMPOSABLE_FQ_NAMES)
 
 /**
  * Returns true when the UMethod is not null, and it is annotated with @Composable
  */
-private fun UMethod?.isComposable() = runReadAction {
-  this?.uAnnotations?.any { annotation -> COMPOSABLE_FQ_NAMES.contains(annotation.qualifiedName) } ?: false
-}
+private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_FQ_NAMES)
 
 internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> = (this.resolve() as KtLightClass).methods.map { psiMethod ->
   Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
