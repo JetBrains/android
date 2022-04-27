@@ -522,7 +522,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
     @Override
     public @NotNull List<ResourceItem> get(@Nullable String key) {
-      return myMap.get(key);
+      List<ResourceItem> items = myMap.get(key);
+      return items == null ? ImmutableList.of() : items;
     }
 
     @Override
