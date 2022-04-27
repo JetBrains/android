@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.Slow
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -96,6 +97,7 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
  * Returns a timestamp in millis when the first test case execution started.
  * If no test cases found, it falls back to [File.lastModified].
  */
+@Slow
 fun getTestStartTime(xmlFile: File): Long {
   val rootElement = JDOMUtil.load(xmlFile)
   val testMatrixElement = rootElement.getChild("androidTestMatrix") ?: return xmlFile.lastModified()

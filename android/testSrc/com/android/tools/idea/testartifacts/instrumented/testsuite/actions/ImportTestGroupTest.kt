@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.TestStateStorage
@@ -54,7 +55,7 @@ class ImportTestGroupTest {
   private val disposableRule = DisposableRule()
   private val temporaryFolder = TemporaryFolder()
 
-  private val importTestGroup = ImportTestGroup()
+  private val importTestGroup = ImportTestGroup(MoreExecutors.newDirectExecutorService())
 
   @get:Rule
   val rules: RuleChain = RuleChain
@@ -82,6 +83,7 @@ class ImportTestGroupTest {
     createIntelliJHistoryXml("intelliJHistory2", startTimeMillis = 1000)
     createTestResultsProto("utpProto", startTimeMillis = 2000)
 
+    importTestGroup.getChildren(mockActionEvent) // Timestamp map will be updated asynchronously.
     val actions = importTestGroup.getChildren(mockActionEvent).map {
       it.templateText ?: ""
     }
@@ -98,6 +100,7 @@ class ImportTestGroupTest {
     createIntelliJHistoryXml("intelliJHistory1", startTimeMillis = 1000)
     createTestResultsProto("utpProto", startTimeMillis = 1000)
 
+    importTestGroup.getChildren(mockActionEvent) // Timestamp map will be updated asynchronously.
     val actions = importTestGroup.getChildren(mockActionEvent).map {
       it.templateText ?: ""
     }
