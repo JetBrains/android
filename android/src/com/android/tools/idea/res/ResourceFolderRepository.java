@@ -888,7 +888,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 // record all items (unlike the myItems map) so we need to remove the map
                 // items manually, can't just do map.remove(item.getName(), item)
                 List<ResourceItem> mapItems = idMultimap.get(id);
-                if (mapItems != null && !mapItems.isEmpty()) {
+                if (!mapItems.isEmpty()) {
                   List<ResourceItem> toDelete = new ArrayList<>(mapItems.size());
                   for (ResourceItem mapItem : mapItems) {
                     if (mapItem instanceof PsiResourceItem && ((PsiResourceItem)mapItem).getSourceFile() == psiResourceFile) {
@@ -2067,7 +2067,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return null;
       }
       List<ResourceItem> items = map.get(name);
-      assert items != null;
       if (tag != null) {
         // Only PsiResourceItems can match.
         for (ResourceItem resourceItem : items) {
