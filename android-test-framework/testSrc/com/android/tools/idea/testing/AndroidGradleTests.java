@@ -425,9 +425,8 @@ public class AndroidGradleTests {
     return repositories;
   }
 
-
   /**
-   * Take a regex pattern with a single group in it and replace the contents of that group with a
+   * Takes a regex pattern with a single group in it and replace the contents of that group with a
    * new value.
    * <p>
    * For example, the pattern "Version: (.+)" with value "Test" would take the input string
@@ -442,7 +441,7 @@ public class AndroidGradleTests {
    * <p>
    * If a regex is passed in with more than one group, later groups will be ignored; and if no
    * groups are present, this will throw an exception. It is up to the caller to ensure that the
-   * regex is well formed and only includes a single group.
+   * regex is well-formed and only includes a single group.
    *
    * @return The {@code contents} string, modified by the replacement {@code value}, (unless no
    * {@code regex} match was found).
@@ -459,8 +458,6 @@ public class AndroidGradleTests {
 
   /**
    * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
-   *
-   * @throws IOException
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
