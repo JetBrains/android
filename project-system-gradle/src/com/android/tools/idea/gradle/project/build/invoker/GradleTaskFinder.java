@@ -137,12 +137,6 @@ public class GradleTaskFinder {
     }
 
     for (Module module : allModules) {
-      String moduleFilePath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectPath();
-      if (moduleFilePath != null && (toSystemIndependentName(moduleFilePath).endsWith("/" + BUILD_SRC_FOLDER_NAME))) {
-        // "buildSrc" is a special case handled automatically by Gradle.
-        continue;
-      }
-
       Set<String> moduleTasks = new LinkedHashSet<>();
       GradleProjectPath gradleProjectPath  = GradleProjectPathKt.getGradleProjectPath(module);
       if (gradleProjectPath != null) {
@@ -262,7 +256,8 @@ public class GradleTaskFinder {
       if (externalProjectPath == null) return;
 
       GradleModuleData gradleModuleData = CachedModuleDataFinder.getGradleModuleData(module);
-      if (gradleModuleData == null) return;
+      // buildSrc modules are handled by Gradle so we don't need to run any tasks for them
+      if (gradleModuleData == null || gradleModuleData.isBuildSrcModule()) return;
 
       GradleExtensions extensions = gradleModuleData.findAll(GradleExtensionsDataService.KEY).stream().findFirst().orElse(null);
       if (extensions == null) return;

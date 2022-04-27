@@ -178,6 +178,8 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.isBuildSrcModule
+import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -241,7 +243,14 @@ data class JavaModuleModelBuilder(
   override val version: String? = null,
   override val gradleVersion: String? = null,
   val buildable: Boolean = true,
+  val isBuildSrc: Boolean = false
 ) : ModuleModelBuilder() {
+
+  init {
+    assert(!isBuildSrc || gradlePath.dropWhile { c -> c != ':' }.startsWith(":buildSrc")) {
+      "buildSrc modules must have a Gradle path starting with \":buildSrc\""
+    }
+  }
 
   constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, groupId = null, version = null, null, buildable)
 
@@ -1307,7 +1316,8 @@ private fun setupTestProjectFromAndroidModelCore(
           version = moduleBuilder.version,
           imlBasePath = imlBasePath,
           moduleBasePath = moduleBasePath,
-          buildable = moduleBuilder.buildable
+          buildable = moduleBuilder.buildable,
+          isBuildSrc = moduleBuilder.isBuildSrc
         )
     }
     projectDataNode.addChild(moduleDataNode)
@@ -1460,7 +1470,8 @@ private fun createJavaModuleDataNode(
   version: String?,
   imlBasePath: File,
   moduleBasePath: File,
-  buildable: Boolean
+  buildable: Boolean,
+  isBuildSrc: Boolean
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(
@@ -1471,7 +1482,9 @@ private fun createJavaModuleDataNode(
     version = version,
     imlBasePath = imlBasePath,
     moduleBasePath = moduleBasePath
-  )
+  ).also {
+    if (isBuildSrc) it.data.setBuildSrcModule()
+  }
 
   moduleDataNode.addDefaultJdk()
 
@@ -1488,6 +1501,7 @@ private fun createJavaModuleDataNode(
       ).also {
         it.group = groupId
         it.version = version
+        if (isBuildSrc) it.setBuildSrcModule()
       },
       null
     )
