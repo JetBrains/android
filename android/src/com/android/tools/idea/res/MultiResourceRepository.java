@@ -25,6 +25,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarResourceRepository;
+import com.android.utils.TraceUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -117,6 +118,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
                              @NotNull Collection<? extends AarResourceRepository> libraryResources,
                              @NotNull Collection<? extends ResourceRepository> otherResources) {
+    ResourceUpdateTracer.logDirect(() ->
+        TraceUtils.getSimpleId(this) + ".setChildren([" + TraceUtils.getSimpleIds(localResources) + "], ...)");
+
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
         child.removeParent(this);

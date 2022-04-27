@@ -25,10 +25,14 @@ import com.android.utils.FlightRecorder;
 import com.android.utils.TraceUtils;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +84,12 @@ public class ResourceUpdateTracer {
     }
   }
 
+  public static void logDirect(@NotNull Supplier<?> lazyRecord) {
+    if (enabled) {
+      LOG.info(lazyRecord.get().toString());
+    }
+  }
+
   public static @Nullable String pathForLogging(@Nullable VirtualFile file) {
     if (file == null) {
       return null;
@@ -90,5 +100,24 @@ public class ResourceUpdateTracer {
 
   public static @Nullable String pathForLogging(@Nullable PsiFile file) {
     return file == null ? null : pathForLogging(file.getVirtualFile());
+  }
+
+  public static @Nullable String pathForLogging(@Nullable VirtualFile file, @NotNull Project project) {
+    if (file == null) {
+      return null;
+    }
+    return pathForLogging(FileExtensions.toPathString(file), project);
+  }
+
+  public static @NotNull String pathForLogging(@NotNull PathString file, @NotNull Project project) {
+    VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+    if (projectDir == null) {
+      return file.subpath(max(file.getNameCount() - 4, 0), file.getNameCount()).getNativePath();
+    }
+    return FileExtensions.toPathString(projectDir).relativize(file).getNativePath();
+  }
+
+  public static @NotNull String pathsForLogging(@NotNull Collection<? extends VirtualFile> files, @NotNull Project project) {
+    return files.stream().map(file -> pathForLogging(file, project)).collect(Collectors.joining(", "));
   }
 }

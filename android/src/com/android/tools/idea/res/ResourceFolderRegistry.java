@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.utils.TraceUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -125,12 +128,14 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   public void reset() {
+    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".reset()");
     myNamespacedCache.invalidateAll();
     myNonNamespacedCache.invalidateAll();
   }
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
+    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries()");
     removeStaleEntries(myNamespacedCache);
     removeStaleEntries(myNonNamespacedCache);
   }
@@ -138,6 +143,7 @@ public class ResourceFolderRegistry implements Disposable {
   private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
     Map<VirtualFile, ResourceFolderRepository> cacheAsMap = cache.asMap();
     if (cacheAsMap.isEmpty()) {
+      ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty");
       return;
     }
     Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
@@ -150,6 +156,9 @@ public class ResourceFolderRegistry implements Disposable {
         newResourceFolders.addAll(folderManager.getTestFolders());
       }
     }
+    ResourceUpdateTracer.logDirect(() ->
+        TraceUtils.getSimpleId(this) + ".removeStaleEntries retained " + pathsForLogging(newResourceFolders, myProject)
+    );
 
     cacheAsMap.keySet().retainAll(newResourceFolders);
   }
@@ -168,6 +177,10 @@ public class ResourceFolderRegistry implements Disposable {
         }
       }
     }
+  }
+
+  public @NotNull Project getProject() {
+    return myProject;
   }
 
   /**

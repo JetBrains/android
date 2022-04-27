@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_RES_RAW;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static java.lang.Math.max;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
@@ -76,7 +73,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.gradle.config.GradleFileType;
-import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
@@ -392,8 +388,7 @@ public class AndroidFileChangeListener implements Disposable {
       if (parent == null) {
         return childName;
       }
-      PathString path = FileExtensions.toPathString(parent).resolve(childName);
-      return path.subpath(max(path.getNameCount() - 4, 0), path.getNameCount()).getNativePath();
+      return ResourceUpdateTracer.pathForLogging(FileExtensions.toPathString(parent).resolve(childName), myRegistry.getProject());
     }
 
     private static void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {

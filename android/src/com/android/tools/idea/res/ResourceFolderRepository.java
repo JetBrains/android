@@ -31,7 +31,6 @@ import static com.android.resources.base.ResourceSerializationUtil.createPersist
 import static com.android.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
 import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
-import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
 import static com.android.utils.TraceUtils.getSimpleId;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -69,6 +68,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
+import com.android.utils.TraceUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -285,6 +285,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     loader.load();
 
     Disposer.register(myFacet, updateExecutor::shutdownNow);
+    ResourceUpdateTracer.logDirect(() ->
+      TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
+    );
   }
 
   @NotNull
@@ -737,6 +740,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         }
       }
     });
+  }
+
+  private @NotNull String pathForLogging(@NotNull VirtualFile virtualFile) {
+    return ResourceUpdateTracer.pathForLogging(virtualFile, getProject());
+  }
+
+  private @Nullable String pathForLogging(@Nullable PsiFile file) {
+    return file == null ? null : pathForLogging(file.getVirtualFile());
   }
 
   /**

@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.utils.TraceUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -174,10 +175,17 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       }
     };
     myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
+    ResourceUpdateTracer.logDirect(() ->
+      TraceUtils.getSimpleId(this) + " created for module " + facet.getModule().getName() + " with children " +
+          TraceUtils.getSimpleIds(delegates)
+    );
   }
 
   @VisibleForTesting
   void updateRoots(List<? extends VirtualFile> resourceDirectories) {
+    ResourceUpdateTracer.logDirect(() ->
+      TraceUtils.getSimpleId(this) + ".updateRoots(" + pathsForLogging(resourceDirectories, myFacet.getModule().getProject()) + ")"
+    );
     // Non-folder repositories to put in front of the list.
     List<LocalResourceRepository> other = null;
 
