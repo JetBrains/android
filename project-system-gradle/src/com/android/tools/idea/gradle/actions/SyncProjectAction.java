@@ -55,7 +55,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction implements Dumb
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      mySyncInvoker.getValue().requestProjectSync(project, TRIGGER_USER_SYNC_ACTION);
+      mySyncInvoker.getValue().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_SYNC_ACTION), null);
     }
     finally {
       presentation.setEnabled(true);

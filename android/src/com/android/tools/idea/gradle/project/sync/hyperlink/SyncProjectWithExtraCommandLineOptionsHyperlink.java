@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -45,6 +44,6 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends SyncIssueNo
   protected void execute(@NotNull Project project) {
     // This is the only way that we can pass extra command line options to the Gradle sync process.
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, myExtraOptions);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_REFRESH_DEPENDENCIES);
+    requestProjectSync(project, TRIGGER_QF_REFRESH_DEPENDENCIES);
   }
 }

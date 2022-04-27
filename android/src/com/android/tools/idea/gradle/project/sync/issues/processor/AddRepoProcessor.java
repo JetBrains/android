@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project.sync.issues.processor;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_ADDED;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -137,7 +135,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
     projectBuildModel.applyChanges();
 
     if (myRequestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_REPOSITORY_ADDED);
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_REPOSITORY_ADDED), null);
     }
   }
 

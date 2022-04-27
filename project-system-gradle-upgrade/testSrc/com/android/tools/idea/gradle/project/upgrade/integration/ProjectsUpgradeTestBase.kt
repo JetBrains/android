@@ -195,14 +195,14 @@ open class ProjectsUpgradeTestBase {
     //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO need to avoid comparing timestamp first
   }
 
-  private class FakeInvoker : GradleSyncInvokerImpl() {
+  private class FakeInvoker(val delegate: GradleSyncInvoker = GradleSyncInvokerImpl()) : GradleSyncInvoker by delegate {
     var callsCount = 0
     var fakeNextSyncSuccess = false
 
     override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
       callsCount++
       if (fakeNextSyncSuccess) listener?.syncSucceeded(project)
-      else super.requestProjectSync(project, request, listener)
+      else delegate.requestProjectSync(project, request, listener)
     }
   }
 

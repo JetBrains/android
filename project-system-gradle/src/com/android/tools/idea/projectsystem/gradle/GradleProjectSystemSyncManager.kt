@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -58,11 +59,8 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
       })
     }
 
-    val request = GradleSyncInvoker.Request(trigger)
-    request.runInBackground = true
-
     try {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
     }
     catch (t: Throwable) {
       if (!Disposer.isDisposed(connection)) {

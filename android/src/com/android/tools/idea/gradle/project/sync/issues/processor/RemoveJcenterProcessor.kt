@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

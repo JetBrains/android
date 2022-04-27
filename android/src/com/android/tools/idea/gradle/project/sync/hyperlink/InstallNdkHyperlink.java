@@ -27,16 +27,15 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -121,7 +120,7 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
                 new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
               });
             } else {
-              GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED);
+              requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED);
             }
           }
           return;

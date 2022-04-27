@@ -19,7 +19,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -91,7 +90,7 @@ public class FixGradleVersionInWrapperHyperlink extends SyncIssueNotificationHyp
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
+    requestProjectSync(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
   }
 
   @VisibleForTesting

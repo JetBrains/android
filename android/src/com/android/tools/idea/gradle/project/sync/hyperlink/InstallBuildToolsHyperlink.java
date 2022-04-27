@@ -19,7 +19,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -78,7 +77,7 @@ public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
         processor.run();
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
+        requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
       }
     }
   }

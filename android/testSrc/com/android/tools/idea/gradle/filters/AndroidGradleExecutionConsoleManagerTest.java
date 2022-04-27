@@ -29,8 +29,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.internal.AbstractExternalSystemTask;
@@ -75,7 +73,8 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
 
     // Verify that GradleSyncInvoker is called, and verify that extra command line options are set.
     verify(syncInvoker)
-      .requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
+      .requestProjectSync(project,
+                          new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS), null);
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 

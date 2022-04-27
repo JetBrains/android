@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks

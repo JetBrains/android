@@ -19,7 +19,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -52,7 +51,7 @@ public class InstallPlatformHyperlink extends SyncIssueNotificationHyperlink {
     }
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_PLATFORM_INSTALLED);
+      requestProjectSync(project, TRIGGER_QF_PLATFORM_INSTALLED);
     }
   }
 }

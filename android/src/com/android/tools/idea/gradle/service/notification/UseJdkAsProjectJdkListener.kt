@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsProjectJdk
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats

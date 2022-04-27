@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static org.mockito.Mockito.any;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,6 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
@@ -39,12 +38,22 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
+  private GradleSyncInvoker.Request myRequest;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySyncInvoker = mock(GradleSyncInvoker.class);
+    mySyncInvoker = new GradleSyncInvoker.FakeInvoker() {
+      @Override
+      public void requestProjectSync(@NotNull Project project,
+                                     @NotNull GradleSyncInvoker.Request request,
+                                     @Nullable GradleSyncListener listener) {
+        super.requestProjectSync(project, request, listener);
+        assertThat(myRequest).isNull();
+        myRequest = request;
+      }
+    };
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, project);
     myGradleProjectInfo = mock(GradleProjectInfo.class);
     ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, project);
@@ -69,7 +78,7 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
+    assertThat(myRequest).isNotNull();
   }
 
   public void testRunActivityWithSkipStartupProject() {
@@ -79,7 +88,7 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
+    assertThat(myRequest).isNull();
   }
 
   public void testRunActivityWithExistingGradleProject() {
@@ -90,7 +99,7 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     myStartupActivity.runActivity(project);
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
-    verify(mySyncInvoker, times(1)).requestProjectSync(project, request);
+    assertThat(myRequest).isNotNull();
   }
 
   public void testRunActivityWithNonGradleProject() {
@@ -99,6 +108,6 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
+    assertThat(myRequest).isNull();
   }
 }

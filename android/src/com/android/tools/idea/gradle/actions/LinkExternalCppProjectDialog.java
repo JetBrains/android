@@ -196,7 +196,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
       buildModel.applyChanges();
     });
 
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_CPP_EXTERNAL_PROJECT_LINKED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_CPP_EXTERNAL_PROJECT_LINKED), null);
     super.doOKAction();
   }
 

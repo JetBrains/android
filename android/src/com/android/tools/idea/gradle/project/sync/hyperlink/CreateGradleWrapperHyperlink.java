@@ -19,7 +19,6 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -57,6 +56,6 @@ public class CreateGradleWrapperHyperlink extends SyncIssueNotificationHyperlink
 
   private static void requestSync(@NotNull Project project) {
     // TODO use another trigger?
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_WRAPPER_CREATED);
+    requestProjectSync(project, TRIGGER_QF_WRAPPER_CREATED);
   }
 }

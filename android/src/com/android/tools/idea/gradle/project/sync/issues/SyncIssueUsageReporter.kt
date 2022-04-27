@@ -18,10 +18,13 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
@@ -64,7 +67,14 @@ abstract class SyncIssueNotificationHyperlink(
   url: String,
   text: String,
   val quickFixId: GradleSyncQuickFix?
-) : NotificationHyperlink(url, text)
+) : NotificationHyperlink(url, text) {
+  companion object {
+    @JvmStatic
+    @JvmOverloads
+    fun requestProjectSync(project: Project, trigger: GradleSyncStats.Trigger, listener: GradleSyncListener? = null) =
+      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger), listener)
+  }
+}
 
 fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<SyncIssueNotificationHyperlink>) =
     collect(

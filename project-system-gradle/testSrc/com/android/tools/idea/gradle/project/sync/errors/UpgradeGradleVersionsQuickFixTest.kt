@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersionsQuickFix
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -26,14 +27,15 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.TestDataProvider
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
@@ -67,16 +69,24 @@ class UpgradeGradleVersionsQuickFixTest {
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     val ideComponents = IdeComponents(project)
     val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java);
-    val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
+    var receivedRequest: GradleSyncInvoker.Request? = null
+    val fakeSyncInvoker = object: GradleSyncInvoker.FakeInvoker() {
+      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+        super.requestProjectSync(project, request, listener)
+        assertThat(receivedRequest).isNull()
+        receivedRequest = request
+      }
+    }
+    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
     `when`(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
     val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
     assertThat(result).isEqualTo(success)
     verify(mockedUpdater).updatePluginVersion(eq(latestAgpVersion), eq(latestGradleVersion))
     if (success) {
-      verify(mockSyncInvoker).requestProjectSync(eq(project), any(GradleSyncInvoker.Request::class.java))
+      assertThat(receivedRequest).isNotNull()
     }
     else {
-      Mockito.verifyZeroInteractions(mockSyncInvoker)
+      assertThat(receivedRequest).isNull()
     }
   }
 

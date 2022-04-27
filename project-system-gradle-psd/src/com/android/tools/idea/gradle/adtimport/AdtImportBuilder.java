@@ -190,7 +190,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         ProjectManagerEx.getInstanceEx().openProject(projectDir, OpenProjectTask.withProjectToClose(project, null, true));
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
+        GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_IMPORT_ADT_MODULE), syncListener);
       }
     }
     catch (Throwable e) {

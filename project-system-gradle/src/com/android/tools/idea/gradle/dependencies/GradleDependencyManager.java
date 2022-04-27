@@ -240,7 +240,7 @@ public class GradleDependencyManager {
 
   private static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,

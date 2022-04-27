@@ -141,7 +141,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     runWriteCommandAction(getProject(), () -> {
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request);
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
     });
 
     latch.await();

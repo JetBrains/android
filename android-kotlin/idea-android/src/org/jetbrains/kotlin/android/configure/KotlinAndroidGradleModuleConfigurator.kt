@@ -14,6 +14,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
@@ -256,7 +257,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                 OpenFileAction.openFile(file.virtualFile, project)
             }
             // Sync after changing build scripts
-            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED))
+            GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_LANGUAGE_KOTLIN_CONFIGURED)
             UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
                 override fun undo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
                 override fun redo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)

@@ -137,7 +137,8 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     }
 
     if (xmlChanged.get() || buildFileChanged.get()) {
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST);
+      GradleSyncInvoker.getInstance()
+        .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
     }
   }
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
@@ -34,6 +33,6 @@ public class DisableOfflineModeHyperlink extends SyncIssueNotificationHyperlink 
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(false);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
+    requestProjectSync(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
   }
 }

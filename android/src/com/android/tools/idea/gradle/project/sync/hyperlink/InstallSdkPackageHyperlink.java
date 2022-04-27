@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_INSTALLED;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -42,7 +41,7 @@ public class InstallSdkPackageHyperlink extends SyncIssueNotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, myPackageIds, true);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_REPOSITORY_INSTALLED);
+      requestProjectSync(project, TRIGGER_QF_REPOSITORY_INSTALLED);
     }
   }
 }

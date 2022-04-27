@@ -68,7 +68,7 @@ public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventLis
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_SDK_PATH_CHANGED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_SDK_PATH_CHANGED), null);
     }
   }
 

@@ -234,7 +234,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
       }
       createActionLabel("Sync Now",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
+                        () -> GradleSyncInvoker.getInstance()
+                          .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null));
       createActionLabel("Ignore these changes", () -> {
         GradleFiles.getInstance(project).removeChangedFiles();
         this.setVisible(false);
@@ -248,7 +249,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       super(type, text);
 
       createActionLabel("Try Again",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
+                        () -> GradleSyncInvoker.getInstance()
+                          .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_TRY_AGAIN), null));
 
       createActionLabel("Open 'Build' View", () -> {
         ToolWindow tw = BuildContentManager.getInstance(project).getOrCreateToolWindow();

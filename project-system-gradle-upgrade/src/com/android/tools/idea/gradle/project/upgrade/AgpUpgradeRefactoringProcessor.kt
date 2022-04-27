@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVer
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.stats.withProjectId
@@ -552,7 +553,7 @@ class AgpUpgradeRefactoringProcessor(
         trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
       override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
     }
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED), listener)
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_AGP_VERSION_UPDATED, listener)
     UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
       override fun undo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
       override fun redo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)

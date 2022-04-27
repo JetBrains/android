@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.refactoring;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -269,7 +268,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_REFACTOR_MODULE_RENAMED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_REFACTOR_MODULE_RENAMED), null);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {
