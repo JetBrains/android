@@ -30,6 +30,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 class ArgumentInspectorBuilder
   : ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer()) {
   override fun title(component: NlComponent): String = "Arguments"
+  override fun addActionText(component: NlComponent) = "Add argument"
+  override fun deleteActionText(component: NlComponent) = "Remove argument"
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }

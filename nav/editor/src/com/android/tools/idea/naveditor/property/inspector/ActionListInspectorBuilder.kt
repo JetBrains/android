@@ -36,6 +36,22 @@ class ActionListInspectorBuilder(private val model: NlPropertiesModel) : Compone
       "Actions"
     }
 
+  override fun addActionText(component: NlComponent) =
+    if (component.isNavigation) {
+      "Add global action"
+    }
+    else {
+      "Add action"
+    }
+
+  override fun deleteActionText(component: NlComponent) =
+    if (component.isNavigation) {
+      "Remove global action"
+    }
+    else {
+      "Remove action"
+    }
+
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }

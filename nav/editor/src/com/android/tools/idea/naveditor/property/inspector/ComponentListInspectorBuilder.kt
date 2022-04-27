@@ -55,6 +55,11 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
                                              private val cellRenderer: ColoredListCellRenderer<NlComponent>)
   : InspectorBuilder<NlPropertyItem> {
   abstract fun title(component: NlComponent): String
+
+  protected open fun addActionText(component: NlComponent): String = "Add Component"
+
+  protected open fun deleteActionText(component: NlComponent): String = "Delete Component"
+
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!isApplicable(component)) {
@@ -67,8 +72,8 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     val componentList = ComponentList(model, cellRenderer)
     val list = componentList.list
 
-    val addAction = AddAction(this, component, model)
-    val deleteAction = DeleteAction(this, component, model, list)
+    val addAction = AddAction(this, component, model, addActionText(component))
+    val deleteAction = DeleteAction(this, component, model, list, deleteActionText(component))
     val actions = listOf(addAction, deleteAction)
 
     val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, actions)
@@ -172,8 +177,9 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
 
   private class AddAction(private val builder: ComponentListInspectorBuilder,
                           private val component: NlComponent,
-                          private val listModel: DefaultListModel<NlComponent>)
-    : AnAction(null, "Add Component", AllIcons.General.Add) {
+                          private val listModel: DefaultListModel<NlComponent>,
+                          text: String)
+    : AnAction(text, text, AllIcons.General.Add) {
     var model: InspectorLineModel? = null
     override fun actionPerformed(e: AnActionEvent) {
       builder.onAdd(component)
@@ -186,8 +192,9 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
   private class DeleteAction(private val builder: ComponentListInspectorBuilder,
                              private val component: NlComponent,
                              private val listModel: DefaultListModel<NlComponent>,
-                             private val list: JBList<NlComponent>)
-    : AnAction(null, "Delete Component", StudioIcons.Common.REMOVE) {
+                             private val list: JBList<NlComponent>,
+                             text: String)
+    : AnAction(text, text, AllIcons.General.Remove) {
     var model: InspectorLineModel? = null
     override fun actionPerformed(e: AnActionEvent) {
       component.model.delete(list.selectedValuesList)
