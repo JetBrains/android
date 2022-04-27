@@ -30,7 +30,6 @@ com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationTestCase
 com.android.tools.idea.gradle.project.sync.SingleVariantSyncIntegrationTest
 com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlinkTest
 com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlinkTest
-com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlinkTest
 com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtilTest
 com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesTest
 com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheckTest

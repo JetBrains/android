@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep.updateSdkIfNeeded;
+import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
 
 import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.Sdk;

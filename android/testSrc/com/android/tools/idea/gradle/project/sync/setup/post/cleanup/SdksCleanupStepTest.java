@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import static com.android.SdkConstants.FD_PKG_SOURCES;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep.updateSdkIfNeeded;
+import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
 import static com.google.common.truth.Truth.assertThat;
@@ -34,7 +34,6 @@ import static org.mockito.Mockito.when;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
