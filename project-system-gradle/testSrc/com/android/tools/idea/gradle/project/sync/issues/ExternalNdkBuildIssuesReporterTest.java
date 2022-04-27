@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
+import static com.android.ide.common.blame.Message.Kind.ERROR;
+import static com.android.ide.common.blame.Message.Kind.WARNING;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.Lists;
+import com.google.common.truth.Truth;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import java.util.List;
-
-import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
-import static com.android.ide.common.blame.Message.Kind.ERROR;
-import static com.android.ide.common.blame.Message.Kind.WARNING;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ExternalNdkBuildIssuesReporter}.
@@ -94,7 +93,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
-    assertAbout(syncMessage()).that(message).hasMessageLine(nativeToolOutput, 0);
+    Truth.assertAbout(SyncMessageSubject.syncMessage()).that(message).hasMessageLine(nativeToolOutput, 0);
 
     PositionInFile position = message.getPosition();
     assertNotNull(position);

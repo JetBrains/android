@@ -34,6 +34,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />

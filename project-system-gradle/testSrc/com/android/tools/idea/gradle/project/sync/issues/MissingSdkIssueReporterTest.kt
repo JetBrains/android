@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
@@ -26,17 +27,18 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.io.File
 
-class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
+class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
   private lateinit var syncMessages: GradleSyncMessagesStub
-  private lateinit var reporter: CxxConfigurationIssuesReporter
+  private lateinit var reporter: MissingSdkIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
 
     syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
-    reporter = CxxConfigurationIssuesReporter()
+    reporter = MissingSdkIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }
 
@@ -45,7 +47,8 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     syncMessages.removeAllMessages()
     loadSimpleApplication()
 
-    val syncIssue = setUpMockSyncIssue("19.1.2")
+    val localPropertiesPath = File(projectFolderPath, SdkConstants.FN_LOCAL_PROPERTIES)
+    val syncIssue = setUpMockSyncIssue(localPropertiesPath.absolutePath)
 
     reporter.report(syncIssue, getModule("app"), null, usageReporter)
     val notifications = syncMessages.notifications
@@ -54,21 +57,25 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
 
     assertEquals("Gradle Sync Issues", notification.title)
     assertEquals(
-      "No version of NDK matched the requested version 19.1.2\n" +
+      "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
+      "your project's local.properties file.\n" +
       "Affected Modules: app", notification.message)
     assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
     assertSize(1, quickFixes)
-    assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+    assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
+    val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
+    assertSize(1, quickFixPaths)
+    assertContainsElements(quickFixPaths, localPropertiesPath.absolutePath)
 
     assertEquals(
       listOf(
         GradleSyncIssue
           .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
           .build()),
       usageReporter.collectedIssue)
   }
@@ -79,9 +86,13 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     prepareProjectForImport(COMPOSITE_BUILD)
     importProject()
 
-    val syncIssueOne = setUpMockSyncIssue("19.1.2")
-    val syncIssueTwo = setUpMockSyncIssue("19.1.1")
-    val syncIssueThree = setUpMockSyncIssue("19.1.2") // Intentional duplicate of syncIssueOne
+    val localPropertiesPath = File(projectFolderPath, SdkConstants.FN_LOCAL_PROPERTIES)
+    val localPropertiesPathTwo = File(projectFolderPath, "TestCompositeLib1/${SdkConstants.FN_LOCAL_PROPERTIES}")
+    val localPropertiesPathThree = File(projectFolderPath, "TestCompositeLib3/${SdkConstants.FN_LOCAL_PROPERTIES}")
+
+    val syncIssueOne = setUpMockSyncIssue(localPropertiesPath.absolutePath)
+    val syncIssueTwo = setUpMockSyncIssue(localPropertiesPathTwo.absolutePath)
+    val syncIssueThree = setUpMockSyncIssue(localPropertiesPathThree.absolutePath)
 
 
     val moduleMap = mapOf(
@@ -94,34 +105,38 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
 
     val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
     assertSize(1, notifications)
-    val notificationOne = notifications[0]
+    val notification = notifications[0]
 
-    assertEquals("Gradle Sync Issues", notificationOne.title)
+    assertEquals("Gradle Sync Issues", notification.title)
     assertEquals(
-      "No version of NDK matched the requested version 19.1.2\n" +
-      "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notificationOne.message)
+      "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
+      "your project's local.properties files.\n" +
+      "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notification.message)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
     assertSize(1, quickFixes)
-    assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+    assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
+    val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
+    assertSize(3, quickFixPaths)
+    assertContainsElements(quickFixPaths, localPropertiesPath.absolutePath, localPropertiesPathTwo.absolutePath,
+                           localPropertiesPathThree.absolutePath)
 
-    val resultSyncIssue = GradleSyncIssue
-      .newBuilder()
-      .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-      .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
-      .build()
     assertEquals(
-      listOf(resultSyncIssue),
+      listOf(GradleSyncIssue
+               .newBuilder()
+               .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
+               .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
+               .build()),
       usageReporter.collectedIssue)
   }
 
-  private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {
+  private fun setUpMockSyncIssue(path: String): IdeSyncIssue {
     val syncIssue = mock(IdeSyncIssue::class.java)
-    `when`(syncIssue.data).thenReturn(null)
-    `when`(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
+    `when`(syncIssue.data).thenReturn(path)
+    `when`(syncIssue.message).thenReturn("This is some message that is not used")
     `when`(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    `when`(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
+    `when`(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_SDK_NOT_SET)
     return syncIssue
   }
 }
