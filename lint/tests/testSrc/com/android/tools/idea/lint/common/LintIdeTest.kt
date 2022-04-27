@@ -34,11 +34,13 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.InspectionTestUtil
@@ -429,6 +431,36 @@ b/214265385 */
     override fun instantiateFixture(): ModuleFixtureImpl {
       return ModuleFixtureImpl(this)
     }
+  }
+
+  fun testIsEdited() {
+    val fileContent = """
+      package p1.p2;
+      public class Test {}
+    """.trimIndent()
+
+    val now = System.currentTimeMillis()
+    val yesterday = now - 24*60*60*1000L
+
+    val vFile = myFixture.addFileToProject("src/p1/p2/Test.java", fileContent).virtualFile
+    val file = VfsUtilCore.virtualToIoFile(vFile)
+
+    val module = ModuleManager.getInstance(myFixture.project).modules[0]
+    val client = LintIdeClient(myFixture.project, LintEditorResult(module, vFile, fileContent, Sets.newHashSet()))
+
+    assertThat(file).isNotNull()
+    // File was just created: recent files are treated as edited
+    assertThat(client.isEdited(file, false)).isTrue()
+    file.setLastModified(yesterday)
+    assertThat(client.isEdited(file, true)).isFalse()
+
+    val document = FileDocumentManager.getInstance().getDocument(vFile)
+    assertThat(document).isNotNull()
+    WriteCommandAction.writeCommandAction(myFixture.project).run(
+      ThrowableRunnable {
+        document?.insertString(document.textLength, "// appended")
+      })
+    assertThat(client.isEdited(file, true)).isTrue()
   }
 
   companion object {

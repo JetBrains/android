@@ -759,4 +759,24 @@ public class LintIdeClient extends LintClient implements Disposable {
       .files(Arrays.stream(urls).map(it -> Paths.get(UrlClassLoader.urlToFilePath(it.getPath()))).collect(Collectors.toList()))
       .get();
   }
+
+  @Override
+  public boolean isEdited(@NotNull File file, boolean returnIfUnknown, long savedSinceMsAgo) {
+    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (vFile != null) {
+      FileDocumentManager documentManager = FileDocumentManager.getInstance();
+      if (documentManager.isFileModified(vFile)) {
+        return true;
+      }
+      if (savedSinceMsAgo >= 0L) {
+        // Edited (but saved) recently?
+        long modified = file.lastModified();
+        long now = System.currentTimeMillis();
+        if (modified == 0L) { // file access permission issues etc
+          return returnIfUnknown;
+        } else return now - modified < savedSinceMsAgo;
+      }
+    }
+    return false;
+  }
 }
