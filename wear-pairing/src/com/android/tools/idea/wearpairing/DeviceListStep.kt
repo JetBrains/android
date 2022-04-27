@@ -264,6 +264,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
           )
 
           val rightIcon = when {
+            StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() -> null
             WearPairingManager.isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
             value.isDisabled() -> AllIcons.General.ShowInfos
             else -> null
