@@ -185,7 +185,7 @@ public class IssueView extends JPanel {
   }
 
   private void createFixEntry(@NotNull Issue.Fix fix) {
-    myFixPanel.add(new FixEntry(fix.getButtonText(), fix.getDescription(), fix.getRunnable()));
+    myFixPanel.add(new FixEntry(fix.getButtonText(), fix.getDescription(), fix.getAction()));
   }
 
   @NotNull

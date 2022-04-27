@@ -41,7 +41,8 @@ class ShowQuickFixesAction : AnAction(), UpdateInBackground {
     }
 
     val fixes = node.issue.fixes
-    if (fixes.isEmpty()) {
+    val suppress = node.issue.suppresses
+    if (fixes.isEmpty() && suppress.isEmpty()) {
       presentation.text = "No Quick Fix for This Issue"
       presentation.isEnabled = false
     }
@@ -53,11 +54,11 @@ class ShowQuickFixesAction : AnAction(), UpdateInBackground {
   override fun actionPerformed(event: AnActionEvent) {
     val node = event.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode ?: return
     val issue = node.issue
-    val fixes = issue.fixes
+    val fixable = issue.fixes.toList() + issue.suppresses.toList()
 
-    val popup = JBPopupFactory.getInstance().createPopupChooserBuilder(fixes.toList())
-      .setRenderer(FixCellRenderer())
-      .setItemChosenCallback { it.runnable.run() }
+    val popup = JBPopupFactory.getInstance().createPopupChooserBuilder(fixable)
+      .setRenderer(QuickFixableCellRenderer())
+      .setItemChosenCallback { it.action.run() }
       .createPopup()
 
     val mouse = event.inputEvent as? MouseEvent ?: return popup.showInBestPositionFor(event.dataContext)
@@ -66,9 +67,10 @@ class ShowQuickFixesAction : AnAction(), UpdateInBackground {
   }
 }
 
-private class FixCellRenderer: ColoredListCellRenderer<Issue.Fix>() {
-  override fun customizeCellRenderer(list: JList<out Issue.Fix>, fix: Issue.Fix, index: Int, selected: Boolean, hasFocus: Boolean) {
-    // TODO: Add icon for Issue.Fix
-    append(fix.description)
+private class QuickFixableCellRenderer: ColoredListCellRenderer<Issue.QuickFixable>() {
+  override fun customizeCellRenderer(list: JList<out Issue.QuickFixable>, element: Issue.QuickFixable, index: Int,
+                                     selected: Boolean, hasFocus: Boolean) {
+    icon = element.icon
+    append(element.description)
   }
 }

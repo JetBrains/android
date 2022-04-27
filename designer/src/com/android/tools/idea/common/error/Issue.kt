@@ -20,9 +20,11 @@ import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
+import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.stream.Stream
+import javax.swing.Icon
 import javax.swing.event.HyperlinkListener
 
 data class NlComponentIssueSource(val component: NlComponent) : IssueSource, NlAttributesHolder {
@@ -107,6 +109,9 @@ abstract class Issue {
   open val fixes: Stream<Fix>
     get() = Stream.empty()
 
+  open val suppresses: Stream<Suppress>
+    get() = Stream.empty()
+
   override fun equals(other: Any?): Boolean {
     if (other === this) return true
     if (other !is Issue) return false
@@ -128,13 +133,31 @@ abstract class Issue {
   }
 
   /**
-   * Representation of a quick fix for the issue.
-   * @param description Description of the fix
-   * @param runnable    Action to execute the fix
+   * Representation of the quick fix action (includes both fix and suppress) for the issues.
    */
-  data class Fix(val buttonText: String = "Fix", val description: String, val runnable: Runnable)
+  interface QuickFixable {
+    val icon: Icon?
+    val buttonText: String
+    val description: String
+    val action: Runnable
+  }
+
+  /**
+   * Representation of a fix action for the issue.
+   */
+  data class Fix(override val buttonText: String = "Fix", override val description: String, override val action: Runnable) : QuickFixable {
+    override val icon = AllIcons.Actions.RealIntentionBulb
+  }
+
+  /**
+   * Representation of a suppress action for the issue.
+   */
+  data class Suppress(override val buttonText: String, override val description: String, override val action: Runnable) : QuickFixable {
+    override val icon = AllIcons.Actions.Cancel
+  }
 
   companion object {
     const val EXECUTE_FIX = "Execute Fix: "
+    const val EXECUTE_SUPPRESSION = "Execute Suppression: "
   }
 }

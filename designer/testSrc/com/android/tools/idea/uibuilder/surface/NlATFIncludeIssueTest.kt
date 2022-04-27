@@ -66,7 +66,7 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
     val atfIssue = NlATFIncludeIssue(source, mockSurface)
 
     atfIssue.fixes.filter { it.buttonText == "Ignore" }.forEach {
-      it.runnable.run()
+      it.action.run()
 
       assertEquals(SdkConstants.ATTR_IGNORE_A11Y_LINTS, source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE))
     }

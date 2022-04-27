@@ -18,6 +18,7 @@ package com.android.tools.idea.common.lint;
 import com.android.tools.idea.common.error.IssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.SuppressLintQuickFix;
 import com.android.tools.lint.checks.RtlDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -26,6 +27,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
+import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -153,6 +155,12 @@ public class LintAnnotationsModel {
       this.startElement = startElement;
       this.endElement = endElement;
       this.quickfixData = quickfixData;
+    }
+
+    @Nullable
+    public SuppressLintQuickFix getSuppressLintQuickFix() {
+      HighlightDisplayKey key = HighlightDisplayKey.find(inspection.getShortName());
+      return key == null ? null : new SuppressLintQuickFix(key.getID(), startElement);
     }
 
     /**

@@ -122,6 +122,19 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
+    override val suppresses: Stream<Suppress>
+      get() {
+        val suppressLint = issue.suppressLintQuickFix ?: return Stream.empty()
+        val project = issue.component.model.project
+        val suppress = Suppress("Suppress", suppressLint.name) {
+          CommandProcessor.getInstance().executeCommand(project, {
+            WriteAction.run<Throwable> { suppressLint.applyFix(issue.startElement) }
+          }, EXECUTE_SUPPRESSION + suppressLint.name, null
+          )
+        }
+        return Stream.of(suppress)
+      }
+
     private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix("Fix", fix.name, createQuickFixRunnable(fix))
 
     private fun createQuickFixPair(fix: IntentionAction) = Fix("Fix", fix.text, createQuickFixRunnable(fix))

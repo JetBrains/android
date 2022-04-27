@@ -120,7 +120,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
       // Simulate ignore button click
-      ignore.runnable.run()
+      ignore.action.run()
 
       assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
       assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
@@ -144,7 +144,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
       // Simulate ignore button click
-      ignore.runnable.run()
+      ignore.action.run()
 
       assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
       assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
@@ -169,7 +169,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertEquals(2, atfIssue.fixes.count())
     atfIssue.fixes.filter{it.buttonText == "Fix"}.forEach {  fix ->
       // Simulate fix button click
-      fix.runnable.run()
+      fix.action.run()
 
       verify(mockEventListener).onApplyFixButtonClicked(result)
     }
