@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.util.WizardUtils
-import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -70,5 +70,12 @@ class NewComposeProjectTest {
     }
 
     guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish()
+
+    // Check if we can add another Compose Activity (will need to de-duplicate compose function names)
+    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
+      .getConfigureActivityStep("Empty Compose Activity")
+      //.enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, name)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish()
   }
 }
