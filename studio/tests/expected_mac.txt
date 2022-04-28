@@ -2361,7 +2361,6 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/DroidSansMono.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmoji.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiFlags.ttf
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiLegacy.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Bold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabicUI-Bold.ttf
@@ -2560,7 +2559,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/framework_res.jar
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt70l.dat
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt68l.dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac/lib64/libandroid_runtime.dylib
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac/lib64/libc++.dylib

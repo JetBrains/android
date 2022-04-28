@@ -100,7 +100,7 @@ class AtfAnalyzerTest {
         issues.forEach {
           assertEquals("Duplicated clickable Views", it.summary)
           assertEquals(HighlightSeverity.ERROR, it.severity)
-          assertEquals("This clickable item has the same on-screen location ([0,0][358,96]) as 1 other item(s) with those " +
+          assertEquals("This clickable item has the same on-screen location ([0,0][314,96]) as 1 other item(s) with those " +
                        "properties.<br><br>Learn more at <a href=\"https://support.google.com/accessibility/android/answer/6378943\">" +
                        "https://support.google.com/accessibility/android/answer/6378943</a>", it.description)
         }
