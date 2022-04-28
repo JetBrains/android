@@ -23,8 +23,7 @@ import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
 
-// open/public for testing was: final/internal
-open class ProjectSystemService(val project: Project) {
+class ProjectSystemService(val project: Project) {
   private val cachedProjectSystem = AtomicReference<AndroidProjectSystem?>()
 
   companion object {
@@ -34,8 +33,7 @@ open class ProjectSystemService(val project: Project) {
     }
   }
 
-  // open for testing was: final
-  open val projectSystem: AndroidProjectSystem
+  val projectSystem: AndroidProjectSystem
     get() {
       // We need to guarantee that the project system remains unique until the next time the project
       // is closed. This method may be called by multiple threads in parallel.
