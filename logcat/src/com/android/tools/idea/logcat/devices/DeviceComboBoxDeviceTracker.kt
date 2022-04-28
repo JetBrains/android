@@ -187,7 +187,7 @@ internal class DeviceComboBoxDeviceTracker(
     val selector = DeviceSelector.fromSerialNumber(serialNumber)
     val command = properties.joinToString(" ; ") { "getprop $it" }
     val lines = adbSession.deviceServices.shellAsText(selector, command, commandTimeout = ADB_TIMEOUT).split("\n")
-    return properties.withIndex().associate { it.value to lines[it.index] }
+    return properties.withIndex().associate { it.value to lines[it.index].trimEnd('\r') }
   }
 }
 
