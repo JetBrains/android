@@ -122,7 +122,9 @@
       <separator/>
       <action class="com.android.tools.idea.res.ToggleResourceTraceAction"/>
       <action class="com.android.tools.idea.res.DumpResourceTraceAction"/>
+      <separator/>
       <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
+      <action class="com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction"/>
     </group>
 
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">

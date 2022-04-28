@@ -1439,5 +1439,11 @@ public final class StudioFlags {
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
+  // region App DIAGNOSTICS_SUMMARY
+  private static final FlagGroup DIAGNOSTICS_SUMMARY = new FlagGroup(FLAGS, "diagnosticssummary", "Diagnostics Summary");
+  public static final Flag<Boolean> ENABLE_DIAGNOSTICS_SUMMARY_MENU =
+    Flag.create(DIAGNOSTICS_SUMMARY, "enable.diagnostics.summary.menu", "Enable Diagnostics Summary Menu",
+                "Enable the diagnostic summary menu item.", false);
+  // endregion DIAGNOSTICS_SUMMARY
   private StudioFlags() { }
 }
