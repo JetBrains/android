@@ -316,10 +316,10 @@ class GradleModuleSystem(
             IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> null
-            IdeAndroidProjectType.PROJECT_TYPE_TEST -> null
+            IdeAndroidProjectType.PROJECT_TYPE_TEST -> androidModel.applicationId
+            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> getPackageName()
           }
-          )
+        )
     )
     val variant = androidModel.selectedVariant
     val placeholders = getManifestPlaceholders()

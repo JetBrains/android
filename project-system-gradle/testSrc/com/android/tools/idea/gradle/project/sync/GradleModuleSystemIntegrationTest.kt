@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
+import com.google.common.truth.Truth.assertThat
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
@@ -91,6 +92,34 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
         expect.that(ManifestSystemProperty.values.size).isEqualTo(14)
       }
+    }
+  }
+
+  @Test
+  fun manifestOverridesInLibrary() {
+    prepareGradleProject(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB, "withLib")
+    openPreparedProject("withLib") { project ->
+      val overrides = project.gradleModule(":lib")!!.getModuleSystem().getManifestOverrides().directOverrides
+      assertThat(overrides).containsExactlyEntriesIn(mapOf(
+        ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
+        ManifestSystemProperty.Document.PACKAGE to "com.example.lib",
+        ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+        ManifestSystemProperty.Manifest.VERSION_CODE to "1",
+        ManifestSystemProperty.Manifest.VERSION_NAME to "1.0",
+      ))
+    }
+  }
+
+  @Test
+  fun manifestOverridesInSeparateTest() {
+    prepareGradleProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, "withTestOnly")
+    openPreparedProject("withTestOnly") { project ->
+      val overrides = project.gradleModule(":test")!!.getModuleSystem().getManifestOverrides().directOverrides
+      assertThat(overrides).containsExactlyEntriesIn(mapOf(
+        ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
+        ManifestSystemProperty.Document.PACKAGE to "uninitialized.application.id",
+        ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      ))
     }
   }
 
