@@ -50,6 +50,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -85,6 +86,7 @@ import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -401,7 +403,13 @@ public class AndroidGradleTests {
   @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
-    repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+    if (TestUtils.runningFromBazel()) {
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+    }
+    else {
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+      repositories.add(TestUtils.resolveWorkspacePath("out/repo").toFile());
+    }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)
     // This property allows multiple local repositories separated by the path separator
