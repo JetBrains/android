@@ -37,9 +37,9 @@ class VisualLintIssueProvider : IssueProvider() {
     issueListBuilder.addAll(issues.list)
   }
 
-  fun addIssue(errorType: VisualLintErrorType, issue: Issue) = issues.add(errorType, issue)
+  private fun addIssue(errorType: VisualLintErrorType, issue: Issue) = this.issues.add(errorType, issue)
 
-  fun addAllIssues(errorType: VisualLintErrorType, issues: List<Issue>) = this.issues.addAll(errorType, issues)
+  fun addAllIssues(errorType: VisualLintErrorType, issues: List<Issue>) = issues.forEach { addIssue(errorType, it) }
 
   fun getIssues() = issues.list
 

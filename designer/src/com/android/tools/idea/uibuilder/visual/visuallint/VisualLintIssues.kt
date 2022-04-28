@@ -65,12 +65,6 @@ class VisualLintIssues {
     }
   }
 
-  fun addAll(errorType: VisualLintErrorType, issues: List<Issue>) {
-    issues.forEach {
-      add(errorType, it)
-    }
-  }
-
   override fun toString(): String {
     if (list.isEmpty()) {
       return "VisualLintIssues empty."

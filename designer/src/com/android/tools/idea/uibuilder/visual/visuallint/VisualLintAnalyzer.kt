@@ -33,39 +33,32 @@ abstract class VisualLintAnalyzer {
   abstract val type: VisualLintErrorType
 
   /**
-   * Analyze the given [RenderResult] for visual lint issues, and collect all such issues in [issueProvider].
+   * Analyze the given [RenderResult] for visual lint issues and return found [VisualLintRenderIssue]s
    */
-  fun analyze(renderResult: RenderResult,
-                       model: NlModel,
-                       issueProvider: VisualLintIssueProvider,
-                       analyticsManager: VisualLintAnalyticsManager) {
+  fun analyze(renderResult: RenderResult, model: NlModel, analyticsManager: VisualLintAnalyticsManager): List<VisualLintRenderIssue> {
     val issueContents = findIssues(renderResult, model)
-    issueContents.forEach { createIssue(it, model, issueProvider, analyticsManager) }
+    return issueContents.map { createIssue(it, model, analyticsManager) }.toList()
   }
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
 
   open fun getHyperlinkListener(): HyperlinkListener? = null
 
-  /** Create [VisualLintRenderIssue] and add to [issueProvider]. */
-  fun createIssue(content: VisualLintIssueContent,
-                  model: NlModel,
-                  issueProvider: VisualLintIssueProvider,
-                  analyticsManager: VisualLintAnalyticsManager) {
+  /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
+  private fun createIssue(content: VisualLintIssueContent,
+                          model: NlModel,
+                          analyticsManager: VisualLintAnalyticsManager): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
     analyticsManager.trackIssueCreation(type)
-    issueProvider.addIssue(
-      type,
-      VisualLintRenderIssue.builder()
-        .summary(content.message)
-        .severity(HighlightSeverity.WARNING)
-        .model(model)
-        .components(if (component == null) mutableListOf() else mutableListOf(component))
-        .contentDescriptionProvider(content.descriptionProvider)
-        .hyperlinkListener(getHyperlinkListener())
-        .type(type)
-        .build()
-    )
+    return VisualLintRenderIssue.builder()
+      .summary(content.message)
+      .severity(HighlightSeverity.WARNING)
+      .model(model)
+      .components(if (component == null) mutableListOf() else mutableListOf(component))
+      .contentDescriptionProvider(content.descriptionProvider)
+      .hyperlinkListener(getHyperlinkListener())
+      .type(type)
+      .build()
   }
 
   protected fun previewConfigurations(count: Int): String {

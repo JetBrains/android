@@ -41,8 +41,11 @@ fun analyzeAfterModelUpdate(result: RenderResult,
                             issueProvider: VisualLintIssueProvider,
                             baseConfigIssues: VisualLintBaseConfigIssues,
                             analyticsManager: VisualLintAnalyticsManager) {
-  basicAnalyzers.forEach { it.analyze(result, model, issueProvider, analyticsManager) }
-  LocaleAnalyzer(baseConfigIssues).analyze(result, model, issueProvider, analyticsManager)
+  basicAnalyzers.forEach {
+    val issues = it.analyze(result, model, analyticsManager)
+    issueProvider.addAllIssues(it.type, issues)
+  }
+  LocaleAnalyzer(baseConfigIssues).let { issueProvider.addAllIssues(it.type, it.analyze(result, model, analyticsManager)) }
   if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
     AtfAnalyzer.analyze(result, model, issueProvider)
   }
