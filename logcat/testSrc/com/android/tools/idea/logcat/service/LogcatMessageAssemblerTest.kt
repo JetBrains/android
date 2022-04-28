@@ -419,7 +419,6 @@ class LogcatMessageAssemblerTest {
       projectRule.project,
       serialNumber,
       channel,
-      LogCatHeaderParser(2022, ZoneId.of("America/Los_Angeles")),
       processNameMonitor,
       coroutineContext)
 }

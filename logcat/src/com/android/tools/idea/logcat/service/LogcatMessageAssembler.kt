@@ -23,14 +23,12 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.folding.StackTraceExpander
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
 
@@ -57,19 +55,14 @@ private const val DELAY_MILLIS = 100L
  *
  * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
  */
-internal class LogcatMessageAssembler @TestOnly internal constructor(
-  project: Project,
-  val serialNumber: String,
+internal class LogcatMessageAssembler(
+  disposableParent: Disposable,
+  private val serialNumber: String,
   private val channel: SendChannel<List<LogCatMessage>>,
-  private val headerParser: LogCatHeaderParser,
   private val processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
 ) : Disposable {
-  constructor(project: Project, serialNumber: String, channel: SendChannel<List<LogCatMessage>>)
-    : this(project, serialNumber, channel, LogCatHeaderParser(), ProcessNameMonitor.getInstance(project), EmptyCoroutineContext)
-
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
-
 
   /**
    * Keep a lambda se we don't allocate a new one for each parsed line
@@ -78,6 +71,11 @@ internal class LogcatMessageAssembler @TestOnly internal constructor(
 
   private val previousState = AtomicReference<PartialMessage?>()
 
+  private val headerParser = LogCatHeaderParser()
+
+  init {
+    Disposer.register(disposableParent, this)
+  }
 
   /**
    * Parse a batch of new lines.
