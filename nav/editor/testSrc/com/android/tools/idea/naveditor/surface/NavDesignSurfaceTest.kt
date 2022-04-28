@@ -301,7 +301,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -527,7 +527,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
     manager.startListening()
 
     try {

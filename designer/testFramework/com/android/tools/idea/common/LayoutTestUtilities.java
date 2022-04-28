@@ -85,10 +85,10 @@ public class LayoutTestUtilities {
     double xSlope = (x2 - x) / frames;
     double ySlope = (y2 - y) / frames;
 
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
-        .withSource(layeredPane)
+        .withSource(interactionPane)
         .withMask(modifiers | InputEvent.BUTTON1_DOWN_MASK)
         .withId(MouseEvent.MOUSE_DRAGGED)
         .build();
@@ -107,7 +107,7 @@ public class LayoutTestUtilities {
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
 
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     int frames = 5;
     double x = x1;
     double y = y1;
@@ -115,7 +115,7 @@ public class LayoutTestUtilities {
     double ySlope = (y2 - y) / frames;
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
-        .withSource(layeredPane)
+        .withSource(interactionPane)
         .withId(MouseEvent.MOUSE_MOVED)
         .build();
       mouseListener.mouseMoved(event);
@@ -128,9 +128,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     mouseListener.mousePressed(new MouseEventBuilder(x, y)
-                                 .withSource(layeredPane)
+                                 .withSource(interactionPane)
                                  .withMask(modifiers)
                                  .withButton(button)
                                  .withId(MouseEvent.MOUSE_PRESSED)
@@ -141,9 +141,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     mouseListener.mouseReleased(new MouseEventBuilder(x, y)
-                                  .withSource(layeredPane)
+                                  .withSource(interactionPane)
                                   .withMask(modifiers)
                                   .withButton(button)
                                   .withId(MouseEvent.MOUSE_RELEASED).build());
@@ -155,7 +155,7 @@ public class LayoutTestUtilities {
                                 @SwingCoordinate int x,
                                 @SwingCoordinate int y,
                                 int modifiers) {
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     for (int i = 0; i < count; i++) {
       pressMouse(manager, button, x, y, modifiers);
       releaseMouse(manager, button, x, y, modifiers);
@@ -165,7 +165,7 @@ public class LayoutTestUtilities {
       MouseListener mouseListener = (MouseListener)listener;
       MouseEvent event =
         new MouseEventBuilder(x, y)
-          .withSource(layeredPane)
+          .withSource(interactionPane)
           .withButton(button)
           .withMask(modifiers)
           .withClickCount(i + 1)
@@ -220,9 +220,9 @@ public class LayoutTestUtilities {
     Object listener = manager.getListener();
     assertTrue(listener instanceof KeyListener);
     KeyListener keyListener = (KeyListener)listener;
-    JComponent layeredPane = manager.getInteractable().getLayeredPane();
+    JComponent interactionPane = manager.getInteractable().getInteractionPane();
     keyListener.keyReleased(new KeyEventBuilder(keyCode, KeyEvent.CHAR_UNDEFINED)
-                              .withSource(layeredPane)
+                              .withSource(interactionPane)
                               .build());
   }
 

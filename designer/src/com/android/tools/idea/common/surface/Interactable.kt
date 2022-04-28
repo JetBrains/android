@@ -27,10 +27,6 @@ interface Interactable {
   val interactionPane: JComponent
   val cursorReceiver: Component?
 
-  /**
-   * For testing only, should be removed
-   */
-  val layeredPane: JComponent
   fun repaintComponent()
 }
 
@@ -38,7 +34,6 @@ class SurfaceInteractable(private val surface: DesignSurface): Interactable {
   override val pannable: Pannable = surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface
   override val interactionPane: JComponent = surface.interactionPane
   override val cursorReceiver: Component? = DataManager.getInstance().getDataContext(surface).getData(CURSOR_RECEIVER)
-  override val layeredPane: JComponent = surface.layeredPane
   override fun repaintComponent() {
     surface.repaint()
   }
