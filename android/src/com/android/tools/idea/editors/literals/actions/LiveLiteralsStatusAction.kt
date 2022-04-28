@@ -100,7 +100,7 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
             .setDescription(if (liveEdit) AndroidBundle.message("live.edit.tooltip.description") else AndroidBundle.message("live.literals.tooltip.description"))
             .setBrowserLink(if (liveEdit) AndroidBundle.message("live.edit.tooltip.url.label") else AndroidBundle.message("live.literals.tooltip.url.label"),
                             // TODO update URL to Live Edit's webpage when it gets created
-                            if (liveEdit) URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals") else URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
+                            if (liveEdit) URL("https://developer.android.com/studio/run#live-edit") else URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
             .installOn(this)
         }
         else {
