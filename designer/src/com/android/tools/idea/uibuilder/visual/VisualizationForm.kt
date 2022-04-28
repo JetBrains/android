@@ -191,7 +191,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
         VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
       }
       .setLayoutManager(surfaceLayoutManager)
-      .setMinScale(0.10)
+      .setMinScale(0.01)
       .setMaxScale(4.0)
       .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
       .build()
