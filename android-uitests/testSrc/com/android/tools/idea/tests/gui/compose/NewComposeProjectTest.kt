@@ -56,7 +56,7 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
+    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", null)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")

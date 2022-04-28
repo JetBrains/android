@@ -19,11 +19,11 @@ import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class WizardUtils {
   private WizardUtils() {
@@ -40,7 +40,7 @@ public final class WizardUtils {
     createNewProject(guiTest, activity, Java);
   }
 
-  public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity, @NotNull Language language) {
+  public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity, @Nullable Language language) {
     guiTest
       .welcomeFrame()
       .createNewProject()
