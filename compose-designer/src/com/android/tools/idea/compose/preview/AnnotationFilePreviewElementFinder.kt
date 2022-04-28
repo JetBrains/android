@@ -21,9 +21,19 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotatedMethods
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.concurrency.getPsiFileSafely
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
+import org.jetbrains.uast.UMethod
 
 /**
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
@@ -38,6 +48,27 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
-  override suspend fun findPreviewMethods(project: Project, vFile: VirtualFile) =
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME, ::getPreviewElements)
+  override suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> {
+    val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
+    return findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) { methods ->
+      val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
+      val previewElements = previewNodes.filterIsInstance<PreviewElement>().distinct()
+
+      if (previewElements.isNotEmpty()) {
+        MultiPreviewUsageTracker.getInstance(psiFile.androidFacet).logEvent(
+          MultiPreviewEvent(previewNodes.filterIsInstance<MultiPreviewNode>(),
+                            "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}"))
+      }
+
+      previewElements.asSequence()
+    }
+  }
+
+  @VisibleForTesting
+  internal fun getPreviewNodes(methods: List<UMethod>, includeAllNodes: Boolean) =
+    methods.flatMap {
+      ProgressManager.checkCanceled()
+      getPreviewNodes(it, includeAllNodes = includeAllNodes)
+    }
+
 }

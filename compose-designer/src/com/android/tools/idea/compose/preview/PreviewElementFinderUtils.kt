@@ -21,6 +21,9 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.annotations.isAnnotatedWith
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
+import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
@@ -30,6 +33,7 @@ import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
@@ -96,52 +100,123 @@ internal fun UMethod?.hasPreviewElements() = this?.let { getPreviewElements(it).
  * i.e. an annotation that is annotated with @Preview or with other MultiPreview.
  */
 fun UAnnotation?.isMultiPreviewAnnotation() =
-  this?.let { !it.isPreviewAnnotation() && it.getPreviewElements().firstOrNull() != null } == true
+  this?.let { !it.isPreviewAnnotation() && it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null } == true
 
 /**
  * Given a Composable method, return a sequence of [PreviewElement] corresponding to its Preview annotations
  */
-internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) = runReadAction {
+internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
+  getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? PreviewElement }
+
+/**
+ * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's MultiPreview graph.
+ * Notes:
+ *  - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but specifically a [PreviewElement].
+ *  - When [includeAllNodes] is true, the returned sequence will also include nodes corresponding to the MultiPreview annotations
+ *  and the root composable [uMethod]. These nodes, will be not just a [PreviewNode], but specifically a [MultiPreviewNode]
+ */
+internal fun getPreviewNodes(uMethod: UMethod, overrideGroupName: String? = null, includeAllNodes: Boolean) = runReadAction {
   if (uMethod.isComposable()) {
-    val visitedAnnotationClasses = mutableSetOf<String>()
-    uMethod.uAnnotations.asSequence().flatMap { it.getPreviewElements(visitedAnnotationClasses, uMethod, it, overrideGroupName) }
+    val visitedAnnotationClasses = mutableMapOf<String, MultiPreviewNodeInfo?>()
+
+    sequence {
+      val nDirectPreviews = uMethod.uAnnotations.count { it.isPreviewAnnotation() }
+      val nonPreviewTraversedChildrenFqcn = mutableListOf<String?>()
+      // First, traverse over the whole MultiPreview graph for this Composable
+      yield(uMethod.uAnnotations.asSequence().flatMap {
+        if (it.shouldTraverse(visitedAnnotationClasses) && !it.isPreviewAnnotation()) {
+          nonPreviewTraversedChildrenFqcn.add((it.tryResolve() as? PsiClass)?.qualifiedName)
+        }
+        it.getPreviewNodes(visitedAnnotationClasses, uMethod, it, overrideGroupName, includeAllNodes)
+      })
+      // Then, add this root composable node if wanted
+      yield(
+        if (includeAllNodes) {
+          // Set the corresponding MultiPreviewNodeInfo
+          val node = MultiPreviewNodeImpl(
+            MultiPreviewNodeInfo(ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE)
+              .withChildNodes(nonPreviewTraversedChildrenFqcn.filterNotNull().map { visitedAnnotationClasses[it] }, nDirectPreviews)
+              .withDepthLevel(0)
+              .withComposableFqn(uMethod.qualifiedName)
+          )
+          sequenceOf(node)
+        }
+        else emptySequence()
+      )
+    }.flatten()
   }
   else emptySequence() // for non-composable methods, return an empty sequence
 }
 
-private fun UAnnotation.getPreviewElements(visitedAnnotationClasses: MutableSet<String> = mutableSetOf(),
-                                           uMethod: UMethod? = getContainingComposableUMethod(),
-                                           rootAnnotation: UAnnotation = this,
-                                           overrideGroupName: String? = null,
-                                           parentAnnotationInfo: String? = null): Sequence<PreviewElement> = runReadAction {
-  if (uMethod == null) return@runReadAction emptySequence()
+private fun UAnnotation.getPreviewNodes(visitedAnnotationClasses: MutableMap<String, MultiPreviewNodeInfo?> = mutableMapOf(),
+                                        uMethod: UMethod? = getContainingComposableUMethod(),
+                                        rootAnnotation: UAnnotation = this,
+                                        overrideGroupName: String? = null,
+                                        includeAllNodes: Boolean,
+                                        depthLevel: Int = 1,
+                                        parentAnnotationInfo: String? = null): Sequence<PreviewNode> = runReadAction {
+  // MultiPreview nodes are always associated with a composable method
+  if (!uMethod.isComposable() || !this.shouldTraverse(visitedAnnotationClasses)) return@runReadAction emptySequence()
 
+  // Preview annotations are leaf nodes, just return the corresponding PreviewElement
   if (this.isPreviewAnnotation()) {
     return@runReadAction sequenceOfNotNull(this.toPreviewElement(uMethod, rootAnnotation, overrideGroupName, parentAnnotationInfo))
   }
-  val annotationClassFqcn = (this.tryResolve() as? PsiClass)?.qualifiedName
-  if (this.couldBeMultiPreviewAnnotation() && annotationClassFqcn != null && !visitedAnnotationClasses.contains(annotationClassFqcn)) {
-    visitedAnnotationClasses.add(annotationClassFqcn)
 
-    val curAnnotationName = (this.tryResolve() as? PsiClass)!!.name
-    val annotations = (this.tryResolve() as? PsiModifierListOwner)?.annotations
-                        ?.mapNotNull { it.toUElementOfType() as? UAnnotation } ?: return@runReadAction emptySequence()
-    val nDirectPreviewsLen = annotations.count { it.isPreviewAnnotation() }.toString().length
-    var nxtDirectPreviewId = 1
-    annotations.asSequence().flatMap {
-        if (it.isPreviewAnnotation()) {
-          it.getPreviewElements(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName,
-                                buildParentAnnotationInfo(curAnnotationName, nxtDirectPreviewId++, nDirectPreviewsLen))
-        }
-        else {
-          it.getPreviewElements(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName)
-        }
+  val annotationClassFqcn = (this.tryResolve() as PsiClass).qualifiedName!!
+  visitedAnnotationClasses[annotationClassFqcn] = null // The MultiPreviewNodeInfo will be set later if needed
+  val curAnnotationName = (this.tryResolve() as PsiClass).name
+  val annotations = (this.tryResolve() as? PsiModifierListOwner)?.annotations
+                      ?.mapNotNull { it.toUElementOfType() as? UAnnotation } ?: return@runReadAction emptySequence()
+
+  val nDirectPreviews = annotations.count { it.isPreviewAnnotation() }
+  var nxtDirectPreviewId = 1
+  val nonPreviewTraversedChildrenFqcn = mutableListOf<String?>()
+
+  sequence {
+    // First, traverse over my children
+    yield(annotations.asSequence().flatMap {
+      if (it.isPreviewAnnotation()) {
+        it.getPreviewNodes(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName, includeAllNodes, depthLevel + 1,
+                           buildParentAnnotationInfo(curAnnotationName, nxtDirectPreviewId++, nDirectPreviews))
       }
-  }
-  else emptySequence()
+      else if (it.shouldTraverse(visitedAnnotationClasses)) {
+        nonPreviewTraversedChildrenFqcn.add((it.tryResolve() as? PsiClass)?.qualifiedName)
+        it.getPreviewNodes(visitedAnnotationClasses, uMethod, rootAnnotation, overrideGroupName, includeAllNodes, depthLevel + 1)
+      }
+      else emptySequence()
+    })
+
+    // Then, add this non-preview node if wanted
+    yield(
+      if (includeAllNodes) {
+        // Set the corresponding MultiPreviewNodeInfo
+        val node = MultiPreviewNodeImpl(
+          MultiPreviewNodeInfo(ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE)
+            .withChildNodes(nonPreviewTraversedChildrenFqcn.filterNotNull().map { visitedAnnotationClasses[it] }, nDirectPreviews)
+            .withDepthLevel(depthLevel)
+            .withComposableFqn(uMethod!!.qualifiedName)
+        )
+        visitedAnnotationClasses[annotationClassFqcn] = node.nodeInfo
+        sequenceOf(node)
+      }
+      else emptySequence()
+    )
+  }.flatten()
 }
 
-private fun buildParentAnnotationInfo(name: String?, id: Int, idLength: Int) = "$name ${id.toString().padStart(idLength, '0')}"
+/**
+ * Returns true when [this] annotation is @Preview, or when it is a potential MultiPreview that
+ * hasn't been traversed yet according to the data in [visitedAnnotationClasses].
+ */
+private fun UAnnotation.shouldTraverse(visitedAnnotationClasses: MutableMap<String, MultiPreviewNodeInfo?>): Boolean {
+  val annotationClassFqcn = (this.tryResolve() as? PsiClass)?.qualifiedName
+  return this.isPreviewAnnotation() ||
+         (this.couldBeMultiPreviewAnnotation() && annotationClassFqcn != null && !visitedAnnotationClasses.contains(annotationClassFqcn))
+}
+
+private fun buildParentAnnotationInfo(name: String?, id: Int, maxRelatedId: Int) =
+  "$name ${id.toString().padStart(maxRelatedId.toString().length, '0')}"
 
 /**
  * Converts the [UAnnotation] to a [PreviewElement] if the annotation is a `@Preview` annotation or returns null
@@ -198,6 +273,9 @@ private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<Stri
   return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, locale, fontScale, uiMode, device)
 }
 
+private val UMethod.qualifiedName: String
+  get() = "${(this.uastParent as UClass).qualifiedName}.${this.name}"
+
 /**
  * Converts the given [previewAnnotation] to a [PreviewElement].
  */
@@ -212,8 +290,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
     else -> annotatedMethod.name
   }
 
-  val uClass: UClass = annotatedMethod.uastParent as UClass
-  val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
+  val composableMethod = annotatedMethod.qualifiedName
   val previewName = getPreviewName(previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString())
   val defaultValues = previewAnnotation.findPreviewDefaultValues()
 

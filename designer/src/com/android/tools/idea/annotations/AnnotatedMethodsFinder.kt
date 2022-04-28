@@ -21,7 +21,6 @@ import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -62,8 +61,8 @@ import java.util.concurrent.ConcurrentHashMap
  * Finds if [vFile] in [project] has methods annotated with any of the given [annotations] FQCN or the given [shortAnnotationName].
  */
 private fun hasAnnotatedMethodsUncached(project: Project, vFile: VirtualFile,
-                        annotations: Set<String>,
-                        shortAnnotationName: String): Boolean = runReadAction {
+                                        annotations: Set<String>,
+                                        shortAnnotationName: String): Boolean = runReadAction {
   // This method can not call any methods that require smart mode.
   fun isFullNameAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
@@ -189,7 +188,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
   vFile: VirtualFile,
   annotations: Set<String>,
   shortAnnotationName: String,
-  toValues: (method: UMethod) -> Sequence<T>
+  toValues: (methods: List<UMethod>) -> Sequence<T>
 ): CachedValueProvider<CompletableDeferred<Collection<T>>> =
   CachedValueProvider {
     // This Deferred should not be needed, the promise could be returned directly. However, it seems there is a compiler issue that
@@ -198,14 +197,11 @@ private fun <T> findAnnotatedMethodsCachedValues(
     val deferred = CompletableDeferred<Collection<T>>()
     val promise = ReadAction
       .nonBlocking(Callable<Collection<T>> {
-        findAnnotations(project, vFile, shortAnnotationName)
+        val uMethods = findAnnotations(project, vFile, shortAnnotationName)
           .mapNotNull { (it.psiOrParent.toUElementOfType() as? UAnnotation)?.getContainingUMethodAnnotatedWith(annotations) }
           .distinct() // avoid looking more than once per method
-          .flatMap {
-            ProgressManager.checkCanceled()
-            toValues(it)
-          }
-          .distinct() // make sure to show equivalent values only once
+
+        toValues(uMethods).toList()
       })
       .inSmartMode(project)
       .coalesceBy(project, vFile)
@@ -228,7 +224,10 @@ private fun <T> findAnnotatedMethodsCachedValues(
  */
 private const val MAX_NON_BLOCKING_ACTION_RETRIES = 3
 
-data class CachedValuesKey<T>(val annotations: Set<String>, val shortAnnotationName: String, val toValues: (method: UMethod) -> Sequence<T>)
+data class CachedValuesKey<T>(val annotations: Set<String>,
+                              val shortAnnotationName: String,
+                              val toValues: (methods: List<UMethod>) -> Sequence<T>)
+
 /**
  * Finds all the values calculated by [toValues] associated with the methods annotated with [annotations] and [shortAnnotationName] from
  * [vFile] in [project].
@@ -238,7 +237,7 @@ suspend fun <T> findAnnotatedMethodsValues(
   vFile: VirtualFile,
   annotations: Set<String>,
   shortAnnotationName: String,
-  toValues: (method: UMethod) -> Sequence<T>): Collection<T> {
+  toValues: (methods: List<UMethod>) -> Sequence<T>): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   // This method will try to obtain the result MAX_NON_BLOCKING_ACTION_RETRIES, waiting 10 milliseconds more on every retry.
   // findMethodsCachedValues uses a non blocking read action so this allows for the action to be cancelled. The action will be

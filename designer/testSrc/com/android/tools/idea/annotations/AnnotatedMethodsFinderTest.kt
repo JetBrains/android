@@ -26,9 +26,9 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-private fun identity(uMethod: UMethod) = sequenceOf(uMethod)
+private fun identity(methods: List<UMethod>) = methods.asSequence()
 
-private fun nameLetters(uMethod: UMethod) = uMethod.name.asSequence()
+private fun nameLetters(methods: List<UMethod>) = methods.asSequence().flatMap { it.name.asSequence() }
 
 class AnnotatedMethodsFinderTest {
 
@@ -50,7 +50,7 @@ class AnnotatedMethodsFinderTest {
       // language=kotlin
       """
         package com.android.annotations
-        
+
         annotation class MyAnnotation
         """.trimIndent())
     val sourceFile = fixture.addFileToProjectAndInvalidate(
@@ -58,12 +58,12 @@ class AnnotatedMethodsFinderTest {
       // language=kotlin
       """
         package com.android.test
-        
+
         import com.android.annotations.MyAnnotation
-        
+
         @MyAnnotation
         fun Foo1() { }
-        
+
         fun Foo2() { }
         """.trimIndent())
 
@@ -82,7 +82,7 @@ class AnnotatedMethodsFinderTest {
     val sourceFile = fixture.addFileToProjectAndInvalidate(
       "com/android/test/SourceFile.kt",
       // language=kotlin
-      """        
+      """
         @MyAnnotationA
         fun FooA1() { }
 
@@ -114,7 +114,7 @@ class AnnotatedMethodsFinderTest {
       // language=kotlin
       """
         package com.android.annotations
-        
+
         annotation class MyAnnotationA
         """.trimIndent())
 
@@ -123,9 +123,9 @@ class AnnotatedMethodsFinderTest {
       // language=kotlin
       """
         package com.android.test
-        
+
         import com.android.annotations.MyAnnotationA
-        
+
         @MyAnnotationA
         fun abcde() { }
 
@@ -135,12 +135,12 @@ class AnnotatedMethodsFinderTest {
         fun fghia() { }
         """.trimIndent())
 
-    val distinctLetters = 9 // There are 9 distinct letters in "abcde and "fghia" altogether
+    val nLetters = 10 // There are 10 letters in "abcde and "fghia" altogether
     assertEquals(0, CacheKeysManager.map().size)
-    assertEquals(distinctLetters, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::nameLetters).size)
+    assertEquals(nLetters, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::nameLetters).size)
     assertTrue("Unexpectedly no new cache keys", CacheKeysManager.map().size > 0)
     val cacheKeys = CacheKeysManager.map().size
-    assertEquals(distinctLetters, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::nameLetters).size)
+    assertEquals(nLetters, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::nameLetters).size)
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.map().size)
     assertEquals(2, findAnnotatedMethodsValues(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", ::identity).size)

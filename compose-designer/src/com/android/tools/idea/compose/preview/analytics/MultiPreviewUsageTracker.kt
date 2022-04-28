@@ -96,7 +96,7 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
   }
 
   override fun hashCode(): Int {
-    return Objects.hash(nodes, fileFqName)
+    return Objects.hash(nodes.map { it.nodeInfo.hashCode() }.sorted(), fileFqName)
   }
 
   override fun equals(other: Any?): Boolean {
