@@ -73,7 +73,10 @@ class RuleDetailsViewTest {
       latestCommand = command
     }
 
-    fun verifyLatestCommand(checker: (InterceptCommand) -> Unit) = checker(latestCommand)
+    fun verifyLatestCommand(checker: (InterceptCommand) -> Unit) {
+      checker(latestCommand)
+      latestCommand = InterceptCommand.getDefaultInstance()
+    }
   }
 
   @get:Rule
@@ -117,7 +120,7 @@ class RuleDetailsViewTest {
   }
 
   @Test
-  fun addRulesFromTable() {
+  fun addAndRemoveRulesFromTable() {
     val firstRule = addNewRule()
     val table = inspectorView.rulesView.table
     assertThat(firstRule.name).isEqualTo("New Rule")
@@ -126,6 +129,46 @@ class RuleDetailsViewTest {
     val secondRule = addNewRule()
     assertThat(secondRule.name).isEqualTo("New Rule")
     assertThat(table.selectedRow).isEqualTo(1)
+
+    val remove = findAction(inspectorView.rulesView.component, "Remove")
+    remove.actionPerformed(TestActionEvent())
+    assertThat(table.selectedRow).isEqualTo(-1)
+    client.verifyLatestCommand { command ->
+      assertThat(command.hasInterceptRuleRemoved()).isTrue()
+      assertThat(command.interceptRuleRemoved.ruleId).isEqualTo(secondRule.id)
+    }
+  }
+
+  @Test
+  fun disableAndEnableRulesFromTable() {
+    val rule = addNewRule()
+    val table = inspectorView.rulesView.table
+    assertThat(rule.name).isEqualTo("New Rule")
+    assertThat(table.selectedRow).isEqualTo(0)
+
+    table.selectedObject!!.isActive = false
+    client.verifyLatestCommand { command ->
+      assertThat(command.hasInterceptRuleRemoved()).isTrue()
+      assertThat(command.interceptRuleRemoved.ruleId).isEqualTo(rule.id)
+    }
+
+    table.selectedObject!!.isActive = true
+    client.verifyLatestCommand { command ->
+      assertThat(command.hasInterceptRuleAdded()).isTrue()
+      assertThat(command.interceptRuleAdded.ruleId).isEqualTo(rule.id)
+    }
+
+    // Removing inactive rule does not send command
+    table.selectedObject!!.isActive = false
+    client.verifyLatestCommand { command ->
+      assertThat(command.hasInterceptRuleRemoved()).isTrue()
+      assertThat(command.interceptRuleRemoved.ruleId).isEqualTo(rule.id)
+    }
+    val remove = findAction(inspectorView.rulesView.component, "Remove")
+    remove.actionPerformed(TestActionEvent())
+    client.verifyLatestCommand { command ->
+      assertThat(command).isEqualTo(InterceptCommand.getDefaultInstance())
+    }
   }
 
   @Test

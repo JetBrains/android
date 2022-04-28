@@ -43,6 +43,22 @@ class RulesTableView(
       tableModel.addRow(createRuleDataWithListener())
       val selectedRow = tableModel.rowCount - 1
       table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
+    }.setRemoveAction {
+      val index = table.selectedRow
+      if (index < 0) {
+        return@setRemoveAction
+      }
+      val ruleData = table.selectedObject ?: return@setRemoveAction
+      tableModel.removeRow(table.convertRowIndexToModel(index))
+      scope.launch {
+        if (ruleData.isActive) {
+          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+            interceptRuleRemovedBuilder.apply {
+              ruleId = ruleData.id
+            }
+          }.build())
+        }
+      }
     }
     component = createDecoratedTable(table, decorator)
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -56,13 +72,15 @@ class RulesTableView(
     val id = RuleData.newId()
     return RuleData(id, "New Rule", true, object : RuleDataListener {
       override fun onRuleDataChanged(ruleData: RuleData) {
-        scope.launch {
-          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-            interceptRuleAddedBuilder.apply {
-              ruleId = id
-              rule = ruleData.toProto()
-            }
-          }.build())
+        if (ruleData.isActive) {
+          scope.launch {
+            client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+              interceptRuleAddedBuilder.apply {
+                ruleId = id
+                rule = ruleData.toProto()
+              }
+            }.build())
+          }
         }
       }
 
