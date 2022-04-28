@@ -33,10 +33,7 @@ public class StartUpTest {
     try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
       try (AndroidStudio studio = install.run()) {
         // Wait for plugin manager to load all plugins
-        String marker = ".*PluginManager - Loaded bundled plugins:(.*)";
-        String pluginsLog = studio.waitForLog(marker, 3000);
-        Matcher matcher = Pattern.compile(marker).matcher(pluginsLog);
-        assertTrue(matcher.matches());
+        Matcher matcher = studio.waitForLog(".*PluginManager - Loaded bundled plugins:(.*)", 3000);
         String[] plugins = matcher.group(1).split(",");
         for (int i = 0; i < plugins.length; i++) {
           plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();

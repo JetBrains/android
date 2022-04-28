@@ -33,19 +33,18 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import java.util.concurrent.CountDownLatch;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
   static public void start() {
-    //TODO: Use a dynamic port and report it to the client via stdout.
-    ServerBuilder<?> builder = ServerBuilder.forPort(5678);
+    ServerBuilder<?> builder = ServerBuilder.forPort(0);
     builder.addService(new AndroidStudioService());
     Server server = builder.build();
 
     new Thread(() -> {
       try {
         server.start();
+        System.out.println("as-driver server listening at: " + server.getPort());
       }
       catch (Throwable t) {
         t.printStackTrace();

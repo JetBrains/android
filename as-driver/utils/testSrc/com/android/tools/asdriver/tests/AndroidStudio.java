@@ -24,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AndroidStudio implements AutoCloseable {
 
@@ -56,29 +58,44 @@ public class AndroidStudio implements AutoCloseable {
     }
 
     process = pb.start();
-
-    //TODO Remove this sleep, we do this to give time for the server to start up. Needs to read stdout.txt instead.
-    Thread.sleep(5000);
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 5678).usePlaintext().build();
+    int port = waitForDriverServer(installation.getStdout(), 5000);
+    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
 
+  /**
+   * Waits for the server to be started by monitoring the standard out.
+   * @return the port at which the server was started.
+   */
+  private int waitForDriverServer(Path stdout, int timeoutMillis) throws IOException, InterruptedException {
+    try (BufferedReader reader = new BufferedReader(new FileReader(stdout.toFile()))) {
+      String pattern = "as-driver server listening at: (.*)";
+      Matcher matcher = waitForMatchingLine(reader, pattern, timeoutMillis);
+      return Integer.parseInt(matcher.group(1));
+    }
+  }
 
 
   public int waitFor() throws InterruptedException {
     return process.waitFor();
   }
 
-  public String waitForLog(String regex, int timeoutMillis) throws IOException, InterruptedException {
+  public Matcher waitForLog(String regex, int timeoutMillis) throws IOException, InterruptedException {
     if (logReader == null) {
       logReader = new BufferedReader(new FileReader(installation.getIdeaLog().toFile()));
     }
+    return waitForMatchingLine(logReader, regex, timeoutMillis);
+  }
+
+  private Matcher waitForMatchingLine(BufferedReader reader, String regex, int timeoutMillis) throws IOException, InterruptedException {
+    Pattern pattern = Pattern.compile(regex);
     long now = System.currentTimeMillis();
     long elapsed = 0;
-    String line = null;
+    Matcher matcher = null;
     while (elapsed < timeoutMillis) {
-      line = logReader.readLine();
-      if (line != null && line.matches(regex)) {
+      String line = reader.readLine();
+      matcher = line == null ? null : pattern.matcher(line);
+      if (matcher != null && matcher.matches()) {
         break;
       }
       if (line == null) {
@@ -86,10 +103,10 @@ public class AndroidStudio implements AutoCloseable {
       }
       elapsed = System.currentTimeMillis() - now;
     }
-    if (line == null) {
-      throw new InterruptedException("Time out while waiting for log");
+    if (matcher == null) {
+      throw new InterruptedException("Time out while waiting for line");
     }
-    return line;
+    return matcher;
   }
 
   @Override
