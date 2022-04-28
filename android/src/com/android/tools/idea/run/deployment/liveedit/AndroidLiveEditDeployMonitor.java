@@ -22,6 +22,7 @@ import com.android.annotations.Trace;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
@@ -40,6 +41,8 @@ import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator.CodeGeneratorOutput;
 import com.android.tools.idea.util.StudioPathManager;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,6 +58,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -314,6 +318,8 @@ public class AndroidLiveEditDeployMonitor {
                                        List<EditEvent> changes) {
     LOGGER.info("Change detected for project %s targeting app %s", project.getName(), packageName);
 
+    LiveEditEvent.Builder event = LiveEditEvent.newBuilder();
+
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
@@ -335,8 +341,13 @@ public class AndroidLiveEditDeployMonitor {
       return true;
     }
 
+    // Ignore FunctionType.NONE, since those are changes to non-function elements. Counting any change to a non-function as a non-compose
+    // change might make the data useless, as a lot of "noisy" class-level/file-level PSI events are generated along with function edits.
+    event.setHasNonCompose(compiled.stream().anyMatch(c -> c.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.KOTLIN));
+
     compileFinish = System.nanoTime();
-    LOGGER.info("LiveEdit compile completed in %dms", TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
+    event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
+    LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
     Optional<LiveUpdateDeployer.UpdateLiveEditError> error = deviceIterator(project, packageName)
       .map(device -> pushUpdatesToDevice(packageName, device, compiled))
@@ -345,13 +356,49 @@ public class AndroidLiveEditDeployMonitor {
 
     if (error.isPresent()) {
       updateEditStatus(new EditStatus(EditState.ERROR, error.get().getMessage()));
+      event.setStatus(errorToStatus(error.get()));
     } else {
       updateEditStatus(LiveEditService.UP_TO_DATE_STATUS);
+      event.setStatus(LiveEditEvent.Status.SUCCESS);
     }
 
     pushFinish = System.nanoTime();
-    LOGGER.info("LiveEdit push completed in %dms", TimeUnit.NANOSECONDS.toMillis(pushFinish - compileFinish));
+    event.setPushDurationMs(TimeUnit.NANOSECONDS.toMillis(pushFinish - compileFinish));
+    LOGGER.info("LiveEdit push completed in %dms", event.getPushDurationMs());
+
+    logLiveEditEvent(event);
     return true;
+  }
+
+  private static LiveEditEvent.Status errorToStatus(LiveUpdateDeployer.UpdateLiveEditError error) {
+    switch(error.getType()) {
+      case ADDED_METHOD:
+        return LiveEditEvent.Status.UNSUPPORTED_ADDED_METHOD;
+      case REMOVED_METHOD:
+        return LiveEditEvent.Status.UNSUPPORTED_REMOVED_METHOD;
+      case ADDED_CLASS:
+        return LiveEditEvent.Status.UNSUPPORTED_ADDED_CLASS;
+      case ADDED_FIELD:
+      case MODIFIED_FIELD:
+        return LiveEditEvent.Status.UNSUPPORTED_ADDED_FIELD;
+      case REMOVED_FIELD:
+        return LiveEditEvent.Status.UNSUPPORTED_REMOVED_FIELD;
+      case MODIFIED_SUPER:
+      case ADDED_INTERFACE:
+      case REMOVED_INTERFACE:
+        return LiveEditEvent.Status.UNSUPPORTED_MODIFY_INHERITANCE;
+      default:
+        return LiveEditEvent.Status.UNKNOWN;
+    }
+  }
+
+  private static final Random random = new Random();
+  private static void logLiveEditEvent(LiveEditEvent.Builder event) {
+    // Because LiveEdit could conceivably run every time the user stops typing, we log only 10% of events.
+    if (random.nextDouble() < 0.1) {
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+                         .setKind(AndroidStudioEvent.EventKind.LIVE_EDIT_EVENT).setLiveEditEvent(event));
+    }
   }
 
   private void updateEditStatus(EditStatus status) {
