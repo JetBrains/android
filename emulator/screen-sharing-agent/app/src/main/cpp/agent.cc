@@ -67,10 +67,16 @@ Agent::Agent(const vector<string>& args)
     auto arg = args[i];
     if (arg.rfind("--log=", 0) == 0) {
       auto value = arg.substr(sizeof("--log=") - 1, arg.size());
-      if (value == "debug") {
+      if (value == "verbose") {
+        Log::SetLevel(Log::Level::VERBOSE);
+      } else if (value == "debug") {
         Log::SetLevel(Log::Level::DEBUG);
       } else if (value == "info") {
         Log::SetLevel(Log::Level::INFO);
+      } else if (value == "warn") {
+        Log::SetLevel(Log::Level::WARN);
+      } else if (value == "error") {
+        Log::SetLevel(Log::Level::ERROR);
       } else {
         InvalidCommandLineArgument(arg);
       }

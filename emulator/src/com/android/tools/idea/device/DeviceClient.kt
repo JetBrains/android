@@ -189,7 +189,9 @@ internal class DeviceClient(
   private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
     startAgentTime = System.currentTimeMillis()
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
-                  " com.android.tools.screensharing.Main --log=debug --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
+                  " com.android.tools.screensharing.Main" +
+                  " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
+                  " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
     // the agent has a chance to terminate gracefully when the client is disposed rather than
     // be killed by adb.
