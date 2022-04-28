@@ -44,8 +44,7 @@ struct CodecOutputBuffer {
         codec(codec),
         info(),
         buffer(),
-        size(),
-        consequent_error_count() {
+        size() {
   }
 
   ~CodecOutputBuffer() {
@@ -89,8 +88,10 @@ struct CodecOutputBuffer {
   AMediaCodecBufferInfo info;
   uint8_t* buffer;
   size_t size;
-  int consequent_error_count;
+  static int consequent_error_count;
 };
+
+int CodecOutputBuffer::consequent_error_count = 0;
 
 struct CodecDescriptor {
   const char* name;
