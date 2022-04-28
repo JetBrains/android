@@ -23,10 +23,15 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.ResolveScopeEnlarger
@@ -213,3 +218,25 @@ fun waitForUpdates(timeout: Long, unit: TimeUnit, repository: LocalResourceRepos
     throw TimeoutException()
   }
 }
+
+/**
+ * Invalidates the file document to ensure it is reloaded from scratch. This will ensure that we run the code path that requires
+ * the read lock and we ensure that the handling of files is correctly done in the right thread.
+ */
+private fun PsiFile.invalidateDocumentCache() = ApplicationManager.getApplication().invokeAndWait {
+  val cachedDocument = PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
+  // Make sure it is invalidated
+  cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
+  FileDocumentManager.getInstance().reloadFiles(virtualFile)
+}
+
+/**
+ * Same as [CodeInsightTestFixture.addFileToProject] but invalidates immediately the cached document.
+ * This ensures that the code immediately after this does not work with a cached version and reloads it from disk. This
+ * ensures that the loading from disk is executed and the code path that needs the read lock will be executed.
+ * The idea is to help detecting code paths that require the [ReadAction] during testing.
+ */
+fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, fileText: String): PsiFile =
+  addFileToProject(relativePath, fileText).also {
+    it.invalidateDocumentCache()
+  }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement

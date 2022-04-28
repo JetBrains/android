@@ -4,6 +4,7 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiFile

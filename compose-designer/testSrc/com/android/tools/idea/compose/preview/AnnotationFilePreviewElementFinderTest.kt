@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
@@ -93,6 +94,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testFindPreviewAnnotations() = runBlocking {
+
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin

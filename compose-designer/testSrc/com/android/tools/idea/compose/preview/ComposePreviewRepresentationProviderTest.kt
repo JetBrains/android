@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

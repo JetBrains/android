@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import junit.framework.Assert.assertFalse
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule

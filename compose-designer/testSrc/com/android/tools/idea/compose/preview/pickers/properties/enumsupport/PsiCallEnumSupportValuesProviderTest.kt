@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
 import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
-import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
@@ -27,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module

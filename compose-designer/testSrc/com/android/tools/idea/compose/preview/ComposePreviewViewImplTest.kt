@@ -30,6 +30,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
