@@ -19,8 +19,9 @@ import static com.intellij.notification.NotificationType.INFORMATION;
 import static java.util.Calendar.MONTH;
 
 import com.android.tools.idea.AndroidStartupActivity;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
@@ -53,7 +54,12 @@ public class ExpiredPreviewBuildCheck implements AndroidStartupActivity {
       if (now.after(expirationDate)) {
         String message = String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version.",
                                        ideVersion);
-        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("https://developer.android.com/r/studio-ui/download-canary.html", "Get the Latest Version");
+        NotificationHyperlink
+          hyperlink = new NotificationHyperlink("https://developer.android.com/r/studio-ui/download-canary.html", "Get the Latest Version") {
+          protected void execute(@NotNull Project project) {
+            BrowserUtil.browse(getUrl());
+          }
+        };
         AndroidNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
       }
     }

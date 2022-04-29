@@ -18,13 +18,13 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.appinspection.AppInspectionIntellijMigrationServices;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -346,7 +347,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
     Notification.UrlData urlData = notification.getUrlData();
     if (urlData != null) {
-      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(urlData.getUrl(), urlData.getText());
+      NotificationHyperlink hyperlink = new NotificationHyperlink(urlData.getUrl(), urlData.getText()) {
+        protected void execute(@NotNull Project project) {
+          BrowserUtil.browse(getUrl());
+        }
+      };
       AndroidNotification.getInstance(myProject)
         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
                      hyperlink);

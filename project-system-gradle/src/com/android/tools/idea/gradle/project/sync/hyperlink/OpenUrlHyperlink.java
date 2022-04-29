@@ -30,13 +30,6 @@ public class OpenUrlHyperlink extends SyncIssueNotificationHyperlink {
     myUrl = url;
   }
 
-  public OpenUrlHyperlink(@NotNull String url,
-                          @NotNull String text,
-                          @Nullable AndroidStudioEvent.GradleSyncQuickFix quickFixId) {
-    super(url, text, quickFixId);
-    myUrl = url;
-  }
-
   @Override
   protected void execute(@NotNull Project project) {
     BrowserUtil.browse(myUrl);
