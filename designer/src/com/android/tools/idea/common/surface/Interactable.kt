@@ -31,9 +31,9 @@ interface Interactable {
 }
 
 class SurfaceInteractable(private val surface: DesignSurface): Interactable {
-  override val pannable: Pannable = surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface
-  override val interactionPane: JComponent = surface.interactionPane
-  override val cursorReceiver: Component? = DataManager.getInstance().getDataContext(surface).getData(CURSOR_RECEIVER)
+  override val pannable: Pannable get() = surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface
+  override val interactionPane: JComponent get() = surface.interactionPane
+  override val cursorReceiver: Component? get() = DataManager.getInstance().getDataContext(surface).getData(CURSOR_RECEIVER)
   override fun repaintComponent() {
     surface.repaint()
   }
