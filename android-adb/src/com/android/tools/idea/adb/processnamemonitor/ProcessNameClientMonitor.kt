@@ -17,7 +17,7 @@ package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -25,8 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 private const val MAX_PIDS = 1000
 
@@ -35,17 +33,17 @@ private const val MAX_PIDS = 1000
  *
  * Some process information is kept even after they terminate.
  *
- * @param project The [Project]
+ * @param parentDisposable The parent [Disposable] that controls lifecycle of this instance
+ * @param parentScope The parent coroutine scope used to launch coroutines in
  * @param device The [IDevice] to monitor
  * @param flows A flow where [ProcessNames] are sent to
- * @param coroutineContext The coroutine context to run coroutines with
  * @param maxPidsBeforeEviction The maximum number of entries in the cache before we start evicting dead processes
  */
 internal class ProcessNameClientMonitor(
-  project: Project,
+  parentDisposable: Disposable,
+  parentScope: CoroutineScope,
   private val device: IDevice,
   private val flows: ProcessNameMonitorFlows,
-  coroutineContext: CoroutineContext = EmptyCoroutineContext,
   private val maxPidsBeforeEviction: Int = MAX_PIDS,
 ) : Disposable {
   /**
@@ -53,10 +51,10 @@ internal class ProcessNameClientMonitor(
    */
   private val processes = ConcurrentHashMap<Int, ProcessNames>()
 
-  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(this, coroutineContext)
+  private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
 
   init {
-    Disposer.register(project, this)
+    Disposer.register(parentDisposable, this)
   }
 
   fun start() {

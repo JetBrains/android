@@ -19,7 +19,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbAdapterImpl
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.concurrency.createChildScope
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
@@ -28,28 +30,32 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Implementation of ProcessNameMonitor
  */
-internal open class ProcessNameMonitorImpl @TestOnly @NonInjectable internal constructor(
+internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal constructor(
   private val project: Project,
   private val flows: ProcessNameMonitorFlows,
-  private val coroutineContext: CoroutineContext,
-) : ProcessNameMonitor {
+  parentScope: CoroutineScope,
+) : ProcessNameMonitor, Disposable {
 
   @Suppress("unused") // Actually used by the getService() mechanism
-  constructor(project: Project) : this(project, ProcessNameMonitorFlowsImpl(AdbAdapterImpl(project)), EmptyCoroutineContext)
+  constructor(project: Project) : this(project, ProcessNameMonitorFlowsImpl(AdbAdapterImpl(project)), project.coroutineScope)
 
-  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(project, coroutineContext)
+  private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
 
   @Volatile
   private var isStarted = false
 
   // Connected devices.
   private val devices = ConcurrentHashMap<String, ProcessNameClientMonitor>()
+
+  init {
+    Disposer.register(project, this)
+  }
+
+  override fun dispose() {}
 
   override fun start() {
     if (isStarted) {
@@ -77,7 +83,7 @@ internal open class ProcessNameMonitorImpl @TestOnly @NonInjectable internal con
 
   private fun addDevice(device: IDevice) {
     LOGGER.info("Adding ${device.serialNumber}")
-    devices[device.serialNumber] = ProcessNameClientMonitor(project, device, flows, coroutineContext).apply { start() }
+    devices[device.serialNumber] = ProcessNameClientMonitor(project, coroutineScope, device, flows).apply { start() }
   }
 
   private fun removeDevice(device: IDevice) {

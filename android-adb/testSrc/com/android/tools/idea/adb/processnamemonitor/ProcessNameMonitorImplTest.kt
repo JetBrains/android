@@ -19,15 +19,14 @@ import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconne
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
 import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.use
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Tests for [ProcessNameMonitor]
@@ -47,57 +46,60 @@ class ProcessNameMonitorImplTest {
   @Test
   fun devicesOnline() = runBlockingTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      val monitor = processNameMonitor(flows)
+      processNameMonitor(flows).use { monitor ->
 
-      flows.sendDeviceEvents(Online(device1))
-      flows.sendDeviceEvents(Online(device2))
-      flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
-      flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
+        flows.sendDeviceEvents(Online(device1))
+        flows.sendDeviceEvents(Online(device2))
+        flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
+        flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
 
-      advanceUntilIdle()
-      assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
-      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
-      assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
-      assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
+        advanceUntilIdle()
+        assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
+        assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
+        assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
+        assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
+      }
     }
   }
 
   @Test
   fun deviceDisconnected() = runBlockingTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      val monitor = processNameMonitor(flows)
+      processNameMonitor(flows).use { monitor ->
 
-      flows.sendDeviceEvents(Online(device1))
-      flows.sendDeviceEvents(Online(device2))
-      flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
-      flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
-      flows.sendDeviceEvents(Disconnected(device1))
+        flows.sendDeviceEvents(Online(device1))
+        flows.sendDeviceEvents(Online(device2))
+        flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
+        flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
+        flows.sendDeviceEvents(Disconnected(device1))
 
-      advanceUntilIdle()
-      assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isNull()
-      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
-      assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
-      assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
+        advanceUntilIdle()
+        assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isNull()
+        assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
+        assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
+        assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
+      }
     }
   }
 
   @Test
   fun disconnect_disposes() {
-    val flows = TerminationTrackingProcessNameMonitorFlows()
-    ProcessNameMonitorImpl(projectRule.project, flows, EmptyCoroutineContext).apply { start() }
+    runBlockingTest {
+      val flows = TerminationTrackingProcessNameMonitorFlows()
+      processNameMonitor(flows).use { monitor ->
 
-    runBlocking {
-      flows.sendDeviceEvents(Online(device1))
-      waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowStarted(device1.serialNumber) }
-      flows.sendDeviceEvents(Disconnected(device1))
+        flows.sendDeviceEvents(Online(device1))
+        waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowStarted(device1.serialNumber) }
+        flows.sendDeviceEvents(Disconnected(device1))
+
+        waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowTerminated(device1.serialNumber) }
+      }
     }
-
-    waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowTerminated(device1.serialNumber) }
   }
 
-  private fun TestCoroutineScope.processNameMonitor(
+  private fun CoroutineScope.processNameMonitor(
     flows: ProcessNameMonitorFlows = FakeProcessNameMonitorFlows()
-  ): ProcessNameMonitor {
-    return ProcessNameMonitorImpl(projectRule.project, flows, coroutineContext).apply { start() }
+  ): ProcessNameMonitorImpl {
+    return ProcessNameMonitorImpl(projectRule.project, flows, this).apply { start() }
   }
 }
