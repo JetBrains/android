@@ -4,16 +4,12 @@ package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
 import com.android.tools.idea.actions.ExportProjectZip
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -25,7 +21,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.migration.MigrationUtil
 import org.jetbrains.android.dom.resources.Style
@@ -33,8 +28,8 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.android.refactoring.errorreporter.ErrorReporter
 import javax.swing.JCheckBox
 
-internal val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
-internal val DataContext.module: Module? get() = PlatformCoreDataKeys.MODULE.getData(this)
+val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
+val DataContext.module: Module? get() = PlatformCoreDataKeys.MODULE.getData(this)
 
 internal fun getParentStyle(style: Style): StyleRefData? {
   val parentStyleRefValue = style.parentStyle.value
@@ -155,23 +150,6 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
     }
     else -> runRefactoring()
   }
-}
-
-/**
- * Requests a sync to be performed after [BaseRefactoringProcessor.performRefactoring] is done but before
- * [BaseRefactoringProcessor.performPsiSpoilingRefactoring] runs and before the refactoring action is finished.
- *
- * This means that organizing imports and shortening references is done after the sync. We rely on the fact that
- * [BaseRefactoringProcessor.doRefactoring] drains the dumb mode tasks queue after running [BaseRefactoringProcessor.performRefactoring].
- */
-fun syncBeforeFinishingRefactoring(project: Project, trigger: GradleSyncStats.Trigger, listener: GradleSyncListener?) {
-  assert(ApplicationManager.getApplication().isDispatchThread)
-
-  GradleSyncInvoker.getInstance().requestProjectSync(
-    project,
-    GradleSyncInvoker.Request(trigger),
-    listener
-  )
 }
 
 /**
