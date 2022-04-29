@@ -32,24 +32,25 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final Process process;
   private final AndroidStudioInstallation installation;
+  private XvfbServer xvfbServer;
   private BufferedReader logReader;
 
   public AndroidStudio(AndroidStudioInstallation installation) throws IOException, InterruptedException {
     this.installation = installation;
     Path workDir = installation.getWorkDir();
 
-    // TODO enable xvfb when we run in bazel
-    // XvfbServer server = new XvfbServer();
-    // String display = server.launchUnusedDisplay();
 
     ProcessBuilder pb = new ProcessBuilder(workDir.resolve("android-studio/bin/studio.sh").toString());
     pb.redirectError(installation.getStderr().toFile());
     pb.redirectOutput(installation.getStdout().toFile());
     pb.environment().clear();
-    //TODO: Be smarter about choosing a display. Use xvfb in bazel, and local env otherwise.
-    //pb.environment().put("DISPLAY", display); // XVFB
-    //pb.environment().put("DISPLAY", ":1"); // LOCAL
-    pb.environment().put("DISPLAY", ":20"); // CRD
+    String display = System.getenv("DISPLAY");
+    if (display == null) {
+      // If a display is provided use that, otherwise create one.
+      xvfbServer = new XvfbServer();
+      display = xvfbServer.launchUnusedDisplay();
+    }
+    pb.environment().put("DISPLAY", display);
     pb.environment().put("STUDIO_VM_OPTIONS", installation.getVmOptionsPath().toString());
     pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
     String shell = System.getenv("SHELL");
@@ -58,7 +59,7 @@ public class AndroidStudio implements AutoCloseable {
     }
 
     process = pb.start();
-    int port = waitForDriverServer(installation.getStdout(), 5000);
+    int port = waitForDriverServer(installation.getStdout(), 10000);
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
@@ -111,10 +112,16 @@ public class AndroidStudio implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    kill(1);
-    waitFor();
-    if (logReader != null) {
-      logReader.close();
+    try {
+      kill(1);
+      waitFor();
+    } finally {
+      if (logReader != null) {
+        logReader.close();
+      }
+      if (xvfbServer != null) {
+        xvfbServer.kill();
+      }
     }
   }
 

@@ -16,19 +16,15 @@
 package com.android.tools.idea;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import java.util.Arrays;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class StartUpTest {
   @Test
-  @Ignore
   public void startUpTest() throws Exception {
     try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
       try (AndroidStudio studio = install.run()) {

@@ -56,6 +56,10 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "as-driver.utils",
+    data = [
+        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/vendor/google/testing/display:xvfb",
+    ],
     iml_files = ["utils/as-driver.utils.iml"],
     test_srcs = ["utils/testSrc"],
     visibility = ["//visibility:public"],
