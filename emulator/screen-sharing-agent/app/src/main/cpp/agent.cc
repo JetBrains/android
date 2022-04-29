@@ -59,7 +59,7 @@ int CreateAndConnectSocket(const char* socket_name) {
 
 Agent::Agent(const vector<string>& args)
     : max_video_resolution_(Size(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max())),
-      codec_name_("VP8") {
+      codec_name_("vp8") {
   assert(instance_ == nullptr);
   instance_ = this;
 

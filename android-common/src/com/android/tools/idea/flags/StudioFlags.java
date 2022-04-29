@@ -823,8 +823,8 @@ public final class StudioFlags {
     "debug");
   public static final Flag<String> DEVICE_MIRRORING_VIDEO_CODEC = Flag.create(
     DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring Physical Devices",
-    "The name of a video codec, e.g. \"VP8\", \"VP9\" or \"H.264\"",
-    "VP8");
+    "The name of a video codec, e.g. \"vp8\" or \"vp9\"",
+    "vp8");
   //endregion
 
   //region Refactorings

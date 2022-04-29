@@ -30,9 +30,6 @@ import org.bytedeco.ffmpeg.avcodec.AVCodecParserContext.PARSER_FLAG_COMPLETE_FRA
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
-import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
-import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
-import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
 import org.bytedeco.ffmpeg.global.avcodec.AV_PKT_FLAG_KEY
 import org.bytedeco.ffmpeg.global.avcodec.av_grow_packet
 import org.bytedeco.ffmpeg.global.avcodec.av_new_packet
@@ -43,7 +40,7 @@ import org.bytedeco.ffmpeg.global.avcodec.av_parser_init
 import org.bytedeco.ffmpeg.global.avcodec.av_parser_parse2
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_close
-import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder_by_name
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_receive_frame
@@ -178,19 +175,12 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       }
 
     init {
-      val codecId = when (codecName) {
-        "H.264" -> AV_CODEC_ID_H264 // TODO: Remove H.264 support
-        "VP8" -> AV_CODEC_ID_VP8
-        "VP9" -> AV_CODEC_ID_VP9
-        else -> throw VideoDecoderException("Unsupported video codec $codecName")
-      }
       thisLogger().debug { "Receiving $codecName video stream" }
-      parserContext = av_parser_init(codecId)?.apply {
+      codec = avcodec_find_decoder_by_name(codecName) ?: throw VideoDecoderException("$codecName decoder not found")
+      codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
+      parserContext = av_parser_init(codec.id())?.apply {
         flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)
       } ?: throw VideoDecoderException("Could not initialize parser")
-
-      codec = avcodec_find_decoder(codecId) ?: throw VideoDecoderException("$codecName decoder not found")
-      codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
 
       if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0) {
         avcodec_free_context(codecContext)

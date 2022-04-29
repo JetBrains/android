@@ -99,9 +99,9 @@ struct CodecDescriptor {
 };
 
 CodecDescriptor supported_codecs[] = {
-    { "VP8", "video/x-vnd.on2.vp8" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP8
-    { "VP9", "video/x-vnd.on2.vp9" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP9
-    { "H.264", "video/avc" }  // See See android.media.MediaFormat.MIMETYPE_VIDEO_AVC
+    { "vp8", "video/x-vnd.on2.vp8" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP8
+    { "vp9", "video/x-vnd.on2.vp9" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP9
+    { "h264", "video/avc" }  // See See android.media.MediaFormat.MIMETYPE_VIDEO_AVC
 };
 
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
@@ -113,7 +113,10 @@ constexpr int CHANNEL_HEADER_LENGTH = 20;
 CodecDescriptor* FindCodecDescriptor(const string& codec_name) {
   int n = sizeof(supported_codecs) / sizeof(*supported_codecs);
   for (int i = 0; i < n; ++i) {
-    return supported_codecs + i;
+    CodecDescriptor* codec = supported_codecs + i;
+    if (codec->name == codec_name) {
+      return codec;
+    }
   }
   return nullptr;
 }
