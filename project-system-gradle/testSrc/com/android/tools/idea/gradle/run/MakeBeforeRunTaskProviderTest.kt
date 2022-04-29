@@ -21,8 +21,12 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
@@ -267,6 +271,76 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
     assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
+  }
+
+  fun testRunGradleSyncWithV1Project() {
+    val selected = Abi.ARMEABI_V7A
+    val synced = Abi.X86_64
+    val availableNotSynced1 = Abi.ARM64_V8A
+    val availableNotSynced2 = Abi.X86
+    val notAvailable1 = Abi.ARMEABI
+    val notAvailable2 = Abi.MIPS
+
+    setUpTestProject("4.1.0", ":" to AndroidProjectBuilder(
+      ndkModel = {
+        v1NativeModel(
+          selectedAbi = selected,
+          syncedAbis = listOf(synced, selected),
+          allAbis = listOf(availableNotSynced2, synced, selected, availableNotSynced1)
+        )
+      }
+    ))
+    val provider = MakeBeforeRunTaskProvider(myProject)
+    // Don't trigger sync if it is already synced
+    assertThat(provider.isSyncNeeded(selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(selected, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    // Trigger sync if it is available and not already synced
+    assertThat(provider.isSyncNeeded(availableNotSynced1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(availableNotSynced1, availableNotSynced2)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    // Trigger sync even if only one of the devices ABIs is available and not already synced
+    assertThat(provider.isSyncNeeded(availableNotSynced1, notAvailable1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(availableNotSynced1, selected)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    // Don't trigger sync if the model is not available
+    assertThat(provider.isSyncNeeded(notAvailable1)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(notAvailable1, notAvailable2)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(notAvailable1, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
+
+  }
+
+  private fun MakeBeforeRunTaskProvider.isSyncNeeded(vararg abi: Abi) = isSyncNeeded(abi.map { it.toString() })
+
+  private fun v1NativeModel(selectedAbi: Abi, syncedAbis: List<Abi>, allAbis: List<Abi>): V1NdkModel {
+    assertThat(syncedAbis).contains(selectedAbi)
+    assertThat(allAbis).containsAllIn(syncedAbis)
+    return V1NdkModel(
+      androidProject = IdeNativeAndroidProjectImpl(
+        modelVersion = "3.6.0",
+        name = "moduleName",
+        buildFiles = listOf(),
+        variantInfos = mapOf(
+          "debug" to IdeNativeVariantInfoImpl(abiNames = allAbis.map { it.toString() }, buildRootFolderMap = emptyMap())),
+        artifacts = listOf(),
+        toolChains = listOf(),
+        settings = listOf(),
+        fileExtensions = mapOf(),
+        buildSystems = listOf(),
+        defaultNdkVersion = "21.0.0",
+        ndkVersion = "21.0.0",
+        apiVersion = 12,
+      ),
+      nativeVariantAbis = syncedAbis.map {
+        IdeNativeVariantAbiImpl(
+          buildFiles = emptyList(),
+          artifacts = emptyList(),
+          toolChains = emptyList(),
+          settings = emptyList(),
+          fileExtensions = emptyMap(),
+          variantName = "debug",
+          abi = it.toString(),
+        )
+      },
+    )
   }
 
   fun testProfilingMode() {

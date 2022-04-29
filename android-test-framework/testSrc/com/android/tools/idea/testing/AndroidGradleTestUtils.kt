@@ -61,6 +61,8 @@ import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -70,7 +72,9 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -190,7 +194,7 @@ import kotlin.reflect.jvm.isAccessible
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
   val variants: Collection<IdeVariantCoreImpl>,
-  val ndkModel: V2NdkModel?
+  val ndkModel: NdkModel?
 )
 
 typealias AndroidProjectBuilderCore = (
@@ -308,7 +312,7 @@ interface AndroidProjectStubBuilder {
   fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl?
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantCoreImpl>
-  val ndkModel: V2NdkModel?
+  val ndkModel: NdkModel?
   val internedModels: InternedModels
 }
 
@@ -366,7 +370,7 @@ data class AndroidProjectBuilder(
     { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantCoreImpl> = { buildVariantStubs() },
-  val ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel? = { null }
+  val ndkModel: AndroidProjectStubBuilder.() -> NdkModel? = { null }
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -509,7 +513,7 @@ data class AndroidProjectBuilder(
         override fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl? = testFixturesArtifactStub(variant)
         override val variants: List<IdeVariantCoreImpl> = variants()
         override val androidProject: IdeAndroidProjectImpl = androidProject()
-        override val ndkModel: V2NdkModel? = ndkModel()
+        override val ndkModel: NdkModel? = ndkModel()
         override val internedModels: InternedModels get() = internedModels
       }
       return AndroidProjectModels(
@@ -1366,7 +1370,7 @@ private fun createAndroidModuleDataNode(
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantCoreImpl>,
   libraryResolver: IdeLibraryModelResolver,
-  ndkModel: V2NdkModel?,
+  ndkModel: NdkModel?,
   selectedVariantName: String,
   selectedAbiName: String?
 ): DataNode<ModuleData> {
@@ -1416,25 +1420,48 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  if (ndkModel != null) {
-    val selectedAbiName = selectedAbiName
-      ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
-      ?: error(
-        "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+  when(ndkModel) {
+    is V2NdkModel -> {
+      val selectedAbiName = selectedAbiName
+        ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
+        ?: error(
+          "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+        )
+      moduleDataNode.addChild(
+        DataNode<NdkModuleModel>(
+          AndroidProjectKeys.NDK_MODEL,
+          NdkModuleModel(
+            qualifiedModuleName,
+            moduleBasePath,
+            selectedVariantName,
+            selectedAbiName,
+            ndkModel
+          ),
+          null
+        )
       )
-    moduleDataNode.addChild(
-      DataNode<NdkModuleModel>(
-        AndroidProjectKeys.NDK_MODEL,
-        NdkModuleModel(
-          qualifiedModuleName,
-          moduleBasePath,
-          selectedVariantName,
-          selectedAbiName,
-          ndkModel
-        ),
-        null
+    }
+    is V1NdkModel -> {
+      val selectedAbiName = selectedAbiName
+        ?: ndkModel.nativeVariantAbis.firstOrNull { it.variantName == selectedVariantName }?.abi
+        ?: error(
+          "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+        )
+      moduleDataNode.addChild(
+        DataNode<NdkModuleModel>(
+          AndroidProjectKeys.NDK_MODEL,
+          NdkModuleModel(
+            qualifiedModuleName,
+            moduleBasePath,
+            selectedVariantName,
+            selectedAbiName,
+            ndkModel.androidProject,
+            ndkModel.nativeVariantAbis
+          ),
+          null
+        )
       )
-    )
+    }
   }
 
   fun IdeBaseArtifact.setup() {

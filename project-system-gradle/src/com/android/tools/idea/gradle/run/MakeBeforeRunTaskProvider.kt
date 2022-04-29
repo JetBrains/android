@@ -30,7 +30,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -188,20 +187,25 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
   }
 
   @VisibleForTesting
-  fun isSyncNeeded(abis: Collection<String>?): SyncNeeded {
-    // If the project has native modules, and there are any un-synced variants.
+  fun isSyncNeeded(abis: Collection<String>): SyncNeeded {
+    // Only trigger sync if both
+    //   The project have native modules, synced with v1 (needsAbiSyncBeforeRun)
+    //   The ABI is avaliable, but it hasn't been synced yet
     for (module in ModuleManager.getInstance(project).modules) {
       val ndkModel = get(module!!)
       val androidModel = GradleAndroidModel.get(module)
       if (ndkModel != null && androidModel != null) {
         if (ndkModel.ndkModel.needsAbiSyncBeforeRun) {
           val selectedVariantName = androidModel.selectedVariant.name
-          val availableAbis = ndkModel.syncedVariantAbis
+          val syncedAbis = ndkModel.syncedVariantAbis
             .filter { it.variant == selectedVariantName }
             .map { it.abi }
             .toSet()
-          if (!availableAbis.containsAll(abis!!)) {
-            return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED
+          val availableAbis = ndkModel.allVariantAbis.filter { it.variant == selectedVariantName }.map { it.abi }.toSet()
+          for (abi in abis) {
+            if (!syncedAbis.contains(abi) && availableAbis.contains(abi)) {
+              return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED
+            }
           }
         }
       }
