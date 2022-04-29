@@ -753,6 +753,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(treeChangeCount).isEqualTo(0)
   }
 
+  @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
     if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
@@ -769,17 +770,20 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
     inspector.treeSettings.showRecompositions = false
     tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
 
     inspector.treeSettings.showRecompositions = true
     tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
     assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
 
     // The recomposition columns should be hidden when disconnected:
     inspectorRule.launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
     tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
   }
