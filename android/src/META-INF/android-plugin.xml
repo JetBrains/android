@@ -683,7 +683,6 @@
                            order="first"/>
     <fileBasedIndex implementation="com.android.tools.idea.databinding.index.BindingXmlIndex"/>
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector"/>
-    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <notificationGroup id="APK Analyzer (Important)" displayType="BALLOON"/>
     <notificationGroup id="Gradle Build (Balloon)" displayType="BALLOON"/>
     <notificationGroup id="Gradle KTS build files" displayType="BALLOON"/>
@@ -791,11 +790,6 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
 
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.ide">
-    <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.project">
