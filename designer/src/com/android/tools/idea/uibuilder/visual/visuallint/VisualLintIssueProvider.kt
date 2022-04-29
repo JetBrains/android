@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
@@ -28,6 +29,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Objects
+import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
 class VisualLintIssueProvider : IssueProvider() {
@@ -55,7 +57,7 @@ class VisualLintIssueProvider : IssueProvider() {
 class VisualLintRenderIssue private constructor(private val builder: Builder): Issue(), VisualLintHighlightingIssue {
   val models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
   val components = builder.components!!
-  val type = builder.type
+  val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
   override val summary = builder.summary!!
   override val severity = builder.severity!!
@@ -68,6 +70,17 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
 
   /** Returns the text range of the issue. */
   private var range: TextRange? = null
+
+  override val suppresses: Stream<Suppress>
+    get() {
+      if (type == VisualLintErrorType.ATF || components.isEmpty()) {
+        // We haven't defined the suppression for ATF yet.
+        return Stream.empty()
+      }
+      return Stream.of(Suppress("Suppress",
+                                "Suppress: Add " + type.toSuppressActionDescription() + " attribute",
+                                VisualLintSuppressTask(type, components)))
+    }
 
   init {
     runReadAction {
@@ -90,6 +103,15 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   override fun equals(other: Any?) = other === this
 
   override fun hashCode() = Objects.hash(severity, summary, category)
+
+  fun isSuppressed(): Boolean {
+    return components.all { component ->
+      component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+        ?.split(",")
+        ?.mapNotNull { VisualLintErrorType.getTypeByIgnoredAttribute(it) }
+        ?.contains(this@VisualLintRenderIssue.type) ?: false
+    }
+  }
 
   /** Builder for [VisualLintRenderIssue] */
   data class Builder(

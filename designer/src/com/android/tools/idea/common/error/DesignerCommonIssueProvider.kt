@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -108,7 +109,10 @@ class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<A
     return ret
   }
 
-  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten().filter(filter).toList()
+  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()
+    .filterNot { (it as? VisualLintRenderIssue)?.isSuppressed() ?: false }
+    .filter(filter)
+    .toList()
 
   override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)

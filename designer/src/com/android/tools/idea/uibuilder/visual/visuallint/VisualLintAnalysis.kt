@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
@@ -27,8 +28,32 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyz
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 
-enum class VisualLintErrorType {
-  BOUNDS, BOTTOM_NAV, BOTTOM_APP_BAR, OVERLAP, LONG_TEXT, ATF, LOCALE_TEXT
+enum class VisualLintErrorType(private val ignoredAttributeName: String) {
+  BOUNDS("Bounds"),
+  BOTTOM_NAV("BottomNav"),
+  BOTTOM_APP_BAR("ButtonAppBar"),
+  OVERLAP("Overlap"),
+  LONG_TEXT("LongText"),
+  ATF("AccessibilityTestFramework"),
+  LOCALE_TEXT("LocaleText");
+
+  /**
+   * The values for tools:ignore attribute. This is used by suppression.
+   */
+  val ignoredAttributeValue: String
+    get() = ATTRIBUTE_PREFIX + ignoredAttributeName
+
+  fun toSuppressActionDescription(): String {
+    return """Add ${SdkConstants.TOOLS_NS_NAME_PREFIX}${SdkConstants.ATTR_IGNORE}="$ignoredAttributeValue""""
+  }
+
+  companion object {
+    private const val ATTRIBUTE_PREFIX = "VisualLint"
+
+    fun getTypeByIgnoredAttribute(value: String): VisualLintErrorType? {
+      return values().firstOrNull { it.ignoredAttributeValue == value }
+    }
+  }
 }
 
 private val basicAnalyzers = listOf(BoundsAnalyzer, BottomNavAnalyzer, BottomAppBarAnalyzer, OverlapAnalyzer, LongTextAnalyzer)
