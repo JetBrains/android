@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.deployer.AdbClient.InstallResult
 import com.android.tools.deployer.ApkInstaller
 import com.android.tools.deployer.InstallStatus
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
@@ -204,32 +205,39 @@ class GradleTestResultAdapter(
     listener.onTestSuiteFinished(device, myTestSuite)
   }
 
+  data class UtpInstallResult(
+    val needRerunWithUninstallIncompatibleApkOption: Boolean = false,
+    val lastInstallResult: InstallResult? = null,
+  )
+
   /**
    * Returns true if the test run failed due to APK installation failure that
    * can be fixed by adding UNINSTALL_INCOMPATIBLE_APKS Gradle option.
    */
-  fun needRerunWithUninstallIncompatibleApkOption(): Boolean {
+  fun needRerunWithUninstallIncompatibleApkOption(): UtpInstallResult {
     if (!this::myUtpTestSuiteResult.isInitialized) {
-      return false
+      return UtpInstallResult()
     }
 
-    myUtpTestSuiteResult.platformError.errorDetail.cause.summary.let { summary ->
-      if (summary.namespace.namespace == "DdmlibAndroidDeviceController" && summary.errorCode == 1) {
-        val installResult = ApkInstaller.toInstallerResult(summary.errorName, summary.stackTrace)
-        // This list is copied from the com.android.tools.deployer.ApkInstaller. These errors are
-        // known error names that are caused by an incompatible APK installation attempt.
-        return when (installResult.status) {
-          InstallStatus.INSTALL_FAILED_UPDATE_INCOMPATIBLE,
-          InstallStatus.INCONSISTENT_CERTIFICATES,
-          InstallStatus.INSTALL_FAILED_PERMISSION_MODEL_DOWNGRADE,
-          InstallStatus.INSTALL_FAILED_VERSION_DOWNGRADE,
-          InstallStatus.INSTALL_FAILED_DEXOPT -> true
-          else -> false
+    for (errorDetail in myUtpTestSuiteResult.platformError.errorsList) {
+      errorDetail.cause.summary.let { summary ->
+        if (summary.namespace.namespace == "DdmlibAndroidDeviceController" && summary.errorCode == 1) {
+          val installResult = ApkInstaller.toInstallerResult(summary.errorName, summary.stackTrace)
+          // This list is copied from the com.android.tools.deployer.ApkInstaller. These errors are
+          // known error names that are caused by an incompatible APK installation attempt.
+          return when (installResult.status) {
+            InstallStatus.INSTALL_FAILED_UPDATE_INCOMPATIBLE,
+            InstallStatus.INCONSISTENT_CERTIFICATES,
+            InstallStatus.INSTALL_FAILED_PERMISSION_MODEL_DOWNGRADE,
+            InstallStatus.INSTALL_FAILED_VERSION_DOWNGRADE,
+            InstallStatus.INSTALL_FAILED_DEXOPT -> UtpInstallResult(true, installResult)
+            else -> UtpInstallResult(false, installResult)
+          }
         }
       }
     }
 
-    return false
+    return UtpInstallResult()
   }
 
   /**
@@ -250,22 +258,20 @@ class GradleTestResultAdapter(
       ) == Messages.OK
     }
   ): Boolean {
-    if (!needRerunWithUninstallIncompatibleApkOption()) {
+    val (needRerun, installResult) = needRerunWithUninstallIncompatibleApkOption()
+    if (!needRerun || installResult == null) {
       return false
     }
 
-    myUtpTestSuiteResult.platformError.errorDetail.cause.summary.let { summary ->
-      val installResult = ApkInstaller.toInstallerResult(summary.errorName, summary.stackTrace)
-      val displayMessage = """
-        ${ApkInstaller.message(installResult)}
-        In order to proceed, you will have to uninstall the existing application.
-        
-        WARNING: Uninstalling will remove the application data!
-        
-        Do you want to uninstall the existing application?
-      """.trimIndent()
-      return showOkCancelDialogFunc(displayMessage)
-    }
+    val displayMessage = """
+      ${ApkInstaller.message(installResult)}
+      In order to proceed, you will have to uninstall the existing application.
+      
+      WARNING: Uninstalling will remove the application data!
+      
+      Do you want to uninstall the existing application?
+    """.trimIndent()
+    return showOkCancelDialogFunc(displayMessage)
   }
 }
 

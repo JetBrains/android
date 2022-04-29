@@ -109,6 +109,7 @@ class GradleConnectedAndroidTestInvokerTest {
           version = AndroidVersion(29)
         ))
         `when`(iDevice).thenReturn(mockDevices[deviceIndex - 1])
+        `when`(needRerunWithUninstallIncompatibleApkOption()).thenReturn(GradleTestResultAdapter.UtpInstallResult())
       }
     }
     return  GradleConnectedAndroidTestInvoker(
@@ -502,7 +503,7 @@ class GradleConnectedAndroidTestInvokerTest {
     var attempt = 0
     `when`(mockGradleTestResultAdapters[1].needRerunWithUninstallIncompatibleApkOption()).then {
       attempt++
-      attempt == 1
+      GradleTestResultAdapter.UtpInstallResult(attempt == 1)
     }
     `when`(mockGradleTestResultAdapters[1].showRerunWithUninstallIncompatibleApkOptionDialog(any(), any())).thenReturn(true)
 

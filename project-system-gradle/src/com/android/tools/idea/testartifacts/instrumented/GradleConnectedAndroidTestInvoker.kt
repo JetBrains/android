@@ -197,7 +197,7 @@ class GradleConnectedAndroidTestInvoker(
         // option.
         var isRerunRequested = false
         val rerunDevices = adapters.values.filter {
-          it.needRerunWithUninstallIncompatibleApkOption()
+          it.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption
         }
         if (rerunDevices.isNotEmpty()) {
           ApplicationManager.getApplication().invokeAndWait {

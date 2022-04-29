@@ -468,14 +468,14 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteFinished(any(), any())
     }
 
-    assertThat(adapter.needRerunWithUninstallIncompatibleApkOption()).isFalse()
+    assertThat(adapter.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption).isFalse()
   }
 
   private fun runAndUtpFailsWithApkInstallationError(): GradleTestResultAdapter {
     return createAdapter().apply {
       onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
         platformErrorBuilder.apply {
-          errorDetailBuilder.apply {
+          addErrorsBuilder().apply {
             causeBuilder.apply {
               summaryBuilder.apply {
                 namespaceBuilder.apply {
@@ -495,7 +495,7 @@ class GradleTestResultAdapterTest {
   fun onTestSuiteFinishedIsCalledBeforeTestSuiteEvenStartsDueToApkInstallationError() {
     val adapter = runAndUtpFailsWithApkInstallationError()
 
-    assertThat(adapter.needRerunWithUninstallIncompatibleApkOption()).isTrue()
+    assertThat(adapter.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption).isTrue()
   }
 
   @Test
