@@ -26,7 +26,8 @@ import com.android.tools.idea.compose.preview.fast.isSuccess
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.literals.LiteralUsageReference
-import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
@@ -73,7 +74,7 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
 
   @Before
   fun setUp() {
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
@@ -85,7 +86,7 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
     runBlocking {
       fastPreviewManager.stopAllDaemons().join()
     }
-    LiveLiteralsApplicationConfiguration.getInstance().resetDefault()
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   /**
@@ -153,7 +154,7 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
 
   @Test
   fun `disabled live literals does not generate LiveLiterals classes`() = runBlocking {
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     val (_, outputFiles) = compileAndListOutputFiles()
     assertTrue(outputFiles.isNotEmpty() && outputFiles.none { it.endsWith(".class") && it.contains("LiveLiterals") })
   }

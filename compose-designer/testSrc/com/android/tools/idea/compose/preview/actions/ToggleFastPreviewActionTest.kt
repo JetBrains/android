@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewRule
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.TestActionEvent
@@ -49,7 +49,7 @@ internal class ToggleFastPreviewActionTest {
     }
     finally {
       StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
-      FastPreviewApplicationConfiguration.getInstance().resetDefault()
+      LiveEditApplicationConfiguration.getInstance().resetDefault()
     }
   }
 

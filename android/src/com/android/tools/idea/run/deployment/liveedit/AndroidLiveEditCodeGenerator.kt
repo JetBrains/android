@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.FunctionState
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -30,10 +30,8 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -126,7 +124,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
 
         // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
         //      from another source file then perform a compilation again.
-        if (LiveEditConfig.getInstance().useInlineAnalysis) {
+        if (LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis) {
           inputFiles = performInlineSourceDependencyAnalysis(resolution, file, bindingContext)
 
           // We need to perform the analysis once more with the new set of input files.

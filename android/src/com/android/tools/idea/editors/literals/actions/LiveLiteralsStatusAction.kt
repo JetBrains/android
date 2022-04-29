@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.literals.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.icons.AllIcons
@@ -60,26 +60,26 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
   private val liveLiteralsDeploymentReportService by lazy { LiveLiteralsDeploymentReportService.getInstance(project) }
 
   companion object {
-    private fun isLiveEdit(): Boolean {
-      return !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
+    private fun isLiveLiterals(): Boolean {
+      return LiveEditApplicationConfiguration.getInstance().isLiveLiterals
     }
 
-    fun getAction(project: Project): LiveLiteralsStatusAction? {
-      return if (isLiveEdit()) null else LiveLiteralsStatusAction(project)
+    fun getAction(project: Project): LiveLiteralsStatusAction {
+      return LiveLiteralsStatusAction(project)
     }
   }
 
   override fun displayTextInToolbar(): Boolean = true
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> {
-    val liveEdit = isLiveEdit()
-    val enabled = if (liveEdit) AndroidBundle.message("live.edit.is.enabled") else AndroidBundle.message("live.literals.is.enabled")
-    val disabled = if (liveEdit) AndroidBundle.message("live.edit.is.disabled") else AndroidBundle.message("live.literals.is.disabled")
+    val enabled = AndroidBundle.message("live.literals.is.enabled")
+    val disabled = AndroidBundle.message("live.literals.is.disabled")
 
     return when {
       // Disabled state if the project is not Compose, or no device is running with LL.
       !project.isCompose() ||
-      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() -> disabled to null
+      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() ||
+      !isLiveLiterals() -> disabled to null
       !liveLiteralsService.isAvailable -> disabled to NOT_AVAILABLE_ICON
       liveLiteralsDeploymentReportService.hasProblems -> enabled to ERROR_ICON
       else -> enabled to AVAILABLE_ICON
@@ -87,41 +87,36 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent = object : ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
-      override fun updateToolTipText() {
-        if (Registry.`is`("ide.helptooltip.enabled")) {
-          val liveEdit = isLiveEdit()
-          HelpTooltip.dispose(this)
-          val state = getIconAndTextForCurrentState()
-          val title = state.first
+    override fun updateToolTipText() {
+      if (Registry.`is`("ide.helptooltip.enabled")) {
+        val liveLiterals = isLiveLiterals()
+        HelpTooltip.dispose(this)
+        val state = getIconAndTextForCurrentState()
+        val title = state.first
 
-          HelpTooltip.dispose(this)
+        HelpTooltip.dispose(this)
+        if (liveLiterals) {
           HelpTooltip()
             .setTitle(title)
-            .setDescription(if (liveEdit) AndroidBundle.message("live.edit.tooltip.description") else AndroidBundle.message("live.literals.tooltip.description"))
-            .setBrowserLink(if (liveEdit) AndroidBundle.message("live.edit.tooltip.url.label") else AndroidBundle.message("live.literals.tooltip.url.label"),
-                            // TODO update URL to Live Edit's webpage when it gets created
-                            if (liveEdit) URL("https://developer.android.com/studio/run#live-edit") else URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
+            .setDescription(AndroidBundle.message("live.literals.tooltip.description"))
+            .setBrowserLink(AndroidBundle.message("live.literals.tooltip.url.label"), URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
             .installOn(this)
         }
-        else {
-          super.updateToolTipText()
-        }
+      }
+      else {
+        super.updateToolTipText()
       }
     }
+  }
 
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    if (isLiveEdit()) {
-      add(DefaultActionGroup(ToggleLiveLiteralsStatusAction()))
-    }
-    else {
-      add(DefaultActionGroup(
-        ToggleLiveLiteralsStatusAction(),
-        ToggleLiveLiteralsHighlightAction(),
-        ShowLiveLiteralsProblemAction(),
-        CustomizeLiveLiteralsThemeAction()
-      ))
-    }
+    add(DefaultActionGroup(
+      ToggleLiveLiteralsStatusAction(),
+      ToggleLiveLiteralsHighlightAction(),
+      ShowLiveLiteralsProblemAction(),
+      CustomizeLiveLiteralsThemeAction()
+    ))
 
     return false
   }

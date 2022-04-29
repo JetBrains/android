@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.editors.liveedit
 
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
-@com.intellij.openapi.components.State(name = "LiveEditConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
+
+@com.intellij.openapi.components.State(name = "LiveEditAdvancedConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
-class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(State()) {
+class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdvancedConfiguration.State>(State()) {
   class State: BaseState() {
     var useEmbeddedCompiler by property(true)
     var useDebugMode by property(false)
@@ -68,6 +67,6 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
   companion object {
     const val MIN_REFRESH_RATE_MS = 1
     val REFRESH_RATE_RANGE = MIN_REFRESH_RATE_MS .. 9999
-    @JvmStatic fun getInstance(): LiveEditConfig = ApplicationManager.getApplication().getService(LiveEditConfig::class.java)
+    @JvmStatic fun getInstance(): LiveEditAdvancedConfiguration = ApplicationManager.getApplication().getService(LiveEditAdvancedConfiguration::class.java)
   }
 }

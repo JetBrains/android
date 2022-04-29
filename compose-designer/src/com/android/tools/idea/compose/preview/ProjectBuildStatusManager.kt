@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -127,7 +127,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   private val fileChangeDetector =
     // If Live Literals is disabled or Fast Preview is enabled, disable the PsiFileChangeDetector since
     // we are not looking for literal changes anymore.
-    if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
+    if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals)
       PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
     else
       NopPsiFileChangeDetector

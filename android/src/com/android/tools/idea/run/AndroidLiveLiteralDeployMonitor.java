@@ -24,9 +24,9 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiteralReference;
 import com.android.tools.idea.editors.literals.LiteralUsageReference;
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
@@ -50,8 +50,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +111,7 @@ class AndroidLiveLiteralDeployMonitor {
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get() || !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
+    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveLiterals()) {
       return null;
     }
 

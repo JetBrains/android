@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.diagnostic.Logger
@@ -167,7 +167,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(daemonPath: String,
     val classPathArgs = if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()
 
     val inputFilesArgs = files.map { it.virtualFile.path }.toList()
-    val liveLiteralsArgs = if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
+    val liveLiteralsArgs = if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals)
       LIVE_LITERALS_ARGS
     else emptyList()
     val friendPaths = listOf(

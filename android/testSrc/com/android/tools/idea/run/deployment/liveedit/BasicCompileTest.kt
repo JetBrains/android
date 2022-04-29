@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.literals.EditEvent
 import com.android.tools.idea.editors.literals.FunctionState
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -180,7 +179,7 @@ class BasicCompileTest {
 
   private fun compile(file: PsiFile, function: KtNamedFunction, state: FunctionState? = null, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
-    LiveEditConfig.getInstance().useInlineAnalysis = useInliner
+    LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
     val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
     AndroidLiveEditCodeGenerator(myProject).compile(
       listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function, state?: readFunctionState(file))), output)

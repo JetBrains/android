@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.editors.literals.actions
 
-import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
-import com.android.tools.idea.editors.literals.ui.LiveLiteralsConfigurable
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.ui.LiveEditConfigurable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -28,23 +27,14 @@ import org.jetbrains.android.util.AndroidBundle.message
  */
 internal class ToggleLiveLiteralsStatusAction: AnAction() {
   override fun update(e: AnActionEvent) {
-    val liveEdit = !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
-    e.presentation.text = if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled) {
-      if (liveEdit) {
-        "Live Edit: OFF"
-      } else {
-        message("live.literals.action.disable.title")
-      }
+    e.presentation.text = if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals) {
+      message("live.literals.action.disable.title")
     } else {
-      if (liveEdit) {
-        "Live Edit: ON"
-      } else {
-        message("live.literals.action.enable.title")
-      }
+      message("live.literals.action.enable.title")
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveLiteralsConfigurable::class.java)
+    ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveEditConfigurable::class.java)
   }
 }

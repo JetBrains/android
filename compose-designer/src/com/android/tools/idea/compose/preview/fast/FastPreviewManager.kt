@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.compose.preview.util.toLogString
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -357,7 +357,7 @@ class FastPreviewManager private constructor(
 
   /**
    * If true, it means that Fast Preview is disabled only for this session. If Studio is restarted, we will use the persisted configuration
-   * valid in [FastPreviewApplicationConfiguration].
+   * valid in [LiveEditApplicationConfiguration].
    */
   private var disableForThisSession = false
 
@@ -365,7 +365,7 @@ class FastPreviewManager private constructor(
    * Returns true when the feature is enabled
    */
   val isEnabled: Boolean
-    get() = !disableForThisSession && FastPreviewApplicationConfiguration.getInstance().isEnabled
+    get() = !disableForThisSession && LiveEditApplicationConfiguration.getInstance().isLiveEditPreview
 
   /**
    * Returns the reason why the Fast Preview was disabled, if available.
@@ -548,14 +548,14 @@ class FastPreviewManager private constructor(
         .notify(project)
       disableForThisSession = true
     }
-    else FastPreviewApplicationConfiguration.getInstance().isEnabled = false
+    else LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = false
   }
 
   /** Enables the Fast Preview. */
   fun enable() {
     disableReason = null
     disableForThisSession = false
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
+    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }
 
   override fun dispose() {

@@ -7,6 +7,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT
@@ -287,7 +288,7 @@ class LiveLiteralsService private constructor(private val project: Project,
    * True if Live Literals should be enabled for this project.
    */
   val isEnabled
-    get() = LiveLiteralsApplicationConfiguration.getInstance().isEnabled
+    get() = LiveEditApplicationConfiguration.getInstance().isLiveLiterals
 
   /**
    * Same as [PowerSaveMode] but obeys to the [DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -58,7 +58,7 @@ class FastPreviewDisableNotificationProviderTest {
 
   @Before
   fun setUp() {
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = true
     notificationProvider = FastPreviewDisableNotificationProvider()
     file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
@@ -70,7 +70,7 @@ class FastPreviewDisableNotificationProviderTest {
 
   @After
   fun tearDown() {
-    FastPreviewApplicationConfiguration.getInstance().resetDefault()
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test

@@ -25,7 +25,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration;
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
@@ -73,7 +73,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     super.tearDown();
     StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride();
-    FastPreviewApplicationConfiguration.Companion.getInstance().resetDefault();
+    LiveEditApplicationConfiguration.Companion.getInstance().resetDefault();
   }
 
   /**
@@ -250,7 +250,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
   public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true);
-    FastPreviewApplicationConfiguration.Companion.getInstance().setEnabled(true);
+    LiveEditApplicationConfiguration.Companion.getInstance().setMode(LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT);
+    LiveEditApplicationConfiguration.Companion.getInstance().setLiveEditPreviewEnabled(true);
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),

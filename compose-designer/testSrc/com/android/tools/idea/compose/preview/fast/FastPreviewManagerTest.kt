@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.fast
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -377,7 +377,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
-      assertTrue("Auto disable should not be persisted", FastPreviewApplicationConfiguration.getInstance().isEnabled)
+      assertTrue("Auto disable should not be persisted", LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled)
       assertEquals(
         "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
         manager.disableReason.toString())
@@ -390,7 +390,7 @@ internal class FastPreviewManagerTest {
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue(manager.isEnabled)
-      assertTrue(FastPreviewApplicationConfiguration.getInstance().isEnabled)
+      assertTrue(LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled)
       assertNull(manager.disableReason)
     }
   }

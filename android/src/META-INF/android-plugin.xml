@@ -587,8 +587,8 @@
 
     <projectService serviceImplementation="com.android.tools.idea.rendering.classloading.ProjectConstantRemapper"
                     serviceInterface="com.android.tools.idea.rendering.classloading.ConstantRemapper" />
-    <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveLiteralsConfigurableProvider"
-                             key="live.literals.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
+    <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveEditConfigurableProvider"
+                             key="live.edit.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
     <colorSettingsPage implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsHighlightColorConfigurable"/>
     <notificationGroup id="Live Literal Problem Notification" displayType="NONE" />
 
@@ -596,7 +596,9 @@
     <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
 
     <applicationConfigurable provider="com.android.tools.idea.editors.liveedit.ui.LiveEditConfigurableProvider"
-                             key="live.edit.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
+                             key="live.edit.configurable.display.name" id="live.edit.configurable" bundle="messages.AndroidBundle" groupId="editor"/>
+    <applicationConfigurable provider="com.android.tools.idea.editors.liveedit.ui.LiveEditAdvancedSettingsConfigurableProvider"
+                             key="live.edit.advanced.settings.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor" parentId="live.edit.configurable" />
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first"/>

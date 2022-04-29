@@ -1135,17 +1135,10 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
-    COMPOSE, "deploy.live.literals.deploy",
-    "Enable live literals deploy",
-    "If enabled, literals within Composable functions are instantly deployed to device",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
-    COMPOSE, "deploy.live.edit.deploy",
-    "Enable live edits deploy",
-    "If enabled, edits within Kotlin and Composable functions are instantly deployed to device",
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.advanced.settings",
+    "Enable live edit deploy settings menu",
+    "If enabled, advanced Live Edit settings menu will be visible",
     false
   );
 

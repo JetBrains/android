@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
+import static com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT;
+import static com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 
 import com.android.annotations.Nullable;
@@ -30,12 +32,13 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.EditState;
 import com.android.tools.idea.editors.literals.EditStatus;
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.editors.literals.EditEvent;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.editors.liveedit.LiveEditConfig;
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
@@ -195,6 +198,10 @@ public class AndroidLiveEditDeployMonitor {
 
     // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
     public void onLiteralsChanged(EditEvent event) {
+      if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEditDevice()) {
+        return;
+      }
+
       if (StringUtil.isEmpty(applicationId)) {
         return;
       }
@@ -204,7 +211,7 @@ public class AndroidLiveEditDeployMonitor {
       }
 
       changedMethodQueue.add(event);
-      methodChangesExecutor.schedule(this::processChanges, LiveEditConfig.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+      methodChangesExecutor.schedule(this::processChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
     }
 
     private void processChanges() {
@@ -231,7 +238,7 @@ public class AndroidLiveEditDeployMonitor {
 
       if (!handleChangedMethods(project, applicationId, copy)) {
         changedMethodQueue.addAll(copy);
-        methodChangesExecutor.schedule(this::processChanges, LiveEditConfig.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
+        methodChangesExecutor.schedule(this::processChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
       }
     }
   }
@@ -250,14 +257,8 @@ public class AndroidLiveEditDeployMonitor {
     // TODO: Don't use Live Literal's reporting
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + applicationId);
 
-    // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
-    // one is to to disable the other.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
-      LOGGER.info("Live Edit disabled because %s is enabled.", StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.getId());
-      return null;
-    }
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-      LOGGER.info("Live Edit disabled because %s is disabled.", StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.getId());
+    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEditDevice()) {
+      LOGGER.info("Live Edit on device disabled via settings.");
       return null;
     }
 
@@ -436,8 +437,8 @@ public class AndroidLiveEditDeployMonitor {
     //  generated from a single keystroke, leading to multiple LEs and multiple recomposes.
     List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
     updates.forEach(update -> {
-      boolean useDebugMode = LiveEditConfig.getInstance().getUseDebugMode();
-      boolean usePartialRecompose = LiveEditConfig.getInstance().getUsePartialRecompose() &&
+      boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
+      boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
                                     update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE;
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(

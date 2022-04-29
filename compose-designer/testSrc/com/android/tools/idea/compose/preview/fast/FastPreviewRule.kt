@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import org.junit.rules.ExternalResource
 
@@ -26,11 +26,12 @@ import org.junit.rules.ExternalResource
 class FastPreviewRule: ExternalResource() {
   override fun before() {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = true
   }
 
   override fun after() {
     StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
-    FastPreviewApplicationConfiguration.getInstance().resetDefault()
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 }

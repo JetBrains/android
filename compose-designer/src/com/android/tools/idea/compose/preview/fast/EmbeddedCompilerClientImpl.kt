@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditLanguageVersionSettings
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
@@ -91,7 +91,7 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
 class EmbeddedCompilerClientImpl(
   private val project: Project,
   private val log: Logger,
-  private val useInlineAnalysis: () -> Boolean = { LiveEditConfig.getInstance().useInlineAnalysis }) : CompilerDaemonClient {
+  private val useInlineAnalysis: () -> Boolean = { LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis }) : CompilerDaemonClient {
 
   @TestOnly
   constructor(project: Project, log: Logger, useInlineAnalysis: Boolean): this(project, log, { useInlineAnalysis })

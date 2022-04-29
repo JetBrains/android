@@ -1,6 +1,9 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -12,8 +15,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiPackage
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -45,7 +46,7 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
 
@@ -81,7 +82,7 @@ internal class LiveLiteralsServiceTest {
 
   @After
   fun tearDown() {
-    LiveLiteralsApplicationConfiguration.getInstance().resetDefault()
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   /**
@@ -214,14 +215,14 @@ internal class LiveLiteralsServiceTest {
       projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     }
 
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
+    LiveEditApplicationConfiguration.getInstance().mode = DISABLED
     assertFalse(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
     projectRule.fixture.editor.executeAndSave {
       replaceText("999", "555")
     }
 
-    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     projectRule.fixture.editor.executeAndSave {
       replaceText("555", "333")
     }

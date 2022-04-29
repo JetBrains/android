@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
@@ -172,7 +172,7 @@ private object CompileScopeImpl : CompileScope {
 
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, input[0].module!!.name)
 
-    val useComposeIR = LiveEditConfig.getInstance().useEmbeddedCompiler
+    val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
     if (useComposeIR) {
       // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
       compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)

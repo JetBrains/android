@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -86,7 +87,7 @@ object CompilerLiveLiteralsManager {
     }
     return withContext(workerThread) {
       val packageName = runReadAction { sourceFile.packageName }
-      val overlayLoader = if (FastPreviewApplicationConfiguration.getInstance().isEnabled) {
+      val overlayLoader = if (LiveEditApplicationConfiguration.getInstance().isLiveEditPreview) {
         runReadAction { sourceFile.module }?.let { ModuleClassLoaderOverlays.getInstance(it) }
       } else null
       val liveLiteralClasses = runReadAction {

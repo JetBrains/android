@@ -15,91 +15,103 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.editors.liveedit.LiveEditConfig
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.UIBundle
-import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.Cell
-import com.intellij.ui.layout.CellBuilder
 import com.intellij.ui.layout.panel
-import org.jetbrains.android.util.AndroidBundle
-import kotlin.reflect.KMutableProperty0
-
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
-  AndroidBundle.message("live.edit.configurable.display.name"), "android.live.edit"
+  message("live.edit.configurable.display.name"), "android.live.edit"
 ), Configurable.NoScroll {
   override fun createPanel(): DialogPanel {
-    val liveEditSettings = LiveEditConfig.getInstance()
+    val config = LiveEditApplicationConfiguration.getInstance()
 
-    // http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/kotlin_ui_dsl.html
     return panel {
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.embedded.compiler"),
-            liveEditSettings::useEmbeddedCompiler,
-            AndroidBundle.message("live.edit.configurable.enable.embedded.compiler.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.debug.mode"),
-            liveEditSettings::useDebugMode,
-            AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.inline.analysis"),
-            liveEditSettings::useInlineAnalysis,
-            AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment")
-          )
-        }
-        row {
-          checkBox(
-            AndroidBundle.message("live.edit.configurable.enable.partial.recompose"),
-            liveEditSettings::usePartialRecompose,
-            AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment")
-          )
-        }
-        row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
-          cell {
-            // Workaround for bug https://youtrack.jetbrains.com/issue/IDEA-287095
-            // Delete this line and uncomment next once fixed.
-            createIntTextField(this, liveEditSettings::refreshRateMs, 4, LiveEditConfig.REFRESH_RATE_RANGE)
-            //intTextField(liveEditSettings::refreshRateMs, 4, LiveEditConfig.REFRESH_RATE_RANGE)
-            commentNoWrap(AndroidBundle.message("live.edit.configurable.refresh.rate.comment"))
+      buttonGroup {
+        if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) {
+          row {
+            radioButton(
+              message("live.literals.configurable.select.live.literals"),
+              { config.mode == LIVE_LITERALS },
+              { enabled -> if (enabled) config.mode = LIVE_LITERALS },
+              message("live.literals.configurable.select.live.literals.comment")
+            )
           }
         }
+
+        row {
+          radioButton(
+            message("live.edit.configurable.display.name"),
+            { config.mode == LIVE_EDIT },
+            { enabled -> if (enabled) config.mode = LIVE_EDIT },
+            message("live.edit.configurable.display.name.comment")
+          )
+
+          buttonGroup {
+            row {
+              checkBox(
+                message("live.edit.configurable.device.enable"),
+                config::liveEditDeviceEnabled,
+                message("live.edit.configurable.device.enable.comment")
+              )
+            }
+            row {
+              checkBox(
+                message("live.edit.configurable.preview.enable"),
+                config::liveEditPreviewEnabled,
+                message("live.edit.configurable.preview.enable.comment")
+              ).visible(StudioFlags.COMPOSE_FAST_PREVIEW.get())
+            }
+          }
+        }
+
+        row {
+          radioButton(
+            message("live.edit.disable.all"),
+            { config.mode == DISABLED },
+            { enabled -> if (enabled) config.mode = DISABLED },
+            message("live.edit.disable.all.description")
+          )
+        }
+      }
     }
   }
-}
 
-// Delete this method once bug IDEA-287095 is fixed
-fun createIntTextField(cell: Cell, binding :KMutableProperty0<Int>, columns: Int? = null, range: IntRange? = null): CellBuilder<JBTextField> {
-  return cell.textField(
-    { binding.get().toString() },
-    { value -> value.toIntOrNull()?.let { intValue -> binding.set(range?.let { intValue.coerceIn(it.first, it.last) } ?: intValue) } },
-    columns
-  ).withValidationOnInput {
-    val value = it.text.toIntOrNull()
-    when {
-      value == null -> error(UIBundle.message("please.enter.a.number"))
-      range != null && value !in range -> error(UIBundle.message("please.enter.a.number.from.0.to.1", range.first, range.last))
-      else -> null
+  override fun apply() {
+    super.apply()
+
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) {
+      // Make sure we disable all the live literals services
+      ProjectManager.getInstance().openProjects
+        .forEach {
+          LiveLiteralsService.getInstance(it).onAvailabilityChange()
+          ProjectConstantRemapper.getInstance(it).clearConstants(null)
+        }
+    } else if (!LiveEditApplicationConfiguration.getInstance().isLiveEditPreview) {
+      ProjectManager.getInstance().openProjects
+        .flatMap { it.allModules() }
+        .forEach {
+          ModuleClassLoaderOverlays.getInstance(it).overlayPath = null
+        }
     }
+
+    ActivityTracker.getInstance().inc()
   }
 }
 
 class LiveEditConfigurableProvider: ConfigurableProvider() {
-  override fun createConfigurable(): Configurable? = if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get())
-    LiveEditConfigurable()
-  else
-    null
-
-  override fun canCreateConfigurable(): Boolean = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
+  override fun createConfigurable(): Configurable = LiveEditConfigurable()
 }

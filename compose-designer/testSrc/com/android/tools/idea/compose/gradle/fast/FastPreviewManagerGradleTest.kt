@@ -25,8 +25,8 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.editors.literals.FastPreviewApplicationConfiguration
 import com.android.tools.idea.editors.literals.FunctionState
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
 import com.android.tools.idea.testing.moveCaret
@@ -37,7 +37,6 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
@@ -59,7 +58,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
-import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -86,7 +84,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Before
   fun setUp() {
-    FastPreviewApplicationConfiguration.getInstance().isEnabled = true
+    LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+    LiveEditApplicationConfiguration.getInstance().liveEditPreviewEnabled = true
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
@@ -114,7 +113,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     runBlocking {
       fastPreviewManager.stopAllDaemons().join()
     }
-    FastPreviewApplicationConfiguration.getInstance().resetDefault()
+    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test

@@ -874,23 +874,20 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="android.live.literals" configurable_name="Live Edit of Compose Literals">
-    <option name="" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="after" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="building" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="can" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="edit" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="enabling" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="feature" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="is" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="literals" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="live" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="of" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="properly" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="required" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="so" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="the" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
-    <option name="work" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
+  <configurable id="live.edit.configurable" configurable_name="Live Edit">
+    <option name="" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="changes" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="compose" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="device" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="enables" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="fast" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="files" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="kotlin" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="modifying" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="of" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="on" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="update" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
+    <option name="when" hit=" Enables fast update of changes on device when modifying Compose Kotlin files." />
     <option name="" hit=" Enables faster refresh of the Preview when modifying a single file." />
     <option name="a" hit=" Enables faster refresh of the Preview when modifying a single file." />
     <option name="enables" hit=" Enables faster refresh of the Preview when modifying a single file." />
@@ -903,20 +900,77 @@
     <option name="single" hit=" Enables faster refresh of the Preview when modifying a single file." />
     <option name="the" hit=" Enables faster refresh of the Preview when modifying a single file." />
     <option name="when" hit=" Enables faster refresh of the Preview when modifying a single file." />
-    <option name="edit" hit="Enable Live Edit of literals" />
-    <option name="enable" hit="Enable Live Edit of literals" />
-    <option name="literals" hit="Enable Live Edit of literals" />
-    <option name="live" hit="Enable Live Edit of literals" />
-    <option name="of" hit="Enable Live Edit of literals" />
-    <option name="enable" hit="Enable Preview Quick Refresh" />
-    <option name="preview" hit="Enable Preview Quick Refresh" />
-    <option name="quick" hit="Enable Preview Quick Refresh" />
-    <option name="refresh" hit="Enable Preview Quick Refresh" />
-    <option name="compose" hit="Live Edit of Compose Literals" />
-    <option name="edit" hit="Live Edit of Compose Literals" />
-    <option name="literals" hit="Live Edit of Compose Literals" />
-    <option name="live" hit="Live Edit of Compose Literals" />
-    <option name="of" hit="Live Edit of Compose Literals" />
+    <option name="" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="and" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="application" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="changes" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="code" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="composable" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="compose" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="device" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="devices" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="emulator" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="emulators" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="experimental" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="feature" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="functions" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="in" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="instantaneously" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="made" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="physical" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="preview" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="re" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="reflects" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="require" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="run" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="settings" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="that" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="the" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="to" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="will" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="within" hit=" Experimental feature that instantaneously reflects code changes made within composable functions in the Compose Preview, emulators, and physical devices. Settings changes to Device/Emulator will require application re-run." />
+    <option name="" hit=" Turn both features off." />
+    <option name="both" hit=" Turn both features off." />
+    <option name="features" hit=" Turn both features off." />
+    <option name="off" hit=" Turn both features off." />
+    <option name="turn" hit=" Turn both features off." />
+    <option name="" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="after" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="and" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="building" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="can" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="composables" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="compose" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="devices" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="edit" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="emulators" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="enabling" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="feature" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="in" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="is" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="literals" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="live" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="of" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="physical" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="preview" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="properly" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="real" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="required" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="so" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="the" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="time" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="updates" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="used" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="work" hit=" Updates literals used in composables in the Compose Preview, emulators, and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly." />
+    <option name="device" hit="Device" />
+    <option name="edit" hit="Live Edit" />
+    <option name="live" hit="Live Edit" />
+    <option name="edit" hit="Live Edit of literals" />
+    <option name="literals" hit="Live Edit of literals" />
+    <option name="live" hit="Live Edit of literals" />
+    <option name="of" hit="Live Edit of literals" />
+    <option name="none" hit="None" />
+    <option name="preview" hit="Preview" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool." />
