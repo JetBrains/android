@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;

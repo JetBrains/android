@@ -96,7 +96,6 @@ com.android.tools.idea.run.editor.InstantAppRunConfigurationsDialogTest
 com.android.tools.idea.run.activity.launch.SpecificActivityLaunchTest
 com.android.tools.idea.sdk.IdeSdksAndroidTest
 com.android.tools.idea.sdk.wizard.SdkQuickfixUtilsTest
-com.android.tools.idea.startup.GradleSpecificInitializerTest
 com.android.tools.idea.testartifacts.gradle.AndroidGradleConfigurationProducersTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest

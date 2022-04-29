@@ -24,6 +24,7 @@
     <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
   </extensions>
   <actions>
+    <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>

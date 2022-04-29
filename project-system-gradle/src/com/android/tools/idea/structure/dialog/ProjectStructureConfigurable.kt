@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.JavaUiBundle
@@ -56,14 +56,10 @@ import com.intellij.ui.navigation.BackAction
 import com.intellij.ui.navigation.ForwardAction
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
-import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
-import com.intellij.util.ui.UIUtil.requestFocus
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
@@ -79,13 +75,16 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
+class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin,
+                                                                     Configurable.NoScroll {
   private var myHistory = History(this)
   private val myDetails = Wrapper()
   private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent>()
   private val myUiState = UIState().also { it.load(myProject) }
-  private val myEmptySelection = JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
-                                        SwingConstants.CENTER)
+  private val myEmptySelection = JLabel(
+    "<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+    SwingConstants.CENTER
+  )
   private val myProjectStructureEventDispatcher = EventDispatcher.create(ProjectStructureListener::class.java)
 
   private var mySplitter: JBSplitter? = null
@@ -165,11 +164,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     myToFocus = toFocus
     if (myToFocus != null) {
       @Suppress("DEPRECATION")
-      if (requestFocus) requestFocus(myToFocus!!)
+      if (requestFocus) UIUtil.requestFocus(myToFocus!!)
     }
 
     val result = ActionCallback()
-    goFurther(toSelect, place, requestFocus).notifyWhenDone(result)
+    Place.goFurther(toSelect, place, requestFocus).notifyWhenDone(result)
 
     myDetails.revalidate()
     myDetails.repaint()
@@ -229,8 +228,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     toolbar.setTargetComponent(component)
     myToolbarComponent = toolbar.component
 
-    left.background = SIDE_PANEL_BACKGROUND
-    myToolbarComponent!!.background = SIDE_PANEL_BACKGROUND
+    left.background = UIUtil.SIDE_PANEL_BACKGROUND
+    myToolbarComponent!!.background = UIUtil.SIDE_PANEL_BACKGROUND
 
     left.add(myToolbarComponent!!, BorderLayout.NORTH)
     left.add(mySidePanel!!, BorderLayout.CENTER)
@@ -275,7 +274,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     if (needsSync) {
       // NOTE: If the user applied the changes in the dialog and then cancelled the dialog, sync still needs to happen here since
       //       we do not perform a sync when applying changes on "apply".
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PSD_CHANGES)
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES)
     }
   }
 
@@ -359,9 +358,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     mySidePanel!!.addPlace(
       createPlaceFor(configurable),
       Presentation(configurable.displayName),
-      counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors())} })
+      counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } })
     counterDisplayConfigurable?.add(
-      CounterDisplayConfigurable.CountChangeListener { invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+      CounterDisplayConfigurable.CountChangeListener { UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
   }
 
   fun <T : Configurable> findConfigurable(type: Class<T>): T? = myConfigurables.keys.filterIsInstance(type).firstOrNull()
@@ -474,29 +473,28 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private fun logUsageOpen() {
     UsageTracker.log(
-      AndroidStudioEvent
-        .newBuilder()
+      AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
         .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
         .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002))
-        .withProjectId(myProject))
+        .withProjectId(myProject)
+    )
   }
 
   private fun logUsageApply() {
     val duration = System.currentTimeMillis() - myOpenTimeMs
     val psdEvent =
-      PSDEvent
-        .newBuilder()
+      PSDEvent.newBuilder()
         .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
         .setDurationMs(duration)
     myConfigurables.keys.filterIsInstance<TrackedConfigurable>().forEach { it.copyEditedFieldsTo(psdEvent) }
     UsageTracker.log(
-      AndroidStudioEvent
-        .newBuilder()
+      AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
         .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
         .setPsdEvent(psdEvent)
-        .withProjectId(myProject))
+        .withProjectId(myProject)
+    )
   }
 
   companion object {
