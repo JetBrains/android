@@ -17,18 +17,27 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.VisibleForTesting;
 
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
@@ -41,6 +50,14 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
 
   private @NotNull List<@NotNull VirtualDevice> myDevices;
+
+  private final @NotNull Callable<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull NewSetOnline myNewSetOnline;
+
+  @VisibleForTesting
+  interface NewSetOnline {
+    @NotNull FutureCallback<@NotNull Boolean> apply(@NotNull VirtualDeviceTableModel model, @NotNull Key key);
+  }
 
   static final class LaunchOrStopValue {
     static final LaunchOrStopValue INSTANCE = new LaunchOrStopValue();
@@ -72,7 +89,21 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @VisibleForTesting
   VirtualDeviceTableModel(@NotNull Collection<@NotNull VirtualDevice> devices) {
+    this(devices, AvdManagerConnection::getDefaultAvdManagerConnection, VirtualDeviceTableModel::newSetOnline);
+  }
+
+  @VisibleForTesting
+  VirtualDeviceTableModel(@NotNull Collection<@NotNull VirtualDevice> devices,
+                          @NotNull Callable<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection,
+                          @NotNull NewSetOnline newSetOnline) {
     myDevices = new ArrayList<>(devices);
+    myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myNewSetOnline = newSetOnline;
+  }
+
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model, @NotNull Key key) {
+    return new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, online -> model.setOnline(key, online));
   }
 
   @NotNull List<@NotNull VirtualDevice> getDevices() {
@@ -82,6 +113,29 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   void setDevices(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
     fireTableDataChanged();
+  }
+
+  void setAllOnline() {
+    Executor executor = AppExecutorUtil.getAppExecutorService();
+
+    @SuppressWarnings("UnstableApiUsage")
+    ListenableFuture<AvdManagerConnection> future = Futures.submit(myGetDefaultAvdManagerConnection, executor);
+
+    FutureCallback<AvdManagerConnection> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, this::setAllOnline);
+    Futures.addCallback(future, callback, EdtExecutorService.getInstance());
+  }
+
+  private void setAllOnline(@NotNull AvdManagerConnection connection) {
+    myDevices.forEach(device -> setOnline(device, connection));
+  }
+
+  private void setOnline(@NotNull VirtualDevice device, @NotNull AvdManagerConnection connection) {
+    Executor executor = AppExecutorUtil.getAppExecutorService();
+
+    @SuppressWarnings("UnstableApiUsage")
+    ListenableFuture<Boolean> future = Futures.submit(() -> connection.isAvdRunning(device.getAvdInfo()), executor);
+
+    Futures.addCallback(future, myNewSetOnline.apply(this, device.getKey()), EdtExecutorService.getInstance());
   }
 
   void setOnline(@NotNull Key key, boolean online) {

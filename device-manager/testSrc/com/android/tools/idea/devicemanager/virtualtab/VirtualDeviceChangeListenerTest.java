@@ -76,6 +76,42 @@ public final class VirtualDeviceChangeListenerTest {
   }
 
   @Test
+  public void deviceChangedAvdIsNull() throws InterruptedException {
+    // Arrange
+    CountDownLatch latch = new CountDownLatch(1);
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, (model, online) -> newSetOnline(model, online, latch));
+
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getState()).thenReturn(DeviceState.OFFLINE);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
+
+    // Act
+    listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+    Mockito.verify(myModel).setAllOnline();
+  }
+
+  @Test
+  public void deviceChangedNameIsNull() throws InterruptedException {
+    // Arrange
+    CountDownLatch latch = new CountDownLatch(1);
+    IDeviceChangeListener listener = new VirtualDeviceChangeListener(myModel, (model, online) -> newSetOnline(model, online, latch));
+
+    Mockito.when(myDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDevice.getState()).thenReturn(DeviceState.OFFLINE);
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+
+    // Act
+    listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+    Mockito.verify(myModel).setAllOnline();
+  }
+
+  @Test
   public void deviceChangedCaseOffline() throws InterruptedException {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
