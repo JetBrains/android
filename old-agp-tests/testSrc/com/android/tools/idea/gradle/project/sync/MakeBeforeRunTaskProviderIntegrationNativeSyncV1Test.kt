@@ -104,8 +104,23 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
 
       runOn(Abi.ARMEABI_V7A)
 
+      Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
       Truth.assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi })
-        .containsExactly(Abi.X86.toString()) // TODO(b/226372843): Should also contain Abi.ARMEABI_V7A.toString()) !
+        .containsExactly(Abi.X86.toString(), Abi.ARMEABI_V7A.toString())
+
+      // Assert that a subsequent run on ARM should not trigger sync again
+      fun attemptRunningOn(abi: Abi) {
+        withSimulatedSyncError(errorMessage) {
+          val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
+          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+        }
+      }
+
+      attemptRunningOn(Abi.ARMEABI_V7A)
+
+      Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
+      Truth.assertThat(ndkFacet?.ndkModuleModel?.ndkModel?.syncedVariantAbis?.map { it.abi })
+        .containsExactly(Abi.X86.toString(), Abi.ARMEABI_V7A.toString())
     }
   }
 

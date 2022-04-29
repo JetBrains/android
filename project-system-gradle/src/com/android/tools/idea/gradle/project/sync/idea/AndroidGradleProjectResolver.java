@@ -825,24 +825,21 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       throw ideAndroidSyncErrorToException(syncError);
     }
 
-    IdeUnresolvedLibraryTableImpl ideLibraryTable = resolverCtx.getModels().getModel(IdeUnresolvedLibraryTableImpl.class);
-    // If there is no ide library table it is not an Android project.
-    if (ideLibraryTable != null) {
-      // Special mode sync to fetch additional native variants.
-      for (IdeaModule gradleModule : gradleProject.getModules()) {
-        IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
-        if (nativeVariants != null) {
-          projectDataNode.createChild(NATIVE_VARIANTS,
-                                      new IdeAndroidNativeVariantsModelsWrapper(
-                                        GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
-                                        nativeVariants
-                                      ));
-        }
-      }
-      if (isAndroidGradleProject()) {
-        projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+    // This is used in the special mode sync to fetch additional native variants.
+    for (IdeaModule gradleModule : gradleProject.getModules()) {
+      IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
+      if (nativeVariants != null) {
+        projectDataNode.createChild(NATIVE_VARIANTS,
+                                    new IdeAndroidNativeVariantsModelsWrapper(
+                                      GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
+                                      nativeVariants
+                                    ));
       }
     }
+    if (isAndroidGradleProject()) {
+      projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
+    }
+
     super.populateProjectExtraModels(gradleProject, projectDataNode);
   }
 
