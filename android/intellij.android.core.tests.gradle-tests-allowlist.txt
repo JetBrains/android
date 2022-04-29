@@ -28,7 +28,6 @@ com.android.tools.idea.gradle.project.sync.GradleTaskListIntegrationTest
 com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationTest
 com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationTestCase
 com.android.tools.idea.gradle.project.sync.SingleVariantSyncIntegrationTest
-com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlinkTest
 com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlinkTest
 com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtilTest
 com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesTest
@@ -38,9 +37,6 @@ com.android.tools.idea.gradle.project.sync.issues.BuildToolsTooLowReporterIntegr
 com.android.tools.idea.gradle.project.sync.issues.DeprecatedConfigurationReporterIntegrationTest
 com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterTest
 com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporterTest
-com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessorTest
-com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessorTest
-com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcessorTest
 com.android.tools.idea.gradle.project.sync.issues.processor.UpdateGradlePluginProcessorTest
 com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest
 com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidatorImplIntegrationTest

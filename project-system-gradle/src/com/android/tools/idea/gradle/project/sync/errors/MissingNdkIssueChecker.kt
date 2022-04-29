@@ -31,13 +31,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import org.intellij.markdown.flavours.gfm.table.GitHubTableMarkerProvider.Companion.contains
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
-import java.util.regex.Pattern
 
 private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
 private val PREFERRED_VERSION_PATTERNS = listOf(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,13 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
+import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import org.junit.Test
-import java.io.File
-
 
 class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
   @Test
@@ -52,7 +49,7 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
 
   @Test
   fun testFindUsages() {
-    loadProject(HELLO_JNI, null, null, null, null, SdkConstants.NDK_DEFAULT_VERSION)
+    loadProject(TestProjectPaths.HELLO_JNI, null, null, null, null, SdkConstants.NDK_DEFAULT_VERSION)
     val module = getModule("app")
     val file = GradleUtil.getGradleBuildFile(module)!!
 
@@ -64,7 +61,7 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
 
   @Test
   fun testPerformRefactoring() {
-    loadProject(HELLO_JNI, null, null, null, null, SdkConstants.NDK_DEFAULT_VERSION)
+    loadProject(TestProjectPaths.HELLO_JNI, null, null, null, null, SdkConstants.NDK_DEFAULT_VERSION)
     val module = getModule("app")
     val file = GradleUtil.getGradleBuildFile(module)!!
 
