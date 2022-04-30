@@ -45,7 +45,6 @@ interface PushButtonAction : CustomComponentAction {
    */
   fun buttonReleased(event: AnActionEvent)
 
-  @JvmDefault
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return MyActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
