@@ -29,7 +29,7 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
   class State: BaseState() {
     var useEmbeddedCompiler by property(true)
     var useDebugMode by property(false)
-    var useInlineAnalysis by property(false)
+    var useInlineAnalysis by property(true)
     var usePartialRecompose by property(false)
     var refreshRateMs by property(MIN_REFRESH_RATE_MS)
   }

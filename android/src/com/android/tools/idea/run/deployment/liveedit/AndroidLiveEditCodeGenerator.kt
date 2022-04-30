@@ -138,6 +138,8 @@ class AndroidLiveEditCodeGenerator(val project: Project){
           generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
                                            "codegen_inline")
+        } else {
+          throw e
         }
       }
 

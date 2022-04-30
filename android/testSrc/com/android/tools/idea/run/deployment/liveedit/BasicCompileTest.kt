@@ -117,11 +117,16 @@ class BasicCompileTest {
     Assert.assertEquals(53, output.offSet.end)
   }
 
-
   @Test
   fun inlineTarget() {
     var state = readFunctionState(files["CallInlineTarget.kt"])
-    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", state).singleOutput()
+    try {
+      compile(files["CallInlineTarget.kt"], "callInlineTarget", state, useInliner = false).singleOutput()
+      Assert.fail("Expecting LiveEditUpdateException")
+    } catch (e: LiveEditUpdateException) {
+      Assert.assertEquals(LiveEditUpdateException.Error.UNABLE_TO_INLINE, e.error)
+    }
+    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", state, useInliner = true).singleOutput()
     var returnedValue = invokeStatic("callInlineTarget", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
   }
@@ -168,14 +173,14 @@ class BasicCompileTest {
     Assert.assertEquals(1, returnedValue)
   }
 
-  private fun compile(file: PsiFile?, functionName: String, state: FunctionState? = null) :
+  private fun compile(file: PsiFile?, functionName: String, state: FunctionState? = null, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
-    return compile(file!!, findFunction(file, functionName), state)
+    return compile(file!!, findFunction(file, functionName), state, useInliner)
   }
 
-  private fun compile(file: PsiFile, function: KtNamedFunction, state: FunctionState? = null) :
+  private fun compile(file: PsiFile, function: KtNamedFunction, state: FunctionState? = null, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
-    LiveEditConfig.getInstance().useInlineAnalysis = true
+    LiveEditConfig.getInstance().useInlineAnalysis = useInliner
     val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
     AndroidLiveEditCodeGenerator(myProject).compile(
       listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function, state?: readFunctionState(file))), output)
