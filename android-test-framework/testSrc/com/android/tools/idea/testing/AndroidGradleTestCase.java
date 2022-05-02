@@ -44,10 +44,12 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.TestDialog;
@@ -80,6 +82,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import com.intellij.util.indexing.IndexingFlag;
+import com.intellij.util.indexing.UnindexedFilesUpdater;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -286,6 +291,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
+
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        // TODO: [VD] a dirty hack to reindex created android project
+        IndexingFlag.cleanupProcessedFlag();
+        DumbService dumbService = DumbService.getInstance(project);
+        dumbService.queueTask(new UnindexedFilesUpdater(project));
+        dumbService.completeJustSubmittedTasks();
+      }
+    });
 
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(project, modules, chosenModuleName);
   }
