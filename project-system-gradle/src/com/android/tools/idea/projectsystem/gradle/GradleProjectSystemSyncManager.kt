@@ -27,26 +27,16 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ThreeState
-import org.jetbrains.annotations.Contract
 
 class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncManager {
   private val syncResultPublisher = GradleSyncResultPublisher.getInstance(project)
 
-  @Contract(pure = true)
-  private fun convertReasonToTrigger(reason: SyncReason): GradleSyncStats.Trigger = when {
-      reason === SyncReason.PROJECT_LOADED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED
-      reason === SyncReason.PROJECT_MODIFIED -> GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
-      reason === SyncReason.PROJECT_DEPENDENCY_UPDATED -> GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED
-      else -> GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
-  }
-
   private fun requestSync(project: Project, reason: SyncReason): ListenableFuture<SyncResult> {
-    val trigger = convertReasonToTrigger(reason)
+    val trigger = reason.forStats
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
@@ -61,8 +51,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
     try {
       GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       if (!Disposer.isDisposed(connection)) {
         connection.disconnect()
       }

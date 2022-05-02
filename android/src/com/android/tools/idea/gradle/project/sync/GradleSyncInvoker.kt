@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.application.ApplicationManager
@@ -53,6 +55,7 @@ interface GradleSyncInvoker {
   open class FakeInvoker : GradleSyncInvoker {
     override fun requestProjectSync(project: Project, request: Request, listener: GradleSyncListener?) {
       listener?.syncSkipped(project)
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED)
     }
 
     override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -28,14 +29,15 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT
@@ -547,16 +549,20 @@ class AgpUpgradeRefactoringProcessor(
     super.performPsiSpoilingRefactoring()
     val executedUsagesSize = executedUsages.size
     val requestedFilesSize = projectBuildModel.context.allRequestedFiles.size
-    val listener = object : GradleSyncListener {
-      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED, executedUsagesSize, requestedFilesSize)
-      override fun syncFailed(project: Project, errorMessage: String) =
-        trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
-      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
-    }
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_AGP_VERSION_UPDATED, listener)
+    project.getProjectSystem().getSyncManager().syncProject(TRIGGER_AGP_VERSION_UPDATED.toReason())
+      .addCallback(
+        directExecutor(),
+        success = { syncResult -> trackProcessorUsage(syncResult.forStats(), executedUsagesSize, requestedFilesSize) },
+        failure = { trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize) },
+      )
     UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
-      override fun redo(): Unit = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)
+      override fun undo() {
+        project.getProjectSystem().getSyncManager().syncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+      }
+
+      override fun redo() {
+        project.getProjectSystem().getSyncManager().syncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+      }
     })
   }
 
@@ -1082,3 +1088,10 @@ private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(
 
   UsageTracker.log(studioEvent)
 }
+
+private fun ProjectSystemSyncManager.SyncResult?.forStats() = when {
+  this == ProjectSystemSyncManager.SyncResult.SKIPPED -> SYNC_SKIPPED
+  this?.isSuccessful == true -> SYNC_SUCCEEDED
+  else -> SYNC_FAILED
+}
+
