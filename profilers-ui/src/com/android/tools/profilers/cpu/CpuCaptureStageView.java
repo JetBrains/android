@@ -276,12 +276,12 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(myScrollPane, new TabularLayout.Constraint(1, 0));
     container.add(createBottomAxisPanel(minimapModel.getRangeSelectionModel().getSelectionRange()), new TabularLayout.Constraint(2, 0));
-    initKeyBindings(container);
 
     JBSplitter splitter = new JBSplitter(false, 0.5f);
     splitter.setFirstComponent(container);
     splitter.setSecondComponent(myAnalysisPanel.getComponent());
     splitter.getDivider().setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
+    initKeyBindings(splitter);
     return splitter;
   }
 
