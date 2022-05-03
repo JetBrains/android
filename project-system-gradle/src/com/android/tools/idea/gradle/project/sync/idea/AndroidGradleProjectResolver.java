@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt.ideA
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidExtraModelProviderConfiguratorKt.configureAndGetExtraModelProvider;
 import static com.android.tools.idea.gradle.project.sync.idea.DependencyUtilKt.findSourceSetDataForArtifact;
 import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.preserveKotlinUserDataInDataNodes;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
@@ -856,7 +857,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull
   @Override
   public ProjectImportModelProvider getModelProvider() {
-    return AndroidExtraModelProviderConfigurator.configureAndGetExtraModelProvider(getProject(), resolverCtx);
+    return configureAndGetExtraModelProvider(resolverCtx);
   }
 
   @Override
