@@ -40,6 +40,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
+import com.intellij.build.BuildContentManager
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
@@ -86,6 +87,7 @@ import javax.swing.JSeparator
 import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
+import javax.swing.event.HyperlinkEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -829,22 +831,39 @@ class ContentManagerImpl(val project: Project): ContentManager {
         uiState is ToolWindowModel.UIState.CaughtException -> {
           val sb = StringBuilder()
           sb.append("<div><b>Caught exception</b></div>")
-          sb.append("<p>Something went wrong (an internal exception occured).  The status message is:<br/>")
+          sb.append("<p>Something went wrong (an internal exception occured).  ")
+          sb.append("You should revert to a known-good state before doing anything else.</p>")
+          sb.append("<p>The status message is:<br/>")
           sb.append(uiState.statusMessage.text)
           sb.append("</p>")
-          sb.append("<p>You should revert to a known-good state before doing anything else.</p>")
           label.text = sb.toString()
           detailsPanel.add(label)
         }
         uiState is ToolWindowModel.UIState.SyncFailed -> {
           val sb = StringBuilder()
           sb.append("<div><b>Sync Failed</b></div>")
-          sb.append("<p>The project failed to sync with the IDE.  The error message from sync is:</p>")
+          sb.append("<p>The project failed to sync with the IDE.  ")
+          sb.append("You should revert to a known-good state before making further changes.</p>")
+          sb.append("<p>The error message from sync is:</p>")
           sb.append("<pre>\n")
           sb.append(uiState.errorMessage)
           sb.append("\n</pre>")
-          sb.append("<p>You should revert to a known-good state before doing anything else.</p>")
+          sb.append("<p>There may be more information about the sync failure in the <a href='build-window'>Build window</a>.</p>")
           label.text = sb.toString()
+          label.addHyperlinkListener {
+            if (it.eventType != HyperlinkEvent.EventType.ACTIVATED) return@addHyperlinkListener
+            val project = this@View.model.project
+            invokeLater {
+              if (!project.isDisposed) {
+                val buildContentManager = BuildContentManager.getInstance(project)
+                val buildToolWindow = buildContentManager.getOrCreateToolWindow()
+                if (!buildToolWindow.isAvailable) return@invokeLater
+                buildToolWindow.show()
+                val contentManager = buildToolWindow.contentManager
+                contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
+              }
+            }
+          }
           detailsPanel.add(label)
         }
         uiState is ToolWindowModel.UIState.AllDone -> {
