@@ -25,14 +25,17 @@ import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOption
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
-fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider {
-  val gradleExecutionSettings = settings
-  val project = this.externalSystemTaskId.findProject()
-  val projectResolutionMode = gradleExecutionSettings.getRequestedSyncMode()
+fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
+  val project = this.externalSystemTaskId.findProject() ?: let {
+    thisLogger().error("Cannot find a project for $externalSystemTaskId", Throwable())
+    return null // We can't be helpful if the current project is not available.
+  }
+  val projectResolutionMode = settings.getRequestedSyncMode()
 
   val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
@@ -45,7 +48,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
-    if (project != null) LibraryFilePaths.getInstance(project).retrieveCachedLibs() else emptySet(),
+    LibraryFilePaths.getInstance(project).retrieveCachedLibs(),
     StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
   )
 

@@ -853,7 +853,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     throw new UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.");
   }
 
-  @NotNull
+  @Nullable
   @Override
   public ProjectImportModelProvider getModelProvider() {
     return configureAndGetExtraModelProvider(resolverCtx);
