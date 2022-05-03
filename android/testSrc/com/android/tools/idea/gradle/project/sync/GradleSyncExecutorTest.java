@@ -89,7 +89,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     localProperties.save();
 
     String failure = requestSyncAndGetExpectedFailure(
-      request -> new GradleSyncInvoker.Request(request.getTrigger(), request.getRunInBackground(), true));
+      request -> new GradleSyncInvoker.Request(request.getTrigger()));
     assertThat(failure).contains("Sync issues found!");
 
     Collection<IdeSyncIssue> syncIssues = SyncIssues.forModule(getModule("app"));
@@ -127,7 +127,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     });
 
     String failure = requestSyncAndGetExpectedFailure(
-      request -> new GradleSyncInvoker.Request(request.getTrigger(), request.getRunInBackground(), true));
+      request -> new GradleSyncInvoker.Request(request.getTrigger()));
     assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
   }
 

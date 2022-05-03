@@ -36,12 +36,10 @@ interface GradleSyncInvoker {
 
   data class Request @JvmOverloads constructor(
     val trigger: GradleSyncStats.Trigger,
-    val runInBackground: Boolean = true,
-    val skipPreSyncChecks: Boolean = false,
     val dontFocusSyncFailureOutput: Boolean = false,
   ) {
     val progressExecutionMode: ProgressExecutionMode
-      get() = if (runInBackground) ProgressExecutionMode.IN_BACKGROUND_ASYNC else ProgressExecutionMode.MODAL_SYNC
+      get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
 
     companion object {
       // Perform a variant-only sync if not null.

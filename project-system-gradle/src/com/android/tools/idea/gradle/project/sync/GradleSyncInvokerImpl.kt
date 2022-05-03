@@ -54,10 +54,8 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
     val application = ApplicationManager.getApplication()
     if (application.isUnitTestMode) {
       application.invokeAndWait(syncTask)
-    } else if (request.runInBackground) {
-      ApplicationManager.getApplication().invokeLater(syncTask)
     } else {
-      ApplicationManager.getApplication().invokeAndWait(syncTask)
+      ApplicationManager.getApplication().invokeLater(syncTask)
     }
   }
 
