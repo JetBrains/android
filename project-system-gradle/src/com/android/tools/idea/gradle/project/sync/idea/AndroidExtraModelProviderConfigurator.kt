@@ -24,9 +24,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
+import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
@@ -53,22 +54,19 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
   )
 
   val syncOptions = when (projectResolutionMode) {
-    ProjectResolutionMode.SyncProjectMode -> {
-      if (project?.shouldSyncAllVariants() == true) {
-        AllVariantsSyncActionOptions(studioFlags, getAdditionalArtifactsAction())
-      } else {
-        val selectedVariants = SelectedVariantCollector(project!!).collectSelectedVariants()
-        val moduleWithVariantSwitched =
-          project.getUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI)
-        project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null)
-        SingleVariantSyncActionOptions(
-          studioFlags,
-          selectedVariants,
-          moduleWithVariantSwitched,
-          getAdditionalArtifactsAction()
-        )
-      }
+    SingleVariantSyncProjectMode -> {
+      val selectedVariants = SelectedVariantCollector(project).collectSelectedVariants()
+      val moduleWithVariantSwitched =
+        project.getUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI)
+      project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null)
+      SingleVariantSyncActionOptions(
+        studioFlags,
+        selectedVariants,
+        moduleWithVariantSwitched,
+        getAdditionalArtifactsAction()
+      )
     }
+    FetchAllVariantsMode -> AllVariantsSyncActionOptions(studioFlags, getAdditionalArtifactsAction())
     is FetchNativeVariantsMode -> {
       NativeVariantsSyncActionOptions(
         studioFlags,
@@ -82,10 +80,5 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
 
 private fun GradleExecutionSettings?.getRequestedSyncMode(): ProjectResolutionMode {
   val projectResolutionMode = this?.getUserData(AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY)
-  return projectResolutionMode ?: ProjectResolutionMode.SyncProjectMode
-}
-
-private fun Project.shouldSyncAllVariants(): Boolean {
-  val shouldSyncAllVariants = getUserData(GradleSyncExecutor.ALL_VARIANTS_SYNC_KEY)
-  return shouldSyncAllVariants != null && shouldSyncAllVariants
+  return projectResolutionMode ?: SingleVariantSyncProjectMode
 }

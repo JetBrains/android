@@ -89,7 +89,6 @@ import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
-  @NotNull public static final Key<Boolean> ALL_VARIANTS_SYNC_KEY = new Key<>("android.all.variants.sync");
   @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
@@ -177,20 +176,19 @@ public class GradleSyncExecutor {
   @NotNull
   public List<GradleModuleModels> fetchGradleModels() {
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
+    if (settings == null) {
+      throw new IllegalStateException("Cannot obtain GradleExecutionSettings");
+    }
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
 
     DataNode<ProjectData> projectDataNode;
 
-    myProject.putUserData(ALL_VARIANTS_SYNC_KEY, true);
-    try {
-      GradleProjectResolver projectResolver = new GradleProjectResolver();
-      projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
-    }
-    finally {
-      myProject.putUserData(ALL_VARIANTS_SYNC_KEY, null);
-    }
+    settings.putUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY,
+                         ProjectResolutionMode.FetchAllVariantsMode.INSTANCE);
+    GradleProjectResolver projectResolver = new GradleProjectResolver();
+    projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 
 
