@@ -71,7 +71,9 @@ import java.time.Duration
  * Manages contents of the Emulator tool window. Listens to changes in [RunningEmulatorCatalog]
  * and maintains [EmulatorToolWindowPanel]s, one per running Emulator.
  */
-internal class EmulatorToolWindowManager private constructor(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
+internal class EmulatorToolWindowManager private constructor(
+  private val project: Project
+) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware {
 
   private var contentCreated = false
   private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
@@ -181,6 +183,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                        onDeploymentToEmulator(device)
                                      }
                                    })
+
+
+    messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
   }
 
   @AnyThread
@@ -256,7 +261,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       }
     }
 
-    if (StudioFlags.DEVICE_MIRRORING_ENABLED.get()) {
+    if (DeviceMirroringSettings.getInstance().deviceMirroringEnabled) {
       physicalDeviceWatcher = PhysicalDeviceWatcher()
     }
 
@@ -359,6 +364,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private fun removePhysicalDevicePanel(serialNumber: String) {
     val panel = findPanelBySerialNumber(serialNumber) ?: return
     removePanel(panel)
+  }
+
+  private fun removeAllPhysicalDevicePanels() {
+    panels.filterIsInstance<DeviceToolWindowPanel>().forEach(::removePanel)
   }
 
   private fun removePanel(panel: RunningDevicePanel) {
@@ -488,6 +497,22 @@ internal class EmulatorToolWindowManager private constructor(private val project
           removeEmulatorPanel(emulator)
         }
       }
+    }
+  }
+
+  override fun settingsChanged(settings: DeviceMirroringSettings) {
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
+    toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
+
+    if (settings.deviceMirroringEnabled) {
+      if (contentCreated && physicalDeviceWatcher == null) {
+        physicalDeviceWatcher = PhysicalDeviceWatcher()
+      }
+    }
+    else {
+      physicalDeviceWatcher?.dispose()
+      physicalDeviceWatcher = null
+      removeAllPhysicalDevicePanels()
     }
   }
 

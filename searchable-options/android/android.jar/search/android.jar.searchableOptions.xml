@@ -1275,6 +1275,8 @@
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
+    <option name="device" hit="Device Mirroring" />
+    <option name="mirroring" hit="Device Mirroring" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
     <option name="do" hit="Do not build Gradle task list during Gradle sync" />
     <option name="during" hit="Do not build Gradle task list during Gradle sync" />
@@ -1294,6 +1296,12 @@
     <option name="animation" hit="Enable animation preview" />
     <option name="enable" hit="Enable animation preview" />
     <option name="preview" hit="Enable animation preview" />
+    <option name="android" hit="Enable mirroring of physical Android devices" />
+    <option name="devices" hit="Enable mirroring of physical Android devices" />
+    <option name="enable" hit="Enable mirroring of physical Android devices" />
+    <option name="mirroring" hit="Enable mirroring of physical Android devices" />
+    <option name="of" hit="Enable mirroring of physical Android devices" />
+    <option name="physical" hit="Enable mirroring of physical Android devices" />
     <option name="enable" hit="Enable new Logcat tool window" />
     <option name="logcat" hit="Enable new Logcat tool window" />
     <option name="new" hit="Enable new Logcat tool window" />

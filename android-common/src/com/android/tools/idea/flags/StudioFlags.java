@@ -805,8 +805,8 @@ public final class StudioFlags {
 
   //region Device Mirroring
   private static final FlagGroup DEVICE_MIRRORING = new FlagGroup(FLAGS, "device.mirroring", "Device Mirroring");
-  public static final Flag<Boolean> DEVICE_MIRRORING_ENABLED = Flag.create(
-    DEVICE_MIRRORING, "enabled", "Enable Mirroring of Physical Devices",
+  public static final Flag<Boolean> DEVICE_MIRRORING_ENABLED_BY_DEFAULT = Flag.create(
+    DEVICE_MIRRORING, "enabled", "Enable Mirroring of Physical Devices by Default",
     "Mirrors displays of connected physical devices",
     false);
   public static final Flag<Boolean> DEVICE_MIRRORING_STANDALONE_EMULATORS = Flag.create(
@@ -822,7 +822,7 @@ public final class StudioFlags {
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\"",
     "debug");
   public static final Flag<String> DEVICE_MIRRORING_VIDEO_CODEC = Flag.create(
-    DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring Physical Devices",
+    DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring of Physical Devices",
     "The name of a video codec, e.g. \"vp8\" or \"vp9\"",
     "vp8");
   //endregion

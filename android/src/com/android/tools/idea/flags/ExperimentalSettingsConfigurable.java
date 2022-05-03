@@ -20,6 +20,7 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
+import com.android.tools.idea.emulator.DeviceMirroringSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.logcat.LogcatExperimentalSettings;
@@ -71,6 +72,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableNewLogcatToolCheckBox;
   private BrowserLink myLogcatLearnMoreBrowserLink;
 
+  private JCheckBox myEnableDeviceMirroringCheckBox;
   private Runnable myRestartCallback;
 
   @SuppressWarnings("unused") // called by IDE
@@ -137,7 +139,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            myAnimationPreviewCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            myFastPreviewEnabledCheckbox.isSelected() != ComposeExperimentalConfiguration.getInstance().isFastPreviewEnabled() ||
-           myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled();
+           myEnableNewLogcatToolCheckBox.isSelected() != LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() ||
+           myEnableDeviceMirroringCheckBox.isSelected() != DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled();
   }
 
   private int getQualitySetting() {
@@ -155,6 +158,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     ComposeExperimentalConfiguration.getInstance().setAnimationPreviewEnabled(myAnimationPreviewCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setFastPreviewEnabled(myFastPreviewEnabledCheckbox.isSelected());
+    DeviceMirroringSettings.getInstance().setDeviceMirroringEnabled(myEnableDeviceMirroringCheckBox.isSelected());
 
     LogcatExperimentalSettings logcatSettings = LogcatExperimentalSettings.getInstance();
     if (myEnableNewLogcatToolCheckBox.isSelected() != logcatSettings.getLogcatV2Enabled()) {
@@ -318,6 +322,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     myFastPreviewEnabledCheckbox.setSelected(ComposeExperimentalConfiguration.getInstance().isFastPreviewEnabled());
     myEnableNewLogcatToolCheckBox.setSelected(LogcatExperimentalSettings.getInstance().getLogcatV2Enabled());
+    myEnableDeviceMirroringCheckBox.setSelected(DeviceMirroringSettings.getInstance().getDeviceMirroringEnabled());
   }
 
   private void createUIComponents() {
