@@ -21,4 +21,6 @@ public abstract class Key {
   public abstract @NotNull ConnectionType getConnectionType();
 
   public abstract @NotNull SerialNumber getSerialNumber();
+
+  public abstract boolean isPersistent();
 }

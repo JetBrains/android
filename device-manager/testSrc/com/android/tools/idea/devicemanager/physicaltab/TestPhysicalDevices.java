@@ -22,6 +22,14 @@ import com.android.tools.idea.devicemanager.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestPhysicalDevices {
+  static final @NotNull PhysicalDevice ONLINE_COMPAL_FALSTER = new PhysicalDevice.Builder()
+    .setKey(Ipv4Address.parse("192.168.1.123:5555").orElseThrow())
+    .setName("Compal Falster")
+    .setTarget("Android 11.0")
+    .setAndroidVersion(new AndroidVersion(30))
+    .addConnectionType(ConnectionType.WI_FI)
+    .build();
+
   static final Key GOOGLE_PIXEL_3_KEY = new SerialNumber("86UX00F4R");
 
   public static final @NotNull PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()

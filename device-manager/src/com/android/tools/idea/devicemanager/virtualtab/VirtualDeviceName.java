@@ -39,6 +39,11 @@ public final class VirtualDeviceName extends Key {
   }
 
   @Override
+  public boolean isPersistent() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public int hashCode() {
     return myValue.hashCode();
   }

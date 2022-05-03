@@ -49,6 +49,11 @@ final class DomainName extends Key {
   }
 
   @Override
+  public boolean isPersistent() {
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     return myValue.hashCode();
   }

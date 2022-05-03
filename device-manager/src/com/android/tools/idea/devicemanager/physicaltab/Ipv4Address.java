@@ -51,6 +51,11 @@ final class Ipv4Address extends Key {
   }
 
   @Override
+  public boolean isPersistent() {
+    return false;
+  }
+
+  @Override
   public int hashCode() {
     return myValue.hashCode();
   }

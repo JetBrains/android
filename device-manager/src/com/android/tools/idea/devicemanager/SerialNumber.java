@@ -36,6 +36,11 @@ public final class SerialNumber extends Key {
   }
 
   @Override
+  public boolean isPersistent() {
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     return myValue.hashCode();
   }
