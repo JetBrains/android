@@ -30,7 +30,6 @@ import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.OutputStream
@@ -95,9 +94,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
           notifyProcessTerminated(0)
         }
       }
-    }).apply {
-    Disposer.register(project) { close() }
-  }
+    })
 
   override fun notifyTextAvailable(text: String, outputType: Key<*>) {
     ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->

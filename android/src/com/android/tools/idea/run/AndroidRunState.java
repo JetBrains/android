@@ -43,7 +43,6 @@ import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 public class AndroidRunState implements RunProfileState {
   @NotNull private final ExecutionEnvironment myEnv;
   @NotNull private final String myLaunchConfigName;

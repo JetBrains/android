@@ -30,6 +30,7 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.util.Key
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,18 +64,23 @@ class AndroidProcessHandlerTest {
 
   @Mock
   lateinit var mockExecutionTargetManager: ExecutionTargetManager
+
   @Mock
   lateinit var mockExecutionTarget: AndroidExecutionTarget
+
   @Mock
   lateinit var mockDeploymentAppService: DeploymentApplicationService
+
   @Mock
   lateinit var mockMonitorManager: AndroidProcessMonitorManager
+
   @Mock
   lateinit var mockProcessListener: ProcessListener
+
   @Mock
   lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
-  var captureLogcat: Boolean = true
-  var autoTerminate: Boolean = true
+  private var captureLogcat: Boolean = true
+  private var autoTerminate: Boolean = true
 
   val handler: AndroidProcessHandler by lazy {
     AndroidProcessHandler(
@@ -94,14 +100,14 @@ class AndroidProcessHandlerTest {
       startNotify()
     }
   }
-  lateinit var textEmitter: TextEmitter
-  lateinit var monitorManagerListener: AndroidProcessMonitorManagerListener
+  private lateinit var textEmitter: TextEmitter
+  private lateinit var monitorManagerListener: AndroidProcessMonitorManagerListener
 
   @Before
   fun setUp() {
     initMocks(this)
 
-    project.replaceService(ExecutionTargetManager::class.java, mockExecutionTargetManager, project)
+    project.replaceService(ExecutionTargetManager::class.java, mockExecutionTargetManager, projectRule.project.earlyDisposable)
 
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
     `when`(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
@@ -111,6 +117,11 @@ class AndroidProcessHandlerTest {
       textAcceptor as AnsiEscapeDecoder.ColoredTextAcceptor
       textAcceptor.coloredTextAvailable(text, attributes)
     }
+  }
+
+  @After
+  fun tearDown() {
+    handler.destroyProcess()
   }
 
   @Test
@@ -129,7 +140,7 @@ class AndroidProcessHandlerTest {
     val mockDevice = createMockDevice(28)
     handler.addTargetDevice(mockDevice)
     assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(28))
-    verify(mockMonitorManager).add(eq(mockDevice) ?: mockDevice)
+    verify(mockMonitorManager).add(eq(mockDevice))
 
     monitorManagerListener.onAllTargetProcessesTerminated()
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
@@ -251,7 +262,7 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
-  fun ProcessHandlerShouldAutoTerminateWhenAutoTerminateIsEnabled() {
+  fun processHandlerShouldAutoTerminateWhenAutoTerminateIsEnabled() {
     autoTerminate = true
 
     handler.addTargetDevice(createMockDevice(28))
@@ -268,7 +279,7 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
-  fun ProcessHandlerShouldNotAutoTerminateWhenAutoTerminateIsOff() {
+  fun processHandlerShouldNotAutoTerminateWhenAutoTerminateIsOff() {
     autoTerminate = false
 
     handler.addTargetDevice(createMockDevice(28))
@@ -280,7 +291,7 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
-  fun ProcessHandlerShouldBeDetachedAfterAllTargetDeviceIsDetached() {
+  fun processHandlerShouldBeDetachedAfterAllTargetDeviceIsDetached() {
     val targetDevice = createMockDevice(28)
 
     handler.addTargetDevice(targetDevice)

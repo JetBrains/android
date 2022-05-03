@@ -73,10 +73,9 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
   public AndroidRemoteDebugProcessHandler(Project project, Client client, boolean detachIsDefault) {
     this(project, client, detachIsDefault, (device) -> {
       String processName = client.getClientData().getClientDescription();
-      if (processName == null) {
-        return Unit.INSTANCE;
+      if (processName != null) {
+        device.forceStop(processName);
       }
-      device.forceStop(processName);
       return Unit.INSTANCE;
     });
   }
