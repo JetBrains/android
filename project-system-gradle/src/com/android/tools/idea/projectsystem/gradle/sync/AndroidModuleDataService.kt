@@ -40,7 +40,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
-import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.Companion.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
@@ -201,7 +201,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (trigger != null) {
       project.putUserData(PROJECT_SYNC_REQUEST, null)
       if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
-        AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
+        AndroidPluginInfo.findFromModel(project)?.let { info ->
+          project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+        }
       }
     }
 

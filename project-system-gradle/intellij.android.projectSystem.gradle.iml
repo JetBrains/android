@@ -17,7 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />

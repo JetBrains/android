@@ -270,16 +270,6 @@ fun performForcedPluginUpgrade(
   }
 }
 
-fun displayForceUpdatesDisabledMessage(project: Project) {
-  // Show a warning as a reminder that errors seen may be due to this option.
-  val msg = "Forced upgrades are disabled, errors seen may be due to incompatibilities between " +
-            "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
-            "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
-            "'${DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
-  val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
-  notification.notify(project)
-}
-
 data class GradlePluginUpgradeState(
   val importance: Importance,
   val target: GradleVersion,
@@ -379,16 +369,6 @@ fun computeGradlePluginUpgradeState(
   else {
     // Current is a snapshot.
     throw IllegalStateException("Unreachable: handled by computeForcePluginUpgradeReason")
-  }
-}
-
-fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
-  this.pluginVersion?.let { currentAgpVersion ->
-    val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    executeOnPooledThread {
-      val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-      if (shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)) recommendPluginUpgrade(project)
-    }
   }
 }
 

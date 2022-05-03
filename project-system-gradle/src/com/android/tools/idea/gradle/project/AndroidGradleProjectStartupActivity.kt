@@ -34,8 +34,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
-import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
+import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -44,6 +44,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -272,7 +273,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     fun GradleAndroidModel.validate() =
       shouldDisableForceUpgrades() ||
         GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
-          !versionsAreIncompatible(agpVersion, latestKnown)
+          !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
         }
 
     /** Returns `null` if validation fails. */
@@ -337,7 +338,9 @@ private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T
     ?.data
 
 private fun additionalProjectSetup(project: Project) {
-  AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
+  AndroidPluginInfo.findFromModel(project)?.let { info ->
+    project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+  }
   ConflictSet.findConflicts(project).showSelectionConflicts()
   ProjectStructure.getInstance(project).analyzeProjectStructure()
 }

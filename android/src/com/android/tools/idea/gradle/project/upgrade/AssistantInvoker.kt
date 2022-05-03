@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
@@ -26,4 +28,20 @@ interface AssistantInvoker {
    */
   @Slow
   fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
+
+  /**
+   * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to recommend
+   * that they use the Upgrade Assistant to update their build files.
+   */
+  fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo)
+
+  /**
+   * Expires all notifications related to Android Gradle plugin upgrade recommendations.
+   */
+  fun expireProjectUpgradeNotifications(project: Project)
+
+  /**
+   * Displays a message to alert the user if they have disabled forced upgrades
+   */
+  fun displayForceUpdatesDisabledMessage(project: Project)
 }

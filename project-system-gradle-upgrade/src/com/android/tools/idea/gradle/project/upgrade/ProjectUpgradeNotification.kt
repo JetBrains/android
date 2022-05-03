@@ -32,10 +32,3 @@ class ProjectUpgradeNotification(title: String, content: String, listener: Notif
   }
 }
 
-fun expireProjectUpgradeNotifications(project: Project?) {
-  NotificationsManager
-    .getNotificationsManager()
-    .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
-    .forEach { it.expire() }
-}
-

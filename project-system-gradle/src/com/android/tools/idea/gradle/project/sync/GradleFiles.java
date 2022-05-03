@@ -19,13 +19,13 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.upgrade.ProjectUpgradeNotificationKt.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.google.common.annotations.VisibleForTesting;
@@ -571,7 +571,7 @@ public class GradleFiles {
       if (foundChange) {
         myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
         EditorNotifications.getInstance(psiFile.getProject()).updateNotifications(psiFile.getVirtualFile());
-        expireProjectUpgradeNotifications(myGradleFiles.myProject);
+        myGradleFiles.myProject.getService(AssistantInvoker.class).expireProjectUpgradeNotifications(myGradleFiles.myProject);
       }
     }
   }

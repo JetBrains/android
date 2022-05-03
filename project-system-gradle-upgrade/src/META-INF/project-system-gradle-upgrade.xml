@@ -1,4 +1,5 @@
 <idea-plugin>
+  <depends>com.intellij.gradle</depends>
   <actions>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
             text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
@@ -7,6 +8,8 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker"
+                        serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AgpVersionCheckerImpl"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.AssistantInvoker"
                     serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvokerImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator"/>
@@ -17,5 +20,12 @@
     <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.upgrade.ComponentGroupingRuleProvider"/>
     <usageTypeProvider implementation="com.android.tools.idea.gradle.project.upgrade.AgpComponentUsageTypeProvider"
                        order="first, before org.jetbrains.android.refactoring.GradleUsageTypeProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.AgpVersionNotSupportedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker"
+                  order="first, before UnsupportedGradleVersionIssueChecker"
+    />
   </extensions>
 </idea-plugin>

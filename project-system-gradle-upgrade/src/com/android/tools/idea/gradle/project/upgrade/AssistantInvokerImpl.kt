@@ -17,13 +17,18 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.util.firstNotNullResult
 
@@ -51,5 +56,31 @@ class AssistantInvokerImpl : AssistantInvoker {
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }
+  }
+
+  override fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
+    info.pluginVersion?.let { currentAgpVersion ->
+      val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      executeOnPooledThread {
+        val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+        if (shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)) recommendPluginUpgrade(project)
+      }
+    }
+  }
+
+  override fun expireProjectUpgradeNotifications(project: Project) {
+    NotificationsManager
+      .getNotificationsManager()
+      .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
+      .forEach { it.expire() }
+  }
+
+  override fun displayForceUpdatesDisabledMessage(project: Project) {
+    val msg = "Forced upgrades are disabled, errors seen may be due to incompatibilities between " +
+              "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
+              "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
+              "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
+    val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
+    notification.notify(project)
   }
 }

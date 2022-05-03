@@ -32,8 +32,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
-import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.displayForceUpdatesDisabledMessage;
-import static com.android.tools.idea.gradle.project.upgrade.ProjectUpgradeNotificationKt.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
@@ -87,6 +85,7 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
@@ -880,7 +879,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     validateGradleWrapper(projectPath);
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
-    expireProjectUpgradeNotifications(project);
+    if (project != null) {
+      project.getService(AssistantInvoker.class).expireProjectUpgradeNotifications(project);
+    }
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
@@ -984,7 +985,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (DISABLE_FORCED_UPGRADES.get()) {
       Project project = getProject();
       if (project != null) {
-        displayForceUpdatesDisabledMessage(project);
+        project.getService(AssistantInvoker.class).displayForceUpdatesDisabledMessage(project);
       }
     }
   }
