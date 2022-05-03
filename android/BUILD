@@ -123,6 +123,7 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
+        "//tools/base/threading-agent:studio.android.sdktools.threading-agent[module]",
     ],
 )
 

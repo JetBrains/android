@@ -61,6 +61,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" filepath="$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" filepath="$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" filepath="$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/tracer/android.sdktools.tracer.iml" filepath="$PROJECT_DIR$/../../base/tracer/android.sdktools.tracer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/zipflinger/android.sdktools.zipflinger.iml" filepath="$PROJECT_DIR$/../../base/zipflinger/android.sdktools.zipflinger.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/api/app-inspection.api.iml" filepath="$PROJECT_DIR$/app-inspection/api/app-inspection.api.iml" />
