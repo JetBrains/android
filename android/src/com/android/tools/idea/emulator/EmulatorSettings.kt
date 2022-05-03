@@ -76,7 +76,7 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   private fun notifyListeners() {
     // Notify listeners if this is the main EmulatorSettings instance, and it has been already initialized.
     if (initialized && this == getInstance()) {
-      ApplicationManager.getApplication().messageBus.syncPublisher(EmulatorSettingsListener.TOPIC).emulatorSettingsChanged(this)
+      ApplicationManager.getApplication().messageBus.syncPublisher(EmulatorSettingsListener.TOPIC).settingsChanged(this)
     }
   }
 

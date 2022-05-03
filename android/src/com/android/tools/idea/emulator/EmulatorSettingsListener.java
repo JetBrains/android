@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.emulator;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.util.messages.Topic;
 import java.util.EventListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Listener of Emulator settings changes.
@@ -24,5 +26,6 @@ import java.util.EventListener;
 interface EmulatorSettingsListener extends EventListener {
   Topic<EmulatorSettingsListener> TOPIC = Topic.create("Emulator settings", EmulatorSettingsListener.class);
 
-  void emulatorSettingsChanged(EmulatorSettings emulatorSettings);
+  @UiThread
+  void settingsChanged(@NotNull EmulatorSettings settings);
 }
