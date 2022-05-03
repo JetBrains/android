@@ -120,6 +120,7 @@ abstract class AbstractInspectorClient(
       }
 
       override fun onFailure(t: Throwable) {
+        launchMonitor.onFailure()
         disconnect()
         Logger.getInstance(AbstractInspectorClient::class.java).warn(
           "Connection failure with " +

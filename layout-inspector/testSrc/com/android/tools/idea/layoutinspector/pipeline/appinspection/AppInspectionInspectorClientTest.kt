@@ -32,6 +32,7 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
@@ -45,6 +46,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -69,7 +71,9 @@ import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -83,7 +87,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
 import java.nio.file.Path
@@ -138,21 +142,21 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     val inOrder = inOrder(monitor)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE)
-    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ADB_PING)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ATTACH_SUCCESS)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.START_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.START_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ROOTS_EVENT_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.ROOTS_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.VIEW_INVALIDATION_CALLBACK)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.SCREENSHOT_CAPTURED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.VIEW_HIERARCHY_CAPTURED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.RESPONSE_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.PARSED_COMPONENT_TREE)
+    inOrder.verify(monitor).updateProgress(AttachErrorState.MODEL_UPDATED)
   }
 
   @Test
@@ -959,10 +963,18 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 }
 
 class AppInspectionInspectorClientWithFailingClientTest {
+  private val usageTrackerRule = MetricsTrackerRule()
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private val monitor = spy(InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())).also {
-    `when`(it.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)).thenThrow(RuntimeException("expected"))
+    doAnswer { invocation ->
+      val state = invocation.arguments[0] as AttachErrorState
+      if (state == throwOnState) {
+        error("expected")
+      }
+      null
+    }.`when`(it).updateProgress(any(AttachErrorState::class.java))
   }
 
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) {
@@ -970,15 +982,44 @@ class AppInspectionInspectorClientWithFailingClientTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
 
   @Test
   fun errorShownOnNoAgentWithApi29() {
+    throwOnState = AttachErrorState.START_REQUEST_SENT
     val banner = InspectorBanner(inspectorRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(4)
+    assertThat(usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type }).containsExactly(
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.ATTACH_SUCCESS,
+      DynamicLayoutInspectorEventType.ATTACH_ERROR,
+      DynamicLayoutInspectorEventType.SESSION_DATA
+    ).inOrder()
+  }
+
+  @Test
+  fun errorLoggedOnException() {
+    throwOnState = AttachErrorState.ATTACH_SUCCESS
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+    assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+    val usages = usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+    assertThat(usages).hasSize(3)
+    assertThat(usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type }).containsExactly(
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.ATTACH_ERROR,
+      DynamicLayoutInspectorEventType.SESSION_DATA
+    ).inOrder()
   }
 }

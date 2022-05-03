@@ -38,6 +38,7 @@ import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.DisposableRule
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -112,8 +113,8 @@ class AppInspectionInspectorMetricsTest {
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    waitForCondition(10, TimeUnit.SECONDS) { usages.size == 3 }
-    assertThat(usages).hasSize(3)
+    waitForCondition(10, TimeUnit.SECONDS) { usages.size == 4 }
+    assertThat(usages).hasSize(4)
 
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
@@ -138,6 +139,11 @@ class AppInspectionInspectorMetricsTest {
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
     }
     usages[2].studioEvent.let { studioEvent ->
+      val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
+      assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
+      assertThat(inspectorEvent.errorInfo.attachErrorState).isEqualTo(AttachErrorState.START_REQUEST_SENT)
+    }
+    usages[3].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
     }

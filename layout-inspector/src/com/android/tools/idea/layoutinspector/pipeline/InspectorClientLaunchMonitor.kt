@@ -60,14 +60,23 @@ class InspectorClientLaunchMonitor(
           client?.let { client ->
             Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
               "Client $client timed out during attach at step $currentProgress")
-            LayoutInspectorMetrics(null, client.process, null, null).logEvent(
-              DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress)
+            logAttachError()
             client.disconnect()
           }
         },
         CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
       )
     }
+  }
+
+  fun onFailure() {
+    logAttachError()
+    stop()
+  }
+
+  private fun logAttachError() {
+    LayoutInspectorMetrics(null, client?.process, null, null).logEvent(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress)
   }
 
   fun stop() {
