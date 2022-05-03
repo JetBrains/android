@@ -613,9 +613,9 @@ class ContentManagerImpl(val project: Project): ContentManager {
       isEnabled = !this@View.model.uiState.get().showLoadingState
       myListeners.listen(this@View.model.uiState) { uiState ->
         isEnabled = !uiState.showLoadingState
+        treePanel.isVisible = uiState.showTree
         if (!uiState.showTree) {
           selectionModel.clearSelection()
-          treePanel.isVisible = false
           refreshDetailsPanel()
         }
       }
