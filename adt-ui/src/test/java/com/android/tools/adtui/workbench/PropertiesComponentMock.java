@@ -122,11 +122,12 @@ public class PropertiesComponentMock extends PropertiesComponent {
   @Nullable
   @Override
   public List<String> getList(@NotNull String name) {
-    return List.of(getValues(name));
+    String[] values = getValues(name);
+    return values != null ? List.of(values) : null;
   }
 
   @Override
   public void setList(@NotNull String name, @Nullable Collection<String> values) {
-    setValues(name, values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY));
+    setValues(name, values != null ? values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY) : null);
   }
 }
