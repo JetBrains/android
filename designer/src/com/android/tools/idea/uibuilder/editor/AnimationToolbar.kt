@@ -355,6 +355,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         val newPositionMs = ((myMaxTimeMs - myMinTimeMs) * (sliderValue / 100f)).toLong()
         myStopButton.isEnabled = sliderValue != 0
         seek(newPositionMs)
+        myTimeSlider!!.repaint()
       }
       myTimeSlider = object : JSlider(0, 100, 0) {
         override fun updateUI() {
