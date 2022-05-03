@@ -18,7 +18,6 @@
 
 #include <android/input.h>
 
-#include "common.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -33,17 +32,15 @@ enum class InputEventInjectionSync : int32_t {
 // Provides access to the android.hardware.input.IInputManager.injectInputEvent method.
 class InputManager {
 public:
-  InputManager(Jni jni);
-  ~InputManager();
-
-  void InjectInputEvent(const JObject& input_event, InputEventInjectionSync mode);
+  static void InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode);
 
 private:
-  Jni jni_;
+  InputManager(Jni jni);
+  ~InputManager();
+  static InputManager& GetInstance(Jni jni);
+
   JObject input_manager_;
   jmethodID inject_input_event_method_;
-
-  DISALLOW_COPY_AND_ASSIGN(InputManager);
 };
 
 }  // namespace screensharing

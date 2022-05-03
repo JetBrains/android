@@ -23,8 +23,7 @@
 namespace screensharing {
 
 InputManager::InputManager(Jni jni)
-    : jni_(jni),
-      input_manager_(ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager")) {
+    : input_manager_(ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager")) {
   JClass input_manager_class = input_manager_.GetClass();
   inject_input_event_method_ = input_manager_class.GetMethodId("injectInputEvent", "(Landroid/view/InputEvent;I)Z");
   input_manager_.MakeGlobal();
@@ -32,11 +31,17 @@ InputManager::InputManager(Jni jni)
 
 InputManager::~InputManager() = default;
 
-void InputManager::InjectInputEvent(const JObject& input_event, InputEventInjectionSync mode) {
+InputManager& InputManager::GetInstance(Jni jni) {
+  static InputManager instance(jni);
+  return instance;
+}
+
+void InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
   if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("input_event : %s", input_event.ToString().c_str());
   }
-  if (!input_manager_.CallBooleanMethod(jni_, inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
+  InputManager& instance = GetInstance(jni);
+  if (!instance.input_manager_.CallBooleanMethod(jni, instance.inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
     Log::E("Unable to inject an input event %s", input_event.ToString().c_str());
   }
 }

@@ -20,6 +20,7 @@
 
 #include <thread>
 
+#include <accessors/input_manager.h>
 #include "accessors/motion_event.h"
 #include "accessors/key_event.h"
 #include "accessors/window_manager.h"
@@ -85,7 +86,6 @@ Controller::Controller(int socket_fd)
       input_stream_(socket_fd, BUFFER_SIZE),
       output_stream_(socket_fd, BUFFER_SIZE),
       thread_(),
-      input_manager_(),
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
@@ -104,7 +104,6 @@ Controller::~Controller() {
   if (thread_.joinable()) {
     thread_.join();
   }
-  delete input_manager_;
   delete pointer_helper_;
   delete key_character_map_;
   close(socket_fd_);
@@ -128,7 +127,6 @@ void Controller::Shutdown() {
 }
 
 void Controller::Initialize() {
-  input_manager_ = new InputManager(jni_);
   pointer_helper_ = new PointerHelper(jni_);
   pointer_properties_ = pointer_helper_->NewPointerPropertiesArray(MotionEventMessage::MAX_POINTERS);
   pointer_coordinates_ = pointer_helper_->NewPointerCoordsArray(MotionEventMessage::MAX_POINTERS);
@@ -242,7 +240,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   // They have to be converted to a sequence of pointer-specific events.
   if (action == AMOTION_EVENT_ACTION_DOWN) {
     for (int i = 1; event.pointer_count = i, i < message.get_pointers().size(); i++) {
-      input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+      InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
       event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
     }
   }
@@ -250,13 +248,13 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     for (int i = event.pointer_count; --i > 1;) {
       event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
       pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
-      input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+      InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
       event.pointer_count = i;
     }
     event.action = AMOTION_EVENT_ACTION_UP;
   }
   Agent::RecordTouchEvent();
-  input_manager_->InjectInputEvent(event.ToJava(), InputEventInjectionSync::NONE);
+  InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
@@ -275,11 +273,11 @@ void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
   event.meta_state = message.get_meta_state();
   event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
   JObject key_event = event.ToJava();
-  input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+  InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
   if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
     event.action = AKEY_EVENT_ACTION_UP;
     key_event = event.ToJava();
-    input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+    InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
   }
 }
 
@@ -294,7 +292,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
     auto len = event_array.GetLength();
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
-      input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+      InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
     }
   }
 }
