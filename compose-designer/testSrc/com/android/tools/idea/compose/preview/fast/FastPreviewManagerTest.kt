@@ -72,9 +72,6 @@ internal class FastPreviewManagerTest {
   @get:Rule
   val fastPreviewFlagRule = FastPreviewRule()
 
-  @get:Rule
-  val restoreLiteralsFlagRule = RestoreFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS)
-
   @Test
   fun `pre-start daemon`() {
     val createdVersions = mutableListOf<String>()
@@ -245,7 +242,7 @@ internal class FastPreviewManagerTest {
     // Check, disabling Live Literals disables the compiler flag.
     run {
       compilationRequests.clear()
-      StudioFlags.COMPOSE_LIVE_LITERALS.override(false)
+      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.DISABLED
       try {
         val file2 = projectRule.fixture.addFileToProject("testB.kt", """
           fun emptyB() {}
@@ -260,7 +257,7 @@ internal class FastPreviewManagerTest {
       """.trimIndent(), requestParameters)
       }
       finally {
-        StudioFlags.COMPOSE_LIVE_LITERALS.clearOverride()
+        LiveEditApplicationConfiguration.getInstance().resetDefault()
       }
     }
 

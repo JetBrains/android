@@ -1128,13 +1128,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
-    COMPOSE, "preview.live.literals",
-    "Enable the live literals",
-    "If enabled, the live literals feature is enabled",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",

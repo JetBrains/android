@@ -33,8 +33,6 @@ internal class LiveLiteralsServiceTest {
 
   @get:Rule
   val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
-  @get:Rule
-  val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
 
   private val project: Project
     get() = projectRule.project

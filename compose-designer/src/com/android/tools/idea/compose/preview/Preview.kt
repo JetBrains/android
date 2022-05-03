@@ -56,6 +56,7 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -753,7 +754,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       // Flow handling live literals updates.
-      if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) {
+      if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals) {
         launch(workerThread) {
           disposableCallbackFlow<Unit>("LiveLiteralsFlow", LOG, this@ComposePreviewRepresentation) {
             if (hasLiveLiterals) {

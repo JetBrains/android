@@ -66,9 +66,6 @@ class LiveLiteralsAndFastPreviewIntegrationTest {
   @get:Rule
   val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
-  @get:Rule
-  val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
-
   lateinit var psiMainFile: PsiFile
   lateinit var fastPreviewManager: FastPreviewManager
 

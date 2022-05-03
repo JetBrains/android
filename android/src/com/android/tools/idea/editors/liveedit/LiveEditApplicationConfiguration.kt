@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.liveedit
 
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.flags.StudioFlags
@@ -38,7 +37,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   class State : BaseState() {
-    var mode by enum(if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) LIVE_LITERALS else DISABLED)
+    var mode by enum(LIVE_LITERALS)
     var liveEditDeviceEnabled by property(true)
     var liveEditPreviewEnabled by property(StudioFlags.COMPOSE_FAST_PREVIEW.get())
   }
@@ -95,7 +94,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
 
   @TestOnly
   fun resetDefault() {
-    state.mode = if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) LIVE_LITERALS else LIVE_EDIT
+    state.mode = LIVE_LITERALS
     state.liveEditDeviceEnabled = true
     state.liveEditPreviewEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
   }

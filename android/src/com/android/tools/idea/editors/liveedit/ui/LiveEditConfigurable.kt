@@ -41,15 +41,13 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
 
     return panel {
       buttonGroup {
-        if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) {
-          row {
-            radioButton(
-              message("live.literals.configurable.select.live.literals"),
-              { config.mode == LIVE_LITERALS },
-              { enabled -> if (enabled) config.mode = LIVE_LITERALS },
-              message("live.literals.configurable.select.live.literals.comment")
-            )
-          }
+        row {
+          radioButton(
+            message("live.literals.configurable.select.live.literals"),
+            { config.mode == LIVE_LITERALS },
+            { enabled -> if (enabled) config.mode = LIVE_LITERALS },
+            message("live.literals.configurable.select.live.literals.comment")
+          )
         }
 
         row {
