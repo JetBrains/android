@@ -18,7 +18,6 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
@@ -123,7 +122,6 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
       delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
   }
 
-  @JvmOverloads
   fun requestSyncAndWait() {
     delegateTestCase.requestSyncAndWait()
   }

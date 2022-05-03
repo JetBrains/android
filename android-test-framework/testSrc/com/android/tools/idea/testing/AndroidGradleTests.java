@@ -574,6 +574,14 @@ public class AndroidGradleTests {
     }
   }
 
+
+  /**
+   * Imports {@code project}, syncs the project and checks the result.
+   */
+  public static void importProject(@NotNull Project project) throws Exception {
+    importProject(project, GradleSyncInvoker.Request.testRequest());
+  }
+
   /**
    * Imports {@code project}, syncs the project and checks the result.
    */

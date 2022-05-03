@@ -16,10 +16,8 @@
 package com.android.tools.idea.lint
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -31,7 +29,6 @@ import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 class AndroidLintCustomCheckTest {
 
@@ -62,8 +59,7 @@ class AndroidLintCustomCheckTest {
         FileDocumentManager.getInstance().saveDocument(doc)
       }
 
-      val request = GradleSyncInvoker.Request.testRequest()
-      myProjectRule.requestSyncAndWait(request)
+      myProjectRule.requestSyncAndWait()
       GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).getModules())
     }
   }
