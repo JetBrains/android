@@ -77,7 +77,7 @@ void Log::Fatal(const char* message, ...) {
   __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
   va_end(args);
   va_start(args, message);
-  fprintf(stderr, message, args);
+  vfprintf(stderr, message, args);
   va_end(args);
   exit(1);
 }
