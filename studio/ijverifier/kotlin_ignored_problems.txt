@@ -21,31 +21,6 @@ Package 'android\.view' is not found
 // Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
 Package 'android\.os' is not found
 
-// Referenced by org.jetbrains.kotlin.idea.vcs.BunchFileCheckInHandlerFactory (unused in Studio)
-Illegal invocation of private method kotlin\.io\.path\.PathsKt__PathUtilsKt\.getPathString.*
-
-// TODO(b/215709150): misc issues with Kotlin 213. Most of these are false
-// positives caused by the fact that Kotlin 213 is missing several dependencies in its plugin.xml file.
-Access to unresolved class com\.intellij\.execution\.junit\..*
-Access to unresolved class com\.intellij\.coverage\..*
+// We do not bundle the Grazie plugin.
 Access to unresolved class com\.intellij\.grazie\..*
-Access to unresolved class icons\.GradleIcons
-Abstract method org\.jetbrains\.kotlin\.load\.kotlin\.KotlinJvmBinaryClass\.getContainingLibrary.* not implemented
-Access to unresolved class com\.intellij\.lang\.properties\.ResourceBundleReference
-Package 'android\.view' is not found
-Package 'com\.intellij\.codeInspection\.i18n' is not found
-Package 'com\.intellij\.completion\.ml' is not found
-Package 'com\.intellij\.debugger\.streams' is not found
 Package 'com\.intellij\.grazie\.text' is not found
-Package 'com\.intellij\.java\.i18n' is not found
-Package 'com\.intellij\.lang\.properties\.psi' is not found
-Package 'com\.intellij\.lang\.properties\.references' is not found
-Package 'com\.jcabi' is not found
-Package 'com\.theoryinpractice' is not found
-Package 'git4idea' is not found
-Package 'org\.gradle' is not found
-Package 'org\.intellij\.plugins\.intelliLang' is not found
-Package 'org\.jetbrains\.java\.decompiler' is not found
-Package 'org\.jetbrains\.plugins' is not found
-Package 'org\.jline' is not found
-Package 'org\.sonatype\.aether' is not found
