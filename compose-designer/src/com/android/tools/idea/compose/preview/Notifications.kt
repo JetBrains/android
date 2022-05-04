@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
-import com.android.tools.idea.editors.shortcuts.asString
-import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
@@ -36,31 +30,11 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.serviceContainer.NonInjectable
-import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.LightColors
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import java.awt.Color
 import java.util.concurrent.TimeUnit
-
-private fun createBuildNotificationPanel(project: Project,
-                                         file: VirtualFile,
-                                         text: String,
-                                         buildActionLabel: String = "${message(
-                                           "notification.action.build")}${getBuildAndRefreshShortcut().asString()}",
-                                         color: Color? = null): EditorNotificationPanel? {
-  val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-  return EditorNotificationPanel(color).apply {
-    setText(text)
-    isFocusable = false
-
-    createActionLabel(buildActionLabel) {
-      project.requestBuild(file)
-    }
-  }
-}
 
 /**
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
