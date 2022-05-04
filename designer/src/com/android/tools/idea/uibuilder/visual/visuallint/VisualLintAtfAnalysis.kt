@@ -45,7 +45,7 @@ class VisualLintAtfAnalysis(
     Disposer.register(model, this)
 
     // Enable retrieving text character locations from TextView to improve the
-    // accuracy of TextContrastCheck in ATF
+    // accuracy of TextContrastCheck in ATF.
     LayoutValidator.setObtainCharacterLocations(true)
   }
 
