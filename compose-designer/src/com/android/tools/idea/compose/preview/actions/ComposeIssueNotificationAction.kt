@@ -28,6 +28,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
 import com.intellij.notification.EventLog
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
@@ -331,6 +332,10 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
             actionLink(message("fast.preview.disabled.notification.show.details.action.title"), ShowEventLogAction(), e.dataContext)
           else null
         )).also { newPopup ->
+        // Register the data provider of the popup to be the same as the one used in the toolbar. This allows for actions within the
+        // popup to query for things like the Editor even when the Editor is not directly related to the popup.
+        DataManager.registerDataProvider(newPopup.component()) { dataId -> e.dataContext.getData(dataId) }
+
         Disposer.register(this, newPopup)
         newPopup.showPopup(e.inputEvent)
       }
