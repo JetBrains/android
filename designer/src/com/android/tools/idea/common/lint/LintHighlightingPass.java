@@ -30,17 +30,23 @@ import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.UIUtil;
 import java.lang.ref.WeakReference;
 import kotlin.Pair;
+import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LintHighlightingPass implements HighlightingPass {
   private final WeakReference<DesignSurface> mySurfaceRef;
-  private LintAnnotationsModel myLintAnnotationsModel;
+
+  private final Object myRunningTaskLock = new Object();
+  @GuardedBy("myRunningTaskLock")
+  private Runnable myRunningTask;
 
   /**
    * @param surface the surface to add the lint annotations to. This class will keep a {@link WeakReference} to the
@@ -52,44 +58,50 @@ public class LintHighlightingPass implements HighlightingPass {
 
   @Override
   public void collectInformation(@NotNull ProgressIndicator progress) {
-    myLintAnnotationsModel = null;
-    DesignSurface surface = mySurfaceRef.get();
+    // Current thread may be canceled by Intellij platform when it decided to stop collecting information. We have to create another task
+    // to make sure the lint annotation models is created and set to the surface.
+    final DesignSurface surface = mySurfaceRef.get();
     if (surface == null) {
       // The surface is gone, no need to keep going
       return;
     }
-
-    SceneView sceneView = surface.getFocusedSceneView();
-    if (sceneView == null) {
-      return;
+    Runnable annotatingTask = () -> {
+      SceneView sceneView = surface.getFocusedSceneView();
+      if (sceneView == null) {
+        return;
+      }
+      final NlModel model = sceneView.getModel();
+      LintAnnotationsModel lintAnnotationsModel =
+        ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
+      synchronized (myRunningTaskLock) {
+        myRunningTask = null;
+      }
+      UIUtil.invokeLaterIfNeeded(() -> updateLintAnnotationsModelToSurface(surface, lintAnnotationsModel));
+    };
+    synchronized (myRunningTaskLock) {
+      if (myRunningTask == null) {
+        myRunningTask = annotatingTask;
+        ApplicationManager.getApplication().executeOnPooledThread(annotatingTask);
+      }
     }
-
-    myLintAnnotationsModel = getAnnotations(sceneView.getModel());
-    UIUtil.invokeLaterIfNeeded(this::updateLintAnnotationsModelToSurface);
   }
 
   @Override
   public void applyInformationToEditor() {
   }
 
-  private void updateLintAnnotationsModelToSurface() {
-    DesignSurface surface = mySurfaceRef.get();
-    if (surface == null) {
-      // The surface is gone, no need to keep going
-      return;
-    }
-
+  private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface surface, @Nullable LintAnnotationsModel annotationsModel) {
     SceneView sceneView = surface.getFocusedSceneView();
-    if (sceneView == null || myLintAnnotationsModel == null) {
+    if (sceneView == null || annotationsModel == null) {
       return;
     }
 
-    sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
-    surface.setLintAnnotationsModel(myLintAnnotationsModel);
+    sceneView.getModel().setLintAnnotationsModel(annotationsModel);
+    surface.setLintAnnotationsModel(annotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
     // version.)
-    sceneView.getSurface().repaint();
+    surface.repaint();
   }
 
   @NotNull
