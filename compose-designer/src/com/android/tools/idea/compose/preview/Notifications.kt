@@ -18,12 +18,12 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
-import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -57,7 +57,7 @@ private fun createBuildNotificationPanel(project: Project,
     isFocusable = false
 
     createActionLabel(buildActionLabel) {
-      requestBuild(project, file, true)
+      project.requestBuild(file)
     }
   }
 }
@@ -83,7 +83,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
           if (fileEditor.isValid) {
             FileEditorManager.getInstance(project).closeFile(file)
             FileEditorManager.getInstance(project).openFile(file, true)
-            requestBuild(project, file, true)
+            project.requestBuild(file)
           }
         }
       }

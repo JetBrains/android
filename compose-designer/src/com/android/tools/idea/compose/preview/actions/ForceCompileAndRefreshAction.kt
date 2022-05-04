@@ -18,13 +18,12 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,7 +37,7 @@ private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllI
                                                                             JBColor(0x59A869, 0x499C54))
 
 internal fun requestBuildForSurface(surface: DesignSurface, requestedByUser: Boolean) = surface.models.map { it.virtualFile }
-  .distinct().also { requestBuild(surface.project, it, requestedByUser) }
+  .distinct().also { surface.project.requestBuild(it) }
   .isNotEmpty()
 
 /**
@@ -58,7 +57,7 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.
       LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-        requestBuild(surface.project, it, true)
+        surface.project.requestBuild(it)
       }
     }
   }

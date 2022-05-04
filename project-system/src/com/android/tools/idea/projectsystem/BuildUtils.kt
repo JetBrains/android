@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.util
+package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -29,16 +25,17 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 
-internal fun requestBuild(project: Project, file: VirtualFile, requestByUser: Boolean) {
-  requestBuild(project, listOf(file), requestByUser)
+fun Project.requestBuild(file: VirtualFile) {
+  requestBuild(listOf(file))
 }
 
-internal fun requestBuild(project: Project, files: Collection<VirtualFile>, requestByUser: Boolean) {
-  if (project.isDisposed) {
+fun Project.requestBuild(files: Collection<VirtualFile>) {
+  // TODO(b/231401347): Move this to the client side
+  if (this.isDisposed) {
     return
   }
 
-  ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
+  ProjectSystemService.getInstance(this).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
 }
 
 fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {

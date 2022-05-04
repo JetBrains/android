@@ -27,18 +27,17 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
-import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
-import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
@@ -371,7 +370,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     get() {
       val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
-        psiFilePointer.element?.virtualFile?.let { requestBuild(project, it, true) }
+        psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
         workbench.repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
       }
     }

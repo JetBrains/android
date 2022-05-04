@@ -22,10 +22,10 @@ import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.fastPreviewManager
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
 import com.intellij.notification.EventLog
 import com.intellij.openapi.Disposable
@@ -221,7 +221,7 @@ private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : An
   private val composePreviewManager = WeakReference(composePreviewManager)
   override fun actionPerformed(e: AnActionEvent) {
     val file = composePreviewManager.get()?.previewedFile ?: return
-    requestBuild(file.project, file.virtualFile, true)
+    file.project.requestBuild(file.virtualFile)
   }
 }
 

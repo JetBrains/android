@@ -20,10 +20,10 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.runAndWaitForBuildToComplete
-import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
-import com.android.tools.idea.compose.preview.util.hasExistingClassFile
-import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.projectsystem.hasBeenBuiltSuccessfully
+import com.android.tools.idea.projectsystem.hasExistingClassFile
+import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
 import com.intellij.openapi.application.ApplicationManager
@@ -46,6 +46,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
+// TODO(b/231401347): Move compose-agnostic testing to com.android.tools.idea.projectsystem.
 class BuildTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
@@ -63,7 +64,7 @@ class BuildTest {
     val buildsTriggered = runAndWaitForBuildToComplete(projectRule) {
       // Regression test for http://b/192223556
       val files = activityFiles + activityFiles + activityFiles
-      requestBuild(project, files, false)
+      project.requestBuild(files)
     }
     assertEquals(1, buildsTriggered)
     assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
@@ -107,7 +108,7 @@ class BuildTest {
     val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
       SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))
     }
-    runAndWaitForBuildToComplete(projectRule) { requestBuild(project, listOf(activityFile), false) }
+    runAndWaitForBuildToComplete(projectRule) { project.requestBuild(listOf(activityFile)) }
     assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
   }
 }
