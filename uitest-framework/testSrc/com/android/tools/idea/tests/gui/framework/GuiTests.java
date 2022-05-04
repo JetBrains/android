@@ -191,40 +191,6 @@ public final class GuiTests {
   }
 
   /**
-   * @return the path of the installation of a supported Gradle version. The path of the installation is specified via the system property
-   * 'supported.gradle.home.path'. If the system property is not found, the test invoking this method will be skipped.
-   */
-  @NotNull
-  public static File getGradleHomePathOrSkipTest() {
-    return getFilePathPropertyOrSkipTest("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
-  }
-
-  /**
-   * @return the path of the installation of a Gradle version that is no longer supported by the IDE. The path of the installation is
-   * specified via the system property 'unsupported.gradle.home.path'. If the system property is not found, the test invoking this method
-   * will be skipped.
-   */
-  @NotNull
-  public static File getUnsupportedGradleHomeOrSkipTest() {
-    return getGradleHomeFromSystemPropertyOrSkipTest("unsupported.gradle.home.path", "2.1");
-  }
-
-  /**
-   * Returns the Gradle installation directory whose path is specified in the given system property. If the expected system property is not
-   * found, the test invoking this method will be skipped.
-   *
-   * @param propertyName  the name of the system property.
-   * @param gradleVersion the version of the Gradle installation. This is used in the message displayed when the expected system property is
-   *                      not found.
-   * @return the Gradle installation directory whose path is specified in the given system property.
-   */
-  @NotNull
-  public static File getGradleHomeFromSystemPropertyOrSkipTest(@NotNull String propertyName, @NotNull String gradleVersion) {
-    String description = "the path of a Gradle " + gradleVersion + " distribution";
-    return getFilePathPropertyOrSkipTest(propertyName, description, true);
-  }
-
-  /**
    * Returns a file whose path is specified in the given system property. If the expected system property is not found, the test invoking \
    * this method will be skipped.
    *

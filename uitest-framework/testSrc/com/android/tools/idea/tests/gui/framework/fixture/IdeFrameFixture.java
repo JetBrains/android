@@ -595,24 +595,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture useLocalGradleDistribution(@NotNull File gradleHomePath) {
-    return useLocalGradleDistribution(gradleHomePath.getPath());
-  }
-
-  @NotNull
-  public IdeFrameFixture useLocalGradleDistribution(@NotNull String gradleHome) {
-    GradleProjectSettings settings = getGradleSettings();
-    settings.setDistributionType(LOCAL);
-    settings.setGradleHome(gradleHome);
-    return this;
-  }
-
-  @NotNull
-  public GradleProjectSettings getGradleSettings() {
-    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
-  }
-
-  @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
     // The action button is prone to move during rendering so that robot.click() could miss.
     // So, we use component's click here directly.
