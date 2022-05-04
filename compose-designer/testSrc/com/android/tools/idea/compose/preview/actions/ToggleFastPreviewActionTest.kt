@@ -27,13 +27,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 internal class ToggleFastPreviewActionTest {
-  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val fastPreviewFlagRule = FastPreviewRule()
+  val chainRule: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(FastPreviewRule())
 
   @Test
   fun `is action visible when Fast Preview depending on the flag values`() {

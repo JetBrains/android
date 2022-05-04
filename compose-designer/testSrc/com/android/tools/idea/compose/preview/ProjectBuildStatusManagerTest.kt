@@ -31,17 +31,19 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 
 class ProjectBuildStatusManagerTest {
-  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   val project: Project
     get() = projectRule.project
 
   @get:Rule
-  val fastPreviewFlagRule = FastPreviewRule()
+  val chainRule: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(FastPreviewRule())
 
   @Test
   fun testFastPreviewTriggersCompileState() {

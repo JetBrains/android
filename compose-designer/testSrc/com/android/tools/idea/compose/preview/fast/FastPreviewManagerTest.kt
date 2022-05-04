@@ -40,6 +40,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
@@ -64,13 +65,14 @@ fun nopCompileDaemonFactory(onCalled: (String) -> Unit): (String) -> CompilerDae
 }
 
 internal class FastPreviewManagerTest {
-  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
 
   @get:Rule
-  val fastPreviewFlagRule = FastPreviewRule()
+  val chainRule: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(FastPreviewRule())
 
   @Test
   fun `pre-start daemon`() {
