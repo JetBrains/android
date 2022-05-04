@@ -78,7 +78,7 @@ internal class DeviceClient(
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect() {
+  suspend fun startAgentAndConnect(initialDisplayOrientation: Int?) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
@@ -95,7 +95,7 @@ internal class DeviceClient(
       ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb)
+        startAgent(deviceSelector, adb, initialDisplayOrientation)
         videoChannel = serverSocketChannel.accept()
         connectionTime = System.currentTimeMillis()
         controlChannel = serverSocketChannel.accept()
@@ -186,10 +186,12 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
+  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices, initialDisplayOrientation: Int?) {
     startAgentTime = System.currentTimeMillis()
+    val orientationArg = initialDisplayOrientation?.let {" --orientation=$it" } ?: ""
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
+                  orientationArg +
                   " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
                   " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that

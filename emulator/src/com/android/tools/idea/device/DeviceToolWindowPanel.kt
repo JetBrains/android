@@ -74,7 +74,7 @@ internal class DeviceToolWindowPanel(
     }
 
   @get:TestOnly
-  var lastUiState: PhysicalDeviceUiState? = null
+  var lastUiState: DeviceUiState? = null
 
   init {
     background = primaryPanelBackground
@@ -107,7 +107,11 @@ internal class DeviceToolWindowPanel(
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
 
-    val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceSerialNumber, deviceAbi, project, zoomToolbarVisible)
+    savedUiState as DeviceUiState?
+    val primaryDisplayPanel =
+        DeviceDisplayPanel(disposable, deviceSerialNumber, deviceAbi, savedUiState?.orientation, project, zoomToolbarVisible)
+    savedUiState?.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
+
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
     primaryDeviceView = deviceView
@@ -120,8 +124,9 @@ internal class DeviceToolWindowPanel(
   /**
    * Destroys content of the device panel and returns its state for later recreation.
    */
-  override fun destroyContent(): UiState {
-    val uiState = PhysicalDeviceUiState()
+  override fun destroyContent(): DeviceUiState {
+    val uiState = DeviceUiState()
+    uiState.orientation = primaryDeviceView?.displayRotationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
 
     contentDisposable?.let { Disposer.dispose(it) }
@@ -130,7 +135,7 @@ internal class DeviceToolWindowPanel(
     centerPanel.removeAll()
     displayPanel = null
     primaryDeviceView = null
-    mainToolbar.setTargetComponent(this)
+    mainToolbar.targetComponent = this
     lastUiState = uiState
     return uiState
   }
@@ -153,7 +158,8 @@ internal class DeviceToolWindowPanel(
     return toolbar
   }
 
-  class PhysicalDeviceUiState : UiState {
+  class DeviceUiState : UiState {
+    var orientation = 0
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }
 }

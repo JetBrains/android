@@ -59,6 +59,7 @@ int CreateAndConnectSocket(const char* socket_name) {
 
 Agent::Agent(const vector<string>& args)
     : max_video_resolution_(Size(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max())),
+      initial_video_orientation_(-1),
       codec_name_("vp8") {
   assert(instance_ == nullptr);
   instance_ = this;
@@ -90,6 +91,14 @@ Agent::Agent(const vector<string>& args)
       } else {
         InvalidCommandLineArgument(arg);
       }
+    } else if (arg.rfind("--orientation=", 0) == 0) {
+      char* ptr;
+      auto orientation = strtoul(arg.c_str() + sizeof("--orientation=") - 1, &ptr, 10);
+      if (*ptr == '\0') {
+        initial_video_orientation_ = orientation & 0x03;
+      } else {
+        InvalidCommandLineArgument(arg);
+      }
     } else if (arg.rfind("--codec=", 0) == 0) {
       codec_name_ = arg.substr(sizeof("--codec=") - 1, arg.size());
     } else if (!arg.empty()) {  // For some unclear reason some command line arguments are empty strings.
@@ -104,8 +113,8 @@ Agent::~Agent() {
 }
 
 void Agent::Run() {
-  display_streamer_ =
-      new DisplayStreamer(display_id_, codec_name_, max_video_resolution_, CreateAndConnectSocket(SOCKET_NAME));
+  display_streamer_ = new DisplayStreamer(
+      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, CreateAndConnectSocket(SOCKET_NAME));
   controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
   Log::D("Created video and control sockets");
   controller_->Start();

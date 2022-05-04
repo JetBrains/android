@@ -35,7 +35,7 @@ namespace screensharing {
 class DisplayStreamer {
 public:
   // The display streamer takes ownership of the socket file descriptor and closes it when destroyed.
-  DisplayStreamer(int display_id, const std::string& codec_name, Size max_video_resolution, int socket_fd);
+  DisplayStreamer(int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int socket_fd);
 
   void Run();
   // Sets orientation of the device display. A negative value tells the agent to update

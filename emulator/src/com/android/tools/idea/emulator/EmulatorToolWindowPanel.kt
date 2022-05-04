@@ -223,7 +223,7 @@ class EmulatorToolWindowPanel(
   /**
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
-  override fun destroyContent(): UiState {
+  override fun destroyContent(): EmulatorUiState {
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 

@@ -160,16 +160,16 @@ void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_tok
 
 }  // namespace
 
-DisplayStreamer::DisplayStreamer(int display_id, const std::string& codec_name, Size max_video_resolution, int socket_fd)
+DisplayStreamer::DisplayStreamer(int display_id, string codec_name, Size max_video_resolution, int initial_video_orientation, int socket_fd)
     : display_rotation_watcher_(this),
       display_id_(display_id),
-      codec_name_(codec_name),
+      codec_name_(move(codec_name)),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
       stopped_(),
       display_info_(),
       max_video_resolution_(max_video_resolution),
-      video_orientation_(-1),
+      video_orientation_(initial_video_orientation),
       running_codec_() {
   assert(socket_fd > 0);
 }
@@ -354,7 +354,7 @@ bool DisplayStreamer::IsCodecRunning() {
 
 DisplayStreamer::DisplayRotationWatcher::DisplayRotationWatcher(DisplayStreamer* display_streamer)
     : display_streamer(display_streamer),
-      display_rotation() {
+      display_rotation(-1) {
 }
 
 DisplayStreamer::DisplayRotationWatcher::~DisplayRotationWatcher() {
@@ -362,8 +362,8 @@ DisplayStreamer::DisplayRotationWatcher::~DisplayRotationWatcher() {
 }
 
 void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rotation) {
-  Log::D("DisplayRotationWatcher::OnRotationChanged: new_rotation=%d", new_rotation);
   auto old_rotation = display_rotation.exchange(new_rotation);
+  Log::D("DisplayRotationWatcher::OnRotationChanged: new_rotation=%d old_rotation=%d", new_rotation, old_rotation);
   if (new_rotation != old_rotation) {
     display_streamer->StopCodec();
   }

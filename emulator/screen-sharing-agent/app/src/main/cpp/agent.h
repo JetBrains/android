@@ -55,6 +55,7 @@ private:
 
   int32_t display_id_ = 0;
   Size max_video_resolution_;
+  int32_t initial_video_orientation_;  // In quadrants counterclockwise.
   std::string codec_name_;
   DisplayStreamer* display_streamer_ = nullptr;
   Controller* controller_ = nullptr;

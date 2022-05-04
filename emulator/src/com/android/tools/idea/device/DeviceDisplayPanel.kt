@@ -28,12 +28,13 @@ internal class DeviceDisplayPanel(
   disposableParent: Disposable,
   deviceSerialNumber: String,
   deviceAbi: String,
+  initialDisplayOrientation: Int?,
   project: Project,
   zoomToolbarVisible: Boolean,
 ) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), DataProvider {
 
   init {
-    displayView = DeviceView(this, deviceSerialNumber, deviceAbi, project)
+    displayView = DeviceView(this, deviceSerialNumber, deviceAbi, initialDisplayOrientation, project)
 
     loadingPanel.setLoadingText("Connecting to the device")
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.

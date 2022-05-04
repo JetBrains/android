@@ -82,6 +82,7 @@ class DeviceView(
   disposableParent: Disposable,
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
+  initialDisplayOrientation: Int?,
   private val project: Project,
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable {
 
@@ -142,13 +143,13 @@ class DeviceView(
 
     addKeyListener(MyKeyListener())
 
-    AndroidCoroutineScope(this).launch { initializeAgent() }
+    AndroidCoroutineScope(this).launch { initializeAgent(initialDisplayOrientation) }
   }
 
-  private suspend fun initializeAgent() {
+  private suspend fun initializeAgent(initialDisplayOrientation: Int?) {
     try {
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
-      deviceClient.startAgentAndConnect()
+      deviceClient.startAgentAndConnect(initialDisplayOrientation)
       val decoder = deviceClient.createVideoDecoder(realSize.rotatedByQuadrants(-displayRotationQuadrants))
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
