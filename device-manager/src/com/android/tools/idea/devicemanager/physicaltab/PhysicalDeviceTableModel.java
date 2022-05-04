@@ -153,6 +153,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     combinedDevices.addAll(domainNameDevices);
     combinedDevices.addAll(serialNumberDevices);
     combinedDevices.addAll(filterDevicesBy(Ipv4Address.class));
+    combinedDevices.addAll(filterDevicesBy(Localhost.class));
 
     myCombinedDevices = combinedDevices;
   }

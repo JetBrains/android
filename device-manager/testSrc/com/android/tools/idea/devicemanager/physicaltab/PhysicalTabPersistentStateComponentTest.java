@@ -41,9 +41,21 @@ public final class PhysicalTabPersistentStateComponentTest {
   }
 
   @Test
-  public void getFilterKeyIsPersistent() {
+  public void getTransientKeyInstanceOfIpv4Address() {
     // Arrange
     myComponent.set(List.of(TestPhysicalDevices.ONLINE_COMPAL_FALSTER, TestPhysicalDevices.GOOGLE_PIXEL_3));
+
+    // Act
+    Object actualDevices = myComponent.get();
+
+    // Assert
+    assertEquals(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3), actualDevices);
+  }
+
+  @Test
+  public void getTransientKeyInstanceOfLocalhost() {
+    // Arrange
+    myComponent.set(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_ANDROID));
 
     // Act
     Object actualDevices = myComponent.get();

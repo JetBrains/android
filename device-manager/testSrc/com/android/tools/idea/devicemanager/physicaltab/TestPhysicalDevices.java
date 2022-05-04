@@ -64,6 +64,17 @@ public final class TestPhysicalDevices {
     .addConnectionType(ConnectionType.USB)
     .build();
 
+  /**
+   * An ACID virtual device
+   */
+  static final @NotNull PhysicalDevice ONLINE_GOOGLE_PIXEL_ANDROID = new PhysicalDevice.Builder()
+    .setKey(Localhost.parse("localhost:46043").orElseThrow())
+    .setName("google Pixel (Android)")
+    .setTarget("Android 10.0")
+    .setAndroidVersion(new AndroidVersion(29))
+    .addConnectionType(ConnectionType.UNKNOWN)
+    .build();
+
   private TestPhysicalDevices() {
   }
 }

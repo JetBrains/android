@@ -46,6 +46,8 @@ final class BuilderService {
       return new DomainName(value);
     }
 
-    return Ipv4Address.parse(value).orElseGet(() -> new SerialNumber(value));
+    return Ipv4Address.parse(value)
+      .or(() -> Localhost.parse(value))
+      .orElseGet(() -> new SerialNumber(value));
   }
 }

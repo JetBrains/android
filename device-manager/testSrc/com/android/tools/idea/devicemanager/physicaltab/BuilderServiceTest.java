@@ -96,4 +96,17 @@ public final class BuilderServiceTest {
     // Assert
     assertEquals(EnumSet.of(ConnectionType.UNKNOWN), TestDeviceManagerFutures.get(future).getConnectionTypes());
   }
+
+  @Test
+  public void buildLocalhostPresent() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("localhost:1234");
+
+    // Act
+    Future<PhysicalDevice> future = myService.build(myDevice);
+
+    // Assert
+    assertEquals(EnumSet.of(ConnectionType.UNKNOWN), TestDeviceManagerFutures.get(future).getConnectionTypes());
+  }
 }
