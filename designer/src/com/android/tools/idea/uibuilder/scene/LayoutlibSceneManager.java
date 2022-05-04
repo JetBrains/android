@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
-import static com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -52,6 +51,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
@@ -761,8 +761,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() &&
-          PowerSaveMode.isEnabled() &&
+      if (PreviewPowerSaveManager.INSTANCE.isInPowerSaveMode() &&
           powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
         isOutOfDate.set(true);
         return;

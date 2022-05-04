@@ -17,13 +17,13 @@ package com.android.tools.idea.compose.preview.fast
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
-import com.android.tools.idea.compose.preview.PreviewPowerSaveManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.compose.preview.util.toLogString
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
