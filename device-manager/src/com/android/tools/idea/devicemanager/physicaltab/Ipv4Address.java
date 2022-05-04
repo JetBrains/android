@@ -42,7 +42,7 @@ final class Ipv4Address extends Key {
 
   @Override
   public @NotNull ConnectionType getConnectionType() {
-    return ConnectionType.WI_FI;
+    return ConnectionType.UNKNOWN;
   }
 
   @Override

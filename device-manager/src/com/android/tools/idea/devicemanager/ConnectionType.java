@@ -19,15 +19,12 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 public enum ConnectionType {
+  UNKNOWN,
   USB,
   WI_FI;
 
+  public static final @NotNull Object UNKNOWN_SET = Sets.immutableEnumSet(UNKNOWN);
   public static final @NotNull Object USB_SET = Sets.immutableEnumSet(USB);
   public static final @NotNull Object WI_FI_SET = Sets.immutableEnumSet(WI_FI);
   public static final @NotNull Object USB_AND_WI_FI_SET = Sets.immutableEnumSet(USB, WI_FI);
-
-  @Override
-  public final @NotNull String toString() {
-    return this.equals(USB) ? super.toString() : "Wi-Fi";
-  }
 }

@@ -94,6 +94,6 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    assertEquals(EnumSet.of(ConnectionType.WI_FI), TestDeviceManagerFutures.get(future).getConnectionTypes());
+    assertEquals(EnumSet.of(ConnectionType.UNKNOWN), TestDeviceManagerFutures.get(future).getConnectionTypes());
   }
 }

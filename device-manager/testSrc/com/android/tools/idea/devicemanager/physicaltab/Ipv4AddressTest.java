@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public final class Ipv4AddressTest {
   @Test
   public void getConnectionType() {
-    assertEquals(Optional.of(ConnectionType.WI_FI), Ipv4Address.parse("192.168.1.123:5555").map(Key::getConnectionType));
+    assertEquals(Optional.of(ConnectionType.UNKNOWN), Ipv4Address.parse("192.168.1.123:5555").map(Key::getConnectionType));
   }
 
   @Test

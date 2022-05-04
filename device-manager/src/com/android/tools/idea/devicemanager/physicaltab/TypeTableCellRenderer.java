@@ -82,6 +82,9 @@ final class TypeTableCellRenderer implements TableCellRenderer {
     if (value.equals(Collections.EMPTY_SET)) {
       myLabel.setDefaultIcon(null);
     }
+    else if (value.equals(ConnectionType.UNKNOWN_SET)) {
+      myLabel.setDefaultIcon(StudioIcons.Avd.DEVICE_PHONE); // TODO(http://b/198438748) Change the icon
+    }
     else if (value.equals(ConnectionType.USB_SET)) {
       myLabel.setDefaultIcon(StudioIcons.Avd.CONNECTION_USB);
     }
