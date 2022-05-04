@@ -1405,7 +1405,7 @@ public final class StudioFlags {
       "enabled",
       "Enabled",
       "Enable App Insights tool window and highlighting support.",
-      false);
+      true);
   // endregion App Insights
 
   // region App Links Assistant
