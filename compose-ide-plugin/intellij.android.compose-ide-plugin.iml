@@ -36,6 +36,9 @@
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.2.0-SNAPSHOT.jar!/" />
         </CLASSES>
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.2.0-SNAPSHOT-sources.jar!/" />
+        </SOURCES>
         <JAVADOC />
         <SOURCES />
       </library>
