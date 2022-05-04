@@ -143,7 +143,6 @@ public class TransportServiceProxyTest {
 
   @Test
   public void profileableClientsAlsoCached() throws Exception {
-    StudioFlags.PROFILEABLE.override(true);
     Client client1 = createMockClient(1, "test1", "name1");
     ProfileableClient client2 = createMockProfileableClient(2, "name2");
     IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[] { client2 });

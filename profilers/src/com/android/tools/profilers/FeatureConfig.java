@@ -25,8 +25,6 @@ public interface FeatureConfig {
   boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
-  boolean isProfileableEnabled();
-  boolean isProfileableInQrEnabled();
 
   boolean isProfileableBuildsEnabled();
 

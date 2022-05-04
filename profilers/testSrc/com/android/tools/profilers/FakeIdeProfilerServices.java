@@ -120,16 +120,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether we support profileable processes
-   */
-  private boolean myProfileableEnabled = true;
-
-  /**
-   * Whether we support profileable processes in Q & R
-   */
-  private boolean myProfileableInQrEnabled = true;
-
-  /**
    * Whether we support profileable builds.
    */
   private boolean myProfileablsBuildsEnabled = false;
@@ -245,16 +235,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
-      }
-
-      @Override
-      public boolean isProfileableEnabled() {
-        return myProfileableEnabled;
-      }
-
-      @Override
-      public boolean isProfileableInQrEnabled() {
-        return myProfileableInQrEnabled;
       }
 
       @Override
@@ -440,14 +420,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
-
-  public void enableProfileable(boolean enabled) {
-    myProfileableEnabled = enabled;
-  }
-
-  public void enableProfileableInQr(boolean enabled) {
-    myProfileableInQrEnabled = enabled;
-  }
 
   public void enableProfileableBuilds(boolean enabled) {
     myProfileablsBuildsEnabled = enabled;

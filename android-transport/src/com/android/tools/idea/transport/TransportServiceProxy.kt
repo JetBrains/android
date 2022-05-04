@@ -237,7 +237,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   private fun isProfileableSupported() =
-    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S && StudioFlags.PROFILEABLE.get()
+    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S
 
   override fun clientChanged(client: Client, changeMask: Int) {
     if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.clientDescription != null) {

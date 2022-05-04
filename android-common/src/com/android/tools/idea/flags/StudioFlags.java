@@ -129,21 +129,10 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILEABLE = Flag.create(
-    PROFILER, "profileable", "Support profileable processes on S+",
-    "Show profileable processes on S and later",
-    true);
-
   public static final Flag<Boolean> PROFILER_MIGRATION_TO_APPINSPECTION = Flag.create(
     PROFILER, "profiler.migration.to.appinspection", "Enable migration support for network and system events profiling.",
     "Show migration messaging to guide users to the App Inspection tool window",
     true);
-
-  // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
-  public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
-    PROFILER, "profileable.qr", "Support profileable processes on Q & R",
-    "Show profileable processes on Q and R",
-    PROFILEABLE.get() && true);
 
   public static final Flag<Boolean> PROFILEABLE_BUILDS = Flag.create(
     PROFILER, "profileable.builds", "Support building profileable apps",

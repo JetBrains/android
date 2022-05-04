@@ -595,7 +595,6 @@ public class StudioProfilersViewTest {
   }
 
   private void menuShowsSupportedStages(Class<?> ... expected) {
-    myProfilerServices.enableProfileable(true);
     TreeWalker t = new TreeWalker(myView.getCommonToolbar());
     Predicate<ComboBoxModel<?>> itemsChecker = model ->
       model.getSize() == expected.length &&

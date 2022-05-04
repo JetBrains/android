@@ -214,8 +214,6 @@ public final class StudioProfilersTest {
   @Test
   public void testDebuggableProcessNotReportedAsProfileable() {
     Assume.assumeTrue(myNewEventPipeline);
-    myIdeProfilerServices.enableProfileable(true);
-    myIdeProfilerServices.enableProfileableInQr(true);
 
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);
@@ -329,8 +327,6 @@ public final class StudioProfilersTest {
   @Test
   public void TestDiscoverProfileableCommand() {
     Assume.assumeTrue(myNewEventPipeline);
-    myIdeProfilerServices.enableProfileable(true);
-    myIdeProfilerServices.enableProfileableInQr(true);
     // Devices that have executed the DISCOVER_PROFILEABLE command.
     List<Long> discoveringStreamIds = myTransportService.getDiscoveringProfileableStreamIds();
     assertThat(discoveringStreamIds).isEmpty();

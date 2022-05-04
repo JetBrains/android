@@ -426,9 +426,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
                                                      Collection<Common.Device> currentDevices) {
-    if (!myIdeServices.getFeatureConfig().isProfileableInQrEnabled()) {
-      return;
-    }
     Set<Common.Device> newDevices = Sets.difference(filterOnlineDevices(currentDevices),
                                                     filterOnlineDevices(previousDevices));
     for (Common.Device device : newDevices) {
@@ -477,8 +474,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
               return (isProcessAlive || process.getPid() == lastProcessId) &&
                      (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
-                      (getIdeServices().getFeatureConfig().isProfileableEnabled() &&
-                       process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE)));
+                      process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
             }
           );
           newProcesses.put(device, processList);
