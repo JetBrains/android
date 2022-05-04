@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loa
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.SyncFailed
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
@@ -565,6 +566,21 @@ class ContentManagerImplTest {
       assertThat(model.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
+  }
+
+  @Test
+  fun testTreePanelVisibility() {
+    val contentManager = ContentManagerImpl(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, { currentAgpVersion })
+    val view = ContentManagerImpl.View(model, toolWindow.contentManager)
+    assertThat(view.treePanel.isVisible).isTrue()
+    model.uiState.set(ReadyToRun)
+    assertThat(view.treePanel.isVisible).isTrue()
+    model.uiState.set(SyncFailed("oops"))
+    assertThat(view.treePanel.isVisible).isFalse()
+    model.uiState.set(ReadyToRun)
+    assertThat(view.treePanel.isVisible).isTrue()
   }
 
   fun treeString(tree: CheckboxTree): String {
