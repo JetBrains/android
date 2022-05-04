@@ -32,8 +32,6 @@ private:
   DisplayManager(Jni jni);
   static DisplayManager& GetInstance(Jni jni);
 
-  static DisplayManager* instance_;
-
   JObject display_manager_;
   jmethodID get_display_info_method_;
   jfieldID logical_width_field_;

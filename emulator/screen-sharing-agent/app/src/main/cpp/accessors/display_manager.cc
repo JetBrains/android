@@ -37,10 +37,8 @@ DisplayManager::DisplayManager(Jni jni)
 }
 
 DisplayManager& DisplayManager::GetInstance(Jni jni) {
-  if (instance_ == nullptr) {
-    instance_ = new DisplayManager(jni);
-  }
-  return *instance_;
+  static DisplayManager instance(jni);
+  return instance;
 }
 
 DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
@@ -56,7 +54,5 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
   int flags = display_info.GetIntField(instance.flags_field_);
   return DisplayInfo(logical_width, logical_height, rotation, layer_stack, flags);
 }
-
-DisplayManager* DisplayManager::instance_ = nullptr;
 
 }  // namespace screensharing
