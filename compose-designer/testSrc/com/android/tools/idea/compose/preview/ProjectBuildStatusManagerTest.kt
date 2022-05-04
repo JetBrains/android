@@ -21,9 +21,12 @@ import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -82,6 +85,35 @@ class ProjectBuildStatusManagerTest {
       blockingDaemon.complete()
       latch.await()
       Assert.assertFalse(statusManager.isBuilding)
+    }
+  }
+
+  @Test
+  fun testFastPreviewStatusChangeInvalidatesFile() {
+    val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
+
+    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
+    val statusManager = ProjectBuildStatusManager.create(
+      projectRule.fixture.testRootDisposable,
+      psiFile,
+      fileFilter,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+
+    try {
+      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+
+      // Simulate a successful build
+      (statusManager as ProjectBuildStatusManagerForTests).getBuildListenerForTest().buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
+      (statusManager as ProjectBuildStatusManagerForTests).getBuildListenerForTest().buildCompleted(
+        ProjectSystemBuildManager.BuildResult(ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, 1L))
+
+      assertEquals(ProjectStatus.Ready, statusManager.status)
+
+      // Disabling Live Edit will bring the out of date state
+      LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+      assertEquals(ProjectStatus.OutOfDate, statusManager.status)
+    } finally {
+      LiveEditApplicationConfiguration.getInstance().resetDefault()
     }
   }
 }

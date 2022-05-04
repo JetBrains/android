@@ -37,6 +37,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -116,21 +117,31 @@ interface ProjectBuildStatusManager {
   }
 }
 
+interface ProjectBuildStatusManagerForTests {
+  /**
+   * Returns the internal [ProjectSystemBuildManager.BuildListener] to be used by tests.
+   */
+  @TestOnly
+  fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener
+}
+
 private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                                             psiFile: PsiFile,
                                             private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-                                            scope: CoroutineScope) : ProjectBuildStatusManager {
+                                            scope: CoroutineScope) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFile: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
   private val project: Project = editorFile.project
-  private val fileChangeDetector =
-    // If Live Literals is disabled or Fast Preview is enabled, disable the PsiFileChangeDetector since
-    // we are not looking for literal changes anymore.
-    if (LiveEditApplicationConfiguration.getInstance().isLiveLiterals)
-      PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
-    else
-      NopPsiFileChangeDetector
+  private val psiFileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
+  private val fileChangeDetector: PsiFileChangeDetector
+    get() =
+      // When Live Edit is disabled, we do not do any tracking of the file since it will never be out of date.
+      if (LiveEditApplicationConfiguration.getInstance().isLiveEditPreview)
+        NopPsiFileChangeDetector
+      else
+        psiFileChangeDetector
+
   private val _isBuilding = AtomicInteger(0)
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
@@ -159,6 +170,40 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
 
   override val isBuilding: Boolean get() = _isBuilding.get() > 0
 
+  private val buildListener = object : ProjectSystemBuildManager.BuildListener {
+    override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+      _isBuilding.incrementAndGet()
+      LOG.debug("buildStarted $mode")
+      if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+        projectBuildStatus = ProjectBuildStatus.NeedsBuild
+      }
+    }
+
+    override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+      _isBuilding.updateAndGet {
+        (it - 1).coerceAtLeast(0)
+      }
+      LOG.debug("buildFinished $result")
+      if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+        onSuccessfulBuild()
+        return
+      }
+      projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        onSuccessfulBuild()
+        ProjectBuildStatus.Built
+      }
+      else {
+        when (projectBuildStatus) {
+          // If the project was ready before, we keep it as Ready since it was just the new build
+          // that failed.
+          ProjectBuildStatus.Built -> ProjectBuildStatus.Built
+          // If the project was not ready, then it needs a build since this one failed.
+          else -> ProjectBuildStatus.NeedsBuild
+        }
+      }
+    }
+  }
+
   private fun onSuccessfulBuild() {
     fileChangeDetector.markFileAsUpToDate(editorFile.element)
   }
@@ -168,40 +213,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       fileChangeDetector.clearMarks(editorFile.element)
     }
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
-      .addBuildListener(parentDisposable,
-                        object : ProjectSystemBuildManager.BuildListener {
-                          override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-                            _isBuilding.incrementAndGet()
-                            LOG.debug("buildStarted $mode")
-                            if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-                              projectBuildStatus = ProjectBuildStatus.NeedsBuild
-                            }
-                          }
-
-                          override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-                            _isBuilding.updateAndGet {
-                              (it - 1).coerceAtLeast(0)
-                            }
-                            LOG.debug("buildFinished $result")
-                            if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-                              onSuccessfulBuild()
-                              return
-                            }
-                            projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-                              onSuccessfulBuild()
-                              ProjectBuildStatus.Built
-                            }
-                            else {
-                              when (projectBuildStatus) {
-                                // If the project was ready before, we keep it as Ready since it was just the new build
-                                // that failed.
-                                ProjectBuildStatus.Built -> ProjectBuildStatus.Built
-                                // If the project was not ready, then it needs a build since this one failed.
-                                else -> ProjectBuildStatus.NeedsBuild
-                              }
-                            }
-                          }
-                        })
+      .addBuildListener(parentDisposable, buildListener)
 
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile.element)
@@ -220,7 +232,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     })
 
     if (FastPreviewManager.getInstance(project).isAvailable) {
-      FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object: FastPreviewManager.Companion.CompileListener {
+      FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object : FastPreviewManager.Companion.CompileListener {
         override fun onCompilationStarted(files: Collection<PsiFile>) {
           _isBuilding.incrementAndGet()
         }
@@ -237,4 +249,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   }
 
   private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile.element)
+
+  @TestOnly
+  override fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener = buildListener
 }
