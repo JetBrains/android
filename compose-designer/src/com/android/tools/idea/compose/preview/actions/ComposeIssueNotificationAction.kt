@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.InformationPopup
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
@@ -33,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -47,6 +49,7 @@ import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Insets
@@ -80,10 +83,18 @@ private sealed class ComposePreviewStatusNotification(
   val icon: Icon?,
   val title: String,
   val description: String,
+  /** When true, the refresh icon will be displayed next to the notification chip. */
+  val hasRefreshIcon: Boolean = false,
   val presentation: Presentation? = null
 ) {
   companion object {
     val PRESENTATION = Key<Presentation>("ComposePreviewStatusNotificationPresentation")
+
+    /**
+     * When not null, this will define the text alignment in the notification chip. One of [SwingConstants.LEADING] or
+     * [SwingConstants.TRAILING].
+     */
+    val TEXT_ALIGNMENT = Key<Int>("ComposePreviewStatusNotificationTextAlignment")
   }
 
   /**
@@ -108,6 +119,7 @@ private sealed class ComposePreviewStatusNotification(
     AllIcons.General.Error,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
+    false,
     Presentation.Error)
 
   /**
@@ -117,6 +129,7 @@ private sealed class ComposePreviewStatusNotification(
     AllIcons.General.Error,
     message("notification.needs.build.broken.title"),
     message("notification.needs.build.broken.description"),
+    true,
     Presentation.Warning)
 
   /**
@@ -135,6 +148,7 @@ private sealed class ComposePreviewStatusNotification(
     AllIcons.General.Warning,
     message("notification.preview.out.of.date.title"),
     message("notification.preview.out.of.date.description"),
+    true,
     Presentation.Warning)
 
   /**
@@ -152,6 +166,7 @@ private sealed class ComposePreviewStatusNotification(
     AllIcons.General.InspectionsPause,
     message("notification.preview.fast.disabled.reason.compiler.error.title"),
     message("notification.preview.fast.disabled.reason.compiler.error.description"),
+    true,
     Presentation.Error)
 
   /**
@@ -243,24 +258,29 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
  */
+@VisibleForTesting
 class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Disposable {
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, Dimension(0, 0)) {
       private val insets = JBUI.insets(3)
+      private val actionPresentation: ComposePreviewStatusNotification.Presentation?
+        get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.PRESENTATION)
+      val textAlignment: Int
+        get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
       override fun isBackgroundSet(): Boolean =
-        myPresentation.getClientProperty(ComposePreviewStatusNotification.PRESENTATION) != null || super.isBackgroundSet()
+        actionPresentation != null || super.isBackgroundSet()
 
       override fun getBackground(): Color? =
-        myPresentation.getClientProperty(ComposePreviewStatusNotification.PRESENTATION)?.color ?: super.getBackground()
+        actionPresentation?.color ?: super.getBackground()
 
       override fun getBorder(): Border =
-        myPresentation.getClientProperty(ComposePreviewStatusNotification.PRESENTATION)?.border ?: JBUI.Borders.empty()
+        actionPresentation?.border ?: JBUI.Borders.empty()
 
       override fun getMargins(): Insets = insets
 
     }.apply {
-      setHorizontalTextPosition(SwingConstants.LEADING)
+      setHorizontalTextPosition(textAlignment)
       font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
       foreground = UIUtil.getLabelDisabledForeground()
     }
@@ -276,6 +296,8 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
       presentation.text = it.title
       presentation.description = it.description
       presentation.putClientProperty(ComposePreviewStatusNotification.PRESENTATION, it.presentation)
+      presentation.putClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT,
+                                     if (it.hasRefreshIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
     }
   }
 
@@ -317,3 +339,27 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
 
   override fun dispose() {}
 }
+
+/**
+ * [ForceCompileAndRefreshAction] where the visibility is controlled by the [ComposePreviewStatusNotification.hasRefreshIcon].
+ */
+private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface): ForceCompileAndRefreshAction(surface) {
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    val project = e.project ?: return
+
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.getStatusInfo(project)?.let {
+      e.presentation.isVisible = it.hasRefreshIcon
+    }
+  }
+}
+
+/**
+ * [DefaultActionGroup] that shows the notification chip and the [ForceCompileAndRefreshActionForNotification] button when applicable.
+ */
+class ComposeNotificationGroup(surface: DesignSurface) : DefaultActionGroup(
+  listOf(
+    ComposeIssueNotificationAction(),
+    ForceCompileAndRefreshActionForNotification(surface))
+)

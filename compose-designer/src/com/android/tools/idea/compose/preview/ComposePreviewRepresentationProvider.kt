@@ -24,6 +24,7 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction
+import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
@@ -77,7 +78,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
-      ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
@@ -87,9 +87,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     )
   )
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ComposeIssueNotificationAction()
-  ))
+  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface)
 
   /**
    * [DropDownAction] to toggle through the available viewing modes for the Compose preview.
