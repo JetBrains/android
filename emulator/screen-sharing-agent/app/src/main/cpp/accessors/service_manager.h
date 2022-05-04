@@ -25,15 +25,17 @@ namespace screensharing {
 class ServiceManager {
 public:
   static JObject GetServiceAsInterface(Jni jni, const char* name, const char* type, bool allow_null = false);
-  static JObject GetService(Jni jni, const char* name, bool allow_null = false);
+  static JObject GetService(Jni jni, const char* name, bool allow_null = false) {
+    return GetInstance(jni).WaitForService(jni, name, allow_null);
+  }
 
 private:
   ServiceManager(Jni jni);
   static ServiceManager& GetInstance(Jni jni);
+  JObject WaitForService(Jni jni, const char* name, bool allow_null);
 
-  static ServiceManager* instance_;
   JClass service_manager_class_;
-  jmethodID get_service_method_;
+  jmethodID wait_for_service_method_;
 
   DISALLOW_COPY_AND_ASSIGN(ServiceManager);
 };

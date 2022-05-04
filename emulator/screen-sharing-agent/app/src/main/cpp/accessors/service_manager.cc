@@ -28,15 +28,14 @@ using namespace std;
 ServiceManager::ServiceManager(Jni jni)
     : service_manager_class_() {
   service_manager_class_ = jni.GetClass("android/os/ServiceManager");
-  get_service_method_ = service_manager_class_.GetStaticMethodId("getService", "(Ljava/lang/String;)Landroid/os/IBinder;");
+  wait_for_service_method_ =
+      service_manager_class_.GetStaticMethodId("waitForService", "(Ljava/lang/String;)Landroid/os/IBinder;");
   service_manager_class_.MakeGlobal();
 }
 
 ServiceManager& ServiceManager::GetInstance(Jni jni) {
-  if (instance_ == nullptr) {
-    instance_ = new ServiceManager(jni);
-  }
-  return *instance_;
+  static ServiceManager instance(jni);
+  return instance;
 }
 
 JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type, bool allow_null) {
@@ -57,16 +56,13 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   return service;
 }
 
-JObject ServiceManager::GetService(Jni jni, const char* name, bool allow_null) {
-  Log::D("GetService(\"%s\")", name);
-  ServiceManager& manager = GetInstance(jni);
-  JObject binder = manager.service_manager_class_.CallStaticObjectMethod(jni, manager.get_service_method_, JString(jni, name).ref());
+JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_null) {
+  Log::D("WaitForService(\"%s\")", name);
+  JObject binder = service_manager_class_.CallStaticObjectMethod(jni, wait_for_service_method_, JString(jni, name).ref());
   if (binder.IsNull() && !allow_null) {
     Log::Fatal("Unable to find the \"%s\" service", name);
   }
   return binder;
 }
-
-ServiceManager* ServiceManager::instance_ = nullptr;
 
 }  // namespace screensharing

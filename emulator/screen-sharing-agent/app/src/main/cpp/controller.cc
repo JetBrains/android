@@ -20,9 +20,10 @@
 
 #include <thread>
 
-#include <accessors/input_manager.h>
-#include "accessors/motion_event.h"
+#include "accessors/input_manager.h"
 #include "accessors/key_event.h"
+#include "accessors/motion_event.h"
+#include "accessors/service_manager.h"
 #include "accessors/window_manager.h"
 #include "agent.h"
 #include "jvm.h"
@@ -143,6 +144,7 @@ void Controller::Initialize() {
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
 
+  ServiceManager::GetService(jni_, "settings");  // Wait for the "settings" service to initialize.
   // Keep the screen on as long as the device has power.
   stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
   // Turn off "Auto-rotate screen".
