@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.intellij.openapi.util.Key
 
-object AndroidGradleProjectResolverKeys {
+internal object AndroidGradleProjectResolverKeys {
   @JvmField
   val MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI: Key<String> = Key.create("module.with.build.variant.switched.from.ui")
 
