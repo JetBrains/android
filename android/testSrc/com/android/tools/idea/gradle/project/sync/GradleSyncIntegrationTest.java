@@ -108,7 +108,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -198,34 +197,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     requestSyncAndWait();
   }
 
-  public void testWithUserDefinedLibrarySources() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
-    loadSimpleApplication();
-
-    ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: com.google.guava:.*";
-    Library library = libraries.findMatchingLibrary(libraryNameRegex);
-    assertNotNull(library);
-
-    String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
-
-    // add an extra source path.
-    Library.ModifiableModel libraryModel = library.getModifiableModel();
-    libraryModel.addRoot(url, SOURCES);
-    ApplicationManager.getApplication().runWriteAction(libraryModel::commit);
-
-    requestSyncAndWait();
-
-    library = libraries.findMatchingLibrary(libraryNameRegex);
-    assertNotNull(library);
-
-    String[] urls = library.getUrls(SOURCES);
-    assertThat(urls).asList().contains(url);
-  }
 
   public void testSyncShouldNotChangeDependenciesInBuildFiles() throws Exception {
     loadSimpleApplication();
