@@ -504,13 +504,21 @@ public final class StudioFlags {
    * configured here will cause the deployment to install via the package manager.
    */
   public enum OptimisticInstallSupportLevel {
-    /** Always fall back to a package manager installation. */
+    /**
+     * Always fall back to a package manager installation.
+     */
     DISABLED,
-    /** Support deploying changes to dex files only. */
+    /**
+     * Support deploying changes to dex files only.
+     */
     DEX,
-    /** Support deploying changes to dex files and native libraries only. */
+    /**
+     * Support deploying changes to dex files and native libraries only.
+     */
     DEX_AND_NATIVE,
-    /** Support deploying changes to dex files, native libraries, and resources. */
+    /**
+     * Support deploying changes to dex files, native libraries, and resources.
+     */
     DEX_AND_NATIVE_AND_RESOURCES,
   }
 
@@ -519,9 +527,9 @@ public final class StudioFlags {
     "optimisticinstall.supportlevel",
     "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
     "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes;" +
-        " \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes;" +
-        " or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files." +
-        " Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
+    " \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes;" +
+    " or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files." +
+    " Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
     OptimisticInstallSupportLevel.DEX);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
@@ -757,7 +765,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.auto.connect.foreground", "Enable automatically connecting to foreground process",
-    "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.", false);
+    "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
+    false);
   //endregion
 
   //region Embedded Emulator
@@ -1428,13 +1437,7 @@ public final class StudioFlags {
     "Whether or not show issues when libraries are not policy complaint",
     false
   );
-  // endregion GOOGLE_PLAY_SDK_INDEX
 
-  // region App DIAGNOSTICS_SUMMARY
-  private static final FlagGroup DIAGNOSTICS_SUMMARY = new FlagGroup(FLAGS, "diagnosticssummary", "Diagnostics Summary");
-  public static final Flag<Boolean> ENABLE_DIAGNOSTICS_SUMMARY_MENU =
-    Flag.create(DIAGNOSTICS_SUMMARY, "enable.diagnostics.summary.menu", "Enable Diagnostics Summary Menu",
-                "Enable the diagnostic summary menu item.", false);
-  // endregion DIAGNOSTICS_SUMMARY
+  // endregion GOOGLE_PLAY_SDK_INDEX
   private StudioFlags() { }
 }

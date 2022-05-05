@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.report
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.ZipData
 import com.android.tools.idea.util.zipFiles
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -23,25 +22,24 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import java.io.File
+import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File") {
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    templatePresentation.isVisible = StudioFlags.ENABLE_DIAGNOSTICS_SUMMARY_MENU.get()
-  }
-
   override fun actionPerformed(e: AnActionEvent) {
-    val logName = "idea.log"
-    val logPath = File(PathManager.getLogPath()).resolve(logName).path
+    val fileInfo = DiagnosticSummaryFileProviders.map {
+      it.getFiles(e.project).filter { file -> Files.exists(file.source) }
+    }.flatten()
+
+    val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
 
     val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
     val destination = File(PathManager.getLogPath()).resolve("DiagnosticsReport${datetime}.zip").path
 
     val message =
       try {
-        zipFiles(arrayOf(ZipData(logPath, logName)), destination)
+        zipFiles(zipInfo, destination)
         "Diagnostics file created successfully. Path: $destination"
       }
       catch (e: Exception) {
