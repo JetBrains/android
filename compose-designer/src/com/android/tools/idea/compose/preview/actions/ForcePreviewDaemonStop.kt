@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 

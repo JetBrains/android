@@ -40,11 +40,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -155,20 +150,4 @@ internal fun getRepresentationForFile(file: PsiFile,
     multiRepresentationPreview.onInit()
   }
   return multiRepresentationPreview.currentRepresentation!!
-}
-
-/**
- * Returns a set with all the filenames contained in the path.
- */
-internal fun Path.toFileNameSet(): Set<String> {
-  val generatedFilesSet = mutableSetOf<String>()
-  @Suppress("BlockingMethodInNonBlockingContext")
-  Files.walkFileTree(this, object : SimpleFileVisitor<Path>() {
-    override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-      file?.let { generatedFilesSet.add(it.fileName.toString()) }
-      @Suppress("BlockingMethodInNonBlockingContext")
-      return super.visitFile(file, attrs)
-    }
-  })
-  return generatedFilesSet
 }

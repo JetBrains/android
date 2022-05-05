@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.idea.editors.fast
 
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
@@ -22,10 +22,10 @@ import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 
-/*
+/**
  * A CompilerDaemonClient that blocks until [complete] is called.
  */
-internal class BlockingDaemonClient : CompilerDaemonClient {
+class BlockingDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
 
   private val compilationRequestFuture = CompletableDeferred<Unit>()

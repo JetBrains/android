@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.runWriteActionAndWait
+import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.fast.CompilationResult
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService

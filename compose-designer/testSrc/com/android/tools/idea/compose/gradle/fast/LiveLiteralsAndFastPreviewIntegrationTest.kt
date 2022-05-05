@@ -19,12 +19,12 @@ import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.fast.CompilationResult
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.isError
-import com.android.tools.idea.compose.preview.fast.isSuccess
-import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.isError
+import com.android.tools.idea.editors.fast.isSuccess
+import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.editors.literals.LiteralUsageReference
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS

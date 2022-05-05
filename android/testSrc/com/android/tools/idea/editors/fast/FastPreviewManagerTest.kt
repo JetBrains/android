@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -212,7 +212,7 @@ internal class FastPreviewManagerTest {
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = { _, _, _, _ ->
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
           override suspend fun compileRequest(files: Collection<PsiFile>,
                                               module: Module,
                                               outputDirectory: Path,
@@ -231,7 +231,7 @@ internal class FastPreviewManagerTest {
     assertTrue(manager.compileRequest(file, projectRule.module).first == CompilationResult.Success)
     run {
       val requestParameters = compilationRequests.single().joinToString("\n")
-        .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+        .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
       assertEquals("""
       /src/test.kt
       light_idea_test_case
@@ -249,7 +249,7 @@ internal class FastPreviewManagerTest {
         """.trimIndent())
         assertTrue(manager.compileRequest(listOf(file2), projectRule.module).first == CompilationResult.Success)
         val requestParameters = compilationRequests.single().joinToString("\n")
-          .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+          .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
         assertEquals("""
         /src/testB.kt
         light_idea_test_case
@@ -268,7 +268,7 @@ internal class FastPreviewManagerTest {
     """.trimIndent())
       assertTrue(manager.compileRequest(listOf(file, file2), projectRule.module).first == CompilationResult.Success)
       val requestParameters = compilationRequests.single().joinToString("\n")
-        .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+        .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
       assertEquals("""
       /src/test.kt
       /src/testC.kt
@@ -303,7 +303,7 @@ internal class FastPreviewManagerTest {
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = { _, _, _, _ ->
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
           override suspend fun compileRequest(files: Collection<PsiFile>,
                                               module: Module,
                                               outputDirectory: Path,
@@ -327,7 +327,7 @@ internal class FastPreviewManagerTest {
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = { _, _, _, _ ->
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
           override suspend fun compileRequest(files: Collection<PsiFile>,
                                               module: Module,
                                               outputDirectory: Path,
@@ -349,7 +349,7 @@ internal class FastPreviewManagerTest {
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = { _, _, _, _ ->
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
           override suspend fun compileRequest(files: Collection<PsiFile>,
                                               module: Module,
                                               outputDirectory: Path,
@@ -396,7 +396,7 @@ internal class FastPreviewManagerTest {
     val manager = FastPreviewManager.getTestInstance(
       project,
       daemonFactory = { _, _, _, _ ->
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+        object : CompilerDaemonClient by NopCompilerDaemonClient {
           override suspend fun compileRequest(files: Collection<PsiFile>,
                                               module: Module,
                                               outputDirectory: Path,

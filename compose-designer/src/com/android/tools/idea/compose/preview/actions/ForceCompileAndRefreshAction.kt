@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.requestBuild

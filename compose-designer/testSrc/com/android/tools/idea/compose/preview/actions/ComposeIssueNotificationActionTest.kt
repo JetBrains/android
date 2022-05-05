@@ -18,10 +18,9 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
-import com.android.tools.idea.compose.preview.fast.DisableReason
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewRule
-import com.android.tools.idea.compose.preview.fast.ManualDisabledReason
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewRule
+import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext

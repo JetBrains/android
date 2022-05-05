@@ -702,6 +702,8 @@
     <statistics.projectUsagesCollector implementation="com.intellij.internal.statistic.collectors.fus.fileTypes.FileTypeUsagesCollector"/>
 
     <iw.actionProvider implementation="com.android.tools.idea.editors.liveedit.ui.LiveEditActionProvider"/>
+
+    <notificationGroup id="Fast Preview Notification" displayType="NONE"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

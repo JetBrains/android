@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.toDisplayString
-import com.android.tools.idea.compose.preview.util.toLogString
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.flags.StudioFlags
@@ -53,13 +50,36 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
+import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.annotations.TestOnly
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.nio.file.Files
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
 private val DEFAULT_RUNTIME_VERSION = GradleVersion.parse("1.1.0-alpha02")
+
+/**
+ * Converts the [Throwable] stacktrace to a string.
+ */
+private fun Throwable.toLogString(): String {
+  val exceptionStackWriter = StringWriter()
+  printStackTrace(PrintWriter(exceptionStackWriter))
+
+  return exceptionStackWriter.toString()
+}
+
+/**
+ * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
+ * milliseconds.
+ */
+private fun Duration.toDisplayString(): String {
+  val durationMs = toMillis()
+  val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
+  return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
+}
 
 data class DisableReason(val title: String, val description: String? = null, val throwable: Throwable? = null) {
   /**
@@ -227,6 +247,8 @@ private fun createCompileRequestId(files: Collection<PsiFile>, module: Module): 
 }
 
 private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.fast.max.cached.requests", 5)
+
+private const val FAST_PREVIEW_NOTIFICATION_GROUP_ID = "Fast Preview Notification"
 
 /**
  * Service that talks to the compiler daemon and manages the daemons and compilation requests.
@@ -410,7 +432,7 @@ class FastPreviewManager private constructor(
         message("event.log.fast.preview.build.successful", durationString)
       else
         message("event.log.fast.preview.build.failed", durationString)
-      Notification(PREVIEW_NOTIFICATION_GROUP_ID,
+      Notification(FAST_PREVIEW_NOTIFICATION_GROUP_ID,
                    buildMessage,
                    if (result.isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
         .notify(project)
@@ -462,7 +484,7 @@ class FastPreviewManager private constructor(
 
     if (newReason && reason != ManualDisabledReason && reason.hasLongDescription) {
       // Log long description to the event log.
-      Notification(PREVIEW_NOTIFICATION_GROUP_ID,
+      Notification(FAST_PREVIEW_NOTIFICATION_GROUP_ID,
                    message("fast.preview.disabled.reason.unable.compile.compiler.error.description"),
                    reason.longDescriptionString(),
                    NotificationType.WARNING)
@@ -512,5 +534,5 @@ class FastPreviewManager private constructor(
   }
 }
 
-internal val Project.fastPreviewManager: FastPreviewManager
+val Project.fastPreviewManager: FastPreviewManager
   get() = FastPreviewManager.getInstance(this)

@@ -30,10 +30,6 @@ import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAct
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
-import com.android.tools.idea.compose.preview.fast.CompilationResult
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
-import com.android.tools.idea.compose.preview.fast.fastCompile
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.CodeOutOfDateTracker
@@ -54,6 +50,10 @@ import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.documentChangeFlow
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewSurface
+import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration

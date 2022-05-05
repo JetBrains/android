@@ -20,9 +20,9 @@ import com.android.tools.adtui.InformationPopup
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.fastPreviewManager
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -193,7 +193,7 @@ private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePrevie
     project.needsBuild -> ComposePreviewStatusNotification.NeedsBuild
     previewStatus.hasSyntaxErrors -> ComposePreviewStatusNotification.SyntaxError
 
-    !FastPreviewManager.getInstance(project).isEnabled && previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
+   !FastPreviewManager.getInstance(project).isEnabled && previewStatus.isOutOfDate -> ComposePreviewStatusNotification.OutOfDate
 
     // Fast preview refresh/failures
     project.fastPreviewManager.isAutoDisabled -> ComposePreviewStatusNotification.FastPreviewFailed

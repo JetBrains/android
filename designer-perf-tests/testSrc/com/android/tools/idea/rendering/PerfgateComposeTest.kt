@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.compose.preview.fast.CompilationResult
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.application.ApplicationManager

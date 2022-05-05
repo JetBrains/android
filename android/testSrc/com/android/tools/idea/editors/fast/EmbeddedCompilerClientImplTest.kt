@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.fast
+package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -24,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.fast.FastPreviewManager
-import com.android.tools.idea.compose.preview.fast.FastPreviewRule
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,7 +24,6 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain

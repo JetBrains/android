@@ -25,8 +25,8 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.fast.CompilationResult
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.deleteLine
