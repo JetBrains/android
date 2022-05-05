@@ -212,46 +212,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     return element == null ? null : element.getRootElement();
   }
 
-  @Nullable
-  public static VirtualFile findSourceRoot(@NotNull Module module, VirtualFile file) {
-    Set<VirtualFile> sourceRoots = new HashSet<>();
-    Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
-
-    while (file != null) {
-      if (sourceRoots.contains(file)) {
-        return file;
-      }
-      file = file.getParent();
-    }
-    return null;
-  }
-
-  @Nullable
-  public static String computePackageName(@NotNull Module module, VirtualFile file) {
-    Set<VirtualFile> sourceRoots = new HashSet<>();
-    Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
-
-    VirtualFile projectDir = module.getProject().getBaseDir();
-    List<String> packages = new ArrayList<>();
-    file = file.getParent();
-
-    while (file != null && !Objects.equals(projectDir, file) && !sourceRoots.contains(file)) {
-      packages.add(file.getName());
-      file = file.getParent();
-    }
-
-    if (file != null && sourceRoots.contains(file)) {
-      StringBuilder packageName = new StringBuilder();
-
-      for (int i = packages.size() - 1; i >= 0; i--) {
-        packageName.append(packages.get(i));
-        if (i > 0) packageName.append('.');
-      }
-      return packageName.toString();
-    }
-    return null;
-  }
-
   public static boolean isAbstract(@NotNull PsiClass c) {
     return (c.isInterface() || c.hasModifierProperty(PsiModifier.ABSTRACT));
   }
@@ -479,26 +439,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     return depFacets;
   }
 
-  @NotNull
-  public static Set<String> getDepLibsPackages(Module module) {
-    Set<String> result = new HashSet<>();
-    HashSet<Module> visited = new HashSet<>();
-
-    if (visited.add(module)) {
-      for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
-        Manifest manifest = Manifest.getMainManifest(depFacet);
-
-        if (manifest != null) {
-          String aPackage = manifest.getPackage().getValue();
-          if (aPackage != null) {
-            result.add(aPackage);
-          }
-        }
-      }
-    }
-    return result;
-  }
-
   public static void checkNewPassword(JPasswordField passwordField, JPasswordField confirmedPasswordField) throws CommitStepException {
     char[] password = passwordField.getPassword();
     char[] confirmedPassword = confirmedPasswordField.getPassword();
@@ -700,10 +640,6 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   public static boolean isIdentifier(@NotNull String candidate) {
     return StringUtil.isJavaIdentifier(candidate) && !JavaLexer.isKeyword(candidate, LanguageLevel.JDK_1_5);
-  }
-
-  public static void reportImportErrorToEventLog(String message, String modName, Project project) {
-    reportImportErrorToEventLog(message, modName, project, null);
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
