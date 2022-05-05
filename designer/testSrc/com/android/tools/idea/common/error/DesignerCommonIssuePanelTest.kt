@@ -47,7 +47,7 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(infoSeverityIssue, warningSeverityIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -92,7 +92,7 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider)
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
