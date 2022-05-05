@@ -130,7 +130,7 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
         .setOrientation(orientation)
         .setRootVisible(true)
         .build()
-      chart.setFocusedNode(nodeTree.focusedNode)
+      chart.focusedNode = nodeTree.focusedNode
       myContentPane.add(chart)
     }
 

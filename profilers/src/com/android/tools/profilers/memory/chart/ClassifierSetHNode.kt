@@ -26,7 +26,7 @@ import java.util.Comparator
  */
 class ClassifierSetHNode(private val callChartModel: MemoryVisualizationModel,
                          val data: ClassifierSet,
-                         private val depth: Int) : HNode<ClassifierSetHNode?> {
+                         private val depth: Int) : HNode<ClassifierSetHNode> {
   /**
    * Not all ClassifierSets have a start / end time. As such a sorted listed of nodes is needed. This list is sorted by the duration
    * and is used to compute the start time offset required by the HTreeChart to determine the rendering order.
