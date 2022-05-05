@@ -33,7 +33,6 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Notifies the physical device table when physical devices are connected, disconnected, and when they become online. The
@@ -46,28 +45,9 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
   private final @NotNull FutureCallback<@NotNull PhysicalDevice> myCallback;
 
-  @VisibleForTesting
-  static final class AddOrSet extends DeviceManagerFutureCallback<PhysicalDevice> {
-    private final @NotNull PhysicalDeviceTableModel myModel;
-
-    @UiThread
-    @VisibleForTesting
-    AddOrSet(@NotNull PhysicalDeviceTableModel model) {
-      super(PhysicalDeviceChangeListener.class);
-      myModel = model;
-    }
-
-    @UiThread
-    @Override
-    public void onSuccess(@Nullable PhysicalDevice device) {
-      assert device != null;
-      myModel.addOrSet(device);
-    }
-  }
-
   @UiThread
   PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
-    this(new DeviceManagerAndroidDebugBridge(), BuilderService::getInstance, new AddOrSet(model));
+    this(new DeviceManagerAndroidDebugBridge(), BuilderService::getInstance, newAddOrSet(model));
   }
 
   @UiThread
@@ -81,6 +61,12 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
     myCallback = callback;
 
     bridge.addDeviceChangeListener(this);
+  }
+
+  @UiThread
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull PhysicalDevice> newAddOrSet(@NotNull PhysicalDeviceTableModel model) {
+    return new DeviceManagerFutureCallback<>(PhysicalDeviceChangeListener.class, model::addOrSet);
   }
 
   @UiThread

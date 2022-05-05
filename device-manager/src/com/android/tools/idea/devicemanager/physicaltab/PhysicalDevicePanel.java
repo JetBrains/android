@@ -63,23 +63,6 @@ public final class PhysicalDevicePanel extends DevicePanel {
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
 
-  @VisibleForTesting
-  static final class SetDevices extends DeviceManagerFutureCallback<List<PhysicalDevice>> {
-    private final @NotNull PhysicalDevicePanel myPanel;
-
-    @VisibleForTesting
-    SetDevices(@NotNull PhysicalDevicePanel panel) {
-      super(PhysicalDevicePanel.class);
-      myPanel = panel;
-    }
-
-    @Override
-    public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
-      assert devices != null;
-      myPanel.setDevices(myPanel.addOfflineDevices(devices));
-    }
-  }
-
   public PhysicalDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
     this(project,
          parent,
@@ -88,7 +71,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
          new PhysicalDeviceAsyncSupplier(project),
-         SetDevices::new,
+         PhysicalDevicePanel::newSetDevices,
          PhysicalDeviceDetailsPanel::new);
   }
 
@@ -121,6 +104,14 @@ public final class PhysicalDevicePanel extends DevicePanel {
 
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetDevices.apply(this));
     Disposer.register(parent, this);
+  }
+
+  @VisibleForTesting
+  static @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
+    return new DeviceManagerFutureCallback<>(PhysicalDevicePanel.class, devices -> {
+      assert devices != null;
+      panel.setDevices(panel.addOfflineDevices(devices));
+    });
   }
 
   private void initPairUsingWiFiButton() {

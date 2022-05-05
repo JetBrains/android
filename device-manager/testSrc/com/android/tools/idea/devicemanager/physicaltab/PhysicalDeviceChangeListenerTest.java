@@ -20,7 +20,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceChangeListener.AddOrSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.util.concurrent.CountDownLatch;
@@ -41,7 +40,8 @@ public final class PhysicalDeviceChangeListenerTest {
   @Test
   public void deviceChangedMaskEqualsChangeProfileableClientList() {
     // Arrange
-    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, new AddOrSet(myModel));
+    FutureCallback<PhysicalDevice> callback = PhysicalDeviceChangeListener.newAddOrSet(myModel);
+    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, callback);
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_PROFILEABLE_CLIENT_LIST);
@@ -57,7 +57,7 @@ public final class PhysicalDeviceChangeListenerTest {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    FutureCallback<PhysicalDevice> callback = new CountDownLatchFutureCallback<>(new AddOrSet(myModel), latch);
+    FutureCallback<PhysicalDevice> callback = new CountDownLatchFutureCallback<>(PhysicalDeviceChangeListener.newAddOrSet(myModel), latch);
     IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, callback);
 
     // Act

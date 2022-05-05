@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
@@ -58,14 +57,7 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
   @WorkerThread
   @VisibleForTesting
   static @NotNull FutureCallback<@NotNull Key> newSetOnline(@NotNull VirtualDeviceTableModel model, boolean online) {
-    return new DeviceManagerFutureCallback<Key>(VirtualDeviceChangeListener.class) {
-      @UiThread
-      @Override
-      public void onSuccess(@Nullable Key key) {
-        assert key != null;
-        model.setOnline(key, online);
-      }
-    };
+    return new DeviceManagerFutureCallback<>(VirtualDeviceChangeListener.class, key -> model.setOnline(key, online));
   }
 
   /**

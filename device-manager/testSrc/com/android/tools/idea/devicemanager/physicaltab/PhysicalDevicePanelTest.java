@@ -29,7 +29,6 @@ import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.TestTables;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetDevices;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -167,7 +166,7 @@ public final class PhysicalDevicePanelTest {
   }
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
-    return new CountDownLatchFutureCallback<>(new SetDevices(panel), myLatch);
+    return new CountDownLatchFutureCallback<>(PhysicalDevicePanel.newSetDevices(panel), myLatch);
   }
 
   @Test
@@ -180,7 +179,7 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      SetDevices::new,
+                                      PhysicalDevicePanel::newSetDevices,
                                       PhysicalDeviceDetailsPanel::new);
 
     // Assert
@@ -203,7 +202,7 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      SetDevices::new,
+                                      PhysicalDevicePanel::newSetDevices,
                                       PhysicalDeviceDetailsPanel::new);
 
     AbstractButton button = myPanel.getPairUsingWiFiButton();

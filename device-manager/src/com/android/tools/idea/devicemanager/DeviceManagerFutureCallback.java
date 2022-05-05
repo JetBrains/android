@@ -17,17 +17,26 @@ package com.android.tools.idea.devicemanager;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class DeviceManagerFutureCallback<V> implements FutureCallback<V> {
+public final class DeviceManagerFutureCallback<V> implements FutureCallback<V> {
+  private final @NotNull Consumer<@Nullable V> myOnSuccess;
   private final @NotNull Class<?> myClass;
 
-  protected DeviceManagerFutureCallback(@NotNull Class<?> c) {
+  public DeviceManagerFutureCallback(@NotNull Class<?> c, @NotNull Consumer<@Nullable V> onSuccess) {
+    myOnSuccess = onSuccess;
     myClass = c;
   }
 
   @Override
-  public final void onFailure(@NotNull Throwable throwable) {
+  public void onSuccess(@Nullable V result) {
+    myOnSuccess.accept(result);
+  }
+
+  @Override
+  public void onFailure(@NotNull Throwable throwable) {
     Logger.getInstance(myClass).warn(throwable);
   }
 }

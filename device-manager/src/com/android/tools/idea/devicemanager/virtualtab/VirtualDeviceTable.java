@@ -70,44 +70,12 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private @Nullable IDeviceChangeListener myListener;
 
   @VisibleForTesting
-  static final class SetDevices extends DeviceManagerFutureCallback<List<VirtualDevice>> {
-    private final @NotNull VirtualDeviceTable myTable;
-    private final @Nullable Key myKey;
-
-    @VisibleForTesting
-    SetDevices(@NotNull VirtualDeviceTable table, @Nullable Key key) {
-      super(VirtualDeviceTable.class);
-
-      myTable = table;
-      myKey = key;
-    }
-
-    @Override
-    public void onSuccess(@Nullable List<@NotNull VirtualDevice> devices) {
-      assert devices != null;
-      myTable.getModel().setDevices(devices);
-
-      if (myKey != null) {
-        myTable.setSelectedDevice(myKey);
-      }
-
-      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_COUNT)
-        .setVirtualDeviceCount(devices.size())
-        .build();
-
-      DeviceManagerUsageTracker.log(event);
-    }
-  }
-
-  @VisibleForTesting
   interface NewSetDevices {
     @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table, @Nullable Key key);
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    // noinspection ConstantConditions
-    this(panel, new VirtualDeviceAsyncSupplier(), SetDevices::new);
+    this(panel, new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices);
   }
 
   @VisibleForTesting
@@ -158,6 +126,25 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
       .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, listener);
 
     refreshAvds();
+  }
+
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table,
+                                                                                      @Nullable Key key) {
+    return new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, devices -> {
+      table.getModel().setDevices(devices);
+
+      if (key != null) {
+        table.setSelectedDevice(key);
+      }
+
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
+        .setVirtualDeviceCount(devices.size())
+        .build();
+
+      DeviceManagerUsageTracker.log(event);
+    });
   }
 
   private void initListener() {

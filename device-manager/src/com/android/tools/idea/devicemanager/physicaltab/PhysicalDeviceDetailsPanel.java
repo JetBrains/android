@@ -63,29 +63,6 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  static final class SummarySectionCallback extends DeviceManagerFutureCallback<PhysicalDevice> {
-    private final @NotNull SummarySection mySection;
-
-    @VisibleForTesting
-    SummarySectionCallback(@NotNull SummarySection section) {
-      super(PhysicalDeviceDetailsPanel.class);
-      mySection = section;
-    }
-
-    @Override
-    public void onSuccess(@Nullable PhysicalDevice device) {
-      assert device != null;
-
-      InfoSection.setText(mySection.myApiLevelLabel, device.getAndroidVersion().getApiString());
-      InfoSection.setText(mySection.myPowerLabel, device.getPower());
-      InfoSection.setText(mySection.myResolutionLabel, device.getResolution());
-      InfoSection.setText(mySection.myDpLabel, device.getDp());
-      InfoSection.setText(mySection.myAbiListLabel, device.getAbis());
-      InfoSection.setText(mySection.myAvailableStorageLabel, device.getStorageDevice());
-    }
-  }
-
-  @VisibleForTesting
   interface NewInfoSectionCallback<S> {
     @NotNull FutureCallback<@NotNull PhysicalDevice> apply(@NotNull S section);
   }
@@ -96,7 +73,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
 
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull AsyncDetailsBuilder builder) {
-    this(device, builder, SummarySectionCallback::new, WearPairingManager.INSTANCE);
+    this(device, builder, PhysicalDeviceDetailsPanel::newSummarySectionCallback, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting
@@ -123,6 +100,18 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     }
 
     init();
+  }
+
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section) {
+    return new DeviceManagerFutureCallback<>(PhysicalDeviceDetailsPanel.class, device -> {
+      InfoSection.setText(section.myApiLevelLabel, device.getAndroidVersion().getApiString());
+      InfoSection.setText(section.myPowerLabel, device.getPower());
+      InfoSection.setText(section.myResolutionLabel, device.getResolution());
+      InfoSection.setText(section.myDpLabel, device.getDp());
+      InfoSection.setText(section.myAbiListLabel, device.getAbis());
+      InfoSection.setText(section.myAvailableStorageLabel, device.getStorageDevice());
+    });
   }
 
   @Override

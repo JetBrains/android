@@ -24,7 +24,6 @@ import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySection;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySectionCallback;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -77,7 +76,7 @@ public final class PhysicalDeviceDetailsPanelTest {
 
   private static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
                                                                                             @NotNull CountDownLatch latch) {
-    return new CountDownLatchFutureCallback<>(new SummarySectionCallback(section), latch);
+    return new CountDownLatchFutureCallback<>(PhysicalDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
   @Test
