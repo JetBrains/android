@@ -57,6 +57,7 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.event.FocusEvent
 import java.util.stream.Stream
+import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -250,6 +251,46 @@ class RuleDetailsViewTest {
         assertThat(criteria.method).isEqualTo("POST")
       }
     }
+  }
+
+  @Test
+  fun updateStatusCodeFromDetailsView() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val originPanel = ruleDetailsView.getCategoryPanel("Response") as JPanel
+    val findCodeTextField = originPanel.getValueComponent("Apply rule for status") as JTextField
+    val newCodeTextField = originPanel.findLabels("Replace with status code").getIfSingle()!!.parent.getComponent(2) as JTextField
+    val isActiveCheckBox = TreeWalker(originPanel).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    findCodeTextField.text = "200"
+    findCodeTextField.onFocusLost()
+    assertThat(newCodeTextField.isEnabled).isFalse()
+    isActiveCheckBox.doClick()
+    assertThat(newCodeTextField.isEnabled).isTrue()
+    newCodeTextField.text = "404"
+    newCodeTextField.onFocusLost()
+
+    client.verifyLatestCommand {
+      val transformation = it.interceptRuleAdded.rule.getTransformation(0)
+      assertThat(transformation.hasStatusCodeReplaced()).isTrue()
+      transformation.statusCodeReplaced.also { statusCodeReplaced ->
+        assertThat(statusCodeReplaced.newCode).isEqualTo("404")
+        assertThat(statusCodeReplaced.targetCode.type).isEqualTo(Type.PLAIN)
+        assertThat(statusCodeReplaced.targetCode.text).isEqualTo("200")
+      }
+    }
+
+    // Add a new rule and select the old rule back to verify if the data are saved.
+    addNewRule()
+    val table = inspectorView.rulesView.table
+    table.selectionModel.addSelectionInterval(0, 0)
+    val savedOriginPanel = ruleDetailsView.getCategoryPanel("Response") as JPanel
+    val savedFindCodeTextField = savedOriginPanel.getValueComponent("Apply rule for status") as JTextField
+    val savedNewCodeTextField = savedOriginPanel.findLabels("Replace with status code").getIfSingle()!!.parent.getComponent(2) as JTextField
+    val savedIsActiveCheckBox = TreeWalker(savedOriginPanel).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    assertThat(savedFindCodeTextField.text).isEqualTo("200")
+    assertThat(savedFindCodeTextField.isEnabled).isTrue()
+    assertThat(savedNewCodeTextField.text).isEqualTo("404")
+    assertThat(savedIsActiveCheckBox.isSelected).isTrue()
   }
 
   @Test
@@ -600,8 +641,8 @@ class RuleDetailsViewTest {
     focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
   }
 
-  private fun findAction(decoratedTable: Component, templateText: String) = TreeWalker(
-    decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0].actions.first { it.templateText?.contains(templateText) == true }
+  private fun findAction(decoratedTable: Component, templateText: String) = TreeWalker(decoratedTable)
+    .descendants().filterIsInstance<ActionToolbar>()[0].actions.first { it.templateText?.contains(templateText) == true }
 
   private fun Component.isVisibleToRoot(root: Component): Boolean {
     var current = this

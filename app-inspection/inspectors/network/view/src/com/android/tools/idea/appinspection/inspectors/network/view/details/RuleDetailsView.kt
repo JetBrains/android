@@ -26,6 +26,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.createDecoratedTable
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.ui.ToolbarDecorator
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.TableView
@@ -87,6 +89,8 @@ class RuleDetailsView : JPanel() {
 
     detailsPanel.add(createOriginCategoryPanel(rule))
 
+    detailsPanel.add(createStatusCodeCategoryPanel(rule))
+
     detailsPanel.add(createCategoryPanel("Header rules", listOf(
       createRulesTable(rule.headerRuleTableModel)
     )))
@@ -98,6 +102,33 @@ class RuleDetailsView : JPanel() {
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
     detailsPanel.isOpaque
+  }
+
+  private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
+    val statusCodeData = rule.statusCodeRuleData
+    val findCodeTextField = createTextField(statusCodeData.findCode, NUMBER_LABEL_WIDTH) {
+      statusCodeData.findCode = it
+    }
+    val newCodeTextField = createTextField(statusCodeData.newCode, NUMBER_LABEL_WIDTH) {
+      statusCodeData.newCode = it
+    }
+    val isActiveCheckBox = JBCheckBox().apply {
+      isSelected = statusCodeData.isActive
+      newCodeTextField.isEnabled = isSelected
+      addActionListener {
+        statusCodeData.isActive = isSelected
+        newCodeTextField.isEnabled = isSelected
+      }
+    }
+    val newCodePanel = JPanel(TabularLayout("Fit,2px,Fit,30px,Fit")).apply {
+      add(isActiveCheckBox, TabularLayout.Constraint(0, 0))
+      add(JBLabel("Replace with status code"), TabularLayout.Constraint(0, 2))
+      add(newCodeTextField, TabularLayout.Constraint(0, 4))
+    }
+    return createCategoryPanel("Response", listOf(
+      createKeyValuePair("Apply rule for status", findCodeTextField),
+      newCodePanel
+    ))
   }
 
   private fun createOriginCategoryPanel(rule: RuleData): JPanel {

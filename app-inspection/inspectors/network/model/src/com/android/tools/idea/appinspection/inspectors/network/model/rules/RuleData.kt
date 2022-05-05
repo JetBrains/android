@@ -83,6 +83,22 @@ class RuleData(
     fun toProto(): Transformation
   }
 
+  inner class StatusCodeRuleData(findCode: String, isActive: Boolean, newCode: String) : TransformationRuleData {
+    var findCode: String by Delegate(findCode, ruleDataListener::onRuleDataChanged)
+    var isActive: Boolean by Delegate(isActive, ruleDataListener::onRuleDataChanged)
+    var newCode: String by Delegate(newCode, ruleDataListener::onRuleDataChanged)
+
+    override fun toProto(): Transformation = Transformation.newBuilder().apply {
+      statusCodeReplacedBuilder.apply {
+        targetCodeBuilder.apply {
+          type = Type.PLAIN
+          text = findCode
+        }
+        newCode = this@StatusCodeRuleData.newCode
+      }
+    }.build()
+  }
+
   class HeaderAddedRuleData(val name: String, val value: String) : TransformationRuleData {
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       headerAddedBuilder.apply {
@@ -193,11 +209,15 @@ class RuleData(
   var isActive: Boolean by Delegate(isActive, ruleDataListener::onRuleIsActiveChanged)
 
   val criteria = CriteriaData()
+  val statusCodeRuleData = StatusCodeRuleData("", false, "")
   val headerRuleTableModel = HeaderRulesTableModel()
   val bodyRuleTableModel = BodyRulesTableModel()
 
   fun toProto(): InterceptRule = InterceptRule.newBuilder().apply {
     criteria = this@RuleData.criteria.toProto()
+    if (statusCodeRuleData.isActive) {
+      addTransformation(statusCodeRuleData.toProto())
+    }
     addAllTransformation(headerRuleTableModel.items.map { it.toProto() })
     addAllTransformation(bodyRuleTableModel.items.map { it.toProto() })
   }.build()
