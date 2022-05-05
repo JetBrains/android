@@ -259,8 +259,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
     myActivityRestartDescription.setText(
       "<html>Enabling this option sets a required global flag on the device at deploy time. This avoids having to later restart the " +
-      "activity in order to enable the flag when connecting to the Layout Inspector. " +
-      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a></html>");
+      "activity in order to enable the flag when connecting to the Layout Inspector.<br/>" +
+      "An alternative is to activate \"Enable view attribute inspection\" in the developer options on the device. " +
+      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a><br/></html>");
     myActivityRestartDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 }

@@ -789,8 +789,9 @@ class AppInspectionInspectorClientTest {
 
   private fun verifyActivityRestartBanner(banner: InspectorBanner, runConfigActionExpected: Boolean) {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by enabling " +
-                                           "\"Connect without restarting activity\" in the run configuration options.")
+    assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by selecting " +
+                                           "\"Enable view attribute inspection\" in the developer options on the device or " +
+                                           "by enabling \"Connect without restarting activity\" in the run configuration options.")
     val service = InspectorBannerService.getInstance(inspectorRule.project)
     service.DISMISS_ACTION.actionPerformed(mock())
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
