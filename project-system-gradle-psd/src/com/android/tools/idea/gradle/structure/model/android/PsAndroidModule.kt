@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -33,7 +32,7 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
 import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
-import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
+import com.android.tools.idea.fileTypes.AndroidIconProvider.getAndroidModuleIcon
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.utils.combineAsCamelCase
 import com.android.utils.usLocaleCapitalize

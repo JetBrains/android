@@ -16,9 +16,9 @@
 package com.android.tools.idea.navigator.nodes.android
 
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.fileTypes.AndroidIconProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidViewNodes
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
@@ -102,7 +102,7 @@ class AndroidModuleNode(
     }
     // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
     // This can happen when a module was just deleted, see b/67838273.
-    presentation.setIcon(GradleUtil.getModuleIcon(module))
+    presentation.setIcon(AndroidIconProvider.getModuleIcon(module))
   }
 
   companion object {

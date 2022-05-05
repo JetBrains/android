@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon;
 
 public class ApplicationPresentationProvider extends PresentationProvider<Application> {
   @Nullable

@@ -21,12 +21,12 @@ import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
+import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -906,7 +906,7 @@ public class BuildVariantView {
           String modulePath = GradleProjects.getGradleModulePath(module);
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
-          moduleIcon = GradleUtil.getModuleIcon(module);
+          moduleIcon = AndroidIconProvider.getModuleIcon(module);
           isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }

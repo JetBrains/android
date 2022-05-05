@@ -27,7 +27,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -36,11 +35,6 @@ import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
-import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
-import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
-import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -51,8 +45,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -60,7 +52,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -78,7 +69,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javax.swing.Icon;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
@@ -109,44 +99,6 @@ public final class GradleUtil {
   private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
-  }
-
-  @NotNull
-  public static Icon getModuleIcon(@NotNull Module module) {
-    if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
-      return getAndroidModuleIcon(getModuleSystem(module));
-    } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
-      return ANDROID_MODULE;
-    }
-
-
-    return AllIcons.Nodes.Module;
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem androidModuleSystem) {
-    return getAndroidModuleIcon(androidModuleSystem.getType());
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem.Type androidProjectType) {
-    switch (androidProjectType) {
-      case TYPE_NON_ANDROID:
-        return AllIcons.Nodes.Module;
-      case TYPE_APP:
-        return ANDROID_MODULE;
-      case TYPE_FEATURE:
-      case TYPE_DYNAMIC_FEATURE:
-        return FEATURE_MODULE;
-      case TYPE_INSTANTAPP:
-        return INSTANT_APPS;
-      case TYPE_LIBRARY:
-        return LIBRARY_MODULE;
-      case TYPE_TEST:
-        return ANDROID_TEST_ROOT;
-      default:
-        return ANDROID_MODULE;
-    }
   }
 
   @NotNull
