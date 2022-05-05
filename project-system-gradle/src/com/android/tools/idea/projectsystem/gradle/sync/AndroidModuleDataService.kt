@@ -27,13 +27,14 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
+import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.unlinkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
+import com.android.tools.idea.gradle.project.sync.setProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
@@ -196,13 +197,15 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
     //  that we should be able to move this to some kind of sync listener.
-    val data = project.getUserData(PROJECT_SYNC_REQUEST)
-    val trigger = data?.takeIf { it.projectRoot == project.basePath }?.trigger
-    if (trigger != null) {
-      project.putUserData(PROJECT_SYNC_REQUEST, null)
-      if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
-        AndroidPluginInfo.findFromModel(project)?.let { info ->
-          project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+    if (projectData != null) {
+      val projectSyncRequest = project.getProjectSyncRequest(projectData.linkedExternalProjectPath)
+      val trigger = projectSyncRequest?.trigger
+      if (trigger != null) {
+        project.setProjectSyncRequest(projectData.linkedExternalProjectPath, null)
+        if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
+          AndroidPluginInfo.findFromModel(project)?.let { info ->
+            project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+          }
         }
       }
     }

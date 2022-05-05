@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.gradle.project.sync.GradleSyncStateImplKt.PROJECT_SYNC_REQUEST;
+import static com.android.tools.idea.gradle.project.sync.GradleSyncStateImplKt.setProjectSyncRequest;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
-import com.android.tools.idea.gradle.project.sync.ProjectSyncRequest;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
@@ -134,7 +133,7 @@ public class GradleSyncExecutor {
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
       if (request.getDontFocusSyncFailureOutput()) builder.dontReportRefreshErrors();
-      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.getTrigger()));
+      setProjectSyncRequest(myProject, rootPath, request);
       refreshProject(rootPath, builder.build());
     }
   }

@@ -57,8 +57,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
+import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
@@ -68,11 +70,6 @@ import kotlin.concurrent.withLock
 
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
-
-data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger)
-
-@JvmField
-val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST")
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -430,10 +427,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
       val trigger =
-        project.getUserData(PROJECT_SYNC_REQUEST)
-          ?.takeIf { it.projectRoot == workingDir }
+        project.getProjectSyncRequest(workingDir)?.trigger
       if (!GradleSyncStateHolder.getInstance(project)
-          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
+          .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
       ) {
         stopTrackingTask(project, id)
         return
@@ -487,6 +483,25 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       return syncStateUpdaterService.stopTrackingTask(buildId)
     }
   }
+}
+
+private val PROJECT_SYNC_REQUESTS = Key.create<Map<String, GradleSyncInvoker.Request>>("PROJECT_SYNC_REQUESTS")
+
+internal fun Project.getProjectSyncRequest(rootPath: String): GradleSyncInvoker.Request? {
+  return getUserData(PROJECT_SYNC_REQUESTS)?.get(toSystemIndependentName(toSystemIndependentName(rootPath)))
+}
+
+@JvmName("setProjectSyncRequest")
+internal fun Project.setProjectSyncRequest(rootPath: String, request: GradleSyncInvoker.Request?) {
+  val systemIndependentRootPath = toSystemIndependentName(rootPath)
+  do {
+    val currentRequests = getUserData(PROJECT_SYNC_REQUESTS)
+    val newRequests =
+      when {
+        request != null -> currentRequests.orEmpty() + (systemIndependentRootPath to request)
+        else -> currentRequests.orEmpty() - systemIndependentRootPath
+      }
+  } while (!(this as UserDataHolderEx).replace(PROJECT_SYNC_REQUESTS, currentRequests, newRequests))
 }
 
 private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
