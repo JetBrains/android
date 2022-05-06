@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.fast
 
-import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
@@ -224,8 +222,6 @@ internal class FastPreviewManagerTest {
           }
         }
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
@@ -290,8 +286,6 @@ internal class FastPreviewManagerTest {
       daemonFactory = {
         throw IllegalStateException("Unable to start compiler")
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
@@ -316,8 +310,6 @@ internal class FastPreviewManagerTest {
           }
         }
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
@@ -340,8 +332,6 @@ internal class FastPreviewManagerTest {
                                               indicator: ProgressIndicator): CompilationResult = CompilationResult.DaemonError(-1)
         }
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
@@ -366,8 +356,6 @@ internal class FastPreviewManagerTest {
           }
         }
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
@@ -428,8 +416,6 @@ internal class FastPreviewManagerTest {
           }
         }
       },
-      moduleClassPathLocator = { listOf("b/c/Test.class") },
-      moduleDependenciesClassPathLocator = { listOf("A.jar") },
       moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }

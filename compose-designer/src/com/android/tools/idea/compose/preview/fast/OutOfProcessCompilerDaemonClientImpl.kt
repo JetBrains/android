@@ -17,10 +17,14 @@ package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.StudioPathManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -29,9 +33,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.uipreview.getLibraryDependenciesJars
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.streams.toList
 
 
 /** Command received from the daemon to indicate the result is available. */
@@ -57,22 +65,44 @@ private val FIXED_COMPILER_ARGS = listOf(
 private val LIVE_LITERALS_ARGS = listOf("-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=true")
 
 /**
- * Starts the daemon in the given [daemonPath].
+ * Default class path locator that returns the classpath for the module source code (excluding dependencies).
  */
-private fun startDaemon(daemonPath: String): Process {
-  val javaCommand = IdeSdks.getInstance().jdk
-                      ?.homePath
-                      ?.let { javaHomePath -> "$javaHomePath/bin/java" }
-                    ?: throw IllegalStateException("No SDK found")
-  return ProcessBuilder().command(
-    listOfNotNull(
-      javaCommand,
-      // This flag can be used to start the daemon in debug mode and debug issues on the daemon JVM.
-      if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
-      "-jar",
-      daemonPath
-    )
-  ).redirectError(ProcessBuilder.Redirect.INHERIT).start()
+private fun defaultModuleCompileClassPathLocator(module: Module): List<String> =
+  GradleClassFinderUtil.getModuleCompileOutputs(module, true)
+    .filter { it.exists() }
+    .map { it.absolutePath.toString() }
+    .toList()
+
+/**
+ * Default class path locator that returns the classpath containing the dependencies of [module] to pass to the compiler.
+ */
+private fun defaultModuleDependenciesCompileClassPathLocator(module: Module): List<String> {
+  val libraryDeps = module.getLibraryDependenciesJars()
+    .map { it.toString() }
+
+  val bootclassPath = AndroidPlatform.getInstance(module)
+                        ?.target
+                        ?.bootClasspath ?: listOf()
+  // The Compose plugin is included as part of the fat daemon jar so no need to specify it
+
+  return (libraryDeps + bootclassPath)
+}
+
+/**
+ * Finds the `kotlin-compiler-daemon` jar for the given [version] that is included as part of the plugin.
+ * This method does not check the path actually exists.
+ */
+private fun findDaemonPath(version: String): String {
+  val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
+  val jarRootPath = if (StudioPathManager.isRunningFromSources()) {
+    StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/compose-designer/lib/").toString()
+  }
+  else {
+    // When running as part of the distribution, we allow also to override the path to the daemon via a system property.
+    System.getProperty("preview.live.edit.daemon.path", FileUtil.join(homePath, "plugins/design-tools/resources/"))
+  }
+
+  return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
 }
 
 /**
@@ -92,12 +122,45 @@ private fun startDaemon(daemonPath: String): Process {
  * @param log [Logger] used to log the debug output of the daemon.
  */
 @Suppress("BlockingMethodInNonBlockingContext") // All calls are running within the IO context
-internal class OutOfProcessCompilerDaemonClientImpl(daemonPath: String,
+internal class OutOfProcessCompilerDaemonClientImpl(version: String,
                                                     private val scope: CoroutineScope,
                                                     private val log: Logger,
-                                                    private val moduleClassPathLocator: (Module) -> List<String>,
-                                                    private val moduleDependenciesClassPathLocator: (Module) -> List<String>
+                                                    private val moduleClassPathLocator: (Module) -> List<String> = ::defaultModuleCompileClassPathLocator,
+                                                    private val moduleDependenciesClassPathLocator: (Module) -> List<String> = ::defaultModuleDependenciesCompileClassPathLocator
 ) : CompilerDaemonClient {
+  private fun getDaemonPath(version: String): String =
+    // Prepare fallback versions
+    linkedSetOf(
+      version,
+      "${version.substringBeforeLast("-")}-fallback", // Find the fallback artifact for this same version
+      "${version.substringBeforeLast(".")}.0-fallback",  // Find the fallback artifact for the same major version, e.g. 1.1
+      "${version.substringBefore(".")}.0.0-fallback"  // Find the fallback artifact for the same major version, e.g. 1
+    ).asSequence().map {
+      log.debug("Looking for kotlin daemon version '${version}'")
+      findDaemonPath(it)
+    }.find { FileUtil.exists(it) } ?: throw FileNotFoundException("Unable to find kotlin daemon for version '$version'")
+
+  /**
+   * Starts the daemon in the given [daemonPath].
+   */
+  private fun startDaemon(daemonPath: String): Process {
+    log.info("Starting daemon $daemonPath")
+    val javaCommand = IdeSdks.getInstance().jdk
+                        ?.homePath
+                        ?.let { javaHomePath -> "$javaHomePath/bin/java" }
+                      ?: throw IllegalStateException("No SDK found")
+    return ProcessBuilder().command(
+      listOfNotNull(
+        javaCommand,
+        // This flag can be used to start the daemon in debug mode and debug issues on the daemon JVM.
+        if (StudioFlags.COMPOSE_FAST_PREVIEW_DAEMON_DEBUG.get()) DAEMON_DEBUG_SETTINGS else null,
+        "-jar",
+        daemonPath
+      )
+    ).redirectError(ProcessBuilder.Redirect.INHERIT).start()
+  }
+
+  private val daemonPath: String = getDaemonPath(version)
   private val daemonShortId = daemonPath.substringAfterLast("/")
 
   data class Request(val parameters: List<String>, val onComplete: (CompilationResult) -> Unit) {
