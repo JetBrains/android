@@ -265,10 +265,14 @@ class LayoutInspectorRule(
                                                                            projectRule.fixture.testRootDisposable)
   }
 
-  private fun after() {
+  fun disconnect() {
     // Disconnect the active client explicitly and block until it's done, since otherwise this
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
+  }
+
+  private fun after() {
+    disconnect()
   }
 
   override fun apply(base: Statement, description: Description): Statement {

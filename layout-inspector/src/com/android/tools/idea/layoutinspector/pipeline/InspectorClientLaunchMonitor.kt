@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.util.ListenerCollection
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -60,7 +61,7 @@ class InspectorClientLaunchMonitor(
           client?.let { client ->
             Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
               "Client $client timed out during attach at step $currentProgress")
-            logAttachError()
+            logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
             client.disconnect()
           }
         },
@@ -69,14 +70,14 @@ class InspectorClientLaunchMonitor(
     }
   }
 
-  fun onFailure() {
-    logAttachError()
+  fun onFailure(t: Throwable) {
+    logAttachError(t.errorCode)
     stop()
   }
 
-  private fun logAttachError() {
+  private fun logAttachError(errorCode: AttachErrorCode) {
     LayoutInspectorMetrics(null, client?.process, null, null).logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress)
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, currentProgress, errorCode)
   }
 
   fun stop() {

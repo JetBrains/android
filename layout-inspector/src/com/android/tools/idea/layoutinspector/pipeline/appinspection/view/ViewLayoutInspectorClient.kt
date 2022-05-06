@@ -217,7 +217,7 @@ class ViewLayoutInspectorClient(
       }.build()
     }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
-      throw ConnectionFailedException(response.startFetchResponse.error)
+      throw ConnectionFailedException(response.startFetchResponse.error, response.startFetchResponse.code.toAttachErrorCode())
     }
   }
 

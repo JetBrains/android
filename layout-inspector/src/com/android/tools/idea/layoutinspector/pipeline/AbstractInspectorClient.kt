@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
@@ -25,6 +32,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -120,7 +128,7 @@ abstract class AbstractInspectorClient(
       }
 
       override fun onFailure(t: Throwable) {
-        launchMonitor.onFailure()
+        launchMonitor.onFailure(t)
         disconnect()
         Logger.getInstance(AbstractInspectorClient::class.java).warn(
           "Connection failure with " +
@@ -157,4 +165,17 @@ abstract class AbstractInspectorClient(
   protected abstract fun doDisconnect(): ListenableFuture<Nothing>
 }
 
-class ConnectionFailedException(message: String): Exception(message)
+class ConnectionFailedException(message: String, val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE): Exception(message)
+
+val Throwable.errorCode: AttachErrorCode
+  get() = when (this) {
+    is ConnectionFailedException -> code
+    is AppInspectionCannotFindAdbDeviceException -> AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE
+    is AppInspectionProcessNoLongerExistsException -> AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS
+    is AppInspectionVersionIncompatibleException -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+    is AppInspectionLibraryMissingException -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
+    is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+    is AppInspectionArtifactNotFoundException -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
+    is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
+    else -> AttachErrorCode.UNKNOWN_ERROR_CODE
+  }

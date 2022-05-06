@@ -843,9 +843,21 @@ class FakeInspectorState(
   }
 
   fun simulateComposeVersionWithoutUpdateSettingsCommand() {
-    composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { _ ->
+    composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder().apply {
         unknownCommandResponse = LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance()
+      }.build()
+    }
+  }
+
+  fun simulateNoHardwareAccelerationErrorFromStartCapturing() {
+    viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        startFetchResponseBuilder.apply {
+          error = "Activity must be hardware accelerated for live inspection"
+
+          code = LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION
+        }
       }.build()
     }
   }

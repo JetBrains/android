@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
@@ -41,7 +42,11 @@ class LayoutInspectorMetrics(
     loggedInitialConnect = false
   }
 
-  fun logEvent(eventType: DynamicLayoutInspectorEventType, errorState: AttachErrorState? = null) {
+  fun logEvent(
+    eventType: DynamicLayoutInspectorEventType,
+    errorState: AttachErrorState? = null,
+    errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+  ) {
     when(eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
@@ -61,6 +66,7 @@ class LayoutInspectorMetrics(
         if (errorState != null) {
           errorInfoBuilder.apply {
             attachErrorState = errorState
+            attachErrorCode = errorCode
           }
         }
       }
