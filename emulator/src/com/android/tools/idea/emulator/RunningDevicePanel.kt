@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.analytics.UsageTracker
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.Icon
@@ -32,9 +35,37 @@ abstract class RunningDevicePanel(val id: DeviceId) : BorderLayoutPanel(), DataP
 
   abstract var zoomToolbarVisible: Boolean
 
-  abstract fun setDeviceFrameVisible(visible: Boolean)
-  abstract fun destroyContent(): UiState
+  // Start time of the current device mirroring session in milliseconds since epoch.
+  private var mirroringStartTime: Long = 0
+
   abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
+  abstract fun destroyContent(): UiState
+  abstract fun setDeviceFrameVisible(visible: Boolean)
+
+  /**
+   * Records starts of device mirroring.
+   */
+  protected fun mirroringStarted() {
+    mirroringStartTime = System.currentTimeMillis()
+  }
+
+  /**
+   * Records end of device mirroring.
+   */
+  protected fun mirroringEnded(deviceKind: DeviceMirroringSession.DeviceKind) {
+    val durationSec = (System.currentTimeMillis() - mirroringStartTime) / 1000
+    mirroringStartTime = 0
+
+    val studioEvent = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION)
+      .setDeviceMirroringSession(
+        DeviceMirroringSession.newBuilder()
+          .setDeviceKind(deviceKind)
+          .setDurationSec(durationSec)
+      )
+
+    UsageTracker.log(studioEvent)
+  }
 
   interface UiState
 }

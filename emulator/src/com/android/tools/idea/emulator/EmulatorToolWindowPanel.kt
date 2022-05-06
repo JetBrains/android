@@ -29,6 +29,7 @@ import com.android.tools.idea.emulator.actions.showExtendedControls
 import com.android.tools.idea.emulator.actions.showManageSnapshotsDialog
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.utils.HashCodes
+import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -165,6 +166,8 @@ class EmulatorToolWindowPanel(
    * Populates the emulator panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    mirroringStarted()
+
     lastUiState = null
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
@@ -224,6 +227,8 @@ class EmulatorToolWindowPanel(
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
   override fun destroyContent(): EmulatorUiState {
+    mirroringEnded(DeviceMirroringSession.DeviceKind.VIRTUAL)
+
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.emulator.AbstractDisplayPanel
 import com.android.tools.idea.emulator.DeviceId
 import com.android.tools.idea.emulator.RunningDevicePanel
 import com.android.tools.idea.emulator.installFileDropHandler
+import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -103,6 +104,8 @@ internal class DeviceToolWindowPanel(
    * Populates the device panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    mirroringStarted()
+
     lastUiState = null
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
@@ -125,6 +128,8 @@ internal class DeviceToolWindowPanel(
    * Destroys content of the device panel and returns its state for later recreation.
    */
   override fun destroyContent(): DeviceUiState {
+    mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
+
     val uiState = DeviceUiState()
     uiState.orientation = primaryDeviceView?.displayRotationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
