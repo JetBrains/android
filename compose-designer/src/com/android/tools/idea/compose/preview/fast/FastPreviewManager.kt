@@ -192,21 +192,7 @@ private fun defaultRuntimeVersionLocator(module: Module): GradleVersion =
     ?.version ?: DEFAULT_RUNTIME_VERSION
 
 /**
- * Default daemon factory to be used in production. This factory will instantiate [OutOfProcessCompilerDaemonClientImpl] for the
- * given version.
- * This factory will try to find a daemon for the given specific version or fallback to a stable one if the specific one
- * is not found. For example, for `1.1.0-alpha02`, this factory will try to locate the jar for the daemon
- * `kotlin-compiler-daemon-1.1.0-alpha02.jar`. If not found, it will alternatively try `kotlin-compiler-daemon-1.1.0.jar` since
- * it should be compatible.
- */
-private fun defaultDaemonFactory(version: String,
-                                 log: Logger,
-                                 scope: CoroutineScope): CompilerDaemonClient {
-  return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
-}
-
-/**
- * Same as [defaultDaemonFactory] but it returns a [CompilerDaemonClient] that uses the in-process compiler. This is the same
+ * Returns a [CompilerDaemonClient] that uses the in-process compiler. This is the same
  * compiler used by the Emulator Live Edit.
  */
 private fun embeddedDaemonFactory(project: Project, log: Logger): CompilerDaemonClient {
@@ -254,7 +240,7 @@ private val DEFAULT_MAX_CACHED_REQUESTS = Integer.getInteger("preview.fast.max.c
 @Service
 class FastPreviewManager private constructor(
   private val project: Project,
-  alternativeDaemonFactory: ((String) -> CompilerDaemonClient)? = null,
+  alternativeDaemonFactory: ((String, Project, Logger, CoroutineScope) -> CompilerDaemonClient)? = null,
   private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
@@ -268,11 +254,8 @@ class FastPreviewManager private constructor(
     get() = _isDisposed.get()
 
   private val scope = AndroidCoroutineScope(this, workerThread)
-  private val daemonFactory = alternativeDaemonFactory ?: {
-    if (StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON.get())
-      embeddedDaemonFactory(project, log)
-    else
-      defaultDaemonFactory(it, log, scope)
+  private val daemonFactory: ((String) -> CompilerDaemonClient) = { version ->
+    alternativeDaemonFactory?.invoke(version, project, log, scope) ?: embeddedDaemonFactory(project, log)
   }
   private val daemonRegistry = DaemonRegistry(scope, daemonFactory).also {
     Disposer.register(this@FastPreviewManager, it)
@@ -512,7 +495,7 @@ class FastPreviewManager private constructor(
 
     @TestOnly
     fun getTestInstance(project: Project,
-                        daemonFactory: (String) -> CompilerDaemonClient,
+                        daemonFactory: (String, Project, Logger, CoroutineScope) -> CompilerDaemonClient,
                         moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
                         maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): FastPreviewManager =
       FastPreviewManager(project = project,

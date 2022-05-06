@@ -60,7 +60,7 @@ class ProjectBuildStatusManagerTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     val blockingDaemon = BlockingDaemonClient()
-    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { blockingDaemon }).also {
+    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
       Disposer.register(projectRule.fixture.testRootDisposable, it)
     }
 

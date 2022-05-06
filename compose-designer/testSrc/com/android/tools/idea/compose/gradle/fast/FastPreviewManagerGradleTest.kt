@@ -20,7 +20,9 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.fast.CompilationResult
+import com.android.tools.idea.compose.preview.fast.CompilerDaemonClient
 import com.android.tools.idea.compose.preview.fast.FastPreviewManager
+import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.toFileNameSet
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
@@ -35,14 +37,18 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -62,6 +68,20 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
+/**
+ * This factory will instantiate [OutOfProcessCompilerDaemonClientImpl] for the given version.
+ * This factory will try to find a daemon for the given specific version or fallback to a stable one if the specific one
+ * is not found. For example, for `1.1.0-alpha02`, this factory will try to locate the jar for the daemon
+ * `kotlin-compiler-daemon-1.1.0-alpha02.jar`. If not found, it will alternatively try `kotlin-compiler-daemon-1.1.0.jar` since
+ * it should be compatible.
+ */
+private fun defaultDaemonFactory(version: String,
+                                 project: Project,
+                                 log: Logger,
+                                 scope: CoroutineScope): CompilerDaemonClient {
+  return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
+}
+
 @RunWith(Parameterized::class)
 class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   companion object {
@@ -77,8 +97,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @get:Rule
   val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
-  @get:Rule
-  val useInProcessCompilerFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW_USE_IN_PROCESS_DAEMON, useEmbeddedCompiler)
   lateinit var psiMainFile: PsiFile
   lateinit var fastPreviewManager: FastPreviewManager
 
@@ -89,7 +107,12 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
-    fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
+    fastPreviewManager = if (useEmbeddedCompiler)
+      FastPreviewManager.getInstance(projectRule.project)
+    else
+      FastPreviewManager.getTestInstance(projectRule.project, ::defaultDaemonFactory).also {
+        Disposer.register(projectRule.fixture.testRootDisposable, it)
+      }
     invokeAndWaitIfNeeded {
       projectRule.buildAndAssertIsSuccessful()
     }
