@@ -16,6 +16,9 @@
 package com.android.tools.idea.startup;
 
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
@@ -27,6 +30,7 @@ import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
+import com.android.tools.idea.gradle.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -87,8 +91,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     setUpNewProjectActions(actionManager);
     setUpWelcomeScreenActions(actionManager);
     replaceProjectPopupActions(actionManager);
-    Actions.hideAction(actionManager, "Groovy.CheckResources.Rebuild");
-    Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
+    setUpMakeActions(actionManager);
     setUpGradleViewToolbarActions(actionManager);
     checkInstallPath();
 
@@ -110,6 +113,27 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     }
 
     useIdeGooglePlaySdkIndexInGradleDetector();
+  }
+
+  // The original actions will be visible only on plain IDEA projects.
+  private static void setUpMakeActions(ActionManager actionManager) {
+    // 'Build' > 'Make Project' action
+    Actions.hideAction(actionManager, "CompileDirty");
+
+    // 'Build' > 'Make Modules' action
+    // We cannot simply hide this action, because of a NPE.
+    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
+
+    // 'Build' > 'Rebuild' action
+    Actions.hideAction(actionManager, ACTION_COMPILE_PROJECT);
+
+    // 'Build' > 'Compile Modules' action
+    Actions.hideAction(actionManager, ACTION_COMPILE);
+
+    // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
+    Actions.hideAction(actionManager, "Build");
+    Actions.hideAction(actionManager, "Groovy.CheckResources.Rebuild");
+    Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
   }
 
   /**

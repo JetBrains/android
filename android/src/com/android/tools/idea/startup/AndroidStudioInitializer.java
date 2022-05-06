@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
-import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
@@ -75,7 +71,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
     setUpNewFilePopupActions(actionManager);
-    setUpMakeActions(actionManager);
     disableGroovyLanguageInjection();
 
     if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
@@ -202,25 +197,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // Hide individual actions that aren't part of a group
     Actions.hideAction(actionManager, "Groovy.NewClass");
     Actions.hideAction(actionManager, "Groovy.NewScript");
-  }
-
-  // The original actions will be visible only on plain IDEA projects.
-  private static void setUpMakeActions(ActionManager actionManager) {
-    // 'Build' > 'Make Project' action
-    Actions.hideAction(actionManager, "CompileDirty");
-
-    // 'Build' > 'Make Modules' action
-    // We cannot simply hide this action, because of a NPE.
-    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
-
-    // 'Build' > 'Rebuild' action
-    Actions.hideAction(actionManager, ACTION_COMPILE_PROJECT);
-
-    // 'Build' > 'Compile Modules' action
-    Actions.hideAction(actionManager, ACTION_COMPILE);
-
-    // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
-    Actions.hideAction(actionManager, "Build");
   }
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624

@@ -29,5 +29,11 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
+    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
+    </action>
+    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
   </actions>
 </idea-plugin>

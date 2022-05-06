@@ -108,13 +108,6 @@
       <reference ref="MakeGradleProject"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
-    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
-    </action>
-    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
-    </action>
-
     <action id="WelcomeScreen.RunDeviceManager"
             text="Virtual Device Manager"
             class="com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenAction"

@@ -157,7 +157,26 @@
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.android.actions">
+    <newResourceCreationHandler
+      implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
+  </extensions>
   <actions>
+    <group id="Library.Properties">
+      <separator/>
+      <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
+    </group>
+    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
+    <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
+    <group id="GradleProjectStructureActions">
+      <separator/>
+      <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <separator/>
+    </group>
     <group id="Internal.Android.Gradle" internal="true">
       <action id="Android.FixAndroidRunConfigurations"
               class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction"
@@ -185,6 +204,5 @@
             class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction">
       <add-to-group group-id="Internal.Android"/>
     </action>
-
   </actions>
 </idea-plugin>

@@ -34,28 +34,12 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
-    <group id="Library.Properties">
-      <separator/>
-      <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
-      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
-    </group>
-    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
-    </action>
     <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
     </action>
-    <group id="GradleProjectStructureActions">
-      <separator/>
-      <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
-      <add-to-group group-id="BuildMenu" anchor="last"/>
-      <separator/>
-    </group>
-
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
-
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="FileExportGroup" anchor="last"/>
     </action>
@@ -109,7 +93,6 @@
     </group>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
-      <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction" text="Show statistics viewer"/>
@@ -779,11 +762,6 @@
     <extensionPoint qualifiedName="com.android.tools.idea.layoutlib.layoutLibraryProvider"
                     interface="com.android.tools.idea.layoutlib.LayoutLibraryLoader$LayoutLibraryProvider" />
   </extensionPoints>
-
-  <extensions defaultExtensionNs="org.jetbrains.android.actions">
-    <newResourceCreationHandler
-        implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
-  </extensions>
 
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildCheck"/>
