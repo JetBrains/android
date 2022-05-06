@@ -29,6 +29,7 @@ import javax.swing.text.JTextComponent;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDialog> {
   @NotNull
@@ -50,6 +51,19 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
   @NotNull
   public RenameRefactoringDialogFixture clickRefactor() {
     findAndClickButton(this, "Refactor");
+    return this;
+  }
+
+  @NotNull
+  public RenameRefactoringDialogFixture clickSelectAll() {
+    findAndClickButton(this, "Select all");
+    return this;
+  }
+
+  @NotNull
+  public RenameRefactoringDialogFixture clickOk() {
+    findAndClickOkButton(this);
+    waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
     return this;
   }
 

@@ -62,7 +62,7 @@ public class UnusedResourceEvaluationTest2 {
    */
 
   @Test
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void keepLavoutFiles() throws Exception {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
