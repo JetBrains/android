@@ -167,6 +167,11 @@ class ToolWindowModel(
       override val layoutState = LayoutState.READY
       override val runTooltip = ""
     }
+    object Blocked : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
+      override val layoutState = LayoutState.READY
+      override val runTooltip = "Upgrade Blocked"
+    }
     object Loading : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
@@ -291,6 +296,12 @@ class ToolWindowModel(
         }
         AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
       }
+      if (processorsForCheckedPresentations().any { it.blockProcessorExecution() }) {
+        uiState.set(UIState.Blocked)
+      }
+      else {
+        uiState.set(UIState.ReadyToRun)
+      }
     }
   }
 
@@ -413,22 +424,23 @@ class ToolWindowModel(
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
-    val blockProcessorExecution = newProcessor.agpVersionRefactoringProcessor.blockProcessorExecution()
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean, blockProcessorExecution)
+      setEnabled(newProcessor, projectFilesClean)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, blockProcessorExecution) }
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean) }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, blockProcessorExecution: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
-    // TODO(b/231690925): the second half of this condition needs looking at when we generalise the blockProcessorExecution to
-    //  other components
-    if (blockProcessorExecution && newProcessor.current != newProcessor.new) {
-      newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
-      uiState.set(UIState.AgpVersionNotLocatedError)
+    if (processorsForCheckedPresentations().any { it.blockProcessorExecution() }) {
+      newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
+      // at this stage, agpVersionRefactoringProcessor will always be enabled.
+      if (newProcessor.agpVersionRefactoringProcessor.blockProcessorExecution()) {
+        newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
+      }
+      uiState.set(UIState.Blocked)
     }
     else if (!projectFilesClean) {
       uiState.set(UIState.ProjectFilesNotCleanWarning)
@@ -464,11 +476,15 @@ class ToolWindowModel(
     treeModel.nodeStructureChanged(root)
   }
 
+  private fun processorsForCheckedPresentations(): List<AgpUpgradeComponentRefactoringProcessor> = processor?.let {
+    CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
+      .map { it.processor }
+  } ?: listOf()
+
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
     if (!showPreview) uiState.set(UIState.RunningUpgrade)
     processor.components().forEach { it.isEnabled = false }
-    CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
-      .forEach { it.processor.isEnabled = true }
+    processorsForCheckedPresentations().forEach { it.isEnabled = true }
 
     if (ApplicationManager.getApplication().isUnitTestMode) {
       processor.run()
@@ -496,6 +512,7 @@ class ToolWindowModel(
     val shortDescription: String?
     val additionalInfo: String?
       get() = null
+    val isBlocked: Boolean
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -571,6 +588,8 @@ class ToolWindowModel(
       get() = processor.getReadMoreUrl()
     override val shortDescription: String?
       get() = processor.getShortDescription()
+    override val isBlocked: Boolean
+      get() = processor.blockProcessorExecution()
   }
 }
 
@@ -960,7 +979,12 @@ class ContentManagerImpl(val project: Project): ContentManager {
               }
             }
             textRenderer.append(o.treeText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
-            if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
+            if ((o as? ToolWindowModel.StepUiPresentation)?.isBlocked == true) {
+              textRenderer.icon = AllIcons.General.Error
+              textRenderer.isIconOnTheRight = true
+              textRenderer.iconTextGap = 10
+            }
+            else if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
               textRenderer.icon = AllIcons.Actions.Edit
               textRenderer.isIconOnTheRight = true
               textRenderer.iconTextGap = 10
@@ -975,7 +999,10 @@ class ContentManagerImpl(val project: Project): ContentManager {
 
 private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactoringProcessors + this.agpVersionRefactoringProcessor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
-  this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
+  this.components()
+    .filter { it.isEnabled }
+    .filter { it.necessity() == necessity }
+    .filter { !it.isAlwaysNoOpForProject || it.blockProcessorExecution() }
 
 fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> "Upgrade prerequisites"
