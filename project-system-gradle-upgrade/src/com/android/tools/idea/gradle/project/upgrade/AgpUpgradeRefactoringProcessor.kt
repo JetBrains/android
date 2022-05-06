@@ -763,6 +763,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
   }
 
+  open fun blockProcessorExecution(): Boolean = false
+
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current
     this.new = new

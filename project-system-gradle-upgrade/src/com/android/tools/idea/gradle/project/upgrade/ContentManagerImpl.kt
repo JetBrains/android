@@ -413,18 +413,20 @@ class ToolWindowModel(
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
-    val agpVersionUsageFound = !newProcessor.agpVersionRefactoringProcessor.isAlwaysNoOpForProject
+    val blockProcessorExecution = newProcessor.agpVersionRefactoringProcessor.blockProcessorExecution()
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean, agpVersionUsageFound)
+      setEnabled(newProcessor, projectFilesClean, blockProcessorExecution)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, agpVersionUsageFound) }
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, blockProcessorExecution) }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, agpVersionUsageFound: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, blockProcessorExecution: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
-    if (!agpVersionUsageFound && newProcessor.current != newProcessor.new) {
+    // TODO(b/231690925): the second half of this condition needs looking at when we generalise the blockProcessorExecution to
+    //  other components
+    if (blockProcessorExecution && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
       uiState.set(UIState.AgpVersionNotLocatedError)
     }

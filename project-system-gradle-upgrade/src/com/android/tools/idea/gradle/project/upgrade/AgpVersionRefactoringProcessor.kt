@@ -43,6 +43,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 
+  override fun blockProcessorExecution() = isAlwaysNoOpForProject
+
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     fun addUsagesFor(plugin: PluginModel) {
