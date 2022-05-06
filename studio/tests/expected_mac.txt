@@ -713,6 +713,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/q
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/rhino_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/scala_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/sl4f_license.txt
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/sun_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/teamcity-service-messages_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/dagger_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/eclipse_distribution_license.txt

@@ -80,10 +80,10 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightFieldForDecompiledDeclaration
+import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightMethodForDecompiledDeclaration
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.caches.lightClasses.decompiledDeclarations.KtLightFieldForDecompiledDeclaration
-import org.jetbrains.kotlin.idea.caches.lightClasses.decompiledDeclarations.KtLightMethodForDecompiledDeclaration
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
