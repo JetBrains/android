@@ -52,6 +52,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_FAILED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SKIPPED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SUCCEEDED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.notification.NotificationListener
@@ -281,6 +282,9 @@ class AgpUpgradeRefactoringProcessor(
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
   var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
+  private fun blockProcessorExecution() =
+    (componentRefactoringProcessors + agpVersionRefactoringProcessor).any { it.isEnabled && it.isBlocked }
+
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> {
@@ -458,6 +462,7 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    // TODO(b/231690925): what should we do if any component is blocking?
     trackProcessorUsage(PREVIEW_REFACTORING, usages.size, projectBuildModel.context.allRequestedFiles.size)
     // this would be `super.previewRefactoring(usages) except that there's no way to override the tab window title
     if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -536,6 +541,10 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
+    if (blockProcessorExecution()) {
+      trackProcessorUsage(BLOCKED, usages.size, projectBuildModel.context.allRequestedFiles.size)
+      return
+    }
     projectBuildModel.context.agpVersion = AndroidGradlePluginVersion.tryParse(new.toString())
     trackProcessorUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
     executedUsages = usages
@@ -810,12 +819,17 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    // TODO(b/231690925): what should we do if the component is blocked?
     trackComponentUsage(PREVIEW_REFACTORING, usages.size, projectBuildModel.context.allRequestedFiles.size)
     super.previewRefactoring(usages)
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
     projectBuildModel.context.agpVersion = AndroidGradlePluginVersion.tryParse(new.toString())
+    if (isBlocked) {
+      trackComponentUsage(BLOCKED, usages.size, projectBuildModel.context.allRequestedFiles.size)
+      return
+    }
     trackComponentUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
     super.execute(usages)
   }
