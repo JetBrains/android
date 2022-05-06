@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.UserDefinedCustom
 import com.google.wireless.android.sdk.stats.MultiViewEvent.MultiViewEventType
 
-fun trackOpenConfigSet(surface: DesignSurface, configSet: ConfigurationSet) {
+fun trackOpenConfigSet(surface: DesignSurface<*>, configSet: ConfigurationSet) {
   when (configSet) {
     ConfigurationSet.PixelDevices -> track(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
     ConfigurationSet.WearDevices -> track(surface, MultiViewEventType.OPEN_WEAR_DEVICES)
@@ -34,6 +34,6 @@ fun trackOpenConfigSet(surface: DesignSurface, configSet: ConfigurationSet) {
   }
 }
 
-private fun track(surface: DesignSurface, eventType: MultiViewEventType) {
+private fun track(surface: DesignSurface<*>, eventType: MultiViewEventType) {
   InternalMultiViewMetricTrackerFactory.getInstance(surface).track(eventType)
 }

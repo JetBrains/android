@@ -268,7 +268,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Nullable
   @Override
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility callback) {

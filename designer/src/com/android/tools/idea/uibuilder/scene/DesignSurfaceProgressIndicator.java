@@ -30,9 +30,9 @@ import org.jetbrains.annotations.NotNull;
 public class DesignSurfaceProgressIndicator {
   @GuardedBy("this")
   private AndroidPreviewProgressIndicator myCurrentIndicator;
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
 
-  public DesignSurfaceProgressIndicator(@NotNull DesignSurface designSurface) {
+  public DesignSurfaceProgressIndicator(@NotNull DesignSurface<?> designSurface) {
     myDesignSurface = designSurface;
   }
 

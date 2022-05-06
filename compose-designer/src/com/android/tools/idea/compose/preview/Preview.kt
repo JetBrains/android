@@ -1098,7 +1098,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
-        (composeWorkBench.component as WorkBench<DesignSurface>).handleLayoutlibNativeCrash { requestRefresh() }
+        (composeWorkBench.component as WorkBench<DesignSurface<*>>).handleLayoutlibNativeCrash { requestRefresh() }
         return@launchWithProgress
       }
 

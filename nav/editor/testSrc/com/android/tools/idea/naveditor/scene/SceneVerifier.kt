@@ -34,7 +34,7 @@ val HANDLE_COLOR = Color(0xf5f5f5)
 @Suppress("UndesirableClassUsage")
 val BUFFERED_IMAGE = BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB)
 
-fun verifyScene(surface: DesignSurface, verifier: (InOrder, Graphics2D) -> Unit) {
+fun verifyScene(surface: DesignSurface<*>, verifier: (InOrder, Graphics2D) -> Unit) {
   val root = Mockito.mock(Graphics2D::class.java)
 
   val child = Mockito.mock(Graphics2D::class.java)

@@ -48,6 +48,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
@@ -641,7 +642,7 @@ public class NlModelTest extends LayoutTestCase {
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
     NlDesignSurface nlSurface = (NlDesignSurface)model.getSurface();
-    when(sceneView.getSurface()).thenReturn(nlSurface);
+    when(sceneView.getSurface()).thenReturn((DesignSurface)nlSurface);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(nlSurface);
     when(nlSurface.getAnalyticsManager()).thenReturn(analyticsManager);
     Configuration configuration = model.getConfiguration();

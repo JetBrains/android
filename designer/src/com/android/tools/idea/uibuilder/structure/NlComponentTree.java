@@ -520,12 +520,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     setModel(model, true);
   }
 
   @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
     return false;
   }
 

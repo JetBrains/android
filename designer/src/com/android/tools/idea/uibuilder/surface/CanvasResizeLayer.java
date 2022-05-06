@@ -18,11 +18,11 @@ import org.jetbrains.annotations.NotNull;
  * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
  */
 public class CanvasResizeLayer extends Layer {
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
   private final ScreenView myScreenView;
   private boolean myIsHovering;
 
-  public CanvasResizeLayer(@NotNull DesignSurface designSurface, @NotNull ScreenView screenView) {
+  public CanvasResizeLayer(@NotNull DesignSurface<?> designSurface, @NotNull ScreenView screenView) {
     myDesignSurface = designSurface;
     myScreenView = screenView;
   }

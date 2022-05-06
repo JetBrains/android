@@ -94,7 +94,7 @@ public class DragDropInteraction extends Interaction {
   /**
    * The surface associated with this interaction.
    */
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
 
   /**
    * The components being dragged
@@ -138,7 +138,7 @@ public class DragDropInteraction extends Interaction {
   SceneComponent myCurrentViewgroup = null;
   private boolean myDoesAcceptDropAtLastPosition = true;
 
-  public DragDropInteraction(@NotNull DesignSurface designSurface,
+  public DragDropInteraction(@NotNull DesignSurface<?> designSurface,
                              @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
@@ -570,7 +570,7 @@ public class DragDropInteraction extends Interaction {
   }
 
   private void logFinishDropInteraction(@NotNull List<NlComponent> components) {
-    DesignSurface surface = myDesignSurface;
+    DesignSurface<?> surface = myDesignSurface;
     if (!(surface instanceof NlDesignSurface)) {
       return;
     }

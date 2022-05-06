@@ -28,17 +28,17 @@ import java.util.List;
  */
 public interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
-  default void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {}
+  default void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {}
 
   /** The current model changed */
   @UiThread
-  default void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {}
+  default void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {}
 
   /** Ask the tools to activate an editor for the component specified, return true if such an editor is found */
-  default boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  default boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
     return false;
   }
 
   /** Change the visibility of related accessory panel */
-  default void showAccessoryPanel(@NotNull DesignSurface surface, boolean show) {}
+  default void showAccessoryPanel(@NotNull DesignSurface<?> surface, boolean show) {}
 }

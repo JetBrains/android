@@ -74,7 +74,7 @@ object NavModelBuilderUtil {
             f: () -> ComponentDescriptor,
             path: String = "navigation",
             extentSize: Dimension = Dimension(500, 500)): ModelBuilder {
-    val managerFactory: (DesignSurface, SyncNlModel) -> SceneManager = { designSurface, model ->
+    val managerFactory: (DesignSurface<*>, SyncNlModel) -> SceneManager = { designSurface, model ->
       val surface = designSurface as NavDesignSurface
       try {
         createIfNecessary(facet.module)
@@ -91,7 +91,7 @@ object NavModelBuilderUtil {
       `when`<Configuration>(sceneView.configuration).thenReturn(model.configuration)
       val selectionModel = surface.selectionModel
       `when`(sceneView.selectionModel).thenReturn(selectionModel)
-      `when`<DesignSurface>(sceneView.surface).thenReturn(surface)
+      `when`<DesignSurface<*>>(sceneView.surface).thenReturn(surface)
 
       `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
@@ -101,7 +101,7 @@ object NavModelBuilderUtil {
     }
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory, { model -> updateHierarchy(model, model) }, path,
-                        NavDesignSurface::class.java, { NavInteractionHandler(it) }, NavComponentRegistrar )
+                        NavDesignSurface::class.java, { NavInteractionHandler(it as NavDesignSurface) }, NavComponentRegistrar )
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

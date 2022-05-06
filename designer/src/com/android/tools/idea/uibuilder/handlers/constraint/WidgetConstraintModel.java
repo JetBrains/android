@@ -266,7 +266,7 @@ public class WidgetConstraintModel implements SelectionListener {
   private Runnable myUpdateCallback;
   @Nullable private NlComponent myComponent;
   @Nullable private NlModel myModel;
-  @Nullable private DesignSurface mySurface;
+  @Nullable private DesignSurface<?> mySurface;
   @Nullable private Object previousSecondarySelection = null;
 
   @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
@@ -420,7 +420,7 @@ public class WidgetConstraintModel implements SelectionListener {
     return myComponent != null &&getValue(           myComponent, SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
-  public void setSurface(@Nullable DesignSurface surface) {
+  public void setSurface(@Nullable DesignSurface<?> surface) {
     if (surface == mySurface) {
       return;
     }
@@ -435,7 +435,7 @@ public class WidgetConstraintModel implements SelectionListener {
   }
 
   @Nullable
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return mySurface;
   }
 

@@ -24,7 +24,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 /**
  * Handles analytics that are common across design tools. Acts as an interface between [DesignSurface] and [CommonUsageTracker].
  */
-open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
+open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 

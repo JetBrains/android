@@ -133,7 +133,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
+public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -190,7 +190,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements
    **/
-  private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
+  private final Predicate<T> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
@@ -224,11 +224,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
   @GuardedBy("myListenersLock")
   @NotNull private ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
-  private final ActionManager myActionManager;
+  private final ActionManager<? extends DesignSurface<T>> myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
   @GuardedBy("myModelToSceneManagersLock")
-  private final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
@@ -277,7 +277,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   });
 
   @NotNull
-  private final Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider;
+  private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
 
   /**
    * See {@link ZoomControlsPolicy}.
@@ -294,10 +294,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
+    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
@@ -306,10 +306,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
     @NotNull ZoomControlsPolicy zoomControlsPolicy,
     double maxFitIntoZoomLevel) {
@@ -482,7 +482,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  protected abstract SceneManager createSceneManager(@NotNull NlModel model);
+  protected abstract T createSceneManager(@NotNull NlModel model);
 
   /**
    * When not null, returns a {@link JPanel} to be rendered next to the primary panel of the editor.
@@ -509,7 +509,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   // Allow a test to override myActionHandlerProvider when the surface is a mockito mock
   @NotNull
-  public Function<DesignSurface, DesignSurfaceActionHandler> getActionHandlerProvider() {
+  public Function<DesignSurface<T>, DesignSurfaceActionHandler> getActionHandlerProvider() {
     return myActionHandlerProvider;
   }
 
@@ -564,7 +564,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
-  public ImmutableList<SceneManager> getSceneManagers() {
+  public ImmutableList<T> getSceneManagers() {
     myModelToSceneManagersLock.readLock().lock();
     try {
       return ImmutableList.copyOf(Collections2.filter(myModelToSceneManagers.values(), FILTER_DISPOSED_SCENE_MANAGERS));
@@ -583,13 +583,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  private SceneManager addModel(@NotNull NlModel model) {
-    SceneManager manager = getSceneManager(model);
+  private T addModel(@NotNull NlModel model) {
+    T manager = getSceneManager(model);
     if (manager != null) {
       // No need to add same model twice. We just move it to the bottom of the model list since order is important.
       myModelToSceneManagersLock.writeLock().lock();
       try {
-        SceneManager managerToMove = myModelToSceneManagers.remove(model);
+        T managerToMove = myModelToSceneManagers.remove(model);
         if (managerToMove != null) {
           myModelToSceneManagers.put(model, managerToMove);
         }
@@ -653,7 +653,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
-    SceneManager modelSceneManager = addModel(model);
+    T modelSceneManager = addModel(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
@@ -688,8 +688,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
-    SceneManager manager = addModel(model);
+  public final T addModelWithoutRender(@NotNull NlModel model) {
+    T manager = addModel(model);
 
     EdtExecutorService.getInstance().execute(() -> {
       for (DesignSurfaceListener listener : getListeners()) {
@@ -868,7 +868,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getFocusedSceneView() {
-    ImmutableList<SceneManager> managers = getSceneManagers();
+    ImmutableList<T> managers = getSceneManagers();
     if (managers.size() == 1) {
       // Always return primary SceneView In single-model mode,
       SceneManager manager = getSceneManager();
@@ -1515,7 +1515,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Using this method will cause the code not to correctly support multiple previews.
    */
   @Nullable
-  public SceneManager getSceneManager() {
+  public T getSceneManager() {
     NlModel model = getModel();
     return model != null ? getSceneManager(model) : null;
   }
@@ -1524,7 +1524,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return The {@link SceneManager} associated to the given {@link NlModel}.
    */
   @Nullable
-  public SceneManager getSceneManager(@NotNull NlModel model) {
+  public T getSceneManager(@NotNull NlModel model) {
     if (model.getModule().isDisposed()) {
       return null;
     }
@@ -1724,7 +1724,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    ImmutableList<SceneManager> managers = getSceneManagers();
+    ImmutableList<T> managers = getSceneManagers();
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1738,7 +1738,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return A callback which is triggered when the scheduled rendering are completed.
    */
   @NotNull
-  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<SceneManager, CompletableFuture<Void>> renderRequest) {
+  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<T, CompletableFuture<Void>> renderRequest) {
     CompletableFuture<Void> callback = new CompletableFuture<>();
     synchronized (myRenderFutures) {
       if (!myRenderFutures.isEmpty()) {
@@ -1754,7 +1754,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // Cascading the CompletableFuture to make them executing sequentially.
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (SceneManager manager : getSceneManagers()) {
+    for (T manager : getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
         CompletableFuture<Void> future = renderRequest.apply(manager);
         invalidate();

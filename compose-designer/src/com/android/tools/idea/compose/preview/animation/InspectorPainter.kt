@@ -53,7 +53,7 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 
 /** [ActionToolbarImpl] with enabled navigation. */
-open class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnAction)
+open class DefaultToolbarImpl(surface: DesignSurface<*>, place: String, action: AnAction)
   : ActionToolbarImpl(place, DefaultActionGroup(action), true) {
   init {
     targetComponent = surface
@@ -63,7 +63,7 @@ open class DefaultToolbarImpl(surface: DesignSurface, place: String, action: AnA
   }
 }
 
-internal class SingleButtonToolbar(surface: DesignSurface, place: String, action: AnAction) : DefaultToolbarImpl(surface, place, action) {
+internal class SingleButtonToolbar(surface: DesignSurface<*>, place: String, action: AnAction) : DefaultToolbarImpl(surface, place, action) {
   // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
   // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
   override fun getPreferredSize() = JBUI.size(30, 30)
@@ -480,7 +480,7 @@ object InspectorPainter {
    * @params callback when state has changed
    */
   class StartEndComboBox
-  (private val surface: DesignSurface,
+  (private val surface: DesignSurface<*>,
    private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
    private val callback: (stateComboBox: StateComboBox) -> Unit) :
     StateComboBox, JPanel(TabularLayout("Fit,Fit-,Fit,Fit-")) {

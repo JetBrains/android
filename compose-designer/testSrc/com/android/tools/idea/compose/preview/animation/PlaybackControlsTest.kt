@@ -39,7 +39,7 @@ class PlaybackControlsTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var surface: DesignSurface
+  private lateinit var surface: DesignSurface<*>
 
   private lateinit var parentDisposable: Disposable
 

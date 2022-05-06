@@ -42,7 +42,7 @@ class AnimationTabsTest {
 
   private lateinit var parentDisposable: Disposable
 
-  private lateinit var surface: DesignSurface
+  private lateinit var surface: DesignSurface<*>
 
   @Before
   fun setUp() {

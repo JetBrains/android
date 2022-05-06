@@ -60,7 +60,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
                                                         ConfigurationListener.CFG_DEVICE;
 
-  private final DesignSurface mySurface;
+  private final DesignSurface<?> mySurface;
   private final JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
@@ -72,7 +72,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   private ToolbarActionGroups myToolbarActionGroups;
   private NlModel myModel = null;
 
-  public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface surface) {
+  public ActionsToolbar(@NotNull Disposable parent, @NotNull DesignSurface<?> surface) {
     Disposer.register(parent, this);
     mySurface = surface;
     mySurface.addListener(this);
@@ -217,7 +217,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   // ---- Implements DesignSurfaceListener ----
 
   @Override
-  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+  public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {
     assert surface == mySurface;
     if (!newSelection.isEmpty()) {
       updateActions(newSelection);
@@ -228,7 +228,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     if (myModel != null) {
       myModel.removeListener(this);
     }
@@ -255,7 +255,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
     return false;
   }
 

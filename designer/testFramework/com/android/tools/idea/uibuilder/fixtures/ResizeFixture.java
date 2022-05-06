@@ -134,7 +134,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    DesignSurface surface = myScreen.getSurface();
+    DesignSurface<?> surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.update(new KeyPressedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;
@@ -153,7 +153,7 @@ public class ResizeFixture {
     if (keyCode == KeyEvent.VK_ALT) {
       myModifiers |= InputEvent.ALT_MASK;
     }
-    DesignSurface surface = myScreen.getSurface();
+    DesignSurface<?> surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
     myInteraction.update(new KeyReleasedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;

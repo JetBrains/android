@@ -218,8 +218,8 @@ class CustomViewPreviewRepresentation(
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench: WorkBench<DesignSurface> =
-    object : WorkBench<DesignSurface>(project, "Main Preview", null, this), DataProvider {
+  private val workbench: WorkBench<DesignSurface<*>> =
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, this), DataProvider {
       override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
     }.apply {
       val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)

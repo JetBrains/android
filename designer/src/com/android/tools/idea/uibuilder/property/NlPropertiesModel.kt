@@ -87,7 +87,7 @@ open class NlPropertiesModel(
     handlePanelSelectionUpdate(panel, type, accessory, selection)
   }
   private val renderListener = RenderListener { handleRenderingCompleted() }
-  private var activeSurface: DesignSurface? = null
+  private var activeSurface: DesignSurface<*>? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
   protected var defaultValueProvider: DefaultPropertyValueProvider? = null
@@ -101,7 +101,7 @@ open class NlPropertiesModel(
     this(parentDisposable, facet, MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null,
                                                      Alarm.ThreadToUse.SWING_THREAD))
 
-  var surface: DesignSurface?
+  var surface: DesignSurface<*>?
     get() = activeSurface
     set(value) = useDesignSurface(value)
 
@@ -227,7 +227,7 @@ open class NlPropertiesModel(
   private val isRTL: Boolean
     get() = activeSceneView?.scene?.isInRTL ?: false
 
-  private fun useDesignSurface(surface: DesignSurface?) {
+  private fun useDesignSurface(surface: DesignSurface<*>?) {
     if (surface != activeSurface) {
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
@@ -238,7 +238,7 @@ open class NlPropertiesModel(
     makeInitialSelection(surface, activePanel)
   }
 
-  private fun makeInitialSelection(surface: DesignSurface?, panel: AccessoryPanelInterface?) {
+  private fun makeInitialSelection(surface: DesignSurface<*>?, panel: AccessoryPanelInterface?) {
     if (panel != null) {
       panel.requestSelection()
     }
@@ -248,7 +248,7 @@ open class NlPropertiesModel(
     }
   }
 
-  private fun updateDesignSurface(old: DesignSurface?, new: DesignSurface?) {
+  private fun updateDesignSurface(old: DesignSurface<*>?, new: DesignSurface<*>?) {
     old?.model?.removeListener(modelListener)
     new?.model?.addListener(modelListener)
     if (updateOnComponentSelectionChanges) {
@@ -260,7 +260,7 @@ open class NlPropertiesModel(
     useCurrentPanel(new)
   }
 
-  private fun useCurrentPanel(surface: DesignSurface?) {
+  private fun useCurrentPanel(surface: DesignSurface<*>?) {
     usePanel((surface as? NlDesignSurface)?.accessoryPanel?.currentPanel)
   }
 
@@ -277,7 +277,7 @@ open class NlPropertiesModel(
   }
 
   private fun scheduleSelectionUpdate(
-    surface: DesignSurface?,
+    surface: DesignSurface<*>?,
     panel: AccessoryPanelInterface?,
     type: Any?,
     accessory: Any?,
@@ -291,13 +291,13 @@ open class NlPropertiesModel(
     })
   }
 
-  private fun getRootComponent(surface: DesignSurface?): List<NlComponent> {
+  private fun getRootComponent(surface: DesignSurface<*>?): List<NlComponent> {
     return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let {listOf(it)} ?: return emptyList()
   }
 
   protected open fun wantSelectionUpdate(
-    surface: DesignSurface?,
-    activeSurface: DesignSurface?,
+    surface: DesignSurface<*>?,
+    activeSurface: DesignSurface<*>?,
     accessoryPanel: AccessoryPanelInterface?,
     activePanel: AccessoryPanelInterface?,
     selectedAccessoryType: Any?,
@@ -312,7 +312,7 @@ open class NlPropertiesModel(
   }
 
   private fun handleSelectionUpdate(
-    surface: DesignSurface?,
+    surface: DesignSurface<*>?,
     panel: AccessoryPanelInterface?,
     type: Any?,
     accessory: Any?,
@@ -424,7 +424,7 @@ open class NlPropertiesModel(
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
-    override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
+    override fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {
       val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
       if (activePanel == null && !sameAsTheCurrentLiveListeners(displayedComponents)) {
         scheduleSelectionUpdate(surface, null, null, null, displayedComponents)

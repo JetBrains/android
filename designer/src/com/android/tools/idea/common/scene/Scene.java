@@ -96,7 +96,7 @@ public class Scene implements SelectionListener, Disposable {
   private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
   private static Boolean SHOW_TOOLTIP_VALUE = null;
 
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
   private final SceneManager mySceneManager;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
@@ -137,7 +137,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface<?> surface) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -265,7 +265,7 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   @NotNull
-  public DesignSurface getDesignSurface() {
+  public DesignSurface<?> getDesignSurface() {
     return myDesignSurface;
   }
 

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.DragType;
@@ -138,7 +140,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   @NotNull
   private PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull SyncNlModel model) {
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     ViewEditor editor = editor(screenFixture.getScreen());

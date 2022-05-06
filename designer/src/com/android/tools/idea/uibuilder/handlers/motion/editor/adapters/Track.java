@@ -24,11 +24,11 @@ import com.google.wireless.android.sdk.stats.MotionLayoutEditorEvent.MotionLayou
 public class Track {
 
   // TODO: Make sure to clean this so we don't leak surface.
-  private DesignSurface ourSurface;
+  private DesignSurface<?> ourSurface;
 
   // TODO: We need to know when editor is open / closed so I can track that too.
 
-  public void init(DesignSurface surface) {
+  public void init(DesignSurface<?> surface) {
     ourSurface = surface;
   }
 

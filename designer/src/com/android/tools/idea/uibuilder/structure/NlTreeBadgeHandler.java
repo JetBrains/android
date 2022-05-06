@@ -59,7 +59,7 @@ public class NlTreeBadgeHandler {
   @Nullable private NlModel myNlModel;
   private int myBadgeX;
   private int myLockIconX;
-  @Nullable private DesignSurface mySurface;
+  @Nullable private DesignSurface<?> mySurface;
 
   /**
    * Save the width occupied by the badges at a given row.
@@ -71,7 +71,7 @@ public class NlTreeBadgeHandler {
     myNlModel = nlModel;
   }
 
-  public void setSurface(@Nullable DesignSurface surface) {
+  public void setSurface(@Nullable DesignSurface<?> surface) {
     mySurface = surface;
   }
 

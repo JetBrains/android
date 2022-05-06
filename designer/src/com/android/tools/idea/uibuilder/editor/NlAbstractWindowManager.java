@@ -41,7 +41,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   private ToolWindowType myPreviousWindowType;
   private ToolWindowAnchor myPreviousWindowAnchor;
   /** The design surface the tool window is attached to, if any */
-  private DesignSurface myDesignSurface;
+  private DesignSurface<?> myDesignSurface;
 
   public NlAbstractWindowManager(@NotNull Project project) {
     super(project);
@@ -101,7 +101,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   }
 
   @NotNull
-  protected static DesignSurface getDesignSurface(@Nullable DesignerEditorPanelFacade designer) {
+  protected static DesignSurface<?> getDesignSurface(@Nullable DesignerEditorPanelFacade designer) {
     if (designer instanceof DesignerEditorPanel) {
       DesignerEditorPanel editor = (DesignerEditorPanel)designer;
       return editor.getSurface();

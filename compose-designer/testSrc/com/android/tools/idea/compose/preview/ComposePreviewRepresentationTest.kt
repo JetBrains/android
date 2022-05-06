@@ -106,7 +106,7 @@ class ComposePreviewRepresentationTest {
     val modelRenderedLatch = CountDownLatch(2)
 
     mainSurface.addListener(object : DesignSurfaceListener {
-      override fun modelChanged(surface: DesignSurface, model: NlModel?) {
+      override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
         (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener { modelRenderedLatch.countDown() }
       }
     })

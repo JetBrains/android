@@ -57,7 +57,7 @@ public class Display {
     draw(sceneContext, g, myDisplayList);
 
     if (needsRebuild) {
-      DesignSurface designSurface = sceneContext.getSurface();
+      DesignSurface<?> designSurface = sceneContext.getSurface();
       if (designSurface != null) {
         designSurface.repaint();
       }

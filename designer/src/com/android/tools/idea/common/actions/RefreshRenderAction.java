@@ -45,7 +45,7 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
     RenderUtils.clearCache(surface.getConfigurations());
     surface.forceUserRequestedRefresh();
   }

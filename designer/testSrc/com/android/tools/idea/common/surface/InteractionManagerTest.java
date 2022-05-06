@@ -107,7 +107,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     ScreenView screenView = createScreen(model);
 
-    DesignSurface designSurface = screenView.getSurface();
+    DesignSurface<?> designSurface = screenView.getSurface();
     InteractionManager manager = designSurface.getInteractionManager();
 
     @Language("XML")
@@ -139,7 +139,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     ScreenView screenView = createScreen(model);
 
-    DesignSurface designSurface = screenView.getSurface();
+    DesignSurface<?> designSurface = screenView.getSurface();
     InteractionManager manager = designSurface.getInteractionManager();
 
     @Language("XML")
@@ -160,7 +160,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testSelectSingleComponent() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -173,7 +173,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testSelectDraggedComponent() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -201,7 +201,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testMultiSelectComponent() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
 
@@ -242,7 +242,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testMarqueeSelect() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
 
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
@@ -295,7 +295,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testLinearLayoutCursorHoverComponent() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
@@ -311,7 +311,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testLinearLayoutCursorHoverComponentHandle() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
@@ -330,7 +330,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testLinearLayoutCursorHoverRoot() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -341,7 +341,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testLinearLayoutCursorHoverSceneHandle() {
-    DesignSurface surface = setupLinearLayoutCursorTest();
+    DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
@@ -377,7 +377,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverComponent() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
@@ -391,7 +391,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverComponentHandle() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
@@ -410,7 +410,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverRoot() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -421,7 +421,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverSceneHandle() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
@@ -431,7 +431,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager =surface.getInteractionManager();
 
     manager.setPanning(true);
@@ -440,7 +440,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanOnModifiedKeyPressed() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
 
     Point moved = new Point(0, 0);
@@ -452,7 +452,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanModifiedKeyReleased() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
@@ -461,7 +461,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testIsPanningAfterMouseReleased() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
@@ -476,7 +476,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testIsPanningAfterKeyReleased() {
-    DesignSurface surface = setupConstraintLayoutCursorTest();
+    DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     InteractionManager manager = surface.getInteractionManager();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
@@ -509,7 +509,7 @@ public class InteractionManagerTest extends LayoutTestCase {
                                     )
                                 )).build();
     NlComponent button = model.find("button");
-    DesignSurface surface = createScreen(model).getSurface();
+    DesignSurface<?> surface = createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
@@ -538,7 +538,7 @@ public class InteractionManagerTest extends LayoutTestCase {
       sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false, button);
   }
 
-  protected DesignSurface setupConstraintLayoutCursorTest() {
+  protected DesignSurface<?> setupConstraintLayoutCursorTest() {
     SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()

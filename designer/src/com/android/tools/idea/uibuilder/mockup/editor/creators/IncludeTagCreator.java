@@ -136,7 +136,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    DesignSurface surface = getScreenView().getSurface();
+    DesignSurface<?> surface = getScreenView().getSurface();
     LayoutlibSceneManager manager = (LayoutlibSceneManager)surface.getSceneManager();
 
     if (manager != null) {

@@ -65,7 +65,7 @@ fun updateAnimationInspectorToolbarIcon(viewObj: Any,
  * It provides the ability to update the Compose Preview toolbar based on the root Composable.
  */
 class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
-  override fun onUpdate(component: NlComponent, designSurface: DesignSurface) {
+  override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val previewElementInstance = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
     val viewObj = component.viewInfo?.viewObject ?: return

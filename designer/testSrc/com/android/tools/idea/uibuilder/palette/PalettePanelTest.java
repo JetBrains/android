@@ -106,7 +106,7 @@ public class PalettePanelTest extends LayoutTestCase {
   private DependencyManager myDependencyManager;
   private BrowserLauncher myBrowserLauncher;
   private ActionManager myActionManager;
-  private DesignSurface myTrackingDesignSurface;
+  private DesignSurface<?> myTrackingDesignSurface;
   private ActionPopupMenu myPopupMenu;
   private JPopupMenu myPopupMenuComponent;
   private PalettePanel myPanel;
@@ -332,7 +332,7 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testAddToDesignFromEnterKey() throws InterruptedException {
-    DesignSurface surface = setUpLayoutDesignSurface();
+    DesignSurface<?> surface = setUpLayoutDesignSurface();
 
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
     myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
@@ -384,7 +384,7 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testAddToDesign() throws InterruptedException {
-    DesignSurface surface = setUpLayoutDesignSurface();
+    DesignSurface<?> surface = setUpLayoutDesignSurface();
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
     myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
@@ -505,23 +505,23 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   @NotNull
-  private DesignSurface setUpLayoutDesignSurface() {
+  private DesignSurface<?> setUpLayoutDesignSurface() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     return createDesignSurface(LayoutFileType.INSTANCE);
   }
 
   @NotNull
-  private DesignSurface setUpPreferenceDesignSurface() {
+  private DesignSurface<?> setUpPreferenceDesignSurface() {
     myPanel.setSize(800, 1000);
     doLayout(myPanel);
     return createDesignSurface(PreferenceScreenFileType.INSTANCE);
   }
 
   @NotNull
-  private DesignSurface createDesignSurface(@NotNull DesignerEditorFileType layoutType) {
+  private DesignSurface<?> createDesignSurface(@NotNull DesignerEditorFileType layoutType) {
     myModel = createModel().build();
-    DesignSurface surface = myModel.getSurface();
+    DesignSurface<?> surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);
     doReturn(layoutType).when(surface).getLayoutType();
     // setToolContextAsyncImpl requires some operations to be executed on the UI thread so let the events execute until it completes

@@ -26,7 +26,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 /**
  * The default [ToolbarActionGroups] for Drawable files.
  */
-class DrawableActionGroups(surface: DesignSurface) : ToolbarActionGroups(surface) {
+class DrawableActionGroups(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup {
     // TODO(b/136258816): Update to support multi-model

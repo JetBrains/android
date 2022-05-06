@@ -138,7 +138,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   }
 
   @Nullable
-  private static NlComponent getSingleRootComponent(@NotNull DesignSurface surface) {
+  private static NlComponent getSingleRootComponent(@NotNull DesignSurface<?> surface) {
     List<NlModel> models = surface.getModels();
     if (models.isEmpty()) {
       return null;
@@ -152,7 +152,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   }
 
   @Override
-  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+  public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {
     NlComponent parent = findSharedParent(newSelection);
     if (parent == null && newSelection.isEmpty()) {
       parent = getSingleRootComponent(surface);

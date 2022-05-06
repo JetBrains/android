@@ -68,7 +68,7 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
  */
-private class ComposePreviewToolbar(private val surface: DesignSurface) :
+private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(

@@ -273,7 +273,7 @@ public class ViewGroupHandler extends ViewHandler {
    * @return
    */
   @Nullable
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility callback) {

@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LintHighlightingPass implements HighlightingPass {
-  private final WeakReference<DesignSurface> mySurfaceRef;
+  private final WeakReference<DesignSurface<?>> mySurfaceRef;
 
   private final Object myRunningTaskLock = new Object();
   @GuardedBy("myRunningTaskLock")
@@ -52,7 +52,7 @@ public class LintHighlightingPass implements HighlightingPass {
    * @param surface the surface to add the lint annotations to. This class will keep a {@link WeakReference} to the
    *                surface so it won't stop it from being disposed.
    */
-  public LintHighlightingPass(@NotNull DesignSurface surface) {
+  public LintHighlightingPass(@NotNull DesignSurface<?> surface) {
     mySurfaceRef = new WeakReference<>(surface);
   }
 
@@ -60,7 +60,7 @@ public class LintHighlightingPass implements HighlightingPass {
   public void collectInformation(@NotNull ProgressIndicator progress) {
     // Current thread may be canceled by Intellij platform when it decided to stop collecting information. We have to create another task
     // to make sure the lint annotation models is created and set to the surface.
-    final DesignSurface surface = mySurfaceRef.get();
+    final DesignSurface<?> surface = mySurfaceRef.get();
     if (surface == null) {
       // The surface is gone, no need to keep going
       return;
@@ -90,7 +90,7 @@ public class LintHighlightingPass implements HighlightingPass {
   public void applyInformationToEditor() {
   }
 
-  private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface surface, @Nullable LintAnnotationsModel annotationsModel) {
+  private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface<?> surface, @Nullable LintAnnotationsModel annotationsModel) {
     SceneView sceneView = surface.getFocusedSceneView();
     if (sceneView == null || annotationsModel == null) {
       return;

@@ -40,7 +40,7 @@ import com.intellij.util.ui.UIUtil;
 public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
 
   protected CommonUsageTracker getUsageTracker() {
-    DesignSurface surface = mock(DesignSurface.class);
+    DesignSurface<?> surface = mock(DesignSurface.class);
     when(surface.getAnalyticsManager()).thenReturn(new DesignerAnalyticsManager(surface));
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();

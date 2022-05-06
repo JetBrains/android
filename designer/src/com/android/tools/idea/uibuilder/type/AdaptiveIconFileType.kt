@@ -33,5 +33,5 @@ object AdaptiveIconFileType : DesignerEditorFileType {
                || FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, ADAPTIVE_ICON_TAGS))
   }
 
-  override fun getToolbarActionGroups(surface: DesignSurface) = AdaptiveIconActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = AdaptiveIconActionGroups(surface)
 }

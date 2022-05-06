@@ -94,11 +94,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final DesignerEditor myEditor;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface<?> mySurface;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
-  @NotNull private final WorkBench<DesignSurface> myWorkBench;
+  @NotNull private final WorkBench<DesignSurface<?>> myWorkBench;
   private JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
   @Nullable private JComponent myBottomComponent;
@@ -112,7 +112,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   /**
    * Which {@link ToolWindowDefinition} should be added to {@link #myWorkBench}.
    */
-  @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> myToolWindowDefinitions;
+  @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> myToolWindowDefinitions;
 
   /**
    * Current {@link State} of the panel.
@@ -146,11 +146,12 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    * @param defaultEditorPanelState default {@link State] to initialize the panel to.
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
-                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull WorkBench<DesignSurface<?>> workBench,
+                             @NotNull Function<DesignerEditorPanel, DesignSurface<?>> surface,
                              @NotNull Consumer<NlComponent> componentConsumer,
                              @NotNull ModelProvider modelProvider,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
-                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
+                             @Nullable BiFunction<? super DesignSurface<?>, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
     super(new BorderLayout());
     myEditor = editor;
@@ -190,7 +191,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (bottomModelComponent != null) {
       mySurface.addListener(new DesignSurfaceListener() {
         @Override
-        public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+        public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
           }
@@ -236,9 +237,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
-                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull WorkBench<DesignSurface<?>> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface<?>> surface,
                              @NotNull Consumer<NlComponent> componentRegistrar,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
     this(editor, project, file, workBench, surface, componentRegistrar,
          ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
@@ -252,7 +253,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  private static JComponent createSurfaceToolbar(@NotNull DesignSurface surface) {
+  private static JComponent createSurfaceToolbar(@NotNull DesignSurface<?> surface) {
     return surface.getActionManager().createToolbar();
   }
 
@@ -404,7 +405,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return mySurface;
   }
 
@@ -425,7 +426,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  public WorkBench<DesignSurface> getWorkBench() {
+  public WorkBench<DesignSurface<?>> getWorkBench() {
     return myWorkBench;
   }
 
@@ -486,7 +487,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
         return getSurface();
       }
       else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
-        DesignSurface surface = getSurface();
+        DesignSurface<?> surface = getSurface();
         if (surface instanceof NlDesignSurface) {
           ScreenViewProvider mode = ((NlDesignSurface)surface).getScreenViewProvider();
           if (mode == NlScreenViewProvider.RENDER ||

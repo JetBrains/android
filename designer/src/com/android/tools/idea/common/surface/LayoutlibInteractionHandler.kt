@@ -29,7 +29,7 @@ import java.awt.event.MouseWheelEvent
 /**
  * [InteractionHandler] used during interactive mode in the layout/compose previews.
  */
-class LayoutlibInteractionHandler(private val surface: DesignSurface) : InteractionHandler {
+class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : InteractionHandler {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView

@@ -54,11 +54,11 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
   private static final String CUSTOM_AVD_ID = "_custom_avd";
 
   private final Executor myExecutor;
-  private final WeakReference<DesignSurface> myDesignSurfaceRef;
+  private final WeakReference<DesignSurface<?>> myDesignSurfaceRef;
   private final Consumer<AndroidStudioEvent.Builder> myEventLogger;
 
   public CommonUsageTrackerImpl(@NotNull Executor executor,
-                                @Nullable DesignSurface surface,
+                                @Nullable DesignSurface<?> surface,
                                 @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
@@ -69,7 +69,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
    * Generates a {@link LayoutEditorState} containing all the state of the design editor from the given {@link DesignSurface}.
    */
   @NotNull
-  static LayoutEditorState getState(@Nullable DesignSurface surface) {
+  static LayoutEditorState getState(@Nullable DesignSurface<?> surface) {
     LayoutEditorState.Builder builder = LayoutEditorState.newBuilder();
     if (surface == null) {
       return builder.build();

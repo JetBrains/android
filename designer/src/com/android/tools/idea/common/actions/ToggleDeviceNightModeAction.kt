@@ -40,7 +40,7 @@ class ToggleDeviceNightModeAction : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val surface: DesignSurface = e.getRequiredData(DESIGN_SURFACE)
+    val surface: DesignSurface<*> = e.getRequiredData(DESIGN_SURFACE)
     surface.configurations.forEach { configuration: Configuration ->
       val ordinal = configuration.nightMode.ordinal
       val newNightMode = NightMode.getByIndex((ordinal + 1) % NightMode.values().size)

@@ -35,17 +35,17 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  protected final DesignSurface mySurface;
+  protected final DesignSurface<?> mySurface;
   private CopyPasteManager myCopyPasteManager;
 
-  public DesignSurfaceActionHandler(@NotNull DesignSurface surface) {
+  public DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface) {
     this(surface, CopyPasteManager.getInstance());
   }
 
   @NotNull
   protected abstract DataFlavor getFlavor();
 
-  protected DesignSurfaceActionHandler(@NotNull DesignSurface surface, @NotNull CopyPasteManager copyPasteManager) {
+  protected DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
   }

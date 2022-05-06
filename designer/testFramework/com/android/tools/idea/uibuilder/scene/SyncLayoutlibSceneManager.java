@@ -42,7 +42,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private boolean myIgnoreRenderRequests;
 
-  public SyncLayoutlibSceneManager(@NotNull DesignSurface surface, @NotNull NlModel model) {
+  public SyncLayoutlibSceneManager(@NotNull DesignSurface<LayoutlibSceneManager> surface, @NotNull NlModel model) {
     super(
       model,
       surface,

@@ -34,14 +34,14 @@ import com.intellij.psi.PsiFile
 open class CommonRepresentationEditorFileType(
   private val virtualFileClass: Class<out FakeLightVirtualFile>,
   private val layoutEditorStateType: LayoutEditorState.Type,
-  private val toolbarConstructor: (surface: DesignSurface) -> ToolbarActionGroups
+  private val toolbarConstructor: (surface: DesignSurface<*>) -> ToolbarActionGroups
 ) : LayoutEditorFileType() {
   override fun getLayoutEditorStateType() = layoutEditorStateType
 
   override fun isResourceTypeOf(file: PsiFile) = virtualFileClass.isInstance(file.virtualFile)
 
-  override fun getToolbarActionGroups(surface: DesignSurface) = toolbarConstructor(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = toolbarConstructor(surface)
 
-  override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+  override fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 }

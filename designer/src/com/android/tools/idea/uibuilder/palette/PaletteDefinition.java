@@ -25,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The {@link ToolWindowDefinition} of a Palette.
  */
-public class PaletteDefinition extends ToolWindowDefinition<DesignSurface> {
+public class PaletteDefinition extends ToolWindowDefinition<DesignSurface<?>> {
 
   public PaletteDefinition(@NotNull Project project, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     super("Palette ", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", side, split, autoHide,
           (disposable) -> createPalettePanel(project, disposable));
   }
 
-  private static ToolContent<DesignSurface> createPalettePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
+  private static ToolContent<DesignSurface<?>> createPalettePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
     if (project.isDisposed()) {
       return null;
     }

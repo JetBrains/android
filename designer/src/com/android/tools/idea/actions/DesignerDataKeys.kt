@@ -30,7 +30,7 @@ import java.util.concurrent.CountDownLatch
  * search the widget.
  */
 @JvmField
-val DESIGN_SURFACE: DataKey<DesignSurface> =
+val DESIGN_SURFACE: DataKey<DesignSurface<*>> =
   DataKey.create(DesignSurface::class.qualifiedName!!)
 
 @JvmField

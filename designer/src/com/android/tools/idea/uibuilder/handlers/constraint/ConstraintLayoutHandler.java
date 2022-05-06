@@ -595,7 +595,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           ScoutMotionConvert.convert(componentToConvert);
         });
 
-        DesignSurface designSurface = editor.getScene().getDesignSurface();
+        DesignSurface<?> designSurface = editor.getScene().getDesignSurface();
 
         Timer t = new Timer(300, new ActionListener() {
           @Override
@@ -1357,7 +1357,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       myComponent = component;
       myMarginPopup = createIfNeeded();
-      DesignSurface surface = editor.getScene().getDesignSurface();
+      DesignSurface<?> surface = editor.getScene().getDesignSurface();
       getAnalyticsManager(editor).trackDefaultMargins();
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())

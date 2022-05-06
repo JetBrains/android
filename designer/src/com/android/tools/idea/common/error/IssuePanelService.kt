@@ -217,7 +217,7 @@ class IssuePanelService(private val project: Project) {
   /**
    * Return if the current issue panel of the given [DesignSurface] or the shared issue panel is showing.
    */
-  fun isShowingIssuePanel(surface: DesignSurface) : Boolean {
+  fun isShowingIssuePanel(surface: DesignSurface<*>) : Boolean {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       return isSharedIssueTabShowing(sharedIssueTab)
     }
@@ -316,7 +316,7 @@ class IssuePanelService(private val project: Project) {
    * Select the highest severity issue related to the provided [NlComponent] and scroll the viewport to issue.
    * TODO: Remove the dependency of [NlComponent]
    */
-  fun showIssueForComponent(surface: DesignSurface, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
+  fun showIssueForComponent(surface: DesignSurface<*>, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
     // TODO: The shared issue panel should support this feature.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       setSharedIssuePanelVisibility(true)
@@ -340,7 +340,7 @@ class IssuePanelService(private val project: Project) {
   /**
    * Return the visibility of issue panel for the given [DesignSurface].
    */
-  fun isIssuePanelVisible(surface: DesignSurface): Boolean {
+  fun isIssuePanelVisible(surface: DesignSurface<*>): Boolean {
     return if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       isSharedIssueTabShowing(sharedIssueTab)
     }
@@ -388,7 +388,7 @@ class IssuePanelService(private val project: Project) {
  * @param show whether to show or hide the issue panel.
  * @param userInvoked if true, this was the direct consequence of a user action.
  */
-fun DesignSurface.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: Boolean) {
+fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: Boolean) {
   if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
     IssuePanelService.getInstance(project).setSharedIssuePanelVisibility(show)
   }
@@ -408,7 +408,7 @@ fun DesignSurface.setIssuePanelVisibilityNoTracking(show: Boolean, userInvoked: 
  * @param show whether to show or hide the issue panel.
  * @param userInvoked if true, this was the direct consequence of a user action.
  */
-fun DesignSurface.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean) {
+fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean) {
   analyticsManager.trackShowIssuePanel()
   setIssuePanelVisibilityNoTracking(show, userInvoked)
 }
@@ -427,7 +427,7 @@ private fun createTabName(title: String, issueCount: Int?): String {
     .toString()
 }
 
-fun FileEditor.getDesignSurface(): DesignSurface? {
+fun FileEditor.getDesignSurface(): DesignSurface<*>? {
   when (this) {
     is DesignToolsSplitEditor -> return designerEditor.component.surface
     is SplitEditor<*> -> {

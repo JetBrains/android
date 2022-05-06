@@ -98,7 +98,8 @@ import org.jetbrains.annotations.Nullable;
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
+  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
@@ -129,14 +130,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     /**
      * Factory to create an action manager for the NlDesignSurface
      */
-    private Function<DesignSurface, ActionManager<? extends DesignSurface>> myActionManagerProvider =
+    private Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> myActionManagerProvider =
       NlDesignSurface::defaultActionManagerProvider;
 
     /**
      * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
      */
-    private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
-    private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
+    private Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
+    private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
@@ -193,7 +194,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      * @see NlDesignSurface#defaultActionManagerProvider(DesignSurface)
      */
     @NotNull
-    public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+    public Builder setActionManagerProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider) {
       myActionManagerProvider = actionManagerProvider;
       return this;
     }
@@ -205,7 +206,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      * @see NlDesignSurface#defaultInteractionHandlerProvider(DesignSurface)
      */
     @NotNull
-    public Builder setInteractionHandlerProvider(@NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider) {
+    public Builder setInteractionHandlerProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider) {
       myInteractionHandlerProvider = interactionHandlerProvider;
       return this;
     }
@@ -256,7 +257,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
      */
     @NotNull
-    public Builder setActionHandler(@NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
+    public Builder setActionHandler(@NotNull Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider) {
       myActionHandlerProvider = actionHandlerProvider;
       return this;
     }
@@ -440,12 +441,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           boolean isInPreview,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
-                          @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-                          @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
+                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
+                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler,
                           @SurfaceScale double minScale,
                           @SurfaceScale double maxScale,
-                          @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
@@ -563,7 +564,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Default {@link NlActionManager} provider.
    */
   @NotNull
-  public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface surface) {
+  public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
     return new NlActionManager((NlDesignSurface) surface);
   }
 
@@ -571,7 +572,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Default {@link NlInteractionHandler} provider.
    */
   @NotNull
-  public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface surface) {
+  public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
     return new NlInteractionHandler(surface);
   }
 
@@ -579,7 +580,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Default {@link NlDesignSurfaceActionHandler} provider.
    */
   @NotNull
-  public static NlDesignSurfaceActionHandler defaultActionHandlerProvider(@NotNull DesignSurface surface) {
+  public static NlDesignSurfaceActionHandler defaultActionHandlerProvider(@NotNull DesignSurface<LayoutlibSceneManager> surface) {
     return new NlDesignSurfaceActionHandler(surface);
   }
 
@@ -590,7 +591,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   @Override
-  protected SceneManager createSceneManager(@NotNull NlModel model) {
+  protected LayoutlibSceneManager createSceneManager(@NotNull NlModel model) {
     LayoutlibSceneManager manager = mySceneManagerProvider.apply(this, model);
     manager.addRenderListener(myRenderListener);
 

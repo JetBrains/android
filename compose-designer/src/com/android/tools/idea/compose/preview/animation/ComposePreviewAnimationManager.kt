@@ -41,7 +41,7 @@ private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
 
 interface ComposeAnimationPreview : Disposable {
   var animationClock: AnimationClock?
-  val surface: DesignSurface
+  val surface: DesignSurface<*>
   val component: JComponent
   fun animationsCount(): Int
   fun createTab(animation: ComposeAnimation)
@@ -77,7 +77,7 @@ object ComposePreviewAnimationManager {
       AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
   @Slow
-  fun createAnimationInspectorPanel(surface: DesignSurface,
+  fun createAnimationInspectorPanel(surface: DesignSurface<*>,
                                     parent: Disposable,
                                     onNewInspectorOpen: () -> Unit): ComposeAnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen

@@ -187,7 +187,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility panelVisibility) {

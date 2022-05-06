@@ -63,7 +63,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model.getSurface(), model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -101,7 +101,7 @@ public class SceneCreationTest extends SceneTest {
 
   public void testSceneDisposal() {
     SelectionModel selectionModel = spy(new DefaultSelectionModel());
-    DesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
+    DesignSurface<?> surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
@@ -123,7 +123,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model.getSurface(), model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -157,7 +157,7 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.setAnimated(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());

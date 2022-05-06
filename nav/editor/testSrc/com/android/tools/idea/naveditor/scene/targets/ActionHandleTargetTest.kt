@@ -38,7 +38,7 @@ import java.awt.Point
 import java.awt.event.MouseEvent
 
 class ActionHandleTargetTest : NavTestCase() {
-  private lateinit var surface: DesignSurface
+  private lateinit var surface: DesignSurface<*>
   private lateinit var interactionManager: InteractionManager
   private lateinit var scene: Scene
   private lateinit var view: SceneView

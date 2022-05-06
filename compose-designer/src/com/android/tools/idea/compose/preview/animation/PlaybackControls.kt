@@ -43,7 +43,7 @@ import javax.swing.JComponent
  */
 class PlaybackControls(val clockControl: SliderClockControl,
                        val tracker: ComposeAnimationEventTracker,
-                       val surface: DesignSurface, parentDisposable: Disposable) {
+                       val surface: DesignSurface<*>, parentDisposable: Disposable) {
 
 
   enum class TimelineSpeed(val speedMultiplier: Float, val displayText: String) {

@@ -45,7 +45,7 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean, private val i
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var surface: DesignSurface
+  private lateinit var surface: DesignSurface<*>
 
   companion object {
     @JvmStatic

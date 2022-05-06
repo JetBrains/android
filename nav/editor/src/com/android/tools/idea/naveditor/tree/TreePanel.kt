@@ -36,8 +36,8 @@ import icons.StudioIcons
 import javax.swing.Icon
 import javax.swing.JComponent
 
-class TreePanel : ToolContent<DesignSurface> {
-  private var designSurface: DesignSurface? = null
+class TreePanel : ToolContent<DesignSurface<*>> {
+  private var designSurface: DesignSurface<*>? = null
   private val componentTree: JComponent
   @VisibleForTesting
   val componentTreeModel: ComponentTreeModel
@@ -80,7 +80,7 @@ class TreePanel : ToolContent<DesignSurface> {
     surface.needsRepaint()
   }
 
-  override fun setToolContext(toolContext: DesignSurface?) {
+  override fun setToolContext(toolContext: DesignSurface<*>?) {
     designSurface?.let {
       it.selectionModel?.removeListener(contextSelectionListener)
       it.models.firstOrNull()?.removeListener(modelListener)

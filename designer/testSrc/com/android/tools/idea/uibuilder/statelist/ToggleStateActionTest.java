@@ -82,8 +82,8 @@ public final class ToggleStateActionTest {
   }
 
   @NotNull
-  private static DesignSurface mockSurface(@Nullable ImageView image) {
-    DesignSurface surface = Mockito.mock(DesignSurface.class);
+  private static DesignSurface<?> mockSurface(@Nullable ImageView image) {
+    DesignSurface<?> surface = Mockito.mock(DesignSurface.class);
 
     if (image == null) {
       return surface;

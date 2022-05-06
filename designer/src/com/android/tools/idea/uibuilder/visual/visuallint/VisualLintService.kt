@@ -45,7 +45,7 @@ class VisualLintService {
   /** Default issue provider for Visual Lint Service. */
   val issueProvider = VisualLintIssueProvider()
 
-  fun removeIssues(surface: DesignSurface) {
+  fun removeIssues(surface: DesignSurface<*>) {
     surface.issueModel.removeIssueProvider(issueProvider)
   }
 

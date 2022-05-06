@@ -43,8 +43,8 @@ object DesignSurfaceTestUtil {
 
   @JvmStatic
   fun createMockSurface(disposableParent: Disposable,
-                        surfaceClass: Class<out DesignSurface>,
-                        interactionHandlerCreator: (DesignSurface) -> InteractionHandler): DesignSurface {
+                        surfaceClass: Class<out DesignSurface<out SceneManager>>,
+                        interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler): DesignSurface<out SceneManager> {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
@@ -55,7 +55,7 @@ object DesignSurfaceTestUtil {
     Mockito.`when`(surface.size).thenReturn(Dimension(1000, 1000))
     Mockito.`when`(surface.scale).thenReturn(0.5)
     Mockito.`when`(surface.selectionAsTransferable).thenCallRealMethod()
-    Mockito.`when`(surface.actionManager).thenReturn(TestActionManager(surface))
+    Mockito.`when`(surface.actionManager).thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     val interactable = TestInteractable(surface, JPanel(), surface)
     Mockito.`when`(surface.interactionManager).thenReturn(InteractionManager(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
@@ -77,10 +77,10 @@ object DesignSurfaceTestUtil {
   @JvmStatic
   fun createMockSurfaceWithModel(disposableParent: Disposable,
                                  project: Project,
-                                 sceneManagerFactory: (DesignSurface, SyncNlModel) -> SceneManager,
-                                 surfaceClass: Class<out DesignSurface>,
-                                 interactionHandlerCreator: (DesignSurface) -> InteractionHandler,
-                                 model: SyncNlModel): DesignSurface {
+                                 sceneManagerFactory: (DesignSurface<out SceneManager>, SyncNlModel) -> SceneManager,
+                                 surfaceClass: Class<out DesignSurface<out SceneManager>>,
+                                 interactionHandlerCreator: (DesignSurface<out SceneManager>) -> InteractionHandler,
+                                 model: SyncNlModel): DesignSurface<out SceneManager> {
     val surface = createMockSurface(disposableParent, surfaceClass, interactionHandlerCreator)
 
     Mockito.`when`(surface.model).thenReturn(model)
@@ -95,7 +95,7 @@ object DesignSurfaceTestUtil {
       Mockito.`when`(surface.getActionHandlerProvider()).thenReturn(Function { NlDesignSurface.defaultActionHandlerProvider(it) })
     }
 
-    val sceneManager: SceneManager = sceneManagerFactory(surface, model)
+    val sceneManager = sceneManagerFactory(surface, model)
     Mockito.`when`(surface.sceneManager).thenReturn(sceneManager)
     Mockito.`when`(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     Mockito.`when`(surface.getSceneViewAtOrPrimary(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenCallRealMethod()

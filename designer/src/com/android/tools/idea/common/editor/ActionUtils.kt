@@ -31,7 +31,7 @@ import java.awt.event.MouseEvent
  * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See [ActionManager.createActionPopupMenu] and
  * [com.intellij.openapi.actionSystem.ActionPlaces] for more information.
  */
-fun DesignSurface.showPopup(event: MouseEvent, group: ActionGroup, place: String) {
+fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: String) {
   val invoker = if (event.source is Component) event.source as Component else this
   showPopup(invoker, event.x, event.y, group, place)
 }

@@ -475,7 +475,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, editor, project)
     surface.model = model("nav.xml") { navigation() }
     @Suppress("UNCHECKED_CAST")
-    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface>
+    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
     `when`(editor.workBench).thenReturn(workbench)
     val lock = Semaphore(1)
     lock.acquire()

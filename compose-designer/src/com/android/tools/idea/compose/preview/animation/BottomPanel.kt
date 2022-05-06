@@ -39,7 +39,7 @@ import javax.swing.border.MatteBorder
 
 /** Bottom control panel. */
 class BottomPanel(val previewState: AnimationPreviewState,
-                  surface: DesignSurface,
+                  surface: DesignSurface<*>,
                   private val tracker: ComposeAnimationEventTracker) : JPanel(
   BorderLayout()) {
 

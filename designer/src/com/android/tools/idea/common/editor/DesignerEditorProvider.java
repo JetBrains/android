@@ -100,7 +100,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
 
       @Override
       public void caretPositionChanged(@NotNull CaretEvent event) {
-        DesignSurface surface = designEditor.getComponent().getSurface();
+        DesignSurface<?> surface = designEditor.getComponent().getSurface();
         SceneView sceneView = surface.getFocusedSceneView();
         int offset = caretModel.getOffset();
         if (sceneView == null || offset == -1) {
@@ -130,7 +130,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     // If the editor is just opening the SceneView may not be set yet. Register a listener so we get updated once we can get the model.
     designEditor.getComponent().getSurface().addListener(new DesignSurfaceListener() {
       @Override
-      public void modelChanged(@NotNull DesignSurface surface,
+      public void modelChanged(@NotNull DesignSurface<?> surface,
                                @Nullable NlModel model) {
         surface.removeListener(this);
         CaretModel caretModel = editor.getEditor().getCaretModel();

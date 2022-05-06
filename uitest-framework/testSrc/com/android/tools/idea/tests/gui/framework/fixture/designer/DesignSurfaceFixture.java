@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surface extends DesignSurface>
+public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surface extends DesignSurface<?>>
   extends ComponentFixture<T, Surface> {
   private final JPanel myProgressPanel;
   private final IssuePanelFixture myIssuePanelFixture;

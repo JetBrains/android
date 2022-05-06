@@ -183,7 +183,7 @@ public abstract class SceneContext {
   }
 
   @Nullable
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return null;
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.common;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 public class SyncNlModel extends NlModel {
 
   private Configuration myConfiguration; // for testing purposes
-  private DesignSurface mySurface; // for testing purposes
+  private DesignSurface<? extends SceneManager> mySurface; // for testing purposes
 
   @NotNull
   public static SyncNlModel create(@Nullable Disposable parent,
@@ -71,7 +72,7 @@ public class SyncNlModel extends NlModel {
    * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
    */
   @Deprecated
-  public void setDesignSurface(@NotNull DesignSurface surface) {
+  public void setDesignSurface(@NotNull DesignSurface<? extends SceneManager> surface) {
     mySurface = surface;
   }
 
@@ -80,7 +81,7 @@ public class SyncNlModel extends NlModel {
    */
   @Deprecated
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<? extends SceneManager> getSurface() {
     return mySurface;
   }
 

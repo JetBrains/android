@@ -102,7 +102,7 @@ import javax.swing.JPanel
 class VisualizationForm(private val project: Project, parentDisposable: Disposable, private val initializer: ContentInitializer)
   : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
   val surface: NlDesignSurface
-  private val myWorkBench: WorkBench<DesignSurface>
+  private val myWorkBench: WorkBench<DesignSurface<*>>
   private val myRoot = JPanel(BorderLayout())
   private var myFile: VirtualFile? = null
   private val myResourceNotifyingFilesLock = ReentrantLock()
@@ -180,10 +180,10 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
         }
         sceneManager
       }
-      .setActionManagerProvider { surface: DesignSurface ->
+      .setActionManagerProvider { surface: DesignSurface<*> ->
         VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
       }
-      .setInteractionHandlerProvider { surface: DesignSurface ->
+      .setInteractionHandlerProvider { surface: DesignSurface<*> ->
         VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
       }
       .setLayoutManager(surfaceLayoutManager)
@@ -741,7 +741,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     }
   }
 
-  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface) : DefaultFocusTraversalPolicy() {
+  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface<*>) : DefaultFocusTraversalPolicy() {
     override fun getDefaultComponent(aContainer: Container): Component {
       return mySurface.layeredPane
     }

@@ -711,7 +711,7 @@ public final class ConstraintComponentUtilities {
    *
    * @return Whether it deleted a constraint or not.
    */
-  public static boolean clearSelectedConstraint(@NotNull DesignSurface surface) {
+  public static boolean clearSelectedConstraint(@NotNull DesignSurface<?> surface) {
     // TODO: Move uses to a more common place for deletion.
     SelectionModel selectionModel = surface.getSelectionModel();
     Object secondarySelection = selectionModel.getSecondarySelection();

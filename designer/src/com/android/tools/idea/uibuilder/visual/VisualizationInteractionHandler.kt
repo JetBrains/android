@@ -43,7 +43,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
-class VisualizationInteractionHandler(private val surface: DesignSurface,
+class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
                                       private val getModelsProviderFunc: () -> VisualizationModelsProvider) : InteractionHandler {
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,

@@ -33,4 +33,4 @@ enum class NlSupportedActions {
 /**
  * TODO(b/183243031): These mechanism should be integrated into [com.android.tools.idea.common.editor.ActionManager]
  */
-fun DesignSurface?.isActionSupported(action: NlSupportedActions) = (this as? NlDesignSurface)?.supportedActions?.contains(action) ?: false
+fun DesignSurface<*>?.isActionSupported(action: NlSupportedActions) = (this as? NlDesignSurface)?.supportedActions?.contains(action) ?: false

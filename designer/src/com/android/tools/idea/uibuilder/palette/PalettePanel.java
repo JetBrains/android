@@ -106,7 +106,7 @@ import org.jetbrains.annotations.TestOnly;
  * Top level Palette UI.
  */
 @UiThread
-public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
+public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface<?>> {
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
@@ -125,7 +125,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private final ActionGroup myActionGroup;
   private final KeyListener myFilterKeyListener;
 
-  @NotNull private WeakReference<DesignSurface> myDesignSurface = new WeakReference<>(null);
+  @NotNull private WeakReference<DesignSurface<?>> myDesignSurface = new WeakReference<>(null);
   private LayoutEditorFileType myLayoutType;
   private ToolWindowCallback myToolWindow;
   private Palette.Group myLastSelectedGroup;
@@ -401,7 +401,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @NotNull
-  CompletableFuture<Void> setToolContextAsyncImpl(@Nullable DesignSurface designSurface) {
+  CompletableFuture<Void> setToolContextAsyncImpl(@Nullable DesignSurface<?> designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
     Module module = getModule(designSurface);
     CompletableFuture<Void> result;
@@ -431,7 +431,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface designSurface) {
+  public void setToolContext(@Nullable DesignSurface<?> designSurface) {
     setToolContextAsyncImpl(designSurface);
   }
 
@@ -440,7 +440,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   @Nullable
-  private static Module getModule(@Nullable DesignSurface designSurface) {
+  private static Module getModule(@Nullable DesignSurface<?> designSurface) {
     Configuration configuration =
       designSurface != null && designSurface.getLayoutType().isEditable() ? designSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;
@@ -589,7 +589,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (item == null) {
         return false;
       }
-      DesignSurface surface = myDesignSurface.get();
+      DesignSurface<?> surface = myDesignSurface.get();
       if (surface == null) {
         return false;
       }

@@ -20,5 +20,5 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
 
 object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_SELECTOR)) {
-  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>) = StateListActionGroups(surface)
 }

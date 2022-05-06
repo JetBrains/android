@@ -75,7 +75,7 @@ public class OverlayLayerTest {
 
   @Test
   public void testPaintOverlay() throws Exception {
-    DesignSurface surface = mock(DesignSurface.class);
+    DesignSurface<?> surface = mock(DesignSurface.class);
     when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
 
@@ -102,7 +102,7 @@ public class OverlayLayerTest {
 
   @Test
   public void testPaintPlaceholder() throws Exception {
-    DesignSurface surface = mock(DesignSurface.class);
+    DesignSurface<?> surface = mock(DesignSurface.class);
     when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
 
@@ -131,7 +131,7 @@ public class OverlayLayerTest {
 
   @Test
   public void testPaintPlaceholderShape() throws Exception {
-    DesignSurface surface = mock(DesignSurface.class);
+    DesignSurface<?> surface = mock(DesignSurface.class);
     when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
     Shape shape = new Ellipse2D.Double(0, 0, SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);

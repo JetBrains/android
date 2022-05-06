@@ -109,7 +109,7 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
  * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench.
  * This includes a hyperlink that will re-enable the design surface and run the {@link Runnable} argument.
  */
-fun WorkBench<DesignSurface>.handleLayoutlibNativeCrash(runnable: Runnable) {
+fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
   val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
   val actionData = ActionData("Re-enable rendering") {
     Bridge.setNativeCrash(false)

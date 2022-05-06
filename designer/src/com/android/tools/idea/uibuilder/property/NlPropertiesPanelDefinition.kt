@@ -30,7 +30,7 @@ private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)
  * Tool Window definition for the Properties Panel
  */
 class NlPropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
-  ToolWindowDefinition<DesignSurface>(
+  ToolWindowDefinition<DesignSurface<*>>(
     "Attributes",
     StudioIcons.Shell.ToolWindows.ATTRIBUTES,
     "PROPERTIES",

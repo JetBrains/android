@@ -35,7 +35,7 @@ import org.intellij.lang.annotations.JdkConstants
 @SwingCoordinate
 val WIDTH = 240
 
-class EmptyDesignerTarget(private val surface: DesignSurface) : BaseTarget() {
+class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() {
   override fun getPreferenceLevel() = ACTION_LEVEL
 
   override fun layout(

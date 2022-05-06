@@ -85,7 +85,7 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system
    */
   @SwingCoordinate
-  public static int getSwingDimension(@NotNull DesignSurface surface, @AndroidCoordinate int androidDimension) {
+  public static int getSwingDimension(@NotNull DesignSurface<?> surface, @AndroidCoordinate int androidDimension) {
     return (int)Math.round(surface.getScale() * androidDimension);
   }
 
@@ -320,7 +320,7 @@ public class Coordinates {
    * the {@link DesignSurface} coordinate system.)
    */
   @AndroidCoordinate
-  public static int getAndroidDimension(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
+  public static int getAndroidDimension(@NotNull DesignSurface<?> surface, @SwingCoordinate int swingDimension) {
     return (int)Math.round(swingDimension / surface.getScale());
   }
 

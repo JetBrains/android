@@ -57,7 +57,7 @@ final class GridDragHandler extends DragHandler {
     NlComponent layoutComponent = layout.getNlComponent();
 
     // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException
-    DesignSurface surface = editor.getScene().getDesignSurface();
+    DesignSurface<?> surface = editor.getScene().getDesignSurface();
     if (layout.getChildCount() == 0) {
       AttributesTransaction transaction = components.get(0).startAttributeTransaction();
       setRowAndColumnAttribute(transaction, 0, 0);

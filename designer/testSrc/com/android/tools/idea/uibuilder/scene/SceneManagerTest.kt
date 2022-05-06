@@ -47,7 +47,7 @@ import org.mockito.Mockito.verify
 import java.util.concurrent.CompletableFuture
 
 class TestSceneManager(model: NlModel,
-                       surface: DesignSurface,
+                       surface: DesignSurface<*>,
                        sceneComponentProvider: SceneComponentHierarchyProvider? = null)
   : SceneManager(model, surface, sceneComponentProvider, null) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)

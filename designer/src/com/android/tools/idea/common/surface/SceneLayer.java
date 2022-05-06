@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * Basic display layer for Scene
  */
 public class SceneLayer extends Layer {
-  private final DesignSurface myDesignSurface;
+  private final DesignSurface<?> myDesignSurface;
   private final SceneView mySceneView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
@@ -43,7 +43,7 @@ public class SceneLayer extends Layer {
    *
    * @param view the current ScreenView
    */
-  public SceneLayer(@NotNull DesignSurface surface, @NotNull SceneView view, boolean showAlways) {
+  public SceneLayer(@NotNull DesignSurface<?> surface, @NotNull SceneView view, boolean showAlways) {
     myDesignSurface = surface;
     mySceneView = view;
     myShowAlways = showAlways;
@@ -86,7 +86,7 @@ public class SceneLayer extends Layer {
       }
 
       // When screen rotation feature is enabled, we want to hide the relevant drawings.
-      DesignSurface sufrace = mySceneView.getSurface();
+      DesignSurface<?> sufrace = mySceneView.getSurface();
       if (sufrace instanceof NlDesignSurface) {
         NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
         float degree = nlSurface.getRotateSurfaceDegree();

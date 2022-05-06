@@ -74,7 +74,7 @@ private const val LINEAR_LAYOUT = """<LinearLayout
  * simply generate the image from the icon used in the palette.
  */
 class PreviewProvider(
-  private val myDesignSurfaceSupplier: Supplier<DesignSurface?>,
+  private val myDesignSurfaceSupplier: Supplier<DesignSurface<*>?>,
   private val myDependencyManager: DependencyManager
 ) {
   class ImageAndDimension(val image: BufferedImage, val dimension: Dimension, val rendering: Future<*>?, val disposal: Future<*>?)

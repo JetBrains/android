@@ -141,7 +141,7 @@ class SelectActionsTest : LayoutTestCase() {
     AndroidTestCase.assertEquals(listOf(outer, button, inner, textView1, textView2), surface.selectionModel.selection)
   }
 
-  private fun performAction(action: AnAction, surface: DesignSurface, id: String) {
+  private fun performAction(action: AnAction, surface: DesignSurface<*>, id: String) {
     action.actionPerformed(mock(AnActionEvent::class.java))
     val component = surface.model?.find(id)!!
     assertEquals(listOf(component), surface.selectionModel.selection)

@@ -1206,7 +1206,7 @@ public class CommonActions {
                         @InputEventMask int modifiers) {
       myComponent = component;
       myMarginPopup = createIfNeeded();
-      DesignSurface surface = editor.getScene().getDesignSurface();
+      DesignSurface<?> surface = editor.getScene().getDesignSurface();
       getAnalyticsManager(editor).trackDefaultMargins();
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())

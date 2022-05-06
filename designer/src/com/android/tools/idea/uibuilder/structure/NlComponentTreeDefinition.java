@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurface> {
+public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurface<?>> {
 
   public NlComponentTreeDefinition(@NotNull Project project,
                                    @NotNull Side side,

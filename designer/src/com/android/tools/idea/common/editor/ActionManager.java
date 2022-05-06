@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides and handles actions for a {@link DesignerEditor}.
  */
-public abstract class ActionManager<S extends DesignSurface> {
+public abstract class ActionManager<S extends DesignSurface<?>> {
   protected final S mySurface;
 
   protected ActionManager(@NotNull S surface) {

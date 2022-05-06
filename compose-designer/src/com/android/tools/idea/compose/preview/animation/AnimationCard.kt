@@ -34,7 +34,7 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 class AnimationCard(previewState: AnimationPreviewState,
-                    val surface: DesignSurface,
+                    val surface: DesignSurface<*>,
                     val state: ElementState,
                     private val tracker: ComposeAnimationEventTracker)
   : JPanel(TabularLayout("*", "30px,30px")) {

@@ -23,9 +23,11 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -64,9 +66,9 @@ public class NlModelBuilderUtil {
       fixture,
       name,
       root,
-      (@NotNull DesignSurface surface, @NotNull SyncNlModel model) -> {
+      (@NotNull DesignSurface<? extends SceneManager> surface, @NotNull SyncNlModel model) -> {
         NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model);
-        return new SyncLayoutlibSceneManager(surface, model);
+        return new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)surface, model);
       },
       (@NotNull NlModel model) -> NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model),
       resourceFolder,

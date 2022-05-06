@@ -73,7 +73,7 @@ import javax.swing.JList
 /**
  * Shows an [AddActionDialog] and then updates the corresponding model.
  */
-fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean) {
+fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface<*>?, hadExisting: Boolean) {
   val action = showAndUpdateFromDialog(actionDialog, surface?.model, hadExisting)
   if (action != null && !hadExisting) {
     surface?.selectionModel?.setSelection(listOf(action))

@@ -39,14 +39,14 @@ internal interface InternalMultiViewMetricTracker {
 internal class InternalMultiViewMetricTrackerFactory {
 
    companion object {
-     private val MANAGER = DesignerUsageTrackerManager<InternalMultiViewMetricTracker, DesignSurface>(
+     private val MANAGER = DesignerUsageTrackerManager<InternalMultiViewMetricTracker, DesignSurface<*>>(
        { executor, surface, eventLogger -> MultiViewMetricTrackerImpl(executor, surface, eventLogger) }, MultiViewNopTracker)
 
      /**
       * Gets a shared instance of the tracker.
       * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker] will be used.
       */
-     fun getInstance(surface: DesignSurface?) = MANAGER.getInstance(surface)
+     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
    }
 }
 
@@ -59,7 +59,7 @@ internal class InternalMultiViewMetricTrackerFactory {
  */
 private class MultiViewMetricTrackerImpl internal constructor(
   private val myExecutor: Executor,
-  private val surface: DesignSurface?,
+  private val surface: DesignSurface<*>?,
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMultiViewMetricTracker {
 
   /**

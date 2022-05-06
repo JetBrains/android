@@ -19,7 +19,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ActivateSelectionAction(val surface: DesignSurface) : AnAction() {
+class ActivateSelectionAction(val surface: DesignSurface<*>) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.selection.let {
       if (it.size == 1) {

@@ -28,7 +28,7 @@ import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 
 class NlDesignSurfaceActionHandler @JvmOverloads constructor(
-  surface: DesignSurface,
+  surface: DesignSurface<*>,
   @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
 ) : DesignSurfaceActionHandler(surface, copyPasteManager) {
 

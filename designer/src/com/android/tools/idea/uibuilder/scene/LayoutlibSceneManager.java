@@ -436,7 +436,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
-                                  @NotNull DesignSurface designSurface,
+                                  @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
@@ -493,7 +493,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
-                               @NotNull DesignSurface designSurface,
+                               @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                @NotNull SceneManager.SceneUpdateListener sceneUpdateListener,
                                @NotNull Supplier<SessionClock> sessionClockFactory) {
@@ -516,7 +516,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    * @param config configuration for layout validation when rendering.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutScannerConfiguration config) {
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config) {
     this(
       model,
       designSurface,
@@ -1315,7 +1315,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getModel().notifyListenersModelDerivedDataChanged();
   }
 
-  private void logConfigurationChange(@NotNull DesignSurface surface) {
+  private void logConfigurationChange(@NotNull DesignSurface<?> surface) {
     int flags = myConfigurationUpdatedFlags.getAndSet(0);  // Get and reset the saved flags
     if (flags != 0) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
@@ -1365,7 +1365,7 @@ public class LayoutlibSceneManager extends SceneManager {
       myPendingFutures.clear();
     }
     try {
-      DesignSurface surface = getDesignSurface();
+      NlDesignSurface surface = getDesignSurface();
       logConfigurationChange(surface);
       getModel().resetLastChange();
 

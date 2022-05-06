@@ -258,7 +258,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       onUnPinAction: AnAction) :
   ComposePreviewView, Pannable, DataProvider {
 
-  private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0)
+  private val workbench = WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
 
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 

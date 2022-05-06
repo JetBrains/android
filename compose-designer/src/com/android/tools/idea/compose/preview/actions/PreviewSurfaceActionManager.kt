@@ -34,7 +34,7 @@ import javax.swing.JComponent
 /**
  * [ActionManager] to be used by the Compose Preview.
  */
-internal class PreviewSurfaceActionManager(private val surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+internal class PreviewSurfaceActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   private val copyResultImageAction = CopyResultImageAction(
     {
       // Copy the model of the current selected object (if any)

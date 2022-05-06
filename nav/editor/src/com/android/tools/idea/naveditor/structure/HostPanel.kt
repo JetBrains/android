@@ -87,7 +87,7 @@ private const val SPACING_1 = 6
 private const val SPACING_2 = 24
 private const val SPACING_TOTAL = SPACING_1 + SPACING_2
 
-class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayout()) {
+class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardLayout()) {
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
   @VisibleForTesting

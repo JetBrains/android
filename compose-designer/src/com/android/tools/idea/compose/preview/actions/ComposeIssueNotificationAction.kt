@@ -348,7 +348,7 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
 /**
  * [ForceCompileAndRefreshAction] where the visibility is controlled by the [ComposePreviewStatusNotification.hasRefreshIcon].
  */
-private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface): ForceCompileAndRefreshAction(surface) {
+private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>): ForceCompileAndRefreshAction(surface) {
   override fun update(e: AnActionEvent) {
     super.update(e)
 
@@ -363,7 +363,7 @@ private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface
 /**
  * [DefaultActionGroup] that shows the notification chip and the [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface) : DefaultActionGroup(
+class ComposeNotificationGroup(surface: DesignSurface<*>) : DefaultActionGroup(
   listOf(
     ComposeIssueNotificationAction(),
     ForceCompileAndRefreshActionForNotification(surface))

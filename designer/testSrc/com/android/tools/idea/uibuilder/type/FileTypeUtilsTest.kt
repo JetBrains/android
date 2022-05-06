@@ -142,5 +142,5 @@ private const val TEST_ROOT_TAG = "<test>"
 object TestDrawableFileType : DrawableFileType(setOf(TEST_ROOT_TAG)) {
   override fun isResourceTypeOf(file: PsiFile): Boolean = true
 
-  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups = ToolbarActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups = ToolbarActionGroups(surface)
 }

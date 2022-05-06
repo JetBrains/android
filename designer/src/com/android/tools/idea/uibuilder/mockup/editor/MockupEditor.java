@@ -63,7 +63,7 @@ import java.util.Set;
  * The behavior of the the editor can be changed by implementing {@link Tool}.
  * </p>
  */
-public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, RenderListener {
+public class MockupEditor extends JPanel implements ToolContent<DesignSurface<?>>, RenderListener {
 
   private static final String TITLE = "Mockup Editor";
   private static final String NO_MOCKUP_TEXT = "<html>No mockup available for this View.<br/>Click to add mockup</html>";
@@ -375,7 +375,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
   }
 
   @Override
-  public void setToolContext(@Nullable DesignSurface newDesignSurface) {
+  public void setToolContext(@Nullable DesignSurface<?> newDesignSurface) {
     assert newDesignSurface == null || newDesignSurface instanceof NlDesignSurface;
     if (mySurface != null) {
       LayoutlibSceneManager manager = mySurface.getSceneManager();
@@ -454,17 +454,17 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     }
 
     @Override
-    public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+    public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {
       myEditor.selectionUpdated(myEditor.myModel, newSelection);
     }
 
     @Override
-    public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
       myEditor.setModel(model);
     }
 
     @Override
-    public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    public boolean activatePreferredEditor(@NotNull DesignSurface<?> surface, @NotNull NlComponent component) {
       return false;
     }
   }

@@ -228,7 +228,7 @@ public class NlDropListener extends DropTargetAdapter {
   private void performNormalDrop(@NotNull NlDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
       Scene scene = myTree.getScene();
-      DesignSurface surface = scene != null ? scene.getDesignSurface() : null;
+      DesignSurface<?> surface = scene != null ? scene.getDesignSurface() : null;
       if (surface != null) {
         UtilsKt.addComponentsAndSelectedIfCreated(model,
                                                   myDragged,

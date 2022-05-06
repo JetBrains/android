@@ -23,7 +23,7 @@ import com.android.tools.idea.naveditor.model.layout
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ActivateComponentAction(text: String?, private val mySurface: DesignSurface, private val component: NlComponent) : AnAction(text) {
+class ActivateComponentAction(text: String?, private val mySurface: DesignSurface<*>, private val component: NlComponent) : AnAction(text) {
   init {
     setEnabled()
   }

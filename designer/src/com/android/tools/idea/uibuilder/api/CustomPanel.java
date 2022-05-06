@@ -23,6 +23,6 @@ import javax.swing.*;
 
 public interface CustomPanel {
   JPanel getPanel();
-  void useComponent(@Nullable NlComponent component, @Nullable DesignSurface surface);
+  void useComponent(@Nullable NlComponent component, @Nullable DesignSurface<?> surface);
   void refresh();
 }

@@ -78,8 +78,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun getEditorId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 
   override fun createEditorPanel(): DesignerEditorPanel {
-    val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
-    val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
+    val workBench = WorkBench<DesignSurface<*>>(myProject, WORKBENCH_NAME, this, this)
+    val surface: (panel: DesignerEditorPanel) -> DesignSurface<*> = {
       NlDesignSurface.builder(myProject, this)
         .setActionManagerProvider { surface ->
           PreviewEditorActionManagerProvider(surface as NlDesignSurface, file?.toPsiFile(myProject)?.typeOf())
@@ -132,7 +132,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
   }
 
-  private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?): JPanel? {
+  private fun addAnimationToolbar(surface: DesignSurface<*>, model: NlModel?): JPanel? {
     val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
@@ -193,7 +193,7 @@ class PreviewEditorActionManagerProvider(surface: NlDesignSurface,
 /**
  * Animation listener for <animated-vector>.
  */
-private class AnimatedVectorListener(val surface: DesignSurface) : AnimationListener {
+private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationListener {
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
@@ -233,7 +233,7 @@ private class AnimatedVectorListener(val surface: DesignSurface) : AnimationList
 /**
  * Animation listener for <animation-list>.
  */
-private class AnimationListListener(val surface: DesignSurface) : AnimationListener {
+private class AnimationListListener(val surface: DesignSurface<*>) : AnimationListener {
   private var currentAnimationDrawable: AnimationDrawable? = null
   private var modelTimeMap = listOf<Long>()
 
@@ -299,7 +299,7 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
  * Animation listener for <animated-selector> file.
  * <animated-selector> may have embedded <animated-vector> and/or <animation-list>.
  */
-private class AnimatedSelectorListener(val surface: DesignSurface) : AnimationListener {
+private class AnimatedSelectorListener(val surface: DesignSurface<*>) : AnimationListener {
   private val animatedVectorDelegate = AnimatedVectorListener(surface)
   private val animationListDelegate = AnimationListListener(surface)
 

@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 sealed class AddActionDialogAction(
-  private val surface: DesignSurface,
+  private val surface: DesignSurface<*>,
   val text: String,
   private val parent: NlComponent,
   private val existingAction: NlComponent?
@@ -36,12 +36,12 @@ sealed class AddActionDialogAction(
 }
 
 class ToDestinationAction(
-  val surface: DesignSurface,
+  val surface: DesignSurface<*>,
   val parent: NlComponent
 ) : AddActionDialogAction(surface, "To Destination...", parent, null)
 
 class EditExistingAction(
-  val surface: DesignSurface,
+  val surface: DesignSurface<*>,
   val parent: NlComponent,
   val action: NlComponent
 ) : AddActionDialogAction(surface, "Edit", parent, action)

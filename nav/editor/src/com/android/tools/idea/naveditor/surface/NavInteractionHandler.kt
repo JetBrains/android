@@ -23,10 +23,11 @@ import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
 
-class NavInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
+class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,

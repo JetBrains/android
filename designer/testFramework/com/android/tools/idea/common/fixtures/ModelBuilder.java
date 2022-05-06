@@ -65,11 +65,11 @@ public class ModelBuilder {
   private final AndroidFacet myFacet;
   private final CodeInsightTestFixture myFixture;
   private String myName;
-  private final Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> myManagerFactory;
+  private final Function2<DesignSurface<? extends SceneManager>, SyncNlModel, SceneManager> myManagerFactory;
   private final Consumer<NlModel> myModelUpdater;
   private final String myPath;
-  private final Class<? extends DesignSurface> mySurfaceClass;
-  private final Function1<DesignSurface, InteractionHandler> myInteractionHandlerCreator;
+  private final Class<? extends DesignSurface<? extends SceneManager>> mySurfaceClass;
+  private final Function1<DesignSurface<? extends SceneManager>, InteractionHandler> myInteractionHandlerCreator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
   private String myModelDisplayName;
@@ -78,11 +78,11 @@ public class ModelBuilder {
                       @NotNull CodeInsightTestFixture fixture,
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
-                      @NotNull Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> managerFactory,
+                      @NotNull Function2<DesignSurface<? extends SceneManager>, SyncNlModel, SceneManager> managerFactory,
                       @NotNull Consumer<NlModel> modelUpdater,
                       @NotNull String path,
-                      @NotNull Class<? extends DesignSurface> surfaceClass,
-                      @NotNull Function1<DesignSurface, InteractionHandler> interactionHandlerCreator,
+                      @NotNull Class<? extends DesignSurface<? extends SceneManager>> surfaceClass,
+                      @NotNull Function1<DesignSurface<? extends SceneManager>, InteractionHandler> interactionHandlerCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
@@ -153,8 +153,8 @@ public class ModelBuilder {
     final Project project = myFacet.getModule().getProject();
     final SyncNlModel model = buildWithoutSurface();
     return WriteAction.compute(() -> {
-      // TODO(b/194482298): Refactor below functions, to create DesignSurface first then add the NlModel.
-      DesignSurface surface = DesignSurfaceTestUtil.createMockSurfaceWithModel(project, project, myManagerFactory,
+      // TODO(b/194482298): Refactor below functions, to create DesignSurface<?> first then add the NlModel.
+      DesignSurface<? extends SceneManager> surface = DesignSurfaceTestUtil.createMockSurfaceWithModel(project, project, myManagerFactory,
                                                                                mySurfaceClass, myInteractionHandlerCreator, model);
       model.setDesignSurface(surface);
       return model;
@@ -270,8 +270,8 @@ public class ModelBuilder {
     }
   }
 
-  public static class TestActionManager extends ActionManager<DesignSurface> {
-    public TestActionManager(@NotNull DesignSurface surface) {
+  public static class TestActionManager extends ActionManager<DesignSurface<SceneManager>> {
+    public TestActionManager(@NotNull DesignSurface<SceneManager> surface) {
       super(surface);
     }
     @Override

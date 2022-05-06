@@ -43,7 +43,7 @@ public class BorderLayer extends Layer {
     }
 
     // When screen rotation feature is enabled, we want to hide the border.
-    DesignSurface surface = myScreenView.getSurface();
+    DesignSurface<?> surface = myScreenView.getSurface();
     if (surface instanceof NlDesignSurface) {
       NlDesignSurface nlSurface = (NlDesignSurface) surface;
       float degree = nlSurface.getRotateSurfaceDegree();

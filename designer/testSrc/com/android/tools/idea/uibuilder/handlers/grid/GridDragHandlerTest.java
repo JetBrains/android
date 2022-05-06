@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.DragType;
@@ -70,7 +72,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .build();
     // @formatter:on
 
-    Scene scene = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<NlComponent> components = Collections.emptyList();

@@ -34,9 +34,9 @@ import java.util.List;
 
 final class ToggleStateAction extends ToggleAction {
   private final State myState;
-  private final DesignSurface mySurface;
+  private final DesignSurface<?> mySurface;
 
-  ToggleStateAction(@NotNull State state, @NotNull DesignSurface surface) {
+  ToggleStateAction(@NotNull State state, @NotNull DesignSurface<?> surface) {
     super(state.getText(), null, EmptyIcon.ICON_0);
     myState = state;
     mySurface = surface;

@@ -255,7 +255,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
 
     NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
-      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager(((SyncNlModel)m).getSurface(), m) {
+      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((NlDesignSurface)((SyncNlModel)m).getSurface(), m) {
         @Override
         protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
           // This test does not need Layoutlib renders
@@ -287,7 +287,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
 
     NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
-      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager(((SyncNlModel)m).getSurface(), m) {
+      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((NlDesignSurface)((SyncNlModel)m).getSurface(), m) {
         @Override
         protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
           // This test does not need Layoutlib renders

@@ -59,7 +59,7 @@ private fun colorForRenderTime(renderTimeMs: Long): Color =
   }
 
 
-class DiagnosticsLayer(val surface: DesignSurface) : Layer() {
+class DiagnosticsLayer(val surface: DesignSurface<*>) : Layer() {
   private fun getDiagnosticsString(diagnostics: NlDiagnosticsRead): String {
     val runtime = Runtime.getRuntime()
     val freeMemPct = runtime.freeMemory().toDouble() / runtime.totalMemory() * 100

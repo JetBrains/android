@@ -20,25 +20,18 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.*;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
@@ -50,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -62,8 +54,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY;
 import static org.junit.Assert.assertTrue;
@@ -232,10 +222,10 @@ public class LayoutTestUtilities {
 
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
-    NlDesignSurface surface = (NlDesignSurface) model.getSurface();
+    DesignSurface<LayoutlibSceneManager> surface = (DesignSurface<LayoutlibSceneManager>)model.getSurface();
     LayoutlibSceneManager spy = spy(surface.getSceneManager());
     when(surface.getSceneManager()).thenReturn(spy);
-    ScreenView screenView = new ScreenView(surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
+    ScreenView screenView = new ScreenView((NlDesignSurface)surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
         return scale;
@@ -245,25 +235,6 @@ public class LayoutTestUtilities {
     when(spy.getSceneView()).thenReturn(screenView);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
-  }
-
-  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
-    JComponent layeredPane = new JPanel();
-    DesignSurface surface = mock(surfaceClass);
-    SelectionModel selectionModel = new DefaultSelectionModel();
-    List<DesignSurfaceListener> listeners = new ArrayList<>();
-    when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getSelectionModel()).thenReturn(selectionModel);
-    when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
-    when(surface.getScale()).thenReturn(0.5);
-    when(surface.getSelectionAsTransferable()).thenReturn(new ItemTransferable(new DnDTransferItem(0, ImmutableList.of())));
-    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
-    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
-    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
-    if (NlDesignSurface.class.equals(surfaceClass)) {
-      when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
-    }
-    return surface;
   }
 
   public static DropTargetContext createDropTargetContext() {
@@ -300,7 +271,7 @@ public class LayoutTestUtilities {
     return null;
   }
 
-  public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
+  public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface<?> surface) {
     AnalyticsSettingsData settings = new AnalyticsSettingsData();
     settings.setOptedIn(true);
     AnalyticsSettings.setInstanceForTest(settings);
@@ -313,7 +284,7 @@ public class LayoutTestUtilities {
     return usageTracker;
   }
 
-  public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface surface) {
+  public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface<?> surface) {
     NlUsageTracker.MANAGER.cleanAfterTesting(surface);
     UsageTracker.cleanAfterTesting();
   }

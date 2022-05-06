@@ -31,7 +31,7 @@ private const val MARGIN = 20
  * The [IssueListener] of [DesignSurface].
  * TODO?: Consider to move as inner class of [DesignSurface]?
  */
-class DesignSurfaceIssueListenerImpl(val surface: DesignSurface) : IssueListener{
+class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListener{
   override fun onIssueSelected(issue: Issue) {
     when (val source = issue.source) {
       is NlComponentIssueSource -> {

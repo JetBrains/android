@@ -71,8 +71,8 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
                         { toolWindowDefinitions(it) },
                         AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
 
-  private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
-    val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
+  private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface<*>>> {
+    val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface<*>>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))

@@ -38,9 +38,9 @@ import org.jetbrains.annotations.Nullable;
  * Action which navigates to the primary selected XML element
  */
 public class GotoComponentAction extends DumbAwareAction {
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface<?> mySurface;
 
-  public GotoComponentAction(@NotNull DesignSurface surface) {
+  public GotoComponentAction(@NotNull DesignSurface<?> surface) {
     super("Go to XML");
     mySurface = surface;
   }

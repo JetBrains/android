@@ -154,7 +154,7 @@ interface InteractionHandler {
   fun mouseExited()
 }
 
-abstract class InteractionHandlerBase(private val surface: DesignSurface) : InteractionHandler {
+abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : InteractionHandler {
   private var cursorWhenNoInteraction: Cursor? = null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? {

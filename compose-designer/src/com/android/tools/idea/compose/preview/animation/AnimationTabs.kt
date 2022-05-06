@@ -43,7 +43,7 @@ import javax.swing.border.MatteBorder
 /**
  * Tabs panel with enabled navigation.
  */
-class AnimationTabs(surface: DesignSurface) :
+class AnimationTabs(surface: DesignSurface<*>) :
   JBTabsImpl(
     surface.project,
     IdeFocusManager.getInstance(surface.project),

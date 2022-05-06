@@ -862,7 +862,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   private static void logConstraintConnected(SceneComponent component) {
-    DesignSurface surface = component.getScene().getDesignSurface();
+    DesignSurface<?> surface = component.getScene().getDesignSurface();
     if (!(surface instanceof NlDesignSurface)) {
       return;
     }
@@ -872,7 +872,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   private static void logConstraintDisconnected(SceneComponent component) {
-    DesignSurface surface = component.getScene().getDesignSurface();
+    DesignSurface<?> surface = component.getScene().getDesignSurface();
     if (!(surface instanceof NlDesignSurface)) {
       return;
     }

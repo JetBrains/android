@@ -48,13 +48,13 @@ public class NlComponentFixture {
   private static final int MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2; // Based on DrawAnchor.java
   private final Robot myRobot;
   private final NlComponent myComponent;
-  private final DesignSurface mySurface;
+  private final DesignSurface<?> mySurface;
   private final ComponentDragAndDrop myDragAndDrop;
   private final SceneComponent mySceneComponent;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
-                            @NotNull DesignSurface surface) {
+                            @NotNull DesignSurface<?> surface) {
     myRobot = robot;
     myComponent = component;
     mySceneComponent = surface.getScene().getSceneComponent(myComponent);

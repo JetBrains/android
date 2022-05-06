@@ -53,7 +53,7 @@ private fun SceneView.convertToViewport(@SwingCoordinate x: Int, @SwingCoordinat
 
 class SceneComponentFixture internal constructor(
   private val robot: Robot,
-  private val componentDriver: ComponentDriver<DesignSurface>,
+  private val componentDriver: ComponentDriver<DesignSurface<*>>,
   val sceneComponent: SceneComponent) {
 
   val parent: SceneComponentFixture?
@@ -206,7 +206,7 @@ class SceneComponentFixture internal constructor(
 }
 
 class SceneFixture(private val robot: Robot, private val scene: Scene) {
-  private val componentDriver = ComponentDriver<DesignSurface>(robot)
+  private val componentDriver = ComponentDriver<DesignSurface<*>>(robot)
 
   val sceneComponents: List<SceneComponentFixture>
     get() = scene.sceneComponents
@@ -241,7 +241,7 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
 
 class SceneViewFixture(private val robot: Robot,
                        private val sceneView: SceneView) {
-  private val componentDriver = ComponentDriver<DesignSurface>(robot)
+  private val componentDriver = ComponentDriver<DesignSurface<*>>(robot)
 
   val midPoint: Point
     get() = Point((sceneView.x + sceneView.x + sceneView.scaledContentSize.width) / 2,

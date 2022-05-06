@@ -95,7 +95,7 @@ public abstract class SceneView {
     return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
   };
 
-  @NotNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface<?> mySurface;
   @NotNull private final SceneManager myManager;
   private final Object myLayersCacheLock = new Object();
   @GuardedBy("myLayersCacheLock")
@@ -111,7 +111,7 @@ public abstract class SceneView {
    */
   @NotNull private final SceneContext myContext = new SceneViewTransform();
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
+  public SceneView(@NotNull DesignSurface<?> surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
     mySurface = surface;
     myManager = manager;
     myShapePolicy = shapePolicy;
@@ -201,7 +201,7 @@ public abstract class SceneView {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public DesignSurface<?> getSurface() {
     return mySurface;
   }
 
@@ -372,7 +372,7 @@ public abstract class SceneView {
 
     @NotNull
     @Override
-    public DesignSurface getSurface() {
+    public DesignSurface<?> getSurface() {
       return SceneView.this.getSurface();
     }
 

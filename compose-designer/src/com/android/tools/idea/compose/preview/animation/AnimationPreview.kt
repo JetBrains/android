@@ -66,7 +66,7 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationPreview]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationPreview(override val surface: DesignSurface) : JPanel(
+class AnimationPreview(override val surface: DesignSurface<*>) : JPanel(
   TabularLayout("Fit,*", "Fit,*,30px")), ComposeAnimationPreview {
 
   private val tracker: (ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->

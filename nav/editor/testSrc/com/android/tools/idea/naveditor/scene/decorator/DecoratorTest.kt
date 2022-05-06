@@ -60,7 +60,7 @@ private const val ACTIVITY_TEXT_HEIGHT = 26f
 private val ACTION_COLOR = Color(-0x4d585859, true)
 
 class DecoratorTest : NavTestCase() {
-  private lateinit var surface: DesignSurface
+  private lateinit var surface: DesignSurface<*>
 
   override fun setUp() {
     super.setUp()

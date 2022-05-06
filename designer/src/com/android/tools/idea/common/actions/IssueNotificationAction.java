@@ -63,7 +63,7 @@ public class IssueNotificationAction extends ToggleAction {
       return;
     }
     super.update(event);
-    DesignSurface surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
     Presentation presentation = event.getPresentation();
 
     if (surface == null || !NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.TOGGLE_ISSUE_PANEL)) {
@@ -100,7 +100,7 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
-    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
     if (surface == null) {
       return false;
     }
@@ -109,7 +109,7 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
     if (surface == null) {
       return;
     }

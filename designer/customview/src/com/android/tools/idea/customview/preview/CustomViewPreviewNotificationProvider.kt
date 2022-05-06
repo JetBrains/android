@@ -74,7 +74,7 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-internal fun requestBuildForSurface(surface: DesignSurface) {
+internal fun requestBuildForSurface(surface: DesignSurface<*>) {
   surface.models.map { it.module }.distinct().forEach {
     requestBuild(surface.project, it)
   }
@@ -82,7 +82,7 @@ internal fun requestBuildForSurface(surface: DesignSurface) {
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface.
  */
-internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
+internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
   AnAction(BUILD_AND_REFRESH, null, GREEN_REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 

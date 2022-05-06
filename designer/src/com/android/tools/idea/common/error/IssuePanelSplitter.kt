@@ -24,8 +24,8 @@ import javax.swing.JComponent
  * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom and the provided [JComponent] on top.
  */
 class IssuePanelSplitter(
-  val surface: DesignSurface,
-  content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
+    val surface: DesignSurface<*>,
+    content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
 
   init {
     val issuePanel = if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) null else surface.issuePanel

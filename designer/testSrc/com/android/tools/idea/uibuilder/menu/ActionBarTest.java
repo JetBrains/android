@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -28,7 +30,7 @@ public final class ActionBarTest extends LayoutTestCase {
   public void testAddToItemsOrOverflowItemsItemWidthAndHeightAreNegativeOne() {
     SyncNlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_MENU))).build();
 
-    SceneComponent menu = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene().getRoot();
+    SceneComponent menu = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene().getRoot();
     SceneComponent item = menu.getChildren().get(0);
     item.setPosition(0, 0);
     item.setSize(-1, -1);
@@ -45,7 +47,7 @@ public final class ActionBarTest extends LayoutTestCase {
                             component("group").unboundedChildren(
                               component("item").viewType(ViewType.ACTION_BAR_MENU)))).build();
 
-    SceneComponent menu = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene().getRoot();
+    SceneComponent menu = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene().getRoot();
     SceneComponent group = menu.getChildren().get(0);
     NlComponentHelperKt.setViewInfo(group.getNlComponent(), null);
     SceneComponent item = group.getChildren().get(0);
@@ -59,7 +61,7 @@ public final class ActionBarTest extends LayoutTestCase {
   public void testAddToItemsOrOverflowItemsItemViewTypeIsActionBarMenu() {
     SyncNlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_MENU))).build();
 
-    SceneComponent menu = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene().getRoot();
+    SceneComponent menu = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene().getRoot();
     SceneComponent item = menu.getChildren().get(0);
 
     ActionBar actionBar = new ActionBar(menu);
@@ -71,7 +73,7 @@ public final class ActionBarTest extends LayoutTestCase {
   public void testAddToItemsOrOverflowItemsItemViewTypeIsActionBarOverflowMenu() {
     SyncNlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_OVERFLOW_MENU))).build();
 
-    SceneComponent menu = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene().getRoot();
+    SceneComponent menu = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene().getRoot();
     SceneComponent item = menu.getChildren().get(0);
 
     ActionBar actionBar = new ActionBar(menu);
