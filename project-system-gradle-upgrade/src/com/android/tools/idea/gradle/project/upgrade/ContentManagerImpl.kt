@@ -413,18 +413,18 @@ class ToolWindowModel(
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
-    val classpathUsageFound = !newProcessor.classpathRefactoringProcessor.isAlwaysNoOpForProject
+    val agpVersionUsageFound = !newProcessor.agpVersionRefactoringProcessor.isAlwaysNoOpForProject
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean, classpathUsageFound)
+      setEnabled(newProcessor, projectFilesClean, agpVersionUsageFound)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, classpathUsageFound) }
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, agpVersionUsageFound) }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, agpVersionUsageFound: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
-    if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
+    if (!agpVersionUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
       uiState.set(UIState.AgpVersionNotLocatedError)
     }
@@ -971,7 +971,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
   }
 }
 
-private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactoringProcessors + this.classpathRefactoringProcessor
+private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactoringProcessors + this.agpVersionRefactoringProcessor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 

@@ -46,8 +46,8 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         }
       }
       """.trimIndent())
-    val processor = AgpClasspathDependencyRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"),
-                                                               GradleVersion.parse("4.0.0"))
+    val processor = AgpVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"),
+                                                   GradleVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)

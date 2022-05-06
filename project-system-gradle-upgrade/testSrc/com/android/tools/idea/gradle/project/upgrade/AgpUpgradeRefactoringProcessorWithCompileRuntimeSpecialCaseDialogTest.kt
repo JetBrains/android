@@ -71,9 +71,9 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
       }
     }
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkInitialConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkInitialConsistency(it) }
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor())
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkFinalConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkFinalConsistency(it) }
     Disposer.dispose(dialog.disposable)
   }
 

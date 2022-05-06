@@ -52,7 +52,7 @@ class RefactoringProcessorInstantiator {
       LOG.warn("changes found in project build files")
     }
     val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
-      if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+      if (processor.agpVersionRefactoringProcessor.isAlwaysNoOpForProject) {
         processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
         LOG.warn("cannot upgrade: classpath processor is always a no-op")
         val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)

@@ -36,7 +36,7 @@ import com.intellij.util.ThreeState
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
-class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
@@ -63,7 +63,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
             null -> return
             else -> element.psiElement
           }
-          val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+          val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
           psiElement?.let {
             usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
           }
@@ -86,7 +86,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
             }
             // This text gets used in the `target` display of the preview, and so needs to conform with our user interface
             // (having this be more of a verb than a noun).
-            val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+            val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
@@ -108,7 +108,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               }
               // it would be weird for there to be an AGP dependency in buildSrc without there being one in the main project, but just in
               // case...
-              val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+              val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
               psiElement?.let {
                 usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
               }
@@ -127,7 +127,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.commandName", current, new)
+  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.commandName", current, new)
 
   override fun getShortDescription(): String =
     """
@@ -138,7 +138,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
       assistant after running the upgrade.
     """.trimIndent()
 
-  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.classpathDependency"
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.agpVersion"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -146,12 +146,12 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.usageView.header", current, new)
+      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.usageView.header", current, new)
     }
   }
 
   companion object {
-    val USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpClasspathDependencyRefactoringProcessor.usageType"))
+    val USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpVersionRefactoringProcessor.usageType"))
   }
 }
 

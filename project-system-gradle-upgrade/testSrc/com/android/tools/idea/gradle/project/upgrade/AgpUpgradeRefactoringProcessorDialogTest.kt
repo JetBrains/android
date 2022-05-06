@@ -83,12 +83,12 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
       }
     }
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkInitialConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkInitialConsistency(it) }
     val dialog = AgpUpgradeRefactoringProcessorDialog(processor,
                                                       processor.getJava8DefaultRefactoringProcessor(),
                                                       processor.getR8FullModeDefaultRefactoringProcessor(),
                                                       false)
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkFinalConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkFinalConsistency(it) }
     Disposer.dispose(dialog.disposable)
   }
 
@@ -105,10 +105,10 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
       }
     }
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkConsistency(it) }
     val dialog = AgpUpgradeRefactoringProcessorDialog(
       processor, processor.getJava8DefaultRefactoringProcessor(), processor.getR8FullModeDefaultRefactoringProcessor(), false, true)
-    (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkConsistency(it) }
+    (processor.componentRefactoringProcessors + processor.agpVersionRefactoringProcessor).forEach { checkConsistency(it) }
     Disposer.dispose(dialog.disposable)
   }
 
@@ -568,7 +568,7 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
     val toVersion = "4.2.0-alpha05"
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
     processor.setJava8DefaultIsAlwaysNoOpForProject(false)
-    processor.classpathRefactoringProcessor.isEnabled = true
+    processor.agpVersionRefactoringProcessor.isEnabled = true
     val dialog = AgpUpgradeRefactoringProcessorDialog(
       processor, processor.getJava8DefaultRefactoringProcessor(), processor.getR8FullModeDefaultRefactoringProcessor(), false, true)
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
@@ -584,7 +584,7 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
     val toVersion = "4.2.0-alpha05"
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
     processor.setJava8DefaultIsAlwaysNoOpForProject(false)
-    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.agpVersionRefactoringProcessor.isEnabled = false
     val dialog = AgpUpgradeRefactoringProcessorDialog(
       processor, processor.getJava8DefaultRefactoringProcessor(), processor.getR8FullModeDefaultRefactoringProcessor(), false, true)
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)

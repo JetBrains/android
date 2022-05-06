@@ -178,7 +178,7 @@ class ContentManagerImplTest {
     assertThat(step.isEnabled).isFalse()
     assertThat(step.isChecked).isTrue()
     val stepPresentation = step.userObject as ToolWindowModel.DefaultStepPresentation
-    assertThat(stepPresentation.processor).isInstanceOf(AgpClasspathDependencyRefactoringProcessor::class.java)
+    assertThat(stepPresentation.processor).isInstanceOf(AgpVersionRefactoringProcessor::class.java)
     assertThat(stepPresentation.treeText).contains("Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion")
   }
 
@@ -214,9 +214,9 @@ class ContentManagerImplTest {
     assertThat(mandatoryCodependentNode.isChecked).isTrue()
     view.tree.setNodeState(mandatoryCodependentNode, false)
     assertThat(mandatoryCodependentNode.isChecked).isFalse()
-    val classpathRefactoringProcessorNode = mandatoryCodependentNode.firstChild as CheckedTreeNode
-    assertThat(classpathRefactoringProcessorNode.isChecked).isFalse()
-    assertThat(classpathRefactoringProcessorNode.isEnabled).isFalse()
+    val agpVersionRefactoringProcessorNode = mandatoryCodependentNode.firstChild as CheckedTreeNode
+    assertThat(agpVersionRefactoringProcessorNode.isChecked).isFalse()
+    assertThat(agpVersionRefactoringProcessorNode.isEnabled).isFalse()
   }
 
   @Test

@@ -55,8 +55,8 @@ import com.android.tools.idea.gradle.project.upgrade.REWRITE_DEPRECATED_OPERATOR
 class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testVersionInLiteralUsageTracker() {
-    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
-    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
     processor.run()
 
     checkComponentEvents(

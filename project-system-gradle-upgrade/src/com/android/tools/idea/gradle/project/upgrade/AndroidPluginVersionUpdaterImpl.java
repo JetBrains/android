@@ -129,7 +129,7 @@ public class AndroidPluginVersionUpdaterImpl implements AndroidPluginVersionUpda
       oldPluginVersion = new GradleVersion(1, 0, 0);
     }
 
-    AgpClasspathDependencyRefactoringProcessor rp1 = new AgpClasspathDependencyRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
+    AgpVersionRefactoringProcessor rp1 = new AgpVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
     GMavenRepositoryRefactoringProcessor rp2 = new GMavenRepositoryRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
     try {
       rp1.run();

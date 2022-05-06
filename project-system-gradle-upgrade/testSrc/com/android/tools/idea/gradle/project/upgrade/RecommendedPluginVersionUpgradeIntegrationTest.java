@@ -46,7 +46,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   private ContentManager myContentManager;
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
-  @Mock private AgpClasspathDependencyRefactoringProcessor myAgpClasspathDependencyRefactoringProcessor;
+  @Mock private AgpVersionRefactoringProcessor myAgpVersionRefactoringProcessor;
 
   @Override
   protected void setUp() throws Exception {
@@ -59,7 +59,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     ServiceContainerUtil.replaceService(project, RefactoringProcessorInstantiator.class, myRefactoringProcessorInstantiator, project);
     when(myRefactoringProcessorInstantiator.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
     // TODO(xof): this is a clear leak of implementation details.  Figure out how to remove it.
-    when(myProcessor.getClasspathRefactoringProcessor()).thenReturn(myAgpClasspathDependencyRefactoringProcessor);
+    when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myAgpVersionRefactoringProcessor);
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());

@@ -259,7 +259,7 @@ class AgpUpgradeRefactoringProcessor(
 ) : GradleBuildModelRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
-  val classpathRefactoringProcessor = AgpClasspathDependencyRefactoringProcessor(this)
+  val agpVersionRefactoringProcessor = AgpVersionRefactoringProcessor(this)
   val componentRefactoringProcessors = listOf(
     GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
@@ -303,7 +303,7 @@ class AgpUpgradeRefactoringProcessor(
     projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
-    usages.addAll(classpathRefactoringProcessor.findUsages())
+    usages.addAll(agpVersionRefactoringProcessor.findUsages())
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
     }
@@ -603,7 +603,7 @@ class AgpUpgradeRefactoringProcessor(
         }
         // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
         // done on the EDT).
-        classpathRefactoringProcessor.initializeComponentCaches()
+        agpVersionRefactoringProcessor.initializeComponentCaches()
         componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
       },
       commandName, true, project)
@@ -1062,7 +1062,7 @@ internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
                     .apply { usages?.let { setUsages(it) } }
                     .apply { files?.let { setFiles(it) } }
                     .build())
-  processorEvent.addComponentInfo(classpathRefactoringProcessor.getComponentInfo())
+  processorEvent.addComponentInfo(agpVersionRefactoringProcessor.getComponentInfo())
   componentRefactoringProcessors.forEach {
     processorEvent.addComponentInfo(it.getComponentInfo())
   }
