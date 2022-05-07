@@ -139,7 +139,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         // for the current project. The check is similar to what is done below for file-based projects
         if ((project != null) && !project.isDefault() && file.equals(project.getBaseDir())) {
           focusProjectWindow(project, false);
-          return;
+          continue;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
           Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
@@ -148,19 +148,19 @@ public class AndroidOpenFileAction extends DumbAwareAction {
         else {
           openOrImportProject(file, project);
         }
-        return;
+        continue;
       }
 
       // try to open as a project - unless the file is an .ipr of the current one
       if ((project == null || !file.equals(project.getProjectFile())) && OpenProjectFileChooserDescriptor.isProjectFile(file)) {
         if (openOrImportProject(file, project)) {
-          return;
+          continue;
         }
       }
 
       FileType type = getKnownFileTypeOrAssociate(file, project);
       if (type == null) {
-        return;
+        continue;
       }
 
       if (project != null) {
