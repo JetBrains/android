@@ -472,7 +472,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AppSwitch"""")
   }
 
-  private fun createScrollPane(view: EmulatorView): JScrollPane {
+  private fun createScrollPane(view: Component): JScrollPane {
     @Suppress("UndesirableClassUsage")
     return JScrollPane(view).apply {
       border = null
