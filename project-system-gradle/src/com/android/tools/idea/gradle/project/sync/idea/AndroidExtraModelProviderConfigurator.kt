@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
+import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
@@ -56,13 +58,11 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
   val syncOptions = when (projectResolutionMode) {
     SingleVariantSyncProjectMode -> {
       val selectedVariants = SelectedVariantCollector(project).collectSelectedVariants()
-      val moduleWithVariantSwitched =
-        project.getUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI)
-      project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null)
+      val request = project.getProjectSyncRequest(projectPath)
       SingleVariantSyncActionOptions(
         studioFlags,
         selectedVariants,
-        moduleWithVariantSwitched,
+        request?.requestedVariantChange,
         getAdditionalArtifactsAction()
       )
     }

@@ -17,20 +17,19 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.sync.ApplyAbiSelectionMode.OVERRIDE_ONLY
-import com.android.tools.idea.gradle.project.sync.VariantDetails
-import com.android.tools.idea.gradle.project.sync.VariantSelectionChange
-import com.android.tools.idea.gradle.project.sync.applyChange
-import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
+import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.android.tools.idea.projectsystem.gradle.sync.createLibraryResolverFor
 import com.android.tools.idea.projectsystem.gradle.toHolder
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
@@ -44,7 +43,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAllRec
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.ArrayDeque
 
 class VariantProjectDataNodes {
   var data: MutableList<DataNode<ProjectData>> = mutableListOf()
@@ -61,8 +59,10 @@ class VariantProjectDataNodes {
           projectDataNodeCopy.addChild(child)
         }
         data.add(projectDataNodeCopy)
-        val cachedVariants = ExternalSystemApiUtil.find(projectDataNode,
-                                                        AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS)
+        val cachedVariants = ExternalSystemApiUtil.find(
+          projectDataNode,
+          AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS
+        )
         if (cachedVariants != null) {
           // When resolving conflicts in large projects many variant combinations may get accumulated. Prevent accumulating more than 10.
           data.addAll(cachedVariants.data.data.take(9))
@@ -72,40 +72,17 @@ class VariantProjectDataNodes {
   }
 }
 
-fun computeExpectedVariantsAfterSwitch(
+fun findVariantProjectData(
   module: Module,
-  variantNameAndAbi: VariantAndAbi,
+  variantNameAndAbi: SwitchVariantRequest,
   data: ExternalProjectInfo?
-): Map<GradleProjectPath, VariantAndAbi>? {
+): DataNode<ProjectData>? {
   val projectDataDataNode = data?.externalProjectStructure ?: return null
   val cachedVariants =
     ExternalSystemApiUtil.find(projectDataDataNode, AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS)?.data
-    ?: return null
-
-  val variantChange: VariantSelectionChange = createVariantSelectionChange(module, variantNameAndAbi, cachedVariants) ?: return null
-
-  val androidModules = projectDataDataNode.getAndroidModules()
-
-  val affectedModules =
-    androidModules.getAffectedModuleIds(
-      module.getGradleProjectPath()
       ?: return null
-    )
 
-  val sourceVariants =
-    androidModules
-      .modulesByGradleProjectPath
-      .mapNotNull { (key, value) -> nameAndVariantDetails(value.module)?.let {key to it} }
-      .toMap()
-
-  // Both `affectedModules` and `expectedVariants` in some edge cases may differ from variants resolved by Gradle/AGP. If it happens,
-  // switching will unfortunately fall back to Gradle sync as it won't find the expected set of variants cached.
-  return sourceVariants
-    .mapValues { (gradleProjectPath, value) ->
-      if (affectedModules.contains(gradleProjectPath)) value.applyChange(variantChange, applyAbiMode = OVERRIDE_ONLY)
-      else value
-    }
-    .mapValues { (_, value) -> VariantAndAbi(value.name, value.abi) }
+  return cachedVariants.findVariantProjectData(module, variantNameAndAbi)
 }
 
 fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
@@ -115,11 +92,11 @@ fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
       val ndkFacet = NdkFacet.getInstance(module)
       val gradleProjectPath = module.getGradleProjectPath() ?: return@mapNotNull null
       gradleProjectPath to
-          VariantAndAbi(
-            androidFacet.properties.SELECTED_BUILD_VARIANT,
-            // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.
-            ndkFacet?.configuration?.selectedVariantAbi?.abi
-          )
+        VariantAndAbi(
+          androidFacet.properties.SELECTED_BUILD_VARIANT,
+          // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.
+          ndkFacet?.configuration?.selectedVariantAbi?.abi
+        )
     }.toMap()
 }
 
@@ -129,7 +106,18 @@ fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variants: Map<Grad
 
   val cachedVariants = VariantProjectDataNodes.collectCurrentAndPreviouslyCachedVariants(projectDataDataNode)
 
-  if (!projectDataDataNode.repopulateProjectDataWith(cachedVariants, variants)) return null
+  val variantData = cachedVariants.data.firstOrNull { it.getSelectedVariants() == variants } ?: return null
+  if (!projectDataDataNode.repopulateProjectDataWith(cachedVariants, variantData)) return null
+  return projectDataDataNode
+}
+
+fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variantData: DataNode<ProjectData>): DataNode<ProjectData>? {
+  val projectDataDataNode = externalProjectStructure ?: return null
+  if (projectDataDataNode === variantData) return projectDataDataNode
+
+  val cachedVariants = VariantProjectDataNodes.collectCurrentAndPreviouslyCachedVariants(projectDataDataNode)
+
+  if (!projectDataDataNode.repopulateProjectDataWith(cachedVariants, variantData)) return null
   return projectDataDataNode
 }
 
@@ -153,10 +141,10 @@ fun switchVariant(
 
 private fun DataNode<ProjectData>.repopulateProjectDataWith(
   from: VariantProjectDataNodes,
-  variants: Map<GradleProjectPath, VariantAndAbi>
+  variantData: DataNode<ProjectData>
 ): Boolean {
-  val selectedVariantIndex = from.data.indexOfFirst { it.getSelectedVariants() == variants }
-  if (selectedVariantIndex == -1) return false
+  val selectedVariantIndex = from.data.indexOfFirst { it === variantData }
+  if (selectedVariantIndex == -1) error("Index of variant project data not found")
   val selectedVariant = from.data[selectedVariantIndex]
   from.data.removeAt(selectedVariantIndex)
 
@@ -166,12 +154,6 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
   }
   createChild(AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, from)
   return true
-}
-
-private fun nameAndVariantDetails(moduleDataNode: DataNode<out ModuleData>): VariantDetails? {
-  val androidModuleModel = GradleAndroidModel.findFromModuleDataNode(moduleDataNode) ?: return null
-  val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
-  return getSelectedVariantDetails(androidModuleModel, ndkModuleModel)
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
@@ -188,47 +170,8 @@ private class AndroidModule(
 
 private class AndroidModules(
   val modulesByGradleProjectPath: Map<GradleHolderProjectPath, AndroidModule>,
-  val projectData: ProjectData
+  val projectData: DataNode<ProjectData>
 )
-
-/**
- * Returns the set of modules (moduleId's) which are assumed to be affected by build variant selection change when applied to the module
- * identified by a `moduleId`. It includes any modules the target module depends directly or indirectly on and also any of their feature
- * modules.
- */
-private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Set<GradleProjectPath> {
-  return sequence {
-    val queue = ArrayDeque(listOfNotNull(modulesByGradleProjectPath[moduleId]))
-    val seen = mutableSetOf<GradleProjectPath>()
-    while (queue.isNotEmpty()) {
-      val head = queue.pop()
-      if (seen.add(head.gradleProjectPath)) {
-        yield(head.gradleProjectPath)
-        queue.addAll(
-          head.androidModel.selectedVariant
-            .let {
-              it.mainArtifact.compileClasspath.moduleDependencies +
-              it.unitTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
-              it.androidTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
-              it.testFixturesArtifact?.compileClasspath?.moduleDependencies.orEmpty()
-            }
-            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).toHolder()] }
-        )
-        queue.addAll(
-          head.androidModel.androidProject.dynamicFeatures
-            // TODO: Fix support for dynamic features in included builds.
-            .mapNotNull { dynamicFeatureId ->
-              modulesByGradleProjectPath[GradleHolderProjectPath(
-                head.gradleProjectPath.buildRoot,
-                dynamicFeatureId
-              )]
-            }
-        )
-      }
-    }
-  }
-    .toSet()
-}
 
 private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
   val holderModuleNodes = findAllRecursively(this, ProjectKeys.MODULE)
@@ -252,7 +195,7 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
         androidModel = androidModel
       )
     }.associateBy { it.gradleProjectPath },
-    data
+    this
   )
 }
 
@@ -264,30 +207,147 @@ fun DataNode<ProjectData>.getSelectedVariants(): Map<GradleProjectPath, VariantA
     .toMap()
 }
 
-private fun createVariantSelectionChange(
+/**
+ * Finds a cached [ProjectData] with the [updatedModule] synced to [request] applied to the currently selected variant.
+ *
+ * If [request] is partial the application process preserves the current selection of the not specified component if it is possible.
+ * If it is not and the specified component is `request.abi` a different variant matching the abi may be returned and if the specified
+ * component is `request.variantName` and the target variant does not contain the currently selected abi a different abi may be returned.
+ *
+ */
+private fun VariantProjectDataNodes.findVariantProjectData(
   updatedModule: Module,
-  targetVariant: VariantAndAbi,
-  cachedVariants: VariantProjectDataNodes,
-): VariantSelectionChange? {
+  request: SwitchVariantRequest,
+): DataNode<ProjectData>? {
   val sourceAndroidModuleModel = GradleAndroidModel.get(updatedModule) ?: return null
   val sourceNdkModuleModel = NdkModuleModel.get(updatedModule)
-  // Find any cached variant with the [updatedModule] configured for [targetVariantName] and build the diff if found. We only need it to
-  // deconstruct the target variant name without guessing.
-  for (projectDataNode in cachedVariants.data) {
-    val moduleDataDataNode = findAll(projectDataNode, ProjectKeys.MODULE).firstOrNull { it.data.internalName == updatedModule.name }
-                             ?: continue
-    val androidModelDataNode = ExternalSystemApiUtil.find(moduleDataDataNode, AndroidProjectKeys.ANDROID_MODEL)
-                               ?: continue
-    val ndkModelDataNode = ExternalSystemApiUtil.find(moduleDataDataNode, AndroidProjectKeys.NDK_MODEL)
-    val targetAndroidModuleModel = androidModelDataNode.data
-    val targetNdkModuleModel = ndkModelDataNode?.data
-    if (targetAndroidModuleModel.selectedVariantName == targetVariant.variant && targetNdkModuleModel?.selectedAbi == targetVariant.abi) {
-      val fromVariant = getSelectedVariantDetails(sourceAndroidModuleModel, sourceNdkModuleModel) ?: return null
-      return VariantSelectionChange.extractVariantSelectionChange(
-        getSelectedVariantDetails(targetAndroidModuleModel, targetNdkModuleModel) ?: return null,
-        fromVariant
+  val updatedModuleGradlePath = updatedModule.getGradleProjectPath()?.toHolder() ?: return null
+
+  fun NdkModuleModel.variantAbis(variantName: String): Collection<String> {
+    return allVariantAbis.filter { it.variant == variantName }.map { it.abi }
+  }
+
+  class Models(val node: DataNode<ProjectData>, val androidModel: GradleAndroidModel, val ndkModel: NdkModuleModel?) {
+    val variantName: String get() = androidModel.selectedVariantName
+    val abi: String? get() = ndkModel?.selectedAbi
+
+    fun isValidAbi(abi: String): Boolean {
+      return ndkModel != null && ndkModel.variantAbis(variantName).contains(abi)
+    }
+
+    /**
+     * Returns whether the cached variant contains a consistent variant selection under the given modules and whether the selection in
+     * other modules matches the current selection.
+     *
+     * Because of variant selection conflicts there might be multiple cached data node trees having the same variant selection at the
+     * requested module.
+     */
+    fun hasNoConflictsUnderUpdatedModule(): Boolean {
+      return node.getAndroidModules().validateVariants(
+        updatedModuleGradlePath,
+        selectedVariant = { path -> path.resolveIn(updatedModule.project)?.let { GradleAndroidModel.get(it)?.selectedVariantName } }
       )
     }
   }
-  return null
+
+  fun DataNode<ProjectData>.getModels(): Models? {
+    return findAll(this, ProjectKeys.MODULE)
+      .firstOrNull { it.data.internalName == updatedModule.name }
+      ?.let { moduleDataDataNode ->
+        val androidModelDataNode = ExternalSystemApiUtil.find(moduleDataDataNode, AndroidProjectKeys.ANDROID_MODEL) ?: return null
+        val ndkModelDataNode = ExternalSystemApiUtil.find(moduleDataDataNode, AndroidProjectKeys.NDK_MODEL)
+        Models(this, androidModelDataNode.data, ndkModelDataNode?.data)
+      }
+  }
+
+  fun getCachedVariants(): Sequence<Models> = data.asSequence().mapNotNull { it.getModels() }
+
+  val currentVariant = sourceAndroidModuleModel.selectedVariantName
+  val currentAbi = sourceNdkModuleModel?.selectedAbi
+  val fullTarget =
+    request.copy(
+      variantName = request.variantName ?: currentVariant,
+      abi = request.abi ?: currentAbi
+    )
+
+  getCachedVariants()
+    .find { models ->
+      models.variantName == fullTarget.variantName && models.abi == fullTarget.abi && models.hasNoConflictsUnderUpdatedModule()
+    }
+    ?.let { return it.node }
+
+  val result = if (request.variantName == null && request.abi != null) {
+    if (sourceNdkModuleModel?.variantAbis(currentVariant)?.contains(request.abi) == true) {
+      // The requested abi is contained in the current variant and thus can be fetched by syncing.
+      return null
+    }
+    getCachedVariants()
+      .find { models -> models.abi == request.abi && models.hasNoConflictsUnderUpdatedModule() }
+  } else {
+    getCachedVariants()
+      .find { models -> models.variantName == request.variantName && models.hasNoConflictsUnderUpdatedModule() }
+      ?.takeIf { models ->
+        //  A full match was not found but the newly selected variant contains the abi. We need to sync.
+        currentAbi == null || !models.isValidAbi(currentAbi)
+      }
+  }
+
+  return result?.node
 }
+
+/**
+ * Returns the set of modules (moduleId's) which are assumed to be affected by build variant selection change when applied to the module
+ * identified by a `moduleId`. It includes any modules the target module depends directly or indirectly on and also any of their feature
+ * modules.
+ */
+private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selectedVariant: (GradleProjectPath) -> String?): Boolean {
+  val libraryResolver = createLibraryResolverFor(projectData)
+  class WorkItem(val module: AndroidModule, val expectedVariant: String?)
+
+  val queue = ArrayDeque(listOf(WorkItem(modulesByGradleProjectPath[moduleId] ?: return false, null)))
+  val seen = mutableSetOf<GradleProjectPath>()
+  while (queue.isNotEmpty()) {
+    val head = queue.removeFirst()
+    if (head.expectedVariant != null) {
+      if (head.module.androidModel.selectedVariantName != head.expectedVariant) {
+        return false
+      }
+    }
+    if (seen.add(head.module.gradleProjectPath)) {
+      head.module.androidModel.setResolver(libraryResolver)
+      queue.addAll(
+        head.module.androidModel.selectedVariant
+          .let {
+            it.mainArtifact.compileClasspath.moduleDependencies +
+              it.unitTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
+              it.androidTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +
+              it.testFixturesArtifact?.compileClasspath?.moduleDependencies.orEmpty()
+          }
+          .mapNotNull { dependency ->
+            WorkItem(
+              module = modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency).toHolder()] ?: return@mapNotNull null,
+              expectedVariant = dependency.variant
+            )
+          }
+      )
+      queue.addAll(
+        head.module.androidModel.androidProject.dynamicFeatures
+          // TODO: Fix support for dynamic features in included builds.
+          .mapNotNull { dynamicFeatureId ->
+            WorkItem(
+              module = modulesByGradleProjectPath[GradleHolderProjectPath(
+                head.module.gradleProjectPath.buildRoot,
+                dynamicFeatureId
+              )] ?: return@mapNotNull null,
+              expectedVariant = null
+            )
+          }
+      )
+    }
+  }
+
+  return modulesByGradleProjectPath.all { (path, androidModule) ->
+    seen.contains(path) || selectedVariant(path) == androidModule.androidModel.selectedVariantName
+  }
+}
+

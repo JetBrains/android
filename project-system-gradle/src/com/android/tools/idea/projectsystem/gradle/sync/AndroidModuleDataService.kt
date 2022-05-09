@@ -355,7 +355,7 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
   state.COMPILE_JAVA_TEST_TASK_NAME = ""
 }
 
-private fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
+internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
     ?: error("IDE library table node not found")
   return IdeLibraryModelResolverImpl.fromLibraryTable(libraryTable)

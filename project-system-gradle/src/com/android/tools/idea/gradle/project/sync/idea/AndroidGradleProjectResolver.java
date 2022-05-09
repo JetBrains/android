@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt.ideAndroidSyncErrorToException;
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidExtraModelProviderConfiguratorKt.configureAndGetExtraModelProvider;
@@ -51,7 +49,6 @@ import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
 import android.annotation.SuppressLint;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
@@ -105,7 +102,6 @@ import com.intellij.externalSystem.JavaModuleData;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -121,7 +117,6 @@ import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.Key;
@@ -193,7 +188,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     KOTLIN_PROPERTIES =
     com.intellij.openapi.externalSystem.model.Key.create(KotlinProperties.class, 1 /* not used */);
 
-  public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
 
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
@@ -1003,19 +997,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     classPath.add(getJarPathForClass(getClass()));
     classPath.add(getJarPathForClass(Revision.class));
     classPath.add(getJarPathForClass(AndroidGradleSettings.class));
-  }
-
-  @Nullable
-  public static String getModuleIdForModule(@NotNull Module module) {
-    ExternalSystemModulePropertyManager propertyManager = ExternalSystemModulePropertyManager.getInstance(module);
-    String rootProjectPath = propertyManager.getRootProjectPath();
-    if (rootProjectPath != null) {
-      String gradlePath = propertyManager.getLinkedProjectId();
-      if (gradlePath != null) {
-        return createUniqueModuleId(rootProjectPath, gradlePath);
-      }
-    }
-    return null;
   }
 
   @NotNull private static final Key<VariantProjectDataNodes> VARIANTS_SAVED_FROM_PREVIOUS_SYNCS =

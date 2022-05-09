@@ -111,7 +111,7 @@ class SelectedVariantCollectorTest {
       this.expect.that(buildVariantName(base.buildType, base.flavors.asSequence().map { it.second })).isEqualTo(base.name)
       this.expect.that(buildVariantName(target.buildType, target.flavors.asSequence().map { it.second })).isEqualTo(target.name)
       if (testMode != TestMode.APPLY) {
-        this.expect.that(VariantSelectionChange.extractVariantSelectionChange(from = target, base = base)).isEqualTo(selectionChange)
+        this.expect.that(VariantSelectionChange.extractVariantSelectionChange(to = target, from = base)).isEqualTo(selectionChange)
       }
       if (selectionChange != null && testMode != TestMode.EXTRACT) {
         this.expect.that(base.applyChange(selectionChange, applyAbiMode = applyAbiMode)).isEqualTo(target)

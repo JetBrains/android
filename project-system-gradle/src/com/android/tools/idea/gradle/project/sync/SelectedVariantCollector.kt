@@ -33,23 +33,9 @@ class SelectedVariantCollector(private val project: Project) {
     )
   }
 
-  private fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
-    val module = holderModule
-    val moduleId = module.getModuleId() ?: return null
-    val androidModuleModel = GradleAndroidModel.get(this)
-    val ndkModuleModel = NdkModuleModel.get(module)
-    val variantDetails = androidModuleModel?.let { getSelectedVariantDetails(androidModuleModel, ndkModuleModel) }
-    val ndkFacet = NdkFacet.getInstance(module)
-    if (ndkFacet != null && ndkModuleModel != null) {
-      // Note, we lose ABI selection if cached models are not available.
-      val (variant, abi) = ndkFacet.configuration.selectedVariantAbi ?: return null
-      return SelectedVariant(moduleId, variant, abi, variantDetails)
-    }
-    return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
-  }
 }
 
-fun getSelectedVariantDetails(androidModel: GradleAndroidModel, ndkModel: NdkModuleModel?): VariantDetails? {
+fun getSelectedVariantDetails(androidModel: GradleAndroidModel, selectedAbi: String?): VariantDetails? {
   val selectedVariant = try {
     androidModel.selectedVariantCore
   }
@@ -57,12 +43,29 @@ fun getSelectedVariantDetails(androidModel: GradleAndroidModel, ndkModel: NdkMod
     Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
     return null
   }
-  return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, ndkModel?.selectedAbi)
+  return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, selectedAbi)
 }
 
-private fun Module.getModuleId(): String? {
+internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
+  val module = holderModule
+  val moduleId = module.getModuleIdForSyncRequest() ?: return null
+  val androidModuleModel = GradleAndroidModel.get(this)
+  val ndkModuleModel = NdkModuleModel.get(module)
+  val variantDetails = androidModuleModel?.let { getSelectedVariantDetails(androidModuleModel, ndkModuleModel?.selectedAbi) }
+  val ndkFacet = NdkFacet.getInstance(module)
+  if (ndkFacet != null && ndkModuleModel != null) {
+    // Note, we lose ABI selection if cached models are not available.
+    val (variant, abi) = ndkFacet.configuration.selectedVariantAbi ?: return null
+    return SelectedVariant(moduleId, variant, abi, variantDetails)
+  }
+  return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
+}
+
+
+@JvmName("getModuleIdForSyncRequest")
+internal fun Module.getModuleIdForSyncRequest(): String {
   // Android Studio internally use paths as they are returned by models, however to avoid ambiguity communication between
   // the code injected into the Gradle process and the IDE uses canonical paths.
-  val gradleProjectPath = internalGetGradleProjectPath(useCanonicalPath = true) ?: return null
+  val gradleProjectPath = internalGetGradleProjectPath(useCanonicalPath = true) ?: error("Module $name is not a Gradle module.")
   return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
 }

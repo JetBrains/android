@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.project.sync.SelectedVariantCollectorKt.getModuleIdForSyncRequest;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC;
 import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.restoreKotlinUserDataFromDataNodes;
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isHolderModule;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 
@@ -29,11 +29,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
+import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
-import com.android.tools.idea.gradle.project.sync.idea.VariantAndAbi;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -53,9 +51,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.gradleJava.compilerPlugin.AbstractAnnotationBasedCompilerPluginGradleImportHandler;
@@ -103,21 +98,7 @@ public class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
-    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
-    if (ndkModuleModel == null || ndkFacet == null) {
-      // Non-native module. ABI is irrelevant. Proceed with the build variant without ABI.
-      return updateSelectedVariant(project, moduleName, new VariantAndAbi(selectedBuildVariant, null));
-    }
-
-    // Native module: try to preserve the existing ABI for that module (if exists).
-    VariantAbi newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, selectedBuildVariant, null);
-    if (newVariantAbi == null) {
-      logAndShowBuildVariantFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
-      return false;
-    }
-
-    return updateSelectedVariant(project, moduleName, VariantAndAbi.fromVariantAbi(newVariantAbi));
+    return updateSelectedVariant(project, moduleName, new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate), selectedBuildVariant, null));
   }
 
   /**
@@ -137,29 +118,10 @@ public class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
-    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
-    if (ndkModuleModel == null || ndkFacet == null) {
-      // This is unexpected. If we presented ABI dropdown for this module, then it must have an NDK model.
-      logAndShowAbiNameFailure(String.format("Cannot find native module model '%1$s'.", moduleName));
-      return false;
-    }
-
-    // Keep using the same existing build variant.
-    VariantAbi currentSelectedVariantAbi = ndkFacet.getSelectedVariantAbi();
-    VariantAbi newVariantAbi;
-    if (currentSelectedVariantAbi == null) {
-      newVariantAbi = null;
-    }
-    else {
-      newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, currentSelectedVariantAbi.getVariant(), selectedAbiName);
-    }
-    if (newVariantAbi == null) {
-      logAndShowAbiNameFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
-      return false;
-    }
-
-    return updateSelectedVariant(project, moduleName, VariantAndAbi.fromVariantAbi(newVariantAbi));
+    return updateSelectedVariant(project, moduleName,
+                                 new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate),
+                                                          null,
+                                                          selectedAbiName));
   }
 
   /**
@@ -172,23 +134,19 @@ public class BuildVariantUpdater {
    */
   private boolean updateSelectedVariant(@NotNull Project project,
                                         @NotNull String moduleName,
-                                        @NotNull VariantAndAbi variantAndAbi) {
+                                        @NotNull SwitchVariantRequest variantAndAbi) {
     Module module = findModule(project, moduleName);
     if (module == null) {
       logAndShowBuildVariantFailure(String.format("Cannot find module '%1$s'.", moduleName));
       return false;
     }
 
-    if (!findAndUpdateAffectedFacets(module, variantAndAbi)) {
-      return false;
-    }
-
     @Nullable ExternalProjectInfo data =
       ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.getBasePath());
 
-    Map<GradleProjectPath, VariantAndAbi> variantsExpectedAfterSwitch =
-      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get()
-      ? VariantSwitcher.computeExpectedVariantsAfterSwitch(module, variantAndAbi, data)
+    DataNode<ProjectData> variantProjectDataNode =
+      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get() &&data != null
+      ? VariantSwitcher.findVariantProjectData(module, variantAndAbi, data)
       : null;
 
     Runnable invokeVariantSelectionChangeListeners = () -> {
@@ -202,23 +160,21 @@ public class BuildVariantUpdater {
     // 2. Build files were not changed, variant to select doesn't exist, which can only happen with single-variant sync, request Variant-only Sync.
     // 3. Build files were not changed, variant to select exists, do module setup for affected modules.
     if (GradleSyncState.getInstance(project).isSyncNeeded().equals(YES)) {
-      requestGradleSync(project, module, invokeVariantSelectionChangeListeners);
+      requestGradleSync(project, variantAndAbi, invokeVariantSelectionChangeListeners);
       return true;
     }
 
-    if (variantsExpectedAfterSwitch != null) {
-      DataNode<ProjectData> variantProjectDataNode = VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantsExpectedAfterSwitch);
-      if (variantProjectDataNode != null) {
-        disableKotlinCompilerPluginImportHandlers(project); // TODO(b/215522894)
-        restoreKotlinUserDataFromDataNodes(variantProjectDataNode);
-        setupCachedVariant(project, variantProjectDataNode, invokeVariantSelectionChangeListeners);
-        return true;
-      }
+    if (data != null && variantProjectDataNode != null) {
+      VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantProjectDataNode);
+      disableKotlinCompilerPluginImportHandlers(project); // TODO(b/215522894)
+      restoreKotlinUserDataFromDataNodes(variantProjectDataNode);
+      setupCachedVariant(project, variantProjectDataNode, invokeVariantSelectionChangeListeners);
+      return true;
     }
 
     // Build file is not changed, the cached variants should be cached and reused.
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(project);
-    requestGradleSync(project, module, invokeVariantSelectionChangeListeners);
+    requestGradleSync(project, variantAndAbi, invokeVariantSelectionChangeListeners);
 
     return true;
   }
@@ -234,50 +190,6 @@ public class BuildVariantUpdater {
         importHandlerEP.unregisterExtension(importHandler.getClass());
       }
     }
-  }
-
-  /**
-   * Updates the selected variant (and maybe abi) in the properties of an AndroidFacet attached to the holder module of the given module.
-   *
-   * <p>Note: Does not update any android facets attached to source set modules. They will be updated when the new selection is propagated
-   *          by Gradle sync.
-   */
-  private static boolean findAndUpdateAffectedFacets(@NotNull Module moduleToUpdate,
-                                                     @NotNull VariantAndAbi variantToSelect) {
-    if (!isHolderModule((moduleToUpdate))) {
-      throw new IllegalArgumentException(String.format("%s module is not a holder module",
-                                                       moduleToUpdate.getName()));
-    }
-    AndroidFacet androidFacet = AndroidFacet.getInstance(moduleToUpdate);
-    if (androidFacet == null) {
-      throw new IllegalStateException(
-        String.format("Cannot update the selected build variant. Module: %s Variant: %s", moduleToUpdate, variantToSelect));
-    }
-    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
-    VariantAbi selectedVariantAbi = ndkFacet != null ? ndkFacet.getSelectedVariantAbi() : null;
-    String selectedAbi = selectedVariantAbi != null ? selectedVariantAbi.getAbi() : null;
-    if (
-      Objects.equals(variantToSelect.getVariant(), androidFacet.getProperties().SELECTED_BUILD_VARIANT)
-      && Objects.equals(variantToSelect.getAbi(), selectedAbi)
-    ) {
-      // Nothing to update. The user has selected the same build variant.
-      return false;
-    }
-
-    String variantName = variantToSelect.getVariant();
-    if (ndkFacet != null) {
-      NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(ndkFacet);
-      if (ndkModuleModel != null) {
-        VariantAbi variantAbiToSelect = variantToSelect.toVariantAbi();
-        if (variantAbiToSelect != null) {
-          // If there is ABI but there is a facet something went wrong and Gradle sync should fix it.
-          ndkFacet.setSelectedVariantAbi(variantAbiToSelect);
-        }
-      }
-    }
-
-    androidFacet.getProperties().SELECTED_BUILD_VARIANT = variantName;
-    return true;
   }
 
   /**
@@ -338,13 +250,11 @@ public class BuildVariantUpdater {
   }
 
   private static void requestGradleSync(@NotNull Project project,
-                                        @NotNull Module module,
+                                        @NotNull SwitchVariantRequest requestedVariantChange,
                                         @NotNull Runnable variantSelectionChangeListeners) {
-    String moduleId = AndroidGradleProjectResolver.getModuleIdForModule(module);
-    if (moduleId != null) {
-      project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
-    }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(
+      TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER,
+      requestedVariantChange);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
   }
 

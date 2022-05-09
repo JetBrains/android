@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.project.sync.idea.VariantAndAbi
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.common.annotations.VisibleForTesting
@@ -36,6 +37,7 @@ interface GradleSyncInvoker {
 
   data class Request @JvmOverloads constructor(
     val trigger: GradleSyncStats.Trigger,
+    val requestedVariantChange: SwitchVariantRequest? = null,
     val dontFocusSyncFailureOutput: Boolean = false,
   ) {
     val progressExecutionMode: ProgressExecutionMode

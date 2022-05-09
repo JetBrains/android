@@ -31,10 +31,16 @@ class AllVariantsSyncActionOptions(
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 ) : SyncProjectActionOptions(flags), Serializable
 
+data class SwitchVariantRequest(
+  val moduleId: String,
+  val variantName: String?,
+  val abi: String?
+): Serializable
+
 class SingleVariantSyncActionOptions(
   flags: GradleSyncStudioFlags,
   val selectedVariants: SelectedVariants,
-  val moduleIdWithVariantSwitched: String?,
+  val switchVariantRequest: SwitchVariantRequest?,
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 ) : SyncProjectActionOptions(flags), Serializable
 

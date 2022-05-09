@@ -320,7 +320,7 @@ internal class AndroidExtraModelProviderWorker(
           !syncOptions.flags.studioFlagParallelSyncPrefetchVariantsEnabled -> emptyMap()
           !actionRunner.parallelActionsForV2ModelsSupported -> emptyMap()
           // TODO(b/181028873): Predict changed variants and build models in parallel.
-          syncOptions.moduleIdWithVariantSwitched != null -> emptyMap()
+          syncOptions.switchVariantRequest != null -> emptyMap()
           else -> {
             actionRunner
               .runActions(allModulesToSetUp.map {
@@ -686,7 +686,7 @@ internal class AndroidExtraModelProviderWorker(
       .mapNotNull { module -> selectedOrDefaultModuleConfiguration(module, syncOptions)?.let { module to it } }
       .sortedBy { (module, _) ->
         when {
-          module.id == syncOptions.moduleIdWithVariantSwitched -> 0
+          module.id == syncOptions.switchVariantRequest?.moduleId -> 0
           // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
           // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
           // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
@@ -705,9 +705,39 @@ internal class AndroidExtraModelProviderWorker(
   ): ModuleConfiguration? {
     // TODO(b/181028873): Better predict variants that needs to be prefetched. Add a new field to record the predicted variant.
     val selectedVariants = syncOptions.selectedVariants
-    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
-    val requestedAbi = selectedVariants.getSelectedAbi(module.id)
-    return ModuleConfiguration(module.id, requestedVariantName, requestedAbi)
+    val switchVariantRequest = syncOptions.switchVariantRequest
+    val selectedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
+    val selectedAbi = selectedVariants.getSelectedAbi(module.id)
+
+    fun variantContainsAbi(variantName: String, abi: String): Boolean {
+      return module.getVariantAbiNames(variantName)?.contains(abi) == true
+    }
+
+    fun firstVariantContainingAbi(abi: String): String? {
+      return (setOfNotNull(module.defaultVariantName) + module.allVariantNames.orEmpty())
+        .firstOrNull { module.getVariantAbiNames(it)?.contains(abi) == true }
+    }
+
+    return when (switchVariantRequest?.moduleId) {
+      module.id -> {
+        val requestedAbi = switchVariantRequest.abi
+        val selectedVariantName = when (requestedAbi) {
+          null -> switchVariantRequest.variantName
+          else ->
+            when {
+              variantContainsAbi(switchVariantRequest.variantName ?: selectedVariantName, requestedAbi) ->
+                switchVariantRequest.variantName
+              else ->
+                firstVariantContainingAbi(requestedAbi)
+            }
+        } ?: selectedVariantName
+        val selectedAbi = requestedAbi.takeIf { module.getVariantAbiNames(selectedVariantName)?.contains(it) == true } ?: selectedAbi
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+      }
+      else -> {
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+      }
+    }
   }
 
   private fun selectVariantForAppOrLeaf(
@@ -753,7 +783,7 @@ internal class AndroidExtraModelProviderWorker(
 
     val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant.variant, nativeVariantAbi.abi)
     val variantDiffChange =
-      VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
+      VariantSelectionChange.extractVariantSelectionChange(to = newlySelectedVariantDetails, from = selectedVariantDetails)
 
 
     fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
