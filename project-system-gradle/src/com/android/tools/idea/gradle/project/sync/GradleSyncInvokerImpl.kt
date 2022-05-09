@@ -40,9 +40,11 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
    */
   override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
     if (GradleSyncState.getInstance(project).isSyncInProgress) {
+      listener?.syncSkipped(project)
       return
     }
     if (GradleBuildInvoker.getInstance(project).internalIsBuildRunning) {
+      listener?.syncSkipped(project)
       return
     }
     val syncTask = Runnable {
