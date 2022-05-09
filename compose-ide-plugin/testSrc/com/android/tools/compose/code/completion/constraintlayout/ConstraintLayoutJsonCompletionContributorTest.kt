@@ -822,6 +822,53 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
       }
     """.trimIndent())
   }
+
+  @Test
+  fun completionIsCaseSensitive() {
+    // Using wrong casing
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            keyFr$caret
+          }
+        }
+      }
+    """.trimIndent())
+    // Not changes in result
+    myFixture.checkResult("""
+      {
+        Transitions: {
+          default: {
+            keyFr
+          }
+        }
+      }
+    """.trimIndent())
+
+    // With correct casing
+    myFixture.completeJson5Text("""
+      {
+        Transitions: {
+          default: {
+            KeyFr$caret
+          }
+        }
+      }
+    """.trimIndent())
+    // Expression completed properly
+    myFixture.checkResult("""
+      {
+        Transitions: {
+          default: {
+            KeyFrames: {
+              $caret
+            }
+          }
+        }
+      }
+    """.trimIndent())
+  }
 }
 
 private fun CodeInsightTestFixture.completeJson5Text(@Language("JSON5") text: String) {

@@ -28,7 +28,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 /**
  * Utility function to simplify adding [com.intellij.codeInsight.lookup.LookupElement]s with [InsertionFormat] support.
  *
- * Note that the added element is not case-sensitive.
+ * Note that the added lookup element is case-sensitive.
  *
  * @param lookupString The base text to autocomplete, also used to match the user input with a completion result.
  * @param tailText Grayed out text shown after the LookupElement name, not part of the actual completion.
@@ -45,7 +45,7 @@ fun CompletionResultSet.addLookupElement(lookupString: String, tailText: String?
     }
     lookupBuilder = lookupBuilder.withInsertHandler(insertionHandler)
   }
-  lookupBuilder = lookupBuilder.withCaseSensitivity(false)
+  lookupBuilder = lookupBuilder.withCaseSensitivity(true)
   if (tailText != null) {
     lookupBuilder = lookupBuilder.withTailText(tailText, true)
   }
