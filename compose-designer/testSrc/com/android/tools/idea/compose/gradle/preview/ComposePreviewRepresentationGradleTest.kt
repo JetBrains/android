@@ -50,6 +50,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -69,6 +70,7 @@ import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 
 class ComposePreviewRepresentationGradleTest {
@@ -88,16 +90,9 @@ class ComposePreviewRepresentationGradleTest {
 
   @Before
   fun setUp() {
-    val mainFile = project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
-    psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
-
+    psiMainFile = getPsiFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
     previewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> previewView }
-    Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
+    composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
 
     invokeAndWaitIfNeeded {
       fakeUi = FakeUi(JPanel().apply {
@@ -282,9 +277,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() {
-    val vFile = project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)!!
-    val otherPreviewsFile = runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
+    val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
     // Add an annotation class annotated with Preview in OtherPreviews.kt
     invokeAndWaitIfNeeded {
@@ -424,5 +417,74 @@ class ComposePreviewRepresentationGradleTest {
 
       assertTrue(result is CompilationResult.Success)
     }
+  }
+
+  @Test
+  fun `file modification triggers refresh on other active preview representations`() {
+    val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
+    val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
+    val otherPreviewRepresentation = createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
+
+    otherPreviewRepresentation.onActivate()
+
+    // Now both ComposePreviewRepresentation are active, so modifying otherPreviewsFile
+    // should trigger a refresh in the main file representation.
+    invokeAndWaitIfNeeded {
+      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
+    }
+    runAndWaitForRefresh(Duration.ofSeconds(15)) {
+      runWriteActionAndWait {
+        // Add a MultiPreview annotation that won't be used
+        fixture.moveCaret("|@Preview")
+        fixture.editor.executeAndSave {
+          insertText("@Preview\nannotation class MyAnnotation\n\n")
+        }
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+        FileDocumentManager.getInstance().saveAllDocuments()
+      }
+    }
+  }
+
+  @Test
+  fun `file modification don't trigger refresh on inactive preview representations`() {
+    val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
+    val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
+    val otherPreviewRepresentation = createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
+
+    otherPreviewRepresentation.onActivate()
+    composePreviewRepresentation.onDeactivate()
+
+    // Now otherPreviewRepresentation is active, but the main file representation is not,
+    // so modifying otherPreviewsFile shouldn't trigger a refresh in the later one.
+    invokeAndWaitIfNeeded {
+      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
+    }
+    assertFailsWith<TimeoutCancellationException> {
+      runAndWaitForRefresh(Duration.ofSeconds(15)) {
+        runWriteActionAndWait {
+          // Add a MultiPreview annotation that won't be used
+          fixture.moveCaret("|@Preview")
+          fixture.editor.executeAndSave {
+            insertText("@Preview\nannotation class MyAnnotation\n\n")
+          }
+          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+          FileDocumentManager.getInstance().saveAllDocuments()
+        }
+      }
+    }
+  }
+
+  private fun getPsiFile(path: String): PsiFile {
+    val vFile = project.guessProjectDir()!!.findFileByRelativePath(path)!!
+    return runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
+  }
+
+  private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
+    val previewRepresentation = ComposePreviewRepresentation(psiFile, object : PreviewElementProvider<PreviewElement> {
+      override suspend fun previewElements(): Sequence<PreviewElement> =
+        AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile).asSequence()
+    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> view }
+    Disposer.register(fixture.testRootDisposable, previewRepresentation)
+    return previewRepresentation
   }
 }
