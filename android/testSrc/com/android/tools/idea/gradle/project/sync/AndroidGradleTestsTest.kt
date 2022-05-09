@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
@@ -28,10 +26,10 @@ import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.SystemIndependent
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -57,6 +55,27 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
   fun testEmptyInEdt() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testUnresolvedDependenciesAreCaught() {
+    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val buildFile = path.resolve("app").resolve("build.gradle")
+    buildFile.writeText(
+      buildFile.readText() + """
+      dependencies {
+        implementation "a:a:1.0" // This should cause sync to fail in tests.
+      }
+      """)
+    try {
+      openPreparedProject("project") { }
+      fail("Sync should have failed")
+    }
+    catch(e: java.lang.IllegalStateException) {
+      assertThat(e.message).contains("Unresolved dependencies")
+      assertThat(e.message).contains("a:a:1.0")
+    }
   }
 
   @Test
