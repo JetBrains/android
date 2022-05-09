@@ -21,13 +21,12 @@ import com.intellij.testFramework.TestLoggerFactory
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.io.readText
 import org.junit.Test
-import java.nio.file.Paths
 
 class TestLoggerTest : UsefulTestCase() {
 
   @Test
   fun testLoggerWritesToLogFile() {
-    val logFile = Paths.get(TestLoggerFactory.getTestLogDir(), "idea.log")
+    val logFile = TestLoggerFactory.getTestLogDir().resolve("idea.log")
     val before = logFile.readText()
     thisLogger().warn("A sample warning message")
     val after = logFile.readText()
