@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -28,18 +36,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.junit.Assume.assumeTrue;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AddGoogleMavenRepositoryHyperlink}.

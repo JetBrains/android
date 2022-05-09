@@ -89,12 +89,6 @@ public class GradleVersions {
     return null;
   }
 
-  @NotNull
-  public GradleVersion getGradleVersionOrDefault(@NotNull Project project, GradleVersion defaultVersion) {
-    GradleVersion gradleVersion = getGradleVersion(project);
-    return gradleVersion == null ? defaultVersion : gradleVersion;
-  }
-
   /**
    * Attempts to figure out the Gradle version of the given distribution.
    *
@@ -140,15 +134,5 @@ public class GradleVersions {
       return gradleVersion.substring(0, dashIndex);
     }
     return gradleVersion;
-  }
-
-  /**
-   * Verifies if Gradle version used by project is 4.0 or newer
-   *
-   * @return {@code true} if version is 4.0 or newer, {@code false} if version is lower or it is {@code null}
-   */
-  public boolean isGradle4OrNewer(@NotNull Project project) {
-    GradleVersion gradleVersion = getInstance().getGradleVersion(project);
-    return gradleVersion != null && gradleVersion.compareIgnoringQualifiers("4.0") >= 0;
   }
 }
