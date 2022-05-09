@@ -758,7 +758,16 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
   }
 
-  open fun blockProcessorExecution(): Boolean = false
+  sealed class BlockReason(
+    val shortDescription: String,
+    val description: String? = null,
+    val helpLinkUrl: String? = null
+  )
+
+  open fun blockProcessorReasons(): List<BlockReason> = listOf()
+
+  val isBlocked: Boolean
+    get() = blockProcessorReasons().isNotEmpty()
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
     this.current = current

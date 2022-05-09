@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentRefactoringProcessor.BlockReason
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
@@ -204,19 +205,6 @@ class ToolWindowModel(
                                  "you should commit or revert changes to the build files so that changes from the upgrade process " +
                                  "can be handled separately."
     }
-    object AgpVersionNotLocatedError : UIState() {
-      override val controlsEnabledState = ControlsEnabledState.NO_RUN
-      override val layoutState = LayoutState.READY
-      override val loadingText = ""
-      override val statusMessage = StatusMessage(
-        Severity.ERROR,
-        "Cannot find AGP version in build files.",
-        "https://developer.android.com/studio/build/agp-upgrade-assistant#project-structure"
-      )
-      override val runTooltip = "Cannot locate the version specification for the Android Gradle Plugin dependency, " +
-                                "possibly because the project's build files use features not currently support by the " +
-                                "Upgrade Assistant (for example: using constants defined in buildSrc)."
-    }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
     ) : UIState() {
@@ -296,7 +284,7 @@ class ToolWindowModel(
         }
         AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
       }
-      if (processorsForCheckedPresentations().any { it.blockProcessorExecution() }) {
+      if (processorsForCheckedPresentations().any { it.isBlocked }) {
         uiState.set(UIState.Blocked)
       }
       else {
@@ -434,10 +422,10 @@ class ToolWindowModel(
   private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
-    if (processorsForCheckedPresentations().any { it.blockProcessorExecution() }) {
+    if (processorsForCheckedPresentations().any { it.isBlocked }) {
       newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
       // at this stage, agpVersionRefactoringProcessor will always be enabled.
-      if (newProcessor.agpVersionRefactoringProcessor.blockProcessorExecution()) {
+      if (newProcessor.agpVersionRefactoringProcessor.isBlocked) {
         newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
       }
       uiState.set(UIState.Blocked)
@@ -513,6 +501,7 @@ class ToolWindowModel(
     val additionalInfo: String?
       get() = null
     val isBlocked: Boolean
+    val blockReasons: List<BlockReason>
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -589,7 +578,9 @@ class ToolWindowModel(
     override val shortDescription: String?
       get() = processor.getShortDescription()
     override val isBlocked: Boolean
-      get() = processor.blockProcessorExecution()
+      get() = processor.isBlocked
+    override val blockReasons: List<BlockReason>
+      get() = processor.blockProcessorReasons()
   }
 }
 
@@ -916,6 +907,17 @@ class ContentManagerImpl(val project: Project): ContentManager {
             text.append("<a href='$url'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.")
           }
           selectedStep.additionalInfo?.let { text.append(it) }
+          if (selectedStep.isBlocked) {
+            text.append("<br><br><div><b>This step is blocked</b></div>")
+            text.append("<ul>")
+            selectedStep.blockReasons.forEach { reason ->
+              reason.shortDescription.let { text.append("<li>$it") }
+              reason.description?.let { text.append("<br>${it.replace("\n", "<br>")}") }
+              reason.helpLinkUrl?.let { text.append("  <a href='$it'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.") }
+              text.append("</li>")
+            }
+            text.append("</ul>")
+          }
           label.text = text.toString()
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
@@ -1002,7 +1004,7 @@ private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessit
   this.components()
     .filter { it.isEnabled }
     .filter { it.necessity() == necessity }
-    .filter { !it.isAlwaysNoOpForProject || it.blockProcessorExecution() }
+    .filter { !it.isAlwaysNoOpForProject || it.isBlocked }
 
 fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> "Upgrade prerequisites"

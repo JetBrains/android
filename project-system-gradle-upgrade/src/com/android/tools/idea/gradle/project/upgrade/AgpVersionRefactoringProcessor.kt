@@ -43,7 +43,18 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 
-  override fun blockProcessorExecution() = isAlwaysNoOpForProject && current != new
+  object AgpVersionNotFound: BlockReason(
+    shortDescription = "Cannot find AGP version in build files.",
+    description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
+                  "possibly because the project's build files use features not currently support by the \n" +
+                  "Upgrade Assistant (for example: using constants defined in buildSrc).",
+    helpLinkUrl = "https://developer.android.com/studio/build/agp-upgrade-assistant#project-structure"
+  )
+
+  override fun blockProcessorReasons(): List<BlockReason> = when {
+    isAlwaysNoOpForProject && current != new -> listOf(AgpVersionNotFound)
+    else -> listOf()
+  }
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
