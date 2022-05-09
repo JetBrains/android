@@ -55,14 +55,12 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
@@ -90,6 +88,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   public void customize(@NotNull ActionManager actionManager) {
     setUpNewProjectActions(actionManager);
     setUpWelcomeScreenActions(actionManager);
+    disableUnsupportedAction(actionManager);
     replaceProjectPopupActions(actionManager);
     setUpMakeActions(actionManager);
     setUpGradleViewToolbarActions(actionManager);
@@ -113,6 +112,10 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     }
 
     useIdeGooglePlaySdkIndexInGradleDetector();
+  }
+
+  private void disableUnsupportedAction(ActionManager actionManager) {
+    actionManager.unregisterAction("LoadUnloadModules"); // private LoadUnloadModulesActionKt.ACTION_ID
   }
 
   // The original actions will be visible only on plain IDEA projects.
