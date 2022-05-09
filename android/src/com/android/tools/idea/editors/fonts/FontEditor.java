@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.editors.fonts;
 
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -211,12 +210,6 @@ class FontEditor implements FileEditor {
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
   }
 
   @Nullable

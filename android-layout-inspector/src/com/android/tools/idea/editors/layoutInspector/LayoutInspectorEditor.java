@@ -22,7 +22,6 @@ import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.ide.util.PropertiesComponent;
@@ -174,12 +173,6 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
 
   @Override
   public void selectNotify() {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
   }
 
   @Override

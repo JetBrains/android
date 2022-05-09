@@ -20,7 +20,6 @@ import com.android.draw9patch.graphics.GraphicsUtilities;
 import com.android.draw9patch.ui.ImageEditorPanel;
 import com.android.draw9patch.ui.ImageViewer;
 import com.intellij.AppTopics;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -165,12 +164,6 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
   }
 
   @Nullable

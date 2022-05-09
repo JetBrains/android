@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.capture;
 
 import com.android.tools.idea.profilers.AndroidProfilerToolWindow;
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -125,12 +124,6 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
   }
 
   @Override

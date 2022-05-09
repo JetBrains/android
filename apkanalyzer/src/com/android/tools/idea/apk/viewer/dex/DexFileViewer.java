@@ -39,7 +39,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
@@ -461,12 +460,6 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
 
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
   }
 
   @Override
