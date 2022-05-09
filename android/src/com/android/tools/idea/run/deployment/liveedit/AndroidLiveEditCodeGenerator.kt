@@ -16,13 +16,14 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.refactoring.suggested.endOffset
+import com.intellij.refactoring.suggested.startOffset
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -48,7 +50,7 @@ const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
 
 class AndroidLiveEditCodeGenerator(val project: Project){
-  data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, val state: FunctionState)
+  data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
 
   enum class FunctionType {
     NONE, KOTLIN, COMPOSABLE
@@ -59,7 +61,8 @@ class AndroidLiveEditCodeGenerator(val project: Project){
                                  val methodDesc: String,
                                  val classData: ByteArray,
                                  val functionType: FunctionType,
-                                 val offSet: FunctionState.Offset,
+                                 val hasGroupId: Boolean,
+                                 val groupId: Int,
                                  val supportClasses: Map<String, ByteArray>)
 
   /**
@@ -163,7 +166,14 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       // When the edit event was contained in a function
       is KtNamedFunction -> {
         val targetFunction = input.element as KtNamedFunction
-        return getGeneratedMethodCode(compilerOutput, targetFunction, input.state, generationState)
+        var group = getGroupKey(compilerOutput, targetFunction)
+        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
+      }
+
+      is KtFunction -> {
+        val targetFunction = input.element as KtFunction
+        var group = getGroupKey(compilerOutput, targetFunction, input.parentGroups)
+        return getGeneratedMethodCode(compilerOutput, targetFunction, group, generationState)
       }
 
       // When the edit event was at class level
@@ -172,8 +182,7 @@ class AndroidLiveEditCodeGenerator(val project: Project){
         val desc = bindingContext[BindingContext.CLASS, targetClass]!!
         val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
         val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
-        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE,
-                                   FunctionState.NULL_OFFSET, supportClasses)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
       }
 
       // When the edit was at top level
@@ -181,15 +190,14 @@ class AndroidLiveEditCodeGenerator(val project: Project){
         val targetFile = input.element as KtFile
         val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
         val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, compilerOutput)
-        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE,
-                                   FunctionState.NULL_OFFSET, supportClasses)
+        return CodeGeneratorOutput(internalClassName, "", "", primaryClass, FunctionType.NONE, false,0, supportClasses)
       }
     }
 
     throw LiveEditUpdateException.compilationError("Event was generated for unsupported kotlin element")
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtNamedFunction, functionState: FunctionState, generationState: GenerationState) : CodeGeneratorOutput {
+  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction, groupId: Int?, generationState: GenerationState) : CodeGeneratorOutput {
     val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
     val methodSignature = remapFunctionSignatureIfNeeded(desc, generationState.typeMapper)
     val isCompose = desc.hasComposableAnnotation()
@@ -222,12 +230,10 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     val methodName = methodSignature.substring(0, idx);
     val methodDesc = methodSignature.substring(idx)
     val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
-    val offset = functionState.initialOffsetOf(function) ?: FunctionState.NULL_OFFSET
-    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType,
-                               offset, supportClasses)
+    return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
   }
 
-  fun getCompiledClasses(internalClassName: String, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
+  private fun getCompiledClasses(internalClassName: String, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
     fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
                                                          clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
@@ -242,6 +248,11 @@ class AndroidLiveEditCodeGenerator(val project: Project){
       // We get things like folder path an
       if (!c.relativePath.endsWith(".class")) {
         println("   Skipping output: ${c.relativePath}")
+        continue
+      }
+
+      if (isKeyMetaClass(c)) {
+        println("   Skipping MetaKey: ${c.relativePath}")
         continue
       }
 
@@ -340,5 +351,47 @@ class AndroidLiveEditCodeGenerator(val project: Project){
     }
     val classSuffix = className.substringAfter(packagePrefix)
     return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
+  }
+
+  private fun isKeyMetaClass(output: OutputFile) = output.relativePath.endsWith("\$KeyMeta.class")
+
+  private fun getGroupKey(compilerOutput: List<OutputFile>, function: KtFunction, parentGroups: List<KtFunction>? = null) : Int? {
+    fun computeStartOffset(target: KtFunction) : Int {
+      return if (target is KtNamedFunction && target.funKeyword != null) {
+        target.funKeyword!!.startOffset
+      } else {
+        target.startOffset
+      }
+    }
+
+    for (c in compilerOutput) {
+      if (!isKeyMetaClass(c)) {
+        continue
+      }
+
+      val (file, groupsOffSets) = computeGroups(ClassReader(c.asByteArray()))
+
+      if (!function.containingFile.virtualFile.canonicalPath.equals(file)) {
+        continue
+      }
+
+      var startOffset = computeStartOffset(function)
+      var endOffset = function.endOffset
+
+      groupsOffSets.find { it.startOffset == startOffset && it.endOffSet == endOffset }?.let { return it.key }
+
+      parentGroups?.let {
+        it.forEach { parentGroup ->
+          startOffset = computeStartOffset(parentGroup)
+          endOffset = parentGroup.endOffset
+          groupsOffSets.find { entry -> entry.startOffset == startOffset && entry.endOffSet == endOffset }
+            ?.let { offset -> return offset.key }
+        }
+      }
+
+      println("Can't find group")
+      return null
+    }
+    return null
   }
 }

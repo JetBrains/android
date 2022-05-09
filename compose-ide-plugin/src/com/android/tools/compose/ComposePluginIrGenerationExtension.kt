@@ -32,6 +32,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
     try {
         ComposeIrGenerationExtension(reportsDestination = null,
                                      metricsDestination = null,
+                                     generateFunctionKeyMetaClasses = true,
                                      intrinsicRememberEnabled = false).generate(moduleFragment, pluginContext);
     } catch (e : ProcessCanceledException) {
       // From ProcessCanceledException javadoc: "Usually, this exception should not be caught, swallowed, logged, or handled in any way.

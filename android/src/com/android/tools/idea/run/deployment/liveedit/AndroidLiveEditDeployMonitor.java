@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
-import static com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT;
-import static com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 
 import com.android.annotations.Nullable;
@@ -273,7 +271,6 @@ public class AndroidLiveEditDeployMonitor {
       .schedule(
         () -> {
           this.applicationId = null;
-          LiveEditService.getInstance(project).clearFunctionState();
           this.applicationId = applicationId;
           editStatusChanged(editStatus.getAndSet(LiveEditService.UP_TO_DATE_STATUS));
 
@@ -332,7 +329,7 @@ public class AndroidLiveEditDeployMonitor {
       checkIwiAvailable();
       List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
         change ->
-          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getElement(), change.getFunctionState()))
+          new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
       if (!new AndroidLiveEditCodeGenerator(project).compile(inputs, compiled)) {
         return false;
@@ -439,13 +436,13 @@ public class AndroidLiveEditDeployMonitor {
     updates.forEach(update -> {
       boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
       boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
-                                    update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE;
+                                    (update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE ||
+                                     update.getHasGroupId());
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(
           update.getClassName(), update.getMethodName(), update.getMethodDesc(),
           usePartialRecompose,
-          update.getOffSet().getStart(),
-          update.getOffSet().getEnd(),
+          update.getGroupId(),
           update.getClassData(),
           update.getSupportClasses(), useDebugMode);
 

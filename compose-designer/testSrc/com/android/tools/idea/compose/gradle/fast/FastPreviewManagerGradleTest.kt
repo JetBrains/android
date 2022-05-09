@@ -27,7 +27,6 @@ import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.toFileNameSet
-import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditCodeGenerator
@@ -229,12 +228,11 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       val function = runReadAction {
         psiMainFile.collectDescendantsOfType<KtNamedFunction>().first { it.name?.contains("TwoElementsPreview") ?: false }
       }
-      val state = runReadAction { FunctionState(psiMainFile as KtFile) }
 
       startCountDownLatch.await()
       while (compile) {
         AndroidLiveEditCodeGenerator(projectRule.project).compile(
-          listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function, state)), output)
+          listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function)), output)
         deviceCompilations.incrementAndGet()
       }
     }

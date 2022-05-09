@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.literals.FunctionState
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
@@ -23,7 +22,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -81,17 +79,12 @@ class BasicCompileTest {
   @Test
   fun simpleChange() {
     // Compile A.kt targetting foo()
-    var state = readFunctionState(files["A.kt"])
-    var output = compile(files["A.kt"], "foo", state).singleOutput()
+    var output = compile(files["A.kt"], "foo").singleOutput()
     var returnedValue = invokeStatic("foo", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
-    Assert.assertEquals(0, output.offSet.start)
-    Assert.assertEquals(39, output.offSet.end)
 
     // Compile A.kt again targeting bar()
-    output = compile(files["A.kt"], "bar", state).singleOutput()
-    Assert.assertEquals(40, output.offSet.start)
-    Assert.assertEquals(53, output.offSet.end)
+    output = compile(files["A.kt"], "bar").singleOutput()
 
     // Replace the return value of foo.
     var foo = findFunction(files["A.kt"], "foo")
@@ -103,29 +96,23 @@ class BasicCompileTest {
     }
 
     // Re-compile A.kt like how live edit work.
-    var leOutput = compile(files["A.kt"], "foo", state).singleOutput()
+    var leOutput = compile(files["A.kt"], "foo").singleOutput()
     var leReturnedValue = invokeStatic("foo", loadClass(leOutput))
     Assert.assertEquals("I am not foo", leReturnedValue)
-    Assert.assertEquals(0, leOutput.offSet.start)
-    // The offset remains unchanged as we use this to invalidate the previous state.
-    Assert.assertEquals(39, leOutput.offSet.end)
 
     // Re-compiling A.kt targetting bar(). Note that the offsets of bar() does not change despite foo() is now longer.
-    output = compile(files["A.kt"], "bar", state).singleOutput()
-    Assert.assertEquals(40, output.offSet.start)
-    Assert.assertEquals(53, output.offSet.end)
+    output = compile(files["A.kt"], "bar").singleOutput()
   }
 
   @Test
   fun inlineTarget() {
-    var state = readFunctionState(files["CallInlineTarget.kt"])
     try {
-      compile(files["CallInlineTarget.kt"], "callInlineTarget", state, useInliner = false).singleOutput()
+      compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = false).singleOutput()
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e: LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.UNABLE_TO_INLINE, e.error)
     }
-    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", state, useInliner = true).singleOutput()
+    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = true).singleOutput()
     var returnedValue = invokeStatic("callInlineTarget", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
   }
@@ -136,8 +123,6 @@ class BasicCompileTest {
     Assert.assertEquals(1, output.supportClasses.size)
     var returnedValue = invokeStatic("hasLambda", loadClass(output))
     Assert.assertEquals("y", returnedValue)
-    Assert.assertEquals(0, output.offSet.start)
-    Assert.assertEquals(104, output.offSet.end)
   }
 
   @Test
@@ -146,8 +131,6 @@ class BasicCompileTest {
     // We can't really invoke any composable without the runtime libraries. At least we can check
     // to make sure the output isn't empty.
     Assert.assertTrue(output.classData.isNotEmpty())
-    Assert.assertEquals("@androidx.compose.runtime.Composable ".length, output.offSet.start)
-    Assert.assertEquals(81, output.offSet.end)
   }
 
   @Test
@@ -155,8 +138,6 @@ class BasicCompileTest {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
     Assert.assertEquals("composableNested", output.methodName)
     Assert.assertEquals("(Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function3;", output.methodDesc)
-    Assert.assertEquals("@androidx.compose.runtime.Composable ".length, output.offSet.start)
-    Assert.assertEquals(126, output.offSet.end)
   }
 
   @Test
@@ -172,21 +153,19 @@ class BasicCompileTest {
     Assert.assertEquals(1, returnedValue)
   }
 
-  private fun compile(file: PsiFile?, functionName: String, state: FunctionState? = null, useInliner: Boolean = false) :
+  private fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
-    return compile(file!!, findFunction(file, functionName), state, useInliner)
+    return compile(file!!, findFunction(file, functionName), useInliner)
   }
 
-  private fun compile(file: PsiFile, function: KtNamedFunction, state: FunctionState? = null, useInliner: Boolean = false) :
+  private fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
     LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
     val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
     AndroidLiveEditCodeGenerator(myProject).compile(
-      listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function, state?: readFunctionState(file))), output)
+      listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function)), output)
     return output
   }
-
-  private fun readFunctionState(file: PsiFile?) = runReadAction { FunctionState(file as KtFile) }
 
   /**
    * Look for the first named function with a given name.

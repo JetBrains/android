@@ -17,8 +17,8 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -33,15 +33,19 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import java.util.HashMap
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
+/**
+ * @param file: Where the file event originate
+ * @param origin: The most narrow PSI Element where the edit event occurred.
+ */
 data class EditEvent(val file: PsiFile,
-                     val element: KtElement,
-                     val function: KtFunction?,
-                     val functionState: FunctionState) {
-  fun isWithinFunction() = function != null
+                     val origin: KtElement) {
+
+  // A list of all functions that encapsulate the origin of the event in the source code ordered by nesting level
+  // from inner-most to outer-most. This will be use to determine which compose groups to invalidate on the given change.
+  val parentGroup = ArrayList<KtFunction>()
 }
 
 enum class EditState {
@@ -56,14 +60,9 @@ data class EditStatus(val editState: EditState, val message: String)
 @Service
 class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
 
-  // A map of live edited files and their corresponding state information.
-  private val functionStateMap: HashMap<PsiFile, FunctionState> = HashMap()
-
   constructor(project: Project) : this(project,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
-
-  fun clearFunctionState() = functionStateMap.clear()
 
   fun interface EditListener {
     operator fun invoke(method: EditEvent)
@@ -147,23 +146,36 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
       // The code might not be valid at this point, so we should not be making any
       // assumption based on the Kotlin language structure.
 
-      // unnamed function should be any function that is defined without a "fun" keyword.
-      var unNamedFunction : KtFunction? = null
       while (parent != null) {
         when (parent) {
           is KtNamedFunction -> {
-            if (unNamedFunction == null) {
-              unNamedFunction = parent
-            }
-            val event = EditEvent(file, parent, unNamedFunction, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
+            val event = EditEvent(file, parent)
             editListener(event)
             break;
           }
           is KtFunction -> {
-            unNamedFunction = parent
+            val event = EditEvent(file, parent)
+
+            // Record each unnamed function as part of the event until we reach a named function.
+            // This will be used to determine how partial recomposition is done on this edit in a later stage.
+            var groupParent = parent.parent
+            while (groupParent != null) {
+              when (groupParent) {
+                is KtNamedFunction -> {
+                  event.parentGroup.add(groupParent)
+                  break
+                }
+                is KtNamedFunction -> {
+                  event.parentGroup.add(groupParent)
+                }
+              }
+              groupParent = groupParent.parent
+            }
+            editListener(event)
+            break;
           }
           is KtClass -> {
-            val event = EditEvent(file, parent, null, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
+            val event = EditEvent(file, parent)
             editListener(event)
             break;
           }
@@ -171,9 +183,14 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
         parent = parent.parent
       }
 
-      // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
-      val event = EditEvent(file, file, null, functionStateMap.computeIfAbsent(file) { FunctionState(file) })
-      editListener(event)
+      // This is a workaround to experiment with partial recomposition. Right now any simple edit would create multiple
+      // edit events and one of them is usually a spurious whole file event that will trigger an unnecessary whole recompose.
+      // For now we just ignore that event until Live Edit becomes better at diff'ing changes.
+      if (!LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
+        // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
+        val event = EditEvent(file, file)
+        editListener(event)
+      }
     }
 
     override fun childAdded(event: PsiTreeChangeEvent) {
