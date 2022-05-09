@@ -14,8 +14,8 @@ import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderEnumerationHandler
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtilCore
+import org.jetbrains.kotlin.base.util.isAndroidModule
 import org.jetbrains.kotlin.idea.caches.project.isMPPModule
-import org.jetbrains.kotlin.idea.core.isAndroidModule
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
