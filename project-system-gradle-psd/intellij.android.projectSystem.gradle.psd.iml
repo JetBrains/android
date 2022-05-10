@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>
 </module>

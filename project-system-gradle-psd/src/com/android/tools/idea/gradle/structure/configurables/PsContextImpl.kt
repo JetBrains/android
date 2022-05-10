@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.GradleResolver
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
 import com.android.tools.idea.gradle.structure.configurables.ui.handleFailureOnEdt
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
+import com.android.tools.idea.gradle.structure.daemon.PsSdkIndexCheckerDaemon
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
@@ -34,7 +36,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.PSDEvent
@@ -59,7 +60,8 @@ class PsContextImpl constructor(
 ) : PsContext, Disposable {
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()
-  override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+  override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
+  override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon = PsSdkIndexCheckerDaemon(this, project)
 
   private val gradleSyncEventDispatcher = EventDispatcher.create(PsContext.SyncListener::class.java)
   private var disableSync: Boolean = false
@@ -76,16 +78,18 @@ class PsContextImpl constructor(
   private val editedFields = mutableSetOf<PSDEvent.PSDField>()
 
   init {
-    libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
       libraryUpdateCheckerDaemon.queueUpdateCheck()
+      sdkIndexCheckerDaemon.reset()
+      sdkIndexCheckerDaemon.queueCheck()
     }
 
     analyzerDaemon = PsAnalyzerDaemon(
       this,
       project,
       libraryUpdateCheckerDaemon,
+      sdkIndexCheckerDaemon,
       analyzersMapOf(
         PsAndroidModuleAnalyzer(this, PsPathRendererImpl().also { it.context = this }),
         PsJavaModuleAnalyzer(this))
@@ -123,7 +127,7 @@ class PsContextImpl constructor(
   }
 
   private fun dependencyChanged() {
-    analyzerDaemon.recreateUpdateIssues()
+    analyzerDaemon.recreateIssues()
   }
 
   private var future: ListenableFuture<List<PsResolvedModuleModel>>? = null

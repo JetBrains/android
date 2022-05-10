@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.structure.daemon.PsSdkIndexCheckerDaemon
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -61,6 +62,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
     override val project: PsProject = project
     override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
+    override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon get() =  throw UnsupportedOperationException()
     override val uiSettings: PsUISettings get() = throw UnsupportedOperationException()
     override val selectedModule: String? get() = throw UnsupportedOperationException()
     override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()

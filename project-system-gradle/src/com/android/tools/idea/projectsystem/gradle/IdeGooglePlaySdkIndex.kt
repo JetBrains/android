@@ -31,6 +31,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_IN
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectForFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -40,12 +41,17 @@ import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class IdeGooglePlaySdkIndex(client: LintClient) : GooglePlaySdkIndex(client, getCacheDir()) {
+object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
+  private var lintClient: LintClient? = null
+
   override fun readUrlData(url: String, timeout: Int): ByteArray? = HttpRequests
     .request(URL(url).toExternalForm())
     .connectTimeout(timeout)
     .readTimeout(timeout)
     .readBytes(null)
+
+  override fun error(throwable: Throwable, message: String?) =
+    lintClient?.log(throwable, message) ?: Logger.getInstance(this::class.java).error(message, throwable)
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
@@ -75,6 +81,10 @@ class IdeGooglePlaySdkIndex(client: LintClient) : GooglePlaySdkIndex(client, get
   override fun logErrorInDefaultData(message: String?) {
     super.logErrorInDefaultData(message)
     logTrackerEvent(SDK_INDEX_DEFAULT_DATA_ERROR)
+  }
+
+  fun setLintClient(client: LintClient) {
+    this.lintClient = client
   }
 
   private fun findProject(file: File): Project? {
@@ -119,7 +129,6 @@ class IdeGooglePlaySdkIndex(client: LintClient) : GooglePlaySdkIndex(client, get
     }
     return event
   }
-
 }
 
 fun getCacheDir(): Path? {
