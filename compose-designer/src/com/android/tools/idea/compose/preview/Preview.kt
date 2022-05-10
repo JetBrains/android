@@ -49,6 +49,8 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager

@@ -33,6 +33,8 @@ import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut

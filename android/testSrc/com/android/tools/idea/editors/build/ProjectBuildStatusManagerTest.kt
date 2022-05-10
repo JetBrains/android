@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.editors.build
 
-import com.android.tools.idea.compose.gradle.preview.ProjectBuildStatusManagerTest
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
@@ -26,6 +25,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.psi.PsiElement
 import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -47,6 +48,16 @@ class ProjectBuildStatusManagerTest {
   val chainRule: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(FastPreviewRule())
+
+  /**
+   * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
+   * [incModificationCount] should be called.
+   */
+  class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
+    var filter: (PsiElement) -> Boolean = { true }
+
+    override fun accepts(element: PsiElement): Boolean = filter(element)
+  }
 
   @Test
   fun testFastPreviewTriggersCompileState() {

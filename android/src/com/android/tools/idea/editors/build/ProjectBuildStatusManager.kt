@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.editors.build
 
-import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
-import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
@@ -125,6 +123,12 @@ interface ProjectBuildStatusManagerForTests {
   fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener
 }
 
+private object NopPsiFileChangeDetector : PsiFileChangeDetector {
+  override fun hasFileChanged(file: PsiFile?, updateOnCheck: Boolean): Boolean = false
+  override fun markFileAsUpToDate(file: PsiFile?) {}
+  override fun clearMarks(file: PsiFile?) {}
+}
+
 private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                                             psiFile: PsiFile,
                                             private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
@@ -142,7 +146,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       else
         psiFileChangeDetector
 
-  private val _isBuilding = AtomicInteger(0)
+  private val buildsCount = AtomicInteger(0)
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
       if (field != value) {
@@ -168,11 +172,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       }
     }
 
-  override val isBuilding: Boolean get() = _isBuilding.get() > 0
+  override val isBuilding: Boolean get() = buildsCount.get() > 0
 
   private val buildListener = object : ProjectSystemBuildManager.BuildListener {
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-      _isBuilding.incrementAndGet()
+      buildsCount.incrementAndGet()
       LOG.debug("buildStarted $mode")
       if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
         projectBuildStatus = ProjectBuildStatus.NeedsBuild
@@ -180,7 +184,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     }
 
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      _isBuilding.updateAndGet {
+      buildsCount.updateAndGet {
         (it - 1).coerceAtLeast(0)
       }
       LOG.debug("buildFinished $result")
@@ -234,11 +238,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     if (FastPreviewManager.getInstance(project).isAvailable) {
       FastPreviewManager.getInstance(project).addCompileListener(parentDisposable, object : FastPreviewManager.Companion.CompileListener {
         override fun onCompilationStarted(files: Collection<PsiFile>) {
-          _isBuilding.incrementAndGet()
+          buildsCount.incrementAndGet()
         }
 
         override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-          _isBuilding.updateAndGet {
+          buildsCount.updateAndGet {
             (it - 1).coerceAtLeast(0)
           }
           val file = editorFile.element ?: return

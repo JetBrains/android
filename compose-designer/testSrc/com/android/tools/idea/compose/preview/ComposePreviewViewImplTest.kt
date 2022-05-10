@@ -27,6 +27,8 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -42,7 +44,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer

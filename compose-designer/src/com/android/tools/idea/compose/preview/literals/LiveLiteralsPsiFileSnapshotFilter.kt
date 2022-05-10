@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.literals
 
-import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
+import com.android.tools.idea.editors.build.PsiFileSnapshotFilter
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project

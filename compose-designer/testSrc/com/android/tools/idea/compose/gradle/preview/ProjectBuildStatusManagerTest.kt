@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.tools.idea.editors.build.ProjectBuildStatusManagerTest
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.ProjectBuildStatusManager
-import com.android.tools.idea.compose.preview.ProjectStatus
-import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.WriteAction
@@ -29,9 +29,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
@@ -149,16 +147,6 @@ class ProjectBuildStatusManagerTest {
     assertTrue("Builds status is not Ready after successful build", statusManager.status == ProjectStatus.Ready)
   }
 
-  /**
-   * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
-   * [incModificationCount] should be called.
-   */
-  internal class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
-    var filter: (PsiElement) -> Boolean = { true }
-
-    override fun accepts(element: PsiElement): Boolean = filter(element)
-  }
-
   @RunsInEdt
   @Test
   fun testFilteringChange() {
@@ -168,7 +156,7 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.openFileInEditor(mainFile)
     }
 
-    val fileFilter = TestFilter()
+    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
