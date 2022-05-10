@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
-  public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<>("ANDROID_DEBUG_CLIENT");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<>("ANDROID_DEVICE_API_LEVEL");
 
   @NotNull private final ProcessHandler myProcessHandler;

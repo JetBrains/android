@@ -173,7 +173,6 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
                               currentLaunchInfo.executor.getActionName(),
                               currentLaunchInfo.env.getExecutionTarget()
     );
-    debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
     captureLogcatOutput(client, debugProcessHandler);
