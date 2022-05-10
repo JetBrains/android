@@ -48,6 +48,11 @@ abstract class AppInspectionServiceException(message: String, cause: Throwable? 
 class AppInspectionLaunchException(message: String) : AppInspectionServiceException(message)
 
 /**
+ * Thrown when trying to launch an inspector on a device that cannot be found.
+ */
+class AppInspectionCannotFindAdbDeviceException(message: String) : AppInspectionServiceException(message)
+
+/**
  * Thrown when trying to launch an inspector on a process that no longer exists.
  *
  * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user

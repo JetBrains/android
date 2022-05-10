@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.JarCopierCreator
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
@@ -39,7 +40,7 @@ internal class DefaultAppInspectionApiServices internal constructor(
   }
 
   private suspend fun doAttachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
-    val jarCopierCreator = createJarCopier(process.device) ?: throw RuntimeException("Cannot find ADB device.")
+    val jarCopierCreator = createJarCopier(process.device) ?: throw AppInspectionCannotFindAdbDeviceException("Cannot find ADB device.")
     val streamChannel = discovery.getStreamChannel(process.streamId)
                         ?: throw AppInspectionProcessNoLongerExistsException(
                           "Cannot attach to process because the device does not exist. Process: $process")
