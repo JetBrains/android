@@ -37,8 +37,8 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
-import org.jetbrains.kotlin.types.ErrorType
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 
 // This class contains data collected by visiting Kotlin class descriptors, making it easy to
@@ -120,7 +120,7 @@ internal fun ResolutionScope.classesInScope(nameFilter: (String) -> Boolean = { 
 
 private fun KotlinType.asString(): String {
   return when (this) {
-    is ErrorType -> presentableName
+    is ErrorType -> debugMessage.removePrefix("Unresolved type for ")
     else -> fqName!!.asString()
   }
 }
