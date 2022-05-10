@@ -114,37 +114,7 @@ class InspectorClientLauncher(
     }
 
     processes.addSelectedProcessListeners(realExecutor) {
-      if (!project.isDisposed) {
-        val processHandler = {
-          try {
-            handleProcess(processes.selectedProcess, processes.isAutoConnected)
-          }
-          catch (ignore: CancellationException) {
-          }
-        }
-        // If we're already executing a recursive call in the most recent request, execute directly in the current thread.
-        // If this is a new request, execute in a new worker.
-        // If this is an obsolete request, do nothing.
-        if (threadSequenceNumber.get() == sequenceNumber) {
-          processHandler()
-        }
-        else if (threadSequenceNumber.get() < 0) {
-          synchronized(sequenceNumberLock) {
-            val threadStartedLatch = CountDownLatch(1)
-            (executor ?: workerExecutor).execute {
-              threadSequenceNumber.set(++sequenceNumber)
-              try {
-                threadStartedLatch.countDown()
-                processHandler()
-              }
-              finally {
-                threadSequenceNumber.set(-1)
-              }
-            }
-            threadStartedLatch.await()
-          }
-        }
-      }
+      handleProcessInWorkerThread(executor, processes.selectedProcess, processes.isAutoConnected)
     }
 
     Disposer.register(parentDisposable) {
@@ -154,6 +124,40 @@ class InspectorClientLauncher(
       }
       finally {
         threadSequenceNumber.set(-1)
+      }
+    }
+  }
+
+  private fun handleProcessInWorkerThread(executor: Executor?, process: ProcessDescriptor?, isAutoConnected: Boolean) {
+    if (!project.isDisposed) {
+      val processHandler = {
+        try {
+          handleProcess(process, isAutoConnected)
+        }
+        catch (ignore: CancellationException) {
+        }
+      }
+      // If we're already executing a recursive call in the most recent request, execute directly in the current thread.
+      // If this is a new request, execute in a new worker.
+      // If this is an obsolete request, do nothing.
+      if (threadSequenceNumber.get() == sequenceNumber) {
+        processHandler()
+      }
+      else if (threadSequenceNumber.get() < 0) {
+        synchronized(sequenceNumberLock) {
+          val threadStartedLatch = CountDownLatch(1)
+          (executor ?: workerExecutor).execute {
+            threadSequenceNumber.set(++sequenceNumber)
+            try {
+              threadStartedLatch.countDown()
+              processHandler()
+            }
+            finally {
+              threadSequenceNumber.set(-1)
+            }
+          }
+          threadStartedLatch.await()
+        }
       }
     }
   }
