@@ -45,6 +45,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
+import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -95,8 +96,8 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "text")
 
     val icons = TreeWalker(filterTextField).descendants().filterIsInstance<JLabel>()
-    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRating }).isNull()
-    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRatingOn }).isNotNull()
+    assertThat(icons.find { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }).isNull()
+    assertThat(icons.find { it.icon == StudioIcons.Logcat.Input.FAVORITE_FILLED }).isNotNull()
   }
 
   @Test
@@ -105,8 +106,8 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "text")
 
     val icons = TreeWalker(filterTextField).descendants().filterIsInstance<JLabel>()
-    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRating }).isNotNull()
-    assertThat(icons.find { it.icon == AllIcons.Ide.FeedbackRatingOn }).isNull()
+    assertThat(icons.find { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }).isNotNull()
+    assertThat(icons.find { it.icon == StudioIcons.Logcat.Input.FAVORITE_FILLED }).isNull()
   }
 
   @Test
@@ -144,7 +145,7 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
@@ -171,7 +172,7 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "foo")
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -203,7 +204,7 @@ class FilterTextFieldTest {
   fun addToHistory_favorite_logsUsage() {
     val filterTextField = filterTextField(initialText = "foo")
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Ide.FeedbackRating }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
 
@@ -247,7 +248,7 @@ class FilterTextFieldTest {
   fun emptyText_buttonPanelInvisible() {
     val filterTextField = filterTextField(initialText = "")
 
-    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -261,7 +262,7 @@ class FilterTextFieldTest {
   fun nonEmptyText_buttonPanelVisible() {
     val filterTextField = filterTextField(initialText = "foo")
 
-    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -274,7 +275,7 @@ class FilterTextFieldTest {
   @Test
   fun textBecomesEmpty_buttonPanelInvisible() {
     val filterTextField = filterTextField(initialText = "foo")
-    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -289,7 +290,7 @@ class FilterTextFieldTest {
   @Test
   fun textBecomesNotEmpty_buttonPanelVisible() {
     val filterTextField = filterTextField(initialText = "")
-    val favoriteButton = filterTextField.getButtonWithIcon(AllIcons.Ide.FeedbackRating)
+    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 

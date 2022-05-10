@@ -78,11 +78,10 @@ import kotlin.math.min
 
 private const val APPLY_FILTER_DELAY_MS = 100L
 
-// TODO(b/220381322): Use icons from UX instead of these placeholders. The temporary icons need to be scaled down.
-private val FAVORITE_ICON = AllIcons.Ide.FeedbackRating.scale()
-private val FAVORITE_ON_ICON = AllIcons.Ide.FeedbackRatingOn.scale()
-private val FAVORITE_FOCUSED_ICON = AllIcons.Ide.FeedbackRatingFocused.scale()
-private val FAVORITE_FOCUSED_ON_ICON = AllIcons.Ide.FeedbackRatingFocusedOn.scale()
+private val FAVORITE_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE
+private val FAVORITE_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED
+private val FAVORITE_FOCUSED_ICON = StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
+private val FAVORITE_FOCUSED_ON_ICON = StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
 private val FAVORITE_BLANK_ICON = EmptyIcon.create(FAVORITE_ON_ICON.iconWidth, FAVORITE_ON_ICON.iconHeight)
 
 // The text of the history dropdown item needs a little horizontal padding
@@ -115,7 +114,7 @@ internal class FilterTextField(
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
   private val documentChangedListeners = mutableListOf<DocumentListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
-  private val historyButton = InlineButton(StudioIcons.Logcat.Toolbar.FILTER_HISTORY)
+  private val historyButton = InlineButton(StudioIcons.Logcat.Input.FILTER_HISTORY)
   private val clearButton = JLabel(AllIcons.Actions.Close)
   private val favoriteButton = JLabel(FAVORITE_ICON)
 
