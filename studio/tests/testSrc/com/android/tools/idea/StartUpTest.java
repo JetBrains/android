@@ -21,10 +21,12 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import java.util.Arrays;
 import java.util.regex.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class StartUpTest {
   @Test
+  @Ignore("b/232084720")
   public void startUpTest() throws Exception {
     try (AndroidStudioInstallation install = new AndroidStudioInstallation()) {
       try (AndroidStudio studio = install.run()) {
