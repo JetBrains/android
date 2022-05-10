@@ -309,7 +309,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION_MULTIPLE_CUSTOM = Flag.create(
     NELE, "visualization.multiple.custom", "Multiple Custom Categories in Layout Validation Tool",
     "Allow to create or delete multiple custom categories in Layout Validation Tool",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
