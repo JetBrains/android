@@ -28,11 +28,16 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.ui.BalloonLayoutData;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.PositionTracker;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
 import javax.swing.JFrame;
@@ -54,6 +59,18 @@ public class AndroidNotification {
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;
+
+  public void showProgressBalloon(@NotNull String message, @NotNull MessageType type) {
+    UIUtil.invokeLaterIfNeeded(() -> {
+      IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(myProject);
+      if (ideFrame != null) {
+        StatusBarEx statusBar = (StatusBarEx)ideFrame.getStatusBar();
+        if (statusBar != null) {
+          statusBar.notifyProgressByBalloon(type, message);
+        }
+      }
+    });
+  }
 
   @NotNull
   public static AndroidNotification getInstance(@NotNull Project project) {

@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
+import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,6 +49,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -241,7 +243,8 @@ public class BuildVariantUpdater {
       @Override
       public void syncSkipped(@NotNull Project project) {
         if (project.getUserData(ALWAYS_SKIP_SYNC) == null) {
-          throw new IllegalStateException("Sync cannot complete with syncSkipped result when switching variants.");
+          AndroidNotification.getInstance(project)
+            .showProgressBalloon("Cannot change the current build variant at this moment", MessageType.ERROR);
         }
         AndroidGradleProjectResolver.clearVariantsSavedForReuse(project);
         variantSelectionChangeListeners.run();
