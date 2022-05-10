@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Test
 import java.io.IOException
@@ -28,6 +29,7 @@ import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
+import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
@@ -122,6 +124,26 @@ class SuspendingChannelsTest {
     steps[0].countDown()
     channel.readFully(ByteBuffer.wrap(buf, 8, 12))
     steps[1].countDown()
+  }
+
+  @Test
+  fun testConnect() {
+    val connected = CountDownLatch(1)
+
+    val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))
+    coroutineScope.launch {
+      serverChannel.use {
+        serverChannel.accept().use {
+          connected.countDown()
+        }
+      }
+    }
+    runBlocking {
+      SuspendingSocketChannel.open().use { channel ->
+        channel.connect(serverChannel.localAddress)
+      }
+    }
+    assertThat(connected.await(200, TimeUnit.MILLISECONDS)).isTrue()
   }
 
   private fun OutputStream.writeAndFlush(bytes: ByteArray) {

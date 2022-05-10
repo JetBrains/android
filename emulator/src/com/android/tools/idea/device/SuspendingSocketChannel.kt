@@ -16,10 +16,14 @@
 package com.android.tools.idea.device
 
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.io.EOFException
 import java.io.IOException
+import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousChannelGroup
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 import java.nio.channels.InterruptedByTimeoutException
@@ -37,6 +41,26 @@ class SuspendingSocketChannel(
 
   private val readCompletionHandler = CompletionHandlerAdapter(Operation.READ)
   private val writeCompletionHandler = CompletionHandlerAdapter(Operation.WRITE)
+
+  /**
+   * Connects this channel to the given remote address.
+   * @see AsynchronousSocketChannel.connect
+   */
+  suspend fun connect(remote: SocketAddress) {
+    val continuationHandler = object : CompletionHandler<Void?, CancellableContinuation<Void?>> {
+
+      override fun completed(result: Void?, continuation: CancellableContinuation<Void?>) {
+        continuation.resume(null)
+      }
+
+      override fun failed(exception: Throwable, continuation: CancellableContinuation<Void?>) {
+        continuation.resumeWithException(exception)
+      }
+    }
+    suspendCancellableCoroutine<Void?> { continuation ->
+      networkChannel.connect(remote, continuation, continuationHandler)
+    }
+  }
 
   /**
    * Reads a sequence of bytes from this channel into the given buffer.
@@ -127,6 +151,23 @@ class SuspendingSocketChannel(
             throw InterruptedByTimeoutException()
           }
         }
+      }
+    }
+  }
+
+  companion object {
+    /**
+     * Opens a suspending socket channel.
+     *
+     * @param group the group to which the newly constructed channel should be bound, or null for the default group
+     *
+     * @see AsynchronousSocketChannel.open(group: AsynchronousChannelGroup?)
+     */
+    @JvmOverloads
+    @JvmStatic
+    suspend fun open(group: AsynchronousChannelGroup? = null): SuspendingSocketChannel {
+      return withContext(Dispatchers.IO) {
+        SuspendingSocketChannel(AsynchronousSocketChannel.open(group))
       }
     }
   }
