@@ -30,7 +30,7 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    form = VisualizationForm(project, testRootDisposable)
+    form = VisualizationForm(project, testRootDisposable, TestVisualizationFormInitializer)
   }
 
   override fun tearDown() {

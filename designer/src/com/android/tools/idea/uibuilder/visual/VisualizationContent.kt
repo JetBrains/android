@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
+import com.android.tools.idea.util.listenUntilNextSync
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -60,7 +64,7 @@ interface VisualizationContentProvider {
 
 object VisualizationFormProvider : VisualizationContentProvider {
   override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationForm {
-    val visualizationForm = VisualizationForm(project, toolWindow.disposable)
+    val visualizationForm = VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
     contentManager.addDataProvider { dataId: String? ->
@@ -85,5 +89,35 @@ object VisualizationFormProvider : VisualizationContentProvider {
       visualizationForm.activate()
     }
     return visualizationForm
+  }
+}
+
+private object AsyncContentInitializer: VisualizationForm.ContentInitializer {
+
+  override fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    val task = Runnable {
+      form.showLoadingMessage()
+      initPreviewFormAfterInitialBuild(project, form, onComplete)
+    }
+    val onError = Runnable { form.showErrorMessage() }
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError)
+  }
+
+  private fun initPreviewFormAfterInitialBuild(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    project.runWhenSmartAndSyncedOnEdt(form, { result: ProjectSystemSyncManager.SyncResult ->
+      if (result.isSuccessful) {
+        form.createContentPanel()
+        onComplete()
+      }
+      else {
+        form.showErrorMessage()
+        project.listenUntilNextSync(form, object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            form.createContentPanel()
+            onComplete()
+          }
+        })
+      }
+    })
   }
 }

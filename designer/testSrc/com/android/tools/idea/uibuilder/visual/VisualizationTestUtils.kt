@@ -78,3 +78,10 @@ class VisualizationTestToolWindow(project: Project) : ToolWindowHeadlessManagerI
     return contentManager.isDisposed
   }
 }
+
+object TestVisualizationFormInitializer : VisualizationForm.ContentInitializer {
+  override fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
+    form.createContentPanel()
+    onComplete()
+  }
+}
