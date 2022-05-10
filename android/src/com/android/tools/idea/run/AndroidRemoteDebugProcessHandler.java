@@ -183,12 +183,7 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
     }
 
     if (executionTarget instanceof AndroidExecutionTarget) {
-      Client client = getUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT);
-      if (client == null || !client.isValid()) {
-        return false;
-      }
-
-      Object device = client.getDevice();
+      IDevice device = myClient.getDevice();
 
       // The reference equality is intentional. We will only ever have a single IDevice instance for a device while it's connected. The
       // IntelliJ Platform expects a different IDevice when you disconnect and reconnect a device. If we used the equals method (based on
