@@ -54,10 +54,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
-import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
-import com.android.tools.idea.gradle.model.java.JarLibraryDependency
-import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
-import com.android.tools.idea.gradle.model.java.JavaModuleDependency
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -145,26 +141,6 @@ class ModelSerializationTest : AndroidGradleTestCase() {
         "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", "21.0.0", 12),
       listOf()
     )
-  }
-
-  @Test
-  fun testGradleModuleVersionImpl() = assertSerializable {
-    GradleModuleVersionImpl("group", "name", "version")
-  }
-
-  @Test
-  fun testJarLibraryDependency() = assertSerializable {
-    JarLibraryDependency("name", null, null, null, null, null, false)
-  }
-
-  @Test
-  fun testJavaModuleContentRoot() = assertSerializable {
-    JavaModuleContentRoot(File("rootDir"), listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
-  }
-
-  @Test
-  fun testJavaModuleDependency() = assertSerializable {
-    JavaModuleDependency("moduleName", "moduleId", null, false)
   }
 
   /*

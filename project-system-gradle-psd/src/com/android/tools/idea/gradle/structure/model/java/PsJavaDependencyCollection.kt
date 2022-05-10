@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
-import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
