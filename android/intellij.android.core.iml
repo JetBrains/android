@@ -241,7 +241,6 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
     <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
-    <orderEntry type="module" module-name="kotlin.common" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="kotlin.project-wizard.idea" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />

@@ -70,7 +70,6 @@
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
-    <orderEntry type="module" module-name="kotlin.common" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.platform.core" />

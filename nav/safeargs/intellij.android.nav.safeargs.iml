@@ -49,7 +49,6 @@
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
-    <orderEntry type="module" module-name="kotlin.common" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
