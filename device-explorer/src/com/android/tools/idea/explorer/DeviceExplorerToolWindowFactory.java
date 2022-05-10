@@ -30,6 +30,9 @@ import com.intellij.util.SystemProperties;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * [ToolWindowFactory] for the Device File Explorer ToolWindow
+ */
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
   private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
