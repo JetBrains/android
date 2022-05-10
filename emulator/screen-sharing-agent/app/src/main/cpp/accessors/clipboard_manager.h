@@ -59,12 +59,17 @@ private:
   jmethodID new_plain_text_method_;
   jmethodID get_item_count_method_;
   jmethodID get_item_at_method_;
+  jmethodID get_description_method_;
   // android.content.ClipData.Item class.
   jmethodID get_text_method_;
   // android.content.ClipboardManager class.
   JObject clipboard_manager_;
   jmethodID get_primary_clip_method_;
   jmethodID set_primary_clip_method_;
+  // android.content.ClipDescription class.
+  jmethodID set_extras_method_;
+  // The PersistableBundle used to suppress clipboard change UI overlays on Android 13+.
+  JObject overlay_suppressor_;
   // Copy-on-write set of clipboard listeners.
   std::atomic<std::vector<ClipboardListener*>*> clipboard_listeners_;
 

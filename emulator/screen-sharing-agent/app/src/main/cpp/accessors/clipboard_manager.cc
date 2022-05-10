@@ -36,6 +36,7 @@ ClipboardManager* clipboard_manager_instance = nullptr;
 
 ClipboardManager::ClipboardManager(Jni jni)
     : clipboard_manager_(ServiceManager::GetServiceAsInterface(jni, "clipboard", "android/content/IClipboard", /*allow_null =*/ true)),
+      set_extras_method_(),
       clipboard_listeners_(new vector<ClipboardListener*>()) {
   if (clipboard_manager_.IsNull()) {
     return;
@@ -47,17 +48,31 @@ ClipboardManager::ClipboardManager(Jni jni)
       "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;");
   get_item_count_method_ = clip_data_class_.GetMethodId("getItemCount", "()I");
   get_item_at_method_ = clip_data_class_.GetMethodId("getItemAt", "(I)Landroid/content/ClipData$Item;");
+  get_description_method_ = clip_data_class_.GetMethodId("getDescription", "()Landroid/content/ClipDescription;");
   clip_data_class_.MakeGlobal();
 
   JClass clip_data_item_class = jni.GetClass("android/content/ClipData$Item");
   get_text_method_ = clip_data_item_class.GetMethodId("getText", "()Ljava/lang/CharSequence;");
+
+  int api_level = android_get_device_api_level();
+  if (api_level >= 33) {
+    // Initialize overlay_suppressor_ that is used to suppress clipboard change UI overlay on Android 13+.
+    JClass clip_description_class = jni.GetClass("android/content/ClipDescription");
+    set_extras_method_ = clip_description_class.GetMethodId("setExtras", "(Landroid/os/PersistableBundle;)V");
+
+    JClass persistable_bundle_class = jni.GetClass("android/os/PersistableBundle");
+    jmethodID persistable_bundle_constructor = persistable_bundle_class.GetConstructorId("(I)V");
+    jmethodID put_boolean_method = persistable_bundle_class.GetMethodId("putBoolean", "(Ljava/lang/String;Z)V");
+    overlay_suppressor_ = persistable_bundle_class.NewObject(persistable_bundle_constructor, 1);
+    overlay_suppressor_.CallVoidMethod(put_boolean_method, JString(jni, "com.android.systemui.SUPPRESS_CLIPBOARD_OVERLAY").ref(), true);
+    overlay_suppressor_.MakeGlobal();
+  }
 
   JClass clipboard_listener_class = jni.GetClass("com/android/tools/screensharing/ClipboardListener");
   jmethodID constructor = clipboard_listener_class.GetConstructorId("()V");
   clipboard_listener_ = clipboard_listener_class.NewObject(constructor);
   clipboard_listener_.MakeGlobal();
 
-  int api_level = android_get_device_api_level();
   JClass clipboard_manager_class = clipboard_manager_.GetClass();
   const char* signature = api_level >= 29 ?
       "(Ljava/lang/String;I)Landroid/content/ClipData;" : "(Ljava/lang/String;)Landroid/content/ClipData;";
@@ -106,7 +121,13 @@ string ClipboardManager::GetText(Jni jni) const {
 void ClipboardManager::SetText(Jni jni, const string& text) const {
   JString jtext = JString(jni, text.c_str());
   JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni, new_plain_text_method_, jtext.ref(), jtext.ref());
-  if (android_get_device_api_level() >= 29) {
+  auto api_level = android_get_device_api_level();
+  if (api_level >= 33) {
+    // Suppress clipboard change UI overlay on Android 13+.
+    JObject clip_description = clip_data.CallObjectMethod(jni, get_description_method_);
+    clip_description.CallVoidMethod(set_extras_method_, overlay_suppressor_.ref());
+  }
+  if (api_level >= 29) {
     clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
   } else {
     clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
