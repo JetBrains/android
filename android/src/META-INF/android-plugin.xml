@@ -315,10 +315,6 @@
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
 
-    <projectConfigurable groupId="build" id="gradle.compiler"
-                         provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
-    <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
-
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
 
@@ -524,7 +520,6 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
     <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>

@@ -1233,39 +1233,6 @@
     <option name="resourcefile" hit="resourceFile" />
     <option name="valueresourcefile" hit="valueResourceFile" />
   </configurable>
-  <configurable id="gradle.compiler" configurable_name="Compiler">
-    <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="android" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="are" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="based" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="compiling" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="for" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="gradle" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="note" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="projects" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="settings" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="these" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="used" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="command" hit="Command-line Options:" />
-    <option name="line" hit="Command-line Options:" />
-    <option name="options" hit="Command-line Options:" />
-    <option name="compile" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="heap" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="in" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="independent" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="larger" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="may" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="modules" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="parallel" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="compiler" hit="Compiler" />
-    <option name="after" hit="Continue the build after failures" />
-    <option name="build" hit="Continue the build after failures" />
-    <option name="continue" hit="Continue the build after failures" />
-    <option name="failures" hit="Continue the build after failures" />
-    <option name="the" hit="Continue the build after failures" />
-  </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit=" Note: These settings are for features that are considered experimental." />
     <option name="are" hit=" Note: These settings are for features that are considered experimental." />
@@ -1369,6 +1336,39 @@
     <option name="new" hit="Use new dependency mechanism during Gradle sync" />
     <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
+  </configurable>
+  <configurable id="gradle.compiler" configurable_name="Compiler">
+    <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="android" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="are" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="based" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="compiling" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="for" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="gradle" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="note" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="projects" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="settings" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="these" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="used" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="command" hit="Command-line Options:" />
+    <option name="line" hit="Command-line Options:" />
+    <option name="options" hit="Command-line Options:" />
+    <option name="compile" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="heap" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="in" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="independent" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="larger" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="may" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="modules" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="parallel" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="compiler" hit="Compiler" />
+    <option name="after" hit="Continue the build after failures" />
+    <option name="build" hit="Continue the build after failures" />
+    <option name="continue" hit="Continue the build after failures" />
+    <option name="failures" hit="Continue the build after failures" />
+    <option name="the" hit="Continue the build after failures" />
   </configurable>
   <configurable id="build.analyzer" configurable_name="Build Analyzer">
     <option name="analyzer" hit="Build Analyzer" />
