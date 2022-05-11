@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.ui.Messages.OK;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -44,6 +45,7 @@ import org.mockito.Mock;
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
+  @Mock private AgpVersionRefactoringProcessor myVersionProcessor;
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
@@ -91,6 +93,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
     when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myVersionProcessor);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any(), same(false));
     verify(myProcessor).run();
@@ -103,9 +106,10 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     // Simulate user accepting then cancelling the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
     when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(false);
+    when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myVersionProcessor);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any(), same(false));
-    verifyNoInteractions(myProcessor);
+    verify(myProcessor, never()).run();
     // TODO(xof): this is suboptimal and should probably show the same message as if we cancelled from the first dialog.
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }

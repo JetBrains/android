@@ -30,6 +30,8 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -249,6 +251,11 @@ fun performForcedPluginUpgrade(
     // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
     val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
     val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
+    // Enable only the minimum number of processors for a forced upgrade
+    processor.agpVersionRefactoringProcessor.isEnabled = true
+    processor.componentRefactoringProcessors.forEach { component ->
+      component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
+    }
     val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
