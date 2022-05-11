@@ -31,10 +31,6 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     registry.register(GradlePluginModelBuilder())
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
-      // SamplesVariantRule requires Gradle 6.0+ because it uses VariantMetadata.withFiles.
-      if (isGradleAtLeast(project.gradle.gradleVersion, "6.0")) {
-        project.dependencies.components.all(SamplesVariantRule::class.java)
-      }
       registry.register(AdditionalClassifierArtifactsModelBuilder())
     }
   }

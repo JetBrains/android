@@ -22,6 +22,8 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsImpl
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsModelImpl
+import com.android.ide.gradle.model.artifacts.samples.SamplesVariantRule
+import com.android.ide.gradle.model.builder.isGradleAtLeast
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -59,6 +61,11 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
   }
 
   override fun buildAll(modelName: String, parameter: AdditionalClassifierArtifactsModelParameter, project: Project): Any {
+    // SamplesVariantRule requires Gradle 6.0+ because it uses VariantMetadata.withFiles.
+    if (isGradleAtLeast(project.gradle.gradleVersion, "6.0")) {
+      project.dependencies.components.all(SamplesVariantRule::class.java)
+    }
+
     // Collect the components to download Sources and Javadoc for. DefaultModuleComponentIdentifier is the only supported type.
     // See DefaultArtifactResolutionQuery::validateComponentIdentifier.
     val ids = parameter.artifactIdentifiers.map {
