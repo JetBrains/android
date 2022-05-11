@@ -23,12 +23,14 @@ import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
-import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
+import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
@@ -46,11 +48,11 @@ import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
@@ -64,9 +66,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.UUID
-import java.util.function.BiFunction
 
 /**
  * List of available layouts for the Compose Preview Surface.
@@ -95,34 +95,82 @@ private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater(
 private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
- * Creates a [NlDesignSurface] setup for the Compose preview.
+ * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
+ * preview.
  */
-@VisibleForTesting
-fun createPreviewDesignSurface(
+private fun createPreviewDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NlDesignSurface.NavigationHandler,
-  delegateInteractionHandler: DelegateInteractionHandler,
+  delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
-  zoomControlsPolicy: DesignSurface.ZoomControlsPolicy,
-  defaultLayoutManager: SurfaceLayoutManager = DEFAULT_PREVIEW_LAYOUT_MANAGER,
-  sceneManagerProvider: BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager>): NlDesignSurface =
-  NlDesignSurface.builder(project, parentDisposable)
+  sceneComponentProvider: ComposeSceneComponentProvider
+): NlDesignSurface.Builder = NlDesignSurface.builder(project, parentDisposable)
     .setIsPreview(true)
     .setNavigationHandler(navigationHandler)
-    .setLayoutManager(defaultLayoutManager)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setSceneManagerProvider(sceneManagerProvider)
+    .setSceneManagerProvider { surface, model ->
+      LayoutlibSceneManager(
+        model,
+        surface,
+        sceneComponentProvider,
+        ComposeSceneUpdateListener()
+      ) { RealTimeSessionClock() }
+    }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
-    .setZoomControlsPolicy(zoomControlsPolicy)
+    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.HIDDEN)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
-    .build()
+
+/**
+ * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
+ */
+internal fun createMainDesignSurfaceBuilder(
+  project: Project,
+  navigationHandler: NlDesignSurface.NavigationHandler,
+  delegateInteractionHandler: InteractionHandler,
+  dataProvider: DataProvider,
+  parentDisposable: Disposable,
+  sceneComponentProvider: ComposeSceneComponentProvider
+) = createPreviewDesignSurfaceBuilder(
+  project,
+  navigationHandler,
+  delegateInteractionHandler,
+  dataProvider, // Will be overridden by the preview provider
+  parentDisposable,
+  sceneComponentProvider
+).setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
+
+/**
+ * Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview.
+ */
+internal fun createPinnedDesignSurfaceBuilder(
+  project: Project,
+  navigationHandler: NlDesignSurface.NavigationHandler,
+  delegateInteractionHandler: InteractionHandler,
+  dataProvider: DataProvider,
+  parentDisposable: Disposable,
+  sceneComponentProvider: ComposeSceneComponentProvider
+) = createPreviewDesignSurfaceBuilder(
+  project,
+  navigationHandler,
+  delegateInteractionHandler,
+  dataProvider,
+  parentDisposable,
+  sceneComponentProvider
+).setLayoutManager(
+  GridSurfaceLayoutManager(
+    NlConstants.DEFAULT_SCREEN_OFFSET_X,
+    NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+    NlConstants.SCREEN_DELTA,
+    NlConstants.SCREEN_DELTA
+  )
+)
 
 /**
  * Refresh the preview with the existing [PreviewElement]s.

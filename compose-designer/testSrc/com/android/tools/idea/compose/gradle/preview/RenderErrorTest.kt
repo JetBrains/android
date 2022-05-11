@@ -65,7 +65,7 @@ class RenderErrorTest {
     composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, object : PreviewElementProvider<PreviewElement> {
       override suspend fun previewElements(): Sequence<PreviewElement> =
         AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> previewView }
+    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi

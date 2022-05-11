@@ -86,15 +86,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="268"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="358"/>
+            line="255"/>
     </issue>
 
     <issue
@@ -167,22 +159,6 @@
         <location
             file="src/com/android/tools/idea/compose/preview/pickers/properties/PsiCallModel.kt"
             line="57"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="269"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="277"/>
     </issue>
 
     <issue
