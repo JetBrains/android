@@ -255,6 +255,8 @@ private class HeadlessDialogWrapperPeer(
     return true
   }
 
+  override fun setOnDeactivationAction(disposable: Disposable, onDialogDeactivated: Runnable) {}
+
   override fun getCurrentModalEntities(): Array<Any> {
     return LaterInvocator.getCurrentModalEntities()
   }
