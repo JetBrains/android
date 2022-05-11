@@ -127,14 +127,22 @@ private fun collectContentRootDataForArtifact(
     newContentRoots.add(contentRootData)
   }
 
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
+  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it, type) }
+
+  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(artifact, androidModel).map(File::getAbsolutePath).toSet()
   sourceProviderSelector(androidModel).forEach { sourceProvider ->
-    sourceProvider.processAll(artifact.isTestArtifact, ::addSourceFolder)
+    sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
+      // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.
+      // In order to prevent duplicate root warnings and to ensure this kapt path is marked generated we ensure it is not added as
+      // a source root.
+      if (!generatedSourceFolderPaths.contains(path)) {
+        addSourceFolder(path, sourceType)
+      }
+    }
   }
 
-  fun IdeBaseArtifactCore.applicableGeneratedSourceFolders(): Collection<File> = getGeneratedSourceFoldersToUse(this, androidModel)
-  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
-
-  artifact.applicableGeneratedSourceFolders().processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
+  generatedSourceFolderPaths.processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
   if (artifact is IdeAndroidArtifactCore) {
     artifact.generatedResourceFolders.processAs(if (artifact.isTestArtifact) TEST_RESOURCE_GENERATED else RESOURCE_GENERATED)
   }
