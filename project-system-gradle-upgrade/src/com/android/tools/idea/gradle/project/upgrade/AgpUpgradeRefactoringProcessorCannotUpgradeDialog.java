@@ -51,9 +51,8 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
     });
 
     StringBuilder sb = new StringBuilder();
-    List<AgpUpgradeComponentRefactoringProcessor> blockedComponents =
-      Stream.concat(Stream.of(processor.getAgpVersionRefactoringProcessor()), processor.getComponentRefactoringProcessors().stream())
-        .filter((c) -> c.isEnabled() && c.isBlocked()).collect(Collectors.toList());
+    List<AgpUpgradeComponentRefactoringProcessor> blockedComponents = processor.getComponentRefactoringProcessors().stream()
+      .filter((c) -> c.isEnabled() && c.isBlocked()).collect(Collectors.toList());
     sb.append("<p>The Upgrade Assistant failed to upgrade this project, finding no way of performing the following command")
       .append(blockedComponents.size() == 1 ? "" : "s").append(":</p>");
     sb.append("<ul>");

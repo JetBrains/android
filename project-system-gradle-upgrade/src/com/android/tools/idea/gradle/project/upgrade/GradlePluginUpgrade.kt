@@ -252,7 +252,6 @@ fun performForcedPluginUpgrade(
     val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
     val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
     // Enable only the minimum number of processors for a forced upgrade
-    processor.agpVersionRefactoringProcessor.isEnabled = true
     processor.componentRefactoringProcessors.forEach { component ->
       component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
     }

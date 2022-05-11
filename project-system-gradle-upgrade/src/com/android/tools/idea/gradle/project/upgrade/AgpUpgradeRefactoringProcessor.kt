@@ -255,8 +255,11 @@ class AgpUpgradeRefactoringProcessor(
 ) : GradleBuildModelRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
-  val agpVersionRefactoringProcessor = AgpVersionRefactoringProcessor(this)
+  val agpVersionRefactoringProcessor by lazy { componentRefactoringProcessors.firstNotNullOf { it as? AgpVersionRefactoringProcessor } }
+  val componentRefactoringProcessorsWithAgpVersionProcessorLast
+    get() = componentRefactoringProcessors.sortedBy { if (it is AgpVersionRefactoringProcessor) 1 else 0 }
   val componentRefactoringProcessors = listOf(
+    AgpVersionRefactoringProcessor(this),
     GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
     GradlePluginsRefactoringProcessor(this),
@@ -283,7 +286,7 @@ class AgpUpgradeRefactoringProcessor(
   var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   final fun blockProcessorExecution() =
-    (componentRefactoringProcessors + agpVersionRefactoringProcessor).any { it.isEnabled && it.isBlocked }
+    componentRefactoringProcessors.any { it.isEnabled && it.isBlocked }
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -302,7 +305,6 @@ class AgpUpgradeRefactoringProcessor(
     projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
-    usages.addAll(agpVersionRefactoringProcessor.findUsages())
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
     }
@@ -607,7 +609,6 @@ class AgpUpgradeRefactoringProcessor(
         }
         // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
         // done on the EDT).
-        agpVersionRefactoringProcessor.initializeComponentCaches()
         componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
       },
       commandName, true, project)
@@ -1082,7 +1083,6 @@ internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
                     .apply { usages?.let { setUsages(it) } }
                     .apply { files?.let { setFiles(it) } }
                     .build())
-  processorEvent.addComponentInfo(agpVersionRefactoringProcessor.getComponentInfo())
   componentRefactoringProcessors.forEach {
     processorEvent.addComponentInfo(it.getComponentInfo())
   }

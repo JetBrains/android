@@ -51,8 +51,7 @@ class ProcessorTrackerTest : UpgradeGradleFileModelTestCase() {
   fun testVersionInLiteralUsageTracker() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
-    processor.agpVersionRefactoringProcessor.isEnabled = true
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is AgpVersionRefactoringProcessor }
     processor.run()
 
     checkProcessorEvents(

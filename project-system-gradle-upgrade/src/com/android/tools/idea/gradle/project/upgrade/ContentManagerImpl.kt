@@ -471,7 +471,7 @@ class ToolWindowModel(
 
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
     if (!showPreview) uiState.set(UIState.RunningUpgrade)
-    processor.components().forEach { it.isEnabled = false }
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processorsForCheckedPresentations().forEach { it.isEnabled = true }
 
     if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -999,9 +999,8 @@ class ContentManagerImpl(val project: Project): ContentManager {
   }
 }
 
-private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactoringProcessors + this.agpVersionRefactoringProcessor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
-  this.components()
+  this.componentRefactoringProcessorsWithAgpVersionProcessorLast
     .filter { it.isEnabled }
     .filter { it.necessity() == necessity }
     .filter { !it.isAlwaysNoOpForProject || it.isBlocked }

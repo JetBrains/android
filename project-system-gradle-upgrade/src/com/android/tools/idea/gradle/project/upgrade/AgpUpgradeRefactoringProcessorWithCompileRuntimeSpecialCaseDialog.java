@@ -65,13 +65,12 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
       p.setEnabled(p == myCompileRuntimeProcessor);
     }
-    myProcessor.getAgpVersionRefactoringProcessor().setEnabled(false);
 
     StringBuilder sb = new StringBuilder();
     sb.append("<p>The following command will be executed to upgrade your project with replacements for deprecated <tt>compile</tt> " +
               "and <tt>runtime</tt> configurations:</p>");
     sb.append("<br/><ul>");
-    for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
+    for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessorsWithAgpVersionProcessorLast()) {
       if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
         sb.append("<li>").append(p.getCommandName()).append(".");
         String url = p.getReadMoreUrl();
@@ -80,9 +79,6 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
         }
         sb.append("</li>");
       }
-    }
-    if (myProcessor.getAgpVersionRefactoringProcessor().isEnabled()) {
-      sb.append("<li>").append(myProcessor.getAgpVersionRefactoringProcessor().getCommandName()).append(".").append("</li>");
     }
     sb.append("</ul>");
     myEditorPane.setText(sb.toString());

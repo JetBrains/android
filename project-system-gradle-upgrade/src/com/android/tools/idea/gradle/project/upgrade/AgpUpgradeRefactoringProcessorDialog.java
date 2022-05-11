@@ -148,7 +148,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     }
     sb.append(":</p>");
     sb.append("<br/><ul>");
-    for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
+    for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessorsWithAgpVersionProcessorLast()) {
       if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
         sb.append("<li>").append(p.getCommandName()).append(".");
         String url = p.getReadMoreUrl();
@@ -157,9 +157,6 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
         }
         sb.append("</li>");
       }
-    }
-    if (myProcessor.getAgpVersionRefactoringProcessor().isEnabled()) {
-      sb.append("<li>").append(myProcessor.getAgpVersionRefactoringProcessor().getCommandName()).append(".").append("</li>");
     }
     sb.append("</ul>");
 
