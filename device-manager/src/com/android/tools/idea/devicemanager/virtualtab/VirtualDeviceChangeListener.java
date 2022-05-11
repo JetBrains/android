@@ -146,12 +146,12 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
       return null;
     }
 
-    String name = avd.getName();
+    String path = avd.getPath();
 
-    if (name == null) {
+    if (path == null) {
       return null;
     }
 
-    return new VirtualDeviceName(name);
+    return new VirtualDeviceName(path);
   }
 }

@@ -367,7 +367,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
     // Collect list of all available AVDs
     virtualDevicesProvider().filter { it.isWearOrPhone() }.forEach { avdInfo ->
-      val deviceID = avdInfo.name
+      val deviceID = avdInfo.id
       deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID)
     }
 
@@ -527,8 +527,8 @@ private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls
 
 private fun IDevice.getDeviceID(): String {
   return when {
-    avdName != null -> avdName!!
-    isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
+    avdData?.isDone == true -> avdData.get().path ?: name
+    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
       if (matcher.matches()) matcher.group(1) else this.serialNumber

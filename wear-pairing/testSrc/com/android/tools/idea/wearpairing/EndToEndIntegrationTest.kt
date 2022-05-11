@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.ddmlib.AvdData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
@@ -100,6 +101,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       Mockito.`when`(serialNumber).thenReturn("serialNumber")
       Mockito.`when`(state).thenReturn(IDevice.DeviceState.ONLINE)
       Mockito.`when`(version).thenReturn(AndroidVersion(28, null))
+      Mockito.`when`(avdData).thenReturn(Futures.immediateFuture(AvdData(avdWearInfo.name, avdWearInfo.dataFolderPath.toString())))
       Mockito.`when`(getProperty("dev.bootcomplete")).thenReturn("1")
       Mockito.`when`(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
       addExecuteShellCommandReply { request ->
@@ -130,10 +132,10 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     val usages = getWearPairingTrackingEvents()
     assertThat(usages[0].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
     assertThat(usages[1].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
-    val phoneWearPair = WearPairingManager.getPairsForDevice(wearIDevice.name)
+    val phoneWearPair = WearPairingManager.getPairsForDevice(avdWearInfo.id)
     assertThat(phoneWearPair).isNotEmpty()
     assertThat(phoneWearPair[0].pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
-    assertThat(phoneWearPair[0].getPeerDevice(wearIDevice.name).displayName).isEqualTo(phoneIDevice.name)
+    assertThat(phoneWearPair[0].getPeerDevice(avdWearInfo.id).displayName).isEqualTo(phoneIDevice.name)
   }
 
   private fun FakeUi.clickButton(text: String) {

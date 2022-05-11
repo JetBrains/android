@@ -127,7 +127,7 @@ public final class VirtualDeviceChangeListenerTest {
 
     // Assert
     CountDownLatchAssert.await(latch);
-    Mockito.verify(myModel).setOnline(new VirtualDeviceName("Pixel_6_API_31"), false);
+    Mockito.verify(myModel).setOnline(new VirtualDeviceName("/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd"), false);
   }
 
   @Test
@@ -146,7 +146,7 @@ public final class VirtualDeviceChangeListenerTest {
 
     // Assert
     CountDownLatchAssert.await(latch);
-    Mockito.verify(myModel).setOnline(new VirtualDeviceName("Pixel_6_API_31"), true);
+    Mockito.verify(myModel).setOnline(new VirtualDeviceName("/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd"), true);
   }
 
   private static @NotNull FutureCallback<@NotNull Key> newSetOnline(@NotNull VirtualDeviceTableModel model,

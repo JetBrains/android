@@ -79,7 +79,7 @@ final class AsyncVirtualDeviceBuilder {
     AndroidVersion version = myDevice.getAndroidVersion();
 
     return new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName(myDevice.getName()))
+      .setKey(new VirtualDeviceName(myDevice.getId()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
       .setOnline(DeviceManagerFutures.getDoneOrElse(myOnlineFuture, false))
