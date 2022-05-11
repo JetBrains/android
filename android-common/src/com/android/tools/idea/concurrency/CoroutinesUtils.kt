@@ -133,14 +133,11 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
 @Suppress("FunctionName") // mirroring upstream API.
 fun SupervisorJob(disposable: Disposable): Job {
   return SupervisorJob().also { job ->
-    Disposer.register(
-      disposable,
-      Disposable {
-        if (!job.isCancelled) {
-          job.cancel(CancellationException("$disposable has been disposed."))
-        }
+    Disposer.register(disposable) {
+      if (!job.isCancelled) {
+        job.cancel(CancellationException("$disposable has been disposed."))
       }
-    )
+    }
   }
 }
 
@@ -152,7 +149,7 @@ fun SupervisorJob(disposable: Disposable): Job {
  */
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
-  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler + context)
+  return CoroutineScope(SupervisorJob(disposable) + workerThread + androidCoroutineExceptionHandler + context)
 }
 
 /**
@@ -234,7 +231,7 @@ val Project.coroutineScope: CoroutineScope
  */
 class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, description: String) {
   // This mutex makes sure that the previous job is cancelled before a new one is started. This prevents several jobs to be executed at the
-  // same time meaning that several tasks also cannot be executed at the same time and therefore we do not need a mutex on a task execution
+  // same time meaning that several tasks also cannot be executed at the same time, and therefore we do not need a mutex on a task execution
   // itself.
   private val jobMutex = Mutex()
 
@@ -273,11 +270,11 @@ fun CoroutineScope.createChildScope(isSupervisor: Boolean = false): CoroutineSco
  */
 suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
   if (isCompleted) {
-    try {
-      return this.await()
+    return try {
+      this.await()
     }
     catch (t: Throwable) {
-      return null
+      null
     }
   }
   return null
@@ -324,10 +321,10 @@ suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
       }
     }
     catch (_: CannotRunReadActionException) {
-      // Wait until the current write finishes
+      // Wait until the current write finishes.
       val writeFinished = CompletableDeferred<Boolean>()
       ApplicationManager.getApplication().invokeLater { writeFinished.complete(true) }
-      // This will suspend the coroutine until the write lock has finished
+      // This will suspend the coroutine until the write lock has finished.
       writeFinished.await()
     }
   }
@@ -355,7 +352,7 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
 class RetriesExceededException(message: String? = null) : Exception(message)
 
 /**
- * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority].
+ * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority]).
  * The [callable] will be retried [maxRetries] if cancelled because a write action taking priority. This will wait [maxWaitTime] [maxWaitTimeUnit]
  * before throwing a [TimeoutException].
  *
@@ -435,7 +432,7 @@ interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
  *  - The [parentDisposable] is disposed, if not null.
  *  - The flow is closed.
  *
- * This allow for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
+ * This allows for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T> disposableCallbackFlow(debugName: String,
