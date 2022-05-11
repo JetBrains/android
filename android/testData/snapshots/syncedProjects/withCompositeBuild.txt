@@ -108,6 +108,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -250,6 +296,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -356,6 +448,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/app/src/test/java
@@ -553,6 +691,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -689,6 +873,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -791,6 +1021,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
@@ -1001,6 +1277,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1141,6 +1463,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -1245,6 +1613,52 @@ PROJECT                       : testWithCompositeBuild
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.6
+            CompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.6
+            MergedCompilerArguments
+                apiVersion                    : 1.6
+                languageVersion               : 1.6
+                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app/src/test
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/app/src/test/java
@@ -1769,7 +2183,7 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
