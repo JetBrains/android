@@ -24,15 +24,10 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
-import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
 import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
-import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -40,12 +35,7 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.requestBuild
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -87,7 +77,14 @@ private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compo
  * Interface that isolates the view of the Compose view so it can be replaced for testing.
  */
 interface ComposePreviewView {
+  /**
+   * A list of additional (to the main) design surfaces in the preview view.
+   */
+  val surfaces: List<NlDesignSurface>
+
   val pinnedSurface: NlDesignSurface
+    get() = surfaces[0]
+
   val mainSurface: NlDesignSurface
 
   /**
@@ -101,21 +98,9 @@ interface ComposePreviewView {
   var bottomPanel: JComponent?
 
   /**
-   * Sets whether the scene overlay is visible. If true, the outline for the components will be visible and selectable.
+   * Sets whether the panel is showed display pin toolbar
    */
-  var hasComponentsOverlay: Boolean
-
-  /**
-   * Sets whether the panel is in "interactive" mode. If it's in interactive mode, the clicks will be forwarded to the
-   * code being previewed using the [LayoutlibInteractionHandler].
-   */
-  var isInteractive: Boolean
-
-  /**
-   * Sets whether the panel is in animation preview mode. When this mode is active, the panel might need to show/hide different elements,
-   * e.g. hiding the pinned previews panel.
-   */
-  var isAnimationPreview: Boolean
+  var showPinToolbar: Boolean
 
   /**
    * Sets whether the panel has content to display. If it does not, it will display an overlay with a message for the user.
@@ -169,8 +154,9 @@ fun interface ComposePreviewViewProvider {
   fun invoke(project: Project,
              psiFilePointer: SmartPsiElementPointer<PsiFile>,
              projectBuildStatusManager: ProjectBuildStatusManager,
-             navigationHandler: PreviewNavigationHandler,
              dataProvider: DataProvider,
+             mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+             designSurfaceBuilders: List<NlDesignSurface.Builder>,
              parentDisposable: Disposable,
              onPinFileAction: AnAction,
              onUnPinAction: AnAction): ComposePreviewView
@@ -244,15 +230,19 @@ private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
  *   which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build status and show/hide the correct loading
  *   message.
- * @param navigationHandler the [PreviewNavigationHandler] used to handle the source code navigation when user clicks a component.
  * @param dataProvider the [DataProvider] to be used by the [pinnedSurface] and [mainSurface] panel.
+ * @param mainDesignSurfaceBuilder a builder to create main design surface
+ * @param designSurfaceBuilders a list of builders to create additional design surfaces
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
+ * @param onPinFileAction action to perform when pin file label is clicked
+ * @param onUnPinAction action to perform when unpin file label is clicked
  */
 internal class ComposePreviewViewImpl(private val project: Project,
                                       private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
                                       private val projectBuildStatusManager: ProjectBuildStatusManager,
-                                      navigationHandler: PreviewNavigationHandler,
                                       dataProvider: DataProvider,
+                                      mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+                                      designSurfaceBuilders: List<NlDesignSurface.Builder>,
                                       parentDisposable: Disposable,
                                       onPinFileAction: AnAction,
                                       onUnPinAction: AnAction) :
@@ -262,39 +252,23 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
-  private val sceneComponentProvider = ComposeSceneComponentProvider()
-  private val delegateInteractionHandler = DelegateInteractionHandler()
+  override val surfaces by lazy { designSurfaceBuilders.map { it.build() } }
 
-  override val pinnedSurface by lazy {
-    createPreviewDesignSurface(
-      project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable, DesignSurface.ZoomControlsPolicy.HIDDEN,
-      GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y, NlConstants.SCREEN_DELTA,
-                               NlConstants.SCREEN_DELTA)) { surface, model ->
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
-    }
-  }
-
-  override val mainSurface = createPreviewDesignSurface(
-    project, navigationHandler, delegateInteractionHandler, { key ->
+  override val mainSurface = mainDesignSurfaceBuilder.setDelegateDataProvider { key ->
     if (PANNABLE_KEY.`is`(key)) {
       this@ComposePreviewViewImpl
     } else if (InteractionManager.CURSOR_RECEIVER.`is`(key)) {
       // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
       workbench
     } else dataProvider.getData(key)
-  }, parentDisposable,
-    DesignSurface.ZoomControlsPolicy.HIDDEN) { surface, model ->
-    LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
-  }.also {
-    it.addPanZoomListener(object: PanZoomListener {
-      override fun zoomChanged(previousScale: Double, newScale: Double) {
-        pinnedSurface.setScale(newScale)
-      }
+  }.build().also {
+    it.addPanZoomListener(object : PanZoomListener {
+      override fun zoomChanged(previousScale: Double, newScale: Double) =
+        this@ComposePreviewViewImpl.surfaces.stream().forEach { s -> s.setScale(newScale) }
 
       override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
       }
     })
-    it.name = "Compose"
   }
 
   override val isPannable: Boolean
@@ -302,8 +276,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
   override var isPanning: Boolean
     get() = mainSurface.isPanning
     set(value) {
-      pinnedSurface.isPanning = value
       mainSurface.isPanning = value
+      surfaces.forEach { it.isPanning = value }
     }
 
   override val component: JComponent = workbench
@@ -354,9 +328,6 @@ internal class ComposePreviewViewImpl(private val project: Project,
    */
   private var isPinnedSurfaceVisible = false
 
-  private val staticPreviewInteractionHandler = NlInteractionHandler(mainSurface)
-  private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(mainSurface) }
-
   /**
    * Vertical splitter where the top component is the [surfaceSplitter] and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
@@ -378,8 +349,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
 
   init {
-    // Start handling events for the static preview.
-    delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+    mainSurface.name = "Compose"
 
     val layeredPane = JLayeredPane().apply {
       isFocusable = true
@@ -548,7 +518,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
     if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
       // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive nor animation preview.
-      pinToolbarContainer.isVisible = !isInteractive && !isAnimationPreview
+      pinToolbarContainer.isVisible = showPinToolbar
     }
     else {
       pinToolbarContainer.isVisible = false
@@ -557,25 +527,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     updateNotifications()
   }
 
-  override var hasComponentsOverlay: Boolean
-    get() = sceneComponentProvider.enabled
-    set(value) {
-      sceneComponentProvider.enabled = value
-    }
-
-  override var isInteractive: Boolean = false
-    set(value) {
-      field = value
-      if (value) {
-        delegateInteractionHandler.delegate = interactiveInteractionHandler
-      }
-      else {
-        delegateInteractionHandler.delegate = staticPreviewInteractionHandler
-      }
-      updateVisibilityAndNotifications()
-    }
-
-  override var isAnimationPreview: Boolean = false
+  override var showPinToolbar: Boolean = true
 
   override var hasContent: Boolean = false
 

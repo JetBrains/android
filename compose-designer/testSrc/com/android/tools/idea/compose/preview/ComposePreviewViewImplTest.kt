@@ -21,8 +21,10 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
@@ -174,9 +176,23 @@ class ComposePreviewViewImplTest {
     val psiMainFile = fixture.addFileToProject("src/main/Test.kt", """
       fun main() {}
     """.trimIndent())
+
+    val navigationHandler = PreviewNavigationHandler()
+    val interactionHandler = NopInteractionHandler
+    val sceneComponentProvider = ComposeSceneComponentProvider()
+
     mainFileSmartPointer = SmartPointerManager.createPointer(psiMainFile)
-    val composePreviewViewImpl = ComposePreviewViewImpl(project, mainFileSmartPointer, statusManager, PreviewNavigationHandler(),
+
+    val mainSurfaceBuilder =
+      createMainDesignSurface(
+        project, navigationHandler, interactionHandler, nopDataProvider, fixture.testRootDisposable, sceneComponentProvider)
+    val pinnedSurfaceBuilder =
+      createPinnedDesignSurfaceBuilder(
+        project, navigationHandler, interactionHandler, nopDataProvider, fixture.testRootDisposable, sceneComponentProvider)
+    val composePreviewViewImpl = ComposePreviewViewImpl(project, mainFileSmartPointer, statusManager,
                                                         nopDataProvider,
+                                                        mainSurfaceBuilder,
+                                                        listOf(pinnedSurfaceBuilder),
                                                         fixture.testRootDisposable, nopAction, nopAction)
 
     previewView = composePreviewViewImpl
@@ -259,7 +275,6 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `create compose view with two elements`() {
-    previewView.hasComponentsOverlay = true
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
       SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
@@ -319,7 +334,6 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `open and close bottom panel`() {
-    previewView.hasComponentsOverlay = true
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
       SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
@@ -346,7 +360,6 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `verify refresh cancellation`() {
-    previewView.hasComponentsOverlay = true
     previewView.onRefreshCancelledByTheUser()
     fakeUi.root.validate()
     assertEquals("""
@@ -358,7 +371,6 @@ class ComposePreviewViewImplTest {
   @RunsInEdt
   @Test
   fun `verify refresh cancellation with content available does not show error panel`() {
-    previewView.hasComponentsOverlay = true
     val composePreviewManager = TestComposePreviewManager()
     val previews = listOf(
       SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
