@@ -240,14 +240,26 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, path: PsPath, 
     val message = "$groupId:$artifactId version $versionString has policy issues that will block publishing."
     return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
   }
-  if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, rootDir)) {
-    val message = "$groupId:$artifactId version $versionString has an associated message from its author"
-    // TODO(srmurguia): Consider severity from Index
-    return createIndexIssue(message, groupId, artifactId, versionString, path, INFO)
+  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
+  if (isBlocking) {
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, rootDir)) {
+      val message = "$groupId:$artifactId version $versionString has blocking issues with an associated message from its author"
+      return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
+    }
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, rootDir)) {
+      val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author as will block publishing"
+      return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
+    }
   }
-  if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, rootDir)) {
-    val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author"
-    return createIndexIssue(message, groupId, artifactId, versionString, path, WARNING)
+  else {
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, rootDir)) {
+      val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author"
+      return createIndexIssue(message, groupId, artifactId, versionString, path, WARNING)
+    }
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, rootDir)) {
+      val message = "$groupId:$artifactId version $versionString has an associated message from its author"
+      return createIndexIssue(message, groupId, artifactId, versionString, path, INFO)
+    }
   }
   return null
 }

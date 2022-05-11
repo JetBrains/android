@@ -57,7 +57,7 @@ interface PsQuickFix : Serializable {
 
   companion object {
     fun deserialize(data: String): PsQuickFix =
-      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject().cast<PsQuickFix>()
+      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject().cast()
   }
 }
 
