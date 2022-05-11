@@ -287,11 +287,32 @@
           </section>
         </stepElement>
       </step>
+      <step label="New Wear OS run configurations">
+        <stepElement>
+          <section>
+            <![CDATA[
+              <p>
+                New run configurations have been added to quickly run and debug surfaces specific
+                to <a href="https://d.android.com/training/wearables">Wear OS</a> like watch faces, Tiles, and complications.
+                You can create these new configurations from the <b>Run/Debug Configurations</b> dialog
+                when running your application.
+              </p>
+              <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_launch_configurations.png"/>
+
+              <p>
+                Alternatively, you can also run these surfaces from the gutter icon that is
+                located next to the declaration of the surface, as shown in the following image.
+             </p>
+             <img src="https://d.android.com/studio/preview/features/images/dolphin/wearos_os_gutter_run.png"/>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 3/29/2022</em><br><br>
+              <br><em>Last updated 5/11/2022</em><br><br>
             ]]>
           </section>
         </stepElement>
