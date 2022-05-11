@@ -66,21 +66,6 @@ public class ManifestUtils {
   private ManifestUtils() {
   }
 
-  @Nullable/*activity does not exist in any project manifests*/
-  public static SourceFilePosition getSourceFilePosition(@NotNull Module module, @NotNull String activityName) {
-    // we need to look in the merged manifest for the activity as we may be using placeholders for the name
-    MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(module);
-    Element item = mergedManifestManager.findActivity(activityName);
-    if (item == null) {
-      return null;
-    }
-    List<? extends Actions.Record> records = getRecords(mergedManifestManager, item);
-    if (records.isEmpty()) {
-      return null;
-    }
-    return getActionLocation(module, records.get(0));
-  }
-
   @NotNull
   public static List<? extends Actions.Record> getRecords(@NotNull MergedManifestSnapshot manifest, @NotNull Node node) {
     Actions actions = manifest.getActions();
@@ -234,7 +219,7 @@ public class ManifestUtils {
     return findByFile(SourceProviderManager.getInstance(facet).getCurrentSourceProviders(), manifestFile);
   }
 
-  public static @NotNull XmlFile getMainManifest(@NotNull AndroidFacet facet) {
+  static @NotNull XmlFile getMainManifest(@NotNull AndroidFacet facet) {
     VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
     assert manifestFile != null;
     PsiFile psiFile = PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestFile);
