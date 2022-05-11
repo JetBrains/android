@@ -144,6 +144,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     private boolean myShouldRenderErrorsPanel = false;
 
+    @Nullable private ScreenViewProvider myScreenViewProvider = null;
+    private boolean mySetDefaultScreenViewProvider = false;
+
+    private double myMaxFitIntoZoomLevel = Double.MAX_VALUE;
+
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
       myParentDisposable = parentDisposable;
@@ -314,28 +319,49 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     @NotNull
+    public Builder setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
+      myScreenViewProvider = screenViewProvider;
+      mySetDefaultScreenViewProvider = setAsDefault;
+      return this;
+    }
+
+    @NotNull
+    public Builder setMaxFitIntoZoomLevel(double maxFitIntoZoomLevel) {
+      myMaxFitIntoZoomLevel = maxFitIntoZoomLevel;
+      return this;
+    }
+
+    @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
       if (myMinScale > myMaxScale) {
         throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
       }
-      return new NlDesignSurface(myProject,
-                                 myParentDisposable,
-                                 myIsPreview,
-                                 mySceneManagerProvider,
-                                 layoutManager,
-                                 myActionManagerProvider,
-                                 myInteractionHandlerProvider,
-                                 myNavigationHandler,
-                                 myMinScale,
-                                 myMaxScale,
-                                 myActionHandlerProvider,
-                                 myDelegateDataProvider,
-                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
-                                 myZoomControlsPolicy,
-                                 myShouldRunVisualLintService,
-                                 mySupportedActions,
-                                 myShouldRenderErrorsPanel);
+      NlDesignSurface surface = new NlDesignSurface(
+        myProject,
+        myParentDisposable,
+        myIsPreview,
+        mySceneManagerProvider,
+        layoutManager,
+        myActionManagerProvider,
+        myInteractionHandlerProvider,
+        myNavigationHandler,
+        myMinScale,
+        myMaxScale,
+        myActionHandlerProvider,
+        myDelegateDataProvider,
+        mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
+        myZoomControlsPolicy,
+        myShouldRunVisualLintService,
+        mySupportedActions,
+        myShouldRenderErrorsPanel,
+        myMaxFitIntoZoomLevel);
+
+      if (myScreenViewProvider != null) {
+        surface.setScreenViewProvider(myScreenViewProvider, mySetDefaultScreenViewProvider);
+      }
+
+      return surface;
     }
   }
 
@@ -424,12 +450,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           ZoomControlsPolicy zoomControlsPolicy,
                           boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions,
-                          boolean shouldRenderErrorsPanel) {
+                          boolean shouldRenderErrorsPanel,
+                          double maxFitIntoZoomLevel) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
           selectionModel,
-          zoomControlsPolicy);
+          zoomControlsPolicy,
+          maxFitIntoZoomLevel);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;

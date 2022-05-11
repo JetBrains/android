@@ -264,7 +264,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @SurfaceScale private double myMaxFitIntoScale = Double.MAX_VALUE;
+  @SurfaceScale private final double myMaxFitIntoScale;
 
   /**
    * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
@@ -300,7 +300,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
   }
 
   public DesignSurface(
@@ -311,7 +311,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
-    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
+    @NotNull ZoomControlsPolicy zoomControlsPolicy,
+    double maxFitIntoZoomLevel) {
     super(new BorderLayout());
 
     Disposer.register(parentDisposable, this);
@@ -455,6 +456,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else {
       myOnHoverListener = event -> {};
     }
+
+    // Sets the maximum zoom level allowed for ZoomType#FIT.
+    myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
   }
 
   @NotNull
@@ -1930,13 +1934,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   abstract public List<NlComponent> getSelectableComponents();
-
-  /**
-   * Sets the maximum zoom level allowed for {@link ZoomType#FIT}. By default there is no maximum value.
-   */
-  public void setMaxFitIntoZoomLevel(@SurfaceZoomLevel double maxFitIntoZoomLevel) {
-    myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
-  }
 
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface.

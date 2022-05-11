@@ -190,8 +190,8 @@ class CustomViewPreviewRepresentation(
         setShrinkRendering(true)
       }
     }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+    .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
     .build().apply {
-      setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
       name = "Custom View"
     }
 
