@@ -104,11 +104,11 @@ public class TopDownNodeTest {
       child.update(ClockType.GLOBAL, new Range(root.getStart(), root.getEnd()));
     }
 
-    assertEquals(10, topDown.getGlobalTotal(), 0);
-    assertEquals(6, topDown.getSelf(ClockType.GLOBAL), 0);
+    assertEquals(10, topDown.getTotal(), 0);
+    assertEquals(6, topDown.getSelf(), 0);
 
     topDown.reset();
-    assertEquals(0, topDown.getGlobalTotal(), 0);
+    assertEquals(0, topDown.getTotal(), 0);
   }
 
   @Test
@@ -136,11 +136,11 @@ public class TopDownNodeTest {
       child.update(ClockType.THREAD, new Range(root.getStart(), root.getEnd()));
     }
 
-    assertEquals(9, topDown.getThreadTotal(), 0);
-    assertEquals(7, topDown.getSelf(ClockType.THREAD), 0);
+    assertEquals(9, topDown.getTotal(), 0);
+    assertEquals(7, topDown.getSelf(), 0);
 
     topDown.reset();
-    assertEquals(0, topDown.getThreadTotal(), 0);
+    assertEquals(0, topDown.getTotal(), 0);
   }
 
   /**

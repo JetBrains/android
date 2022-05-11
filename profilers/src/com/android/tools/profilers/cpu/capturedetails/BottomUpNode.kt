@@ -31,8 +31,7 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
 
   override fun update(clockType: ClockType, range: Range) {
     // how much time was spent in this call stack path, and in the functions it called
-    globalTotal = 0.0
-    threadTotal = 0.0
+    total = 0.0
 
     // The node that is at the top of the call stack, e.g if the call stack looks like B [0..30] -> B [1..20],
     // then the second method can't be outerSoFarByParent.
@@ -55,8 +54,7 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
       if (outerSoFar == null || node.end > outerSoFar.end) {
         if (outerSoFar != null) {
           // |outerSoFarByParent| is at the top of the call stack
-          globalTotal += getIntersection(range, outerSoFar, clockType)
-          threadTotal += getIntersection(range, outerSoFar, clockType)
+          total += getIntersection(range, outerSoFar, clockType)
         }
         outerSoFarByParent[root] = node
       }
@@ -65,11 +63,9 @@ sealed class BottomUpNode private constructor(id: String) : CpuTreeNode<BottomUp
     }
     for (outerSoFar in outerSoFarByParent.values) {
       // |outerSoFarByParent| is at the top of the call stack
-      globalTotal += getIntersection(range, outerSoFar, clockType)
-      threadTotal += getIntersection(range, outerSoFar, clockType)
+      total += getIntersection(range, outerSoFar, clockType)
     }
-    globalChildrenTotal = globalTotal - self
-    threadChildrenTotal = threadTotal - self
+    childrenTotal = total - self
   }
 
   private class Root(node: CaptureNode): BottomUpNode("Root") {

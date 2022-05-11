@@ -163,11 +163,11 @@ public class TopDownTreeModelTest {
   }
 
   private static double getTotal(TreeNode node) {
-    return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getGlobalTotal();
+    return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getTotal();
   }
 
   private static double getChildrenTotal(TreeNode node) {
-    return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getGlobalChildrenTotal();
+    return ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getChildrenTotal();
   }
 
   private static String getId(TreeNode node) {

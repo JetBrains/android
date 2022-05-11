@@ -25,13 +25,9 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
    * References to [CaptureNode] that are used to extract information from to represent this CpuTreeNode,
    * such as [.getGlobalTotal], [.getGlobalChildrenTotal], etc...
    */
-  var globalTotal = 0.0
+  var total = 0.0
     protected set
-  var globalChildrenTotal = 0.0
-    protected set
-  var threadTotal = 0.0
-    protected set
-  var threadChildrenTotal = 0.0
+  var childrenTotal = 0.0
     protected set
 
   abstract val nodes: List<CaptureNode>
@@ -41,26 +37,14 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
   abstract val filterType: CaptureNode.FilterType
   val isUnmatched: Boolean get() = filterType === CaptureNode.FilterType.UNMATCH
 
-  fun getTotal(clockType: ClockType): Double = when (clockType) {
-    ClockType.GLOBAL -> globalTotal
-    ClockType.THREAD -> threadTotal
-  }
-
-  fun getChildrenTotal(clockType: ClockType): Double = when (clockType) {
-    ClockType.GLOBAL -> globalChildrenTotal
-    ClockType.THREAD -> threadChildrenTotal
-  }
-
-  fun getSelf(clockType: ClockType): Double = getTotal(clockType) - getChildrenTotal(clockType)
+  val self: Double get() = total - childrenTotal
 
   open fun update(clockType: ClockType, range: Range) {
     reset()
     for (node in nodes) {
-      globalTotal += getIntersection(range, node, ClockType.GLOBAL)
-      threadTotal += getIntersection(range, node, ClockType.THREAD)
+      total += getIntersection(range, node, clockType)
       for (child in node.children) {
-        globalChildrenTotal += getIntersection(range, child, ClockType.GLOBAL)
-        threadChildrenTotal += getIntersection(range, child, ClockType.THREAD)
+        childrenTotal += getIntersection(range, child, clockType)
       }
     }
   }
@@ -68,10 +52,8 @@ abstract class CpuTreeNode<T : CpuTreeNode<T>?>(val id: String) {
   fun inRange(range: Range): Boolean = nodes.any { it.start < range.max && range.min < it.end }
 
   fun reset() {
-    globalTotal = 0.0
-    globalChildrenTotal = 0.0
-    threadTotal = 0.0
-    threadChildrenTotal = 0.0
+    total = 0.0
+    childrenTotal = 0.0
   }
 
   companion object {

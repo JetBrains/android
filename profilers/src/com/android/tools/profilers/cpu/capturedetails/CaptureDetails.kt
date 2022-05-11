@@ -112,8 +112,9 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         // When they are merged, the sum of time is less than or equal to the total time of each node. We need the time to
         // be accurate as when we compute the capture space to screen space, calculations for the graph we need to know what
         // 100% is.
-        visual.endGlobal = visual.startGlobal + topDownNode.globalChildrenTotal.toLong()
-        visual.endThread = visual.startThread + topDownNode.threadChildrenTotal.toLong()
+        // TODO: One of the numbers below is garbage
+        visual.endGlobal = visual.startGlobal + topDownNode.childrenTotal.toLong()
+        visual.endThread = visual.startThread + topDownNode.childrenTotal.toLong()
 
         fun selectionRangeChanged() {
           // This range needs to account for the multiple children,
@@ -121,7 +122,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
           topDownNode.update(clockType, selectionRange)
           node = when {
             // If the new selection range intersects the root node, we should reconstruct the flame chart node.
-            topDownNode.getTotal(clockType) > 0 -> {
+            topDownNode.total > 0 -> {
               val start = max(topDownNode.nodes[0].start.toDouble(), selectionRange.min)
               val newNode = convertToFlameChart(topDownNode, start, 0)
               // The intersection check (root.getTotal() > 0) may be a false positive because the root's global total is the
@@ -159,24 +160,25 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
      */
     private fun convertToFlameChart(topDown: TopDownNode, start: Double, depth: Int): CaptureNode =
       CaptureNode(topDown.nodes[0].data, clockType).apply {
-        assert(topDown.getTotal(clockType) > 0)
+        assert(topDown.total > 0)
 
         filterType = topDown.nodes[0].filterType
         startGlobal = start.toLong()
         startThread = start.toLong()
-        endGlobal = (start + topDown.globalTotal).toLong()
-        endThread = (start + topDown.threadTotal).toLong()
+        // TODO: One of the numbers below is garbage
+        endGlobal = (start + topDown.total).toLong()
+        endThread = (start + topDown.total).toLong()
         this.depth = depth
 
         topDown.children.asSequence()
           .filter {
             it.update(clockType, selectionRange)
-            it.getTotal(clockType) > 0
+            it.total > 0
           }
-          .sortedWith(compareBy(TopDownNode::isUnmatched).thenComparingDouble { -it.getTotal(clockType) })
+          .sortedWith(compareBy(TopDownNode::isUnmatched).thenComparingDouble { -it.total })
           .fold(start) { accStart, child ->
             addChild(convertToFlameChart(child, accStart, depth + 1))
-            accStart + child.getTotal(clockType)
+            accStart + child.total
           }
       }
 
