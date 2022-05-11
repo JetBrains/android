@@ -7,7 +7,6 @@ import static com.intellij.openapi.externalSystem.service.execution.ExternalSyst
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.FileUtils;
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;

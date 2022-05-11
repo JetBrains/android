@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;

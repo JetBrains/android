@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.SdkConstants;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
-import org.gradle.tooling.model.GradleTask;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleEditTaskDialog extends DialogWrapper {
   private JPanel myContentPanel;

@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.tools.idea.Projects;
 import com.google.common.annotations.VisibleForTesting;

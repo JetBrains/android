@@ -24,11 +24,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -102,21 +98,6 @@ public class DynamicAppUtils {
   @NotNull
   public static Stream<Module> removeModulesIntheSameGradleProject(@NotNull Stream<Module> modules, @NotNull Module moduleOfProjectToRemove) {
     return modules.filter(m -> getHolderModule(m) != getHolderModule(moduleOfProjectToRemove));
-  }
-
-  /**
-   * Returns {@code true} if the base module is instant enabled
-   */
-  public static boolean baseIsInstantEnabled(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModel model = AndroidModel.get(module);
-      if (model != null && model.isBaseSplit()) {
-        if (model.isInstantAppCompatible()) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

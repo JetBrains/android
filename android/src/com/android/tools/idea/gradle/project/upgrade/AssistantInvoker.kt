@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement

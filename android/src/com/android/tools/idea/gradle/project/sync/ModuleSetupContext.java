@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleSetupContext {
@@ -34,16 +33,6 @@ public class ModuleSetupContext {
   @NotNull
   public Module getModule() {
     return myModule;
-  }
-
-  @NotNull
-  public IdeModifiableModelsProvider getIdeModelsProvider() {
-    return myIdeModelsProvider;
-  }
-
-  @NotNull
-  public ModifiableRootModel getModifiableRootModel() {
-    return myIdeModelsProvider.getModifiableRootModel(myModule);
   }
 
   public static class Factory {
