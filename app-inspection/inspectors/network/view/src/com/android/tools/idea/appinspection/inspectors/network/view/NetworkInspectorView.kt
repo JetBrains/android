@@ -188,7 +188,6 @@ class NetworkInspectorView(
     toolbar.add(selectionTimeLabel)
     mainPanel.add(toolbar, TabularLayout.Constraint(0, 1))
     mainPanel.add(connectionsPanel, TabularLayout.Constraint(0, 0, 2, 2))
-    mainPanel.isVisible = false
     leftSplitter.secondComponent = mainPanel
 
     model.selectionRangeDataFetcher.addListener(object : SelectionRangeDataListener {
@@ -335,12 +334,7 @@ class NetworkInspectorView(
     legendPanel.add(label, BorderLayout.WEST)
     legendPanel.add(legend, BorderLayout.EAST)
     model.rangeSelectionModel.addListener(object : RangeSelectionListener {
-      override fun selectionCreated() {
-        mainPanel.isVisible = true
-      }
-
       override fun selectionCleared() {
-        mainPanel.isVisible = false
         model.setSelectedConnection(null)
       }
     })

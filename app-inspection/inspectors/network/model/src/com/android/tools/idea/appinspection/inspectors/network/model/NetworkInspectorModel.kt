@@ -61,7 +61,7 @@ class NetworkInspectorModel(
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
-  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange)
+  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
 
   var tooltip: TooltipModel? = null
     set(value) {

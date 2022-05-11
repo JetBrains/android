@@ -31,12 +31,14 @@ class SelectionRangeDataFetcherTest {
       }
     }
 
-    // The latch is set to a count of 3 because the listener is triggered when it's added
-    // and again when the range is modified, and then again when the range is cleared.
-    val onDataChangedListener = CountDownLatch(3)
+    // The latch is set to a count of 2 because the listener is triggered when it's added
+    // and again when the range is modified. The data list is unchanged when selected range
+    // is cleared.
+    val onDataChangedListener = CountDownLatch(2)
     val allListener = CountDownLatch(4)
     val selectionRange = Range(0.0, 0.0)
-    val fetcher = SelectionRangeDataFetcher(dataModel, selectionRange)
+    val dataRange = Range(0.0, 0.0)
+    val fetcher = SelectionRangeDataFetcher(dataModel, selectionRange, dataRange)
 
     fetcher.addOnChangedListener {
       if (onDataChangedListener.count == 0L) {
