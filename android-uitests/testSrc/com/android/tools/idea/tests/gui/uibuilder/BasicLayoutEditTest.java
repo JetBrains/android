@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BasicLayoutEditTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -52,7 +52,7 @@ public class BasicLayoutEditTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(300))
+    NlEditorFixture editorFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
                                            .getEditor()
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
                                            .getLayoutEditor()
