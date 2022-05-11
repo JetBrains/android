@@ -16,16 +16,26 @@ MODULE                        : MainActivity
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
-                    _agp_internal_javaPreCompileDebugAndroidTest_kaptClasspath  : <empty>
-                    _agp_internal_javaPreCompileDebugUnitTest_kaptClasspath     : <empty>
-                    _agp_internal_javaPreCompileDebug_kaptClasspath   : <empty>
-                    _agp_internal_javaPreCompileReleaseUnitTest_kaptClasspath   : <empty>
-                    _agp_internal_javaPreCompileRelease_kaptClasspath : <empty>
-                    _classStructurekaptDebugAndroidTestKotlin         : <empty>
-                    _classStructurekaptDebugKotlin          : <empty>
-                    _classStructurekaptDebugUnitTestKotlin  : <empty>
-                    _classStructurekaptReleaseKotlin        : <empty>
-                    _classStructurekaptReleaseUnitTestKotlin          : <empty>
+                    _agp_internal_javaPreCompileLocalDebugAndroidTest_kaptClasspath       : <empty>
+                    _agp_internal_javaPreCompileLocalDebugUnitTest_kaptClasspath          : <empty>
+                    _agp_internal_javaPreCompileLocalDebug_kaptClasspath        : <empty>
+                    _agp_internal_javaPreCompileLocalReleaseUnitTest_kaptClasspath        : <empty>
+                    _agp_internal_javaPreCompileLocalRelease_kaptClasspath      : <empty>
+                    _agp_internal_javaPreCompileRemoteDebugAndroidTest_kaptClasspath      : <empty>
+                    _agp_internal_javaPreCompileRemoteDebugUnitTest_kaptClasspath         : <empty>
+                    _agp_internal_javaPreCompileRemoteDebug_kaptClasspath       : <empty>
+                    _agp_internal_javaPreCompileRemoteReleaseUnitTest_kaptClasspath       : <empty>
+                    _agp_internal_javaPreCompileRemoteRelease_kaptClasspath     : <empty>
+                    _classStructurekaptLocalDebugAndroidTestKotlin    : <empty>
+                    _classStructurekaptLocalDebugKotlin     : <empty>
+                    _classStructurekaptLocalDebugUnitTestKotlin       : <empty>
+                    _classStructurekaptLocalReleaseKotlin   : <empty>
+                    _classStructurekaptLocalReleaseUnitTestKotlin     : <empty>
+                    _classStructurekaptRemoteDebugAndroidTestKotlin   : <empty>
+                    _classStructurekaptRemoteDebugKotlin    : <empty>
+                    _classStructurekaptRemoteDebugUnitTestKotlin      : <empty>
+                    _classStructurekaptRemoteReleaseKotlin  : <empty>
+                    _classStructurekaptRemoteReleaseUnitTestKotlin    : <empty>
                     androidApis                   : <empty>
                     androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
@@ -48,6 +58,28 @@ MODULE                        : MainActivity
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
                     androidTestIntransitiveDependenciesMetadata       : <empty>
+                    androidTestLocalAnnotationProcessor     : <empty>
+                    androidTestLocalApi           : <empty>
+                    androidTestLocalApiDependenciesMetadata : <empty>
+                    androidTestLocalCompileOnly   : <empty>
+                    androidTestLocalCompileOnlyDependenciesMetadata   : <empty>
+                    androidTestLocalDebugAnnotationProcessor          : <empty>
+                    androidTestLocalDebugApi      : <empty>
+                    androidTestLocalDebugApiDependenciesMetadata      : <empty>
+                    androidTestLocalDebugCompileOnly        : <empty>
+                    androidTestLocalDebugCompileOnlyDependenciesMetadata        : <empty>
+                    androidTestLocalDebugImplementation     : <empty>
+                    androidTestLocalDebugImplementationDependenciesMetadata     : <empty>
+                    androidTestLocalDebugIntransitiveDependenciesMetadata       : <empty>
+                    androidTestLocalDebugRuntimeOnly        : <empty>
+                    androidTestLocalDebugRuntimeOnlyDependenciesMetadata        : <empty>
+                    androidTestLocalDebugWearApp  : <empty>
+                    androidTestLocalImplementation          : <empty>
+                    androidTestLocalImplementationDependenciesMetadata          : <empty>
+                    androidTestLocalIntransitiveDependenciesMetadata  : <empty>
+                    androidTestLocalRuntimeOnly   : <empty>
+                    androidTestLocalRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestLocalWearApp       : <empty>
                     androidTestReleaseAnnotationProcessor   : <empty>
                     androidTestReleaseApi         : <empty>
                     androidTestReleaseApiDependenciesMetadata         : <empty>
@@ -59,6 +91,28 @@ MODULE                        : MainActivity
                     androidTestReleaseRuntimeOnly : <empty>
                     androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
+                    androidTestRemoteAnnotationProcessor    : <empty>
+                    androidTestRemoteApi          : <empty>
+                    androidTestRemoteApiDependenciesMetadata          : <empty>
+                    androidTestRemoteCompileOnly  : <empty>
+                    androidTestRemoteCompileOnlyDependenciesMetadata  : <empty>
+                    androidTestRemoteDebugAnnotationProcessor         : <empty>
+                    androidTestRemoteDebugApi     : <empty>
+                    androidTestRemoteDebugApiDependenciesMetadata     : <empty>
+                    androidTestRemoteDebugCompileOnly       : <empty>
+                    androidTestRemoteDebugCompileOnlyDependenciesMetadata       : <empty>
+                    androidTestRemoteDebugImplementation    : <empty>
+                    androidTestRemoteDebugImplementationDependenciesMetadata    : <empty>
+                    androidTestRemoteDebugIntransitiveDependenciesMetadata      : <empty>
+                    androidTestRemoteDebugRuntimeOnly       : <empty>
+                    androidTestRemoteDebugRuntimeOnlyDependenciesMetadata       : <empty>
+                    androidTestRemoteDebugWearApp : <empty>
+                    androidTestRemoteImplementation         : <empty>
+                    androidTestRemoteImplementationDependenciesMetadata         : <empty>
+                    androidTestRemoteIntransitiveDependenciesMetadata : <empty>
+                    androidTestRemoteRuntimeOnly  : <empty>
+                    androidTestRemoteRuntimeOnlyDependenciesMetadata  : <empty>
+                    androidTestRemoteWearApp      : <empty>
                     androidTestRuntimeOnly        : <empty>
                     androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
@@ -70,50 +124,17 @@ MODULE                        : MainActivity
                     compileOnly                   : <empty>
                     compileOnlyDependenciesMetadata         : <empty>
                     coreLibraryDesugaring         : <empty>
-                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestApi           : <empty>
-                    debugAndroidTestApiDependenciesMetadata : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestCompileOnly   : <empty>
-                    debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                    debugAndroidTestImplementation          : <empty>
-                    debugAndroidTestImplementationDependenciesMetadata          : <empty>
-                    debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiDependenciesMetadata  : <empty>
-                    debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
-                    debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugCompileOnlyDependenciesMetadata    : <empty>
                     debugImplementation           : <empty>
                     debugImplementationDependenciesMetadata : <empty>
                     debugIntransitiveDependenciesMetadata   : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
                     debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestApi              : <empty>
-                    debugUnitTestApiDependenciesMetadata    : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestCompileOnly      : <empty>
-                    debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                    debugUnitTestImplementation   : <empty>
-                    debugUnitTestImplementationDependenciesMetadata   : <empty>
-                    debugUnitTestIntransitiveDependenciesMetadata     : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
                     default                       : <empty>
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
@@ -121,62 +142,241 @@ MODULE                        : MainActivity
                     kapt                          : <empty>
                     kaptAndroidTest               : <empty>
                     kaptAndroidTestDebug          : <empty>
+                    kaptAndroidTestLocal          : <empty>
+                    kaptAndroidTestLocalDebug     : <empty>
                     kaptAndroidTestRelease        : <empty>
-                    kaptClasspath_kaptDebugAndroidTestKotlin          : <empty>
-                    kaptClasspath_kaptDebugKotlin : <empty>
-                    kaptClasspath_kaptDebugUnitTestKotlin   : <empty>
-                    kaptClasspath_kaptReleaseKotlin         : <empty>
-                    kaptClasspath_kaptReleaseUnitTestKotlin : <empty>
+                    kaptAndroidTestRemote         : <empty>
+                    kaptAndroidTestRemoteDebug    : <empty>
+                    kaptClasspath_kaptLocalDebugAndroidTestKotlin     : <empty>
+                    kaptClasspath_kaptLocalDebugKotlin      : <empty>
+                    kaptClasspath_kaptLocalDebugUnitTestKotlin        : <empty>
+                    kaptClasspath_kaptLocalReleaseKotlin    : <empty>
+                    kaptClasspath_kaptLocalReleaseUnitTestKotlin      : <empty>
+                    kaptClasspath_kaptRemoteDebugAndroidTestKotlin    : <empty>
+                    kaptClasspath_kaptRemoteDebugKotlin     : <empty>
+                    kaptClasspath_kaptRemoteDebugUnitTestKotlin       : <empty>
+                    kaptClasspath_kaptRemoteReleaseKotlin   : <empty>
+                    kaptClasspath_kaptRemoteReleaseUnitTestKotlin     : <empty>
                     kaptDebug                     : <empty>
+                    kaptLocal                     : <empty>
+                    kaptLocalDebug                : <empty>
+                    kaptLocalRelease              : <empty>
                     kaptRelease                   : <empty>
+                    kaptRemote                    : <empty>
+                    kaptRemoteDebug               : <empty>
+                    kaptRemoteRelease             : <empty>
                     kaptTest                      : <empty>
                     kaptTestDebug                 : <empty>
+                    kaptTestLocal                 : <empty>
+                    kaptTestLocalDebug            : <empty>
+                    kaptTestLocalRelease          : <empty>
                     kaptTestRelease               : <empty>
+                    kaptTestRemote                : <empty>
+                    kaptTestRemoteDebug           : <empty>
+                    kaptTestRemoteRelease         : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathDebug      : <empty>
-                    kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
-                    kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
-                    kotlinCompilerPluginClasspathRelease    : <empty>
-                    kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                    kotlinCompilerPluginClasspathLocalDebug : <empty>
+                    kotlinCompilerPluginClasspathLocalDebugAndroidTest          : <empty>
+                    kotlinCompilerPluginClasspathLocalDebugUnitTest   : <empty>
+                    kotlinCompilerPluginClasspathLocalRelease         : <empty>
+                    kotlinCompilerPluginClasspathLocalReleaseUnitTest : <empty>
+                    kotlinCompilerPluginClasspathRemoteDebug          : <empty>
+                    kotlinCompilerPluginClasspathRemoteDebugAndroidTest         : <empty>
+                    kotlinCompilerPluginClasspathRemoteDebugUnitTest  : <empty>
+                    kotlinCompilerPluginClasspathRemoteRelease        : <empty>
+                    kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
                     kotlinKaptWorkerDependencies  : <empty>
                     kotlinKlibCommonizerClasspath : <empty>
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintClassPath                 : <empty>
                     lintPublish                   : <empty>
-                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                    localAnnotationProcessor      : <empty>
+                    localApi                      : <empty>
+                    localApiDependenciesMetadata  : <empty>
+                    localCompileOnly              : <empty>
+                    localCompileOnlyDependenciesMetadata    : <empty>
+                    - localDebugAabPublication    : <ROOT>/app/build/outputs/bundle/localDebug/app-local-debug.aab [-]
+                    localDebugAndroidTestAnnotationProcessorClasspath : <empty>
+                    localDebugAndroidTestApi      : <empty>
+                    localDebugAndroidTestApiDependenciesMetadata      : <empty>
+                    localDebugAndroidTestCompileClasspath   : <empty>
+                    localDebugAndroidTestCompileOnly        : <empty>
+                    localDebugAndroidTestCompileOnlyDependenciesMetadata        : <empty>
+                    localDebugAndroidTestImplementation     : <empty>
+                    localDebugAndroidTestImplementationDependenciesMetadata     : <empty>
+                    localDebugAndroidTestIntransitiveDependenciesMetadata       : <empty>
+                    localDebugAndroidTestRuntimeClasspath   : <empty>
+                    localDebugAndroidTestRuntimeOnly        : <empty>
+                    localDebugAndroidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                    localDebugAnnotationProcessor : <empty>
+                    localDebugAnnotationProcessorClasspath  : <empty>
+                    localDebugApi                 : <empty>
+                    localDebugApiDependenciesMetadata       : <empty>
+                    localDebugApiElements         : <empty>
+                    - localDebugApkPublication    : <ROOT>/app/build/outputs/apk-zips/localDebug/apks.zip [-]
+                    localDebugCompileClasspath    : <empty>
+                    localDebugCompileOnly         : <empty>
+                    localDebugCompileOnlyDependenciesMetadata         : <empty>
+                    localDebugImplementation      : <empty>
+                    localDebugImplementationDependenciesMetadata      : <empty>
+                    localDebugIntransitiveDependenciesMetadata        : <empty>
+                    localDebugReverseMetadataValues         : <empty>
+                    localDebugRuntimeClasspath    : <empty>
+                    localDebugRuntimeElements     : <empty>
+                    localDebugRuntimeOnly         : <empty>
+                    localDebugRuntimeOnlyDependenciesMetadata         : <empty>
+                    localDebugUnitTestAnnotationProcessorClasspath    : <empty>
+                    localDebugUnitTestApi         : <empty>
+                    localDebugUnitTestApiDependenciesMetadata         : <empty>
+                    localDebugUnitTestCompileClasspath      : <empty>
+                    localDebugUnitTestCompileOnly : <empty>
+                    localDebugUnitTestCompileOnlyDependenciesMetadata : <empty>
+                    localDebugUnitTestImplementation        : <empty>
+                    localDebugUnitTestImplementationDependenciesMetadata        : <empty>
+                    localDebugUnitTestIntransitiveDependenciesMetadata          : <empty>
+                    localDebugUnitTestRuntimeClasspath      : <empty>
+                    localDebugUnitTestRuntimeOnly : <empty>
+                    localDebugUnitTestRuntimeOnlyDependenciesMetadata : <empty>
+                    localDebugWearApp             : <empty>
+                    localDebugWearBundling        : <empty>
+                    localImplementation           : <empty>
+                    localImplementationDependenciesMetadata : <empty>
+                    localIntransitiveDependenciesMetadata   : <empty>
+                    - localReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/localRelease/app-local-release.aab [-]
+                    localReleaseAnnotationProcessor         : <empty>
+                    localReleaseAnnotationProcessorClasspath          : <empty>
+                    localReleaseApi               : <empty>
+                    localReleaseApiDependenciesMetadata     : <empty>
+                    localReleaseApiElements       : <empty>
+                    - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
+                    localReleaseCompileClasspath  : <empty>
+                    localReleaseCompileOnly       : <empty>
+                    localReleaseCompileOnlyDependenciesMetadata       : <empty>
+                    localReleaseImplementation    : <empty>
+                    localReleaseImplementationDependenciesMetadata    : <empty>
+                    localReleaseIntransitiveDependenciesMetadata      : <empty>
+                    localReleaseReverseMetadataValues       : <empty>
+                    localReleaseRuntimeClasspath  : <empty>
+                    localReleaseRuntimeElements   : <empty>
+                    localReleaseRuntimeOnly       : <empty>
+                    localReleaseRuntimeOnlyDependenciesMetadata       : <empty>
+                    localReleaseUnitTestAnnotationProcessorClasspath  : <empty>
+                    localReleaseUnitTestApi       : <empty>
+                    localReleaseUnitTestApiDependenciesMetadata       : <empty>
+                    localReleaseUnitTestCompileClasspath    : <empty>
+                    localReleaseUnitTestCompileOnly         : <empty>
+                    localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
+                    localReleaseUnitTestImplementation      : <empty>
+                    localReleaseUnitTestImplementationDependenciesMetadata      : <empty>
+                    localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
+                    localReleaseUnitTestRuntimeClasspath    : <empty>
+                    localReleaseUnitTestRuntimeOnly         : <empty>
+                    localReleaseUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
+                    localReleaseWearApp           : <empty>
+                    localReleaseWearBundling      : <empty>
+                    localRuntimeOnly              : <empty>
+                    localRuntimeOnlyDependenciesMetadata    : <empty>
+                    localWearApp                  : <empty>
                     releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiDependenciesMetadata          : <empty>
-                    releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
-                    releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseCompileOnlyDependenciesMetadata  : <empty>
                     releaseImplementation         : <empty>
                     releaseImplementationDependenciesMetadata         : <empty>
                     releaseIntransitiveDependenciesMetadata : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
                     releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestApi            : <empty>
-                    releaseUnitTestApiDependenciesMetadata  : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestCompileOnly    : <empty>
-                    releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                    releaseUnitTestImplementation : <empty>
-                    releaseUnitTestImplementationDependenciesMetadata : <empty>
-                    releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
+                    remoteAnnotationProcessor     : <empty>
+                    remoteApi                     : <empty>
+                    remoteApiDependenciesMetadata : <empty>
+                    remoteCompileOnly             : <empty>
+                    remoteCompileOnlyDependenciesMetadata   : <empty>
+                    - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
+                    remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
+                    remoteDebugAndroidTestApi     : <empty>
+                    remoteDebugAndroidTestApiDependenciesMetadata     : <empty>
+                    remoteDebugAndroidTestCompileClasspath  : <empty>
+                    remoteDebugAndroidTestCompileOnly       : <empty>
+                    remoteDebugAndroidTestCompileOnlyDependenciesMetadata       : <empty>
+                    remoteDebugAndroidTestImplementation    : <empty>
+                    remoteDebugAndroidTestImplementationDependenciesMetadata    : <empty>
+                    remoteDebugAndroidTestIntransitiveDependenciesMetadata      : <empty>
+                    remoteDebugAndroidTestRuntimeClasspath  : <empty>
+                    remoteDebugAndroidTestRuntimeOnly       : <empty>
+                    remoteDebugAndroidTestRuntimeOnlyDependenciesMetadata       : <empty>
+                    remoteDebugAnnotationProcessor          : <empty>
+                    remoteDebugAnnotationProcessorClasspath : <empty>
+                    remoteDebugApi                : <empty>
+                    remoteDebugApiDependenciesMetadata      : <empty>
+                    remoteDebugApiElements        : <empty>
+                    - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
+                    remoteDebugCompileClasspath   : <empty>
+                    remoteDebugCompileOnly        : <empty>
+                    remoteDebugCompileOnlyDependenciesMetadata        : <empty>
+                    remoteDebugImplementation     : <empty>
+                    remoteDebugImplementationDependenciesMetadata     : <empty>
+                    remoteDebugIntransitiveDependenciesMetadata       : <empty>
+                    remoteDebugReverseMetadataValues        : <empty>
+                    remoteDebugRuntimeClasspath   : <empty>
+                    remoteDebugRuntimeElements    : <empty>
+                    remoteDebugRuntimeOnly        : <empty>
+                    remoteDebugRuntimeOnlyDependenciesMetadata        : <empty>
+                    remoteDebugUnitTestAnnotationProcessorClasspath   : <empty>
+                    remoteDebugUnitTestApi        : <empty>
+                    remoteDebugUnitTestApiDependenciesMetadata        : <empty>
+                    remoteDebugUnitTestCompileClasspath     : <empty>
+                    remoteDebugUnitTestCompileOnly          : <empty>
+                    remoteDebugUnitTestCompileOnlyDependenciesMetadata          : <empty>
+                    remoteDebugUnitTestImplementation       : <empty>
+                    remoteDebugUnitTestImplementationDependenciesMetadata       : <empty>
+                    remoteDebugUnitTestIntransitiveDependenciesMetadata         : <empty>
+                    remoteDebugUnitTestRuntimeClasspath     : <empty>
+                    remoteDebugUnitTestRuntimeOnly          : <empty>
+                    remoteDebugUnitTestRuntimeOnlyDependenciesMetadata          : <empty>
+                    remoteDebugWearApp            : <empty>
+                    remoteDebugWearBundling       : <empty>
+                    remoteImplementation          : <empty>
+                    remoteImplementationDependenciesMetadata          : <empty>
+                    remoteIntransitiveDependenciesMetadata  : <empty>
+                    - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
+                    remoteReleaseAnnotationProcessor        : <empty>
+                    remoteReleaseAnnotationProcessorClasspath         : <empty>
+                    remoteReleaseApi              : <empty>
+                    remoteReleaseApiDependenciesMetadata    : <empty>
+                    remoteReleaseApiElements      : <empty>
+                    - remoteReleaseApkPublication : <ROOT>/app/build/outputs/apk-zips/remoteRelease/apks.zip [-]
+                    remoteReleaseCompileClasspath : <empty>
+                    remoteReleaseCompileOnly      : <empty>
+                    remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
+                    remoteReleaseImplementation   : <empty>
+                    remoteReleaseImplementationDependenciesMetadata   : <empty>
+                    remoteReleaseIntransitiveDependenciesMetadata     : <empty>
+                    remoteReleaseReverseMetadataValues      : <empty>
+                    remoteReleaseRuntimeClasspath : <empty>
+                    remoteReleaseRuntimeElements  : <empty>
+                    remoteReleaseRuntimeOnly      : <empty>
+                    remoteReleaseRuntimeOnlyDependenciesMetadata      : <empty>
+                    remoteReleaseUnitTestAnnotationProcessorClasspath : <empty>
+                    remoteReleaseUnitTestApi      : <empty>
+                    remoteReleaseUnitTestApiDependenciesMetadata      : <empty>
+                    remoteReleaseUnitTestCompileClasspath   : <empty>
+                    remoteReleaseUnitTestCompileOnly        : <empty>
+                    remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
+                    remoteReleaseUnitTestImplementation     : <empty>
+                    remoteReleaseUnitTestImplementationDependenciesMetadata     : <empty>
+                    remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
+                    remoteReleaseUnitTestRuntimeClasspath   : <empty>
+                    remoteReleaseUnitTestRuntimeOnly        : <empty>
+                    remoteReleaseUnitTestRuntimeOnlyDependenciesMetadata        : <empty>
+                    remoteReleaseWearApp          : <empty>
+                    remoteReleaseWearBundling     : <empty>
+                    remoteRuntimeOnly             : <empty>
+                    remoteRuntimeOnlyDependenciesMetadata   : <empty>
+                    remoteWearApp                 : <empty>
                     runtimeOnly                   : <empty>
                     runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
@@ -198,6 +398,39 @@ MODULE                        : MainActivity
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
                     testIntransitiveDependenciesMetadata    : <empty>
+                    testLocalAnnotationProcessor  : <empty>
+                    testLocalApi                  : <empty>
+                    testLocalApiDependenciesMetadata        : <empty>
+                    testLocalCompileOnly          : <empty>
+                    testLocalCompileOnlyDependenciesMetadata          : <empty>
+                    testLocalDebugAnnotationProcessor       : <empty>
+                    testLocalDebugApi             : <empty>
+                    testLocalDebugApiDependenciesMetadata   : <empty>
+                    testLocalDebugCompileOnly     : <empty>
+                    testLocalDebugCompileOnlyDependenciesMetadata     : <empty>
+                    testLocalDebugImplementation  : <empty>
+                    testLocalDebugImplementationDependenciesMetadata  : <empty>
+                    testLocalDebugIntransitiveDependenciesMetadata    : <empty>
+                    testLocalDebugRuntimeOnly     : <empty>
+                    testLocalDebugRuntimeOnlyDependenciesMetadata     : <empty>
+                    testLocalDebugWearApp         : <empty>
+                    testLocalImplementation       : <empty>
+                    testLocalImplementationDependenciesMetadata       : <empty>
+                    testLocalIntransitiveDependenciesMetadata         : <empty>
+                    testLocalReleaseAnnotationProcessor     : <empty>
+                    testLocalReleaseApi           : <empty>
+                    testLocalReleaseApiDependenciesMetadata : <empty>
+                    testLocalReleaseCompileOnly   : <empty>
+                    testLocalReleaseCompileOnlyDependenciesMetadata   : <empty>
+                    testLocalReleaseImplementation          : <empty>
+                    testLocalReleaseImplementationDependenciesMetadata          : <empty>
+                    testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
+                    testLocalReleaseRuntimeOnly   : <empty>
+                    testLocalReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                    testLocalReleaseWearApp       : <empty>
+                    testLocalRuntimeOnly          : <empty>
+                    testLocalRuntimeOnlyDependenciesMetadata          : <empty>
+                    testLocalWearApp              : <empty>
                     testReleaseAnnotationProcessor          : <empty>
                     testReleaseApi                : <empty>
                     testReleaseApiDependenciesMetadata      : <empty>
@@ -209,6 +442,39 @@ MODULE                        : MainActivity
                     testReleaseRuntimeOnly        : <empty>
                     testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
+                    testRemoteAnnotationProcessor : <empty>
+                    testRemoteApi                 : <empty>
+                    testRemoteApiDependenciesMetadata       : <empty>
+                    testRemoteCompileOnly         : <empty>
+                    testRemoteCompileOnlyDependenciesMetadata         : <empty>
+                    testRemoteDebugAnnotationProcessor      : <empty>
+                    testRemoteDebugApi            : <empty>
+                    testRemoteDebugApiDependenciesMetadata  : <empty>
+                    testRemoteDebugCompileOnly    : <empty>
+                    testRemoteDebugCompileOnlyDependenciesMetadata    : <empty>
+                    testRemoteDebugImplementation : <empty>
+                    testRemoteDebugImplementationDependenciesMetadata : <empty>
+                    testRemoteDebugIntransitiveDependenciesMetadata   : <empty>
+                    testRemoteDebugRuntimeOnly    : <empty>
+                    testRemoteDebugRuntimeOnlyDependenciesMetadata    : <empty>
+                    testRemoteDebugWearApp        : <empty>
+                    testRemoteImplementation      : <empty>
+                    testRemoteImplementationDependenciesMetadata      : <empty>
+                    testRemoteIntransitiveDependenciesMetadata        : <empty>
+                    testRemoteReleaseAnnotationProcessor    : <empty>
+                    testRemoteReleaseApi          : <empty>
+                    testRemoteReleaseApiDependenciesMetadata          : <empty>
+                    testRemoteReleaseCompileOnly  : <empty>
+                    testRemoteReleaseCompileOnlyDependenciesMetadata  : <empty>
+                    testRemoteReleaseImplementation         : <empty>
+                    testRemoteReleaseImplementationDependenciesMetadata         : <empty>
+                    testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
+                    testRemoteReleaseRuntimeOnly  : <empty>
+                    testRemoteReleaseRuntimeOnlyDependenciesMetadata  : <empty>
+                    testRemoteReleaseWearApp      : <empty>
+                    testRemoteRuntimeOnly         : <empty>
+                    testRemoteRuntimeOnlyDependenciesMetadata         : <empty>
+                    testRemoteWearApp             : <empty>
                     testRuntimeOnly               : <empty>
                     testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
@@ -628,8 +894,11 @@ MODULE                        : MainActivity.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    VariantNames                  : debug
-    VariantNames                  : release
+    VariantNames                  : localDebug
+    VariantNames                  : remoteDebug
+    VariantNames                  : localRelease
+    VariantNames                  : remoteRelease
+    FlavorDimensions              : type
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -802,6 +1071,103 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+    ProductFlavors
+        ProductFlavor
+            Name                          : local
+            Dimension                     : type
+            VectorDrawables
+        SourceProvider
+            Name                          : local
+            Manifest                      : <ROOT>/app/src/local/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/local/java [-]
+            KotlinDirectories             : <ROOT>/app/src/local/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/local/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/local/resources [-]
+            AidlDirectories               : <ROOT>/app/src/local/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/local/rs [-]
+            ResDirectories                : <ROOT>/app/src/local/res [-]
+            AssetsDirectories             : <ROOT>/app/src/local/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/local/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/local/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestLocal
+                    Manifest                      : <ROOT>/app/src/androidTestLocal/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestLocal/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocal/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocal/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestLocal/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestLocal/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestLocal/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestLocal/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestLocal/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestLocal/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestLocal/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testLocal
+                    Manifest                      : <ROOT>/app/src/testLocal/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testLocal/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testLocal/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testLocal/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testLocal/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testLocal/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testLocal/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testLocal/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testLocal/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testLocal/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testLocal/shaders [-]
+        ProductFlavor
+            Name                          : remote
+            Dimension                     : type
+            VectorDrawables
+        SourceProvider
+            Name                          : remote
+            Manifest                      : <ROOT>/app/src/remote/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/remote/java [-]
+            KotlinDirectories             : <ROOT>/app/src/remote/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/remote/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/remote/resources [-]
+            AidlDirectories               : <ROOT>/app/src/remote/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/remote/rs [-]
+            ResDirectories                : <ROOT>/app/src/remote/res [-]
+            AssetsDirectories             : <ROOT>/app/src/remote/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/remote/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/remote/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRemote
+                    Manifest                      : <ROOT>/app/src/androidTestRemote/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestRemote/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRemote/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRemote/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestRemote/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestRemote/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRemote/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestRemote/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestRemote/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestRemote/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestRemote/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRemote
+                    Manifest                      : <ROOT>/app/src/testRemote/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testRemote/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRemote/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRemote/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testRemote/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testRemote/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testRemote/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testRemote/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testRemote/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testRemote/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testRemote/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -810,28 +1176,46 @@ MODULE                        : MainActivity.app
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
-            VariantName                   : debug
+            VariantName                   : localDebug
             BuildTasksAndOutputInformation
-                AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
-                BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                AssembleTaskName              : assembleLocalDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/local/debug/output-metadata.json [-]
+                BundleTaskName                : bundleLocalDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/localDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForLocalDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/localDebug/output-metadata.json [-]
         VariantBuildInformation
-            VariantName                   : release
+            VariantName                   : remoteDebug
             BuildTasksAndOutputInformation
-                AssembleTaskName              : assembleRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
-                BundleTaskName                : bundleRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
-                ApkFromBundleTaskName         : extractApksForRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+                AssembleTaskName              : assembleRemoteDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/remote/debug/output-metadata.json [-]
+                BundleTaskName                : bundleRemoteDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/remoteDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRemoteDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/remoteDebug/output-metadata.json [-]
+        VariantBuildInformation
+            VariantName                   : localRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleLocalRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/local/release/output-metadata.json [-]
+                BundleTaskName                : bundleLocalRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/localRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForLocalRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/localRelease/output-metadata.json [-]
+        VariantBuildInformation
+            VariantName                   : remoteRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRemoteRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/remote/release/output-metadata.json [-]
+                BundleTaskName                : bundleRemoteRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/remoteRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRemoteRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/remoteRelease/output-metadata.json [-]
     IdeVariants
         IdeVariant
-            Name                          : debug
+            Name                          : localDebug
             BuildType                     : debug
-            DisplayName                   : debug
+            DisplayName                   : local-debug
             InstantAppCompatible          : false
             MinSdkVersion
                 ApiLevel                      : 16
@@ -840,25 +1224,40 @@ MODULE                        : MainActivity.app
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
+            VersionNameSuffix             :
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.mainactivity
+            ProductFlavors                : local
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
-                CompileTaskName               : compileDebugSources
-                AssembleTaskName              : assembleDebug
+                CompileTaskName               : compileLocalDebugSources
+                AssembleTaskName              : assembleLocalDebug
                 IsTestArtifact                : false
-                IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/debug [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                IdeSetupTaskNames             : generateLocalDebugSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/localDebug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/localDebug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/localDebug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/local/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
+                VariantSourceProvider
+                    Name                          : localDebug
+                    Manifest                      : <ROOT>/app/src/localDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/localDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/localDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/localDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/localDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/localDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/localDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/localDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/localDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/localDebug/shaders [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.core:core-ktx:1.0.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1029,30 +1428,43 @@ MODULE                        : MainActivity.app
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                    ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                    AssembleTaskName              : assembleLocalDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/local/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleLocalDebug
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/localDebug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForLocalDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/localDebug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/local/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/local/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
-                CompileTaskName               : compileDebugAndroidTestSources
-                AssembleTaskName              : assembleDebugAndroidTest
+                CompileTaskName               : compileLocalDebugAndroidTestSources
+                AssembleTaskName              : assembleLocalDebugAndroidTest
                 IsTestArtifact                : true
-                IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/debugAndroidTest [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
+                IdeSetupTaskNames             : generateLocalDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/localDebugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/localDebugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/local/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/localDebugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest [-]
+                VariantSourceProvider
+                    Name                          : androidTestLocalDebug
+                    Manifest                      : <ROOT>/app/src/androidTestLocalDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestLocalDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestLocalDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestLocalDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestLocalDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestLocalDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestLocalDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestLocalDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestLocalDebug/shaders [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.core:core-ktx:1.0.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1229,12 +1641,12 @@ MODULE                        : MainActivity.app
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                        - moduleDependencies          : <ROOT>::app@localDebug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@localDebug (IdeModuleLibraryImpl)
                                 buildId                       : <ROOT>
                                 projectPath                   : :app
                                 sourceSet                     : MAIN
-                                variant                       : debug
+                                variant                       : localDebug
                         - moduleDependencies          : <ROOT>::javaLib (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
@@ -1270,8 +1682,8 @@ MODULE                        : MainActivity.app
                             target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@localDebug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@localDebug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javaLib (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                 ProvidedDependencies
@@ -1292,26 +1704,39 @@ MODULE                        : MainActivity.app
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
+                    AssembleTaskName              : assembleLocalDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/local/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/local/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/local/debug [-]
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
                 Name                          : UNIT_TEST
-                CompileTaskName               : compileDebugUnitTestSources
-                AssembleTaskName              : assembleDebugUnitTest
+                CompileTaskName               : compileLocalDebugUnitTestSources
+                AssembleTaskName              : assembleLocalDebugUnitTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/localDebugUnitTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/localDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/localDebugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest [-]
+                VariantSourceProvider
+                    Name                          : testLocalDebug
+                    Manifest                      : <ROOT>/app/src/testLocalDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testLocalDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testLocalDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testLocalDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testLocalDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testLocalDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testLocalDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testLocalDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testLocalDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testLocalDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testLocalDebug/shaders [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.core:core-ktx:1.0.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1350,8 +1775,8 @@ MODULE                        : MainActivity.app
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@localDebug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@localDebug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javaLib (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl
@@ -1391,20 +1816,24 @@ MODULE                        : MainActivity.app
                             target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
                             target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@localDebug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@localDebug (IdeModuleLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::javaLib (IdeModuleDependencyImpl)
                             target                        : <ROOT>::javaLib (IdeModuleLibraryImpl) (*seen*)
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinGradleModel             : KotlinGradleModelImpl
         additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
+            localDebug                    : <empty>
+            - localDebugAndroidTest       : localDebug
+            - localDebugAndroidTest       : main
+            - localDebugAndroidTest       : local
+            - localDebugAndroidTest       : debug
+            - localDebugUnitTest          : localDebug
+            - localDebugUnitTest          : main
+            - localDebugUnitTest          : local
+            - localDebugUnitTest          : debug
         cachedCompilerArgumentsBySourceSet
-            debug
+            localDebug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -1412,6 +1841,7 @@ MODULE                        : MainActivity.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
@@ -1422,14 +1852,13 @@ MODULE                        : MainActivity.app
                     - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                     - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : app_localDebug
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
@@ -1449,19 +1878,23 @@ MODULE                        : MainActivity.app
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-            debugAndroidTest
+            localDebugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-integration-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-library-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
@@ -1473,25 +1906,21 @@ MODULE                        : MainActivity.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kxml2-2.3.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javawriter-2.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jsr305-2.0.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
+                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
+                    - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : app_localDebug
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
@@ -1511,16 +1940,17 @@ MODULE                        : MainActivity.app
                     - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-            debugUnitTest
+            localDebugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
@@ -1531,18 +1961,17 @@ MODULE                        : MainActivity.app
                     - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                     - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest
+                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
+                    - friendPaths                 : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+                    - friendPaths                 : <ROOT>/app/build/intermediates/app_classes/localDebug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
-                    moduleName                    : app_debug
+                    moduleName                    : app_localDebug
                     noJdk                         : true
                     noStdlib                      : true
                     parallelBackendThreads        : 1
@@ -1566,44 +1995,44 @@ MODULE                        : MainActivity.app
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
+            localDebug                    : KotlinTaskPropertiesImpl
                 incremental                   : true
                 pluginVersion                 : 1.6.20
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
+                - pureKotlinSourceFolders     : <ROOT>/app/src/localDebug/kotlin [-]
+                - pureKotlinSourceFolders     : <ROOT>/app/src/localDebug/java [-]
+            localDebugAndroidTest         : KotlinTaskPropertiesImpl
                 incremental                   : true
                 pluginVersion                 : 1.6.20
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
+                - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugAndroidTest/kotlin [-]
+            localDebugUnitTest            : KotlinTaskPropertiesImpl
                 incremental                   : true
                 pluginVersion                 : 1.6.20
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debugUnitTest/kotlin [-]
+                - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugUnitTest/kotlin [-]
     kaptGradleModel               : <PROXY>
         buildDirectory                : <ROOT>/app/build [-]
         isEnabled                     : true
-        - sourceSets                  : debug (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debug [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/debug [-]
-        - sourceSets                  : debugAndroidTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debugAndroidTest [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/debugAndroidTest [-]
+        - sourceSets                  : localDebug (<PROXY>)
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+        - sourceSets                  : localDebugAndroidTest (<PROXY>)
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
             isTest                        : true
-        - sourceSets                  : debugUnitTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
+        - sourceSets                  : localDebugUnitTest (<PROXY>)
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
             isTest                        : true
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MainActivity.app.androidTest
