@@ -345,6 +345,7 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
+        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
     ],
 )
 
@@ -430,6 +431,7 @@ filegroup(
         "//tools/base/lint:lint-checks-proto",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
+        "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",

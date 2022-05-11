@@ -24,6 +24,7 @@ import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.instrumentation.threading.ThreadingCheckerHookImpl;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -81,6 +82,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
+    setupThreadingAgentEventListener();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
@@ -231,6 +233,10 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
     // Hide the Save File as Template action due to its rare use in Studio.
     Actions.hideAction(actionManager, "SaveFileAsTemplate");
+  }
+
+  private static void setupThreadingAgentEventListener() {
+    ThreadingCheckerHookImpl.initialize();
   }
 
   @NotNull
