@@ -89,7 +89,7 @@ public class CpuAnalysisPanel extends AspectObserver {
 
   @NotNull
   @VisibleForTesting
-  JBTabbedPane getTabView() {
+  public JBTabbedPane getTabView() {
     return myTabView;
   }
 

@@ -60,7 +60,7 @@ fun benchmarkMemoryAndTime(graphTitlePrefix: String,
   }
 }
 
-private fun makeLogger(graphTitle: String, legendSuffix: String): (tag: String, number: Long) -> Unit {
+fun makeLogger(graphTitle: String, legendSuffix: String): (tag: String, number: Long) -> Unit {
   val bm = Benchmark.Builder(graphTitle).setProject("Android Studio Profilers").build()
   return { tag, number -> bm.log("$tag-$legendSuffix", number) }
 }
