@@ -63,6 +63,10 @@ private fun getNormalImageLineStroke(scale: Double) = getDashedStroke(::getNorma
 
 fun getDrawNodeLabelHeight(scale: Double) = getLabelFontSize(scale) * 1.6f + 2 * getNormalBorderThickness(scale)
 
+val Rectangle.startX: Float get() = x.toFloat()
+val Rectangle.endX: Float get() = (width - x).toFloat()
+val Rectangle.startY: Float get() = y.toFloat()
+
 /**
  * A node in the hierarchy used to paint the device view. This is separate from the basic hierarchy ([ViewNode.children]) since views
  * can do their own painting interleaved with painting their children, and we need to keep track of the order in which the operations
@@ -187,7 +191,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         g2.stroke = getEmphasizedLineStroke(viewSettings.scaleFraction)
       }
       showHighlight -> {
-        g2.color = highlightColor(model, highlightCount)
+        g2.color = highlightColor(model, highlightCount, viewSettings)
         g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
       }
       else -> {
@@ -216,22 +220,24 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 
     // Draw gradient for recomposition highlights
     if (showHighlight) {
-      val rect = bounds.bounds2D
+      val rect = bounds.bounds
       g2.paint = GradientPaint(
-        rect.x.toFloat(), rect.y.toFloat(), heatmapColor(model, highlightCount),
-        (rect.x + rect.width).toFloat(), (rect.y + rect.height).toFloat(), heatmapColor(model, 0f))
+        rect.startX, rect.startY, heatmapColor(model, highlightCount, viewSettings),
+        rect.endX, rect.startY, heatmapColor(model, 0f, viewSettings))
       g2.fill(bounds)
     }
   }
 
-  private fun highlightColor(model: InspectorModel, highlightCount: Float): Color {
+  private fun highlightColor(model: InspectorModel, highlightCount: Float, viewSettings: DeviceViewSettings): Color {
+    val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
-    return Color(255, 0, 0, alpha)
+    return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }
 
-  private fun heatmapColor(model: InspectorModel, highlightCount: Float): Color {
+  private fun heatmapColor(model: InspectorModel, highlightCount: Float, viewSettings: DeviceViewSettings): Color {
+    val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 128f) / model.maxHighlight).toInt().coerceIn(8, 128)
-    return Color(255, 0, 0, alpha)
+    return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }
 
   /**

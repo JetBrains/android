@@ -67,7 +67,6 @@ import icons.StudioIcons
 import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.actions.internal.refactoringTesting.edtExecute
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
@@ -128,6 +127,7 @@ class DeviceViewPanel(
   private var isSpacePressed = false
   private var isMiddleMousePressed = false
   private var lastPanMouseLocation: Point? = null
+  private val popupStatus = PopupStatus()
 
   private val selectProcessAction: SelectProcessAction? = if (processes != null) {
     SelectProcessAction(
@@ -496,6 +496,9 @@ class DeviceViewPanel(
     }
     if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
       return deviceViewPanelActionsToolbar.toggle3dActionButton
+    }
+    if (DEVICE_VIEW_POPUP_STATUS.`is`(dataId)) {
+      return popupStatus
     }
     return null
   }

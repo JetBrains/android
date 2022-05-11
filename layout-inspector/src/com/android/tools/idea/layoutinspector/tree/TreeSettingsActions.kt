@@ -18,10 +18,8 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -145,7 +143,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   }
 }
 
-private fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
+fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
   LayoutInspector.get(event)?.currentClient?.let { client ->
     !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
     capabilities.any { client.capabilities.contains(it) }
