@@ -21,6 +21,9 @@ import static com.intellij.ide.BrowserUtil.browse;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.JBDimension;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -48,10 +51,24 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
     });
 
     StringBuilder sb = new StringBuilder();
-    sb.append("<p>The Upgrade Assistant failed to upgrade this project, finding no way of performing the ");
-    sb.append("<b>").append(processor.getCommandName()).append("</b> command, ");
-    sb.append("possibly because the project's build files use features not currently supported by the Upgrade Assistant ");
-    sb.append("(for example: using constants defined in <tt>buildSrc</tt>, or other unrecognized constructs, in Gradle build files).</p>");
+    List<AgpUpgradeComponentRefactoringProcessor> blockedComponents =
+      Stream.concat(Stream.of(processor.getAgpVersionRefactoringProcessor()), processor.getComponentRefactoringProcessors().stream())
+        .filter((c) -> c.isEnabled() && c.isBlocked()).collect(Collectors.toList());
+    sb.append("<p>The Upgrade Assistant failed to upgrade this project, finding no way of performing the following command")
+      .append(blockedComponents.size() == 1 ? "" : "s").append(":</p>");
+    sb.append("<ul>");
+    blockedComponents.forEach((c) -> {
+      sb.append("<li>").append(c.getCommandName()).append("<ul>");
+      c.blockProcessorReasons().forEach((r) -> {
+        sb.append("<li>").append(r.getShortDescription());
+        String description = r.getDescription();
+        if (description != null) {
+          sb.append("<br>").append(description);
+        }
+      });
+      sb.append("</ul>");
+    });
+    sb.append("</ul>");
 
     myEditorPane.setText(sb.toString());
     myPanel.setPreferredSize(new JBDimension(500, -1));

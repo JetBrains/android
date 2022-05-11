@@ -282,7 +282,7 @@ class AgpUpgradeRefactoringProcessor(
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
   var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
-  private fun blockProcessorExecution() =
+  final fun blockProcessorExecution() =
     (componentRefactoringProcessors + agpVersionRefactoringProcessor).any { it.isEnabled && it.isBlocked }
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {

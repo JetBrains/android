@@ -52,9 +52,13 @@ class RefactoringProcessorInstantiator {
       LOG.warn("changes found in project build files")
     }
     val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
-      if (processor.agpVersionRefactoringProcessor.isBlocked) {
-        processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
-        LOG.warn("cannot upgrade: classpath processor is always a no-op")
+      if (processor.blockProcessorExecution()) {
+        processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
+        LOG.warn("cannot upgrade: processor is blocked")
+        if (processor.agpVersionRefactoringProcessor.isBlocked) {
+          processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
+          LOG.warn("cannot upgrade: classpath processor is always a no-op")
+        }
         val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
         dialog.show()
         return@invokeAndWaitIfNeeded false
