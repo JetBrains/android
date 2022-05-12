@@ -77,10 +77,12 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
-import java.lang.Exception
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JButton
@@ -402,6 +404,11 @@ class ToolWindowModel(
     }
     else {
       newProcessor.showBuildOutputOnSyncFailure = false
+      newProcessor.backFromPreviewAction = object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
+        override fun actionPerformed(e: ActionEvent?) {
+          ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.run { if (isAvailable) show() }
+        }
+      }
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         parseAndSetEnabled(newProcessor)
