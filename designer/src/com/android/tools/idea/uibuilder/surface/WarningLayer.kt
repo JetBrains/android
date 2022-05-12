@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.Coordinates
@@ -28,7 +27,6 @@ import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import icons.StudioIcons
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -62,11 +60,6 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
-      val icon = generateWhiteIcon(StudioIcons.Common.WARNING)
-      gc.clipRect(screenView.x, screenView.y, sceneSize.width + icon.iconWidth + 1, sceneSize.height)
-      gc.fillRect(screenView.x + sceneSize.width + 1, screenView.y, icon.iconWidth, icon.iconHeight)
-      icon.paintIcon(screenView.surface, gc, screenView.x + sceneSize.width + 1, screenView.y)
-      gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
     relevantComponents.forEach {
       gc.drawRect(

@@ -129,4 +129,13 @@ public abstract class ActionManager<S extends DesignSurface> {
   public JComponent getSceneViewLeftBar(@NotNull SceneView sceneView) {
     return null;
   }
+
+  /**
+   * Returns the right bar for a {@link SceneView}.
+   * It is at the right of the {@link SceneView}.
+   */
+  @Nullable
+  public JComponent getSceneViewRightBar(@NotNull SceneView sceneView) {
+    return null;
+  }
 }

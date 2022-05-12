@@ -120,6 +120,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                          private val sceneViewToolbar: JComponent?,
                          private val sceneViewBottomBar: JComponent?,
                          private val sceneViewLeftBar: JComponent?,
+                         private val sceneViewRightBar: JComponent?,
                          private val sceneViewErrorsPanel: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -152,6 +153,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           it.top += sceneViewTopPanel.preferredSize.height
           it.bottom += sceneViewBottomPanel.preferredSize.height
           it.left += sceneViewLeftPanel.preferredSize.width
+          it.right += sceneViewRightPanel.preferredSize.width
         }
         return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
@@ -264,6 +266,14 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
   }
 
+  val sceneViewRightPanel = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isVisible = true
+    if (sceneViewRightBar != null) {
+      add(sceneViewRightBar, BorderLayout.CENTER)
+    }
+  }
+
   val sceneViewCenterPanel = JPanel(BorderLayout()).apply {
     isOpaque = false
     isVisible = true
@@ -280,6 +290,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     add(sceneViewCenterPanel)
     add(sceneViewBottomPanel)
     add(sceneViewLeftPanel)
+    add(sceneViewRightPanel)
     // This setup the initial positions of sceneViewTopPanel, sceneViewCenterPanel, sceneViewBottomPanel, and sceneViewLeftPanel.
     // Otherwise they are all placed at top-left corner before first time layout.
     doLayout()
@@ -319,6 +330,8 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                                    sceneViewBottomPanel.preferredSize.height)
     sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height, width + insets.horizontal, sceneViewBottomPanel.preferredSize.height)
     sceneViewLeftPanel.setBounds(0, sceneViewTopPanel.preferredSize.height, sceneViewLeftPanel.preferredSize.width, height)
+    sceneViewRightPanel.setBounds(sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
+                                  sceneViewTopPanel.preferredSize.height, sceneViewRightPanel.preferredSize.width, sceneViewRightPanel.preferredSize.height)
     super.doLayout()
   }
 
@@ -408,9 +421,11 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
         null
       }
 
+      val rightBar = sceneView.surface.actionManager.getSceneViewRightBar(sceneView)
+
       val errorsPanel = if (sceneView.surface.shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
 
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar, errorsPanel).also {
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar, rightBar, errorsPanel).also {
         it.alignmentX = sceneViewAlignment
       })
     }
