@@ -130,6 +130,8 @@ class ToolWindowModel(
     protected abstract val controlsEnabledState: ControlsEnabledState
     val runEnabled: Boolean
       get() = controlsEnabledState.runEnabled
+    val showPreviewEnabled: Boolean
+      get() = controlsEnabledState.showPreviewEnabled
     val comboEnabled: Boolean
       get() = controlsEnabledState.comboEnabled
     protected abstract val layoutState: LayoutState
@@ -169,7 +171,7 @@ class ToolWindowModel(
       override val runTooltip = ""
     }
     object Blocked : UIState() {
-      override val controlsEnabledState = ControlsEnabledState.NO_RUN
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN_BUT_PREVIEW
       override val layoutState = LayoutState.READY
       override val runTooltip = "Upgrade Blocked"
     }
@@ -231,10 +233,11 @@ class ToolWindowModel(
         get() = statusMessage.text
     }
 
-    enum class ControlsEnabledState(val runEnabled: Boolean, val comboEnabled: Boolean) {
-      BOTH(true, true),
-      NO_RUN(false, true),
-      NEITHER(false, false),
+    enum class ControlsEnabledState(val runEnabled: Boolean, val showPreviewEnabled: Boolean, val comboEnabled: Boolean) {
+      BOTH(true, true, true),
+      NO_RUN(false, false, true),
+      NO_RUN_BUT_PREVIEW(false, true, true),
+      NEITHER(false, false, false),
     }
 
     enum class LayoutState(val showLoadingState: Boolean, val showTree: Boolean) {
@@ -731,11 +734,11 @@ class ContentManagerImpl(val project: Project): ContentManager {
       addActionListener { this@View.model.runUpgrade(true) }
       this@View.model.uiState.get().let { uiState ->
         toolTipText = uiState.runTooltip
-        isEnabled = uiState.runEnabled
+        isEnabled = uiState.showPreviewEnabled
       }
       myListeners.listen(this@View.model.uiState) { uiState ->
         toolTipText = uiState.runTooltip
-        isEnabled = uiState.runEnabled
+        isEnabled = uiState.showPreviewEnabled
       }
     }
     val messageLabel = JBLabel().apply {

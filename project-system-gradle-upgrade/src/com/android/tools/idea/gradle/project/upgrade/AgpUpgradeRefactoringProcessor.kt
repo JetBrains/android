@@ -464,7 +464,6 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
-    // TODO(b/231690925): what should we do if any component is blocking?
     trackProcessorUsage(PREVIEW_REFACTORING, usages.size, projectBuildModel.context.allRequestedFiles.size)
     // this would be `super.previewRefactoring(usages) except that there's no way to override the tab window title
     if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -519,18 +518,20 @@ class AgpUpgradeRefactoringProcessor(
   //  it's possible that rather than overriding customizeUsagesView (which is only called from previewRefactoring()) we
   //  could just inline its effect.
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
-    val refactoringRunnable = Runnable {
-      val notExcludedUsages = UsageViewUtil.getNotExcludedUsageInfos(usageView)
-      val usagesToRefactor = this.usages.filter { notExcludedUsages.contains(it) } // preserve found order
-      val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
-      if (ensureElementsWritable(infos, viewDescriptor)) {
-        execute(infos)
+    if (!blockProcessorExecution()) {
+      // if the processor is blocked, don't offer a button that executes the processor.
+      val refactoringRunnable = Runnable {
+        val notExcludedUsages = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+        val usagesToRefactor = this.usages.filter { notExcludedUsages.contains(it) } // preserve found order
+        val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
+        if (ensureElementsWritable(infos, viewDescriptor)) {
+          execute(infos)
+        }
       }
+      val canNotMakeString = AndroidBundle.message("project.upgrade.usageView.need.reRun")
+      val label = AndroidBundle.message("project.upgrade.usageView.doAction")
+      usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
     }
-    val canNotMakeString = AndroidBundle.message("project.upgrade.usageView.need.reRun")
-    val label = AndroidBundle.message("project.upgrade.usageView.doAction")
-    usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
-
     usageView.setRerunAction(object : AbstractAction() {
       override fun actionPerformed(e: ActionEvent?) = doRun()
     })
@@ -544,6 +545,7 @@ class AgpUpgradeRefactoringProcessor(
 
   override fun execute(usages: Array<out UsageInfo>) {
     if (blockProcessorExecution()) {
+      LOG.warn("${this.commandName} has blocked components")
       trackProcessorUsage(BLOCKED, usages.size, projectBuildModel.context.allRequestedFiles.size)
       return
     }
@@ -828,6 +830,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   override fun execute(usages: Array<out UsageInfo>) {
     projectBuildModel.context.agpVersion = AndroidGradlePluginVersion.tryParse(new.toString())
     if (isBlocked) {
+      LOG.warn("${this.commandName} refactoring is blocked")
       trackComponentUsage(BLOCKED, usages.size, projectBuildModel.context.allRequestedFiles.size)
       return
     }
