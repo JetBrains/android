@@ -24,7 +24,7 @@ import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
-class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING) {
+class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
     return IssuePanelService.getInstance(surface.project).isShowingIssuePanel(surface)
