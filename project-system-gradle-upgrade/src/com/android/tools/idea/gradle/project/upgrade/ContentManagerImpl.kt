@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentRefactoringProcessor.BlockReason
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
-import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -620,11 +619,6 @@ class ContentManagerImpl(val project: Project): ContentManager {
   }
 
   class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
-    /*
-    Experiment of usage of observable property bindings I have found in our code base.
-    Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
-     */
-    private val myBindings = BindingsManager()
     private val myListeners = ListenerManager()
 
     val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null).apply {
