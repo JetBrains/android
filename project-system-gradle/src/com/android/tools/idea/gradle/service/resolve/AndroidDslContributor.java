@@ -44,6 +44,7 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
+import groovy.lang.Closure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,17 +63,46 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
+import org.jetbrains.plugins.groovy.lang.psi.impl.statements.expressions.TypesUtil;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
+import org.jetbrains.plugins.groovy.lang.psi.patterns.GroovyClosurePattern;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 import org.jetbrains.plugins.groovy.lang.resolve.ResolveUtilKt;
+import org.jetbrains.plugins.groovy.lang.resolve.delegatesTo.DelegatesToInfo;
 
 /**
  * {@link AndroidDslContributor} provides symbol resolution for identifiers inside the android block
  * in a Gradle build script.
  */
 public class AndroidDslContributor implements GradleMethodContextContributor {
+  @Override
+  public @Nullable DelegatesToInfo getDelegatesToInfo(@NotNull GrClosableBlock closure) {
+    PsiElement parent = closure.getParent();
+    if (parent instanceof GrMethodCallExpression) {
+      GrMethodCallExpression methodCallExpression = (GrMethodCallExpression)parent;
+      if (methodCallExpression.getInvokedExpression().getText().equals("kotlinOptions")) {
+        PsiType kotlinOptions = TypesUtil.createType("org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions", closure);
+        return new DelegatesToInfo(kotlinOptions, Closure.DELEGATE_FIRST);
+      }
+    }
+
+    // This looks plausible, but in fact it doesn't work, because kotlinOptions does not resolve in BaseAppModuleExtension.  This whole
+    // mechanism looks plausible for some of the other things we want to do (add delegation information) but the pattern language fails
+    // to match most of our blocks because of the multiple resolutions (to a method accepting a Function1<> *and* a method accepting
+    // an Action).
+    //GroovyClosurePattern pattern = groovyClosure().inMethod(psiMethod(ANDROID_FQCN, "kotlinOptions"));
+    //ProcessingContext context = new ProcessingContext();
+    //if (pattern.accepts(closure, context)) {
+    //  PsiType kotlinOptions = TypesUtil.createType("org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions", closure);
+    //  // TODO(xof): save in context
+    //  return new DelegatesToInfo(kotlinOptions, Closure.DELEGATE_FIRST);
+    //}
+    return null;
+  }
+
   @NonNls private static final String DSL_ANDROID = "android";
   @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.internal.dsl.BaseAppModuleExtension";
   @NonNls private static final String ANDROID_LIB_FQCN = "com.android.build.gradle.LibraryExtension";
