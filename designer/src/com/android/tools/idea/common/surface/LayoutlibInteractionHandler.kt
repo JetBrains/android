@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.PANNABLE_KEY
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
@@ -61,7 +64,14 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface) : Interact
 
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = surface.scene?.mouseCursor
 
-  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {
+      PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
+    }
+    else {
+      null
+    }
+  }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
 
