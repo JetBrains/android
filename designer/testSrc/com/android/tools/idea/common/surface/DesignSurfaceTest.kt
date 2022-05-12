@@ -292,14 +292,15 @@ class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(sur
   override fun isPastePossible(dataContext: DataContext): Boolean = false
 }
 
-class TestDesignSurface(project: Project, disposible: Disposable)
-  : DesignSurface(project,
-                  disposible,
-                  java.util.function.Function { ModelBuilder.TestActionManager(it) },
-                  java.util.function.Function { TestInteractionHandler(it) },
-                  java.util.function.Function { TestLayoutManager(it) },
-                  java.util.function.Function { TestActionHandler(it) },
-                  ZoomControlsPolicy.VISIBLE) {
+class TestDesignSurface(project: Project, disposible: Disposable) :
+  DesignSurface(
+    project,
+    disposible,
+    java.util.function.Function { ModelBuilder.TestActionManager(it) },
+    java.util.function.Function { TestInteractionHandler(it) },
+    java.util.function.Function { TestLayoutManager(it) },
+    java.util.function.Function { TestActionHandler(it) },
+    ZoomControlsPolicy.VISIBLE) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }

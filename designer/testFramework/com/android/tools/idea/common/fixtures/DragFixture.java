@@ -17,8 +17,6 @@ package com.android.tools.idea.common.fixtures;
 
 import static org.mockito.Mockito.mock;
 
-import com.android.tools.idea.common.fixtures.ComponentListFixture;
-import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;

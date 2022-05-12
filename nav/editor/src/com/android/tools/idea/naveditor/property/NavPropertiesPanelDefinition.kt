@@ -24,5 +24,11 @@ import icons.StudioIcons.Shell.ToolWindows.ATTRIBUTES
 import org.jetbrains.android.facet.AndroidFacet
 
 class NavPropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
-  ToolWindowDefinition<DesignSurface>("Attributes", ATTRIBUTES, "PROPERTIES", side, split, autoHide,
-                                      { NavPropertiesPanelToolContent(facet, it) })
+  ToolWindowDefinition<DesignSurface>(
+    "Attributes",
+    ATTRIBUTES,
+    "PROPERTIES",
+    side,
+    split,
+    autoHide,
+    { NavPropertiesPanelToolContent(facet, it) })

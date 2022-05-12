@@ -23,7 +23,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
 import org.mockito.Mockito
 import java.awt.Dimension
-import java.awt.Insets
 
 class TestSceneView(private val width: Int, private val height: Int)
   : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java), SQUARE_SHAPE_POLICY) {

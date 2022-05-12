@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.SetColorBlindModeAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
@@ -25,8 +24,7 @@ import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationHolder;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
@@ -46,21 +44,17 @@ import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
-import java.util.function.Supplier;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
- * life cycles should match the {@link com.android.tools.idea.common.surface.DesignSurface} one.
+ * life cycles should match the {@link DesignSurface} one.
  */
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 

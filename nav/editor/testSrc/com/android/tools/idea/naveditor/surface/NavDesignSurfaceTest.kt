@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditorPanel
@@ -23,7 +22,6 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -39,7 +37,6 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.common.LayoutTestUtilities
-import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.common.surface.TestInteractable
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -52,7 +49,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
-import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.refactoring.setAndroidxProperties

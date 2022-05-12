@@ -92,7 +92,7 @@ object NlDiagnosticsManager {
    * Returns the [NlDiagnosticsRead] instance associated to the given surface
    */
   @JvmStatic
-  fun getReadInstance(surface: DesignSurface?): NlDiagnosticsRead = if (surface == null ||!NELE_RENDER_DIAGNOSTICS.get()) {
+  fun getReadInstance(surface: DesignSurface?): NlDiagnosticsRead = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
     NopNlDiagnosticsImpl
   }
   else cache.get(surface) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Default implementation of {@link SelectionModel} for the {@link com.android.tools.idea.common.surface.DesignSurface}.
+ * Default implementation of {@link SelectionModel} for the {@link DesignSurface}.
  */
 public class DefaultSelectionModel extends BaseSelectionModel {
   @NotNull

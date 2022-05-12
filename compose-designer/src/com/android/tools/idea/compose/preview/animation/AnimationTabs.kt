@@ -43,8 +43,11 @@ import javax.swing.border.MatteBorder
 /**
  * Tabs panel with enabled navigation.
  */
-class AnimationTabs(surface: DesignSurface) : JBTabsImpl(surface.project,
-                                                         IdeFocusManager.getInstance(surface.project), surface.project) {
+class AnimationTabs(surface: DesignSurface) :
+  JBTabsImpl(
+    surface.project,
+    IdeFocusManager.getInstance(surface.project),
+    surface.project) {
   private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
 
 

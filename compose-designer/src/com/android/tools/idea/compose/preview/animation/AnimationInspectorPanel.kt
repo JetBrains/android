@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo

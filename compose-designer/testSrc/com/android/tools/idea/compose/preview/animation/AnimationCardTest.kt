@@ -44,8 +44,10 @@ class AnimationCardTest {
 
   @Test
   fun `create animation card`() {
-    val card = AnimationCard(TestUtils.testPreviewState(), Mockito.mock(DesignSurface::class.java),
-                             ElementState("Title")) { }.apply { setDuration(111) }
+    val card = AnimationCard(
+      TestUtils.testPreviewState(),
+      Mockito.mock(DesignSurface::class.java),
+      ElementState("Title")) { }.apply { setDuration(111) }
     card.setSize(300, 300)
 
     invokeAndWaitIfNeeded {
@@ -105,8 +107,10 @@ class AnimationCardTest {
 
   @Test
   fun `create animation card if coordination is not available`(): Unit = invokeAndWaitIfNeeded {
-    val card = AnimationCard(TestUtils.testPreviewState(false), Mockito.mock(DesignSurface::class.java),
-                             ElementState("Title")) { }.apply {
+    val card = AnimationCard(
+      TestUtils.testPreviewState(false),
+      Mockito.mock(DesignSurface::class.java),
+      ElementState("Title")) { }.apply {
       setDuration(111)
       setSize(300, 300)
     }

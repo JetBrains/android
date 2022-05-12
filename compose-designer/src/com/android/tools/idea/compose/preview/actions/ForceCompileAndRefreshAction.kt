@@ -44,9 +44,12 @@ internal fun requestBuildForSurface(surface: DesignSurface, requestedByUser: Boo
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
-internal open class ForceCompileAndRefreshAction(private val surface: DesignSurface) : AnAction(message("action.build.and.refresh.title"),
-                                                                                           message("action.build.and.refresh.description"),
-                                                                                           GREEN_REFRESH_BUTTON), CustomComponentAction {
+internal open class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
+  AnAction(
+    message("action.build.and.refresh.title"),
+    message("action.build.and.refresh.description"),
+    GREEN_REFRESH_BUTTON),
+  CustomComponentAction {
   override fun actionPerformed(e: AnActionEvent) {
     // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
     // that nothing has changed. But we want to always force a refresh when this button is pressed

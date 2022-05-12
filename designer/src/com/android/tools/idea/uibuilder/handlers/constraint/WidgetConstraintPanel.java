@@ -26,7 +26,6 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.intellij.ui.Gray;

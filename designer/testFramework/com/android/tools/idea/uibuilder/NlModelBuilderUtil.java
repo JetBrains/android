@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;

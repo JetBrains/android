@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
