@@ -228,7 +228,7 @@ studio_plugin(
             "//tools/base/ninepatch:studio.android.sdktools.ninepatch",
             "//tools/base/perflib:studio.android.sdktools.perflib",
             "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
-            "//tools/base/threading-agent:studio.android.sdktools.threading-agent",
+            "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
             "//tools/base/tracer:studio.android.sdktools.tracer",
             "//tools/base/usb-devices:studio.usb-devices",
             "//tools/base/zipflinger:studio.android.sdktools.zipflinger",

@@ -151,6 +151,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
-    <orderEntry type="module" module-name="android.sdktools.threading-agent" />
+    <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
   </component>
 </module>

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.instrumentation.threading;
 
-import com.android.tools.instrumentation.threading.agent.ThreadingCheckerHook;
+import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook;
 
 class ThreadingCheckerHookImpl implements ThreadingCheckerHook {
 
