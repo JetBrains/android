@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.StringResourceUnescaper;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;

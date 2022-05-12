@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;

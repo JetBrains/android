@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

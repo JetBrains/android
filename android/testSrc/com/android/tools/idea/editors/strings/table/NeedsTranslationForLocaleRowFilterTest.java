@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.StringResourceKey;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.StringResourceRepository;
 import java.util.Collections;
 import javax.swing.RowFilter.Entry;
@@ -33,7 +33,7 @@ public final class NeedsTranslationForLocaleRowFilterTest extends AndroidTestCas
 
   @NotNull
   private Entry<StringResourceTableModel, Integer> mockEntry() {
-    StringResourceKey key = new StringResourceKey("key", null);
+    StringResourceKey key = new StringResourceKey("key");
 
     StringResourceRepository repository = Mockito.mock(StringResourceRepository.class);
     Mockito.when(repository.getItems(key)).thenReturn(Collections.emptyList());

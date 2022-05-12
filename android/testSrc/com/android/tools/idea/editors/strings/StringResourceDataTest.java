@@ -22,6 +22,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.DynamicValueResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
@@ -109,7 +110,7 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testResourceToStringDynamic() {
-    assertEquals("L'Étranger", data.getStringResource(new StringResourceKey("dynamic_key1", null)).getDefaultValueAsString());
+    assertEquals("L'Étranger", data.getStringResource(new StringResourceKey("dynamic_key1")).getDefaultValueAsString());
   }
 
   public void testValidation() {

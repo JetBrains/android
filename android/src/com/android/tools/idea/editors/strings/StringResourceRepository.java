@@ -22,6 +22,7 @@ import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
@@ -132,7 +133,7 @@ public class StringResourceRepository {
     Stream<StringResourceKey> resourceDirectoryKeys = entries.stream().flatMap(StringResourceRepository::getKeys);
 
     Set<String> names = myDynamicResourceRepository.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING);
-    Stream<StringResourceKey> dynamicResourceKeys = names.stream().map(name -> new StringResourceKey(name, null));
+    Stream<StringResourceKey> dynamicResourceKeys = names.stream().map(StringResourceKey::new);
 
     return Stream.concat(resourceDirectoryKeys, dynamicResourceKeys);
   }

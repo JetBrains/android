@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

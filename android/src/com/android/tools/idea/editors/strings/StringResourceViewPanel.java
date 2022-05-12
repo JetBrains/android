@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
