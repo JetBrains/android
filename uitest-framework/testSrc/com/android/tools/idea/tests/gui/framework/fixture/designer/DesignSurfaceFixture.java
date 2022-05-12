@@ -109,7 +109,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
       return Collections.emptyList();
     }
 
-    return sceneView.getModel().flattenComponents()
+    return sceneView.getSceneManager().getModel().flattenComponents()
       .map(this::createComponentFixture)
       .collect(Collectors.toList());
   }

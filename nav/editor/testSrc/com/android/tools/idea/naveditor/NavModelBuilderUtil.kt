@@ -88,7 +88,6 @@ object NavModelBuilderUtil {
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
 
       val sceneView = mock(SceneView::class.java)
-      `when`<NlModel>(sceneView.model).thenReturn(model)
       `when`<Configuration>(sceneView.configuration).thenReturn(model.configuration)
       val selectionModel = surface.selectionModel
       `when`(sceneView.selectionModel).thenReturn(selectionModel)
@@ -96,7 +95,9 @@ object NavModelBuilderUtil {
 
       `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
-      NavSceneManager(model, surface)
+      val manager = NavSceneManager(model, surface)
+      `when`(sceneView.sceneManager).thenReturn(manager)
+      manager
     }
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory, { model -> updateHierarchy(model, model) }, path,

@@ -198,7 +198,7 @@ public class DragDropInteraction extends Interaction {
       if (acceptsDrop()) {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         setType(dragType);
-        NlModel model = sceneView.getModel();
+        NlModel model = sceneView.getSceneManager().getModel();
         InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */);
 
         // This determines the icon presented to the user while dragging.
@@ -258,7 +258,7 @@ public class DragDropInteraction extends Interaction {
     boolean hasDragHandler = myDragHandler != null;
     mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
-      mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
+      mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
 
       // We need to clear the selection otherwise the targets for the newly component are not added until
       // another component is selected and then this one reselected
@@ -310,7 +310,7 @@ public class DragDropInteraction extends Interaction {
     @AndroidCoordinate final int ax = Coordinates.getAndroidX(mySceneView, x);
     @AndroidCoordinate final int ay = Coordinates.getAndroidY(mySceneView, y);
 
-    Project project = mySceneView.getModel().getProject();
+    Project project = mySceneView.getSceneManager().getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(x, y);
     SceneContext sceneContext = SceneContext.get(mySceneView);
     SceneComponent viewgroup =
@@ -401,7 +401,7 @@ public class DragDropInteraction extends Interaction {
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
-        final NlModel model = mySceneView.getModel();
+        final NlModel model = mySceneView.getSceneManager().getModel();
         InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
 
         // TODO: Run this *after* making a copy
@@ -456,7 +456,7 @@ public class DragDropInteraction extends Interaction {
     myCachedComponent = component;
     myCachedHandler = null;
 
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(sceneView.getModel().getFacet());
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(sceneView.getSceneManager().getModel().getFacet());
     while (component != null) {
       Object handler = handlerManager.getHandler(component.getNlComponent());
 
@@ -491,7 +491,7 @@ public class DragDropInteraction extends Interaction {
     SceneView view = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     assert view != null;
 
-    ViewHandlerManager manager = ViewHandlerManager.get(view.getModel().getFacet());
+    ViewHandlerManager manager = ViewHandlerManager.get(view.getSceneManager().getModel().getFacet());
 
     Predicate<NlComponent> acceptsChild =
       child -> parentHandler.acceptsChild(parent, child, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
@@ -530,7 +530,7 @@ public class DragDropInteraction extends Interaction {
       return null;
     }
 
-    NlModel model = sceneView.getModel();
+    NlModel model = sceneView.getSceneManager().getModel();
     DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
     InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
 

@@ -68,7 +68,7 @@ public class ViewEditorImpl extends ViewEditor {
   private Collection<ViewInfo> myRootViews;
 
   public ViewEditorImpl(@NotNull SceneView sceneView) {
-    this(sceneView.getModel(), sceneView.getScene());
+    this(sceneView.getSceneManager().getModel(), sceneView.getScene());
   }
 
   public ViewEditorImpl(@NotNull NlModel model, @Nullable Scene scene) {

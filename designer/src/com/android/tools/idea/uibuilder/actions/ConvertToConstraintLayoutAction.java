@@ -195,7 +195,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     // Step #2: Ensure ConstraintLayout is available in the project
 
-    Module module =  sceneView.getModel().getModule();
+    Module module =  sceneView.getSceneManager().getModel().getModule();
     if (!DependencyManagementUtil.dependsOn(module, artifact)) {
       // If we don't already depend on constraint layout, try to add it.
       List<GradleCoordinate> notAdded = DependencyManagementUtil
@@ -271,7 +271,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       myIncludeIds = includeIds;
       myIncludeCustomViews = includeCustomViews;
       myLayout = target;
-      myRoot = myScreenView.getModel().getComponents().get(0);
+      myRoot = myScreenView.getSceneManager().getModel().getComponents().get(0);
       myEditor = new ViewEditorImpl(myScreenView);
     }
 
@@ -281,7 +281,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     public void execute() {
       WriteCommandAction.Builder builder =
-        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getModel().getFile());
+        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getSceneManager().getModel().getFile());
       builder.run(() -> preLayoutRun());
       layout();
       builder.run(() -> postLayoutRun());
@@ -345,7 +345,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
           @Override
           public void onRenderCompleted() {
             assert id != null;
-            NlComponent layout = myScreenView.getModel().find(id);
+            NlComponent layout = myScreenView.getSceneManager().getModel().find(id);
 
             if (layout != null) {
               manager.removeRenderListener(this);
@@ -432,7 +432,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
      */
     private void flatten() {
       PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-      Document document = documentManager.getDocument(myScreenView.getModel().getFile());
+      Document document = documentManager.getDocument(myScreenView.getSceneManager().getModel().getFile());
       if (document == null) {
         return;
       }
@@ -563,7 +563,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
             RenameProcessor processor = new RenameProcessor(myScreenView.getSurface().getProject(), valueElement, "NONEXISTENT_ID12345",
                                                             false /*comments*/, false /*text*/);
             processor.setPreviewUsages(false);
-            XmlFile layoutFile = myScreenView.getModel().getFile();
+            XmlFile layoutFile = myScreenView.getSceneManager().getModel().getFile();
 
             // Do a quick usage search to see if we need to ask about renaming
             UsageInfo[] usages = processor.findUsages();

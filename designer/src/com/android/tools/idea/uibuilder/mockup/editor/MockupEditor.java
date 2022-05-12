@@ -394,7 +394,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
         manager.addRenderListener(this);
       }
       mySurface.addListener(myDesignSurfaceListener);
-      setModel(sceneView.getModel());
+      setModel(sceneView.getSceneManager().getModel());
       myExtractWidgetTool.setDesignSurface(mySurface);
     }
   }

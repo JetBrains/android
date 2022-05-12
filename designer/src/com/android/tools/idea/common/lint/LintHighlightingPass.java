@@ -70,7 +70,7 @@ public class LintHighlightingPass implements HighlightingPass {
       if (sceneView == null) {
         return;
       }
-      final NlModel model = sceneView.getModel();
+      final NlModel model = sceneView.getSceneManager().getModel();
       LintAnnotationsModel lintAnnotationsModel =
         ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
       synchronized (myRunningTaskLock) {
@@ -96,7 +96,7 @@ public class LintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    sceneView.getModel().setLintAnnotationsModel(annotationsModel);
+    sceneView.getSceneManager().getModel().setLintAnnotationsModel(annotationsModel);
     surface.setLintAnnotationsModel(annotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model

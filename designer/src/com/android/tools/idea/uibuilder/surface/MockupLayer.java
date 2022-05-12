@@ -43,7 +43,7 @@ public class MockupLayer extends Layer {
     assert screenView != null;
     myScreenView = screenView;
     myScreenViewSize = myScreenView.getScaledContentSize(myScreenViewSize);
-    setNlModel(myScreenView.getModel());
+    setNlModel(myScreenView.getSceneManager().getModel());
     myMockups = Mockup.createAll(myNlModel);
   }
 

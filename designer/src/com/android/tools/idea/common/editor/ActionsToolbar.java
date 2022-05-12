@@ -185,7 +185,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
       SelectionModel selectionModel = view.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
       if (selection.isEmpty()) {
-        List<NlComponent> roots = view.getModel().getComponents();
+        List<NlComponent> roots = view.getSceneManager().getModel().getComponents();
         if (roots.size() == 1) {
           selection = Collections.singletonList(roots.get(0));
         }

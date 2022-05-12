@@ -45,7 +45,7 @@ class NavInteractionHandler(private val surface: DesignSurface): InteractionHand
     val xDp = getAndroidXDip(sceneView, mouseX)
     val yDp = getAndroidYDip(sceneView, mouseY)
 
-    val model = sceneView.model
+    val model = sceneView.sceneManager.model
 
     // Make sure we start from root if we don't have anything selected
     if (selectionModel.isEmpty && !model.components.isEmpty()) {

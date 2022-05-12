@@ -229,7 +229,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
           return;
         }
         WidgetCreator creator = WidgetCreatorFactory.create(
-          creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+          creatorAction.myAndroidClassName, mockup, currentScreenView.getSceneManager().getModel(), currentScreenView, mySelection);
         executeCreator(creator);
       }
     };

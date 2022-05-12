@@ -99,7 +99,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (screenView == null) {
       return null;
     }
-    return screenView.getModel();
+    return screenView.getSceneManager().getModel();
   }
 
   @Nullable

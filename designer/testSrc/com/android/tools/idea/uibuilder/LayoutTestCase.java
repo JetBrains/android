@@ -101,7 +101,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   @NotNull
   protected ViewEditor editor(ScreenView screenView) {
     ViewEditor editor = Mockito.mock(ViewEditor.class);
-    NlModel model = screenView.getModel();
+    NlModel model = screenView.getSceneManager().getModel();
     when(editor.getModel()).thenReturn(model);
     Scene scene = screenView.getScene();
     when(editor.getScene()).thenReturn(scene);
