@@ -662,9 +662,10 @@ MODULE                        : NonStandardSourceSetDependencies
                 sourceCompatibility           : 11
                 targetCompatibility           : 11
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
+                - artifacts                   : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 artifactsByConfiguration
                     androidApis                   : <empty>
                     androidJacocoAnt              : <empty>
@@ -706,6 +707,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     annotationProcessor           : <empty>
                     api                           : <empty>
                     apiDependenciesMetadata       : <empty>
+                    - archives                    : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                     - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     compileOnly                   : <empty>
@@ -774,6 +776,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
+                    - manualTestFixtures          : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
@@ -3287,7 +3290,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies

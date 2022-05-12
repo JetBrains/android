@@ -26,6 +26,25 @@ android {
 
 }
 
+configurations {
+    manualTestFixtures
+}
+
+def manualTestFixturesJar = tasks.register("JarManualTestFixtures", Jar) {
+    dependsOn("assembleDebugUnitTest")
+
+    from(file("$buildDir/intermediates/javac/debugUnitTest/classes"))
+    from(file("$buildDir/tmp/kotlin-classes/debugUnitTest"))
+
+    includeEmptyDirs = false
+    archiveBaseName.set("manual-test-fixtures")
+}
+
+artifacts {
+    add("manualTestFixtures", manualTestFixturesJar)
+}
+
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.example:with-runtime:1.0'

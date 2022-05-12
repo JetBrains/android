@@ -1172,7 +1172,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

@@ -37,6 +37,7 @@ dependencies {
     implementation project(path: ":javaLibrary", configuration: "testEnv")
     implementation project(':aarWrapperLib')
     androidTestImplementation project(':lib')
+    androidTestImplementation project(path: ":lib", configuration: "manualTestFixtures")
     testImplementation project(':lib')
     implementation project(':jarWrapperLib')
 }

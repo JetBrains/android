@@ -10,4 +10,6 @@ dependencies {
     implementation project(':network-kmm')
 
     implementation 'androidx.appcompat:appcompat:1.3.0'
+
+    // TODO(b/218883113):  androidTestImplementation project(path: ":lib", configuration: "manualTestFixtures")
 }
