@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
+import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
@@ -41,12 +42,14 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
+  private @Nullable AbstractButton myReloadButton;
   private final @NotNull JButton myHelpButton;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
     super(project);
     myProject = project;
 
+    initReloadButton();
     initTable();
     initScrollPane();
 
@@ -67,6 +70,11 @@ public final class VirtualDevicePanel extends DevicePanel {
     layOut();
 
     Disposer.register(parent, this);
+  }
+
+  private void initReloadButton() {
+    myReloadButton = new CommonButton(AllIcons.Actions.Refresh);
+    myReloadButton.addActionListener(event -> getTable().refreshAvds());
   }
 
   @Override
@@ -95,6 +103,7 @@ public final class VirtualDevicePanel extends DevicePanel {
                   .addComponent(myCreateButton)
                   .addGap(JBUIScale.scale(4))
                   .addComponent(mySeparator)
+                  .addComponent(myReloadButton)
                   .addComponent(myHelpButton))
       .addComponent(myDetailsPanelPanel);
 
@@ -102,6 +111,7 @@ public final class VirtualDevicePanel extends DevicePanel {
       .addGroup(layout.createParallelGroup(Alignment.CENTER)
                   .addComponent(myCreateButton)
                   .addComponent(mySeparator)
+                  .addComponent(myReloadButton)
                   .addComponent(myHelpButton))
       .addComponent(myDetailsPanelPanel);
 
