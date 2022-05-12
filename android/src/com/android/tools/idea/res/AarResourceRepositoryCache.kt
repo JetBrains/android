@@ -29,6 +29,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
@@ -105,7 +106,12 @@ class AarResourceRepositoryCache private constructor() {
     }
     library.location?.let {
       try {
-        modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+        val libraryPath = it.toPath()
+        if (libraryPath == null) {
+          thisLogger().error("Library ${library.libraryName()} has an invalid location: \"$it\"");
+        } else {
+          modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(libraryPath))
+        }
       }
       catch (ignore: NoSuchFileException) {
       }
