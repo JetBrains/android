@@ -187,7 +187,7 @@ public class CommonMenuUI extends BasicMenuUI {
     CommonMenuPaintHelper.paintIcon(graphics, layoutHelper, layoutResult, holdc);
     // STUDIO customization
     //paintText(g, lh, lr);
-    if (!layoutHelper.getText().equals("")) {
+    if (!layoutHelper.getText().isEmpty()) {
       paintText(graphics, layoutHelper.getMenuItem(), layoutResult.getTextRect(), layoutHelper.getText());
     }
     // STUDIO customization - shared acc paint logic

@@ -147,7 +147,7 @@ public class BaseCreatePanel extends JPanel {
         @Override
         public void focusLost(FocusEvent e) {
           String s = getText();
-          if (s.trim().equals("")) {
+          if (s.trim().isEmpty()) {
             setText(mPromptText);
             setForeground(Color.GRAY);
           }
