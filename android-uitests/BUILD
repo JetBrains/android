@@ -875,6 +875,22 @@ java_test(
 )
 
 java_test(
+    name = "RunAppEnableTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.RunAppEnableTest",
+    ],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [
+        ":intellij.android.guiTests_testlib",
+    ],
+)
+
+java_test(
     name = "SideConstraintHandlingTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
@@ -1294,6 +1310,8 @@ java_test(
 
 java_test(
     name = "RefactoringFlowTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
