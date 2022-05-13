@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.sdklib.devices.Abi
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -23,7 +25,9 @@ import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
@@ -47,6 +51,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.io.File
+import kotlin.test.fail
 
 @RunsInEdt
 class SyncScenariosIntegrationTest : GradleIntegrationTest {
@@ -194,6 +199,26 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       val afterRename = project.dumpModule(":container1:deep") { getMainModule() }
       // Do not use expect since IDEA does not show the diff UI in this case.
       assertThat(afterRename).isEqualTo(beforeRename.replace("nested1", "container1"))
+    }
+  }
+
+  @Test
+  fun testUnsupportedAbisIgnored() {
+    val basePath = prepareGradleProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, "project")
+    val buildFile = basePath.resolve("app").resolve("build.gradle")
+    buildFile.writeText(buildFile.readText() + """
+      android {
+        defaultConfig {
+          ndk {
+            abiFilters 'invalidABIName'
+          }
+        }
+      }
+    """)
+
+    openPreparedProject("project", OpenPreparedProjectOptions({ }, { }, { fail() })) { project ->
+      val abis = GradleAndroidModel.get(project.findAppModule())!!.supportedAbis
+      assertThat(abis).containsExactly(Abi.X86)
     }
   }
 
