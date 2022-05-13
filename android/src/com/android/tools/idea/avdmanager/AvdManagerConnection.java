@@ -468,9 +468,23 @@ public class AvdManagerConnection {
   }
 
   @Slow
-  public boolean isAvdRunning(@NotNull AvdInfo info) {
+  public boolean isAvdRunning(@NotNull AvdInfo avd) {
+    if (!initIfNecessary()) {
+      return false;
+    }
+
     assert myAvdManager != null;
-    return myAvdManager.isAvdRunning(info);
+
+    Optional<Boolean> online = myAvdManager.getPid(avd).stream()
+      .mapToObj(ProcessHandle::of)
+      .flatMap(Optional::stream)
+      .map(ProcessHandle::isAlive)
+      .findFirst();
+
+    return online.orElseGet(() -> {
+      SDK_LOG.warning("Unable to determine if " + avd.getName() + " is online, assuming it's not");
+      return false;
+    });
   }
 
   public @NotNull ListenableFuture<@NotNull Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
