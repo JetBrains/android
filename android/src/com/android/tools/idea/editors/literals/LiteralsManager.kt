@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -291,7 +292,12 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
   override val constantValue: Any?
     get() = element?.let {
       ReadAction.compute<Any?, Throwable> {
-        constantEvaluator.evaluate(it)
+        try {
+          constantEvaluator.evaluate(it)
+        } catch (_: IndexNotReadyException) {
+          // If not in smart mode, just return the last cached value
+          lastCachedConstantValue
+        }
       }
     }
 

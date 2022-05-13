@@ -21,6 +21,9 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -523,6 +526,47 @@ class LiteralsTest {
           "text='-120' location='$fileName (72,76)' value='-120' usages='test.app.$className.<init>-72'",
           snapshot.all.toDebugString())
       }
+    }
+  }
+
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun `read literal constant in non-smart mode`() {
+    val literalsManager = LiteralsManager()
+    val files = (1..100).map {
+      val fileId = it.toString().padStart(4, '0')
+      projectRule.fixture.addFileToProject(
+        "/src/test/app/LiteralsTest$fileId.kt",
+        // language=kotlin
+        """
+        package test.app
+
+        class LiteralsTest$fileId {
+          private val SIMPLE = -120
+
+          fun testCall() {
+            method(SIMPLE)
+          }
+      }
+      """.trimIndent())
+    }
+
+    runBlocking {
+      val asyncLiterals = files.map {
+        it.name to async { literalsManager.findLiterals(it) }
+      }
+
+      val literals = asyncLiterals.map { it.second.await() }.toList()
+
+      withUiContext {
+        (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
+      }
+      val contents = literals.flatMap {
+        it.all
+      }.map {
+        it.constantValue
+      }.distinct().joinToString("\n")
+      assertEquals("-120", contents)
     }
   }
 }
