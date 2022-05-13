@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.DynamicValueResourceItem;
@@ -72,7 +72,6 @@ public final class StringResource {
     myProject = data.getProject();
     boolean translatable = true;
     ResourceItemEntry defaultValue = new ResourceItemEntry();
-    StringResourceUnescaper unescaper = data.getUnescaper();
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
@@ -90,10 +89,10 @@ public final class StringResource {
 
       String tagText = getTextOfTag(tag);
       if (qualifier == null) {
-        defaultValue = new ResourceItemEntry(item, tagText, unescaper);
+        defaultValue = new ResourceItemEntry(item, tagText);
       }
       else {
-        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, tagText, unescaper));
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, tagText));
       }
     }
 
@@ -145,7 +144,7 @@ public final class StringResource {
           return false;
         }
 
-        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper());
+        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -168,7 +167,7 @@ public final class StringResource {
     ResourceItem item = myData.getRepository().getDefaultValue(myKey);
     assert item != null;
 
-    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper());
+    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)));
     return Futures.immediateFuture(true);
   }
 
@@ -233,7 +232,7 @@ public final class StringResource {
         }
 
         myLocaleToTranslationMap
-          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper()));
+          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item))));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -260,7 +259,7 @@ public final class StringResource {
     assert item != null;
 
     myLocaleToTranslationMap
-      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)), myData.getUnescaper()));
+      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item))));
     return Futures.immediateFuture(true);
   }
 
@@ -353,7 +352,7 @@ public final class StringResource {
       myStringValid = true;
     }
 
-    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String tagText, @NotNull StringResourceUnescaper unescaper) {
+    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String tagText) {
       myResourceItem = resourceItem;
       myTagText = tagText;
       ResourceValue value = resourceItem.getResourceValue();
@@ -371,7 +370,7 @@ public final class StringResource {
       boolean stringValid;
 
       try {
-        string = unescaper.unescapeCharacterData(string);
+        string = CharacterDataEscaper.unescape(string);
         stringValid = true;
       }
       catch (IllegalArgumentException exception) {

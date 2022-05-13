@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -51,13 +50,11 @@ public class StringResourceData {
 
   private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
   private final Project myProject;
-  private final StringResourceUnescaper myUnescaper;
   private final StringResourceRepository myRepository;
 
   private StringResourceData(@NotNull Project project, @NotNull StringResourceRepository repository) {
     myKeyToResourceMap = new LinkedHashMap<>();
     myProject = project;
-    myUnescaper = new StringResourceUnescaper();
     myRepository = repository;
   }
 
@@ -72,11 +69,6 @@ public class StringResourceData {
   @NotNull
   final Project getProject() {
     return myProject;
-  }
-
-  @NotNull
-  final StringResourceUnescaper getUnescaper() {
-    return myUnescaper;
   }
 
   @NotNull
