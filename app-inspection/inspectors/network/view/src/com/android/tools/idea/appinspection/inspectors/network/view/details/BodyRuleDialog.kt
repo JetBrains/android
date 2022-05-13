@@ -35,10 +35,10 @@ class BodyRuleDialog(
 ) : DialogWrapper(false) {
 
   @VisibleForTesting
-  val findTextArea = JBTextArea("Find body goes here...")
+  val findTextArea = JBTextArea()
 
   @VisibleForTesting
-  val replaceTextArea = JBTextArea("Replace body goes here...")
+  val replaceTextArea = JBTextArea()
 
   @VisibleForTesting
   val regexCheckBox = JBCheckBox("Regex")

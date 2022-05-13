@@ -37,33 +37,32 @@ class HeaderRuleDialog(
 ) : DialogWrapper(false) {
 
   companion object {
-    private const val DEFAULT_TEXT = "Text"
     private const val REGEX_TEXT = "Regex"
   }
 
   @VisibleForTesting
-  val newAddedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val newAddedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val findNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val findNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
   val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val findValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val findValueLabel: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
   val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val newReplacedNameLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val newReplacedNameLabel: JBTextField = createTextField(null, "Cache-Control", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val newReplacedValueLabel: JBTextField = createTextField(DEFAULT_TEXT, TEXT_LABEL_WIDTH)
+  val newReplacedValueLabel: JBTextField = createTextField(null, "max-age=604800", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
   val addRadioButton = JBRadioButton("Add new header")

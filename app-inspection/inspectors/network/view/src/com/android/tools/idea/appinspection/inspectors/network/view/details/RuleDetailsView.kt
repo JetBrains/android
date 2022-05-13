@@ -81,7 +81,7 @@ class RuleDetailsView : JPanel() {
     detailsPanel.add(
       createKeyValuePair(
         "Name",
-        createTextField(rule.name, TEXT_LABEL_WIDTH) { text ->
+        createTextField(rule.name, "Enter rule name", TEXT_LABEL_WIDTH) { text ->
           rule.name = text
         }
       )
@@ -101,15 +101,14 @@ class RuleDetailsView : JPanel() {
 
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
-    detailsPanel.isOpaque
   }
 
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
     val statusCodeData = rule.statusCodeRuleData
-    val findCodeTextField = createTextField(statusCodeData.findCode, NUMBER_LABEL_WIDTH) {
+    val findCodeTextField = createTextField(statusCodeData.findCode, "200", NUMBER_LABEL_WIDTH) {
       statusCodeData.findCode = it
     }
-    val newCodeTextField = createTextField(statusCodeData.newCode, NUMBER_LABEL_WIDTH) {
+    val newCodeTextField = createTextField(statusCodeData.newCode, "500", NUMBER_LABEL_WIDTH) {
       statusCodeData.newCode = it
     }
     val isActiveCheckBox = JBCheckBox().apply {
@@ -139,14 +138,14 @@ class RuleDetailsView : JPanel() {
         rule.criteria.protocol = selectedItem?.toString() ?: ""
       }
     }
-    val urlTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text ->
+    val urlTextField = createTextField(rule.criteria.host, "www.google.com", TEXT_LABEL_WIDTH) { text ->
       rule.criteria.apply {
         host = text
       }
     }
-    val portTextField = createTextField(rule.criteria.host, NUMBER_LABEL_WIDTH) { text -> rule.criteria.port = text }
-    val pathTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text -> rule.criteria.path = text }
-    val queryTextField = createTextField(rule.criteria.host, TEXT_LABEL_WIDTH) { text -> rule.criteria.query = text }
+    val portTextField = createTextField(rule.criteria.port, "80", NUMBER_LABEL_WIDTH) { text -> rule.criteria.port = text }
+    val pathTextField = createTextField(rule.criteria.path, "search", TEXT_LABEL_WIDTH) { text -> rule.criteria.path = text }
+    val queryTextField = createTextField(rule.criteria.query, "q=android+studio", TEXT_LABEL_WIDTH) { text -> rule.criteria.query = text }
     val methodComboBox = CommonComboBox(DefaultCommonComboBoxModel("", listOf("GET", "POST"))).apply {
       isEditable = false
       selectedIndex = 0

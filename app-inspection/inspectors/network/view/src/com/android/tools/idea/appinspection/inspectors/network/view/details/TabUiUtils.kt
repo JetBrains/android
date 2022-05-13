@@ -179,8 +179,9 @@ fun createKeyValuePair(key: String, valueComponent: JComponent): JPanel {
 /**
  * Create a [JBTextField] with preferred [width] and focus lost listener.
  */
-fun createTextField(defaultText: String, width: Int, focusLost: (String) -> Unit = {}): JBTextField {
-  return JBTextField(defaultText).apply {
+fun createTextField(initialText: String?, hintText: String, width: Int, focusLost: (String) -> Unit = {}): JBTextField {
+  return JBTextField(initialText).apply {
+    this.emptyText.appendText(hintText)
     preferredSize = Dimension(width, preferredSize.height)
     border = BorderFactory.createLineBorder(borderLight)
     addFocusListener(object : FocusAdapter() {
