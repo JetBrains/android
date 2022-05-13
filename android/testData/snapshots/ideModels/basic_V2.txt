@@ -864,12 +864,12 @@ MODULE                        : project
                             target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jacoco:org.jacoco.agent:0.8.7 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jacoco:org.jacoco.agent:0.8.7 (IdeJavaLibraryImpl)
-                                artifact                      : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
-                                artifactAddress               : org.jacoco:org.jacoco.agent:0.8.7@jar
+                        - javaLibraries               : org.jacoco:org.jacoco.agent:0.8.8 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jacoco:org.jacoco.agent:0.8.8 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
+                                artifactAddress               : org.jacoco:org.jacoco.agent:0.8.8@jar
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
                 ApplicationId                 : com.android.tests.basic.debug
                 SigningConfigName             : myConfig
                 IsSigned                      : true
@@ -1145,12 +1145,12 @@ MODULE                        : project
                             target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
                         - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
                             target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
-                        - javaLibraries               : org.jacoco:org.jacoco.agent:0.8.7 (IdeJavaLibraryDependencyImpl)
-                            target                        : org.jacoco:org.jacoco.agent:0.8.7 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jacoco:org.jacoco.agent:0.8.8 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jacoco:org.jacoco.agent:0.8.8 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::@debug (IdeModuleLibraryImpl) (*seen*)
                 RuntimeOnlyClasses
-                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : project (DefaultExternalProject)
         name                          : project
