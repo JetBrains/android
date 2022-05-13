@@ -257,10 +257,9 @@ public class AndroidFileChangeListener implements Disposable {
     if (psiFile.getName().endsWith(".versions.toml")) {
       return true;
     }
-    if (fileType == PropertiesFileType.INSTANCE) {
-      if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
-        return true;
-      }
+    if (fileType == PropertiesFileType.INSTANCE &&
+        (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName()))) {
+      return true;
     }
 
     return false;
