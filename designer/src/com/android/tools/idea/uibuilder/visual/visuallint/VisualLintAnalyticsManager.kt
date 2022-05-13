@@ -24,7 +24,7 @@ import com.google.wireless.android.sdk.stats.VisualLintEvent
 /**
  * Handles analytics for events related to Visual Lint
  */
-class VisualLintAnalyticsManager(val surface: DesignSurface) {
+class VisualLintAnalyticsManager(val surface: DesignSurface?) {
   private fun track(issueType: VisualLintErrorType, issueEvent: VisualLintEvent.IssueEvent) {
     val metricsIssueType = when (issueType) {
       VisualLintErrorType.BOUNDS -> VisualLintEvent.IssueType.BOUNDS

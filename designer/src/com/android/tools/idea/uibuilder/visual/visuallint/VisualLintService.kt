@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.lint
+package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.configurations.AdditionalDeviceService
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
+import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
 import com.intellij.openapi.components.Service
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.lang.IllegalArgumentException
 
 /**
@@ -46,7 +37,7 @@ class VisualLintService {
 
   companion object {
     @JvmStatic
-    fun getInstance(): VisualLintService? {
+    fun getInstance(): VisualLintService {
       return ApplicationManager.getApplication().getService(VisualLintService::class.java)
     }
   }
@@ -54,10 +45,14 @@ class VisualLintService {
   /** Default issue provider for Visual Lint Service. */
   val issueProvider = VisualLintIssueProvider()
 
+  fun removeIssues(surface: DesignSurface) {
+    surface.issueModel.removeIssueProvider(issueProvider)
+  }
+
   /**
    * Run visual lint analysis and return the list of issues.
    */
-  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel, surface: DesignSurface) {
+  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel) {
     issueModel.removeIssueProvider(issueProvider)
     issueProvider.clear()
     if (models.isEmpty()) {
@@ -66,34 +61,20 @@ class VisualLintService {
 
     issueModel.addIssueProvider(issueProvider, false)
     val displayingModel = models[0]
-    val devices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
+    val modelsToAnalyze = WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet )
 
-    for (device in devices) {
-      val config = Configuration.copy(displayingModel.configuration)
-      config.setDevice(device, false)
-
-      val param = InflationParam(
-        config,
-        displayingModel.project,
-        displayingModel.file,
-        displayingModel.facet, true)
-      inflate(param).thenCompose { result ->
+    for (model in modelsToAnalyze) {
+      inflate(model).thenComposeAsync({ result ->
         if (result == null) {
           // already logged error above
-          return@thenCompose CompletableFuture.completedFuture(null)
+          return@thenComposeAsync CompletableFuture.completedFuture(null)
         }
 
-        val inflatedModel = NlModel.builder(param.facet, param.file.virtualFile, param.config)
-          .withModelDisplayName("${param.config.device?.displayName}")
-          .withModelUpdater(DefaultModelUpdater())
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+        updateHierarchy(result, model)
+        analyzeAfterModelUpdate(result, model, issueProvider, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(null))
 
-        updateHierarchy(result, inflatedModel)
-        analyzeAfterModelUpdate(result, inflatedModel, issueProvider, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(surface))
-
-        return@thenCompose CompletableFuture.completedFuture(null)
-      }.thenAccept {
+        return@thenComposeAsync CompletableFuture.completedFuture(null)
+      }, AppExecutorUtil.getAppExecutorService()).thenAccept {
         // TODO: This might be triggered too frequently (4 times).
         issueModel.updateErrorsList()
       }
@@ -102,23 +83,14 @@ class VisualLintService {
 }
 
 /**
- * Data needed for inflating a layout
- */
-data class InflationParam(val config: Configuration,
-                          val project: Project,
-                          val file: XmlFile,
-                          val facet: AndroidFacet,
-                          val logRenderErrors: Boolean = false)
-
-/**
  * Inflate a view, then return the completable future with render result.
  */
-fun inflate(param: InflationParam): CompletableFuture<RenderResult> {
-  val renderService = RenderService.getInstance(param.project)
-  val logger = if (param.logRenderErrors) renderService.createLogger(param.facet) else renderService.nopLogger;
+fun inflate(model: NlModel): CompletableFuture<RenderResult> {
+  val renderService = RenderService.getInstance(model.project)
+  val logger = renderService.createLogger(model.facet)
 
-  return renderService.taskBuilder(param.facet, param.config)
-    .withPsiFile(param.file)
+  return renderService.taskBuilder(model.facet, model.configuration)
+    .withPsiFile(model.file)
     .withLayoutScanner(false)
     .withLogger(logger)
     .build().thenCompose { newTask ->

@@ -144,7 +144,7 @@ class IssuePanelService(private val project: Project) {
           selectSharedIssuePanelTab()
           return
         }
-        val surface = getDesignSurface(event.newEditor)
+        val surface = event.newEditor?.getDesignSurface()
         if (surface != null) {
           val psiFileType = newFile.toPsiFile(project)?.typeOf()
           if (psiFileType is DrawableFileType) {
@@ -271,7 +271,7 @@ class IssuePanelService(private val project: Project) {
     if (name != null) {
       return name
     }
-    val surface = getDesignSurface(editors[0]) ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
+    val surface = editors[0].getDesignSurface() ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
     if (surface.name != null) {
       return surface.name
     }
@@ -283,7 +283,7 @@ class IssuePanelService(private val project: Project) {
    */
   private fun isDesignEditor(editor: FileEditor): Boolean {
     val virtualFile = editor.file ?: return false
-    return isComposeFile(virtualFile) || isSupportedDesignerFileType(virtualFile) || getDesignSurface(editor) != null
+    return isComposeFile(virtualFile) || isSupportedDesignerFileType(virtualFile) || editor.getDesignSurface() != null
   }
 
   private fun isComposeFile(file: VirtualFile): Boolean {
@@ -309,18 +309,6 @@ class IssuePanelService(private val project: Project) {
       PreferenceScreenFileType.isResourceTypeOf(psiFile) -> "Preference"
       MenuFileType.isResourceTypeOf(psiFile) -> "Menu"
       else -> null
-    }
-  }
-
-  private fun getDesignSurface(editor: FileEditor?): DesignSurface? {
-    when (editor) {
-      is DesignToolsSplitEditor -> return editor.designerEditor.component.surface
-      is SplitEditor<*> -> {
-        // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
-        val component = (editor.preview as? SourceCodePreview)?.currentRepresentation?.component ?: return null
-        return DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
-      }
-      else -> return null
     }
   }
 
@@ -437,4 +425,16 @@ private fun createTabName(title: String, issueCount: Int?): String {
     .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
     .wrapWithHtmlBody()
     .toString()
+}
+
+fun FileEditor.getDesignSurface(): DesignSurface? {
+  when (this) {
+    is DesignToolsSplitEditor -> return designerEditor.component.surface
+    is SplitEditor<*> -> {
+      // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
+      val component = (preview as? SourceCodePreview)?.currentRepresentation?.component ?: return null
+      return DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
+    }
+    else -> return null
+  }
 }

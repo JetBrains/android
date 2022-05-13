@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -26,9 +27,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
@@ -54,7 +55,7 @@ public class IssueModel implements Disposable {
   @VisibleForTesting
   public final Runnable myUpdateCallback = () -> updateErrorsList();
 
-  private final List<IssueProvider> myIssueProviders = new ArrayList<>();
+  private final Set<IssueProvider> myIssueProviders = new HashSet<>();
 
   @NotNull
   private final AtomicBoolean myIsActivated = new AtomicBoolean(true);
@@ -129,9 +130,9 @@ public class IssueModel implements Disposable {
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
 
-    ImmutableList<IssueProvider> providers;
+    ImmutableSet<IssueProvider> providers;
     synchronized (myIssueProviders) {
-      providers = ImmutableList.copyOf(myIssueProviders);
+      providers = ImmutableSet.copyOf(myIssueProviders);
     }
     for (IssueProvider provider : providers) {
       provider.collectIssues(issueListBuilder);

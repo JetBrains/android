@@ -28,6 +28,7 @@ import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.error.getDesignSurface
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
@@ -52,6 +53,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWi
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -651,6 +653,9 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
     surface.issueModel.addIssueProvider(myLintIssueProvider)
+    FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface()?.let {
+      VisualLintService.getInstance().removeIssues(it)
+    }
   }
 
   /**
@@ -671,6 +676,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     }
     analyticsManager.trackVisualizationToolWindow(false)
     surface.issueModel.removeIssueProvider(myLintIssueProvider)
+    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)?.updateErrorDisplay()
   }
 
   override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) {

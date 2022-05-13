@@ -57,7 +57,6 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
-import com.android.tools.idea.uibuilder.lint.VisualLintService;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -65,6 +64,8 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -868,8 +869,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
 
-        if (myShouldRunVisualLintService) {
-          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), myIssueModel, NlDesignSurface.this);
+        if (myShouldRunVisualLintService && VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
+          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), NlDesignSurface.this.getIssueModel());
         }
       }
 

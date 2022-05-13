@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -43,6 +44,12 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   companion object {
     // Must be same as the tool window id in designer.xml
     const val TOOL_WINDOW_ID = "Layout Validation"
+
+    @JvmStatic
+    fun hasVisibleValidationWindow(project: Project): Boolean {
+      val validation = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+      return validation != null && validation.isVisible
+    }
   }
 
   override fun isApplicable(project: Project): Boolean {
