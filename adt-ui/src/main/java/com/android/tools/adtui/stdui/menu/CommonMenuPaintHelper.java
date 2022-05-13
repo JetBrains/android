@@ -71,7 +71,7 @@ public class CommonMenuPaintHelper {
                                   @NotNull Color disabledForeground,
                                   @NotNull Color acceleratorForeground,
                                   @NotNull Color acceleratorSelectionForeground) {
-    if (layoutHelper.getAccText().equals("")) {
+    if (layoutHelper.getAccText().isEmpty()) {
       return;
     }
 

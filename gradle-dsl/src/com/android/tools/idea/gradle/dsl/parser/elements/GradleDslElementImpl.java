@@ -665,7 +665,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
     // We have some index present, find the element we need to index. The first match, the property, is always the whole match.
     String elementName = indexMatcher.group(0);
-    if (elementName == null || elementName.equals("")) {
+    if (elementName == null || elementName.isEmpty()) {
       return null;
     }
     ModelPropertyDescription property = converter.modelDescriptionForParent(elementName, properties);
