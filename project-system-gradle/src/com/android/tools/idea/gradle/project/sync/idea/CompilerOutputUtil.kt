@@ -21,20 +21,34 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 /**
  * Sets the compiler output paths on the module [DataNode].
  */
 // TODO(b/213887150) : once this bug is fixed and we have code coverage exclusively with Jacoco, then this can be deleted.
 @JvmOverloads
-fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
+fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null, isDelegatedBuildUsed: Boolean) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariantCore
 
+  data.useExternalCompilerOutput(isDelegatedBuildUsed)
   data.isInheritProjectCompileOutputPath = false
 
+  // TODO(b/232780259): Look for the compilation output folder. We can have both java and kotlin compilation outputs in classesFolder(IDEA-235250).
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.first().absolutePath
   val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.first()?.absolutePath
+
+
+  // MPSS: Set compilation data for Gradle sourceSets too.
+  for (sourceSet in ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY)) {
+    val sourceSetData = sourceSet.data
+    sourceSetData.useExternalCompilerOutput(isDelegatedBuildUsed)
+    sourceSetData.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
+    sourceSetData.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
+    sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
+    sourceSetData.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
+  }
 
   data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
   data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)

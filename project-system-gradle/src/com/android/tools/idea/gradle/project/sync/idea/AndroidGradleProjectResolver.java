@@ -324,7 +324,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
                                                   @NotNull DataNode<ModuleData> ideModule) {
     super.populateModuleCompileOutputSettings(gradleModule, ideModule);
-    CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
+    CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule, resolverCtx.isDelegatedBuild());
   }
 
   @Override

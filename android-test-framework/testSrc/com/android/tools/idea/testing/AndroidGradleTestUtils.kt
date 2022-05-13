@@ -1959,7 +1959,7 @@ private fun setupDataNodesForSelectedVariant(
     } ?: return@forEach
 
     // Now we need to recreate these nodes using the information from the new variant.
-    moduleNode.setupCompilerOutputPaths(newVariant)
+    moduleNode.setupCompilerOutputPaths(newVariant, false)
     // Then patch in any Kapt generated sources that we need
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { id ->
