@@ -123,8 +123,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
 
       val projectBasePath = project.basePath
       if (projectBasePath != null) {
-        // Find the files and filter duplicated files. It is possible more than one NlModel are created by same file.
-        val relatedFiles = issue.models.map { it.virtualFile }.distinct()
+        val relatedFiles = issue.models.filter { model -> issue.shouldHighlight(model) }.map { it.virtualFile }.distinct()
         if (relatedFiles.isNotEmpty()) {
           affectedFilePanel.add(JBLabel("Affected Files:").apply {
             font = font.deriveFont(Font.BOLD)
