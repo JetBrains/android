@@ -31,6 +31,7 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
@@ -50,7 +51,6 @@ import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -59,6 +59,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.graph.Graph;
 import java.io.File;
 import java.util.ArrayList;
@@ -331,7 +333,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         GradleAndroidModel model = (GradleAndroidModel)androidModel;
         String variantName = model.getSelectedVariantName();
 
-        LintModelModule lintModel = getLintModuleModel(model, dir, shallowModel);
+        LintModelModule lintModel = getLintModuleModel(facet, model, dir, shallowModel);
         LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);
@@ -354,15 +356,14 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   @NotNull
-  private static LintModelModule getLintModuleModel(@NotNull GradleAndroidModel model, File dir, boolean shallowModel) {
-    IdeAndroidProject builderModelProject = model.getAndroidProject();
-    if (model.lintModuleModelCache != null) {
-      return (LintModelModule)model.lintModuleModelCache;
-    }
-
-    LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
-    model.lintModuleModelCache = module;
-    return module;
+  private static LintModelModule getLintModuleModel(AndroidFacet facet, @NotNull GradleAndroidModel model, File dir, boolean shallowModel) {
+    final var project = facet.getModule().getProject();
+    final var cacheValueManager = CachedValuesManager.getManager(project);
+    return cacheValueManager.getCachedValue(facet, () -> {
+      IdeAndroidProject builderModelProject = model.getAndroidProject();
+      LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
+      return CachedValueProvider.Result.create(module, ProjectSyncModificationTracker.getInstance(project));
+    });
   }
 
   /**

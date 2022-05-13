@@ -91,7 +91,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
   private final static String ourAndroidSyncVersion = "2022-02-15/1";
 
-  @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
   @Nullable private transient IdeLibraryModelResolver myIdeLibraryModelResolver;
 
