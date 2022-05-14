@@ -30,6 +30,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
@@ -354,6 +355,7 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   `when`(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
   `when`(mockWindow.ownedWindows).thenReturn(emptyArray())
   `when`(mockWindow.isFocused).thenReturn(true)
+  `when`(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()
