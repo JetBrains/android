@@ -79,13 +79,11 @@ public class ResourceFolderRegistry implements Disposable {
     });
   }
 
-  @NotNull
-  private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
+  private static @NotNull Cache<VirtualFile, ResourceFolderRepository> buildCache() {
     return CacheBuilder.newBuilder().build();
   }
 
-  @NotNull
-  public static ResourceFolderRegistry getInstance(@NotNull Project project) {
+  public static @NotNull ResourceFolderRegistry getInstance(@NotNull Project project) {
     return project.getService(ResourceFolderRegistry.class);
   }
 
@@ -118,10 +116,9 @@ public class ResourceFolderRegistry implements Disposable {
     return cache.getIfPresent(dir);
   }
 
-  @NotNull
-  private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
-                                                           @NotNull VirtualFile dir,
-                                                           @NotNull ResourceNamespace namespace) {
+  private static @NotNull ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
+                                                                    @NotNull VirtualFile dir,
+                                                                    @NotNull ResourceNamespace namespace) {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
                         runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
@@ -143,7 +140,7 @@ public class ResourceFolderRegistry implements Disposable {
     removeStaleEntries(myNonNamespacedCache);
   }
 
-  private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
+  private void removeStaleEntries(@NotNull Cache<VirtualFile, ResourceFolderRepository> cache) {
     Map<VirtualFile, ResourceFolderRepository> cacheAsMap = cache.asMap();
     if (cacheAsMap.isEmpty()) {
       ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty");
