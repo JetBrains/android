@@ -28,7 +28,6 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
-import java.util.*
 
 private const val DEBUG: Boolean = false
 
@@ -68,7 +67,6 @@ class CoordinatorDragTarget : DragBaseTarget() {
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
-    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) Color.yellow else Color.green)
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red)

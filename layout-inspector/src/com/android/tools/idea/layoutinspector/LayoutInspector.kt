@@ -106,7 +106,6 @@ class LayoutInspector(
   private fun logError(error: String) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
 
-    @Suppress("ConstantConditionIf")
     if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
       ApplicationManager.getApplication().invokeLater {
         Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")

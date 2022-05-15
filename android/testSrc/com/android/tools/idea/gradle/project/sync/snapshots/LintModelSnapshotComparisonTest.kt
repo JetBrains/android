@@ -65,7 +65,6 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
   var testProjectName: TestProject? = null
 
   companion object {
-    @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(

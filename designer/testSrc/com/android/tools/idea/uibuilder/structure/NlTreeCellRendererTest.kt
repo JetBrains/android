@@ -37,7 +37,6 @@ import javax.swing.tree.TreePath
 
 class NlTreeCellRendererTest {
 
-  @Suppress("MemberVisibilityCanBePrivate")
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 

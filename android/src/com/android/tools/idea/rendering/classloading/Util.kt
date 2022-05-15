@@ -64,7 +64,6 @@ class ClassTransform(private val transforms: List<java.util.function.Function<Cl
     }.apply("" to EmptyClassVisitor).first
 
   val id: String by lazy {
-    @Suppress("UnstableApiUsage")
     Hashing.goodFastHash(64).hashString(debugId, Charsets.UTF_8).toString()
   }
 

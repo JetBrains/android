@@ -70,7 +70,6 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 
   private fun registerTestHelperProjectResolver() {
     ApplicationManager.getApplication().registerExtension(
-      @Suppress("UnstableApiUsage")
       GradleProjectResolverExtension.EP_NAME,
       KotlinSingleVariantSyncTestProjectResolverExtension(), // Note: a new instance is created by the external system.
       projectRule.fixture.testRootDisposable

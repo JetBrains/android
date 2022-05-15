@@ -241,7 +241,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel): AndroidFacet {
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
-  @Suppress("UnstableApiUsage")
   facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }

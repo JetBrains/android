@@ -29,7 +29,6 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen.updateNewProjectIconIfWelcomeScreen
 import org.jetbrains.android.sdk.AndroidSdkUtils
 
-@Suppress("ComponentNotRegistered")
 class AndroidNewProjectAction @JvmOverloads constructor(text: String = actionText("NewDirectoryProject")) : AnAction(text), DumbAware {
   override fun update(e: AnActionEvent) {
     updateNewProjectIconIfWelcomeScreen(e)

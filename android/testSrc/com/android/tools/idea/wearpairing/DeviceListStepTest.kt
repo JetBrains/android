@@ -25,7 +25,6 @@ import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -140,7 +139,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
   }
 
-  @Suppress("UnstableApiUsage")
   @Test
   fun listItemShowPlayStoreIcon() {
     val fakeUi = createDeviceListStepUi()

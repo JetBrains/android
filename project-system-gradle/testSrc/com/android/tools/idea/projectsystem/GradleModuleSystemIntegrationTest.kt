@@ -64,7 +64,6 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(foundDependency.version!!.major).isEqualTo(LATEST_API)
 
     // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
     if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
       assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")

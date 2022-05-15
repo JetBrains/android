@@ -190,7 +190,6 @@ class QrCodeGeneratorTest {
    * Keep this method because we may need to generate source code for the
    * expected QR Code format (or if we add tests in the future)
    */
-  @Suppress("unused")
   private fun outputExpectedRowsCode(bits: BitMatrix) {
     if (!generateExpectedRows()) {
       return

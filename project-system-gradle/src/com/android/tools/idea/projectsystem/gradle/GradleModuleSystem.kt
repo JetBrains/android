@@ -122,7 +122,6 @@ class GradleModuleSystem(
 
   fun getDirectDependencies(module: Module): Sequence<GradleCoordinate> {
     // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
     return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       projectBuildModelHandler.read {
         // TODO: Replace the below artifacts with the direct dependencies from the AndroidModuleModel see b/128449813

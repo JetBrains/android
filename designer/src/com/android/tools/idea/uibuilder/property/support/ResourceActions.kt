@@ -41,7 +41,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
-import java.util.Locale
+import java.util.*
 import javax.swing.JComponent
 
 const val PICK_A_RESOURCE = "Pick a Resource"
@@ -136,7 +136,6 @@ typealias ColorPickerCreator = (
 
 object ColorSelectionAction: TestableColorSelectionAction()
 
-@Suppress("ComponentNotRegistered")
 open class TestableColorSelectionAction(
   @TestOnly
   val onCreateColorPicker: ColorPickerCreator = ::createAndShowColorPickerPopup

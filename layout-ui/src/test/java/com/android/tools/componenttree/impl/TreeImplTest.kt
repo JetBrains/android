@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.awt.AWTAccessor.
 package com.android.tools.componenttree.impl
 
@@ -25,8 +26,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import sun.awt.AWTAccessor
 import java.awt.Component
 import java.awt.Point
@@ -246,7 +247,6 @@ class TreeImplTest {
     tree.model!!.treeRoot = item1
 
     // This avoids a HeadlessException in testDoubleClick
-    @Suppress("UsePropertyAccessSyntax") // Prevents compile error 
     tree.setUI(object : BasicTreeUI() {
       override fun createMouseListener() = object : MouseAdapter() {}
     })

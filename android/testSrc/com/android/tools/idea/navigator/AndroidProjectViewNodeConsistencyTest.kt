@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized
 class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyTestBase() {
 
   companion object {
-    @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(

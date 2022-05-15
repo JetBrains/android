@@ -156,7 +156,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   @Slow
   private suspend fun updateListAndForwardState() {
-    @Suppress("UnstableApiUsage")
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
     val deviceTable = hashMapOf<String, PairingDevice>()

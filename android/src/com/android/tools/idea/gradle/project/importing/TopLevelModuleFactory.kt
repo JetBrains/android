@@ -113,7 +113,6 @@ class TopLevelModuleFactory() {
         if (gradleFacet == null) {
           // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
           gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
-          @Suppress("UnstableApiUsage")
           facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
         }
         gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR

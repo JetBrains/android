@@ -94,7 +94,6 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
       TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY)))
 
-    @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{1}\${0}")
