@@ -968,6 +968,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       return;
     }
 
+    if (!file.exists()) {
+      removeResourcesContainedInFileOrDirectory(file);
+      return;
+    }
+
     PsiFile psiFile = myPsiManager.findFile(file);
     if (psiFile != null) {
       Document document = myPsiDocumentManager.getDocument(psiFile);
@@ -1946,31 +1951,32 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
     ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onFileOrDirectoryRemoved " + pathForLogging(file));
-    scheduleUpdate(() -> {
-      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onFileOrDirectoryRemoved processing removal of " + pathForLogging(file));
-      if (file.isDirectory()) {
-        for (Iterator<Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>>> iterator = mySources.entrySet().iterator();
-             iterator.hasNext(); ) {
-          Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>> entry = iterator.next();
-          iterator.remove();
-          VirtualFile sourceFile = entry.getKey();
-          if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
-            ResourceItemSource<? extends ResourceItem> source = entry.getValue();
-            onSourceRemoved(sourceFile, source);
-          }
-        }
-      }
-      else {
-        ResourceItemSource<? extends ResourceItem> source = mySources.remove(file);
-        if (source != null) {
-          onSourceRemoved(file, source);
-        }
-        myWolfTheProblemSolver.clearProblemsFromExternalSource(file, this);
-      }
-    });
+    scheduleUpdate(() -> removeResourcesContainedInFileOrDirectory(file));
   }
 
-  private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
+  private void removeResourcesContainedInFileOrDirectory(@NotNull VirtualFile file) {
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".processRemovalOfFileOrDirectory " + pathForLogging(file));
+    if (file.isDirectory()) {
+      for (var iterator = mySources.entrySet().iterator(); iterator.hasNext(); ) {
+        var entry = iterator.next();
+        iterator.remove();
+        VirtualFile sourceFile = entry.getKey();
+        if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
+          var source = entry.getValue();
+          removeSource(sourceFile, source);
+        }
+      }
+    }
+    else {
+      var source = mySources.remove(file);
+      if (source != null) {
+        removeSource(file, source);
+      }
+      myWolfTheProblemSolver.clearProblemsFromExternalSource(file, this);
+    }
+  }
+
+  private void removeSource(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
     ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onSourceRemoved " + pathForLogging(file));
 
     boolean removed = removeItemsFromSource(source);

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
 import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.idea.model.Namespacing;
 import com.android.utils.TraceUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,6 +40,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.util.Consumer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,16 +89,14 @@ public class ResourceFolderRegistry implements Disposable {
     return project.getService(ResourceFolderRegistry.class);
   }
 
-  @NotNull
-  public ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
+  public @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
     // locks.
     return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
   }
 
   @VisibleForTesting
-  @NotNull
-  ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
+  @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
@@ -108,6 +110,14 @@ public class ResourceFolderRegistry implements Disposable {
     return repository;
   }
 
+  /**
+   * Returns the resource repository for the given directory, or null if such repository doesn't already exist.
+   */
+  public @Nullable ResourceFolderRepository getCached(@NotNull VirtualFile dir, @NotNull Namespacing namespacing) {
+    var cache = namespacing == Namespacing.REQUIRED ? myNamespacedCache : myNonNamespacedCache;
+    return cache.getIfPresent(dir);
+  }
+
   @NotNull
   private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
                                                            @NotNull VirtualFile dir,
@@ -118,13 +128,6 @@ public class ResourceFolderRegistry implements Disposable {
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
-  }
-
-  @Nullable
-  public CachedRepositories getCached(@NotNull VirtualFile directory) {
-    ResourceFolderRepository namespaced = myNamespacedCache.getIfPresent(directory);
-    ResourceFolderRepository nonNamespaced = myNonNamespacedCache.getIfPresent(directory);
-    return namespaced == null && nonNamespaced == null ? null : new CachedRepositories(namespaced, nonNamespaced);
   }
 
   public void reset() {
@@ -169,11 +172,24 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) VFS change");
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);
         if (repository != null) {
           handler.accept(repository, file);
+        }
+      }
+    }
+  }
+
+  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) PSI change");
+    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+        ResourceFolderRepository repository = cache.getIfPresent(dir);
+        if (repository != null) {
+          invokeCallback.consume(repository.getPsiListener());
         }
       }
     }
@@ -250,19 +266,6 @@ public class ResourceFolderRegistry implements Disposable {
         }
         ++numDone;
       }
-    }
-  }
-
-  public static class CachedRepositories {
-    @Nullable
-    public final ResourceFolderRepository namespaced;
-
-    @Nullable
-    public final ResourceFolderRepository nonNamespaced;
-
-    public CachedRepositories(@Nullable ResourceFolderRepository namespaced, @Nullable ResourceFolderRepository nonNamespaced) {
-      this.namespaced = namespaced;
-      this.nonNamespaced = nonNamespaced;
     }
   }
 }
