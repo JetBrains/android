@@ -29,6 +29,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.utils.HashCodes;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -301,7 +302,8 @@ public class ResourceNotificationManager {
       return;
     }
 
-    ApplicationManager.getApplication().invokeLater(() -> {
+    Application application = ApplicationManager.getApplication();
+    application.invokeLater(() -> {
       if (!myPendingNotify.compareAndSet(true, false)) {
         return;
       }
@@ -318,25 +320,31 @@ public class ResourceNotificationManager {
         scheduleFinalNotification();
       }
       else {
-        // The following code calls scheduleFinalNotification exactly once after the dispatchToRepositories
-        // call returns and all callbacks passed to runAfterPendingUpdatesFinish are called. To avoid
-        // calling scheduleFinalNotification prematurely, the initial value of count is set to 1.
-        // This guarantees that it stays positive until the dispatchToRepositories method returns.
-        AtomicInteger count = new AtomicInteger(1);
-        ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(myProject);
-        resourceFolderRegistry.dispatchToRepositories(source, (repository, file) -> {
-          count.incrementAndGet();
-          repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> {
-            if (count.decrementAndGet() == 0) {
-              scheduleFinalNotification();
-            }
-          });
+        application.runWriteAction(() -> {
+          scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(source);
         });
+      }
+    });
+  }
+
+  private void scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(@NotNull VirtualFile source) {
+    // The following code calls scheduleFinalNotification exactly once after the dispatchToRepositories
+    // call returns and all callbacks passed to runAfterPendingUpdatesFinish are called. To avoid
+    // calling scheduleFinalNotification prematurely, the initial value of count is set to 1.
+    // This guarantees that it stays positive until the dispatchToRepositories method returns.
+    AtomicInteger count = new AtomicInteger(1);
+    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(myProject);
+    resourceFolderRegistry.dispatchToRepositories(source, (repository, file) -> {
+      count.incrementAndGet();
+      repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> {
         if (count.decrementAndGet() == 0) {
           scheduleFinalNotification();
         }
-      }
+      });
     });
+    if (count.decrementAndGet() == 0) {
+      scheduleFinalNotification();
+    }
   }
 
   private void scheduleFinalNotification() {

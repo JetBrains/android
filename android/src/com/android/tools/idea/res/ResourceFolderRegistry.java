@@ -173,6 +173,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) VFS change");
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);
@@ -185,6 +186,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   void dispatchToRepositories(@NotNull VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) PSI change");
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);
