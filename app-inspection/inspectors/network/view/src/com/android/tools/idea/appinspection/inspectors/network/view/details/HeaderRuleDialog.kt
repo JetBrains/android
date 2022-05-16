@@ -18,15 +18,21 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.TextComponentEmptyText
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.BooleanFunction
+import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.CardLayout
-import javax.swing.ButtonGroup
+import java.awt.event.ItemEvent
+import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
 import javax.swing.JComponent
 import javax.swing.JPanel
+
+private const val REGEX_TEXT = ".* Regex"
 
 /**
  * A dialog box that allows adding and editing header rules.
@@ -36,10 +42,6 @@ class HeaderRuleDialog(
   private val saveAction: (RuleData.TransformationRuleData) -> Unit
 ) : DialogWrapper(false) {
 
-  companion object {
-    private const val REGEX_TEXT = "Regex"
-  }
-
   @VisibleForTesting
   val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
 
@@ -47,122 +49,148 @@ class HeaderRuleDialog(
   val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val findNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
+  val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
   val findNameRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val findValueLabel: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
+  val findValueTextField: JBTextField = createTextField(null, "https://www.google.com", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
   val findValueRegexCheckBox = JBCheckBox(REGEX_TEXT)
 
   @VisibleForTesting
-  val newReplacedNameLabel: JBTextField = createTextField(null, "Cache-Control", TEXT_LABEL_WIDTH)
+  val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val newReplacedValueLabel: JBTextField = createTextField(null, "max-age=604800", TEXT_LABEL_WIDTH)
+  val newReplacedValueTextField: JBTextField = createTextField(null, "max-age=604800", TEXT_LABEL_WIDTH)
 
   @VisibleForTesting
-  val addRadioButton = JBRadioButton("Add new header")
+  val findNameCheckBox = createFieldEnabledCheckBox("Header name:", findNameTextField, findNameRegexCheckBox)
 
   @VisibleForTesting
-  val replaceRadioButton = JBRadioButton("Edit existing header")
+  val findValueCheckBox = createFieldEnabledCheckBox("Header value:", findValueTextField, findValueRegexCheckBox)
+
+  @VisibleForTesting
+  val replaceNameCheckBox = createFieldEnabledCheckBox("Header name:", newReplacedNameTextField, null)
+
+  @VisibleForTesting
+  val replaceValueCheckBox = createFieldEnabledCheckBox("Header value:", newReplacedValueTextField, null)
+
+  private fun createFieldEnabledCheckBox(name: String, textField: JBTextField, regexCheckBox: JBCheckBox?) =
+    JBCheckBox(name).apply {
+      val changeAction: (e: ItemEvent) -> Unit = {
+        textField.isEnabled = isSelected
+        if (!isSelected) {
+          regexCheckBox?.isSelected = false
+          textField.text = ""
+        }
+        regexCheckBox?.isEnabled = isSelected
+        updateOkAction()
+      }
+      textField.putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, BooleanFunction<JBTextField>
+      { !it.isEnabled })
+      addItemListener(changeAction)
+      changeAction(ItemEvent(this, 0, null, ITEM_STATE_CHANGED))
+    }
+
+  private fun updateOkAction() {
+    @Suppress("SENSELESS_COMPARISON") // tabs will be null during initialization
+    if (tabs == null) return
+    okAction.isEnabled = tabs.selectedComponent == newHeaderPanel ||
+                         ((findNameCheckBox.isSelected || findValueCheckBox.isSelected)
+                          && (replaceNameCheckBox.isSelected || replaceValueCheckBox.isSelected))
+    setOKButtonTooltip(if (okAction.isEnabled) null else "Select something")
+  }
+
+  @VisibleForTesting
+  val newHeaderPanel = JPanel(VerticalLayout(10)).apply {
+    border = JBUI.Borders.empty(15, 0, 0, 0)
+    add(createCategoryPanel(null,
+                            JBLabel("New header name:") to newAddedNameLabel,
+    JBLabel("Value:") to newAddedValueLabel))
+  }
+
+  @VisibleForTesting
+  val editHeaderPanel = JPanel(VerticalLayout(10)).apply {
+    border = JBUI.Borders.empty(5, 0, 0, 0)
+    add(createCategoryPanel("Find by",
+                            findNameCheckBox to findNameTextField.withRegexCheckBox(findNameRegexCheckBox),
+                            findValueCheckBox to findValueTextField.withRegexCheckBox(findValueRegexCheckBox)
+    ))
+    add(createCategoryPanel("Replace with",
+                            replaceNameCheckBox to newReplacedNameTextField,
+                            replaceValueCheckBox to newReplacedValueTextField
+    ))
+  }
+
+  @VisibleForTesting
+  val tabs = JBTabbedPane().apply {
+    addTab("Add new header", newHeaderPanel)
+    addTab("Edit existing header", editHeaderPanel)
+    model.addChangeListener { updateOkAction() }
+  }
 
   init {
     title = "New Header Rule"
     applySavedHeader(transformation)
     init()
+    updateOkAction()
   }
 
   private fun applySavedHeader(headerRule: RuleData.TransformationRuleData?) {
     if (headerRule == null) {
-      addRadioButton.isSelected = true
+      tabs.selectedComponent = newHeaderPanel
       return
     }
     when (headerRule) {
       is RuleData.HeaderAddedRuleData -> {
         newAddedNameLabel.text = headerRule.name
         newAddedValueLabel.text = headerRule.value
-        addRadioButton.isSelected = true
+        tabs.selectedComponent = newHeaderPanel
       }
       is RuleData.HeaderReplacedRuleData -> {
-        findNameLabel.text = headerRule.findName
-        findNameRegexCheckBox.isSelected = headerRule.isFindNameRegex
-        findValueLabel.text = headerRule.findValue
-        findValueRegexCheckBox.isSelected = headerRule.isFindValueRegex
-        newReplacedNameLabel.text = headerRule.newName
-        newReplacedValueLabel.text = headerRule.newValue
-        replaceRadioButton.isSelected = true
+        if (headerRule.findName != null) {
+          findNameTextField.text = headerRule.findName
+          findNameCheckBox.isSelected = true
+          findNameRegexCheckBox.isSelected = headerRule.isFindNameRegex
+        }
+        if (headerRule.findValue != null) {
+          findValueTextField.text = headerRule.findValue
+          findValueCheckBox.isSelected = true
+          findValueRegexCheckBox.isSelected = headerRule.isFindValueRegex
+        }
+        if (headerRule.newName != null) {
+          newReplacedNameTextField.text = headerRule.newName
+          replaceNameCheckBox.isSelected = true
+        }
+        if (headerRule.newValue != null) {
+          newReplacedValueTextField.text = headerRule.newValue
+          replaceValueCheckBox.isSelected = true
+        }
+        tabs.selectedComponent = editHeaderPanel
       }
     }
   }
 
-  override fun createNorthPanel() = JPanel(VerticalLayout(20)).apply {
-    val addPanel = JPanel(VerticalLayout(10)).apply {
-      add(createKeyValuePair("Name", newAddedNameLabel))
-      add(createKeyValuePair("Value", newAddedValueLabel))
-    }
-
-    val replacePanel = JPanel(VerticalLayout(10)).apply {
-      add(createCategoryPanel("Find", listOf(
-        createKeyValuePair("Name", findNameLabel.withRegexCheckBox(findNameRegexCheckBox)),
-        createKeyValuePair("Value", findValueLabel.withRegexCheckBox(findValueRegexCheckBox))
-      )))
-      add(createCategoryPanel("Replace with", listOf(
-        createKeyValuePair("Name", newReplacedNameLabel),
-        createKeyValuePair("Value", newReplacedValueLabel)
-      )))
-    }
-
-    val cardLayout = CardLayout()
-    val cardView = JPanel(cardLayout)
-    val addKey = "add"
-    val replaceKey = "replace"
-    cardView.add(addPanel, addKey)
-    cardView.add(replacePanel, replaceKey)
-
-    addRadioButton.addActionListener {
-      if (addRadioButton.isSelected) {
-        cardLayout.show(cardView, addKey)
-      }
-    }
-    replaceRadioButton.addActionListener {
-      if (replaceRadioButton.isSelected) {
-        cardLayout.show(cardView, replaceKey)
-      }
-    }
-    ButtonGroup().apply {
-      add(addRadioButton)
-      add(replaceRadioButton)
-    }
-    add(createKeyValuePair(
-      "Rule action",
-      JPanel(HorizontalLayout(20)).apply {
-        add(addRadioButton)
-        add(replaceRadioButton)
-      }
-    ))
-    add(cardView)
-    cardLayout.show(cardView, if (addRadioButton.isSelected) addKey else replaceKey)
-  }
+  override fun createNorthPanel() = tabs
 
   override fun createCenterPanel(): JComponent? = null
 
   override fun doOKAction() {
     super.doOKAction()
-    if (addRadioButton.isSelected) {
+    if (tabs.selectedComponent == newHeaderPanel) {
       saveAction(RuleData.HeaderAddedRuleData(newAddedNameLabel.text, newAddedValueLabel.text))
     }
     else {
       saveAction(RuleData.HeaderReplacedRuleData(
-        findNameLabel.text,
+        if (findNameCheckBox.isSelected) findNameTextField.text else "",
         findNameRegexCheckBox.isSelected,
-        findValueLabel.text,
+        if (findValueCheckBox.isSelected) findValueTextField.text else "",
         findValueRegexCheckBox.isSelected,
-        newReplacedNameLabel.text,
-        newReplacedValueLabel.text
+        if (replaceNameCheckBox.isSelected) newReplacedNameTextField.text else "",
+        if (replaceValueCheckBox.isSelected) newReplacedValueTextField.text else ""
       ))
     }
   }

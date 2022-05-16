@@ -53,12 +53,9 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import java.awt.Component
-import java.awt.Container
 import java.awt.event.FocusEvent
-import java.util.stream.Stream
 import javax.swing.JCheckBox
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 
@@ -302,13 +299,13 @@ class RuleDetailsViewTest {
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Switches between add and replace mode
-      assertThat(dialog.addRadioButton.isSelected).isTrue()
+      assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isTrue()
-      assertThat(dialog.newReplacedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
-      dialog.replaceRadioButton.doClick()
+      assertThat(dialog.newReplacedNameTextField.isVisibleToRoot(dialog.rootPane)).isFalse()
+      dialog.tabs.selectedComponent = dialog.editHeaderPanel
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
-      assertThat(dialog.newReplacedNameLabel.isVisibleToRoot(dialog.rootPane)).isTrue()
-      dialog.addRadioButton.doClick()
+      assertThat(dialog.newReplacedNameTextField.isVisibleToRoot(dialog.rootPane)).isTrue()
+      dialog.tabs.selectedComponent = dialog.newHeaderPanel
 
       dialog.newAddedNameLabel.text = newAddedNameText
       dialog.newAddedValueLabel.text = newAddedValueText
@@ -350,15 +347,19 @@ class RuleDetailsViewTest {
     val replaceValueText = "replaceValue"
     createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as HeaderRuleDialog
-      dialog.replaceRadioButton.doClick()
+      dialog.tabs.selectedComponent = dialog.editHeaderPanel
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
-      assertThat(dialog.newReplacedNameLabel.isVisibleToRoot(dialog.rootPane)).isTrue()
+      assertThat(dialog.newReplacedNameTextField.isVisibleToRoot(dialog.rootPane)).isTrue()
 
-      dialog.findNameLabel.text = findNameText
+      dialog.findNameCheckBox.isSelected = true
+      dialog.findNameTextField.text = findNameText
       dialog.findNameRegexCheckBox.isSelected = true
-      dialog.findValueLabel.text = findValueText
-      dialog.newReplacedNameLabel.text = replaceNameText
-      dialog.newReplacedValueLabel.text = replaceValueText
+      dialog.findValueCheckBox.isSelected = true
+      dialog.findValueTextField.text = findValueText
+      dialog.replaceNameCheckBox.isSelected = true
+      dialog.newReplacedNameTextField.text = replaceNameText
+      dialog.replaceValueCheckBox.isSelected = true
+      dialog.newReplacedValueTextField.text = replaceValueText
       dialog.clickDefaultButton()
     }
 
@@ -412,28 +413,32 @@ class RuleDetailsViewTest {
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
-      assertThat(dialog.addRadioButton.isSelected).isTrue()
+      assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
       assertThat(dialog.newAddedNameLabel.text).isEqualTo(newAddedNameText)
       assertThat(dialog.newAddedValueLabel.text).isEqualTo(newAddedValueText)
 
       // Change to replaced rule.
-      dialog.replaceRadioButton.isSelected = true
-      dialog.findNameLabel.text = findNameText
+      dialog.tabs.selectedComponent = dialog.editHeaderPanel
+      dialog.findNameCheckBox.isSelected = true
+      dialog.findNameTextField.text = findNameText
       dialog.findNameRegexCheckBox.isSelected = true
-      dialog.findValueLabel.text = findValueText
-      dialog.newReplacedNameLabel.text = replaceNameText
-      dialog.newReplacedValueLabel.text = replaceValueText
+      dialog.findValueCheckBox.isSelected = true
+      dialog.findValueTextField.text = findValueText
+      dialog.replaceNameCheckBox.isSelected = true
+      dialog.newReplacedNameTextField.text = replaceNameText
+      dialog.replaceValueCheckBox.isSelected = true
+      dialog.newReplacedValueTextField.text = replaceValueText
       dialog.clickDefaultButton()
     }
 
     createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
-      assertThat(dialog.replaceRadioButton.isSelected).isTrue()
-      assertThat(dialog.findNameLabel.text).isEqualTo(findNameText)
-      assertThat(dialog.findValueLabel.text).isEqualTo(findValueText)
-      assertThat(dialog.newReplacedNameLabel.text).isEqualTo(replaceNameText)
-      assertThat(dialog.newReplacedValueLabel.text).isEqualTo(replaceValueText)
+      assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.editHeaderPanel)
+      assertThat(dialog.findNameTextField.text).isEqualTo(findNameText)
+      assertThat(dialog.findValueTextField.text).isEqualTo(findValueText)
+      assertThat(dialog.newReplacedNameTextField.text).isEqualTo(replaceNameText)
+      assertThat(dialog.newReplacedValueTextField.text).isEqualTo(replaceValueText)
       dialog.clickDefaultButton()
     }
   }

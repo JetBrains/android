@@ -23,7 +23,6 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.TitledSeparator
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
@@ -172,35 +171,6 @@ fun createCategoryPanel(
     bodyPanel.add(component2Panel, TabularLayout.Constraint(index,  1))
   }
   panel.add(bodyPanel)
-  return panel
-}
-
-@Deprecated("Soon to be replaced by createCategoryPanel(String?, vararg Pair<JComponent, JComponent>)")
-fun createCategoryPanel(name: String, entryComponents: List<JComponent>): JPanel {
-  val panel = JPanel(VerticalLayout(6))
-
-  val headingPanel = TitledSeparator(name)
-  headingPanel.minimumSize = Dimension(0, 34)
-  panel.add(headingPanel)
-
-  for (component in entryComponents) {
-    component.border = BorderFactory.createEmptyBorder()
-    panel.add(component)
-  }
-  return panel
-}
-
-/**
- * Create a panel that shows a pair of key label and value component.
- */
-fun createKeyValuePair(key: String, valueComponent: JComponent): JPanel {
-  val panel = JPanel(TabularLayout("155px,Fit")).apply {
-    border = JBUI.Borders.empty()
-  }
-  val keyPanel = JPanel(BorderLayout())
-  keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
-  panel.add(keyPanel, TabularLayout.Constraint(0, 0))
-  panel.add(valueComponent, TabularLayout.Constraint(0, 1))
   return panel
 }
 
