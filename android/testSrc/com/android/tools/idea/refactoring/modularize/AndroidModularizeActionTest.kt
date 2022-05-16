@@ -110,16 +110,23 @@ class AndroidModularizeActionTest {
       }
     }
 
-    data class FileInfo(val fileType: FileType, val hasAndroidFacets: Boolean)
+    data class FileInfo(val fileType: FileType, val hasAndroidFacets: Boolean) {
+      // To avoid printing object references in test case names, which causes issues for analyzers, use the human-readable description
+      override fun toString() = "FileInfo(fileType=${fileType.description}, hasAndroidFacets=$hasAndroidFacets)"
+    }
+
     companion object {
+      // Mock FileType instances don't have a description by default so we need to give them one
+      private fun mockFileType() = mock<FileType>().also { given(it.description).thenReturn("mock<FileType>") }
+
       @JvmStatic
       @Parameters(name = "{0}")
       fun data() = listOf(
         // null file
         Case(expected = false, fileInfo = null),
         // arbitrary file
-        Case(expected = false, FileInfo(fileType = mock(), hasAndroidFacets = false)),
-        Case(expected = false, FileInfo(fileType = mock(), hasAndroidFacets = true)),
+        Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = false)),
+        Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = true)),
         // kotlin file
         Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = false)),
         Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = true)),
