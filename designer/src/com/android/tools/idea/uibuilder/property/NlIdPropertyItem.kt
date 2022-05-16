@@ -49,7 +49,6 @@ open class NlIdPropertyItem(
   // modifies the XML attributes directly i.e. not through an NlComponent.
   // The RenameProcessor used here is one example.
   // Workaround for now: read the attribute directly from the XmlAttribute.
-  @Suppress("DEPRECATION")
   override val rawValue: String?
     get() = readIdFromPsi()
 

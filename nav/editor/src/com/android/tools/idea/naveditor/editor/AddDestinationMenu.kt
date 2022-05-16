@@ -96,7 +96,6 @@ import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.ListModel
 import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
@@ -304,8 +303,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           )
 
           application.invokeLater {
-            @Suppress("UNCHECKED_CAST")
-            destinationsList.model = listModel as ListModel<Destination>
+            destinationsList.model = listModel
 
             destinationsList.setPaintBusy(false)
             destinationsList.emptyText.text = "No existing destinations"

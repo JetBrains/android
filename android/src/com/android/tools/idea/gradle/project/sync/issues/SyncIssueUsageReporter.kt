@@ -107,7 +107,6 @@ fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<Notifi
 fun SyncIssueUsageReporter.collect(quickFixes: Collection<NotificationHyperlink>) =
     collect(quickFixes.mapNotNull { it.toSyncIssueQuickFix() })
 
-@Suppress("DUPLICATE_LABEL_IN_WHEN")
 fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
     when (this) {
       is AddGoogleMavenRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK

@@ -29,10 +29,12 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import java.awt.*
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.Toolkit
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.*
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
@@ -43,6 +45,7 @@ import javax.swing.ListModel
 import javax.swing.ListSelectionModel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+import javax.swing.SwingUtilities
 import kotlin.math.max
 import kotlin.math.min
 
@@ -79,7 +82,6 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   private var currentValueIncluded = false
 
   init {
-    @Suppress("UNCHECKED_CAST")
     ui.createList(filteredModel as ListModel<String>, matcher, editor)
     ui.clickAction = { enter() }
     filteredModel.setFilter(condition)

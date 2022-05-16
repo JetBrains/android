@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -182,7 +182,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
 fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
   val all =
-    @Suppress("DEPRECATION")
     (
       model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
       model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
@@ -198,10 +197,10 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
 
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
-    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentUnitTestSourceProviders = @Suppress("DEPRECATION") model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
+    currentUnitTestSourceProviders = model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndroidTestSourceProviders = model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
     run {
       val flavorNames = model.selectedVariant.productFlavors.toSet()

@@ -32,14 +32,13 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.util.EnumSet
+import java.util.*
 import kotlin.test.assertNotEquals
 
 class NlPropertiesModelTest: LayoutTestCase() {
@@ -80,7 +79,6 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
     val listener = TimingPropertiesModelListener()
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)

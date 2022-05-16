@@ -48,7 +48,7 @@ class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
 
   fun testFirstSyncFailedStructure() {
     prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION, null, null, null)
-    val buildFile = @Suppress("DEPRECATION") PlatformTestUtil.getOrCreateProjectBaseDir(project).findChild("build.gradle")!!
+    val buildFile = PlatformTestUtil.getOrCreateProjectBaseDir(project).findChild("build.gradle")!!
     runWriteAction {
       buildFile.setBinaryContent("*** this is an error ***".toByteArray())
     }

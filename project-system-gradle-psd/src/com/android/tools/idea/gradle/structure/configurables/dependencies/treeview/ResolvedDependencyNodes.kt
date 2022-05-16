@@ -21,7 +21,16 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
+import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedJarDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
+import com.android.tools.idea.gradle.structure.model.targetModuleResolvedDependencies
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.SimpleTextAttributes
@@ -96,10 +105,7 @@ class ResolvedLibraryDependencyNode(
   private fun createChildren(): List<AbstractResolvedDependencyNode<*>> = dependency
     .getTransitiveDependencies()
     .sortedWith(PsDependencyComparator(this.uiSettings))
-    .map { transitiveLibrary ->
-      @Suppress("UNCHECKED_CAST")
-      (ResolvedLibraryDependencyNode(this, transitiveLibrary as PsResolvedLibraryDependency))
-    }
+    .map { transitiveLibrary -> ResolvedLibraryDependencyNode(this, transitiveLibrary) }
 }
 
 class ResolvedJarDependencyNode(

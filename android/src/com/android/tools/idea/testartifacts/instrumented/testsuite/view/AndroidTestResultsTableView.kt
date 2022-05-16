@@ -84,8 +84,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
 import java.time.Duration
-import java.util.Comparator
-import java.util.Vector
+import java.util.*
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -1158,7 +1157,6 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
     get() = sequence {
       // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
       // and this assignment is no longer unchecked.
-      @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
       children?.let { yieldAll(it as Vector<TreeNode>) }
       yieldAll(invisibleNodes)
     }
@@ -1180,7 +1178,6 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
     }
     // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
     // and this assignment is no longer unchecked.
-    @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
     invisibleNodes = children.filterNot(filter) as List<TreeNode>
     children.retainAll(filter)
   }
