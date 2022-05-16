@@ -717,7 +717,9 @@ class PTableImplTest {
 
     // Without focus:
     assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+/* b/233943598
     assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+b/233943598 */
     assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(table!!.background)
     assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(hoverColor)
 
@@ -726,7 +728,9 @@ class PTableImplTest {
 
     // With focus:
     assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+/* b/233943598
     assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+b/233943598 */
     assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(selectedColor)
     assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(selectedColor)
   }
