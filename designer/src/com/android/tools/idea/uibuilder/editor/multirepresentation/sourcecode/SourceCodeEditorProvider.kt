@@ -77,7 +77,9 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     val projectFacetManager = ProjectFacetManager.getInstance(project)
-    return NELE_SOURCE_CODE_EDITOR.get() && !LightEdit.owns(project) && file.hasSourceFileExtension()
+    return NELE_SOURCE_CODE_EDITOR.get()
+           && !LightEdit.owns(project)
+           && file.isSourceFileType()
            && (projectFacetManager.hasFacets(AndroidFacet.ID) || projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
   }
 

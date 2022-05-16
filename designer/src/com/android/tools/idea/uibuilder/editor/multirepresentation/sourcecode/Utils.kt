@@ -19,7 +19,10 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-fun VirtualFile.hasSourceFileExtension() = when (extension) {
-  KotlinFileType.INSTANCE.defaultExtension, JavaFileType.INSTANCE.defaultExtension -> true
+/**
+ * Returns true if the [VirtualFile] is a Kotlin or Java file.
+ */
+fun VirtualFile.isSourceFileType() = when (fileType) {
+  KotlinFileType.INSTANCE, JavaFileType.INSTANCE -> true
   else -> false
 }
