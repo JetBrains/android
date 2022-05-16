@@ -1233,8 +1233,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * We will only do quick refresh if there is a single preview.
    * When live literals is enabled, we want to try to preserve the same class loader as much as possible.
    */
-  private fun shouldQuickRefresh() =
-    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && renderedElements.count() == 1
+  private fun shouldQuickRefresh() = !isLiveLiteralsEnabled && renderedElements.count() == 1
 
   private suspend fun requestFastPreviewRefresh(): CompilationResult? = coroutineScope {
     val currentStatus = status()

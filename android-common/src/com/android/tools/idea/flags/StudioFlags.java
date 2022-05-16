@@ -1163,13 +1163,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
-    COMPOSE, "preview.animated.quick",
-    "Speed up transition between static and animated compose previews",
-    "If enabled, a transition between static and animated compose preview is almost instant",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
     COMPOSE, "preview.colorblind",
     "Enable the colorblind mode for Compose previews",
