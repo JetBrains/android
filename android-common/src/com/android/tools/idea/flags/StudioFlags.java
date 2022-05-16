@@ -758,6 +758,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.recomposition.highlights", "Enable recomposition highlights",
     "Enable recomposition highlights on the image in the layout inspector.", true);
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.auto.connect.foreground", "Enable automatically connecting to foreground process",
+    "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.", false);
   //endregion
 
   //region Embedded Emulator
