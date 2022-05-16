@@ -109,24 +109,32 @@ class RuleData(
   }
 
   class HeaderReplacedRuleData(
-    val findName: String,
+    val findName: String?,
     val isFindNameRegex: Boolean,
-    val findValue: String,
+    val findValue: String?,
     val isFindValueRegex: Boolean,
-    val newName: String,
-    val newValue: String) : TransformationRuleData {
+    val newName: String?,
+    val newValue: String?) : TransformationRuleData {
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       headerReplacedBuilder.apply {
-        targetNameBuilder.apply {
-          text = findName
-          type = matchingTextTypeFrom(isFindNameRegex)
+        if (findName != null) {
+          targetNameBuilder.apply {
+            text = findName
+            type = matchingTextTypeFrom(isFindNameRegex)
+          }
         }
-        targetValueBuilder.apply {
-          text = findValue
-          type = matchingTextTypeFrom(isFindValueRegex)
+        if (findValue != null) {
+          targetValueBuilder.apply {
+            text = findValue
+            type = matchingTextTypeFrom(isFindValueRegex)
+          }
         }
-        newName = this@HeaderReplacedRuleData.newName
-        newValue = this@HeaderReplacedRuleData.newValue
+        if (this@HeaderReplacedRuleData.newName != null) {
+          newName = this@HeaderReplacedRuleData.newName
+        }
+        if (this@HeaderReplacedRuleData.newValue != null) {
+          newValue = this@HeaderReplacedRuleData.newValue
+        }
       }
     }.build()
   }
@@ -138,7 +146,7 @@ class RuleData(
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
               is HeaderAddedRuleData -> item.name
-              is HeaderReplacedRuleData -> item.findName
+              is HeaderReplacedRuleData -> item.findName ?: "Any"
               else -> ""
             }
           }
@@ -147,7 +155,7 @@ class RuleData(
           override fun valueOf(item: TransformationRuleData): String {
             return when (item) {
               is HeaderAddedRuleData -> item.value
-              is HeaderReplacedRuleData -> item.findValue
+              is HeaderReplacedRuleData -> item.findValue ?: "Unchanged"
               else -> ""
             }
           }

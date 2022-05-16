@@ -480,6 +480,36 @@ class RuleDetailsViewTest {
   }
 
   @Test
+  fun partialEditHeaderRule() {
+    val ruleData = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
+    assertThat(headerTable.rowCount).isEqualTo(0)
+
+    val model = ruleData.headerRuleTableModel
+    val headerAddedRule = RuleData.HeaderAddedRuleData("name", "value")
+    val headerReplacedRule = RuleData.HeaderReplacedRuleData(
+      "findName",
+      true,
+      null,
+      false,
+      null,
+      "replaceValue"
+    )
+    model.addRow(headerAddedRule)
+    model.addRow(headerReplacedRule)
+    assertThat(headerTable.rowCount).isEqualTo(2)
+    ruleData.toProto().let {
+      assertThat(it.transformationList[0].hasHeaderAdded()).isTrue()
+      assertThat(it.transformationList[1].hasHeaderReplaced()).isTrue()
+      assertThat(it.transformationList[1].headerReplaced.targetName.text).isEqualTo("findName")
+      assertThat(it.transformationList[1].headerReplaced.hasTargetValue()).isFalse()
+      assertThat(it.transformationList[1].headerReplaced.hasNewName()).isFalse()
+      assertThat(it.transformationList[1].headerReplaced.newValue).isEqualTo("replaceValue")
+    }
+  }
+
+  @Test
   fun addAndRemoveBodyReplacedRulesFromDetailsView() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView

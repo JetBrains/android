@@ -185,12 +185,12 @@ class HeaderRuleDialog(
     }
     else {
       saveAction(RuleData.HeaderReplacedRuleData(
-        if (findNameCheckBox.isSelected) findNameTextField.text else "",
+        if (findNameCheckBox.isSelected) findNameTextField.text else null,
         findNameRegexCheckBox.isSelected,
-        if (findValueCheckBox.isSelected) findValueTextField.text else "",
+        if (findValueCheckBox.isSelected) findValueTextField.text else null,
         findValueRegexCheckBox.isSelected,
-        if (replaceNameCheckBox.isSelected) newReplacedNameTextField.text else "",
-        if (replaceValueCheckBox.isSelected) newReplacedValueTextField.text else ""
+        if (replaceNameCheckBox.isSelected) newReplacedNameTextField.text else null,
+        if (replaceValueCheckBox.isSelected) newReplacedValueTextField.text else null
       ))
     }
   }
