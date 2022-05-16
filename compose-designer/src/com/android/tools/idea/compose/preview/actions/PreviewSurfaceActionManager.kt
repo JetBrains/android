@@ -73,9 +73,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
             AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
           },
-          StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
-            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
-          },
+          EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
           StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled {
             ComposePreviewIssuePanelAction(
