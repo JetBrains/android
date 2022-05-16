@@ -39,4 +39,12 @@
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorLaunchTaskContributor"/>
   </extensions>
+
+  <applicationListeners>
+    <listener
+        class="com.android.tools.idea.layoutinspector.pipeline.TransportDeviceManagerListenerImpl"
+        topic="com.intellij.openapi.project.ProjectManagerListener"
+    />
+  </applicationListeners>
+
 </idea-plugin>
