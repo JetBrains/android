@@ -148,6 +148,34 @@ fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
  * Create a component that shows a category [name] with [TitledSeparator] and a list of following
  * [entryComponents].
  */
+fun createCategoryPanel(
+  name: String?,
+  vararg entryComponents: Pair<JComponent, JComponent>
+): JPanel {
+  val panel = JPanel(VerticalLayout(6))
+  if (name != null) {
+    val headingPanel = TitledSeparator(name)
+    headingPanel.minimumSize = Dimension(0, 34)
+    panel.add(headingPanel)
+  }
+  val bodyPanel = JPanel(TabularLayout("Fit,*")).apply { border = JBUI.Borders.empty() }
+
+  for ((index, components) in entryComponents.withIndex()) {
+    val (component1, component2) = components
+    val component2Panel = JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty(5, 10)
+
+      add(component2, BorderLayout.CENTER)
+    }
+
+    bodyPanel.add(component1, TabularLayout.Constraint(index, 0))
+    bodyPanel.add(component2Panel, TabularLayout.Constraint(index,  1))
+  }
+  panel.add(bodyPanel)
+  return panel
+}
+
+@Deprecated("Soon to be replaced by createCategoryPanel(String?, vararg Pair<JComponent, JComponent>)")
 fun createCategoryPanel(name: String, entryComponents: List<JComponent>): JPanel {
   val panel = JPanel(VerticalLayout(6))
 
@@ -179,15 +207,20 @@ fun createKeyValuePair(key: String, valueComponent: JComponent): JPanel {
 /**
  * Create a [JBTextField] with preferred [width] and focus lost listener.
  */
-fun createTextField(initialText: String?, hintText: String, width: Int, focusLost: (String) -> Unit = {}): JBTextField {
-  return JBTextField(initialText).apply {
-    this.emptyText.appendText(hintText)
-    preferredSize = Dimension(width, preferredSize.height)
-    border = BorderFactory.createLineBorder(borderLight)
-    addFocusListener(object : FocusAdapter() {
-      override fun focusLost(e: FocusEvent) {
-        focusLost(text)
-      }
-    })
-  }
+fun createTextField(
+  initialText: String?,
+  hintText: String,
+  width: Int,
+  name: String? = null,
+  focusLost: (String) -> Unit = {}
+) = JBTextField(initialText).apply {
+  this.emptyText.appendText(hintText)
+  preferredSize = Dimension(width, preferredSize.height)
+  border = BorderFactory.createLineBorder(borderLight)
+  this.name = name
+  addFocusListener(object : FocusAdapter() {
+    override fun focusLost(e: FocusEvent) {
+      focusLost(text)
+    }
+  })
 }
