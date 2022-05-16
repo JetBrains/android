@@ -24,6 +24,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -32,12 +33,17 @@ import org.mockito.Mockito.verify
 /**
  * Tests for [LogcatApplicationSettingsConfigurable]
  */
-@RunsInEdt
 class LogcatApplicationSettingsConfigurableTest {
   @get:Rule
   val rule = RuleChain(ApplicationRule(), EdtRule())
 
   private val logcatSettings = AndroidLogcatSettings()
+
+  @Test
+  fun init_doesNotRequireEdt() {
+    // This will throw if constructor requires EDT
+    LogcatApplicationSettingsConfigurable(logcatSettings)
+  }
 
   @Test
   fun createComponent() {
@@ -108,6 +114,7 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
+  @RunsInEdt
   fun apply() {
     val logcatSettings = AndroidLogcatSettings(
       bufferSize = 100 * 1024,
@@ -141,6 +148,7 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
+  @RunsInEdt
   fun isModified_defaultFilter() {
     logcatSettings.defaultFilter = "foo"
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
@@ -205,5 +213,9 @@ class LogcatApplicationSettingsConfigurableTest {
 
   private fun logcatApplicationSettingsConfigurable(logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings())
     : LogcatApplicationSettingsConfigurable =
-    LogcatApplicationSettingsConfigurable(logcatSettings).apply(LogcatApplicationSettingsConfigurable::createComponent)
+    LogcatApplicationSettingsConfigurable(logcatSettings).apply {
+      runInEdtAndWait {
+        createComponent()
+      }
+    }
 }

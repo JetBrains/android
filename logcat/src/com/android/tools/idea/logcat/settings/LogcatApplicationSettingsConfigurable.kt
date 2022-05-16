@@ -41,6 +41,7 @@ import javax.swing.event.DocumentEvent
 private const val MAX_BUFFER_SIZE_MB = 100
 private const val MAX_BUFFER_SIZE_KB = 1024 * MAX_BUFFER_SIZE_MB
 
+// TODO(aalbert): Maybe change this to be a ConfigurableUi and use SimpleConfigurable?
 internal class LogcatApplicationSettingsConfigurable(private val logcatSettings: AndroidLogcatSettings) : Configurable, Configurable.NoScroll {
   @VisibleForTesting
   internal val cycleBufferSizeTextField = JTextField(10).apply {
@@ -49,7 +50,6 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
   @VisibleForTesting
   internal val defaultFilterTextField = EditorTextField(ProjectManager.getInstance().defaultProject, LogcatFilterFileType).apply {
-    text = logcatSettings.defaultFilter
     isEnabled = !logcatSettings.mostRecentlyUsedFilterIsDefault
   }
 
@@ -92,7 +92,10 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(JPanel(), gridBag.nextLine().next().weighty(1.0))
   }
 
-  override fun createComponent() = component
+  override fun createComponent() = component.apply {
+    // Changing EditorTextField.text requires EDT, so we don't touch it during construction.
+    defaultFilterTextField.text = logcatSettings.defaultFilter
+  }
 
   private fun updateWarningLabel() {
     val value = getBufferSizeKb()
