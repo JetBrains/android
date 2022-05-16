@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.android.resources.ResourceFolderType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
@@ -29,6 +28,7 @@ import com.intellij.util.indexing.ID
 import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
 import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
+import com.intellij.util.text.CharArrayUtil
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInput
@@ -57,7 +57,7 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   private val jaxbSerializer get() = jaxbContext.createMarshaller()
   private val jaxbDeserializer get() = jaxbContext.createUnmarshaller()
 
-  override fun getVersion() = 9
+  override fun getVersion() = 10
   override fun dependsOnFileContent() = true
   override fun getName(): ID<Int, NavXmlData> = NAME
 
@@ -68,8 +68,6 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
           return false
         }
         return "xml" == file.extension
-               && ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.NAVIGATION
-               && XmlFileType.INSTANCE == file.fileType
       }
     }
   }
@@ -99,10 +97,30 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
 
   override fun getIndexer(): SingleEntryIndexer<NavXmlData> {
     return object : SingleEntryIndexer<NavXmlData>(false) {
+      private fun FileContent.looksLikeNavigationXml(): Boolean {
+        val text = contentAsText
+        var idx = 0
+
+        while (true) {
+          // find open tag
+          idx = CharArrayUtil.indexOf(text, "<", idx)
+          if (idx == -1) return false
+
+          // ignore processing & comment tags
+          if (CharArrayUtil.regionMatches(text, idx, "<!--") ||
+              CharArrayUtil.regionMatches(text, idx, "<?")) {
+            idx++
+            continue
+          }
+          return CharArrayUtil.regionMatches(text, idx, "<navigation")
+        }
+      }
+
       override fun computeValue(inputData: FileContent): NavXmlData? {
-        try {
+        if (!inputData.looksLikeNavigationXml()) return null
+        return try {
           val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
-          return NavXmlData(rootNav)
+          NavXmlData(rootNav)
         }
         // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
         // throws AssertionErrors, which isn't documented. Since we don't really care why the parse
@@ -110,7 +128,7 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         // we just catch and log all possible problems.
         catch (e: Throwable) {
           getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\": ${e.message}")
-          return null
+          null
         }
       }
     }
