@@ -48,6 +48,7 @@ import java.util.function.BiConsumer
 /**
  * Unit test for [LaunchTaskRunner].
  */
+@org.junit.Ignore("b/233935324")
 class LaunchTaskRunnerTest {
   @get:Rule
   var mockitoJunit = MockitoJUnit.rule()
