@@ -26,13 +26,13 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -47,11 +47,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -89,6 +89,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import org.gradle.api.logging.Logging;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,12 +140,9 @@ public class BuildVariantView {
     this(project, BuildVariantUpdater.getInstance(project));
   }
 
-  @VisibleForTesting
-  @NonInjectable
-  public BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
+  private BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
     myProject = project;
     myUpdater = updater;
-    myUpdater.addSelectionChangeListener(this::invokeListeners);
     ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
   }
 
@@ -167,7 +165,7 @@ public class BuildVariantView {
     updateContents();
   }
 
-  public void updateContents() {
+  private void updateContents() {
     List<Object[]> rows = new ArrayList<>();
 
     // Maps the row number to the corresponding array of build variants and abis.
@@ -229,8 +227,12 @@ public class BuildVariantView {
     }
   }
 
-  public void projectImportStarted() {
+  private void projectImportStarted() {
     getVariantsTable().setLoading(true);
+  }
+
+  private void projectImportFinished() {
+    ConflictSet.findConflicts(myProject).showSelectionConflicts();
   }
 
   /**
@@ -360,21 +362,6 @@ public class BuildVariantView {
         break;
       }
     }
-  }
-
-  interface BuildVariantSelectionChangeListener {
-    /**
-     * Indicates that a user selected a build variant from the "Build Variants" tool window.
-     * <p/>
-     * This notification occurs:
-     * <ul>
-     * <li>after the user selected a build variant from the drop-down</li>
-     * <li>project structure has been updated according to selected build variant</li>
-     * </ul>
-     * <p/>
-     * This listener will not be invoked if the project structure update fails.
-     */
-    void selectionChanged();
   }
 
   private class NotificationPanel extends JPanel {
@@ -639,10 +626,12 @@ public class BuildVariantView {
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-          getVariantsTable().setLoading(true /* Show "loading" message in the table*/ );
-          if (!myUpdater.updateSelectedBuildVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
-            updateContents();
+          Module module = ModuleManager.getInstance(myProject).findModuleByName(selectedVariant.myModuleName);
+          if (module == null) {
+            Logging.getLogger(BuildVariantView.class).error("Module not found: " + selectedVariant.myModuleName);
+            return;
           }
+          myUpdater.updateSelectedBuildVariant(module, selectedVariant.myBuildVariantName);
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
@@ -684,9 +673,12 @@ public class BuildVariantView {
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           AbiItem selectedAbi = (AbiItem)e.getItem();
-          if (!myUpdater.updateSelectedAbi(myProject, selectedAbi.myModuleName, selectedAbi.myAbiName)) {
-            updateContents();
+          Module module = ModuleManager.getInstance(myProject).findModuleByName(selectedAbi.myModuleName);
+          if (module == null) {
+            Logging.getLogger(BuildVariantView.class).error("Module not found: " + selectedAbi.myModuleName);
+            return;
           }
+          myUpdater.updateSelectedAbi(module, selectedAbi.myAbiName);
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
@@ -728,16 +720,6 @@ public class BuildVariantView {
         return createAbiCellEditor(row, abiItems);
       }
       return myModuleCellEditor;
-    }
-  }
-
-  private void invokeListeners() {
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode()) {
-      updateContents();
-    }
-    else {
-      application.invokeLater(this::updateContents);
     }
   }
 
@@ -959,5 +941,27 @@ public class BuildVariantView {
       return null;
     }
     return getNdkModuleModelIfNotJustDummy(ndkFacet);
+  }
+
+  static class SyncListener implements GradleSyncListener {
+    @Override
+    public void syncStarted(@NotNull Project project) {
+      BuildVariantView.getInstance(project).projectImportStarted();
+    }
+
+    @Override
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      BuildVariantView.getInstance(project).projectImportFinished();
+    }
+
+    @Override
+    public void syncSucceeded(@NotNull Project project) {
+      BuildVariantView.getInstance(project).projectImportFinished();
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
+      BuildVariantView.getInstance(project).projectImportFinished();
+    }
   }
 }

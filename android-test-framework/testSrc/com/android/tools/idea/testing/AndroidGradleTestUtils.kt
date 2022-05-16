@@ -1913,11 +1913,11 @@ fun verifySyncSkipped(project: Project, disposable: Disposable) {
 }
 
 fun switchVariant(project: Project, moduleGradlePath: String, variant: String) {
-  BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.gradleModule(moduleGradlePath)!!.name, variant)
+  BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project.gradleModule(moduleGradlePath)!!, variant)
 }
 
 fun switchAbi(project: Project, moduleGradlePath: String, abi: String) {
-  BuildVariantUpdater.getInstance(project).updateSelectedAbi(project, project.gradleModule(moduleGradlePath)!!.name, abi)
+  BuildVariantUpdater.getInstance(project).updateSelectedAbi(project.gradleModule(moduleGradlePath)!!, abi)
 }
 
 inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {

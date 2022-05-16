@@ -19,7 +19,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -51,7 +50,6 @@ public class SyncProjectAction extends AndroidStudioGradleAction implements Dumb
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    BuildVariantView.getInstance(project).projectImportStarted();
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {

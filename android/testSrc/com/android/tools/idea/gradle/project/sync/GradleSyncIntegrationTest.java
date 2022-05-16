@@ -336,7 +336,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     importProject();
     prepareProjectForTest(getProject(), "app");
 
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicQa");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getModule("app"), "basicQa");
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();

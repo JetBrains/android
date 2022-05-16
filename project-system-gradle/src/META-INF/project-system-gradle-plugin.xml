@@ -116,6 +116,8 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.RecordAgpVersionSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+    <listener class="com.android.tools.idea.gradle.variant.view.BuildVariantView$SyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <gradleModelFacade implementation="org.jetbrains.kotlin.android.configure.AndroidGradleModelFacade"/>

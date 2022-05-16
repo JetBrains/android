@@ -69,7 +69,6 @@ public class SyncProjectActionTest extends PlatformTestCase {
 
     assertTrue(myPresentation.isEnabled());
     verify(mySyncInvoker).requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_SYNC_ACTION), null);
-    verify(buildVariantView).projectImportStarted();
   }
 
   public void testDoUpdateWithSyncInProgress() {
