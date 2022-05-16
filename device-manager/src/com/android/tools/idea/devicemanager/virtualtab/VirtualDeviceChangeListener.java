@@ -18,54 +18,28 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
-import com.android.ddmlib.AvdData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IDevice.DeviceState;
-import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
-import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.FluentFuture;
-import com.google.common.util.concurrent.FutureCallback;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.EdtExecutorService;
-import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceChangeListener implements IDeviceChangeListener {
-  private final @NotNull VirtualDeviceTableModel myModel;
-  private final @NotNull NewSetOnline myNewSetOnline;
-
-  @VisibleForTesting
-  interface NewSetOnline {
-    @NotNull FutureCallback<@Nullable Key> apply(@NotNull VirtualDeviceTableModel model, boolean online);
-  }
+  private final @NotNull Supplier<@NotNull Application> myGetApplication;
+  private final @NotNull Runnable mySetAllOnline;
 
   @UiThread
   VirtualDeviceChangeListener(@NotNull VirtualDeviceTableModel model) {
-    this(model, VirtualDeviceChangeListener::newSetOnline);
+    this(ApplicationManager::getApplication, model::setAllOnline);
   }
 
   @VisibleForTesting
-  VirtualDeviceChangeListener(@NotNull VirtualDeviceTableModel model, @NotNull NewSetOnline newSetOnline) {
-    myModel = model;
-    myNewSetOnline = newSetOnline;
-  }
-
-  /**
-   * Called by the device list monitor thread
-   */
-  @WorkerThread
-  @VisibleForTesting
-  static @NotNull FutureCallback<@Nullable Key> newSetOnline(@NotNull VirtualDeviceTableModel model, boolean online) {
-    return new DeviceManagerFutureCallback<>(VirtualDeviceChangeListener.class, key -> {
-      if (key == null) {
-        model.setAllOnline();
-      }
-      else {
-        model.setOnline(key, online);
-      }
-    });
+  VirtualDeviceChangeListener(@NotNull Supplier<@NotNull Application> getApplication, @NotNull Runnable setAllOnline) {
+    myGetApplication = getApplication;
+    mySetAllOnline = setAllOnline;
   }
 
   /**
@@ -117,41 +91,11 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
 
     switch (state) {
       case OFFLINE:
-        setOnline(device, false);
-        break;
       case ONLINE:
-        setOnline(device, true);
+        myGetApplication.get().invokeLater(mySetAllOnline);
         break;
       default:
         break;
     }
-  }
-
-  /**
-   * Called by the device list monitor thread
-   */
-  @WorkerThread
-  private void setOnline(@NotNull IDevice device, boolean online) {
-    Executor executor = EdtExecutorService.getInstance();
-
-    // noinspection UnstableApiUsage
-    FluentFuture.from(device.getAvdData())
-      .transform(VirtualDeviceChangeListener::getKey, executor)
-      .addCallback(myNewSetOnline.apply(myModel, online), executor);
-  }
-
-  @UiThread
-  private static @Nullable Key getKey(@Nullable AvdData avd) {
-    if (avd == null) {
-      return null;
-    }
-
-    String path = avd.getPath();
-
-    if (path == null) {
-      return null;
-    }
-
-    return new VirtualDeviceName(path);
   }
 }

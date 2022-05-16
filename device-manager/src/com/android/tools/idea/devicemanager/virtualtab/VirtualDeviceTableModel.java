@@ -103,7 +103,32 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @VisibleForTesting
   static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model, @NotNull Key key) {
-    return new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, online -> model.setOnline(key, online));
+    return new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, online -> {
+      int modelRowIndex = Devices.indexOf(model.myDevices, key);
+
+      if (modelRowIndex == -1) {
+        return;
+      }
+
+      VirtualDevice oldDevice = model.myDevices.get(modelRowIndex);
+
+      VirtualDevice newDevice = new VirtualDevice.Builder()
+        .setKey(oldDevice.getKey())
+        .setType(oldDevice.getType())
+        .setName(oldDevice.getName())
+        .setOnline(online)
+        .setTarget(oldDevice.getTarget())
+        .setCpuArchitecture(oldDevice.getCpuArchitecture())
+        .setAndroidVersion(oldDevice.getAndroidVersion())
+        .setSizeOnDisk(oldDevice.getSizeOnDisk())
+        .setResolution(oldDevice.getResolution())
+        .setDensity(oldDevice.getDensity())
+        .setAvdInfo(oldDevice.getAvdInfo())
+        .build();
+
+      model.myDevices.set(modelRowIndex, newDevice);
+      model.fireTableCellUpdated(modelRowIndex, DEVICE_MODEL_COLUMN_INDEX);
+    });
   }
 
   @NotNull List<@NotNull VirtualDevice> getDevices() {
@@ -136,33 +161,6 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     ListenableFuture<Boolean> future = Futures.submit(() -> connection.isAvdRunning(device.getAvdInfo()), executor);
 
     Futures.addCallback(future, myNewSetOnline.apply(this, device.getKey()), EdtExecutorService.getInstance());
-  }
-
-  void setOnline(@NotNull Key key, boolean online) {
-    int modelRowIndex = Devices.indexOf(myDevices, key);
-
-    if (modelRowIndex == -1) {
-      return;
-    }
-
-    VirtualDevice oldDevice = myDevices.get(modelRowIndex);
-
-    VirtualDevice newDevice = new VirtualDevice.Builder()
-      .setKey(oldDevice.getKey())
-      .setType(oldDevice.getType())
-      .setName(oldDevice.getName())
-      .setOnline(online)
-      .setTarget(oldDevice.getTarget())
-      .setCpuArchitecture(oldDevice.getCpuArchitecture())
-      .setAndroidVersion(oldDevice.getAndroidVersion())
-      .setSizeOnDisk(oldDevice.getSizeOnDisk())
-      .setResolution(oldDevice.getResolution())
-      .setDensity(oldDevice.getDensity())
-      .setAvdInfo(oldDevice.getAvdInfo())
-      .build();
-
-    myDevices.set(modelRowIndex, newDevice);
-    fireTableCellUpdated(modelRowIndex, DEVICE_MODEL_COLUMN_INDEX);
   }
 
   @Override

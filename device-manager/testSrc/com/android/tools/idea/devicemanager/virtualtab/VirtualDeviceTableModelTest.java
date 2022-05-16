@@ -38,54 +38,35 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTableModelTest {
-  private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
-  private final @NotNull Collection<@NotNull VirtualDevice> myDevices = List.of(TestVirtualDevices.pixel5Api31(myAvd));
-
-  private final @NotNull TableModelListener myListener = Mockito.mock(TableModelListener.class);
-
   @Test
   public void setAllOnline() throws InterruptedException {
     // Arrange
+    AvdInfo avd = Mockito.mock(AvdInfo.class);
+    Collection<VirtualDevice> devices = List.of(TestVirtualDevices.pixel5Api31(avd));
+
     AvdManagerConnection connection = Mockito.mock(AvdManagerConnection.class);
-    Mockito.when(connection.isAvdRunning(myAvd)).thenReturn(true);
+    Mockito.when(connection.isAvdRunning(avd)).thenReturn(true);
 
     CountDownLatch latch = new CountDownLatch(1);
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
 
-    VirtualDeviceTableModel model = new VirtualDeviceTableModel(myDevices, () -> connection, (m, key) -> newSetOnline(m, key, latch));
-    model.addTableModelListener(myListener);
+    VirtualDeviceTableModel model = new VirtualDeviceTableModel(devices, () -> connection, (m, key) -> newSetOnline(m, key, latch));
+    model.addTableModelListener(listener);
 
     // Act
     model.setAllOnline();
 
     // Assert
     CountDownLatchAssert.await(latch);
-    assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)), model.getDevices());
+    assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(avd)), model.getDevices());
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
   }
 
   private static @NotNull FutureCallback<@NotNull Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model,
                                                                         @NotNull Key key,
                                                                         @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceTableModel.newSetOnline(model, key), latch);
-  }
-
-  @Test
-  public void setOnline() {
-    // Arrange
-    VirtualDeviceTableModel model = new VirtualDeviceTableModel(myDevices);
-    model.addTableModelListener(myListener);
-
-    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
-
-    // Act
-    model.setOnline(key, true);
-
-    // Assert
-    assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)), model.getDevices());
-
-    TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
   }
 }
