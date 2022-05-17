@@ -280,7 +280,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       showLiveIndicator(toolWindow)
     }
 
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
       isCloseable = true
@@ -324,7 +324,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   private fun createPlaceholderPanel() {
     val panel = PlaceholderPanel(project)
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel, panel.title, false).apply {
       tabName = panel.title
       isCloseable = false

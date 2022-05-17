@@ -39,7 +39,7 @@ const val deviceGroupsTabName = "Device Groups"
 class DeviceManagerFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val virtualTab = VirtualTab(project, toolWindow)
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
 
     fun createTab(content: JComponent, name: String) {
       toolWindow.contentManager.addContent(contentFactory.createContent(content, name, false))

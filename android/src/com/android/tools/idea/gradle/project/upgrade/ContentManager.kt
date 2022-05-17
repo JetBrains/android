@@ -1,3 +1,4 @@
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
@@ -64,7 +65,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.awt.BorderLayout
-import java.util.EventListener
+import java.util.*
 import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JButton
@@ -389,7 +390,7 @@ class ContentManager(val project: Project) {
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
+    val content = ContentFactory.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.setDisposer {
       model.processor?.usageView?.close()
       Disposer.dispose(model.connection)
