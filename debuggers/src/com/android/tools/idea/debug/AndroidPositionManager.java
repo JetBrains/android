@@ -238,7 +238,7 @@ public class AndroidPositionManager extends PositionManagerImpl {
 
   @Nullable
   private static String getRelPathFromSourceRoot(@NotNull Project project, @NotNull PsiFile file) {
-    ProjectFileIndex fileIndex = ProjectFileIndex.SERVICE.getInstance(project);
+    ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
     VirtualFile sourceRoot = fileIndex.getSourceRootForFile(file.getVirtualFile());
     if (sourceRoot == null) {
       LOG.debug("Could not determine source root for file: " + file.getVirtualFile().getPath());

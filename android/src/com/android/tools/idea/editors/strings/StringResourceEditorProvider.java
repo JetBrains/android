@@ -44,7 +44,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
       return false;
     }
 
-    Module m = ProjectFileIndex.SERVICE.getInstance(project).getModuleForFile(file);
+    Module m = ProjectFileIndex.getInstance(project).getModuleForFile(file);
     if (m == null || AndroidFacet.getInstance(m) == null) {
       return false;
     }
