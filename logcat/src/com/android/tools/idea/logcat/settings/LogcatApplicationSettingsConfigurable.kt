@@ -83,7 +83,7 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
     add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
     add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
-    add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).anchor(WEST))
+    add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST))
 
     if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
       add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
