@@ -31,7 +31,6 @@ com.android.tools.idea.gradle.project.sync.SingleVariantSyncIntegrationTest
 com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlinkTest
 com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtilTest
 com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesTest
-com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheckTest
 com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckTest
 com.android.tools.idea.gradle.project.sync.issues.BuildToolsTooLowReporterIntegrationTest
 com.android.tools.idea.gradle.project.sync.issues.DeprecatedConfigurationReporterIntegrationTest

@@ -29,7 +29,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
-import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
@@ -870,7 +869,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (settings != null) { // In Android Studio we always have settings.
       JdkImportCheck.validateProjectGradleJdk(settings.getJavaHome());
     }
-    validateGradleWrapper(projectPath);
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
     if (project != null) {

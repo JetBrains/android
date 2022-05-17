@@ -155,7 +155,6 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
-    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportChecker"/>
     <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
