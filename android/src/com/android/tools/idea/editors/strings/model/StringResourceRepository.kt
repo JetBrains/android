@@ -13,178 +13,186 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.model;
+package com.android.tools.idea.editors.strings.model
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.configuration.Configurable;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.util.PathString;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
-import com.android.tools.idea.res.PsiResourceItem;
-import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.util.FileExtensions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.concurrency.EdtExecutorService;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.configuration.Configurable
+import com.android.ide.common.util.PathString
+import com.android.resources.ResourceType
+import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository
+import com.android.tools.idea.res.MultiResourceRepository
+import com.android.tools.idea.res.PsiResourceItem
+import com.android.tools.idea.res.ResourceFolderRepository
+import com.android.tools.idea.util.toVirtualFile
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.EdtExecutorService
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-public class StringResourceRepository {
-  /** Compares two PathString arguments segment by segment. */
-  private static final Comparator<PathString> PATH_SEGMENT_COMPARATOR = (p1, p2) -> {
-    List<String> segments1 = p1.getSegments();
-    List<String> segments2 = p2.getSegments();
-    int n = Math.min(segments1.size(), segments2.size());
-    for (int i = 0; i < n; i++) {
-      int c = segments1.get(i).compareTo(segments2.get(i));
-      if (c != 0) {
-        return c;
-      }
-    }
-    return segments1.size() - segments2.size();
-  };
+/** A repository of [ResourceItem]s, keyed by [StringResourceKey] and optionally [Locale]. */
+interface StringResourceRepository {
+  /**
+   * Returns a [List] of all the keys in the [StringResourceRespository].
+   *
+   * The order of the list will correspond to the order the resources are encountered in files, and
+   * dynamic resources will be last.
+   */
+  fun getKeys(): List<StringResourceKey>
 
-  private final @NotNull Map<VirtualFile, ResourceFolderRepository> myResourceDirectoryRepositoryMap;
-
-  // TODO Drop support for dynamic resources?
-  private final @NotNull LocalResourceRepository myDynamicResourceRepository;
-
-  private StringResourceRepository(@NotNull Map<VirtualFile, ResourceFolderRepository> resourceDirectoryRepositoryMap,
-                                   @NotNull LocalResourceRepository dynamicResourceRepository) {
-    myResourceDirectoryRepositoryMap = resourceDirectoryRepositoryMap;
-    myDynamicResourceRepository = dynamicResourceRepository;
-  }
-
-  @NotNull
-  public static StringResourceRepository empty() {
-    return new StringResourceRepository(ImmutableMap.of(), new EmptyRepository(ResourceNamespace.RES_AUTO));
-  }
+  /** Returns all [ResourceItem]s that match the given [key]. */
+  fun getItems(key: StringResourceKey): List<ResourceItem>
 
   /**
-   * Returns a future StringResourceRepository. The future is guaranteed to complete on the UI thread.
+   * Returns the default [ResourceItem], if present, for the given [key]. The default is defined as
+   * the [ResourceItem] without a specified [Locale].
    */
-  static @NotNull ListenableFuture<@NotNull StringResourceRepository> create(@NotNull LocalResourceRepository repository) {
-    List<LocalResourceRepository> repositories =
-        repository instanceof MultiResourceRepository ?
-            ((MultiResourceRepository)repository).getLocalResources() : ImmutableList.of(repository);
+  fun getDefaultValue(key: StringResourceKey): ResourceItem?
 
-    Map<VirtualFile, ResourceFolderRepository> repositoryMap = Maps.newLinkedHashMapWithExpectedSize(repositories.size());
-    LocalResourceRepository dynamicResourceRepository = null;
+  /**
+   * Returns the [ResourceItem] for the given [key], for the specified [locale], if one exists, and
+   * `null` otherwise.
+   */
+  fun getTranslation(key: StringResourceKey, locale: Locale): ResourceItem?
+
+  /**
+   * Schedules the given [Runnable] to run once pending updates to the underlying repository finish.
+   */
+  fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable)
+
+  /** Suspends execution until updates to the repository for the given [key] are complete. */
+  suspend fun waitForUpdates(key: StringResourceKey)
+
+  companion object {
+    /** Returns a new instance of an empty [StringResourceRepository]. */
+    @JvmStatic
+    fun empty(): StringResourceRepository =
+        StringResourceRepositoryImpl(EmptyRepository(ResourceNamespace.RES_AUTO))
+
+    /**
+     * Creates a new [StringResourceRepository] from the given [repository]. Note that the
+     * repository may not be ready to use as modifications to [repository] initiated by this
+     * function may still be in flight.
+     *
+     * Use [LocalResourceRepository.invokeAfterPendingUpdatesFinish] to wait for these updates to
+     * finish.
+     */
+    @JvmStatic
+    fun create(repository: LocalResourceRepository): StringResourceRepository =
+        StringResourceRepositoryImpl(repository)
+  }
+}
+
+/**
+ * Implementation class of [StringResourceRepository] interface based on [VirtualFile],
+ * [ResourceFolderRepository], and [LocalResourceRepository].
+ */
+private class StringResourceRepositoryImpl(repository: LocalResourceRepository) :
+    StringResourceRepository {
+  private val resourceDirectoryRepositoryMap: Map<VirtualFile, ResourceFolderRepository>
+  private val dynamicResourceRepository: LocalResourceRepository
+
+  init {
+    val repositories: List<LocalResourceRepository> =
+        when (repository) {
+          is MultiResourceRepository -> repository.localResources
+          else -> listOf(repository)
+        }
+    val repositoryMap: MutableMap<VirtualFile, ResourceFolderRepository> =
+        LinkedHashMap(repositories.size)
+
+    var dynamicRepository: LocalResourceRepository? = null
 
     // Convert resource items to PsiResourceItem to know their locations in files.
-    for (LocalResourceRepository localRepository : repositories) {
-      if (localRepository instanceof ResourceFolderRepository) {
-        ResourceFolderRepository folderRepository = (ResourceFolderRepository)localRepository;
-        repositoryMap.put(folderRepository.getResourceDir(), folderRepository);
+    for (localRepository in repositories) {
+      if (localRepository is ResourceFolderRepository) {
+        repositoryMap[localRepository.resourceDir] = localRepository
         // Use ordering similar to a recursive directory scan.
-        Set<PathString> stringResourceSources = new TreeSet<>(PATH_SEGMENT_COMPARATOR);
-        for (ResourceItem item : localRepository.getResources(folderRepository.getNamespace(), ResourceType.STRING).values()) {
-          if (!(item instanceof PsiResourceItem)) {
-            PathString source = item.getSource();
-            if (source != null) {
-              stringResourceSources.add(source);
-            }
-          }
-        }
-        for (PathString source : stringResourceSources) {
-          VirtualFile file = FileExtensions.toVirtualFile(source);
-          if (file != null) {
-            folderRepository.convertToPsiIfNeeded(file);
-          }
-        }
-      }
-      else {
-        assert dynamicResourceRepository == null;
-        dynamicResourceRepository = localRepository;
+        localRepository
+            .getResources(localRepository.namespace, ResourceType.STRING)
+            .values()
+            .filter { item -> item !is PsiResourceItem }
+            .mapNotNull { item -> item.source }
+            .toSortedSet(pathStringComparator)
+            .mapNotNull { s -> s.toVirtualFile() }
+            .forEach(localRepository::convertToPsiIfNeeded)
+      } else {
+        assert(dynamicRepository == null) // Should only be one of these in the list.
+        dynamicRepository = localRepository
       }
     }
 
-    if (dynamicResourceRepository == null) {
-      dynamicResourceRepository = new EmptyRepository(ResourceNamespace.RES_AUTO);
+    if (dynamicRepository == null) {
+      dynamicRepository = EmptyRepository(ResourceNamespace.RES_AUTO)
     }
-    StringResourceRepository stringRepository = new StringResourceRepository(repositoryMap, dynamicResourceRepository);
-    SettableFuture<StringResourceRepository> futureStringRepository = SettableFuture.create();
-    // Return the repository only after completion of the PSI conversion.
-    repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), () -> futureStringRepository.set(stringRepository));
-    return futureStringRepository;
+    resourceDirectoryRepositoryMap = repositoryMap
+    dynamicResourceRepository = dynamicRepository
   }
 
-  final @NotNull Stream<StringResourceKey> getKeys() {
-    Set<Entry<VirtualFile, ResourceFolderRepository>> entries = myResourceDirectoryRepositoryMap.entrySet();
-    Stream<StringResourceKey> resourceDirectoryKeys = entries.stream().flatMap(StringResourceRepository::getKeys);
-
-    Set<String> names = myDynamicResourceRepository.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING);
-    Stream<StringResourceKey> dynamicResourceKeys = names.stream().map(StringResourceKey::new);
-
-    return Stream.concat(resourceDirectoryKeys, dynamicResourceKeys);
+  override fun getKeys(): List<StringResourceKey> {
+    val resourceDirectoryKeys =
+        resourceDirectoryRepositoryMap.flatMap { (dir, repo) ->
+          repo.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING).map { name ->
+            StringResourceKey(name, dir)
+          }
+        }
+    val dynamicResourceKeys =
+        dynamicResourceRepository
+            .getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING)
+            .map(::StringResourceKey)
+    return resourceDirectoryKeys + dynamicResourceKeys
   }
 
-  private static @NotNull Stream<StringResourceKey> getKeys(@NotNull Entry<VirtualFile, ResourceFolderRepository> entry) {
-    VirtualFile directory = entry.getKey();
+  override fun getItems(key: StringResourceKey): List<ResourceItem> =
+      key.getRepository().getResources(ResourceNamespace.TODO(), ResourceType.STRING, key.name)
 
-    return entry.getValue().getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
-      .map(name -> new StringResourceKey(name, directory));
+  override fun getDefaultValue(key: StringResourceKey): ResourceItem? =
+      getItems(key).find { it.configuration.localeQualifier == null }
+
+  override fun getTranslation(key: StringResourceKey, locale: Locale): ResourceItem? =
+      getItems(key).find { it.hasLocale(locale) }
+
+  override fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable) =
+      key.getRepository()
+          .invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), callback)
+
+  override suspend fun waitForUpdates(key: StringResourceKey) {
+    suspendCoroutine<Unit> { cont ->
+      key.getRepository().invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance()) {
+        cont.resume(Unit)
+      }
+    }
   }
 
-  public @NotNull List<ResourceItem> getItems(@NotNull StringResourceKey key) {
-    return getItems(getRepository(key), key);
-  }
-
-  final @Nullable ResourceItem getDefaultValue(@NotNull StringResourceKey key) {
-    return getItem(key, item -> item.getConfiguration().getLocaleQualifier() == null);
-  }
-
-  final @Nullable ResourceItem getTranslation(@NotNull StringResourceKey key, @NotNull Locale locale) {
-    return getItem(key, item -> localeEquals(item, locale));
-  }
+  /** Returns the [LocalResourceRepository] for `this` [StringResourceKey]. */
+  private fun StringResourceKey.getRepository(): LocalResourceRepository =
+      if (directory == null) dynamicResourceRepository
+      else requireNotNull(resourceDirectoryRepositoryMap[directory])
 
   /**
-   * Executes the given callback on the UI thread after all pending repository updates finish.
+   * Returns `true` iff the configuration's localeQualifier is non-`null` and corresponds to the
+   * given [locale].
    */
-  public void invokeAfterPendingUpdatesFinish(@NotNull StringResourceKey key, @NotNull Runnable callback) {
-    LocalResourceRepository repository = getRepository(key);
-    repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), callback);
-  }
+  private fun Configurable.hasLocale(locale: Locale): Boolean =
+      configuration.localeQualifier?.let { Locale.create(it) == locale } ?: false
 
-  private static boolean localeEquals(@NotNull Configurable item, @NotNull Locale locale) {
-    LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
-    return qualifier != null && Locale.create(qualifier).equals(locale);
-  }
-
-  private @Nullable ResourceItem getItem(@NotNull StringResourceKey key, @NotNull Predicate<ResourceItem> predicate) {
-    LocalResourceRepository repository = getRepository(key);
-
-    Optional<ResourceItem> optionalItem = getItems(repository, key).stream()
-      .filter(predicate)
-      .findFirst();
-
-    return optionalItem.orElse(null);
-  }
-
-  private @NotNull LocalResourceRepository getRepository(@NotNull StringResourceKey key) {
-    VirtualFile directory = key.getDirectory();
-    return directory == null ? myDynamicResourceRepository : myResourceDirectoryRepositoryMap.get(directory);
-  }
-
-  private static @NotNull List<ResourceItem> getItems(@NotNull LocalResourceRepository repository, @NotNull StringResourceKey key) {
-    return repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, key.getName());
+  companion object {
+    /**
+     * Comparator to ensure ordering of resources is consistent with the order they show up in
+     * files. This compares the two [PathString]s segment by segment.
+     *
+     * TODO(b/232444069): Remove this once PathString's comparator is updated to be equivalent.
+     */
+    val pathStringComparator: Comparator<PathString> = Comparator { p1, p2 ->
+      val segments1 = p1.segments
+      val segments2 = p2.segments
+      (segments1 zip segments2)
+          .asSequence()
+          .map { (s1, s2) -> compareValues(s1, s2) }
+          .find { it != 0 }
+          ?: (segments1.size - segments2.size)
+    }
   }
 }
