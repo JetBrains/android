@@ -121,6 +121,7 @@ class RuleDetailsViewTest {
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
       override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
     })
+    model.detailContent = NetworkInspectorModel.DetailContent.RULE
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())

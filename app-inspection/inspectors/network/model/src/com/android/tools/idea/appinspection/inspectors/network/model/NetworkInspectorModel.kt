@@ -39,9 +39,23 @@ private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
-  val connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
+  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
   startTimeStampNs: Long = 0
 ) : AspectModel<NetworkInspectorAspect>() {
+
+  enum class DetailContent {
+    CONNECTION,
+    RULE,
+    EMPTY
+  }
+
+  var detailContent: DetailContent = DetailContent.EMPTY
+    set(value) {
+      if (field != value) {
+        field = value
+        aspect.changed(NetworkInspectorAspect.DETAILS)
+      }
+    }
 
   val name = "NETWORK"
 
@@ -94,9 +108,8 @@ class NetworkInspectorModel(
       return false
     }
     selectedConnection = data
-    if (data != null && selectedRule != null) {
-      selectedRule = null
-      aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
+    if (data == null && detailContent == DetailContent.CONNECTION) {
+      detailContent = DetailContent.EMPTY
     }
     aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
     return true
@@ -111,16 +124,10 @@ class NetworkInspectorModel(
       return false
     }
     selectedRule = rule
-    if (rule != null && selectedConnection != null) {
-      selectedConnection = null
-      aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
+    if (rule == null && detailContent == DetailContent.RULE) {
+      detailContent = DetailContent.EMPTY
     }
     aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
     return true
-  }
-
-  fun resetSelection() {
-    setSelectedRule(null)
-    setSelectedConnection(null)
   }
 }

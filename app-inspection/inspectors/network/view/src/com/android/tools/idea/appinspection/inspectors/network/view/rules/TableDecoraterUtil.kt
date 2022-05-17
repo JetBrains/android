@@ -19,7 +19,15 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.AbstractAction
+import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.KeyStroke
+
+const val ENTER_ACTION_KEY = "ENTER_ACTION"
 
 /**
  * Returns a table component with decorated toolbar.
@@ -32,3 +40,11 @@ fun <Item> createDecoratedTable(table: TableView<Item>, decorator: ToolbarDecora
     add(table.tableHeader, TabularLayout.Constraint(1, 0))
     add(table, TabularLayout.Constraint(2, 0))
   }
+
+fun JTable.registerEnterKeyAction(action: (ActionEvent) -> Unit) {
+  val enterKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
+  getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enterKeyStroke, ENTER_ACTION_KEY)
+  actionMap.put(ENTER_ACTION_KEY, object : AbstractAction() {
+    override fun actionPerformed(e: ActionEvent) = action(e)
+  })
+}

@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
@@ -45,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
+import java.awt.Component
 import javax.swing.JPanel
 
 @RunsInEdt
@@ -103,6 +105,7 @@ class NetworkInspectorDetailsPanelTest {
   @Test
   fun viewIsVisibleWhenDataIsNotNull() {
     detailsPanel.isVisible = false
+    model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
     model.setSelectedConnection(DEFAULT_DATA)
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
@@ -114,6 +117,7 @@ class NetworkInspectorDetailsPanelTest {
     model.setSelectedConnection(null)
     assertThat(detailsPanel.isVisible).isFalse()
 
+    model.detailContent = NetworkInspectorModel.DetailContent.RULE
     model.setSelectedRule(RuleData(1, "NewRule", true))
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
@@ -124,5 +128,51 @@ class NetworkInspectorDetailsPanelTest {
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
     model.setSelectedRule(null)
     assertThat(detailsPanel.isVisible).isFalse()
+  }
+
+  @Test
+  fun openAndCLoseDetailsPanelWhenSwitchingTabs() {
+    val tabs = inspectorView.connectionsView.component.findParentIsInstance<CommonTabbedPane>()
+    assertThat(tabs.selectedIndex == 0)
+    detailsPanel.isVisible = false
+    model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+    model.setSelectedConnection(DEFAULT_DATA)
+    assertThat(detailsPanel.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+
+    // Switching between connection and threads view does not change details panel.
+    tabs.selectedIndex = 1
+    assertThat(detailsPanel.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+
+    // Switch to Rules tab
+    tabs.selectedIndex = 2
+    assertThat(detailsPanel.isVisible).isFalse()
+
+    // Add a new rule.
+    model.detailContent = NetworkInspectorModel.DetailContent.RULE
+    model.setSelectedRule(RuleData(1, "NewRule", true))
+    assertThat(detailsPanel.isVisible).isTrue()
+    assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+
+    // Switching back to connections tab opens the selected connection.
+    tabs.selectedIndex = 0
+    assertThat(detailsPanel.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+
+    // Switching back to rule tab opens the selected rule.
+    tabs.selectedIndex = 2
+    assertThat(detailsPanel.isVisible).isTrue()
+    assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+  }
+
+  private inline fun <reified R : Component> Component.findParentIsInstance(): R {
+    var component = this
+    while (component !is R) {
+      component = component.parent
+    }
+    return component
   }
 }

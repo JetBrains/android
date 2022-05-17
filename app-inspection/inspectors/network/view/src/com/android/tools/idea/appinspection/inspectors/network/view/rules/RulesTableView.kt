@@ -25,6 +25,8 @@ import com.intellij.ui.table.TableView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import studio.network.inspection.NetworkInspectorProtocol
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 
@@ -44,6 +46,7 @@ class RulesTableView(
       tableModel.addRow(createRuleDataWithListener())
       val selectedRow = tableModel.rowCount - 1
       table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
+      model.detailContent = NetworkInspectorModel.DetailContent.RULE
     }.setRemoveAction {
       val index = table.selectedRow
       if (index < 0) {
@@ -51,6 +54,7 @@ class RulesTableView(
       }
       val ruleData = table.selectedObject ?: return@setRemoveAction
       tableModel.removeRow(table.convertRowIndexToModel(index))
+      model.setSelectedRule(null)
       scope.launch {
         if (ruleData.isActive) {
           client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
@@ -64,11 +68,27 @@ class RulesTableView(
     component = createDecoratedTable(table, decorator)
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
+      if (it.valueIsAdjusting) {
+        return@addListSelectionListener   // Only handle listener on last event, not intermediate events
+      }
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
     }
     tableModel.addTableModelListener {
       reorderRules()
+    }
+    table.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        val row = table.rowAtPoint(e.point)
+        if (row != -1) {
+          model.detailContent = NetworkInspectorModel.DetailContent.RULE
+        }
+      }
+    })
+    table.registerEnterKeyAction {
+      if (table.selectedRow != -1) {
+        model.detailContent = NetworkInspectorModel.DetailContent.RULE
+      }
     }
   }
 

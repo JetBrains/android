@@ -77,6 +77,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -128,7 +129,7 @@ class NetworkInspectorView(
   val rulesView = RulesTableView(inspectorServices.client, scope, model)
 
   @VisibleForTesting
-  val detailsPanel = NetworkInspectorDetailsPanel(this, scope, inspectorServices.usageTracker)
+  val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 
@@ -138,13 +139,6 @@ class NetworkInspectorView(
     model.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
     model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) { selectionChanged() }
     selectionChanged()
-
-    model.aspect.addDependency(this)
-      .onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
-        inspectorServices.usageTracker.trackConnectionDetailsSelected()
-        updateDetailsPanel()
-      }
-    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_RULE) { updateDetailsPanel() }
     tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }
@@ -165,6 +159,25 @@ class NetworkInspectorView(
       val rulesViewScrollPane = JBScrollPane(rulesView.component)
       rulesViewScrollPane.border = JBUI.Borders.empty()
       connectionsTab.addTab("Rules", rulesViewScrollPane)
+      var selectedComponent: Component? = null
+      connectionsTab.addChangeListener {
+        when (connectionsTab.selectedComponent) {
+          connectionScrollPane, threadsViewScrollPane ->
+            // Switching tabs between connection view and threads view does not open or close details panel.
+            if (selectedComponent == rulesViewScrollPane) {
+              model.detailContent =
+                if (model.selectedConnection == null) NetworkInspectorModel.DetailContent.EMPTY
+                else NetworkInspectorModel.DetailContent.CONNECTION
+            }
+          rulesViewScrollPane ->
+            if (selectedComponent == connectionScrollPane || selectedComponent == threadsViewScrollPane) {
+              model.detailContent =
+                if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY
+                else NetworkInspectorModel.DetailContent.RULE
+            }
+        }
+        selectedComponent = connectionsTab.selectedComponent
+      }
     }
     // The toolbar overlays the tab panel, so we have to make sure we repaint the parent panel when switching tabs.
     connectionsTab.addChangeListener { mainPanel.repaint() }
@@ -210,7 +223,6 @@ class NetworkInspectorView(
     splitter.setHonorComponentsMinimumSize(true)
     splitter.divider.border = DEFAULT_VERTICAL_BORDERS
     component.add(splitter, BorderLayout.CENTER)
-    updateDetailsPanel()
   }
 
   private fun buildTimeAxis(axis: ResizingAxisComponentModel): JComponent {
@@ -348,16 +360,6 @@ class NetworkInspectorView(
     layout.setRowSizing(1, "*") // Give as much space as possible to the main monitor panel
     panel.add(monitorPanel, TabularLayout.Constraint(1, 0))
     return panel
-  }
-
-  private fun updateDetailsPanel() {
-    model.selectedRule?.let {
-      detailsPanel.setRule(it)
-    } ?: model.selectedConnection?.let {
-      detailsPanel.setHttpData(it)
-    } ?: run {
-      detailsPanel.isVisible = false
-    }
   }
 
   private fun hasTrafficUsage(series: RangedContinuousSeries, range: Range): Boolean {

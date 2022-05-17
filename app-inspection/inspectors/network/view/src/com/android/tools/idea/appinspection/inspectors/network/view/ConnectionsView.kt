@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.RO
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BORDER
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_TEXT
+import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Component
@@ -56,7 +57,7 @@ import javax.swing.table.AbstractTableModel
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
  * for network inspector. Each row in the table represents a single connection.
  */
-class ConnectionsView(private val model: NetworkInspectorModel, private val parentPane: TooltipLayeredPane) {
+class ConnectionsView(private val model: NetworkInspectorModel, private val parentPane: TooltipLayeredPane) : AspectObserver() {
   /**
    * Columns for each connection information
    */
@@ -112,7 +113,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     connectionsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal)
     customizeConnectionsTable()
     createTooltip()
-    model.aspect.addDependency(AspectObserver()).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
+    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
   }
 
   private fun customizeConnectionsTable() {
@@ -124,6 +125,19 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
     connectionsTable.columnModel.getColumn(Column.TIME.ordinal).cellRenderer = TimeRenderer()
     connectionsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer = TimelineRenderer(connectionsTable, model.timeline)
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    connectionsTable.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        val row = connectionsTable.rowAtPoint(e.point)
+        if (row != -1) {
+          model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+        }
+      }
+    })
+    connectionsTable.registerEnterKeyAction {
+      if (connectionsTable.selectedRow != -1) {
+        model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+      }
+    }
     connectionsTable.selectionModel.addListSelectionListener { e: ListSelectionEvent ->
       if (e.valueIsAdjusting) {
         return@addListSelectionListener   // Only handle listener on last event, not intermediate events

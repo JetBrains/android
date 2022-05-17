@@ -38,5 +38,11 @@ enum class NetworkInspectorAspect {
    * Aspect associated with a single, focused rule. The rule may be `null`, which
    * means that currently no rule is selected (perhaps recently deselected).
    */
-  SELECTED_RULE
+  SELECTED_RULE,
+
+  /**
+   * Aspect associated with the panel that shows details of a connection or a rule. The panel may
+   * be empty when there is no active selection or the panel is closed manually.
+   */
+  DETAILS
 }

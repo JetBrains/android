@@ -109,6 +109,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
         val data = findHttpDataUnderCursor(threadsTable, selection, e)
         if (data != null) {
           model.setSelectedConnection(data)
+          model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
           e.consume()
         }
       }
