@@ -179,13 +179,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (AndroidPlatform.getInstance(module) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (projectType != PROJECT_TYPE_INSTANTAPP && !isManifestValid(facet)) {
-      errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
-    }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    if (getApplicationIdProvider() == null) {
+    // Check that the project system is able to provide a package for this run configuration.
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    if (applicationIdProvider == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.applicationid", getName())));
+    }
+    else {
+      try {
+        //noinspection unused - we need to "use" getPackageName() to pacify lint's NoOp check.
+        String packageName = applicationIdProvider.getPackageName();
+      }
+      // ApplicationIdProviders will throw ApkProvisionException if they cannot provide a package.
+      catch (ApkProvisionException e) {
+        errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.package", getName())));
+      }
     }
 
     AndroidProjectSystem projectSystem = getProjectSystem(getProject());

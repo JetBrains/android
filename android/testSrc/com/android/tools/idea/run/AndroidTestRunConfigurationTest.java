@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -41,5 +42,16 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     assertThat(errors).isNotEmpty();
     assertThat(errors.stream().map(ValidationError::getMessage).collect(Collectors.toList()))
       .contains("Module 'testCannotRunLibTestsInReleaseBuild.lib.androidTest' doesn't exist in project");
- }
+  }
+
+  public void testCanRunLibTestsInDebugBuildWithNoAndroidManifest() throws Exception {
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST);
+
+    AndroidRunConfigurationBase androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(getProject(), "com.example.projectwithappandlib.lib.ExampleInstrumentedTest");
+    assertNotNull(androidTestRunConfiguration);
+
+    List<ValidationError> errors = androidTestRunConfiguration.validate(null);
+    assertThat(errors).hasSize(0);
+  }
 }
