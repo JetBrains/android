@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
@@ -331,7 +331,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       final List<SuppressQuickFix> result = new ArrayList<>();
       result.add(suppressLintQuickFix);
       result.addAll(
-        Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
+        Arrays.asList(BatchSuppressManager.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
       result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
                                   new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
       return result.toArray(SuppressQuickFix.EMPTY_ARRAY);
