@@ -111,7 +111,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   @Nullable
   private JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file) {
-    ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(myProject);
+    ProjectFileIndex index = ProjectFileIndex.getInstance(myProject);
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
         JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;
