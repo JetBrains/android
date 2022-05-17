@@ -171,11 +171,9 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     }
   }
 
-  fun setHiddenSeverities(hiddenSeverities: Set<Int>) {
+  fun setViewOptionFilter(filter: (Issue) -> Boolean) {
     val wasEmpty = treeModel.root?.getChildren()?.isEmpty() ?: true
-    issueProvider.filter = { issue ->
-      !hiddenSeverities.contains(issue.severity.myVal)
-    }
+    issueProvider.filter = filter
     treeModel.structureChanged(null)
     if (wasEmpty) {
       TreeUtil.promiseExpandAll(tree)

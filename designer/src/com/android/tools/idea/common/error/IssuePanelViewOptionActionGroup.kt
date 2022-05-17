@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.lang.annotation.HighlightSeverity
@@ -31,22 +33,50 @@ class IssuePanelViewOptionActionGroup : ActionGroup(), DumbAware {
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
     val project = event?.project ?: return AnAction.EMPTY_ARRAY
     if (project.isDisposed) return AnAction.EMPTY_ARRAY
-    return SeverityRegistrar.getSeverityRegistrar(project).allSeverities.reversed()
+    val severityViewOptions: Array<AnAction> = SeverityRegistrar.getSeverityRegistrar(project).allSeverities.reversed()
       .filter { it != HighlightSeverity.INFO && it > HighlightSeverity.INFORMATION && it < HighlightSeverity.ERROR }
       .map { SeverityFilterAction(project, "Show " + SingleInspectionProfilePanel.renderSeverity(it), it.myVal) }
       .toTypedArray()
+    val visualLintViewOption: Array<AnAction> = arrayOf(VisualLintFilterAction(project))
+    return severityViewOptions + visualLintViewOption
   }
 }
 
+/**
+ * These actions are associated to Intellij's problems panel.
+ */
 private class SeverityFilterAction(val project: Project, @Nls name: String, val severity: Int) : DumbAwareToggleAction(name) {
   override fun isSelected(event: AnActionEvent) = !ProblemsViewState.getInstance(project).hideBySeverity.contains(severity)
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
-    val panel = IssuePanelService.getInstance(project).getSelectedSharedIssuePanel() ?: return
     val state = ProblemsViewState.getInstance(project)
     val changed = with(state.hideBySeverity) { if (selected) remove(severity) else add(severity) }
     if (changed) {
-      panel.setHiddenSeverities(state.hideBySeverity)
       state.intIncrementModificationCount()
+      updateIssuePanelFilter(project)
     }
   }
+}
+
+private class VisualLintFilterAction(val project: Project) : DumbAwareToggleAction("Show Visual Problem") {
+  override fun isSelected(e: AnActionEvent) = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
+
+  override fun setSelected(e: AnActionEvent, selected: Boolean) {
+    VisualLintSettings.getInstance(project).isVisualLintFilterSelected = selected
+    updateIssuePanelFilter(project)
+  }
+}
+
+private fun updateIssuePanelFilter(project: Project) {
+  val panel = IssuePanelService.getInstance(project).getSelectedSharedIssuePanel() ?: return
+  val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
+  val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
+
+  val filter: (Issue) -> Boolean = { issue ->
+    when {
+      issue is VisualLintRenderIssue -> showVisualLint
+      hiddenSeverities.contains(issue.severity.myVal) -> false
+      else -> true
+    }
+  }
+  panel.setViewOptionFilter(filter)
 }

@@ -37,7 +37,7 @@ class DesignerCommonIssuePanelTest {
   val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
 
   @Test
-  fun testHideSeverity() {
+  fun testViewOptionFilter() {
     val infoSeverityIssue = TestIssue(severity = HighlightSeverity.INFORMATION)
     val warningSeverityIssue = TestIssue(severity = HighlightSeverity.WARNING)
     val provider = DesignerCommonIssueTestProvider(listOf(infoSeverityIssue, warningSeverityIssue))
@@ -50,7 +50,7 @@ class DesignerCommonIssuePanelTest {
     val root = (treeModel.root!! as DesignerCommonIssueRoot)
 
     run {
-      panel.setHiddenSeverities(emptySet())
+      panel.setViewOptionFilter { true }
       val parentNode = root.getChildren().single() as NoFileNode
       assertEquals(2, parentNode.issues.size)
       assertTrue(parentNode.issues.contains(infoSeverityIssue))
@@ -58,21 +58,23 @@ class DesignerCommonIssuePanelTest {
     }
 
     run {
-      panel.setHiddenSeverities(setOf(HighlightSeverity.INFORMATION.myVal))
+      panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal) }
       val parentNode = root.getChildren().single() as NoFileNode
       assertEquals(1, parentNode.issues.size)
       assertTrue(parentNode.issues.contains(warningSeverityIssue))
     }
 
     run {
-      panel.setHiddenSeverities(setOf(HighlightSeverity.WARNING.myVal))
+      panel.setViewOptionFilter { !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
       val parentNode = root.getChildren().single() as NoFileNode
       assertEquals(1, parentNode.issues.size)
       assertTrue(parentNode.issues.contains(infoSeverityIssue))
     }
 
     run {
-      panel.setHiddenSeverities(setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal))
+      panel.setViewOptionFilter {
+        !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
+      }
       // If there is no issue, then tree has no file node.
       assertEquals(0, root.getChildren().size)
     }
