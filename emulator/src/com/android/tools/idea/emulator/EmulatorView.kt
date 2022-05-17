@@ -724,6 +724,9 @@ class EmulatorView(
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
+      if (!virtualSceneCameraOperating && !multiTouchMode) {
+        sendMouseEvent(event.x, event.y, 0)
+      }
     }
 
     private fun updateMultiTouchMode(event: MouseEvent) {

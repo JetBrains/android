@@ -22,7 +22,9 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
@@ -41,6 +43,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
@@ -470,6 +473,92 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AppSwitch"""")
+  }
+
+  @Test
+  fun testMouseMoveSendGrpc() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 1.0)
+
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    ui.render()
+
+    ui.mouse.moveTo(135, 190)
+
+    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).doesNotContain("button") // No button should be pressed
+  }
+
+  @Test
+  fun testMouseMoveNotSendWhenMultiTouch() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 1.0)
+
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    ui.render()
+
+    ui.keyboard.setFocus(view)
+    ui.keyboard.press(VK_CONTROL)
+
+    ui.mouse.moveTo(135, 190)
+    ui.mouse.press(135, 190)
+
+    ui.keyboard.release(VK_CONTROL)
+
+    // Here we expect the GRPC call from `press()`, as `moveTo()` should not send any GRPC call.
+    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
+    assertThat(shortDebugString(call.request)).contains("pressure") // Should have non-zero pressure.
+  }
+
+  @Test
+  fun testMouseMoveNotSendWhenCameraOperating() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val panel = NotificationHolderPanel()
+    panel.add(view)
+    val container = HeadlessRootPaneContainer(panel)
+    container.rootPane.size = Dimension(200, 300)
+    val ui = FakeUi(container.rootPane, 1.0)
+
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    ui.render()
+
+    // Activate the virtual scene camera
+    val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
+    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(mock<PointerInfo>())
+    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    focusManager.focusOwner = view
+    emulator.virtualSceneCameraActive = true
+    waitForCondition(2, TimeUnit.SECONDS) {
+      ui.findComponent<EditorNotificationPanel>() != null
+    }
+
+    // Start operating camera
+    ui.keyboard.setFocus(view)
+    ui.keyboard.press(VK_SHIFT)
+
+    // Move mouse
+    ui.mouse.moveTo(135, 190)
+    ui.mouse.press(135, 190)
+
+    // Stop operating camera
+    ui.keyboard.release(VK_SHIFT)
+
+    // Here we expect the GRPC call from `press()`, as `moveTo()` should not send any GRPC call.
+    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).contains("button") // Some button should be pressed
   }
 
   private fun createScrollPane(view: Component): JScrollPane {
