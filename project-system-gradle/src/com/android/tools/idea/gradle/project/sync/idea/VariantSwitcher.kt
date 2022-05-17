@@ -42,6 +42,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAllRecursively
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
 class VariantProjectDataNodes {
@@ -89,15 +90,19 @@ fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
   return getAndroidFacets()
     .mapNotNull { androidFacet ->
       val module = androidFacet.module
-      val ndkFacet = NdkFacet.getInstance(module)
       val gradleProjectPath = module.getGradleProjectPath() ?: return@mapNotNull null
-      gradleProjectPath to
-        VariantAndAbi(
-          androidFacet.properties.SELECTED_BUILD_VARIANT,
-          // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.
-          ndkFacet?.configuration?.selectedVariantAbi?.abi
-        )
+      gradleProjectPath to androidFacet.getVariantAndAbi()
     }.toMap()
+}
+
+fun AndroidFacet.getVariantAndAbi(): VariantAndAbi {
+  val ndkFacet = NdkFacet.getInstance(holderModule)
+  val variantAndAbi = VariantAndAbi(
+    properties.SELECTED_BUILD_VARIANT,
+    // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.
+    ndkFacet?.configuration?.selectedVariantAbi?.abi
+  )
+  return variantAndAbi
 }
 
 fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variants: Map<GradleProjectPath, VariantAndAbi>): DataNode<ProjectData>? {
@@ -302,6 +307,7 @@ private fun VariantProjectDataNodes.findVariantProjectData(
  */
 private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selectedVariant: (GradleProjectPath) -> String?): Boolean {
   val libraryResolver = createLibraryResolverFor(projectData)
+
   class WorkItem(val module: AndroidModule, val expectedVariant: String?)
 
   val queue = ArrayDeque(listOf(WorkItem(modulesByGradleProjectPath[moduleId] ?: return false, null)))
