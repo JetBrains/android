@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
@@ -37,6 +36,7 @@ import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.E
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchOrStopValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -288,6 +288,15 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   void refreshAvdsAndSelect(@Nullable Key key) {
-    FutureUtils.addCallback(myAsyncSupplier.get(), EdtExecutorService.getInstance(), myNewSetDevices.apply(this, key));
+    Futures.addCallback(myAsyncSupplier.getAll(), myNewSetDevices.apply(this, key), EdtExecutorService.getInstance());
+  }
+
+  void reloadDevice(@NotNull Key key) {
+    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
+      getModel().set(key, device);
+      setSelectedDevice(key);
+    });
+
+    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
   }
 }

@@ -59,7 +59,7 @@ public final class WipeDataItemTest {
 
     // Assert
     Mockito.verify(myConnection, Mockito.never()).wipeUserData(myAvd);
-    Mockito.verify(myTable, Mockito.never()).refreshAvds();
+    Mockito.verify(myTable, Mockito.never()).reloadDevice(TestVirtualDevices.newKey("Pixel_5_API_31"));
   }
 
   @Test
@@ -77,7 +77,7 @@ public final class WipeDataItemTest {
 
     // Assert
     Mockito.verify(myConnection, Mockito.never()).wipeUserData(myAvd);
-    Mockito.verify(myTable, Mockito.never()).refreshAvds();
+    Mockito.verify(myTable, Mockito.never()).reloadDevice(TestVirtualDevices.newKey("Pixel_5_API_31"));
   }
 
   @Test
@@ -95,7 +95,7 @@ public final class WipeDataItemTest {
 
     // Assert
     Mockito.verify(myConnection).wipeUserData(myAvd);
-    Mockito.verify(myTable).refreshAvds();
+    Mockito.verify(myTable).reloadDevice(TestVirtualDevices.newKey("Pixel_5_API_31"));
   }
 
   private static void showCannotWipeARunningAvdDialog(@NotNull Component component) {

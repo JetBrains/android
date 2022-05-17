@@ -19,11 +19,14 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -42,19 +45,39 @@ final class VirtualDeviceAsyncSupplier {
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull List<@NotNull VirtualDevice>> get() {
+  @NotNull ListenableFuture<@NotNull List<@NotNull VirtualDevice>> getAll() {
     // noinspection UnstableApiUsage
-    return Futures.submit(this::build, AppExecutorUtil.getAppExecutorService());
+    return Futures.submit(this::buildAll, AppExecutorUtil.getAppExecutorService());
   }
 
   /**
    * Called by an application pool thread
    */
   @WorkerThread
-  private @NotNull List<@NotNull VirtualDevice> build() {
+  private @NotNull List<@NotNull VirtualDevice> buildAll() {
     return myGetAvds.get().stream()
       .map(VirtualDeviceBuilder::new)
       .map(VirtualDeviceBuilder::build)
       .collect(Collectors.toList());
+  }
+
+  @UiThread
+  @NotNull ListenableFuture<@NotNull VirtualDevice> get(@NotNull Key key) {
+    // noinspection UnstableApiUsage
+    return Futures.submit(() -> build(key), AppExecutorUtil.getAppExecutorService());
+  }
+
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  private @NotNull VirtualDevice build(@NotNull Key key) {
+    Optional<VirtualDevice> device = myGetAvds.get().stream()
+      .filter(avd -> avd.getId().equals(key.toString()))
+      .map(VirtualDeviceBuilder::new)
+      .map(VirtualDeviceBuilder::build)
+      .findFirst();
+
+    return device.orElseThrow(() -> new NoSuchElementException(key.toString()));
   }
 }

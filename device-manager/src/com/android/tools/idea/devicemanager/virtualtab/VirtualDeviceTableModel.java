@@ -140,6 +140,17 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
+  void set(@NotNull Key key, @NotNull VirtualDevice device) {
+    int modelRowIndex = Devices.indexOf(myDevices, key);
+
+    if (modelRowIndex == -1) {
+      return;
+    }
+
+    myDevices.set(modelRowIndex, device);
+    fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+  }
+
   void setAllOnline() {
     Executor executor = AppExecutorUtil.getAppExecutorService();
 

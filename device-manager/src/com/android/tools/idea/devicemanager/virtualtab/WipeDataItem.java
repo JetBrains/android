@@ -74,7 +74,7 @@ final class WipeDataItem extends JBMenuItem {
       }
 
       myGetDefaultAvdManagerConnection.get().wipeUserData(device.getAvdInfo());
-      table.refreshAvds();
+      table.reloadDevice(device.getKey());
     });
   }
 

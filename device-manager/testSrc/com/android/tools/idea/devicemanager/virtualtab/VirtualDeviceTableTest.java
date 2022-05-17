@@ -76,7 +76,8 @@ public final class VirtualDeviceTableTest {
 
   private static @NotNull VirtualDeviceAsyncSupplier mockSupplier(@NotNull List<@NotNull VirtualDevice> devices) {
     VirtualDeviceAsyncSupplier supplier = Mockito.mock(VirtualDeviceAsyncSupplier.class);
-    Mockito.when(supplier.get()).thenReturn(Futures.immediateFuture(devices));
+    Mockito.when(supplier.getAll()).thenReturn(Futures.immediateFuture(devices));
+
     return supplier;
   }
 
