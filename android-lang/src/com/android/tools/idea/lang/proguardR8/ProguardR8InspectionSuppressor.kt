@@ -78,7 +78,7 @@ private class SuppressByProguardR8CommentFix(element: PsiElement, toolId: String
     val oldIndent = if (container.prevSibling is PsiWhiteSpace) getIndent(container.prevSibling as PsiWhiteSpace) else ""
     //Add suppression comment before container.
     super.createSuppression(project, element, container)
-    val parserFacade = PsiParserFacade.SERVICE.getInstance(project)
+    val parserFacade = PsiParserFacade.getInstance(project)
     //Add new line and old indent after suppression comment.
     val newLine = parserFacade.createWhiteSpaceFromText("\n" + oldIndent)
     container.parent.addAfter(newLine, container.prevSibling)
