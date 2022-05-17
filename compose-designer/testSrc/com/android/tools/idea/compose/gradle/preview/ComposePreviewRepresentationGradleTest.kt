@@ -155,8 +155,8 @@ class ComposePreviewRepresentationGradleTest {
     // Wait for any on going refreshes to finish
     waitForRefreshToFinish()
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    runnable()
     withTimeout(timeout.toMillis()) {
-      runnable()
       onRefreshCompletable.await()
     }
     waitForRefreshToFinish()
