@@ -35,7 +35,7 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
   override fun createToolWindowContent(project: Project,
                                        toolWindow: ToolWindow) {
     val appInspectionToolWindow = AppInspectionToolWindow(toolWindow, project)
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(appInspectionToolWindow.component, "", false)
     toolWindow.contentManager.addContent(content)
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.INSPECTION)

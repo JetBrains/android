@@ -48,7 +48,7 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     Disposable parent = Disposer.newDisposable("Device Manager parent");
     JComponent pane = newJBTabbedPane(project, parent);
 
-    Content content = ContentFactory.SERVICE.getInstance().createContent(pane, null, false);
+    Content content = ContentFactory.getInstance().createContent(pane, null, false);
     content.setDisposer(parent);
 
     window.getContentManager().addContent(content);

@@ -674,7 +674,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
       project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion }, recommended = recommended
     )
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
+    val content = ContentFactory.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.setDisposer(model)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)

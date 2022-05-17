@@ -75,7 +75,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     ToolWindowWrapper wrapper = new ToolWindowWrapperImpl(project, toolWindow);
     AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(wrapper, project);
 
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+    ContentFactory contentFactory = ContentFactory.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     Disposer.register(project, view);
     toolWindow.getContentManager().addContent(content);

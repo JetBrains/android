@@ -124,7 +124,7 @@ public class BuildVariantView {
    * @param toolWindow the tool window whose contents will be created.
    */
   public void createToolWindowContent(@NotNull ToolWindow toolWindow) {
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+    ContentFactory contentFactory = ContentFactory.getInstance();
     Content content = contentFactory.createContent(myToolWindowPanel, "", false);
     toolWindow.getContentManager().addContent(content);
   }
