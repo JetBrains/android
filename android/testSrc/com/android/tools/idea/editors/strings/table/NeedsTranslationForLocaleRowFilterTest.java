@@ -19,7 +19,7 @@ import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.editors.strings.StringResourceRepository;
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import java.util.Collections;
 import javax.swing.RowFilter.Entry;
 import org.jetbrains.android.AndroidTestCase;

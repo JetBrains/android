@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.intellij.icons.AllIcons;

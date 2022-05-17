@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
+import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;
