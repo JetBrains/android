@@ -66,7 +66,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   override fun shouldHighlight(model: NlModel): Boolean {
     return components.filterNot { it.isSuppressed() }.map { it.model }.distinct().contains(model)
   }
-  override val description: String get() = builder.contentDescriptionProvider!!.invoke(models.size).stringBuilder.toString()
+  override val description: String get() = builder.contentDescriptionProvider!!.invoke(unsuppressedModelCount).stringBuilder.toString()
 
   /** Returns the text range of the issue. */
   private var range: TextRange? = null
@@ -103,6 +103,12 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   override fun equals(other: Any?) = other === this
 
   override fun hashCode() = Objects.hash(severity, summary, category)
+
+  /**
+   * Get the number of [NlModel] which is not suppressed.
+   */
+  private val unsuppressedModelCount: Int
+    get() = components.filterNot { it.isSuppressed() }.map { it.model }.distinct().count()
 
   fun isSuppressed(): Boolean {
     return components.all { component -> component.isSuppressed() }
