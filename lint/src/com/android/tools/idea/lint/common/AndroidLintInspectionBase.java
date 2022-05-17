@@ -341,7 +341,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       final List<SuppressQuickFix> result = new ArrayList<>();
       result.add(suppressLintQuickFix);
       result.addAll(
-        Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
+        Arrays.asList(BatchSuppressManager.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
       result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
                                   new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
       return result.toArray(SuppressQuickFix.EMPTY_ARRAY);
