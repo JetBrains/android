@@ -42,7 +42,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsa
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.gradle.variant.conflict.ConflictSet.Companion.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.run.RunConfigurationChecker
@@ -219,7 +218,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     SupportedModuleChecker.getInstance().checkForSupportedModules(project)
 
-    findConflicts(project).showSelectionConflicts()
     ProjectSetup(project).setUpProject(false /* sync successful */)
 
     RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()

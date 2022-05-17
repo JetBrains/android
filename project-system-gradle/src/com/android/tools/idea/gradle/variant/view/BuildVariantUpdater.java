@@ -90,6 +90,18 @@ public class BuildVariantUpdater {
   }
 
   /**
+   * Updates a module's structure when the user attempts to resolve a conflict.
+   */
+  public void updateSelectedVariantAndAbi(@NotNull Module module,
+                                          @NotNull String selectedVariant,
+                                          @NotNull String selectedAbiName) {
+    updateSelectedVariant(module,
+                          new SwitchVariantRequest(getModuleIdForSyncRequest(module),
+                                                   selectedVariant,
+                                                   selectedAbiName));
+  }
+
+  /**
    * Updates a module's structure when the user selects a build variant or ABI.
    */
   private void updateSelectedVariant(@NotNull Module moduleToUpdate,

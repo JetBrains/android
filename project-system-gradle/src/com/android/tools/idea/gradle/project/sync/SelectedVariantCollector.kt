@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 
 class SelectedVariantCollector(private val project: Project) {
 
@@ -63,7 +64,8 @@ internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
 
 
 @JvmName("getModuleIdForSyncRequest")
-internal fun Module.getModuleIdForSyncRequest(): String {
+@VisibleForTesting
+fun Module.getModuleIdForSyncRequest(): String {
   // Android Studio internally use paths as they are returned by models, however to avoid ambiguity communication between
   // the code injected into the Gradle process and the IDE uses canonical paths.
   val gradleProjectPath = internalGetGradleProjectPath(useCanonicalPath = true) ?: error("Module $name is not a Gradle module.")

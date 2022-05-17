@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.variant.conflict
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
+import com.android.tools.idea.gradle.project.sync.getModuleIdForSyncRequest
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.testing.readAndClearLastSyncRequest
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.android.tools.idea.testing.switchTestProjectVariantsFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 
@@ -30,7 +34,7 @@ class ConflictResolutionTest : ConflictsTestCase() {
       File(myFixture.tempDirPath),
       setupAllVariants = true,
       rootModuleBuilder,
-      appModuleBuilder(selectedVariant = "release", dependOnVariant = "release"),
+      appModuleBuilder(appPath = ":app", selectedVariant = "release", dependOnVariant = "release"),
       libModuleBuilder()
     )
 
@@ -56,8 +60,24 @@ class ConflictResolutionTest : ConflictsTestCase() {
     assertThat(affectedModule.target).isSameAs(appModule)
     assertThat(affectedModule.expectedVariant).isEqualTo("release")
 
-    // We should fix the "source" (i.e., ":lib") and make it "release".
     assertThat(ConflictResolution.solveSelectionConflict(conflict)).isTrue()
+
+    assertThat(project.readAndClearLastSyncRequest()?.requestedVariantChange).isEqualTo(
+      SwitchVariantRequest(
+        libModule.getModuleIdForSyncRequest(),
+        "release",
+        null
+      )
+    )
+
+    switchTestProjectVariantsFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      rootModuleBuilder,
+      appModuleBuilder(appPath = ":app", selectedVariant = "release", dependOnVariant = "release"),
+      libModuleBuilder().copy(selectedBuildVariant = "release")
+
+    )
 
     // After fixing the conflict, the selected variants match.
     assertThat(GradleAndroidModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
@@ -66,6 +86,69 @@ class ConflictResolutionTest : ConflictsTestCase() {
     // After fixing the conflict, there are no more conflicts left.
     conflicts = ConflictSet.findConflicts(project).selectionConflicts
     assertThat(conflicts).hasSize(0)
+  }
+
+  fun testSolveMultiAppSelectionConflict() {
+    setupTestProjectFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      setupAllVariants = true,
+      rootModuleBuilder,
+      appModuleBuilder(appPath = ":app", selectedVariant = "release", dependOnVariant = "release"),
+      appModuleBuilder(appPath = ":app2", selectedVariant = "debug", dependOnVariant = "debug"),
+      libModuleBuilder()
+    )
+
+    val appModule = project.findAppModule()
+    val libModule = project.findModule("lib")
+
+    assertThat(GradleAndroidModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(GradleAndroidModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")
+
+    var conflicts = ConflictSet.findConflicts(project).selectionConflicts
+    assertThat(conflicts).hasSize(1)
+
+    // Source is the :lib module, which has "debug".
+    val conflict = conflicts[0]
+    assertThat(conflict.source).isSameAs(libModule)
+    assertThat(conflict.selectedVariant).isEqualTo("debug")
+
+    val affectedModules = conflict.affectedModules
+    assertThat(affectedModules).hasSize(1)
+
+    // Affected is the :app module, which has "release".
+    val affectedModule = affectedModules[0]
+    assertThat(affectedModule.target).isSameAs(appModule)
+    assertThat(affectedModule.expectedVariant).isEqualTo("release")
+
+    assertThat(ConflictResolution.solveSelectionConflict(conflict)).isTrue()
+
+    assertThat(project.readAndClearLastSyncRequest()?.requestedVariantChange).isEqualTo(
+      SwitchVariantRequest(
+        libModule.getModuleIdForSyncRequest(),
+        "release",
+        null
+      )
+    )
+
+    switchTestProjectVariantsFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      rootModuleBuilder,
+      appModuleBuilder(appPath = ":app", selectedVariant = "release", dependOnVariant = "release"),
+      appModuleBuilder(appPath = ":app2", selectedVariant = "debug", dependOnVariant = "debug"),
+      libModuleBuilder().copy(selectedBuildVariant = "release")
+
+    )
+
+    // After fixing the conflict, the selected variants match.
+    assertThat(GradleAndroidModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(GradleAndroidModel.get(libModule)!!.selectedVariant.name).isEqualTo("release")
+
+    // After fixing the conflict, there are no more conflicts left.
+    conflicts = ConflictSet.findConflicts(project).selectionConflicts
+    // TODO(b/201824664): In multi-app conflicts we should fix the conflict my selecting the same variant in all apps. 
+    // TODO(b/201824664): assertThat(conflicts).hasSize(0)
   }
 
   fun testSolveSelectionConflictWithABIs() {

@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
-import com.android.tools.idea.gradle.variant.conflict.ConflictSet
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
@@ -341,7 +340,6 @@ private fun additionalProjectSetup(project: Project) {
   AndroidPluginInfo.findFromModel(project)?.let { info ->
     project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
   }
-  ConflictSet.findConflicts(project).showSelectionConflicts()
   ProjectStructure.getInstance(project).analyzeProjectStructure()
 }
 

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import static com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceKt.syncSelectedVariant;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collection;
@@ -50,11 +50,8 @@ public final class ConflictResolution {
    * @param conflict the given conflict.
    * @return {@code true} if the conflict was successfully solved; {@code false} otherwise.
    */
+  @Nullable
   public static boolean solveSelectionConflict(@NotNull Conflict conflict) {
-    return solveSelectionConflict(conflict, true);
-  }
-
-  private static boolean solveSelectionConflict(@NotNull Conflict conflict, boolean showConflictResolutionDialog) {
     AndroidFacet facet = AndroidFacet.getInstance(conflict.getSource());
     if (facet == null || !AndroidModel.isRequired(facet)) {
       // project structure may have changed and the conflict is not longer applicable.
@@ -65,26 +62,26 @@ public final class ConflictResolution {
       return false;
     }
 
-    String newVariant = resolveNewVariant(conflict, showConflictResolutionDialog);
+    String newVariant = resolveNewVariant(conflict);
     if (StringUtil.isEmpty(newVariant)) {
       return false;
     }
+
+    @Nullable VariantAbi newVariantAbi;
 
     // If the module has an NDK model, then also update the variant in the Ndk model.
     NdkFacet ndkFacet = NdkFacet.getInstance(conflict.getSource());
     NdkModuleModel ndkModel = ndkFacet == null ? null : ndkFacet.getNdkModuleModel();
     if (ndkModel != null) {
-      VariantAbi newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModel, newVariant);
-      if (newVariantAbi == null) {
-        return false;  // Cannot solve NDK variant induced conflict.
-      }
-
-      ndkFacet.setSelectedVariantAbi(newVariantAbi);
-      ndkFacet.setNdkModuleModel(ndkModel);
+      newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModel, newVariant);
+      if (newVariantAbi == null) return false;
+      BuildVariantUpdater.getInstance(facet.getModule().getProject())
+        .updateSelectedVariantAndAbi(ndkFacet.getModule(), newVariantAbi.getVariant(), newVariantAbi.getAbi());
+      // Cannot solve NDK variant induced conflict.
+    } else {
+      BuildVariantUpdater.getInstance(facet.getModule().getProject())
+        .updateSelectedBuildVariant(facet.getModule(), newVariant);
     }
-
-    source.setSelectedVariantName(newVariant);
-    syncSelectedVariant(facet, source.getSelectedVariant());
     return true;
   }
 
@@ -92,14 +89,10 @@ public final class ConflictResolution {
    * @return The name of the variant (without ABI) to use in order to resolve the provided conflict.
    */
   @Nullable
-  private static String resolveNewVariant(@NotNull Conflict conflict, boolean showConflictResolutionDialog) {
+  private static String resolveNewVariant(@NotNull Conflict conflict) {
     Collection<String> variants = conflict.getVariants();
     if (variants.size() == 1) {
       return getFirstItem(variants);
-    }
-
-    if (!showConflictResolutionDialog) {
-      return null;
     }
 
     ConflictResolutionDialog dialog = new ConflictResolutionDialog(conflict);

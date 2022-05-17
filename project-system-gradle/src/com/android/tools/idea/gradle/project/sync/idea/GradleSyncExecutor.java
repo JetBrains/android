@@ -75,6 +75,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
@@ -89,6 +90,7 @@ public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
+  @VisibleForTesting @NotNull public static final Key<GradleSyncInvoker.Request> SKIPPED_SYNC = new Key<>("android.skipped.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
     myProject = project;
@@ -97,6 +99,8 @@ public class GradleSyncExecutor {
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
+      if (myProject.getUserData(SKIPPED_SYNC) != null) throw new IllegalStateException("Skipped sync request already present");
+      myProject.putUserData(SKIPPED_SYNC, request);
       GradleSyncStateHolder.getInstance(myProject).syncSkipped(listener);
       return;
     }
