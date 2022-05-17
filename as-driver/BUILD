@@ -57,6 +57,7 @@ iml_module(
 iml_module(
     name = "as-driver.utils",
     data = [
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/vendor/google/testing/display:xvfb",
     ],
@@ -71,6 +72,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/as-driver:asdriver_proto",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
 )
 

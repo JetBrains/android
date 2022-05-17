@@ -31,5 +31,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
   </component>
 </module>

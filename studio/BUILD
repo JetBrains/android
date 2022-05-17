@@ -739,6 +739,11 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.studio.tests",
+    data = [
+        # These are to be able to create patches in the test.
+        ":updater",
+        ":updater.jar",
+    ],
     iml_files = ["tests/intellij.android.studio.tests.iml"],
     tags = [
         "no_mac",
@@ -750,6 +755,9 @@ iml_module(
         ":android-studio.mac.zip",
         ":android-studio.win.zip",
         ":android-studio.plugin.lst",
+        # These are to be able to create patches in the test.
+        ":updater",
+        ":updater.jar",
     ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
@@ -760,5 +768,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
 )

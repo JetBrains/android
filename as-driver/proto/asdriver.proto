@@ -12,6 +12,8 @@ service AndroidStudio {
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
   rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
+
+  rpc UpdateStudio(UpdateStudioRequest) returns (UpdateStudioResponse) {}
 }
 
 message GetVersionRequest {}
@@ -49,4 +51,14 @@ message ShowToolWindowResponse {
     TOOL_WINDOW_NOT_FOUND = 2;
   }
   ShowToolWindowResponse.Result result = 1;
+}
+
+message UpdateStudioRequest {}
+
+message UpdateStudioResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  UpdateStudioResponse.Result result = 1;
 }

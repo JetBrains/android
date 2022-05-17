@@ -33,6 +33,8 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.TimeoutException;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -102,6 +104,25 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         builder.setResult(ASDriver.ShowToolWindowResponse.Result.PROJECT_NOT_FOUND);
       }
     });
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  /**
+   * TODO(b/234066941): remove this temporary code in favor of more granular framework methods.
+   */
+  @Override
+  public void updateStudio(ASDriver.UpdateStudioRequest request, StreamObserver<ASDriver.UpdateStudioResponse> responseObserver) {
+    ASDriver.UpdateStudioResponse.Builder builder = ASDriver.UpdateStudioResponse.newBuilder();
+    try {
+      StudioInteractionService studioInteractionService = new StudioInteractionService();
+      studioInteractionService.runUpdateFlow();
+      builder.setResult(ASDriver.UpdateStudioResponse.Result.OK);
+    }
+    catch (InterruptedException | InvocationTargetException | TimeoutException e) {
+      e.printStackTrace();
+      builder.setResult(ASDriver.UpdateStudioResponse.Result.ERROR);
+    }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
