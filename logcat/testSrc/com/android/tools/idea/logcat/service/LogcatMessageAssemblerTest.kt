@@ -19,7 +19,6 @@ import com.android.ddmlib.Log.LogLevel
 import com.android.ddmlib.Log.LogLevel.DEBUG
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.logcat.LogCatHeader
-import com.android.ddmlib.logcat.LogCatHeaderParser
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.TestResources
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
@@ -42,7 +41,6 @@ import java.io.File
 import java.io.InputStreamReader
 import java.nio.CharBuffer
 import java.time.Instant
-import java.time.ZoneId
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.text.Charsets.UTF_8
 
@@ -409,6 +407,26 @@ class LogcatMessageAssemblerTest {
       assertThat(actual).named("Line $index").isEqualTo(expected)
     }
   }
+
+  @Test
+  fun missingApplicationId_usesProcessName() = runBlockingTest {
+    processNameMonitor.addProcessName("device1", 5, "", "processName")
+
+    val assembler = logcatMessageAssembler("device1", channel)
+
+    assembler.processNewLines(
+      """
+        [          1619900000.123  5: 2000 D/Tag  ]
+        Message 1
+
+      """
+    )
+
+    advanceUntilIdle()
+    channel.close()
+    assertThat(channel.toList()).containsExactly(listOf(logCatMessage(DEBUG, 5, 2000, "processName", "Tag", 1619900000L, 123L, "Message 1")))
+  }
+
 
   private fun TestCoroutineScope.logcatMessageAssembler(
     serialNumber: String,

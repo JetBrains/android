@@ -24,6 +24,8 @@ import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getIns
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.service.LogcatService
+import com.android.tools.idea.logcat.service.LogcatServiceImpl
 import com.android.tools.idea.run.ShowLogcatListener
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
@@ -65,7 +67,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         for (i in 0 until count) {
           val content = contentManager.getContent(i)
           content?.findLogcatPresenters()?.forEach {
-            if (it.getConnectedDevice() == device) {
+            if (it.getConnectedDevice()?.serialNumber == device.serialNumber) {
               contentManager.setSelectedContent(content, true)
               return@activate
             }
@@ -73,7 +75,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         }
         // TODO(aalbert): Getting a pretty name for a device is complicated since it requires fetching properties from device. Use serial
         //  number as a tab name for now.
-        createNewTab(toolWindow, device.serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(device)
+        createNewTab(toolWindow, device.serialNumber).findLogcatPresenters().firstOrNull()?.selectDevice(device.serialNumber)
       }
     }
   }
