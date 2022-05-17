@@ -25,7 +25,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
-import com.android.tools.idea.ddms.actions.DeviceScreenshotAction
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
@@ -69,6 +68,7 @@ import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.run.ClearLogcatListener
+import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset.COMPACT
@@ -79,6 +79,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.EditorFactory
@@ -143,7 +144,7 @@ internal class LogcatMainPanel(
     LogcatDeviceManager.getFactory(project, packageNamesProvider),
   adbSession: AdbLibSession = AdbLibService.getInstance(project).session,
   zoneId: ZoneId = ZoneId.systemDefault()
-) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
@@ -376,7 +377,8 @@ internal class LogcatMainPanel(
       add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(Separator.create())
-      add(DeviceScreenshotAction(project, deviceContext))
+      //add(DeviceScreenshotAction(project, deviceContext))
+      add(ScreenshotAction())
       add(ScreenRecorderAction(project, deviceContext))
     }
   }
@@ -409,6 +411,16 @@ internal class LogcatMainPanel(
   }
 
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
+
+
+  override fun getData(dataId: String): Any? {
+    return when (dataId) {
+      ScreenshotAction.SERIAL_NUMBER_KEY.name -> deviceManager?.device?.serialNumber
+      ScreenshotAction.SDK_KEY.name -> deviceManager?.device?.version?.apiLevel
+      ScreenshotAction.MODEL_KEY.name -> deviceManager?.device?.getProperty(IDevice.PROP_DEVICE_MODEL)
+      else -> null
+    }
+  }
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread
@@ -460,7 +472,7 @@ internal class LogcatMainPanel(
   private suspend fun findIDevice(device: Device): IDevice? {
     val devices = adbAdapter.getDevices()
     return if (device.isEmulator) {
-      devices.find { device.deviceId == it.avdData.await().name } ?: devices.find { device.deviceId == it.serialNumber }
+      devices.find { device.deviceId == it.avdData?.await()?.name } ?: devices.find { device.deviceId == it.serialNumber }
     }
     else {
       devices.find { device.deviceId == it.serialNumber }

@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.adb.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -19,6 +20,8 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
     ],
 )
 
@@ -52,5 +55,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
     ],
 )

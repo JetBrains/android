@@ -24,6 +24,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb" />
 </module>
