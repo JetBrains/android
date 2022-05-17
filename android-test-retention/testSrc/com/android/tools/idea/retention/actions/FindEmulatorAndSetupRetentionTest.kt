@@ -142,7 +142,7 @@ class FindEmulatorAndSetupRetentionTest {
     val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
       val mockAvdManager = mock<AvdManager>()
       doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).`when`(mockAvdManager).isAvdRunning(any(), any())
+      doReturn(true).`when`(mockAvdManager).isAvdRunning(any())
       mockAvdManager
     }
     action.actionPerformed(anActionEvent)
@@ -172,7 +172,7 @@ class FindEmulatorAndSetupRetentionTest {
     val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
       val mockAvdManager = mock<AvdManager>()
       doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).`when`(mockAvdManager).isAvdRunning(any(), any())
+      doReturn(true).`when`(mockAvdManager).isAvdRunning(any())
       mockAvdManager
     }
     action.actionPerformed(anActionEvent)

@@ -142,8 +142,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       false,
-      false,
-      log);
+      false);
 
     assertNotNull("Could not create AVD", avd);
 
@@ -265,8 +264,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       true,
-      false,
-      log);
+      false);
 
     try {
       assert skinnyAvd != null;
@@ -327,8 +325,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       false,
       true,
-      false,
-      log);
+      false);
 
     try {
       assert skinlessAvd != null;

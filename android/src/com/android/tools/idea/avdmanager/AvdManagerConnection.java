@@ -432,7 +432,7 @@ public class AvdManagerConnection {
     if (forceRefresh) {
       try {
         assert myAvdManager != null;
-        myAvdManager.reloadAvds(SDK_LOG);
+        myAvdManager.reloadAvds();
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
@@ -464,13 +464,13 @@ public class AvdManagerConnection {
       return false;
     }
     assert myAvdManager != null;
-    return myAvdManager.deleteAvd(info, SDK_LOG);
+    return myAvdManager.deleteAvd(info);
   }
 
   @Slow
   public boolean isAvdRunning(@NotNull AvdInfo info) {
     assert myAvdManager != null;
-    return myAvdManager.isAvdRunning(info, SDK_LOG);
+    return myAvdManager.isAvdRunning(info);
   }
 
   public @NotNull ListenableFuture<@NotNull Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
@@ -581,8 +581,8 @@ public class AvdManagerConnection {
     //       about its internals (qemu/android/utils/filelock.c) and perform the same action here. If it is not stale,
     //       then we should show this error and if possible, bring that window to the front.
     assert myAvdManager != null;
-    if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
-      myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
+    if (myAvdManager.isAvdRunning(avd)) {
+      myAvdManager.logRunningAvdInfo(avd);
       String message = String.format("AVD \"%1$s\" is already running.\n" +
                                      "If that is not the case, delete\n" +
                                      "%2$s and try again.",
@@ -1004,7 +1004,7 @@ public class AvdManagerConnection {
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;
-      boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
+      boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath());
       if (!success) {
         return null;
       }
@@ -1021,8 +1021,7 @@ public class AvdManagerConnection {
                                   device.getBootProps(),
                                   device.hasPlayStore(),
                                   false,
-                                  removePrevious,
-                                  SDK_LOG);
+                                  removePrevious);
   }
 
   @Nullable
@@ -1094,7 +1093,7 @@ public class AvdManagerConnection {
   @NotNull
   private AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
     assert myAvdManager != null;
-    return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
+    return myAvdManager.reloadAvd(avdInfo);
   }
 
   @Nullable
@@ -1110,7 +1109,7 @@ public class AvdManagerConnection {
     if (initIfNecessary()) {
       try {
         assert myAvdManager != null;
-        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
+        myAvdManager.updateDeviceChanged(avdInfo);
       }
       catch (IOException e) {
         IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);
