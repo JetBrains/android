@@ -39,16 +39,15 @@ internal fun getComplicationTypesFromManifest(module: com.intellij.openapi.modul
 }
 
 internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
-  val supportedTypes = mutableListOf<Complication.ComplicationType>()
-  for (typeStr in supportedTypesStr) {
+  return supportedTypesStr.mapNotNull {
     try {
-      supportedTypes.add(Complication.ComplicationType.valueOf(typeStr))
+      Complication.ComplicationType.valueOf(it)
     }
     catch (e: IllegalArgumentException) {
-      // Ignore unrecognised types, a warning is shows by the checkRawTypes method.
+      null
+      // Ignore unrecognised types, a warning is shows by the [checkRawComplicationTypes] method.
     }
   }
-  return supportedTypes
 }
 
 internal fun checkRawComplicationTypes(supportedTypesStr: List<String>) {
@@ -68,11 +67,7 @@ internal fun getComplicationSourceTypes(apks: Collection<ApkInfo>, componentName
   return extractSupportedComplicationTypes(complicationService)
 }
 
-private fun getChildrenWithName(node: XmlNode, name: String): List<XmlNode> {
-  return node.children().filter {
-    it.name() == name
-  }
-}
+private fun getChildrenWithName(node: XmlNode, name: String) = node.children().filter { it.name() == name }
 
 private fun extractXmlNodeFromApk(apks: Collection<ApkInfo>): XmlNode {
   for (apk in apks) {

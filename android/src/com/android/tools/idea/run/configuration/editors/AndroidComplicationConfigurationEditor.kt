@@ -64,6 +64,11 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
     super.resetEditorFrom(runConfiguration)
     allAvailableSlots = runConfiguration.watchFaceInfo.complicationSlots
     originalChosenSlots = runConfiguration.chosenSlots.map { it.copy() }
+    currentChosenSlots.apply {
+      beginUpdate()
+      addAll(runConfiguration.chosenSlots.map { it.copy() })
+      endUpdate()
+    }
     update()
   }
 
@@ -167,10 +172,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
                                index: Int,
                                selected: Boolean,
                                hasFocus: Boolean) {
-          text = when {
-            value != null -> value.name
-            else -> "Source doesn't provide types supported by slot"
-          }
+          text = value?.name ?: "Source doesn't provide types supported by slot"
         }
       }
       preferredSize = Dimension(350, preferredSize.height)
@@ -201,4 +203,3 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   private fun typesSupportedBySlot(slotId: Int) = allAvailableSlots.first { it.slotId == slotId }.supportedTypes
 }
-

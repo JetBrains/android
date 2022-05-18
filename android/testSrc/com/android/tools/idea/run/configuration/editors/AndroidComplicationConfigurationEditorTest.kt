@@ -41,8 +41,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.mockito.Mockito
 import org.w3c.dom.Element
-import java.io.File
-import java.io.FileInputStream
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.swing.JButton
@@ -110,10 +109,8 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
     </service>
     """
 
-    val file = File(File(myFixture.tempDirPath), "service.xml")
-    file.createNewFile()
-    file.writeText(serviceString, Charsets.UTF_8)
-    val document = PositionXmlParser.parse(FileInputStream(file))
+    val stream = ByteArrayInputStream(serviceString.toByteArray(Charsets.UTF_8))
+    val document = PositionXmlParser.parse(stream)
     return document.documentElement
   }
 
@@ -130,6 +127,29 @@ class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
   fun testResetFromEmptyConfiguration() {
     assertThat(runConfiguration.module).isNull()
     settingsEditor.resetFrom(runConfiguration)
+  }
+
+  fun testResetFromConfigurationWithChosenSlots() {
+    runConfiguration.watchFaceInfo = object : ComplicationWatchFaceInfo {
+      override val complicationSlots = listOf(
+        ComplicationSlot(
+          "Top",
+          3,
+          arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.ICON)
+        )
+      )
+      override val apk = ""
+      override val appId = ""
+      override val watchFaceFQName = ""
+    }
+    runConfiguration.chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(3, ComplicationType.ICON))
+    runConfiguration.componentName = "com.example.MyIconComplication"
+    runConfiguration.setModule(myModule)
+
+    settingsEditor.resetFrom(runConfiguration)
+    assertThat(slotsPanel.components).hasLength(1)
+    assertThat(slotsPanel.getIdComboBoxForSlot(0).item).isEqualTo(3)
+    assertThat(slotsPanel.getTypeComboBoxForSlot(0).item).isEqualTo(ComplicationType.ICON)
   }
 
   fun testCleanupComplicationNameOnModuleChange() {
