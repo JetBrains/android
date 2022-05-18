@@ -63,17 +63,34 @@ import javax.swing.JTextField
 class RuleDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    private var latestCommand = InterceptCommand.getDefaultInstance()
+    private var latestRegularCommand = InterceptCommand.getDefaultInstance()
+    private var latestReorderCommand = InterceptCommand.getDefaultInstance()
 
     override suspend fun getStartTimeStampNs() = 0L
 
     override suspend fun interceptResponse(command: InterceptCommand) {
-      latestCommand = command
+      if (command.hasReorderInterceptRules()) {
+        latestReorderCommand = command
+      }
+      else {
+        latestRegularCommand = command
+      }
     }
 
+    /**
+     * Verifies the latest command not for reordering.
+     */
     fun verifyLatestCommand(checker: (InterceptCommand) -> Unit) {
-      checker(latestCommand)
-      latestCommand = InterceptCommand.getDefaultInstance()
+      checker(latestRegularCommand)
+      latestRegularCommand = InterceptCommand.getDefaultInstance()
+    }
+
+    /**
+     * Verifies the latest command for reordering.
+     */
+    fun verifyLatestReorderCommand(checker: (InterceptCommand) -> Unit) {
+      checker(latestReorderCommand)
+      latestReorderCommand = InterceptCommand.getDefaultInstance()
     }
   }
 
@@ -166,6 +183,28 @@ class RuleDetailsViewTest {
     remove.actionPerformed(TestActionEvent())
     client.verifyLatestCommand { command ->
       assertThat(command).isEqualTo(InterceptCommand.getDefaultInstance())
+    }
+  }
+
+  @Test
+  fun reorderRulesFromTable() {
+    val rule1 = addNewRule()
+    val rule2 = addNewRule()
+    val table = inspectorView.rulesView.table
+    assertThat(table.selectedRow).isEqualTo(1)
+
+    val moveUp = findAction(inspectorView.rulesView.component, "Up")
+    moveUp.actionPerformed(TestActionEvent())
+    assertThat(table.selectedRow).isEqualTo(0)
+    client.verifyLatestReorderCommand { command ->
+      assertThat(command.reorderInterceptRules.ruleIdList).isEqualTo(listOf(rule2.id, rule1.id))
+    }
+
+    val moveDown = findAction(inspectorView.rulesView.component, "Down")
+    moveDown.actionPerformed(TestActionEvent())
+    assertThat(table.selectedRow).isEqualTo(1)
+    client.verifyLatestReorderCommand { command ->
+      assertThat(command.reorderInterceptRules.ruleIdList).isEqualTo(listOf(rule1.id, rule2.id))
     }
   }
 

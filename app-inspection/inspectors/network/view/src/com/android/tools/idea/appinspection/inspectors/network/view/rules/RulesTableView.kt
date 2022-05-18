@@ -37,6 +37,7 @@ class RulesTableView(
 
   val tableModel = RulesTableModel()
   val table = TableView(tableModel)
+  private var orderedRules = listOf<Int>()
 
   init {
     val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
@@ -65,6 +66,9 @@ class RulesTableView(
     table.selectionModel.addListSelectionListener {
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
+    }
+    tableModel.addTableModelListener {
+      reorderRules()
     }
   }
 
@@ -109,5 +113,17 @@ class RulesTableView(
         }
       }
     })
+  }
+
+  private fun reorderRules() {
+    val newOrderedRules = tableModel.items.filter { it.isActive }.map { it.id }
+    if (newOrderedRules != orderedRules) {
+      orderedRules = newOrderedRules
+      scope.launch {
+        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+          reorderInterceptRulesBuilder.addAllRuleId(orderedRules)
+        }.build())
+      }
+    }
   }
 }
