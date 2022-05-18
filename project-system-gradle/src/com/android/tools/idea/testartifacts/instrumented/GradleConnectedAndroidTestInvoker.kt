@@ -144,7 +144,7 @@ class GradleConnectedAndroidTestInvoker(
 
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
     val adapters = scheduledDeviceList.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.artifactForAndroidTest, androidTestResultListener)
+      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestResultListener)
       adapter.device.id to adapter
     }
 

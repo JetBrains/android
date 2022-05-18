@@ -80,10 +80,10 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(IdeVariantCore::mainArtifact, GradleAndroidModel::getActiveSourceProviders) +
-      populateContentEntries(IdeVariantCore::unitTestArtifact, GradleAndroidModel::getUnitTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::androidTestArtifact, GradleAndroidModel::getAndroidTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::testFixturesArtifact, GradleAndroidModel::getTestFixturesSourceProviders)
+    populateContentEntries(IdeVariantCore::mainArtifact, GradleAndroidModel::activeSourceProviders) +
+      populateContentEntries(IdeVariantCore::unitTestArtifact, GradleAndroidModel::unitTestSourceProviders) +
+      populateContentEntries(IdeVariantCore::androidTestArtifact, GradleAndroidModel::androidTestSourceProviders) +
+      populateContentEntries(IdeVariantCore::testFixturesArtifact, GradleAndroidModel::testFixturesSourceProviders)
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 

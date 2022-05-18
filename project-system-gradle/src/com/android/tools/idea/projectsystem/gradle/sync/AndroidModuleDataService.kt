@@ -262,7 +262,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
-        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
+        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.getJavaLanguageLevel(), sdkToUse)
       }
     }
 
@@ -316,7 +316,7 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Gradl
     VfsUtilCore.pathToUrl(file.absolutePath)
   }
 
-  val testGenResources = androidModuleModel.artifactForAndroidTest?.generatedResourceFolders ?: listOf()
+  val testGenResources = androidModuleModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
   // Why don't we include the standard unit tests source providers here?
   val testSourceProviders = androidModuleModel.androidTestSourceProviders
   androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = (testSourceProviders.flatMap { provider ->
