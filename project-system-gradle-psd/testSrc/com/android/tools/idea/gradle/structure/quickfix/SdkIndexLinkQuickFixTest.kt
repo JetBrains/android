@@ -15,51 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.quickfix
 
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.openapi.project.Project
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class SdkIndexLinkQuickFixTest {
-  private lateinit var tracker: TestUsageTracker
-
-  @Before
-  fun setUp() {
-    tracker = TestUsageTracker(VirtualTimeScheduler())
-    UsageTracker.setWriterForTest(tracker)
-  }
-
-  @After
-  fun tearDown() {
-    tracker.close()
-    UsageTracker.cleanAfterTesting()
-  }
-
   @Test
   fun `execute logs click`() {
-    val quickfix = SdkIndexLinkQuickFix("Open link text", "http://google.com", "com.google.androidx", "firebase", "2.0.0",
-                                        browseFunction = {});
-    val mockContext = mock(PsContext::class.java)
-    val mockProject = mock(PsProject::class.java)
-    val mockIdeProject = mock(Project::class.java)
-    `when`(mockContext.project).thenReturn(mockProject)
-    `when`(mockProject.ideProject).thenReturn(mockIdeProject)
-    `when`(mockIdeProject.isDefault).thenReturn(true)
-    `when`(mockIdeProject.isDisposed).thenReturn(true)
-    quickfix.execute(mockContext)
-
-    val events = tracker.usages
-      .map { it.studioEvent }
-      .filter { it.kind == AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED }
-    assertThat(events).isNotEmpty()
+    var browserCalled = false
+    var eventReportCalled = false
+    val quickfix = SdkIndexLinkQuickFix(text = "Open link text", url = "http://google.com", groupId = "com.google.androidx",
+                                        artifactId = "firebase", "2.0.0", browseFunction = { browserCalled = true },
+                                        eventReport = { eventReportCalled = true })
+    quickfix.applyQuickfix(null)
+    assertThat(browserCalled).isTrue()
+    assertThat(eventReportCalled).isTrue()
   }
 }

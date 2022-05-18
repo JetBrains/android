@@ -225,51 +225,53 @@ class PsAnalyzerDaemon(
  * Checks if the dependency has issues in the Google Play SDK Index and if it does, returns the one with higher severity.
  *
  * @param dependencySpec: dependency being checked
- * @param path: path to point when showing the issues
- * @param rootDir: root dir of the project that adds this dependency
+ * @param libraryPath: path of the library dependency, used generating the issues
+ * @param parentModuleRootDir: root dir of the parent module of this dependency
  *
  * @return The issue with the higher severity from the SDK index, or null if there are no issues
  */
-fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, path: PsPath, rootDir: File?): PsGeneralIssue? {
+fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: PsPath, parentModuleRootDir: File?): PsGeneralIssue? {
   val sdkIndex = IdeGooglePlaySdkIndex
   val groupId = dependencySpec.group ?: return null
   val versionString = dependencySpec.version ?: return null
   val artifactId = dependencySpec.name
 
-  if (sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, rootDir)) {
+  if (sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)) {
     val message = "$groupId:$artifactId version $versionString has policy issues that will block publishing."
-    return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
+    return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
   }
   val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
   if (isBlocking) {
-    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, rootDir)) {
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
       val message = "$groupId:$artifactId version $versionString has blocking issues with an associated message from its author"
-      return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
     }
-    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, rootDir)) {
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
       val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author as will block publishing"
-      return createIndexIssue(message, groupId, artifactId, versionString, path, ERROR)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
     }
   }
   else {
-    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, rootDir)) {
+    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
       val message = "$groupId:$artifactId version $versionString has been marked as outdated by its author"
-      return createIndexIssue(message, groupId, artifactId, versionString, path, WARNING)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING)
     }
-    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, rootDir)) {
+    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
       val message = "$groupId:$artifactId version $versionString has an associated message from its author"
-      return createIndexIssue(message, groupId, artifactId, versionString, path, INFO)
+      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO)
     }
   }
   return null
 }
 
-private fun createIndexIssue(message: String,
-                             groupId: String,
-                             artifactId: String,
-                             versionString: String,
-                             mainPath: PsPath,
-                             severity: PsIssue.Severity): PsGeneralIssue{
+private fun createIndexIssue(
+  message: String,
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  mainPath: PsPath,
+  severity: PsIssue.Severity
+): PsGeneralIssue {
   val sdkIndex = IdeGooglePlaySdkIndex
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = if (url != null) {

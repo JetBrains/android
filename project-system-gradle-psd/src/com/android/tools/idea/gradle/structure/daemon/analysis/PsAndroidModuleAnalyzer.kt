@@ -112,6 +112,7 @@ class PsAndroidModuleAnalyzer(
   private fun analyzeSdkIndexLibraries(model: PsAndroidModule): Sequence<PsIssue> {
     return model
       .resolvedVariants
+      .asSequence()
       .flatMap { it.artifacts }
       .flatMap { it.dependencies.libraries }
       .flatMap { library ->
@@ -121,8 +122,7 @@ class PsAndroidModuleAnalyzer(
           .map { PathSpecAndRoot(library) }
       }
       .filter { it.path != null && it.spec.group != null }
-      .toSet()
-      .asSequence()
+      .distinct()
       .mapNotNull { getSdkIndexIssueFor(it.spec, it.path!!, it.rootDir) }
   }
 

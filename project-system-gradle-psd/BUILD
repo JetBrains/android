@@ -76,10 +76,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 
