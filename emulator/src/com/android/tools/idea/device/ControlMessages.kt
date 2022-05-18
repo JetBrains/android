@@ -159,7 +159,7 @@ internal data class TextInputMessage(
 }
 
 /** Represents one or more characters typed on a keyboard. */
-internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessage(TYPE) {
+internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -177,7 +177,7 @@ internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessag
 }
 
 /** Sets maximum display streaming resolution. */
-internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(TYPE) {
+internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -197,7 +197,7 @@ internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : C
 }
 
 /** Sets device clipboard and requests clipboard updates from the device. */
-internal class StartClipboardSyncMessage(val maxSyncedLength: Int, val text: String) : ControlMessage(TYPE) {
+internal data class StartClipboardSyncMessage(val maxSyncedLength: Int, val text: String) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -226,10 +226,22 @@ internal class StopClipboardSyncMessage : ControlMessage(TYPE) {
       return StopClipboardSyncMessage()
     }
   }
+
+  override fun equals(other: Any?): Boolean {
+    return when {
+      this === other -> true
+      javaClass != other?.javaClass -> false
+      else -> true
+    }
+  }
+
+  override fun hashCode(): Int {
+    return javaClass.hashCode()
+  }
 }
 
 /** A clipboard update from the device. */
-internal class ClipboardChangedMessage(val text: String) : ControlMessage(TYPE) {
+internal data class ClipboardChangedMessage(val text: String) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)

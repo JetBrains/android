@@ -102,7 +102,7 @@ class DeviceView(
 
   /** Count of received display frames. */
   @get:VisibleForTesting
-  var frameNumber = 0
+  var frameNumber: Long = 0
     private set
 
   private var connected = false
@@ -169,10 +169,9 @@ class DeviceView(
         override fun onNewFrameAvailable() {
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             connected = true
-            if (frameNumber == 0) {
+            if (frameNumber == 0L) {
               hideLongRunningOperationIndicatorInstantly()
             }
-            frameNumber++
             if (width != 0 && height != 0) {
               repaint()
             }
@@ -261,6 +260,7 @@ class DeviceView(
 
       deviceDisplaySize.size = displayFrame.displaySize
       displayRotationQuadrants = displayFrame.orientation
+      frameNumber = displayFrame.frameNumber
 
       deviceClient?.apply {
         if (startTime != 0L) {
