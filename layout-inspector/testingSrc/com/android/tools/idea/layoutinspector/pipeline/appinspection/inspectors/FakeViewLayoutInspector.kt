@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.UpdateScreenshotTypeResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.UpdateScreenshotTypeResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
 import kotlin.test.fail
 
 fun FakeInspector.Connection<Event>.sendEvent(init: Event.Builder.() -> Unit) {

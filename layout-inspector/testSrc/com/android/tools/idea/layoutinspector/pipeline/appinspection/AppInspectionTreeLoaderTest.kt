@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
@@ -49,15 +50,14 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import java.awt.Image
 import java.awt.Polygon
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 class AppInspectionTreeLoaderTest {
 

@@ -60,6 +60,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAn
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
@@ -82,7 +83,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

@@ -46,6 +46,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
@@ -66,7 +67,6 @@ import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting

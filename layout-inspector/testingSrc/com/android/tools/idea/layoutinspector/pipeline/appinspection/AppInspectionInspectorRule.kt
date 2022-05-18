@@ -41,8 +41,8 @@ import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 /**
  * An [InspectorClientProvider] for creating an app inspection-based client.

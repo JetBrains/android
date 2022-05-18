@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector.util
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.resource.data.Resource
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.util.text.nullize
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 class TestStringTable : StringTable {
   private val strings: BiMap<String, Int> = HashBiMap.create()

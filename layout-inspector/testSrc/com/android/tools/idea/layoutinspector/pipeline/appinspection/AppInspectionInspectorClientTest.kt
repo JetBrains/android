@@ -103,8 +103,8 @@ import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val OTHER_MODERN_PROCESS = MODERN_DEVICE.createProcess(name = "com.other", streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -596,7 +596,7 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = true
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+      com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
       }.build()
     }
@@ -611,7 +611,7 @@ class AppInspectionInspectorClientTest {
     InspectorClientSettings.isCapturingModeOn = false
     val banner = InspectorBanner(inspectorRule.project)
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+      com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
         startFetchResponseBuilder.error = "here's my error"
       }.build()
     }

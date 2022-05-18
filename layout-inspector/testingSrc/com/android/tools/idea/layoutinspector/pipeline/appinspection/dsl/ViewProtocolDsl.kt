@@ -17,19 +17,18 @@
 
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl
 
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Quad
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Rect
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StringEntry
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FlagValue
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Quad
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Rect
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StringEntry
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
 
 // Need to create a helper function to avoid name ambiguity
 private fun createViewString(id: Int, str: String): StringEntry {

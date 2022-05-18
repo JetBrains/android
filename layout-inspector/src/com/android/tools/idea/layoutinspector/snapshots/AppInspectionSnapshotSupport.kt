@@ -26,12 +26,12 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.Discon
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.snapshots.Metadata
 import layoutinspector.snapshots.Snapshot
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream

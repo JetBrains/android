@@ -27,14 +27,14 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewScr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Configuration
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property.Type
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchResponse
 import com.android.tools.idea.protobuf.ByteString
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Configuration
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property.Type
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchResponse
 import java.awt.Color
 
 class FakeBoxes(private val viewInspector: FakeViewLayoutInspector) {

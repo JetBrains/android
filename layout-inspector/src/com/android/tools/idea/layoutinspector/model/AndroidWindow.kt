@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Shape
 
 /**

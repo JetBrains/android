@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 
 class StringTableImpl(strings: List<LayoutInspectorViewProtocol.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
