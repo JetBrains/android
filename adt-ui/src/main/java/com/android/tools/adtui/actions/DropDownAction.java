@@ -132,6 +132,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
         Point location = owner.getLocationOnScreen();
         location.translate(0, owner.getHeight());
         popup.showInScreenCoordinates(owner, location);
+        popup.moveToFitScreen();
       }
     }
   }
