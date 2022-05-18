@@ -25,12 +25,14 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
+import java.io.File
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
@@ -39,31 +41,40 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   override fun necessity() =
     standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-beta03"), GradleVersion.parse("8.0.0-alpha01"))
 
+  data class Namespaces(val namespace: String?, val testNamespace: String?)
+
+  private fun File.computeNamespacesFromManifestPackageAttributesWith(function: (XmlAttribute) -> Unit): Namespaces {
+    val psiManager = PsiManager.getInstance(project)
+    // This is unsound, in that the sourceSets are in fact configurable, rather than fixed, and the location of each sourceSet's
+    // manifest is user-controllable.  However, we expect most cases to stick with the default locations, or if not preserve the
+    // structure involving subdirectories of "src".
+    var namespace: String? = null
+    var testNamespace: String? = null
+    this.toVirtualFile()?.findChild("src")?.children?.forEach child@{ child ->
+      if (!child.isDirectory) return@child
+      val childName = child.name
+      val manifestFile = child.findChild("AndroidManifest.xml") ?: return@child
+      val xmlFile = manifestFile.takeIf { it.isValid }?.let { psiManager.findFile(it) } as? XmlFile ?: return@child
+      val rootTag = xmlFile.rootTag ?: return@child
+      val packageAttribute = rootTag.getAttribute("package") ?: return@child
+      when {
+        (childName == "main") -> namespace = packageAttribute.value
+        (childName == "androidTest") -> testNamespace = packageAttribute.value
+        // This is somewhat unsound as the main sourceSet need not have the location src/main.  However, well-formed projects
+        // should have the same value for package in all production sourceSets, so to some extent this concern is theoretical.
+        else -> namespace = namespace ?: packageAttribute.value
+      }
+      function(packageAttribute)
+    }
+    return Namespaces(namespace, testNamespace)
+  }
+
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
-    val psiManager = PsiManager.getInstance(project)
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
-      // This is unsound, in that the sourceSets are in fact configurable, rather than fixed, and the location of each sourceSet's
-      // manifest is user-controllable.  However, we expect most cases to stick with the default locations, or if not preserve the
-      // structure involving subdirectories of "src".
-      var namespace: String? = null
-      var testNamespace: String? = null
-      moduleDirectory.toVirtualFile()?.findChild("src")?.children?.forEach child@{ child ->
-        if (!child.isDirectory) return@child
-        val childName = child.name
-        val manifestFile = child.findChild("AndroidManifest.xml") ?: return@child
-        val xmlFile = manifestFile.takeIf { it.isValid }?.let { psiManager.findFile(it) } as? XmlFile ?: return@child
-        val rootTag = xmlFile.rootTag ?: return@child
-        val packageAttribute = rootTag.getAttribute("package") ?: return@child
-        when {
-          (childName == "main") -> namespace = packageAttribute.value
-          (childName == "androidTest") -> testNamespace = packageAttribute.value
-          // This is somewhat unsound as the main sourceSet need not have the location src/main.  However, well-formed projects
-          // should have the same value for package in all production sourceSets, so to some extent this concern is theoretical.
-          else -> namespace = namespace ?: packageAttribute.value
-        }
+      val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributesWith { packageAttribute ->
         val wrappedPsiElement = WrappedPsiElement(packageAttribute, this, REMOVE_MANIFEST_PACKAGE)
         val usageInfo = AndroidManifestPackageUsageInfo(wrappedPsiElement)
         usages.add(usageInfo)
