@@ -22,6 +22,7 @@ import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -330,7 +331,10 @@ public class TutorialCard extends CardViewPanel {
     }
 
     private void closeAssistant() {
-      ToolWindowManager.getInstance(myProject).getToolWindow("Assistant").hide(() -> {});
+      ToolWindow assistantToolWindow = ToolWindowManager.getInstance(myProject).getToolWindow("Assistant");
+      if (assistantToolWindow != null) {
+        assistantToolWindow.hide();
+      }
       myStepIndex = 0; // reset index back to first page on close.
     }
 
