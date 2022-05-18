@@ -75,10 +75,15 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfig
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset.STANDARD
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
+import com.intellij.icons.AllIcons
+import com.intellij.ide.actions.CopyAction
+import com.intellij.ide.actions.SearchWebAction
+import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
@@ -108,6 +113,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.Icon
 import kotlin.math.max
 import kotlin.text.RegexOption.LITERAL
 
@@ -240,6 +246,8 @@ internal class LogcatMainPanel(
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
     return SimpleActionGroup().apply {
+      add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
+      add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
       add(Separator.create())
       actions.forEach { add(it) }
@@ -418,6 +426,7 @@ internal class LogcatMainPanel(
       ScreenshotAction.SERIAL_NUMBER_KEY.name -> deviceManager?.device?.serialNumber
       ScreenshotAction.SDK_KEY.name -> deviceManager?.device?.version?.apiLevel
       ScreenshotAction.MODEL_KEY.name -> deviceManager?.device?.getProperty(IDevice.PROP_DEVICE_MODEL)
+      EDITOR.name -> editor
       else -> null
     }
   }
@@ -581,4 +590,14 @@ private fun getDefaultFilter(project: Project, androidProjectDetector: AndroidPr
     else -> logcatSettings.defaultFilter
   }
   return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
+}
+
+private fun AnAction.withText(text: String): AnAction {
+  templatePresentation.text = text
+  return this
+}
+
+private fun AnAction.withIcon(icon: Icon): AnAction {
+  templatePresentation.icon = icon
+  return this
 }

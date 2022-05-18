@@ -292,7 +292,10 @@ class LogcatMainPanelTest {
 
     val popupMenu = popupRule.popupContents as JPopupMenu
 
+    // SearchWebAction does not show up in this test because its presentation depends on a CopyProvider available which it isn't in the
+    // test environment for some reason.
     assertThat(popupMenu.components.map { if (it is JPopupMenu.Separator) "-" else (it as ActionMenuItem).text }).containsExactly(
+      "Copy",
       "Fold Lines Like This",
       "-",
       "An Action",
