@@ -1,3 +1,4 @@
+import json
 import os
 import io
 import unittest
@@ -140,7 +141,7 @@ class ToolsTest(unittest.TestCase):
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
     platform = create_zip("platform.zip", {
       "build.txt": "AI-1234.__BUILD_NUMBER__",
-      "product-info.json": "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
+      "product-info.json": '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}',
       "lib/resources.jar": {
         "idea/AndroidStudioApplicationInfo.xml": """
       <build number="AI-__BUILD__" date="__BUILD_DATE__">
@@ -159,10 +160,11 @@ class ToolsTest(unittest.TestCase):
         "--eap", "true",
         "--stamp_platform", res,
     ])
-
+    self.maxDiff=None
     self.assertEqual({
       "build.txt": "AI-1234.3333",
-      "product-info.json": "Info 3333 3333",
+      "product-info.json": json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"},
+         sort_keys=True, indent=2),
       "lib/resources.jar": {
         "idea/AndroidStudioApplicationInfo.xml": """
       <build number="AI-1234.3333" date="202008192252">
@@ -175,6 +177,7 @@ class ToolsTest(unittest.TestCase):
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
     platform = create_zip("platform.zip", {
       "Contents/Resources/build.txt": "AI-1234.__BUILD_NUMBER__",
+      "Contents/Resources/product-info.json": '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}',
       "Contents/Info.plist": "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
       "Contents/lib/resources.jar": {
         "idea/AndroidStudioApplicationInfo.xml": """
@@ -195,8 +198,11 @@ class ToolsTest(unittest.TestCase):
         "--stamp_platform", res,
     ])
 
+    self.maxDiff=None
     self.assertEqual({
       "Contents/Resources/build.txt": "AI-1234.3333",
+      "Contents/Resources/product-info.json": json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"},
+         sort_keys=True, indent=2),
       "Contents/Info.plist": "Info 3333 3333",
       "Contents/lib/resources.jar": {
         "idea/AndroidStudioApplicationInfo.xml": """

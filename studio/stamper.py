@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import fnmatch
+import json
 import io
 import re
 import sys
@@ -42,6 +43,12 @@ def _stamp_app_info(build_date, build, micro, patch, full, eap, content):
 
   return content
 
+
+def _stamp_product_info_json(build, version, content):
+  json_data = json.loads(content)
+  json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", build)
+  json_data["version"] = version
+  return json.dumps(json_data, sort_keys=True, indent=2)
 
 def _stamp_plugin_file(build, content):
   """Stamps a plugin.xml with the build ids."""
@@ -150,13 +157,6 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   build_txt = _read_file(platform, resource_path + "build.txt")
   app_info = _read_file(platform, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
 
-  if os == "linux":
-    info = _read_file(platform, base_path + "product-info.json")
-    info = info.replace("__BUILD_NUMBER__", bid)
-  elif os == "mac" or os == "mac_arm":
-    info = _read_file(platform, base_path + "Info.plist")
-    info = info.replace("__BUILD_NUMBER__", bid)
-
   build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
   build_date = _format_build_date(build_version)
   app_info = _stamp_app_info(build_date, build_txt, micro, patch, full, eap, app_info)
@@ -164,10 +164,15 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   _write_file(out, "w", build_txt, resource_path + "build.txt")
   _write_file(out, "a", app_info, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
 
-  if os == "linux":
-    _write_file(out, "a", info, base_path + "product-info.json")
-  elif os == "mac" or os == "mac_arm":
-    _write_file(out, "a", info, base_path + "Info.plist")
+  if os == "linux" or os == "mac" or os == "mac_arm":
+    product_info_json = _read_file(platform, resource_path + "product-info.json")
+    product_info_json = _stamp_product_info_json(bid, build_txt, product_info_json)
+    _write_file(out, "a", product_info_json, resource_path + "product-info.json")
+
+  if os == "mac" or os == "mac_arm":
+    info_plist = _read_file(platform, base_path + "Info.plist")
+    info_plist = info_plist.replace("__BUILD_NUMBER__", bid)
+    _write_file(out, "a", info_plist, base_path + "Info.plist")
 
 
 def main(argv):
