@@ -19,7 +19,6 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.TestResources
-import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
@@ -36,7 +35,6 @@ import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
@@ -73,9 +71,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   private val unsetWatchFace = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
   private val clearDebugAppAm = "am clear-debug-app"
   private val clearDebugAppBroadcast = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
-
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
 
   @Test
   fun test() {
