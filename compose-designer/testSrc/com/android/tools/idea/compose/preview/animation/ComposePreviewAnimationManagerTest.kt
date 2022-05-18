@@ -76,7 +76,7 @@ class ComposePreviewAnimationManagerTest(private val enableCoordination: Boolean
 
   private lateinit var parentDisposable: Disposable
 
-  private lateinit var surface: DesignSurface<*>
+  private lateinit var surface: NlDesignSurface
 
   @Before
   fun setUp() {

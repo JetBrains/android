@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -77,7 +78,7 @@ object ComposePreviewAnimationManager {
       AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
   @Slow
-  fun createAnimationInspectorPanel(surface: DesignSurface<*>,
+  fun createAnimationInspectorPanel(surface: DesignSurface<LayoutlibSceneManager>,
                                     parent: Disposable,
                                     onNewInspectorOpen: () -> Unit): ComposeAnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen

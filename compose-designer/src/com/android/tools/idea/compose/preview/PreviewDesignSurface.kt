@@ -33,7 +33,6 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.applyTo
-import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
@@ -153,7 +152,7 @@ internal suspend fun NlDesignSurface.refreshExistingPreviewElements(
 
 private fun NlDesignSurface.logSurfaceStatus(log: Logger) {
   // Log any rendering errors
-  layoutlibSceneManagers.forEach {
+  sceneManagers.forEach {
     val modelName = it.model.modelDisplayName
     it.renderResult?.let { result ->
       val renderLogger = result.logger

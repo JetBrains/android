@@ -39,7 +39,6 @@ import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.invalidateCompositions
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
-import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -368,7 +367,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     composeWorkBench.hasComponentsOverlay = false
     val startUpStart = System.currentTimeMillis()
     forceRefresh(quickRefresh)?.invokeOnCompletion {
-      surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
+      surface.sceneManagers.forEach { it.resetTouchEventsCounter() }
       if (!isFromAnimationInspection) { // Currently it will re-create classloader and will be slower that switch from static
         InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
           (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
@@ -415,12 +414,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun pauseInteractivePreview() {
     ticker.stop()
-    surface.layoutlibSceneManagers.forEach { it.pauseSessionClock() }
+    surface.sceneManagers.forEach { it.pauseSessionClock() }
   }
 
   private fun resumeInteractivePreview() {
     fpsCounter.resetAndStart()
-    surface.layoutlibSceneManagers.forEach { it.resumeSessionClock() }
+    surface.sceneManagers.forEach { it.resumeSessionClock() }
     ticker.start()
   }
 
@@ -559,7 +558,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val ticker = ControllableTicker({
                                             if (!RenderService.isBusy() && fpsCounter.getFps() <= fpsLimit) {
                                               fpsCounter.incrementFrameCounter()
-                                              surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
+                                              surface.sceneManager?.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(5))
 
@@ -780,7 +779,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             val pushId = pushIdCounter.getAndIncrement().toString(16)
             activationScope?.launch {
               LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
-              surface.layoutlibSceneManagers.forEach { sceneManager ->
+              surface.sceneManagers.forEach { sceneManager ->
                 sceneManager.invalidateCompositions(forceLayout = animationInspection.get())
                 sceneManager.executeCallbacks()
                 sceneManager.render()
@@ -900,7 +899,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private fun logInteractiveSessionMetrics() {
-    val touchEvents = surface.layoutlibSceneManagers.map { it.touchEventsCount }.sum()
+    val touchEvents = surface.sceneManagers.map { it.touchEventsCount }.sum()
     InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
   }
 
@@ -915,7 +914,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
     renderedElements.isNotEmpty() &&
-    (!hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers.any { it.renderResult.isComposeErrorResult() })
+    (!hasRenderedAtLeastOnce.get() || surface.sceneManagers.any { it.renderResult.isComposeErrorResult() })
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 

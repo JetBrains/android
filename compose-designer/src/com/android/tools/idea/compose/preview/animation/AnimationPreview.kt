@@ -27,7 +27,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -66,7 +66,7 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationPreview]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationPreview(override val surface: DesignSurface<*>) : JPanel(
+class AnimationPreview(override val surface: DesignSurface<LayoutlibSceneManager>) : JPanel(
   TabularLayout("Fit,*", "Fit,*,30px")), ComposeAnimationPreview {
 
   private val tracker: (ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
@@ -691,7 +691,7 @@ class AnimationPreview(override val surface: DesignSurface<*>) : JPanel(
     else {
       30L to TimeUnit.MILLISECONDS
     }
-    return surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender(time, timeUnit) {
+    return surface.sceneManager?.executeCallbacksAndRequestRender(time, timeUnit) {
       callback()
     } ?: false
   }

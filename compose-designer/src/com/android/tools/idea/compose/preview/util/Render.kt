@@ -91,11 +91,3 @@ internal suspend fun LayoutlibSceneManager.invalidateCompositions(forceLayout: B
     }
   }
 }
-
-/**
- * Returns all the [LayoutlibSceneManager] belonging to the [DesignSurface].
- */
-internal val DesignSurface<*>.layoutlibSceneManagers: Sequence<LayoutlibSceneManager>
-  get() = models.asSequence()
-    .mapNotNull { getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()

@@ -27,8 +27,8 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_CURVES
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -100,7 +100,7 @@ typealias ComposeAnimationEventTracker = (type: ComposeAnimationToolingEvent.Com
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationInspectorPanel]
  * therefore allows a detailed inspection of Compose animations.
  */
-internal class AnimationInspectorPanel(override val surface: DesignSurface<*>) : JPanel(
+internal class AnimationInspectorPanel(override val surface: DesignSurface<LayoutlibSceneManager>) : JPanel(
   TabularLayout("Fit,*", "Fit,*")), Disposable, ComposeAnimationPreview {
 
   override val component = this
@@ -939,7 +939,7 @@ internal class AnimationInspectorPanel(override val surface: DesignSurface<*>) :
     else {
       30L to TimeUnit.MILLISECONDS
     }
-    return surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender(time, timeUnit) {
+    return surface.sceneManager?.executeCallbacksAndRequestRender(time, timeUnit) {
       callback()
     } ?: false
   }
