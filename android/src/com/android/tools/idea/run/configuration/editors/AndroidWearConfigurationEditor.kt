@@ -58,7 +58,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
-  private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
+  protected val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
     override fun isModuleAccepted(module: Module?): Boolean {
       if (module == null || !super.isModuleAccepted(module)) {
         return false
@@ -70,8 +70,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   }
 
   private lateinit var wearComponentFqNameComboBox: ComboBox<String>
-  private var componentName: String? = null
-    set(value) {
+  protected var componentName: String? = null
+    private set(value) {
       if (field != value) {
         field = value
         onComponentNameChanged(value)
@@ -96,9 +96,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
         override fun onFinished() {
           wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
-          availableComponents.firstOrNull { it == componentName }?.let {
-            wearComponentFqNameComboBox.item = it
-          }
+          componentName = wearComponentFqNameComboBox.item
           if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
             component?.parent?.parent?.apply {
               removeAll()
@@ -106,13 +104,10 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
               add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
             }
           }
-          onModuleChanged(moduleSelector.module)
         }
       }.queue()
     }
   }
-
-  open fun onModuleChanged(newModule: Module?) {}
 
   open fun onComponentNameChanged(newComponent: String?) {}
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
@@ -55,6 +54,7 @@ class AndroidComplicationConfigurationType :
 class AndroidComplicationConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
   data class ChosenSlot(var id: Int, var type: Complication.ComplicationType?) {
     // We need parameterless constructor for correct work of XmlSerializer. See [AndroidWearConfiguration.readExternal]
+    @Suppress("unused")
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
@@ -63,31 +63,25 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
       throw RuntimeConfigurationWarning(AndroidBundle.message("no.provider.type.error"))
     }
     for (slot in chosenSlots) {
-      val slotType = slot.type ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.empty"))
+      val slotType = slot.type ?: throw RuntimeConfigurationWarning(
+        AndroidBundle.message("provider.type.empty", watchFaceInfo.complicationSlots.find { it.slotId == slot.id }!!.name))
       if (!supportedTypes.contains(slotType)) {
         throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.mismatch.error", slotType))
       }
     }
   }
 
-  internal fun getTypesFromManifest(): List<String>? {
-    val module = this.module ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.module.not.chosen"))
-    val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
-    if (snapshotFuture.isDone) {
-      return extractComplicationSupportedTypes(snapshotFuture.get(), this.componentName ?: "")
-    }
-    return null
-  }
-
   override fun checkConfiguration() {
     super.checkConfiguration()
-    val rawTypes = getTypesFromManifest()
-                ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
+    // super.checkConfiguration() has already checked that module and componentName are not null.
+    assert(module != null && componentName != null)
+    val rawTypes = getComplicationTypesFromManifest(module!!, componentName!!)
+                   ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
-    verifyProviderTypes(parseRawTypes(rawTypes))
-    checkRawTypes(rawTypes) // Make sure Errors are thrown before Warnings.
+    verifyProviderTypes(parseRawComplicationTypes(rawTypes))
+    checkRawComplicationTypes(rawTypes) // Make sure Errors are thrown before Warnings.
   }
 
   var chosenSlots: List<ChosenSlot> = listOf()
