@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.assistant
 
 import com.android.tools.idea.assistant.AssistantBundleCreator
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction
+import com.android.tools.idea.assistant.AssistantToolWindowService.Companion.TOOL_WINDOW_TITLE
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
@@ -28,15 +28,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import java.net.URL
 
-/**
- * Pairs plugin bundle id to the tutorial bundle xml
- */
+/** Pairs plugin bundle id to the tutorial bundle xml */
 data class HelpPanelBundle(val bundleId: String, val bundleXml: String)
 
-/**
- * Base tutorial bundle xml creator.
- */
-open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) : AssistantBundleCreator {
+/** Base tutorial bundle xml creator. */
+open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) :
+    AssistantBundleCreator {
   override fun getBundleId(): String {
     return type.bundleId
   }
@@ -51,25 +48,23 @@ open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBu
 }
 
 /**
- * Assistant Panel tools listener. It listens to assistatnt panel related actions (e.g. open panel, close panel etc) within a project.
+ * Assistant Panel tools listener. It listens to assistatnt panel related actions (e.g. open panel,
+ * close panel etc) within a project.
  */
-class HelpPanelToolWindowListener
-private constructor (private var project: Project) : ToolWindowManagerListener, Disposable {
+class HelpPanelToolWindowListener private constructor(private var project: Project) :
+    ToolWindowManagerListener, Disposable {
 
   companion object {
     /**
      * Maps action id to the HelpPanelType for metric tracking.
-     * @param actionId       the Bundle Id used for the assistant action
-     * @param helpPanelType  type to use for usage tracking.
+     * @param actionId the Bundle Id used for the assistant action
+     * @param helpPanelType type to use for usage tracking.
      */
     val map = HashMap<String, HelpPanelType>()
 
-    @VisibleForTesting
-    val projectToListener = HashMap<Project, HelpPanelToolWindowListener>()
+    @VisibleForTesting val projectToListener = HashMap<Project, HelpPanelToolWindowListener>()
 
-    /**
-     * Ensure that listener is registered for the project.
-     */
+    /** Ensure that listener is registered for the project. */
     fun registerListener(project: Project) {
       if (!projectToListener.containsKey(project)) {
         projectToListener[project] = HelpPanelToolWindowListener(project)
@@ -83,7 +78,8 @@ private constructor (private var project: Project) : ToolWindowManagerListener, 
   private var currActionId: String = ""
 
   private val metrics = HashMap<String, AssistantPanelMetricsTracker>()
-  private val currMetric: AssistantPanelMetricsTracker? get() = metrics[currActionId]
+  private val currMetric: AssistantPanelMetricsTracker?
+    get() = metrics[currActionId]
 
   init {
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, this)
@@ -107,8 +103,7 @@ private constructor (private var project: Project) : ToolWindowManagerListener, 
   }
 
   override fun stateChanged() {
-    val window = ToolWindowManager.getInstance(project).getToolWindow(
-      OpenAssistSidePanelAction.TOOL_WINDOW_TITLE) ?: return
+    val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_TITLE) ?: return
     currActionId = window.helpId ?: ""
     type = map[currActionId] ?: return
     if (type == HelpPanelType.UNKNOWN_PANEL_TYPE) {
@@ -120,8 +115,7 @@ private constructor (private var project: Project) : ToolWindowManagerListener, 
       isOpen = false
       currMetric!!.logClose()
       metrics.remove(currActionId)
-    }
-    else if (!isOpen && window.isVisible) {
+    } else if (!isOpen && window.isVisible) {
       isOpen = true
       currMetric!!.logOpen()
     }

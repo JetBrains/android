@@ -31,8 +31,8 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.stubbing.Answer
 import java.io.File
 import java.io.InputStream
@@ -77,24 +77,13 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     bundleCreator.setAllowDownload(true)
 
     val completeFuture = SettableFuture.create<String>()
-    val callback = object: FutureCallback<String> {
-      override fun completed(result: String?) {
-        completeFuture.set(result)
-      }
-
-      override fun cancelled() {
-        completeFuture.set("")
-      }
-
-      override fun failed(ex: Exception?) {
-        completeFuture.set("")
-        ex?.printStackTrace()
-      }
-    }
 
     // Tab title will be set after assistant content finishes loading
     WhatsNewMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
-    AssistSidePanel(WhatsNewBundleCreator.BUNDLE_ID, project, callback)
+    val assistSidePanel = AssistSidePanel(project)
+    assistSidePanel.showBundle(WhatsNewBundleCreator.BUNDLE_ID) {
+      completeFuture.set(it.name)
+    }
     pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }

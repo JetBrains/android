@@ -294,7 +294,8 @@ public final class BuildAnalyzerShowActionTest {
 
   @NotNull
   private StatefulButton getOpenBuildAnalyzerButton() {
-    AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
+    AssistSidePanel sidePanel = new AssistSidePanel(myRule.getProject());
+    sidePanel.showBundle(myBundleCreator.getBundleId(), null, null);
     List<StatefulButton> actionButtons = findComponentsOfType(sidePanel, StatefulButton.class);
     assertEquals(1, actionButtons.size());
     StatefulButton statefulButton = actionButtons.get(0);

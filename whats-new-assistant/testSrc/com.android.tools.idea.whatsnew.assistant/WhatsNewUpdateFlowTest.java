@@ -96,7 +96,8 @@ public final class WhatsNewUpdateFlowTest {
 
     // Needed since creating AssistSidePanel calls metrics
     WhatsNewMetricsTracker.getInstance().open(myRule.getProject(), false);
-    AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
+    AssistSidePanel sidePanel = new AssistSidePanel(myRule.getProject());
+    sidePanel.showBundle(myBundleCreator.getBundleId(), null, null);
     List<StatefulButton.ActionButton> actionButtons = UIUtil.findComponentsOfType(sidePanel, StatefulButton.ActionButton.class);
 
     assertEquals(0, actionButtons.size());
@@ -113,7 +114,8 @@ public final class WhatsNewUpdateFlowTest {
 
     // Needed since creating AssistSidePanel calls metrics
     WhatsNewMetricsTracker.getInstance().open(myRule.getProject(), false);
-    AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
+    AssistSidePanel sidePanel = new AssistSidePanel(myRule.getProject());
+    sidePanel.showBundle(myBundleCreator.getBundleId(), null, null);
     List<StatefulButton.ActionButton> actionButtons = UIUtil.findComponentsOfType(sidePanel, StatefulButton.ActionButton.class);
 
     assertEquals(2, actionButtons.size());

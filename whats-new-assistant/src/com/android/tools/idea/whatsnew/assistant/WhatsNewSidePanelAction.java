@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
+
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.BrowserUtil;
@@ -119,7 +121,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
     @Override
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
-      if (id.equals(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE)) {
+      if (id.equals(TOOL_WINDOW_TITLE)) {
         myProjectToListenerMap.remove(myProject);
         WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
       }
@@ -139,7 +141,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
           return;
         }
 
-        ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE);
+        ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(TOOL_WINDOW_TITLE);
         if (window == null) {
           return;
         }

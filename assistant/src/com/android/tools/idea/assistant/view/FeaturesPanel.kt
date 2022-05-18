@@ -35,11 +35,12 @@ import javax.swing.JPanel
  * presentation data from xml and arranges into cards for navigation purposes.
  */
 class FeaturesPanel(
-    bundle: TutorialBundleData,
-    val project: Project,
-    private val myAnalyticsProvider: AnalyticsProvider
+  bundle: TutorialBundleData,
+  val project: Project,
+  private val myAnalyticsProvider: AnalyticsProvider,
+  defaultCardId: String? = null
 ) : JPanel(BorderLayout()), ItemListener, ActionListener {
-  private val cardKeys = mutableListOf<String>()
+  private val cardKeys = mutableSetOf<String>()
   private val cardsPanel: JPanel
   private val cardLayout: CardLayout
 
@@ -78,6 +79,10 @@ class FeaturesPanel(
     }
 
     add(cardsPanel)
+
+    if (defaultCardId != null && cardKeys.contains(defaultCardId)) {
+      showCard(defaultCardId)
+    }
   }
 
   private fun addCard(c: Component, key: String) {
@@ -93,12 +98,10 @@ class FeaturesPanel(
   }
 
   override fun actionPerformed(e: ActionEvent) {
-    val source = e.source
-
     // TODO: Refactor this code to avoid bloat. This should generally be a dispatcher to more
     // specific classes that manage a given action
     // type. Current thinking is to use extensions so that it's completely generic.
-    when (source) {
+    when (val source = e.source) {
       is NavigationButton -> {
         // Track that user has navigated away from a tutorial. Note that the
         // "chooser" card is special cased in {@code #showCard} such that
