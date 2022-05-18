@@ -635,6 +635,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -1134,13 +1136,16 @@ public class RenderTask {
 
     RenderContext context = getContext();
     Module module = getContext().getModule();
+    Configuration configuration = context.getConfiguration();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
       .thenCompose(result -> {
@@ -1186,14 +1191,17 @@ public class RenderTask {
 
     RenderContext context = getContext();
     Module module = context.getModule();
+    Configuration configuration = context.getConfiguration();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     try {
       Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
@@ -1312,7 +1320,8 @@ public class RenderTask {
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
     RenderContext context = getContext();
-    ResourceResolver resolver = context.getConfiguration().getResourceResolver();
+    Configuration configuration = context.getConfiguration();
+    ResourceResolver resolver = configuration.getResourceResolver();
 
     myLayoutlibCallback.reset();
 
@@ -1331,7 +1340,9 @@ public class RenderTask {
     params.setExtendedViewInfoMode(true);
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, context.getConfiguration().getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
     @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
