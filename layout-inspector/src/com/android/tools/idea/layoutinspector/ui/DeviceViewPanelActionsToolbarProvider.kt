@@ -156,12 +156,9 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
     add(ZoomResetAction)
   }
 
-  private val recompositionGroup = DefaultActionGroup().apply { add(HighlightColorAction) }
-
   val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
 
-  override val otherGroups: List<ActionGroup> =
-    listOf(recompositionGroup, DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
+  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomInAction)
