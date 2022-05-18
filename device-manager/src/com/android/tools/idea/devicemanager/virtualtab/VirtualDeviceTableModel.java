@@ -25,9 +25,11 @@ import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.ArrayList;
@@ -151,14 +153,31 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     fireTableRowsUpdated(modelRowIndex, modelRowIndex);
   }
 
+  void remove(@NotNull VirtualDevice device) {
+    FutureCallback<Boolean> callback =
+      new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, deletionSuccessful -> remove(deletionSuccessful, device));
+
+    // noinspection UnstableApiUsage
+    FluentFuture.from(getDefaultAvdManagerConnection())
+      .transform(connection -> connection.deleteAvd(device.getAvdInfo()), AppExecutorUtil.getAppExecutorService())
+      .addCallback(callback, EdtExecutorService.getInstance());
+  }
+
+  private void remove(boolean deletionSuccessful, @NotNull VirtualDevice device) {
+    if (!deletionSuccessful) {
+      Logger.getInstance(VirtualDeviceTableModel.class).warn("Failed to delete " + device);
+      return;
+    }
+
+    int modelRowIndex = myDevices.indexOf(device);
+    myDevices.remove(modelRowIndex);
+
+    fireTableRowsDeleted(modelRowIndex, modelRowIndex);
+  }
+
   void setAllOnline() {
-    Executor executor = AppExecutorUtil.getAppExecutorService();
-
-    @SuppressWarnings("UnstableApiUsage")
-    ListenableFuture<AvdManagerConnection> future = Futures.submit(myGetDefaultAvdManagerConnection, executor);
-
     FutureCallback<AvdManagerConnection> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTableModel.class, this::setAllOnline);
-    Futures.addCallback(future, callback, EdtExecutorService.getInstance());
+    Futures.addCallback(getDefaultAvdManagerConnection(), callback, EdtExecutorService.getInstance());
   }
 
   private void setAllOnline(@NotNull AvdManagerConnection connection) {
@@ -172,6 +191,11 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     ListenableFuture<Boolean> future = Futures.submit(() -> connection.isAvdRunning(device.getAvdInfo()), executor);
 
     Futures.addCallback(future, myNewSetOnline.apply(this, device.getKey()), EdtExecutorService.getInstance());
+  }
+
+  private @NotNull ListenableFuture<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection() {
+    // noinspection UnstableApiUsage
+    return Futures.submit(myGetDefaultAvdManagerConnection, AppExecutorUtil.getAppExecutorService());
   }
 
   @Override

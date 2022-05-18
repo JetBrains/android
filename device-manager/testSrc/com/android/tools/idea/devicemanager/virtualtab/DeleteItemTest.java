@@ -15,40 +15,30 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.intellij.testFramework.ApplicationRule;
 import java.awt.Component;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
 public final class DeleteItemTest {
-  @Rule public final TestRule myRule = new ApplicationRule();
-
   private final @NotNull AvdInfo myAvd;
-  private final @NotNull AvdManagerConnection myConnection;
-  private final @NotNull VirtualDeviceTable myTable;
+  private final @NotNull VirtualDeviceTableModel myModel;
   private final @NotNull VirtualDevicePopUpMenuButtonTableCellEditor myEditor;
 
   public DeleteItemTest() {
     myAvd = Mockito.mock(AvdInfo.class);
-    myConnection = Mockito.mock(AvdManagerConnection.class);
-    myTable = Mockito.mock(VirtualDeviceTable.class);
+    myModel = Mockito.mock(VirtualDeviceTableModel.class);
+
+    VirtualDeviceTable table = Mockito.mock(VirtualDeviceTable.class);
+    Mockito.when(table.getModel()).thenReturn(myModel);
 
     VirtualDevicePanel panel = Mockito.mock(VirtualDevicePanel.class);
-    Mockito.when(panel.getTable()).thenReturn(myTable);
+    Mockito.when(panel.getTable()).thenReturn(table);
 
     myEditor = Mockito.mock(VirtualDevicePopUpMenuButtonTableCellEditor.class);
     Mockito.when(myEditor.getPanel()).thenReturn(panel);
@@ -57,60 +47,46 @@ public final class DeleteItemTest {
   @Test
   public void deleteItemDeviceIsOnline() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.onlinePixel5Api31(myAvd));
+    VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
+    Mockito.when(myEditor.getDevice()).thenReturn(virtualDevice);
 
-    AbstractButton item = new DeleteItem(myEditor,
-                                         DeleteItemTest::showCannotDeleteRunningAvdDialog,
-                                         (device, component) -> false,
-                                         () -> myConnection);
+    AbstractButton item = new DeleteItem(myEditor, DeleteItemTest::showCannotDeleteRunningAvdDialog, (device, component) -> false);
 
     // Act
     item.doClick();
 
     // Assert
-    Mockito.verify(myConnection, Mockito.never()).deleteAvd(myAvd);
-    Mockito.verify(myTable, Mockito.never()).refreshAvds();
+    Mockito.verify(myModel, Mockito.never()).remove(virtualDevice);
   }
 
   @Test
   public void deleteItemNotDelete() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+    VirtualDevice virtualDevice = TestVirtualDevices.pixel5Api31(myAvd);
+    Mockito.when(myEditor.getDevice()).thenReturn(virtualDevice);
 
-    AbstractButton item = new DeleteItem(myEditor,
-                                         DeleteItemTest::showCannotDeleteRunningAvdDialog,
-                                         (device, component) -> false,
-                                         () -> myConnection);
+    AbstractButton item = new DeleteItem(myEditor, DeleteItemTest::showCannotDeleteRunningAvdDialog, (device, component) -> false);
 
     // Act
     item.doClick();
 
     // Assert
-    Mockito.verify(myConnection, Mockito.never()).deleteAvd(myAvd);
-    Mockito.verify(myTable, Mockito.never()).refreshAvds();
+    Mockito.verify(myModel, Mockito.never()).remove(virtualDevice);
   }
 
   @Test
-  public void deleteItem() throws Exception {
+  public void deleteItem() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+    VirtualDevice virtualDevice = TestVirtualDevices.pixel5Api31(myAvd);
+    Mockito.when(myEditor.getDevice()).thenReturn(virtualDevice);
 
-    AbstractButton item = new DeleteItem(myEditor,
-                                         DeleteItemTest::showCannotDeleteRunningAvdDialog,
-                                         (device, component) -> true,
-                                         () -> myConnection);
-    CountDownLatch tableRefreshed = new CountDownLatch(1);
-    Mockito.doAnswer((Answer<Object>)invocation -> {
-      tableRefreshed.countDown();
-      return null;
-    }).when(myTable).refreshAvds();
+    AbstractButton item = new DeleteItem(myEditor, DeleteItemTest::showCannotDeleteRunningAvdDialog, (device, component) -> true);
 
     // Act
     item.doClick();
 
     // Assert
-    assertThat(tableRefreshed.await(1, TimeUnit.SECONDS)).isTrue();
-    Mockito.verify(myConnection).deleteAvd(myAvd);
+    Mockito.verify(myModel).remove(virtualDevice);
   }
 
   private static void showCannotDeleteRunningAvdDialog(@NotNull Component component) {

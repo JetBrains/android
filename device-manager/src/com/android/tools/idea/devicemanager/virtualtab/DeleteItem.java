@@ -15,37 +15,27 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 final class DeleteItem extends JBMenuItem {
   DeleteItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor) {
-    this(editor,
-         DeleteItem::showCannotDeleteRunningAvdDialog,
-         DeleteItem::showConfirmDeleteDialog,
-         AvdManagerConnection::getDefaultAvdManagerConnection);
+    this(editor, DeleteItem::showCannotDeleteRunningAvdDialog, DeleteItem::showConfirmDeleteDialog);
   }
 
   @VisibleForTesting
   DeleteItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor,
              @NotNull Consumer<@NotNull Component> showCannotDeleteRunningAvdDialog,
-             @NotNull BiPredicate<@NotNull Object, @NotNull Component> showConfirmDeleteDialog,
-             @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
+             @NotNull BiPredicate<@NotNull Object, @NotNull Component> showConfirmDeleteDialog) {
     super("Delete");
     setToolTipText("Delete this AVD");
 
@@ -57,8 +47,7 @@ final class DeleteItem extends JBMenuItem {
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
       VirtualDevice device = editor.getDevice();
-      VirtualDevicePanel devicePanel = editor.getPanel();
-      VirtualDeviceTable table = devicePanel.getTable();
+      VirtualDeviceTable table = editor.getPanel().getTable();
 
       if (device.isOnline()) {
         showCannotDeleteRunningAvdDialog.accept(table);
@@ -69,14 +58,7 @@ final class DeleteItem extends JBMenuItem {
         return;
       }
 
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        getDefaultAvdManagerConnection.get().deleteAvd(device.getAvdInfo());
-        UIUtil.invokeLaterIfNeeded(() -> {
-          if (!devicePanel.isDisposed()) {
-            table.refreshAvds();
-          }
-        });
-      });
+      table.getModel().remove(device);
     });
   }
 
