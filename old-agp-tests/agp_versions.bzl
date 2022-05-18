@@ -37,6 +37,7 @@ AGP_4_1 = "4.1.0"
 AGP_4_2 = "4.2.0"
 AGP_7_0 = "7.0.0"
 AGP_7_1 = "7.1.0"
+AGP_7_2 = "7.2.0"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
@@ -47,6 +48,7 @@ AGP_MAVEN_REPOS = {
     AGP_4_2: ["//tools/base/build-system/previous-versions:4.2.0"],
     AGP_7_0: ["//tools/base/build-system/previous-versions:7.0.0"],
     AGP_7_1: ["//tools/base/build-system/previous-versions:7.1.0"],
+    AGP_7_2: ["//tools/base/build-system/previous-versions:7.2.0"],
 }
 
 AGP_DATA = {
@@ -61,6 +63,7 @@ AGP_DATA = {
     AGP_4_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
     AGP_7_0: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
     AGP_7_1: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
+    AGP_7_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
 }
 
 GRADLE_LATEST = "LATEST"

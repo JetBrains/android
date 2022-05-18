@@ -72,7 +72,9 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     LEGACY_4_1("Agp_4.1", "4.1.0"),
     LEGACY_4_2("Agp_4.2", "4.2.0"),
     LEGACY_7_0("Agp_7.0", "7.0.0"),
-    LEGACY_7_1("Agp_7.1", "7.1.0");
+    LEGACY_7_1("Agp_7.1", "7.1.0"),
+    LEGACY_7_2("Agp_7.2", "7.2.0"),
+    ;
 
     override fun toString(): String = suffix
   }
