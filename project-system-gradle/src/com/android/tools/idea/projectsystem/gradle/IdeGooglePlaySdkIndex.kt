@@ -21,12 +21,14 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
 import com.android.tools.lint.client.api.LintClient
+import com.android.tools.lint.detector.api.LintFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_CACHING_ERROR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_DEFAULT_DATA_ERROR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_NON_COMPLIANT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LOADED_CORRECTLY
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
 import com.intellij.openapi.application.ApplicationManager
@@ -81,6 +83,16 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
   override fun logErrorInDefaultData(message: String?) {
     super.logErrorInDefaultData(message)
     logTrackerEvent(SDK_INDEX_DEFAULT_DATA_ERROR)
+  }
+
+  override fun generateSdkLinkLintFix(groupId: String, artifactId: String, versionString: String, buildFile: File?): LintFix? {
+    val url = getSdkUrl(groupId, artifactId)
+    return if (url != null)
+      LintFix.ShowUrl(VIEW_DETAILS_MESSAGE, null, url, onUrlOpen = {
+        logTrackerEventForLibraryVersion(groupId, artifactId, versionString, buildFile, SDK_INDEX_LINK_FOLLOWED)
+      })
+    else
+      null
   }
 
   fun setLintClient(client: LintClient) {
