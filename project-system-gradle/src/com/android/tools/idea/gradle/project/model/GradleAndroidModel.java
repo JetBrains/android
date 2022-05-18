@@ -78,6 +78,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import kotlin.collections.CollectionsKt;
 import kotlin.collections.MapsKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +154,7 @@ public class GradleAndroidModel implements AndroidModuleModel {
                                   moduleName,
                                   rootDirPath,
                                   androidProject,
-                                  cachedVariants.stream().collect(toMap(IdeVariantCoreImpl::getName, it -> it)),
+                                  CollectionsKt.associateBy(cachedVariants, IdeVariantCoreImpl::getName),
                                   variantName);
   }
 
