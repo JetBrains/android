@@ -53,14 +53,15 @@ class BuildAnalyzerComboBoxView(
     }
   }
 
-  private val overviewPage = BuildOverviewPageView(model.overviewPageModel, actionHandlers)
-  private val tasksPage = TasksPageView(model.tasksPageModel, actionHandlers)
-  private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers, this)
+  private val pageViewByDataSetMap: MutableMap<BuildAnalyzerViewModel.DataSet, BuildAnalyzerDataPageView> = mutableMapOf()
 
-  private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView = when (dataSet) {
-    BuildAnalyzerViewModel.DataSet.OVERVIEW -> overviewPage
-    BuildAnalyzerViewModel.DataSet.TASKS -> tasksPage
-    BuildAnalyzerViewModel.DataSet.WARNINGS -> warningsPage
+  private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView =
+    pageViewByDataSetMap.computeIfAbsent(dataSet) {
+      when (it) {
+        BuildAnalyzerViewModel.DataSet.OVERVIEW -> BuildOverviewPageView(model.overviewPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.TASKS -> TasksPageView(model.tasksPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.WARNINGS -> WarningsPageView(model.warningsPageModel, actionHandlers, this)
+      }
   }
 
   private val pagesPanel = object : CardLayoutPanel<BuildAnalyzerViewModel.DataSet, BuildAnalyzerViewModel.DataSet, JComponent>() {
@@ -97,13 +98,6 @@ class BuildAnalyzerComboBoxView(
   }
 
   init {
-    // Select each page to trigger it's addition to the components tree.
-    // It solves the problem that color theme changes are not applied to the components
-    // that are created already but are not added to the components tree.
-    selectPage(BuildAnalyzerViewModel.DataSet.TASKS)
-    selectPage(BuildAnalyzerViewModel.DataSet.WARNINGS)
-    selectPage(BuildAnalyzerViewModel.DataSet.OVERVIEW)
-
     selectPage(model.selectedData)
 
     model.dataSetSelectionListener = {
