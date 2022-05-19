@@ -34,15 +34,10 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.EventQueue
 
-internal class LogcatToolWindowFactory @TestOnly internal constructor(
-  private val processNameMonitorFactory: (Project) -> ProcessNameMonitor
-) : SplittingTabsToolWindowFactory(), DumbAware {
-
-  constructor() : this({ ProcessNameMonitor.getInstance(it) })
+internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
   init {
     if (isLogcatV2Enabled()) {
@@ -59,7 +54,7 @@ internal class LogcatToolWindowFactory @TestOnly internal constructor(
     project.messageBus.connect(project)
       .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, _ -> showLogcat(toolWindow, device) })
 
-    processNameMonitorFactory(project).start()
+    ProcessNameMonitor.getInstance(project).start()
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, device: IDevice) {

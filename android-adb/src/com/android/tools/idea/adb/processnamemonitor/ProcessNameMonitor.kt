@@ -36,6 +36,6 @@ interface ProcessNameMonitor {
     internal val LOGGER = Logger.getInstance(ProcessNameMonitor::class.java)
 
     @JvmStatic
-    fun getInstance(project: Project): ProcessNameMonitor = project.getService(ProcessNameMonitorImpl::class.java)
+    fun getInstance(project: Project): ProcessNameMonitor = project.getService(ProcessNameMonitor::class.java)
   }
 }

@@ -17,7 +17,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService" />
-    <projectService serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorImpl"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor"
+        serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorImpl"
+    />
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider" />
     <notificationGroup id="ADB Logs" displayType="NONE"/>
     <projectService serviceImplementation="com.android.tools.idea.ui.screenshot.ScreenshotViewer$PersistentState" />

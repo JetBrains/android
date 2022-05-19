@@ -29,13 +29,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.colors.ColorSettingsPages
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
@@ -54,6 +54,8 @@ class LogcatToolWindowFactoryTest {
   val rule = RuleChain(projectRule, EdtRule())
 
   private val settings = LogcatExperimentalSettings()
+
+  private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
 
   @Before
   fun setUp() {
@@ -156,12 +158,13 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun startsProcessNameMonitor() {
-    val processNameMonitor = mock<ProcessNameMonitor>()
-    logcatToolWindowFactory { processNameMonitor }.init(MockToolWindow(projectRule.project))
+    logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(projectRule.project))
 
-    verify(processNameMonitor).start()
+    verify(mockProcessNameMonitor).start()
   }
-}
 
-private fun logcatToolWindowFactory(processNameMonitorFactory: (Project) -> ProcessNameMonitor = { mock() }) =
-  LogcatToolWindowFactory(processNameMonitorFactory)
+  private fun logcatToolWindowFactory(processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor) =
+    LogcatToolWindowFactory().also {
+      projectRule.project.registerServiceInstance(ProcessNameMonitor::class.java, processNameMonitor)
+    }
+}
