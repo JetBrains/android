@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
@@ -116,7 +117,7 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initTable() {
-    myRemoveKeysAction = new RemoveKeysAction(this);
+    myRemoveKeysAction = new RemoveKeysAction();
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(this);
 
@@ -241,10 +242,10 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   public void removeSelectedKeys() {
-    myRemoveKeysAction.perform();
+    myRemoveKeysAction.perform(getFacet().getModule().getProject(), this);
   }
 
-  void reloadData() {
+  public void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 

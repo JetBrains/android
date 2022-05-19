@@ -31,7 +31,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
+public class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
   private final TableCellRenderer myLocaleRenderer;
 
   @Nullable

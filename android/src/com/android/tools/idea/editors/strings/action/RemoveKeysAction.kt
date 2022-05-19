@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,106 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.editors.strings.action
 
-import com.android.tools.idea.editors.strings.model.StringResourceRepository;
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.DeleteHandler;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.RefactoringBundle;
-import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
-import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
-import com.intellij.refactoring.util.CommonRefactoringUtil;
-import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.strings.StringResourceViewPanel
+import com.android.tools.idea.editors.strings.table.StringResourceTable
+import com.android.tools.idea.res.getItemTag
+import com.intellij.icons.AllIcons
+import com.intellij.ide.util.DeleteHandler
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.xml.XmlTag
+import com.intellij.refactoring.RefactoringBundle
+import com.intellij.refactoring.safeDelete.SafeDeleteDialog
+import com.intellij.refactoring.safeDelete.SafeDeleteProcessor
+import com.intellij.refactoring.util.CommonRefactoringUtil
+import java.util.Arrays
+import kotlin.streams.toList
 
-final class RemoveKeysAction extends AnAction {
-  private final StringResourceViewPanel myPanel;
+/** Action to remove string resource keys. */
+class RemoveKeysAction : PanelAction(text = "Remove Keys", description = null, icon = AllIcons.General.Remove) {
+  override fun doUpdate(e: AnActionEvent) = e.panel.table.selectedRowCount > 0
 
-  RemoveKeysAction(@NotNull StringResourceViewPanel panel) {
-    super("Remove Keys", null, AllIcons.General.Remove);
-    myPanel = panel;
+  override fun actionPerformed(e: AnActionEvent) {
+    perform(e.requiredProject, e.panel)
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setEnabled(myPanel.getTable().getSelectedRowCount() != 0);
-  }
+  fun perform(project: Project, panel: StringResourceViewPanel) {
+    val table: StringResourceTable = panel.table
+    val model = table.model
+    val repository = model.repository
 
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    perform();
-  }
+    val keys: List<XmlTag> =
+      table.selectedModelRowIndices
+        .flatMap {index -> repository.getItems(model.getKey(index))}
+        .mapNotNull {item -> getItemTag(project, item)}
 
-  void perform() {
-    StringResourceTable table = myPanel.getTable();
-    StringResourceTableModel model = table.getModel();
-    StringResourceRepository repository = model.getRepository();
-    Project project = myPanel.getFacet().getModule().getProject();
+    if (keys.isEmpty()) return
 
-    PsiElement[] keys = Arrays.stream(table.getSelectedModelRowIndices())
-      .mapToObj(model::getKey)
-      .flatMap(key -> repository.getItems(key).stream())
-      .map(item -> IdeResourcesUtil.getItemTag(project, item))
-      .toArray(PsiElement[]::new);
+    if (!CommonRefactoringUtil.checkReadOnlyStatusRecursively(project, keys, /* notifyOnFail= */ true)) return
 
-    if (keys.length == 0) {
-      return;
+    if (DumbService.getInstance(project).isDumb) {
+      DeleteHandler.deletePsiElement(keys.toTypedArray(), project)
+      panel.reloadData()
+      return
     }
 
-    if (!CommonRefactoringUtil.checkReadOnlyStatusRecursively(project, Arrays.asList(keys), true)) {
-      return;
-    }
+    var checkboxSelected = false
+    val dialog =
+        object : SafeDeleteDialog(project, keys.toTypedArray(), { checkboxSelected = true }) {
+          init {
+            title = RefactoringBundle.message(/* key= */ "delete.title")
+          }
 
-    if (DumbService.getInstance(project).isDumb()) {
-      DeleteHandler.deletePsiElement(keys, project);
-      myPanel.reloadData();
+          override fun isDelete() = true
+        }
 
-      return;
-    }
+    if (!dialog.showAndGet()) return
 
-    SafeDeleteDialogCallback callback = new SafeDeleteDialogCallback();
-    SafeDeleteDialog dialog = new MySafeDeleteDialog(project, keys, callback);
-
-    if (!dialog.showAndGet()) {
-      return;
-    }
-
-    if (callback.mySafeDeleteCheckBoxSelected) {
-      SafeDeleteProcessor.createInstance(project, () -> myPanel.reloadData(), keys, dialog.isSearchInComments(),
-                                         dialog.isSearchForTextOccurences(), true).run();
+    if (checkboxSelected) {
+      SafeDeleteProcessor.createInstance(
+              project,
+              panel::reloadData,
+              keys.toTypedArray(),
+              dialog.isSearchInComments,
+              dialog.isSearchForTextOccurences,
+              /* askForAccessors= */ true)
+          .run()
     }
     else {
-      DeleteHandler.deletePsiElement(keys, project, false);
-      myPanel.reloadData();
-    }
-  }
-
-  private static final class MySafeDeleteDialog extends SafeDeleteDialog {
-    private MySafeDeleteDialog(@NotNull Project project, @NotNull PsiElement[] keys, @NotNull SafeDeleteDialog.Callback callback) {
-      super(project, keys, callback);
-      setTitle(RefactoringBundle.message("delete.title"));
-    }
-
-    @Override
-    protected boolean isDelete() {
-      return true;
-    }
-  }
-
-  private static final class SafeDeleteDialogCallback implements SafeDeleteDialog.Callback {
-    private boolean mySafeDeleteCheckBoxSelected;
-
-    @Override
-    public void run(@NotNull SafeDeleteDialog dialog) {
-      mySafeDeleteCheckBoxSelected = true;
+      DeleteHandler.deletePsiElement(keys.toTypedArray(), project, /* needConfirmation= */ false)
+      panel.reloadData()
     }
   }
 }
