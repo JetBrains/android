@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
+//todo apatch: consider to exclude from patch import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.EventQueue
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.LINE_START
@@ -74,6 +74,7 @@ import java.io.IOException
 import java.time.Duration
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
+import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.Box.createVerticalStrut
 import javax.swing.Icon
@@ -84,6 +85,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.SwingConstants
+import javax.swing.border.Border
 import javax.swing.event.HyperlinkListener
 
 private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
@@ -895,4 +897,8 @@ private suspend fun checkWearMayNeedFactoryReset(phoneDevice: IDevice, wearDevic
   val wearCloudID = wearDevice.loadCloudNetworkID()
 
   return wearCloudID.isNotEmpty() && phoneCloudID != wearCloudID
+}
+
+fun <C : JComponent> C.addBorder(border: Border): C = apply {
+  this.border = BorderFactory.createCompoundBorder(border, this.border)
 }

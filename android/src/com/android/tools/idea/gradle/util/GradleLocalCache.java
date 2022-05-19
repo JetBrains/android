@@ -131,7 +131,7 @@ public class GradleLocalCache {
 
   @NotNull
   private static Collection<File> getGradleServicePaths(@Nullable Project project) {
-    Set<File> paths = new LinkedHashSet<>();
+    Set<File> paths = new LinkedHashSet<>();/*
     if (project != null) {
       // Use the one set in the IDE
       GradleSettings settings = GradleSettings.getInstance(project);
@@ -147,7 +147,7 @@ public class GradleLocalCache {
     File path = new BuildLayoutParameters().getGradleUserHomeDir();
     if (path.isDirectory()) {
       paths.add(path);
-    }
+    }*/
     return paths;
   }
 }
