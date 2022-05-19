@@ -51,10 +51,10 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       textAccumulator.accumulate(
         text = formattingOptions.tagFormat.format(tag, previousTag),
         textAttributes = logcatColors.getTagColor(tag),
-        filterHint = Tag(tag, min(tag.length, formattingOptions.tagFormat.maxLength)))
+        filterHint = getTagFilterHint(tag, formattingOptions))
       textAccumulator.accumulate(
         text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid),
-        filterHint = if (appName != "?") AppName(appName, min(appName.length, formattingOptions.appNameFormat.maxLength - 1)) else null)
+        filterHint = getAppNameFilterHint(appName, formattingOptions))
       textAccumulator.accumulate(
         text = " ${header.logLevel.priorityLetter} ",
         textAttributesKey = logcatColors.getLogLevelKey(header.logLevel),
@@ -66,5 +66,20 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       previousTag = tag
       previousPid = header.pid
     }
+  }
+}
+
+private fun getTagFilterHint(tag: String,  formattingOptions: FormattingOptions): Tag? {
+  return when {
+    formattingOptions.tagFormat.enabled -> Tag(tag, min(tag.length, formattingOptions.tagFormat.maxLength))
+    else -> null
+  }
+}
+
+private fun getAppNameFilterHint(appName: String,  formattingOptions: FormattingOptions): AppName? {
+  return when {
+    appName == "?" -> null
+    formattingOptions.appNameFormat.enabled -> AppName(appName, min(appName.length, formattingOptions.appNameFormat.maxLength))
+    else -> null
   }
 }
