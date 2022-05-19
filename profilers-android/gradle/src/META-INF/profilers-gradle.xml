@@ -15,6 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.profilers">
-    <profilerProgramRunnerToken implementation="com.android.tools.idea.profilers.ProfilerProgramRunnerGradleToken"/>
+<!--    <profilerProgramRunnerToken implementation="com.android.tools.idea.profilers.ProfilerProgramRunnerGradleToken"/>-->
   </extensions>
 </idea-plugin>

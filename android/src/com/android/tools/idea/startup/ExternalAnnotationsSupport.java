@@ -178,20 +178,22 @@ public class ExternalAnnotationsSupport {
     }
 
     if (root == null) {
-      String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+      String pluginsPath = FileUtil.toSystemIndependentName(PathManager.getPluginsPath());
 
       // release build? If so the jar file is bundled under android/lib..
-      String releaseLocation = homePath + "/plugins/android/resources/androidAnnotations.jar";
+      String releaseLocation = pluginsPath + "/rider-android/lib/androidAnnotations.jar";
       root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
 
       if (root == null) {
+        String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
         final String[] paths = {
           StudioPathManager.isRunningFromSources() ?
           StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/annotations").toString() :
           null,
           FileUtil.join(homePath, "android/android/annotations"),
-          FileUtil.join(homePath, "community/android/android/annotations")
+          FileUtil.join(homePath, "community/android/android/annotations"),
+          FileUtil.join(homePath, "../ultimate/community/android/android/annotations")
         };
         for (String relativePath : paths) {
           if (relativePath == null) continue;
