@@ -82,12 +82,12 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
   private fun setupAnalytics() {
     //AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
 
-    UsageTracker.version = ApplicationInfo.getInstance().strictVersion
-    UsageTracker.ideBrand = currentIdeBrand()
-    if (ApplicationManager.getApplication().isInternal) {
-      UsageTracker.ideaIsInternal = true
-    }
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
+    //UsageTracker.version = ApplicationInfo.getInstance().strictVersion
+    //UsageTracker.ideBrand = currentIdeBrand()
+    //if (ApplicationManager.getApplication().isInternal) {
+    //  UsageTracker.ideaIsInternal = true
+    //}
+    //AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
   }
 
   /** Configures update URLs based on environment variables. This makes it easier to do local testing.  */

@@ -245,7 +245,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       }
     }));
     group.add(new ShowReferencesAction(tree, this));
-    group.add(new GenerateProguardKeepRuleAction(tree));
+    //group.add(new GenerateProguardKeepRuleAction(tree));
     return group;
   }
 

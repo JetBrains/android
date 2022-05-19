@@ -66,10 +66,10 @@
     </group>
   </actions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.naveditor.actions.NavEditorPanelAssistantBundleCreator"/>
-    <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />
-  </extensions>
+<!--  <extensions defaultExtensionNs="com.android.tools.idea.assistant">-->
+<!--    <assistantBundleCreator implementation="com.android.tools.idea.naveditor.actions.NavEditorPanelAssistantBundleCreator"/>-->
+<!--    <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />-->
+<!--  </extensions>-->
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.naveditor.editor.addDestinationMenuToken"

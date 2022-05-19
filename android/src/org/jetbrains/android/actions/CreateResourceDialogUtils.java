@@ -17,7 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.navigator.AndroidProjectView;
+//import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
@@ -181,10 +181,10 @@ public class CreateResourceDialogUtils {
     // create other resource folder configurations
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     if (project != null) {
-      AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
+      AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();/*
       if (pane.getId().equals(AndroidProjectView.ID)) {
         return null;
-      }
+      }*/
     }
 
     VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);

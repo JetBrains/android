@@ -16,13 +16,13 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <android.toolWindow id="Android Profiler"
-                      anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
-                      canCloseContents="true"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
-                      factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
-                      doNotActivateOnStart="true"/>
+<!--    <android.toolWindow id="Android Profiler"-->
+<!--                      anchor="bottom"-->
+<!--                      icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"-->
+<!--                      canCloseContents="true"-->
+<!--                      librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"-->
+<!--                      factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"-->
+<!--                      doNotActivateOnStart="true"/>-->
   </extensions>
   <actions>
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.actions.ChooseProfileConfigurationPopupAction"
@@ -86,7 +86,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor"/>
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutorGroup"/>
-    <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
+<!--    <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />-->
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.profilers.capture.CpuCaptureFileType"
               extensions="trace"/>
@@ -107,8 +107,8 @@
                     interface="com.android.tools.idea.profilers.ProfilerProgramRunnerToken"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
-  <projectListeners>
-    <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
-    <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>
-  </projectListeners>
+<!--  <projectListeners>-->
+<!--    <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />-->
+<!--    <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>-->
+<!--  </projectListeners>-->
 </idea-plugin>

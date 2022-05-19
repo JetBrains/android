@@ -28,9 +28,9 @@ import com.intellij.modcommand.Presentation
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
-import org.jetbrains.plugins.groovy.GroovyFileType
-import org.toml.lang.psi.TomlFileType
+//import org.jetbrains.plugins.gradle.config.GradleFileType
+//import org.jetbrains.plugins.groovy.GroovyFileType
+//import org.toml.lang.psi.TomlFileType
 
 /** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
 class SuppressLintIntentionAction(
@@ -62,12 +62,12 @@ class SuppressLintIntentionAction(
     return if (
       type === JavaFileType.INSTANCE ||
         type === XmlFileType.INSTANCE ||
-        type === GroovyFileType.GROOVY_FILE_TYPE ||
-        type === GradleFileType ||
+        //type === GroovyFileType.GROOVY_FILE_TYPE ||
+        //type === GradleFileType ||
         type === KotlinFileType.INSTANCE ||
-        context.file is PsiBinaryFile ||
+        context.file is PsiBinaryFile /*||
         type === TomlFileType ||
-        type === DeclarativeFileType.INSTANCE
+        type === DeclarativeFileType.INSTANCE*/
     )
       Presentation.of(label).withIcon(AllIcons.Actions.Cancel)
     else null

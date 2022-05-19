@@ -96,7 +96,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     return when (element.language) {
       JavaLanguage.INSTANCE -> simplePsiUpdater(::handleJava)
       XMLLanguage.INSTANCE -> simplePsiUpdater(::handleXml)
-      GroovyLanguage -> simplePsiUpdater(::handleGroovy)
+      //GroovyLanguage -> simplePsiUpdater(::handleGroovy)
       KotlinLanguage.INSTANCE -> simplePsiUpdater(::handleKotlin)
       TomlLanguage -> simplePsiUpdater(::handleToml)
       DeclarativeLanguage.INSTANCE -> simplePsiUpdater(::handleDeclarative)
@@ -132,7 +132,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       addSuppressAnnotation(project, container, container, lintId)
     }
   }
-
+/*
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
@@ -140,7 +140,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
   }
-
+*/
   @Throws(IncorrectOperationException::class)
   private fun handleToml(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
@@ -429,7 +429,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
             LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
-        GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+        //GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         DeclarativeLanguage.INSTANCE ->
           LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"
