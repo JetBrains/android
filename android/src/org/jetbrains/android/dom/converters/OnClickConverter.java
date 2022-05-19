@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
+//import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -187,7 +187,7 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
       if (module == null) {
         return ResolveResult.EMPTY_ARRAY;
       }
-      final PsiClass activityClass = AndroidMissingOnClickHandlerInspection.findActivityClass(module);
+      final PsiClass activityClass = null;//AndroidMissingOnClickHandlerInspection.findActivityClass(module);
       if (activityClass == null) {
         return EMPTY_ARRAY;
       }

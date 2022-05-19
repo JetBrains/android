@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+//import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VERSION_CATALOG_FILE_ADDED
@@ -42,6 +42,7 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.IncorrectOperationException
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.nio.file.Path
 
@@ -150,7 +151,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
         return
       }
 
-      val gradleVersion = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.resolveGradleVersion()
+      val gradleVersion: GradleVersion? = null// GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.resolveGradleVersion()
       if (gradleVersion == null || gradleVersion < GradleVersionCatalogDetector.STABLE_GRADLE_VERSION) {
         e.presentation.isEnabledAndVisible = false
         return

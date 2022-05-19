@@ -649,7 +649,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private boolean checkResourceFilename(@NotNull PathString file, @NotNull ResourceFolderType folderType) {
-    if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
+    if (FileResourceNameValidator.getErrorTextForFileResource(getXmlFileNameForAxmlSupport(file.getFileName()), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
         WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
@@ -659,13 +659,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private boolean checkResourceFilename(@NotNull PsiFile file, @NotNull ResourceFolderType folderType) {
-    if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
+    if (FileResourceNameValidator.getErrorTextForFileResource(getXmlFileNameForAxmlSupport(file.getName()), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
         WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
+  }
+
+  @NotNull //apatch method to support axaml as extensions
+  private String getXmlFileNameForAxmlSupport(@NotNull String filename) {
+    return filename.endsWith(".axml")
+                          ? filename.replace(".axml",".xml")
+                          : filename;
   }
 
   /**
@@ -2592,6 +2599,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     private void countCacheMiss() {
       ++myRepository.myNumXmlFilesLoadedInitially;
       ++myRepository.myNumXmlFilesLoadedInitiallyFromSources;
+    }
+    //apatch:
+    protected static boolean isXmlFile(PathString file){
+      return isXmlFile(file.getFileName());
+    }
+    //apatch:
+    protected static boolean isXmlFile(String filename){
+      return SdkUtils.endsWithIgnoreCase(filename, ".xml") || SdkUtils.endsWithIgnoreCase(filename, ".axml");
     }
   }
 

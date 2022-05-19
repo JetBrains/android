@@ -199,9 +199,10 @@ class AppInspectionInspectorClient(
         logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
         debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
-        if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
-          showActivityRestartedInBanner(model.project, notificationModel, process)
-        }
+        /*
+      if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
+        showActivityRestartedInBanner(model.project, notificationModel, process)
+        }*/
 
         val completableDeferred = CompletableDeferred<Unit>()
         val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->

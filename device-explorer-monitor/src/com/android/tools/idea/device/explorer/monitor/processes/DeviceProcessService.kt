@@ -33,16 +33,16 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.actions.AndroidConnectDebuggerAction
+//import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 
 @UiThread
 class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: AndroidRunConfigurationBase) -> Unit) {
 
   @Suppress("unused")
   constructor(project: Project) : this({ debugger, client, config ->
-    AppExecutorUtil.getAppExecutorService().execute {
+   /* AppExecutorUtil.getAppExecutorService().execute {
       AndroidConnectDebuggerAction.closeOldSessionAndRun(project, debugger, client, config)
-    }
+    }*/
   })
   /**
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.

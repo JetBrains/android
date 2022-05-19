@@ -31,7 +31,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
-import com.android.tools.idea.common.scene.target.RecyclerViewAdapterCreatorAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -105,7 +104,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
 
     actions.add(new ComponentAssistantViewAction(RecyclerViewHandler::getComponentAssistant));
     if (StudioFlags.NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD.get()) {
-      actions.add(new RecyclerViewAdapterCreatorAction());
+      //actions.add(new RecyclerViewAdapterCreatorAction());
     }
 
     return cacheable;

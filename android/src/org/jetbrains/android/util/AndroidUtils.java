@@ -19,7 +19,7 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.apk.ApkFacet;
+//import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
@@ -664,7 +664,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   public static boolean hasAndroidFacets(@NotNull Project project) {
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
     return facetManager.hasFacets(AndroidFacet.ID) ||
-           facetManager.hasFacets(ApkFacet.ID) ||
+           //facetManager.hasFacets(ApkFacet.ID) ||
            facetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 

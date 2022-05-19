@@ -173,11 +173,7 @@
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
 
-  <actions>
-    <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup">
-      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
-    </action>
-  </actions>
+
 
   <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
   <xi:include href="plugin.k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>

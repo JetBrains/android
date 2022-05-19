@@ -21,7 +21,7 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android.lang" />
+<!--    <orderEntry type="module" module-name="intellij.android.lang" />-->
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
     <orderEntry type="library" name="Guava" level="project" />

@@ -16,7 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.lang.aidl.AidlFileType;
+//import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
 import com.intellij.ide.fileTemplates.FileTemplateGroupDescriptor;
@@ -65,7 +65,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
     group.addTemplate(new FileTemplateDescriptor(APPLICATION, JavaFileType.INSTANCE.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(SERVICE, JavaFileType.INSTANCE.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(BROADCAST_RECEIVER, JavaFileType.INSTANCE.getIcon()));
-    group.addTemplate(new FileTemplateDescriptor(REMOTE_INTERFACE_TEMPLATE, AidlFileType.INSTANCE.getIcon()));
+    //group.addTemplate(new FileTemplateDescriptor(REMOTE_INTERFACE_TEMPLATE, AidlFileType.INSTANCE.getIcon()));
     return group;
   }
 

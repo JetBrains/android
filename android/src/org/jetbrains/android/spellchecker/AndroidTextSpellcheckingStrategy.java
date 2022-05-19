@@ -23,7 +23,7 @@ import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 import static com.android.tools.idea.gradle.util.ImportUtil.IMPORT_SUMMARY_TXT;
 
-import com.intellij.lang.properties.PropertiesFileType;
+//import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.util.Comparing;
@@ -75,14 +75,14 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
               lastIgnore = true;
             }
           }
-          else if (fileType == PropertiesFileType.INSTANCE) {
-            String name = virtualFile.getName();
-            if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, virtualFile.isCaseSensitive()) ||
-                Comparing.equal(name, FN_LOCAL_PROPERTIES, virtualFile.isCaseSensitive()) ||
-                Comparing.equal(name, FN_GRADLE_PROPERTIES, virtualFile.isCaseSensitive())) {
-              lastIgnore = true;
-            }
-          }
+          //else if (fileType == PropertiesFileType.INSTANCE) {
+          //  String name = virtualFile.getName();
+          //  if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, virtualFile.isCaseSensitive()) ||
+          //      Comparing.equal(name, FN_LOCAL_PROPERTIES, virtualFile.isCaseSensitive()) ||
+          //      Comparing.equal(name, FN_GRADLE_PROPERTIES, virtualFile.isCaseSensitive())) {
+          //    lastIgnore = true;
+          //  }
+          //}
 
           spellcheckingIgnoredState = Boolean.valueOf(lastIgnore);
           virtualFile.putUserData(mySpellcheckingIgnoredStateKey, spellcheckingIgnoredState);

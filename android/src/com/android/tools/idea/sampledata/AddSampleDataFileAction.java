@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sampledata;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+//import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -40,12 +40,12 @@ public class AddSampleDataFileAction extends AnAction {
     if (project == null) {
       return null;
     }
-
+    return null;/*
     return Arrays.stream(GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.getDataContext()))
       .map(AndroidFacet::getInstance)
       .filter(Objects::nonNull)
       .findFirst()
-      .orElse(null);
+      .orElse(null);*/
   }
 
   @Override

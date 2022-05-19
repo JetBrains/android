@@ -89,16 +89,16 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
     try {
       List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
-      childRepositories.add(dynamicResources);
+//      childRepositories.add(dynamicResources);
       addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
       moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
     }
     catch (Throwable t) {
-      Disposer.dispose(dynamicResources);
+//      Disposer.dispose(dynamicResources);
       throw t;
     }
 
-    Disposer.register(moduleRepository, dynamicResources);
+//    Disposer.register(moduleRepository, dynamicResources);
     return moduleRepository;
   }
 
@@ -266,11 +266,11 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
                                                        @Nullable DynamicValueResourceRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<LocalResourceRepository> delegates =
-        new ArrayList<>(resourceDirectories.size() + (dynamicResourceValueRepository == null ? 0 : 1));
-
+        new ArrayList<>(resourceDirectories.size());// + (dynamicResourceValueRepository == null ? 0 : 1));
+/*
     if (dynamicResourceValueRepository != null) {
       delegates.add(dynamicResourceValueRepository);
-    }
+    }*/
 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     resourceDirectories.forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));

@@ -996,16 +996,16 @@ public class RenderErrorContributor {
     for (String className : missingClasses) {
       builder.listItem();
       builder.add(className);
-      builder.add(" (");
-
+      // apatch: builder.add(" (");
       foundCustomView |= addTypoSuggestions(builder, className, customViews, false);
+
       addTypoSuggestions(builder, className, customViews, true);
       addTypoSuggestions(builder, className, androidViewClassNames, false);
 
       if (myLinkManager == null) {
         return;
       }
-
+      /* apatch
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
         Project project = myModule.getProject();
@@ -1027,7 +1027,6 @@ public class RenderErrorContributor {
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING.toString()));
         builder.add(", ");
       }
-
       builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
       String fileType = mySourceFile.getFileType() == XmlFileType.INSTANCE
@@ -1044,9 +1043,10 @@ public class RenderErrorContributor {
         builder.addLink("Create Class", myLinkManager.createNewClassUrl(className));
       }
       builder.add(")");
+      */
     }
     builder.endList();
-
+/* apatch
     builder
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "build", " the module.",
@@ -1058,6 +1058,9 @@ public class RenderErrorContributor {
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: ", "Build & Refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl())
+      .newline();*/
+    builder.newline()
+      .add("Tip: Check the list of installed nuget packages and/or rebuild project")
       .newline();
     if (foundCustomView) {
       builder.newline()
