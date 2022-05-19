@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure
 
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels
@@ -40,8 +42,11 @@ class GradleResolver {
       GradleSyncInvoker
         .getInstance()
         .fetchGradleModels(project)
-        .modules
-        .mapNotNull { findModel(it) }
+        .let { gradleProjectModels ->
+          val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(gradleProjectModels.libraries ?: return@let emptyList())
+          val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
+          gradleProjectModels.modules.mapNotNull { findModel(it, modelFactory) }
+        }
     }
     object : Task.Backgroundable(project, "Fetching build models", true) {
       override fun run(indicator: ProgressIndicator) {
@@ -54,20 +59,20 @@ class GradleResolver {
   }
 }
 
-private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
+private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidModelData) -> GradleAndroidModel): PsResolvedModuleModel? {
   val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
   // TODO(b/149203281): Verify support for composite builds if needed here.
   val externalProject = module.findModel(ExternalProject::class.java) ?: return null
   val gradlePath = externalProject.qName
 
   fun tryAndroidModels(): PsResolvedModuleModel.PsAndroidModuleResolvedModel? {
-    val androidModel = module.findModel(GradleAndroidModel::class.java) ?: return null
+    val androidModelData = module.findModel(GradleAndroidModelData::class.java) ?: return null
     val nativeModel = module.findModel(NdkModuleModel::class.java)
     val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
     return PsResolvedModuleModel.PsAndroidModuleResolvedModel(
       gradlePath,
       gradleModuleModel.buildFilePath?.absolutePath,
-      androidModel,
+      modelFactory(androidModelData),
       nativeModel,
       syncIssues
     )

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * DEPRECATED: AndroidModuleModel is being deprecated and will eventually be deleted. Callers are being migrated to AndroidModel and
  * AndroidProject/ModuleSystem APIs. Those callers needing Gradle specific features should, for now, depend on gradle-project-system.
  */
-public interface AndroidModuleModel extends AndroidModel, ModuleModel {
+public interface AndroidModuleModel extends AndroidModel {
   @NotNull GradleVersion getAgpVersion();
 
   @Nullable

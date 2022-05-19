@@ -24,7 +24,7 @@ import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
@@ -142,7 +142,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   private static void assertContainsAndroidModels(@NotNull GradleModuleModels models) {
-    assertModelsPresent(models, GradleAndroidModel.class, GradleModuleModel.class);
+    assertModelsPresent(models, GradleAndroidModelData.class, GradleModuleModel.class);
   }
 
   private static void assertContainsJavaModels(@NotNull GradleModuleModels models) {

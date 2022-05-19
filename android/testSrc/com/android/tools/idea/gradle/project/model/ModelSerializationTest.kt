@@ -112,7 +112,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
 
     val module = project.gradleModule(":moduleName")
     Truth.assertThat(module).isNotNull()
-    GradleAndroidModel.get(module!!)!!
+    GradleAndroidModel.get(module!!)!!.data
   }
 
   @Test

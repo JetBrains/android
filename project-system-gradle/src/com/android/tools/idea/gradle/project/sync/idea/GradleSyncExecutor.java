@@ -37,7 +37,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
@@ -215,9 +215,9 @@ public class GradleSyncExecutor {
             moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, it -> it.getData())));
           }
 
-          DataNode<GradleAndroidModel> androidModelNode = find(moduleNode, ANDROID_MODEL);
+          DataNode<GradleAndroidModelData> androidModelNode = find(moduleNode, ANDROID_MODEL);
           if (androidModelNode != null) {
-            moduleModules.addModel(GradleAndroidModel.class, androidModelNode.getData());
+            moduleModules.addModel(GradleAndroidModelData.class, androidModelNode.getData());
 
             DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
             if (ndkModelNode != null) {

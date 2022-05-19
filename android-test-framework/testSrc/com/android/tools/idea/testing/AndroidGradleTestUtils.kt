@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -1272,7 +1273,7 @@ private fun setupTestProjectFromAndroidModelCore(
   )
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-  val androidModels = mutableListOf<GradleAndroidModel>()
+  val androidModels = mutableListOf<GradleAndroidModelData>()
   val internedModels = InternedModels(null)
   val libraryResolver = IdeLibraryModelResolverImpl { sequenceOf(internedModels.resolve(it)) }
   moduleBuilders.forEach { moduleBuilder ->
@@ -1339,7 +1340,7 @@ private fun setupTestProjectFromAndroidModelCore(
     internedModels.createResolvedLibraryTable()
   )
 
-  setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode)
+  setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode, libraryResolver)
   mergeContentRoots(projectDataNode)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
@@ -1409,7 +1410,7 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  val gradleAndroidModel = GradleAndroidModel.create(
+  val gradleAndroidModel = GradleAndroidModelData.create(
     qualifiedModuleName,
     moduleBasePath,
     androidProject,
@@ -1417,10 +1418,8 @@ private fun createAndroidModuleDataNode(
     selectedVariantName
   )
 
-  gradleAndroidModel.setResolver(libraryResolver);
-
   moduleDataNode.addChild(
-    DataNode<GradleAndroidModel>(
+    DataNode(
       AndroidProjectKeys.ANDROID_MODEL,
       gradleAndroidModel,
       null
@@ -1488,10 +1487,11 @@ private fun createAndroidModuleDataNode(
     )
   }
 
-  gradleAndroidModel.selectedVariant.mainArtifact.setup()
-  gradleAndroidModel.selectedVariant.androidTestArtifact?.setup()
-  gradleAndroidModel.selectedVariant.unitTestArtifact?.setup()
-  gradleAndroidModel.selectedVariant.testFixturesArtifact?.setup()
+  val selectedVariant = gradleAndroidModel.selectedVariant(libraryResolver)
+  selectedVariant.mainArtifact.setup()
+  selectedVariant.androidTestArtifact?.setup()
+  selectedVariant.unitTestArtifact?.setup()
+  selectedVariant.testFixturesArtifact?.setup()
 
   return moduleDataNode
 }
@@ -1953,13 +1953,14 @@ fun Project.requestSyncAndWait() {
 private fun setupDataNodesForSelectedVariant(
   project: Project,
   buildId: @SystemIndependent String,
-  androidModuleModels: List<GradleAndroidModel>,
-  projectDataNode: DataNode<ProjectData>
+  androidModuleModels: List<GradleAndroidModelData>,
+  projectDataNode: DataNode<ProjectData>,
+  libraryResolver: IdeLibraryModelResolverImpl
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
   val moduleIdToDataMap = createGradleProjectPathToModuleDataMap(buildId, moduleNodes)
   androidModuleModels.forEach { androidModuleModel ->
-    val newVariant = androidModuleModel.selectedVariant
+    val newVariant = androidModuleModel.selectedVariant(libraryResolver)
 
     val moduleNode = moduleNodes.firstOrNull { node ->
       node.data.internalName == androidModuleModel.moduleName
@@ -1975,7 +1976,7 @@ private fun setupDataNodesForSelectedVariant(
         libraryFilePaths.getCachedPathsForArtifact(id)?.javaDoc,
         libraryFilePaths.getCachedPathsForArtifact(id)?.sampleSource
       )
-    }, androidModuleModel, newVariant, project)
+    }, newVariant, project)
     moduleNode.setupAndroidContentEntriesPerSourceSet(androidModuleModel)
   }
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.unlinkAndroidModuleGroup
@@ -80,12 +81,12 @@ import java.util.concurrent.TimeUnit
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 class AndroidModuleDataService @VisibleForTesting
-internal constructor(private val myModuleValidatorFactory: AndroidModuleValidator.Factory) : ModuleModelDataService<GradleAndroidModel>() {
+internal constructor(private val myModuleValidatorFactory: AndroidModuleValidator.Factory) : ModuleModelDataService<GradleAndroidModelData>() {
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   constructor() : this(AndroidModuleValidator.Factory())
 
-  override fun getTargetDataKey(): Key<GradleAndroidModel> = ANDROID_MODEL
+  override fun getTargetDataKey(): Key<GradleAndroidModelData> = ANDROID_MODEL
 
   /**
    * This method is responsible for managing the presence of both the [AndroidFacet] and [AndroidArtifactFacet] across all modules.
@@ -93,23 +94,22 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
    * It also sets up the SDKs and language levels for all modules that stem from an [GradleAndroidModel]
    */
   public override fun importData(
-    toImport: Collection<DataNode<GradleAndroidModel>>,
+    toImport: Collection<DataNode<GradleAndroidModelData>>,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
-    modelsByModuleName: Map<String, DataNode<GradleAndroidModel>>
+    modelsByModuleName: Map<String, DataNode<GradleAndroidModelData>>
   ) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
     fun importAndroidModel(
-      nodeToImport: DataNode<GradleAndroidModel>,
+      nodeToImport: DataNode<GradleAndroidModelData>,
       mainModuleDataNode: DataNode<ModuleData>,
-      libraryResolver: IdeLibraryModelResolver
+      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel
     ) {
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
 
       val androidModel = nodeToImport.data
-      androidModel.setModuleAndResolver(mainIdeModule, libraryResolver)
 
       mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
 
@@ -120,9 +120,10 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
           ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the AndroidModuleModel.
-        configureFacet(androidFacet, androidModel)
+        val gradleAndroidModel = modelFactory(androidModel)
+        configureFacet(androidFacet, gradleAndroidModel)
 
-        moduleValidator.validate(module, androidModel)
+        moduleValidator.validate(module, gradleAndroidModel)
       }
     }
 
@@ -143,8 +144,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       .groupBy { it.first }
       .forEach { (projectNode, nodes) ->
         val libraryResolver = createLibraryResolverFor(projectNode)
+        val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
         nodes.forEach { (_, moduleNode, modelNode) ->
-          importAndroidModel(modelNode, moduleNode, libraryResolver)
+          importAndroidModel(modelNode, moduleNode, modelFactory)
         }
       }
     if (modelsByModuleName.isNotEmpty()) {
@@ -170,7 +172,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
   override fun removeData(
     toRemoveComputable: Computable<out Collection<Module>>,
-    toIgnore: Collection<DataNode<GradleAndroidModel>>,
+    toIgnore: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider
@@ -186,7 +188,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
    * This may be called from either the EDT or a background thread depending on if the project import is being run synchronously.
    */
   override fun onSuccessImport(
-    imported: Collection<DataNode<GradleAndroidModel>>,
+    imported: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
     modelsProvider: IdeModelsProvider
@@ -226,7 +228,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   }
 
   override fun postProcess(
-    toImport: Collection<DataNode<GradleAndroidModel>>,
+    toImport: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider

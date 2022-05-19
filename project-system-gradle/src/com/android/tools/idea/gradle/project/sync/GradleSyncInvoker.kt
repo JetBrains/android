@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.sync.idea.VariantAndAbi
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.common.annotations.VisibleForTesting

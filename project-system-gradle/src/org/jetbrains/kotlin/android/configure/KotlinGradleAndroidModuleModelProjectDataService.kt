@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -30,14 +30,14 @@ import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHan
 import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByGradleModule
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
-class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModel, Void>() {
+class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModelData, Void>() {
     override fun getTargetDataKey() = ANDROID_MODEL
 
     override fun postProcess(
-            toImport: Collection<DataNode<GradleAndroidModel>>,
-            projectData: ProjectData?,
-            project: Project,
-            modelsProvider: IdeModifiableModelsProvider
+      toImport: Collection<DataNode<GradleAndroidModelData>>,
+      projectData: ProjectData?,
+      project: Project,
+      modelsProvider: IdeModifiableModelsProvider
     ) {
         super.postProcess(toImport, projectData, project, modelsProvider)
         for (moduleModelNode in toImport) {
@@ -59,7 +59,7 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             }
 
             val ideModule = modelsProvider.findIdeModule(moduleData) ?: continue
-            val sourceSetName = moduleModelNode.data.selectedVariant.name
+            val sourceSetName = moduleModelNode.data.selectedVariantName
             val kotlinFacet = configureFacetByGradleModule(moduleNode, sourceSetName, ideModule, modelsProvider) ?: continue
             GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, moduleNode) }
         }

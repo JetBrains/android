@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.variant
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -162,7 +163,7 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
-  val androidModuleModel = GradleAndroidModel.findFromModuleDataNode(moduleDataNode) ?: return null
+  val androidModuleModel = GradleAndroidModelData.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
   return VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
@@ -170,7 +171,7 @@ private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndA
 private class AndroidModule(
   val gradleProjectPath: GradleHolderProjectPath,
   val module: DataNode<out ModuleData>,
-  val androidModel: GradleAndroidModel
+  val androidModel: GradleAndroidModelData
 )
 
 private class AndroidModules(
@@ -184,7 +185,7 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
 
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
-      val androidModel = GradleAndroidModel.findFromModuleDataNode(node) ?: return@mapNotNull null
+      val androidModel = GradleAndroidModelData.findFromModuleDataNode(node) ?: return@mapNotNull null
       val moduleId = node.data.id
       // Note: The root project name extracted below does not necessarily match the name of any Gradle projects or included builds.
       // However, it is expected to be always the same for all modules derived from one `IdeaProject` model instance.
@@ -232,7 +233,7 @@ private fun VariantProjectDataNodes.findVariantProjectData(
     return allVariantAbis.filter { it.variant == variantName }.map { it.abi }
   }
 
-  class Models(val node: DataNode<ProjectData>, val androidModel: GradleAndroidModel, val ndkModel: NdkModuleModel?) {
+  class Models(val node: DataNode<ProjectData>, val androidModel: GradleAndroidModelData, val ndkModel: NdkModuleModel?) {
     val variantName: String get() = androidModel.selectedVariantName
     val abi: String? get() = ndkModel?.selectedAbi
 
@@ -320,9 +321,8 @@ private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selecte
       }
     }
     if (seen.add(head.module.gradleProjectPath)) {
-      head.module.androidModel.setResolver(libraryResolver)
       queue.addAll(
-        head.module.androidModel.selectedVariant
+        head.module.androidModel.selectedVariant(libraryResolver)
           .let {
             it.mainArtifact.compileClasspath.moduleDependencies +
               it.unitTestArtifact?.compileClasspath?.moduleDependencies.orEmpty() +

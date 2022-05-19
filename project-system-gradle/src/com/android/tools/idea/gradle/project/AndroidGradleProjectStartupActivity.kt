@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.shouldDisableForceUpgrades
@@ -241,13 +241,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       }
     }
 
-  class ModuleSetupData(val module: Module, val dataNode: DataNode<out ModuleData>, val libraryResolver: IdeLibraryModelResolver)
+  class ModuleSetupData(
+    val module: Module,
+    val dataNode: DataNode<out ModuleData>,
+    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModel
+  )
 
   val moduleSetupData: Collection<ModuleSetupData> =
     projectDataNodes.flatMap { projectData ->
       val libraries =
         ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
       val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(libraries)
+      val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
       projectData
         .modules()
         .flatMap inner@{ node ->
@@ -257,19 +262,19 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
 
           if (sourceSets.isEmpty()) {
-            listOf(ModuleSetupData(module, node, libraryResolver))
+            listOf(ModuleSetupData(module, node, modelFactory))
           } else {
             sourceSets.map {
               val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
-              ModuleSetupData(moduleId, it, libraryResolver)
-            } + ModuleSetupData(module, node, libraryResolver)
+              ModuleSetupData(moduleId, it, modelFactory)
+            } + ModuleSetupData(module, node, modelFactory)
           }
         }
     }
 
   val attachModelActions = moduleSetupData.flatMap { data ->
 
-    fun GradleAndroidModel.validate() =
+    fun GradleAndroidModelData.validate() =
       shouldDisableForceUpgrades() ||
         GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
           !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
@@ -281,7 +286,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       getModel: (DataNode<*>, Key<T>) -> T?,
       getFacet: (Module) -> V?,
       attach: V.(T) -> Unit,
-      configure: T.(Module) -> Unit = { _ -> },
       validate: T.() -> Boolean = { true }
     ): (() -> Unit)? {
       val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
@@ -294,23 +298,22 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         return null  // Missing facet detected, triggering sync.
       }
       facets.remove(facet)
-      model.configure(data.module)
       return { facet.attach(model) }
     }
 
     // For models that can be broken into source sets we need to check the parent datanode for the model
     // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
     // module per source set we should replace this code with were we know the model will be living.
-    fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? =
-      { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
+    fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
+      return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
+    }
     listOf(
       prepare(
         ANDROID_MODEL,
         getModelForMaybeSourceSetDataNode(),
         AndroidFacet::getInstance,
-        AndroidModel::set,
-        configure = { setModuleAndResolver(it, data.libraryResolver) },
-        validate = GradleAndroidModel::validate
+        { AndroidModel.set(this, data.gradleAndroidModelFactory(it)) },
+        validate = GradleAndroidModelData::validate
       ) ?: return,
       prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return

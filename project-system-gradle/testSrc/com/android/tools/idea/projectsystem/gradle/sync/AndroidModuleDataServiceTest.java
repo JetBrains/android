@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle.sync;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -96,7 +99,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     assertNotNull("No project structure was found", projectStructure);
 
     //noinspection unchecked
-    DataNode<GradleAndroidModel> androidModelNode = (DataNode<GradleAndroidModel>)ExternalSystemApiUtil
+    DataNode<GradleAndroidModelData> androidModelNode = (DataNode<GradleAndroidModelData>)ExternalSystemApiUtil
       .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
     Project project = getProject();
 
@@ -104,7 +107,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
     assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
-    verify(myValidator).validate(appModule, androidModel);
+    verify(myValidator).validate(same(appModule), argThat(it -> it.getData().equals(androidModel.getData())));
     verify(myValidator).fixAndReportFoundIssues();
   }
 
