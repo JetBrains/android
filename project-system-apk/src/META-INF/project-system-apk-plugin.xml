@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.project">
-    <projectsystem implementation="com.android.tools.idea.projectsystem.apk.ApkProjectSystemProvider"/>
+<!--    <projectsystem implementation="com.android.tools.idea.projectsystem.apk.ApkProjectSystemProvider"/>-->
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.projectsystem">
     <ApplicationProjectContextProvider implementation="com.android.tools.idea.projectsystem.apk.ApkApplicationProjectContextProvider"/>
