@@ -54,7 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceViewPanel implements Disposable {
+public class StringResourceViewPanel implements Disposable {
   private final AndroidFacet myFacet;
 
   private StringResourceTable myTable;
