@@ -116,7 +116,7 @@ public abstract class IconGenerator implements Disposable {
   public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
-    myApiLookup = NullableLazyValue.atomicLazyNullable(() -> LintIdeClient.getApiLookup(project));
+    myApiLookup = NullableLazyValue.atomicLazyNullable(() -> null);
     myLineSeparator = CodeStyle.getSettings(project).getLineSeparator();
   }
 
