@@ -15,6 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.appinspection.ide.resolver">
-    <artifactResolverFactoryToken implementation="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactoryGradleToken"/>
+<!--    <artifactResolverFactoryToken implementation="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactoryGradleToken"/>-->
   </extensions>
 </idea-plugin>
