@@ -79,7 +79,7 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
 
-  var projectSyncIssues: List<IdeSyncIssue>? = null; private set
+  var projectSyncIssues: List<IdeSyncIssue> = emptyList(); private set
   fun setSyncIssues(issues: List<IdeSyncIssue>) {
     projectSyncIssues = issues
   }
@@ -95,7 +95,7 @@ sealed class GradleModule(val gradleProject: BasicGradleProject) {
  */
 sealed class DeliverableGradleModule(
   val gradleProject: BasicGradleProject,
-  val projectSyncIssues: List<IdeSyncIssue>?
+  val projectSyncIssues: List<IdeSyncIssue>
 ) : GradleModelCollection {
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
@@ -138,7 +138,7 @@ class JavaModule(
 
 class DeliverableJavaModule(
   gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>?,
+  projectSyncIssues: List<IdeSyncIssue>,
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
 ): DeliverableGradleModule(gradleProject, projectSyncIssues) {
@@ -289,7 +289,7 @@ sealed class AndroidModule constructor(
 
 class DeliverableAndroidModule(
   gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>?,
+  projectSyncIssues: List<IdeSyncIssue>,
   val selectedVariantName: String,
   val selectedAbiName: String?,
   val androidProject: IdeAndroidProjectImpl,
@@ -308,7 +308,7 @@ class DeliverableAndroidModule(
       fetchedVariants,
       selectedVariantName,
       selectedAbiName,
-      projectSyncIssues.orEmpty(),
+      projectSyncIssues,
       nativeModule,
       nativeAndroidProject,
       syncedNativeVariant,
@@ -370,12 +370,12 @@ class NativeVariantsAndroidModule private constructor(
 
 class DeliverableNativeVariantsAndroidModule(
   gradleProject: BasicGradleProject,
-  projectSyncIssues: List<IdeSyncIssue>?,
+  projectSyncIssues: List<IdeSyncIssue>,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
 ) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
-      IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues.orEmpty()).deliver()
+      IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
     }
   }
 }
