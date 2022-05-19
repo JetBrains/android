@@ -113,9 +113,9 @@
                             id="compositieAttributeValues" order="first"/>
     <typedHandler implementation="org.jetbrains.android.dom.AndroidXmlTypedHandler" />
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
-    <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"
-                     key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"
-                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>
+<!--    <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"-->
+<!--                     key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"-->
+<!--                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>-->
     <localInspection language="XML" bundle="messages.AndroidBundle"
                      implementationClass="org.jetbrains.android.inspections.XmlWrongFileTypeInspection"
                      enabledByDefault="true"
@@ -158,9 +158,9 @@
                      key="android.inspections.element.not.allowed.name" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection"/>
 
-    <localInspection language="XML" shortName="AndroidUnresolvableTag" bundle="messages.AndroidBundle"
-                     key="android.inspections.unresolvable.tag" groupKey="android.inspections.group.name" enabledByDefault="true"
-                     level="ERROR" implementationClass="org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection"/>
+<!--    <localInspection language="XML" shortName="AndroidUnresolvableTag" bundle="messages.AndroidBundle"-->
+<!--                     key="android.inspections.unresolvable.tag" groupKey="android.inspections.group.name" enabledByDefault="true"-->
+<!--                     level="ERROR" implementationClass="org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection"/>-->
 
     <localInspection language="XML" shortName="NavigationFile" bundle="messages.AndroidBundle"
                      key="android.inspections.nav.file" groupKey="android.inspections.group.name" enabledByDefault="true"

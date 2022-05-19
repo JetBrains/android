@@ -46,9 +46,9 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
 
   @Suppress("unused")
   constructor(project: Project) : this({ debugger, client, config ->
-    AppExecutorUtil.getAppExecutorService().execute {
+   /* AppExecutorUtil.getAppExecutorService().execute {
       AndroidConnectDebugger.closeOldSessionAndRun(project, debugger, client, config)
-    }
+    }*/
   })
   /**
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.

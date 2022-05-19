@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.StudioAndroidModuleInfo
-import com.android.tools.idea.run.AndroidRunConfiguration
+//import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy.Companion.getDeviceManufacturer
@@ -341,9 +341,9 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
         // There can only be up to one Android app module per selected configuration as the call to getModules can only return up to one
         // module per AndroidRunConfiguration.
-        return (RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfiguration)?.modules?.map {
+        return null/*(RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfiguration)?.modules?.map {
           StudioAndroidModuleInfo.getInstance(it)
-        }?.map { it?.packageName }?.firstOrNull()
+        }?.map { it?.packageName }?.firstOrNull()*/
       }
       else {
         for (module in ModuleManager.getInstance(project).modules) {
