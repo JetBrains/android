@@ -21,7 +21,6 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -81,7 +80,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                    .setJarDependencyCount(12)
                                    .setAarDependencyCount(49))
                    .addModules(GradleModule.newBuilder()
-                                 .setTotalModuleCount(9)
+                                 .setTotalModuleCount(3)
                                  .setAppModuleCount(1)
                                  .setLibModuleCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()

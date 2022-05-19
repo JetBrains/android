@@ -216,7 +216,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
     }
 
-    ProjectStructureUsageTracker(project).trackProjectStructure()
+    if (projectData != null) {
+      ProjectStructureUsageTracker(project).trackProjectStructure(projectData.linkedExternalProjectPath)
+    }
 
     SupportedModuleChecker.getInstance().checkForSupportedModules(project)
 
