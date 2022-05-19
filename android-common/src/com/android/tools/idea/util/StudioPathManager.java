@@ -101,7 +101,7 @@ public class StudioPathManager {
    * should be called only when {@link #isRunningFromSources()} returns true.
    */
   public static String getBinariesRoot() {
-    return getSourcesRootInternal() + (isRunningInBazelTest() ? "" : "/bazel-bin");
+    return isRunningInBazelTest() ? "" : getSourcesRootInternal() + "/bazel-bin";
   }
 
   /**
