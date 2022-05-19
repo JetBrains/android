@@ -22,7 +22,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.fileTypes.FontFileType
 import com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT
 import com.android.tools.idea.lang.aidl.AidlFileType
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
+//import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
@@ -32,25 +32,26 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.intellij.images.fileTypes.ImageFileTypeManager
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
+//import org.jetbrains.plugins.gradle.config.GradleFileType
 
 fun isGradleFile(psiFile: PsiFile): Boolean {
-  if (GradleFileType.isGradleFile(psiFile)) return true
-
-  val fileType = psiFile.fileType
-  val name = psiFile.name
-  if (fileType.name == "Kotlin" && name.endsWith(EXT_GRADLE_KTS)) return true
-  if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(EXT_GRADLE_DECLARATIVE)) return true
-
-  // Do not test getFileType() as this will differ depending on whether the TOML plugin is
-  // active.
-  if (name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) return true
-
-  return fileType === PropertiesFileType.INSTANCE &&
-    (SdkConstants.FN_GRADLE_PROPERTIES == name ||
-      SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name ||
-      (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
-        SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name))
+  return false
+  //if (GradleFileType.isGradleFile(psiFile)) return true
+  //
+  //val fileType = psiFile.fileType
+  //val name = psiFile.name
+  //if (fileType.name == "Kotlin" && name.endsWith(EXT_GRADLE_KTS)) return true
+  //if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(EXT_GRADLE_DECLARATIVE)) return true
+  //
+  //// Do not test getFileType() as this will differ depending on whether the TOML plugin is
+  //// active.
+  //if (name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) return true
+  //
+  //return fileType === PropertiesFileType.INSTANCE &&
+  //  (SdkConstants.FN_GRADLE_PROPERTIES == name ||
+  //    SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name ||
+  //    (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
+  //      SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name))
 }
 
 internal fun isRelevantFile(file: PsiFile): Boolean {
@@ -78,7 +79,7 @@ internal fun isRelevantFile(file: VirtualFile): Boolean {
 
   // Unable to determine based on filename, use the slow method.
   val fileType = file.fileType
-  return fileType == AndroidRenderscriptFileType.INSTANCE || isRelevantFileType(fileType)
+  return /*fileType == AndroidRenderscriptFileType.INSTANCE ||*/ isRelevantFileType(fileType)
 }
 
 private fun isRelevantFileType(fileType: FileType): Boolean {
