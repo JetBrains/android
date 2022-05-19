@@ -24,7 +24,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getSyncManager
+//import com.android.tools.idea.projectsystem.getSyncManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunManager
@@ -57,8 +57,8 @@ class AttachOnWaitForDebuggerMonitor(val host: DebuggerHost) : Disposable {
     }
 
     open fun enabled(config: AndroidRunConfigurationBase, debugger: AndroidDebugger<out AndroidDebuggerState>): Boolean {
-      return config.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>(debugger.id)?.ATTACH_ON_WAIT_FOR_DEBUGGER == true &&
-             !project.getSyncManager().isSyncNeeded()
+      return config.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>(debugger.id)?.ATTACH_ON_WAIT_FOR_DEBUGGER == true /*&&
+             !project.getSyncManager().isSyncNeeded()*/
     }
 
     open fun canDebugRun(project: Project, config: AndroidRunConfigurationBase): Boolean {

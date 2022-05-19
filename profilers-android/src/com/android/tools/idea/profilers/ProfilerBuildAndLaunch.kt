@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isApiLevelSupported
-import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isProjectSupported
-import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isSystemSupported
+//import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isApiLevelSupported
+//import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isProjectSupported
+//import com.android.tools.idea.profilers.ProfilerProgramRunner.Companion.isSystemSupported
 import com.android.tools.idea.profilers.actions.ProfileAction
 import com.android.tools.idea.profilers.actions.ProfileDebuggableAction
 import com.android.tools.idea.profilers.actions.ProfileProfileableAction
@@ -48,12 +48,12 @@ object ProfilerBuildAndLaunch {
   fun buildAndLaunchAction(project: Project, profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection) {
     val action = if (project.getProjectSystem().supportsProfilingMode()) {
       // Only non-debuggable devices with API > 28 can support profileable builds.
-      if (isApiLevelSupported(device.featureLevel) && isSystemSupported(device.isDebuggable) && isProjectSupported(project)) {
-        if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
-      }
-      else {
+      //if (isApiLevelSupported(device.featureLevel) && isSystemSupported(device.isDebuggable) && isProjectSupported(project)) {
+      //  if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+      //}
+      //else {
         ProfileDebuggableAction()
-      }
+      //}
     }
     else {
       ProfileAction()
