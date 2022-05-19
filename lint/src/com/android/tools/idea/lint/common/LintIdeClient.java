@@ -559,7 +559,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public GradleVisitor getGradleVisitor() {
-    return new LintIdeGradleVisitor();
+    return new GradleVisitor();
   }
 
   @NonNull

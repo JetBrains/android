@@ -5,7 +5,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
-import com.android.tools.idea.startup.Actions;
+//import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
@@ -56,7 +56,7 @@ public final class AndroidPlugin {
     // when using Essentials mode, don't show essential-highlighting notifications
     PropertiesComponent.getInstance().setValue("ignore.essential-highlighting.mode", true);
     if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
-      Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
+      //Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
     } else {
       AnAction group = actionManager.getAction("PowerSaveGroup");
       ((DefaultActionGroup)group).add(studioAction, Constraints.LAST, actionManager);

@@ -52,6 +52,16 @@ import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.withTimeoutOrNull
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.EventQueue
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.LINE_START
@@ -75,17 +85,6 @@ import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.withTimeoutOrNull
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 
 private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
 private const val TIME_TO_INSTALL_COMPANION_APP = 120_000L
