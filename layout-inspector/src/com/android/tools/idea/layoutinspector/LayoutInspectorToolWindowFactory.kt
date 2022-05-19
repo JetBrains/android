@@ -20,10 +20,15 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
@@ -32,6 +37,8 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
+import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -118,6 +125,29 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
                                                         LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
                                                                                                  launcher))
+
+        if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
+          fun getProcessDescriptor(foregroundProcess: ForegroundProcess): ProcessDescriptor? {
+            return processesModel.processes.firstOrNull { it.pid == foregroundProcess.pid }
+          }
+
+          // The following line has the side effect of starting the transport service if it has not been already.
+          // The consequence of not doing this is gRPC calls are never responded to.
+          TransportService.getInstance()
+
+          val transportClient = TransportClient(TransportService.channelName)
+          val foregroundProcessListener = object : ForegroundProcessListener {
+            override fun onNewProcess(foregroundProcess: ForegroundProcess) {
+              processesModel.selectedProcess = getProcessDescriptor(foregroundProcess)
+            }
+          }
+          val foregroundProcessDetection = ForegroundProcessDetection(transportClient, foregroundProcessListener)
+
+          project.messageBus.connect(workbench).subscribe(
+            ToolWindowManagerListener.TOPIC,
+            ForegroundProcessDetectionWindowManagerListener(foregroundProcessDetection, toolWindow.isVisible)
+          )
+        }
       }
     }
   }
@@ -131,18 +161,51 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 }
 
 /**
+ * Enables and disables [ForegroundProcessDetection] based on the state of the tool window (visible or not visible)
+ */
+class ForegroundProcessDetectionWindowManagerListener(
+  private val foregroundProcessDetection: ForegroundProcessDetection,
+  isVisibleAtCreation: Boolean
+) : ToolWindowManagerListener {
+  init {
+    if (isVisibleAtCreation) {
+      foregroundProcessDetection.start()
+    }
+  }
+
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val isWindowVisible = isToolWindowExpanded(toolWindowManager)
+    toggleForegroundProcessDetection(isWindowVisible)
+  }
+
+  private fun toggleForegroundProcessDetection(shouldStart: Boolean) {
+    if (shouldStart) {
+      foregroundProcessDetection.start()
+    }
+    else {
+      foregroundProcessDetection.stop()
+    }
+  }
+
+  private fun isToolWindowExpanded(toolWindowManager: ToolWindowManager): Boolean {
+    val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return false
+    return window.isVisible
+  }
+}
+
+/**
  * Listen to state changes for the create layout inspector tool window.
  */
 class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(private val project: Project,
                                                                               private val clientLauncher: InspectorClientLauncher,
                                                                               private val stopInspectors: () -> Unit = {},
-                                                                              private var wasWindowVisible: Boolean = false
+                                                                              private var wasWindowVisible: Boolean = false,
 ) : ToolWindowManagerListener {
 
   internal constructor(project: Project,
                        toolWindow: ToolWindow,
                        deviceViewPanel: DeviceViewPanel,
-                       clientLauncher: InspectorClientLauncher
+                       clientLauncher: InspectorClientLauncher,
   ) : this(project, clientLauncher, { deviceViewPanel.stopInspectors() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -159,9 +222,9 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
           LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
           MessageType.INFO,
           """
-            <b>Layout Inspection</b> is running in the background.<br>
-            You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
-          """.trimIndent(),
+          <b>Layout Inspection</b> is running in the background.<br>
+          You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
+        """.trimIndent(),
           null
         ) { hyperlinkEvent ->
           if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {

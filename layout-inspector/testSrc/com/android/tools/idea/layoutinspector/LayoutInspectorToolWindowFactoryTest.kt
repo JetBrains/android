@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
@@ -46,6 +47,7 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.project.TestProjectManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -64,6 +66,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
@@ -88,7 +94,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   private class FakeToolWindow(
     project: Project,
-    private val listener: LayoutInspectorToolWindowManagerListener
+    private val listener: ToolWindowManagerListener
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
     var shouldBeAvailable = true
     var visible = false
@@ -125,6 +131,37 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+
+  @Test
+  fun foregroundProcessDetectionOnlyStartsIfWindowIsNotMinimized() {
+    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
+    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, false)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    verifyNoInteractions(mockForegroundProcessDetection)
+
+    toolWindow.show()
+    toolWindow.hide()
+
+    verify(mockForegroundProcessDetection).start()
+    verify(mockForegroundProcessDetection).stop()
+  }
+
+  @Test
+  fun foregroundProcessDetectionStartsImmediatelyIfWindowIsVisibleAtCreation() {
+    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
+    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, true)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    toolWindow.show()
+
+    verify(mockForegroundProcessDetection, times(2)).start()
+
+    toolWindow.hide()
+
+    verify(mockForegroundProcessDetection).stop()
+    verifyNoMoreInteractions(mockForegroundProcessDetection)
+  }
 
   @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {
