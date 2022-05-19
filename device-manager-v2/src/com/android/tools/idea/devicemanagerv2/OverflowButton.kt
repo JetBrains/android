@@ -25,39 +25,37 @@ import icons.StudioIcons
 
 class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
 
-  companion object {
-    private val reservationActions =
-      DefaultActionGroup(
-        CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.half.hour"),
-      )
-    private val wearableActions =
-      DefaultActionGroup(
-        PairWearableDeviceAction(),
-        ViewPairedDevicesAction(),
-        UnpairWearableDeviceAction(),
-      )
-    val actions =
-      DefaultActionGroup(
-        reservationActions,
-        Separator.create(),
-        ColdBootAction(),
-        wearableActions,
-        Separator.create(),
-        EditDeviceAction(),
-        DuplicateDeviceAction(),
-        WipeDataAction(),
-        DeleteAction(),
-        DeleteTemplateAction(),
-        Separator.create(),
-        OpenDeviceExplorerAction(),
-        ViewDetailsAction(),
-        ShowAction(),
-      )
-  }
+  private val reservationActions =
+    DefaultActionGroup(
+      CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
+      CustomActionsSchema.getInstance()
+        .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
+      CustomActionsSchema.getInstance()
+        .getCorrectedAction("android.device.reservation.extend.half.hour"),
+    )
+  private val wearableActions =
+    DefaultActionGroup(
+      PairWearableDeviceAction(),
+      ViewPairedDevicesAction(),
+      UnpairWearableDeviceAction(),
+    )
+  val actions =
+    DefaultActionGroup(
+      reservationActions,
+      Separator.create(),
+      ColdBootAction(),
+      wearableActions,
+      Separator.create(),
+      EditDeviceAction(),
+      DuplicateDeviceAction(),
+      WipeDataAction(),
+      DeleteAction(),
+      DeleteTemplateAction(),
+      Separator.create(),
+      OpenDeviceExplorerAction(),
+      ViewDetailsAction(),
+      ShowAction(),
+    )
 
   init {
     addActionListener {

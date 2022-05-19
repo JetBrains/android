@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.android.tools.idea.logcat.LogcatToolWindowFactory
+import com.android.tools.idea.logcat.AndroidLogcatPresenters
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.ProjectManager
@@ -23,6 +24,7 @@ import com.intellij.ui.EditorTextField
 import com.intellij.ui.ExpandableEditorSupport
 import com.intellij.ui.TextFieldWithAutoCompletion.StringsCompletionProvider
 import com.intellij.util.Function
+import com.intellij.util.application
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import java.awt.Color
 import java.awt.Dimension
@@ -107,7 +109,7 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
 }
 
 private fun loadTagsFromPanels(): List<String> =
-  LogcatToolWindowFactory.logcatPresenters
+  application.service<AndroidLogcatPresenters>().logcatPresenters
     .flatMapTo(HashSet()) { it.getTags() }
     .filter { it.isNotBlank() }
     .map { "$it " }

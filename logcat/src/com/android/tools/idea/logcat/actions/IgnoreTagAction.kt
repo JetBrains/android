@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.tools.idea.logcat.AndroidLogcatPresenters
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.FilterHint.Tag
 import com.android.tools.idea.logcat.util.getFilterHint
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.util.application
 
 /** An action that adds or a tag to the global ignore tag set */
 internal class IgnoreTagAction : DumbAwareAction("Ignore Tag") {
@@ -38,7 +40,7 @@ internal class IgnoreTagAction : DumbAwareAction("Ignore Tag") {
     val tag = e.findTagAtCaret() ?: return
     val settings = AndroidLogcatSettings.getInstance()
     settings.ignoredTags += tag
-    LogcatToolWindowFactory.logcatPresenters.forEach { it.reloadMessages() }
+    application.service<AndroidLogcatPresenters>().logcatPresenters.forEach { it.reloadMessages() }
   }
 
   override fun getActionUpdateThread() = EDT

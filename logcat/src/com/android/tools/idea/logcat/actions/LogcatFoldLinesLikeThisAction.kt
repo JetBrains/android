@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.LogcatToolWindowFactory
+import com.android.tools.idea.logcat.AndroidLogcatPresenters
 import com.intellij.execution.console.ConsoleConfigurable
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.util.application
 import com.intellij.util.ui.UIUtil
 
 /**
@@ -52,7 +54,7 @@ internal class LogcatFoldLinesLikeThisAction(private val editor: Editor) :
           }
         },
       )
-    LogcatToolWindowFactory.logcatPresenters.forEach { it.foldImmediately() }
+    application.service<AndroidLogcatPresenters>().logcatPresenters.forEach { it.foldImmediately() }
   }
 }
 

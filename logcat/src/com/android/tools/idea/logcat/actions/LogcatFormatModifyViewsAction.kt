@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.tools.idea.logcat.AndroidLogcatPresenters
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.LogcatFormatDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.util.application
 
 /** An action that opens the [LogcatFormatDialog] */
 internal class LogcatFormatModifyViewsAction(
@@ -40,7 +42,7 @@ internal class LogcatFormatModifyViewsAction(
         standardOptions,
         compactOptions,
         defaultStyle ->
-        LogcatToolWindowFactory.logcatPresenters.forEach {
+        application.service<AndroidLogcatPresenters>().logcatPresenters.forEach {
           when (it.formattingOptions.getStyle()) {
             STANDARD -> it.formattingOptions = standardOptions
             COMPACT -> it.formattingOptions = compactOptions

@@ -69,14 +69,14 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
               lastIgnore = true;
             }
           }
-          else if (fileType == PropertiesFileType.INSTANCE) {
-            String name = virtualFile.getName();
-            if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, virtualFile.isCaseSensitive()) ||
-                Comparing.equal(name, FN_LOCAL_PROPERTIES, virtualFile.isCaseSensitive()) ||
-                Comparing.equal(name, FN_GRADLE_PROPERTIES, virtualFile.isCaseSensitive())) {
-              lastIgnore = true;
-            }
-          }
+          //else if (fileType == PropertiesFileType.INSTANCE) {
+          //  String name = virtualFile.getName();
+          //  if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, virtualFile.isCaseSensitive()) ||
+          //      Comparing.equal(name, FN_LOCAL_PROPERTIES, virtualFile.isCaseSensitive()) ||
+          //      Comparing.equal(name, FN_GRADLE_PROPERTIES, virtualFile.isCaseSensitive())) {
+          //    lastIgnore = true;
+          //  }
+          //}
 
           spellcheckingIgnoredState = Boolean.valueOf(lastIgnore);
           virtualFile.putUserData(mySpellcheckingIgnoredStateKey, spellcheckingIgnoredState);

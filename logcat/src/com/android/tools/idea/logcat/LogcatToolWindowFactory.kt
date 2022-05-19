@@ -43,6 +43,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
+import com.intellij.util.application
 import com.intellij.util.text.UniqueNameGenerator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -77,7 +78,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     messageBusConnection.subscribe(
       ClearLogcatListener.TOPIC,
       ClearLogcatListener { serialNumber ->
-        if (logcatPresenters.none { it.getConnectedDevice()?.serialNumber == serialNumber }) {
+        if (application.service<AndroidLogcatPresenters>().logcatPresenters.none { it.getConnectedDevice()?.serialNumber == serialNumber }) {
           AndroidCoroutineScope(toolWindow.disposable).launch {
             LogcatService.getInstance(project).clearLogcat(serialNumber)
           }
@@ -179,13 +180,9 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         LogcatPanelConfig.fromJson(clientState),
       )
       .also {
-        logcatPresenters.add(it)
-        Disposer.register(it) { logcatPresenters.remove(it) }
+        application.service<AndroidLogcatPresenters>().logcatPresenters.add(it)
+        Disposer.register(it) { application.service<AndroidLogcatPresenters>().logcatPresenters.remove(it) }
       }
-
-  companion object {
-    internal val logcatPresenters = mutableListOf<LogcatPresenter>()
-  }
 }
 
 private fun ToolWindowEx.findTab(name: String): Content? {

@@ -46,7 +46,6 @@ private val NO_FACET_TEXT = """
   |<p>
   |    No Android module has been found.<br/>
   |    <a href="$NEW_MODULE_LINK">Sync project</a>,<br/>
-  |    <a href="$SYNC_LINK">Add Android module</a>
   |</p>
   |""".trimMargin()
 
@@ -58,7 +57,7 @@ private const val EMPTY_TEXT_LINE_HEIGHT = 1.2
 class NoFacetView(val project: Project)
   : JPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false)) {
 
-  private val androidNewModuleAction = ActionManager.getInstance().getAction("NewModule")
+  //private val androidNewModuleAction = ActionManager.getInstance().getAction("NewModule")
 
   init {
     add(createInnerText())
@@ -87,13 +86,13 @@ class NoFacetView(val project: Project)
         if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
           when (e.description) {
             NEW_MODULE_LINK -> syncProject(project)
-            SYNC_LINK -> newModule(e, project)
+//            SYNC_LINK -> newModule(e, project)
           }
         }
       }
     }
   }
-
+/*
   private fun newModule(e: HyperlinkEvent, project: Project) {
     val anActionEvent = AnActionEvent.createFromInputEvent(e.inputEvent, "", null, SimpleDataContext.getProjectContext(project))
     androidNewModuleAction.update(anActionEvent)
@@ -101,7 +100,7 @@ class NoFacetView(val project: Project)
       androidNewModuleAction.actionPerformed(anActionEvent)
     }
   }
-
+*/
   private fun syncProject(project: Project) {
     val reason = if (project.isInitialized) PROJECT_MODIFIED else PROJECT_LOADED
     val syncManager = project.getProjectSystem().getSyncManager()
