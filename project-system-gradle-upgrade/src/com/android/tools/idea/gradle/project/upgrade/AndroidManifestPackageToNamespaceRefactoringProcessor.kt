@@ -43,6 +43,9 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 
+  private fun File.computeNamespacesFromManifestPackageAttributes(): Namespaces =
+    this.computeNamespacesFromManifestPackageAttributesWith { }
+
   private fun File.computeNamespacesFromManifestPackageAttributesWith(function: (XmlAttribute) -> Unit): Namespaces {
     val psiManager = PsiManager.getInstance(project)
     // This is unsound, in that the sourceSets are in fact configurable, rather than fixed, and the location of each sourceSet's
@@ -69,6 +72,35 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
     return Namespaces(namespace, testNamespace)
   }
 
+  class MainAndTestPackageEqual(moduleNames: List<String>) : BlockReason(
+    shortDescription = "Modules have the same package for their main and androidTest artifacts",
+    description = "The package specifications in AndroidManifest.xml files define the same \n" +
+                  "package for the main and androidTest artifacts, in the following modules: \n" +
+                  moduleNames.descriptionText + "\n" +
+                  "To proceed, change the androidTest package in the manifest for all affected modules.",
+    // TODO(b/191813691): add helpLinkUrl to https://developer.android.com/studio/build/configure-app-module#change-namespace-for-testing
+  )
+
+  override fun blockProcessorReasons(): List<BlockReason> {
+    val moduleNames = mutableListOf<String>()
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
+      model.psiElement ?: return@model
+      val moduleDirectory = model.moduleRootDirectory
+      val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributes()
+      testNamespace?.let { testNamespace ->
+        if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
+        val currentNamespace = when {
+          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
+          namespace != null -> namespace
+          else -> ""
+        }
+        // TODO(xof): the moduleDirectory need not have the same name as the module (though I guess it's reasonably common?)
+        if (testNamespace == currentNamespace) moduleNames.add(moduleDirectory.name)
+      }
+    }
+    return moduleNames.takeIf { it.isNotEmpty() }?.let { listOf(MainAndTestPackageEqual(moduleNames)) } ?: listOf()
+  }
+
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
@@ -93,8 +125,6 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
           namespace != null -> namespace
           else -> ""
         }
-        // TODO(b/191813691): this is a problematic case: should require user intervention.
-        if (testNamespace == currentNamespace) return@let
         if (testNamespace == "$currentNamespace.test") return@let // default value for testNamespace is correct.
         // TODO(b/191813691): check for agreement between model and specified testNamespace
         val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
@@ -169,3 +199,27 @@ class AndroidTestNamespaceUsageInfo(
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }
+
+private val List<String>.descriptionText: String
+  get() {
+    var col = 0
+    val sb = StringBuilder()
+    val last = this.size - 1
+    this.forEachIndexed moduleNames@{ index, name ->
+      when (index) {
+        0 -> name.let { col += it.length; sb.append(it) }
+        last -> name.let { if (index != 1) sb.append(","); sb.append(" and $it") }
+        in 1..7 -> {
+          sb.append(", ")
+          if (col > 72) {
+            sb.append("\n"); col = 0
+          }
+          col += name.length
+          sb.append(name)
+        }
+        else -> this.let { sb.append("and ${it.size - index} other modules"); return@moduleNames }
+      }
+    }
+    sb.append(".")
+    return sb.toString()
+  }

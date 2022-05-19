@@ -112,6 +112,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     verifyManifestFileContents(androidTestManifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
 
+  @Test
+  fun testAndroidTestPackageToSameNamespaceIsBlocked() {
+    writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
+    writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"), androidTestManifestFile)
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    assertTrue(processor.isBlocked)
+  }
+
   private fun writeToManifestFile(fileName: TestFileName, file: VirtualFile = manifestFile) {
     val testFile = fileName.toFile(testDataPath, "")
     assertTrue(testFile.exists())
