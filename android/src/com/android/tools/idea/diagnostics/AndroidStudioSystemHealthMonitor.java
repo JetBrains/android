@@ -31,7 +31,7 @@ import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.jfr.RecordingManager;
 import com.android.tools.idea.diagnostics.jfr.reports.ReportTypesKt;
-import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
+//import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
@@ -486,15 +486,15 @@ public final class AndroidStudioSystemHealthMonitor {
       initDataCollection();
     }
 
-    if (application.isInternal()) {
-      try {
-        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        ObjectName beanName = new ObjectName("com.android.tools.idea.diagnostics.kotlin:type=KotlinPerfCounters");
-        mBeanServer.registerMBean(new KotlinPerfCounters(), beanName);
-      } catch (Exception ex) {
-        LOG.debug(ex);
-      }
-    }
+    //if (application.isInternal()) {
+    //  try {
+    //    MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+    //    ObjectName beanName = new ObjectName("com.android.tools.idea.diagnostics.kotlin:type=KotlinPerfCounters");
+    //    mBeanServer.registerMBean(new KotlinPerfCounters(), beanName);
+    //  } catch (Exception ex) {
+    //    LOG.debug(ex);
+    //  }
+    //}
   }
 
   private void initDataCollection() {

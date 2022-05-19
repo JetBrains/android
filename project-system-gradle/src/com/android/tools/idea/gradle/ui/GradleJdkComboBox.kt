@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.ui
 
-import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.GRADLE_LOCAL_JAVA_HOME
+//import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.GRADLE_LOCAL_JAVA_HOME
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -54,8 +54,10 @@ class GradleJdkComboBox(
   private val comboBox = SdkComboBox(sdkComboBoxModel)
   private val model
     get() = comboBox.model
+  /*
   private val gradleLocalJavaHomeVersion: String
     get() = JavaSdk.getInstance().getVersionString(gradleLocalJavaHome).orEmpty()
+   */
   private val gradleLocalJavaHome: String
     get() = GradleConfigProperties(externalProjectFile).javaHome?.toString().orEmpty()
 
@@ -63,7 +65,7 @@ class GradleJdkComboBox(
   var selectedGradleJvmReference: String?
     get() = when (val item = comboBox.selectedItem) {
       is SdkListItem.SdkReferenceItem -> when (item.name) {
-        GRADLE_LOCAL_JAVA_HOME -> USE_GRADLE_LOCAL_JAVA_HOME
+        //GRADLE_LOCAL_JAVA_HOME -> USE_GRADLE_LOCAL_JAVA_HOME
         else -> comboBox.getSelectedGradleJvmReference(sdkLookupProvider)
       }
       else -> comboBox.getSelectedGradleJvmReference(sdkLookupProvider)
@@ -74,11 +76,13 @@ class GradleJdkComboBox(
           name = JAVA_HOME,
           homePath = IdeSdks.getInstance().jdkFromJavaHome
         )
+        /*
         USE_GRADLE_LOCAL_JAVA_HOME -> comboBox.selectedItem = comboBox.addJdkReferenceItem(
           name = GRADLE_LOCAL_JAVA_HOME,
           versionString = gradleLocalJavaHomeVersion,
           isValid = true
         )
+         */
         else -> comboBox.setSelectedGradleJvmReference(
           sdkLookupProvider = sdkLookupProvider,
           externalProjectPath = externalProjectFile.absolutePath,
@@ -103,10 +107,12 @@ class GradleJdkComboBox(
       name = JAVA_HOME,
       homePath = IdeSdks.getInstance().jdkFromJavaHome
     )
+    /*
     USE_GRADLE_LOCAL_JAVA_HOME -> createJdkInfo(
       name = GRADLE_LOCAL_JAVA_HOME,
       homePath = gradleLocalJavaHome
     )
+     */
     else -> sdkLookupProvider.nonblockingResolveGradleJvmInfo(
       project = model.project,
       projectSdk = getProjectSdk(),

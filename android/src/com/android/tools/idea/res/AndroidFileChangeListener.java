@@ -28,14 +28,14 @@ import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
-import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
+//import com.android.tools.idea.lang.aidl.AidlFileType;
+//import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.lang.properties.PropertiesFileType;
+//import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -78,7 +78,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
-import org.jetbrains.plugins.gradle.config.GradleFileType;
+//import org.jetbrains.plugins.gradle.config.GradleFileType;
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
@@ -200,11 +200,11 @@ public class AndroidFileChangeListener implements Disposable {
     if (SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
       return true;
     }
-
+/*
     if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension)) {
       return true;
     }
-
+*/
     VirtualFile parent = file.getParent();
     if (parent != null) {
       String parentName = parent.getName();
@@ -215,7 +215,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     // Unable to determine based on filename, use the slow method.
     FileType fileType = file.getFileType();
-    return fileType.equals(AndroidRenderscriptFileType.INSTANCE) || isRelevantFileType(fileType);
+    return /*fileType.equals(AndroidRenderscriptFileType.INSTANCE) ||*/ isRelevantFileType(fileType);
   }
 
   static boolean isRelevantFile(@NotNull PsiFile file) {
@@ -238,9 +238,9 @@ public class AndroidFileChangeListener implements Disposable {
   }
 
   public static boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (GradleFileType.isGradleFile(psiFile)) {
+    /*if (GradleFileType.isGradleFile(psiFile)) {
       return true;
-    }
+    }*/
     FileType fileType = psiFile.getFileType();
     if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
       return true;
@@ -249,7 +249,7 @@ public class AndroidFileChangeListener implements Disposable {
     if (psiFile.getName().endsWith(DOT_VERSIONS_DOT_TOML)) {
       return true;
     }
-    if (fileType == PropertiesFileType.INSTANCE &&
+    /*if (fileType == PropertiesFileType.INSTANCE &&
         (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName()))) {
       return true;
     }
@@ -264,7 +264,7 @@ public class AndroidFileChangeListener implements Disposable {
       if (FN_GRADLE_CONFIG_PROPERTIES.equals(psiFileName) && psiParent != null && FD_GRADLE_CACHE.equals(psiParent.getName())) {
         return true;
       }
-    }
+    }*/
 
     return false;
   }

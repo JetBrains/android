@@ -57,7 +57,7 @@ import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
 import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
 import com.android.tools.idea.common.surface.layout.TopLeftCornerScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
+//import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -763,7 +763,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         // createErrorModel needs to run in Smart mode to resolve the classes correctly
         DumbService.getInstance(project).runReadActionInSmartMode(() -> {
           ImmutableList<RenderIssueProvider> renderIssueProviders = null;
-          if (GradleBuildState.getInstance(project).isBuildInProgress()) {
+          /*if (GradleBuildState.getInstance(project).isBuildInProgress()) {
             for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
               if (entry.getValue().getLogger().hasErrors()) {
                 // We are still building, display the message to the user.
@@ -772,7 +772,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                 break;
               }
             }
-          }
+          }*/
 
           if (renderIssueProviders == null) {
             renderIssueProviders = results.entrySet().stream()

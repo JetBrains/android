@@ -28,7 +28,7 @@ import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.setup
+//import com.android.tools.idea.stats.AndroidStudioUsageTracker.setup
 import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
@@ -78,12 +78,12 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
   private fun setupAnalytics() {
     //AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
 
-    UsageTracker.version = ApplicationInfo.getInstance().strictVersion
-    UsageTracker.ideBrand = currentIdeBrand()
-    if (ApplicationManager.getApplication().isInternal) {
-      UsageTracker.ideaIsInternal = true
-    }
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
+    //UsageTracker.version = ApplicationInfo.getInstance().strictVersion
+    //UsageTracker.ideBrand = currentIdeBrand()
+    //if (ApplicationManager.getApplication().isInternal) {
+    //  UsageTracker.ideaIsInternal = true
+    //}
+    //AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
   }
 
   /** Configures update URLs based on environment variables. This makes it easier to do local testing.  */
