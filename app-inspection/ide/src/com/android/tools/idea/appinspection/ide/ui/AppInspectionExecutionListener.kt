@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.execution.common.AndroidSessionInfo
+//import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -35,12 +35,15 @@ class AppInspectionExecutionListener : ExecutionListener {
     handler: ProcessHandler,
   ) {
     val project = env.project
+    return
+    /*
     val info = AndroidSessionInfo.from(handler) ?: return
 
     info.devices.forEach { device ->
       storeRecentProcess(project, device, info.applicationId, handler)
       displayStripeButton(project, device)
     }
+     */
   }
 
   private fun displayStripeButton(project: Project, device: IDevice) {
