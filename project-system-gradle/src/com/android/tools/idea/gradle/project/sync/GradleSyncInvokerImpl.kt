@@ -70,7 +70,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   }
 
   @WorkerThread
-  override fun fetchGradleModels(project: Project): List<GradleModuleModels> {
+  override fun fetchGradleModels(project: Project): GradleProjectModels {
     return GradleSyncExecutor(project).fetchGradleModels()
   }
 

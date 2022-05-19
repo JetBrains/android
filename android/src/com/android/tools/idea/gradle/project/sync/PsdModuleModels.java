@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PsdModuleModels implements GradleModuleModels {
   @NotNull private final String myName;
@@ -48,19 +46,6 @@ public class PsdModuleModels implements GradleModuleModels {
     Object model = models.get(0);
     assert modelType.isInstance(model);
     return modelType.cast(model);
-  }
-
-  @Override
-  @Nullable
-  public <T> List<T> findModels(@NotNull Class<T> modelType) {
-    List<Object> models = myModelsByType.get(modelType);
-    if (models == null || models.isEmpty()) {
-      return null;
-    }
-    return models.stream().map(model -> {
-      assert modelType.isInstance(model);
-      return modelType.cast(model);
-    }).collect(Collectors.toList());
   }
 
   @Override

@@ -35,17 +35,20 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleProjectModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,7 +69,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -177,7 +179,7 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   @NotNull
-  public List<GradleModuleModels> fetchGradleModels() {
+  public GradleProjectModels fetchGradleModels() {
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
     if (settings == null) {
       throw new IllegalStateException("Cannot obtain GradleExecutionSettings");
@@ -193,10 +195,14 @@ public class GradleSyncExecutor {
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
-
+    @Nullable IdeResolvedLibraryTable libraryTable = null;
 
     if (projectDataNode != null) {
       @SuppressWarnings("UnstableApiUsage") DataNode<ExternalProject> rootProjectNode = find(projectDataNode, ExternalProjectDataCache.KEY);
+      DataNode<IdeResolvedLibraryTable> libraryTableNode = find(projectDataNode, AndroidProjectKeys.IDE_LIBRARY_TABLE);
+      if (libraryTableNode != null) {
+        libraryTable = libraryTableNode.getData();
+      }
       Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
       for (DataNode<ModuleData> moduleNode : moduleNodes) {
         DataNode<GradleModuleModel> gradleModelNode = find(moduleNode, GRADLE_MODULE_MODEL);
@@ -232,7 +238,7 @@ public class GradleSyncExecutor {
       }
     }
 
-    return builder.build();
+    return new GradleProjectModels(builder.build(), libraryTable);
   }
 
   @Nullable

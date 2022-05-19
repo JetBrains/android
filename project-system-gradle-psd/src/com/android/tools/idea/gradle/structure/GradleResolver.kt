@@ -40,6 +40,7 @@ class GradleResolver {
       GradleSyncInvoker
         .getInstance()
         .fetchGradleModels(project)
+        .modules
         .mapNotNull { findModel(it) }
     }
     object : Task.Backgroundable(project, "Fetching build models", true) {

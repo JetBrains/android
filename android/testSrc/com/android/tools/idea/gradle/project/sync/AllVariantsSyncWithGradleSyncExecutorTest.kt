@@ -76,14 +76,17 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
 
     // Run AllVariantsSync using the GradleSyncExecutor.
     val gradleModules = mySyncExecutor!!.fetchGradleModels()
-    val allVariantsSyncAndroidModel = gradleModules[0].findModel(GradleAndroidModel::class.java)
+    val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModel::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
     Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
 
     // Dump the GradleAndroidModel.
     val dumper = ProjectDumper(additionalRoots = mapOf("ROOT" to File(project.basePath!!)))
-    dumper.dumpAllVariantsSyncAndroidModuleModel(allVariantsSyncAndroidModel, project.basePath!!)
+    dumper.dumpAllVariantsSyncAndroidModuleModel(
+      allVariantsSyncAndroidModel,
+      project.basePath!!
+    )
     // Verify dump content matches expected snapshot files.
     val dump = dumper.toString().trimIndent()
 

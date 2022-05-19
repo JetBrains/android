@@ -56,8 +56,8 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   public void testFetchGradleModelsWithSimpleApplication() throws Exception {
     loadSimpleApplication();
 
-    List<GradleModuleModels> models = mySyncExecutor.fetchGradleModels();
-    Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models);
+    @NotNull GradleProjectModels models = mySyncExecutor.fetchGradleModels();
+    Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models.getModules());
 
     GradleModuleModels app = modulesByModuleName.get("app");
     assertNotNull(app);
@@ -67,8 +67,8 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   public void testFetchGradleModelsWithTransitiveDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
-    List<GradleModuleModels> models = mySyncExecutor.fetchGradleModels();
-    Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models);
+    @NotNull GradleProjectModels models = mySyncExecutor.fetchGradleModels();
+    Map<String, GradleModuleModels> modulesByModuleName = indexByModuleName(models.getModules());
 
     GradleModuleModels app = modulesByModuleName.get("app");
     assertNotNull(app);

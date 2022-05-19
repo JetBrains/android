@@ -33,7 +33,7 @@ interface GradleSyncInvoker {
   fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>)
 
   @WorkerThread
-  fun fetchGradleModels(project: Project): List<GradleModuleModels>
+  fun fetchGradleModels(project: Project): GradleProjectModels
 
   data class Request @JvmOverloads constructor(
     val trigger: GradleSyncStats.Trigger,
@@ -59,7 +59,7 @@ interface GradleSyncInvoker {
     }
 
     override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit
-    override fun fetchGradleModels(project: Project): List<GradleModuleModels> = emptyList()
+    override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null)
   }
 
   companion object {
