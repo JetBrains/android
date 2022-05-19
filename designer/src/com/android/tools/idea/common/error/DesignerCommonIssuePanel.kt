@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -200,7 +201,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     val sidePanel = DesignerCommonIssueSidePanel(project, issueNode.issue, issueNode.getVirtualFile(), this)
     val previewEditor = sidePanel.editor
     val navigable = issueNode.getNavigatable()
-    if (previewEditor != null && navigable != null) {
+    if (previewEditor != null && navigable is OpenFileDescriptor) {
       navigable.navigateIn(previewEditor)
     }
 

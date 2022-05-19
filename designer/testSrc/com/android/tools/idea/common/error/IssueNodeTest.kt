@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.SimpleTextAttributes
@@ -47,7 +48,7 @@ class IssueNodeTest {
   fun testNavigatableToFile() {
     val file = projectRule.fixture.addFileToProject("path/to/file", "content").virtualFile
 
-    val descriptor = IssueNode(file, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable()!!
+    val descriptor = IssueNode(file, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable() as OpenFileDescriptor
 
     Assert.assertEquals(projectRule.project, descriptor.project)
     Assert.assertEquals(file, descriptor.file)
@@ -62,7 +63,8 @@ class IssueNodeTest {
       override fun getOriginFile(): VirtualFile = originalFile
     }
 
-    val descriptor = IssueNode(lightVirtualFile, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable()!!
+    val descriptor =
+      IssueNode(lightVirtualFile, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable() as OpenFileDescriptor
 
     Assert.assertEquals(projectRule.project, descriptor.project)
     Assert.assertEquals(originalFile, descriptor.file)
