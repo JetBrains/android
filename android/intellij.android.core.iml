@@ -5,6 +5,35 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/sync/hyperlink" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/sync/setup/post/cleanup" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/testartifacts/junit" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/sync" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/build/attribution" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/build" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/service/notification" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/navigator/nodes" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/lang/aidl" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/benchmark" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/dynamicapp" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/ideahost" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/java" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/module" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/template" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/testartifacts" />
+      <excludeFolder url="file://$MODULE_DIR$/src/org/jetbrains/android/refactoring/namespaces" />
+      <excludeFolder url="file://$MODULE_DIR$/src/org/jetbrains/android/newProject" />
+      <excludeFolder url="file://$MODULE_DIR$/src/org/jetbrains/android/exportSignedPackage" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/apk/debugging" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/apk" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/model" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/actions" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/sync/setup/post/cleanup" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/upgrade" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/npw" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/notification" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/dependencies" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/gradle/project/facet/java" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -43,7 +72,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
-    <orderEntry type="module" module-name="intellij.android.lang" />
+   <!-- <orderEntry type="module" module-name="intellij.android.lang" /> -->
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module-library">
       <library name="instantapps-api">
@@ -66,10 +95,10 @@
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.dagger" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+<!--    <orderEntry type="module" module-name="intellij.android.gradle.dsl" /> -->
+<!--    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" /> -->
+<!--    <orderEntry type="module" module-name="intellij.android.dagger" /> -->
+<!--    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" /> -->
     <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
     <orderEntry type="module-library">
@@ -110,8 +139,8 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.android.utp" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+   <!-- <orderEntry type="module" module-name="intellij.android.utp" />-->
+   <!-- <orderEntry type="module" module-name="android.sdktools.sdklib" />-->
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
@@ -174,7 +203,7 @@
     <orderEntry type="module" module-name="intellij.xml.analysis" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.junit" />
+    <!-- <orderEntry type="module" module-name="intellij.junit" />-->
     <orderEntry type="module" module-name="kotlin.core" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
@@ -238,7 +267,7 @@
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
     <orderEntry type="module" module-name="intellij.java.ui" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.groovy" />
+    <!--<orderEntry type="module" module-name="intellij.groovy" />-->
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.xml.structureView" />

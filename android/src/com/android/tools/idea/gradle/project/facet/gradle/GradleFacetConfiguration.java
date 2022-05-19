@@ -25,7 +25,7 @@ import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
-import org.jetbrains.android.facet.AndroidGradleFacetEditorForIdea;
+//import org.jetbrains.android.facet.AndroidGradleFacetEditorForIdea;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ public class GradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    return new FacetEditorTab[]{new AndroidGradleFacetEditorForIdea(editorContext.getProject())};
+    return new FacetEditorTab[0];//{new AndroidGradleFacetEditorForIdea(editorContext.getProject())};
   }
 
   @Override

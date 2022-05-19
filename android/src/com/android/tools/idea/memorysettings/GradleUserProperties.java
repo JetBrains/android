@@ -19,7 +19,7 @@ import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getGrad
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotlinDaemonXmx;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.gradle.util.GradleUtil;
+//import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -83,6 +83,7 @@ public class GradleUserProperties {
 
   @Nullable
   private static GradleProperties getProperties(Project project) {
+    return null; /*
     File file = GradleUtil.getUserGradlePropertiesFile(project);
     try {
       if (file.exists()) {
@@ -94,6 +95,6 @@ public class GradleUserProperties {
     catch (IOException e) {
       LOG.info("Failed to read " + file, e);
       return null;
-    }
+    }*/
   }
 }

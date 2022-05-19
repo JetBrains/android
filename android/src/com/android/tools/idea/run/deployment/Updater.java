@@ -174,6 +174,7 @@ final class Updater {
     }
 
     myPresentation.setEnabled(false);
+    myPresentation.setVisible(false); //apatch
     if (IdeInfo.getInstance().isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
       myPresentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
     }

@@ -66,6 +66,7 @@ open class NlIdPropertyItem(
   override var value: String?
     get() = stripIdPrefix(super.value)
     set(value) {
+      return //apatch: We do not support rename yet
       val undoManager = UndoManager.getInstance(project)
       if (undoManager.isUndoInProgress || undoManager.isRedoInProgress) {
         // b/134522901: Avoid updating the property during undo/redo

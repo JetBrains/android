@@ -21,7 +21,7 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
+//import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -296,7 +296,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
       if (result == Messages.OK) {
         saveTraceSettings();
-        TraceSyncUtil.updateTraceArgsInFile();
+        //TraceSyncUtil.updateTraceArgsInFile();
         // Suppress "Are you sure you want to exit Android Studio" dialog, and restart if possible.
         app.exit(false, true, true);
       }

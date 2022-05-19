@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/testFramework" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/testSrc" />
+      <excludeFolder url="file://$MODULE_DIR$/testFramework" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
@@ -23,9 +25,8 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <!--orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" /-->
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" />
@@ -92,9 +93,6 @@
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.util" />
   </component>
 </module>

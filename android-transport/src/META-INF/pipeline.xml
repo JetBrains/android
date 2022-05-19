@@ -19,8 +19,8 @@
                         serviceImplementation="com.android.tools.idea.transport.TransportServiceImpl"/>
   </extensions>
   <actions>
-    <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction">
-      <add-to-group group-id="Internal.Android"/>
-    </action>
+<!--    <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction">-->
+<!--      <add-to-group group-id="Internal.Android"/>-->
+<!--    </action>-->
   </actions>
 </idea-plugin>

@@ -18,7 +18,7 @@
 package org.jetbrains.android.dom.inspections
 
 import com.android.support.AndroidxNameUtils
-import com.android.tools.idea.imports.AndroidMavenImportFix
+//import com.android.tools.idea.imports.AndroidMavenImportFix
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.openapi.fileTypes.FileType
@@ -31,6 +31,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
     className: String, project: Project, completionFileType: FileType?): List<LocalQuickFix> {
   val fixes = mutableListOf<LocalQuickFix>()
+/* apatch
   val useAndroidX = project.isAndroidx()
 
   this.getMavenClassRegistry()
@@ -47,6 +48,6 @@ internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
       fixes.add(AndroidMavenImportFix(className, resolvedArtifact, it.version))
     }
     .toList()
-
+*/
   return fixes.toList()
 }

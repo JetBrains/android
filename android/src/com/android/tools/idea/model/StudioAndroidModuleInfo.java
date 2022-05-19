@@ -62,7 +62,7 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
       if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
         // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
         // redirection to the AndroidModuleInfo of the base split.
-        Module baseFeature = findBaseFeature(facet);
+        Module baseFeature = null; /*findBaseFeature(facet);*/
         if (baseFeature != null) {
           androidModuleInfo = getInstance(baseFeature);
         }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplayName;
+//import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplayName;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
@@ -31,9 +31,9 @@ import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+//import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+//import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+//import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -891,7 +891,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     final int finalMinSdk = minSdkVersion;
 
-    Runnable link =
+/*    Runnable link =
       () -> {
         Runnable linkAction = () -> {
           // We reparse the buildModel as it is possible that it has change since this link was created.
@@ -923,7 +923,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           ApplicationManager.getApplication().executeOnPooledThread(linkAction);
         }
       };
-    sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+    sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));*/
     sb.add(message.substring(end));
     return sb.getHtml();
   }
@@ -964,7 +964,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
-
+/*
     if (file != null && file.getAbsolutePath().equals(GRADLE_MODEL_MARKER_FILE.getAbsolutePath())) {
       VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(facet.getModule());
       if (gradleBuildFile != null) {
@@ -974,7 +974,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         return new InjectedBuildDotGradleFile(null);
       }
     }
-
+*/
     if (file != null && NAV_FILE_PATTERN.matcher(FileUtils.toSystemIndependentPath(file.toString())).matches()) {
       String source = "";
       Boolean isProjectFile = false;
@@ -1123,12 +1123,15 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @Nullable
   private String findSourceForFileInExplodedAar(@NotNull File file) {
+    /*
     File parentFile = file.getParentFile();
     if (parentFile == null) return null;
     PathString parentFilePath = new PathString(parentFile);
     ExternalAndroidLibrary androidLibrary = myLibrariesByManifestDir.get(parentFilePath);
     if (androidLibrary == null) return null;
     return getDependencyDisplayName(androidLibrary.getAddress());
+    */
+    return null;
   }
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {

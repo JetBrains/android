@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidRunConfiguration
+//import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessAdapter
@@ -36,6 +36,8 @@ class AppInspectionExecutionListener : ExecutionListener {
     handler: ProcessHandler
   ) {
     val project = env.project
+    return
+    /*
     val configuration = env.runProfile as? AndroidRunConfiguration ?: return
 
     val appId =
@@ -52,6 +54,7 @@ class AppInspectionExecutionListener : ExecutionListener {
       storeRecentProcess(project, device, appId, handler)
       displayStripeButton(project, device)
     }
+     */
   }
 
   private fun displayStripeButton(project: Project, device: IDevice) {

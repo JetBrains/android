@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.project;
 
-import static com.android.tools.idea.apk.debugging.ApkDebugging.isMarkedAsApkDebuggingProject;
-import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggingProject;
+//import static com.android.tools.idea.apk.debugging.ApkDebugging.isMarkedAsApkDebuggingProject;
+//import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggingProject;
 
 import com.android.AndroidProjectTypes;
-import com.android.tools.idea.apk.ApkFacet;
+//import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.facet.Facet;
@@ -58,7 +58,7 @@ public class AndroidProjectInfo {
       .collect(Collectors.toList());
   }
 
-  public boolean isApkProject() {
+  public boolean isApkProject() {/*
     if (isMarkedAsApkDebuggingProject(myProject)) {
       // When re-opening an 'APK Debugging' project, this method is checked before modules are loaded, making 'isApkProject' return false.
       // We need to mark the project as 'APK Debugging' project.
@@ -70,7 +70,7 @@ public class AndroidProjectInfo {
       // been marked yet.
       markAsApkDebuggingProject(myProject);
       return true;
-    }
+    }*/
     return false;
   }
 

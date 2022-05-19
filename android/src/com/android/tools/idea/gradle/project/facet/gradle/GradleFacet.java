@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.facet.gradle;
 
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+//import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
@@ -33,8 +33,8 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   public static final String ANDROID_GRADLE_FACET_ID = "android-gradle";
   public static final String ANDROID_GRADLE_FACET_NAME = "Android-Gradle";
   @NotNull private static final FacetTypeId<GradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
-
-  @Nullable private GradleModuleModel myGradleModuleModel;
+/*
+  @Nullable private GradleModuleModel myGradleModuleModel;*/
 
   @Nullable
   public static GradleFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -78,6 +78,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
     return ANDROID_GRADLE_FACET_NAME;
   }
 
+  /*
   @Nullable
   public GradleModuleModel getGradleModuleModel() {
     return myGradleModuleModel;
@@ -86,5 +87,5 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   public void setGradleModuleModel(@NotNull GradleModuleModel gradleModuleModel) {
     myGradleModuleModel = gradleModuleModel;
     getConfiguration().LAST_KNOWN_AGP_VERSION = myGradleModuleModel.getAgpVersion();
-  }
+  }*/
 }

@@ -8,13 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.utp" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
@@ -48,7 +42,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.explainer" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
@@ -85,7 +78,6 @@
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" />
@@ -148,7 +140,6 @@
     <orderEntry type="module" module-name="intellij.platform.lvcs" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
-    <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
@@ -159,10 +150,8 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" />
     <orderEntry type="library" name="rd-core" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
     <orderEntry type="module" module-name="kotlin.project-wizard.core" />
     <orderEntry type="module" module-name="kotlin.base.util" />
-    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="library" name="commons-lang3" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.progress" />
   </component>

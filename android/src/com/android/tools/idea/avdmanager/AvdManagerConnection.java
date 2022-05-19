@@ -880,13 +880,31 @@ public class AvdManagerConnection {
     int exitValue;
     try {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
-      ProcessOutput output = process.runProcess();
+      SettableFuture<ProcessOutput> future = SettableFuture.create();
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          future.set(process.runProcess());
+        }
+        catch (Exception e) {
+          future.setException(e);
+        }
+      });
+
+      ProcessOutput output = future.get();
       exitValue = output.getExitCode();
       if (exitValue != 0) {
         return AccelerationErrorCode.fromExitCode(exitValue);
       }
     }
     catch (ExecutionException e) {
+      IJ_LOG.warn(e);
+      return AccelerationErrorCode.UNKNOWN_ERROR;
+    }
+    catch (java.util.concurrent.ExecutionException e) {
+      IJ_LOG.warn(e);
+      return AccelerationErrorCode.UNKNOWN_ERROR;
+    }
+    catch (InterruptedException e) {
       IJ_LOG.warn(e);
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }

@@ -480,6 +480,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
   public void refresh(boolean forceRemoteReload) {
     validate();
 
+    myPlatformComponentsPanel.startLoading();
+    myToolComponentsPanel.startLoading();
+
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =

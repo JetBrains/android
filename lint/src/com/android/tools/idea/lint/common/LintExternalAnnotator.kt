@@ -72,7 +72,7 @@ import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
+//import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
 import java.util.EnumSet
 import javax.swing.Icon
@@ -196,9 +196,9 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           name == FN_ANDROID_PROGUARD_FILE
       ) {
         scope = EnumSet.of(Scope.PROGUARD_FILE)
-      } else if (GradleFileType.isGradleFile(mainFile)) {
+      } /*else if (GradleFileType.isGradleFile(mainFile)) {
         scope = Scope.GRADLE_SCOPE
-      } else if (fileType === PropertiesFileType.INSTANCE) {
+      } */else if (fileType === PropertiesFileType.INSTANCE) {
         scope = Scope.PROPERTY_SCOPE
       } else if (fileType === TomlFileType) {
         scope = Scope.TOML_SCOPE
@@ -269,14 +269,14 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       }
       val severity = displayLevel.severity
       val type: ProblemHighlightType =
-        if (
+        /*if (
           issue === DeprecationDetector.ISSUE ||
             issue === GradleDetector.DEPRECATED ||
             issue === GradleDetector.DEPRECATED_CONFIGURATION ||
             issue === DeprecatedSinceApiDetector.ISSUE
         ) {
           ProblemHighlightType.LIKE_DEPRECATED
-        } else if (
+        } else*/ if (
           issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT
         ) {
           ProblemHighlightType.ERROR // like unknown symbol

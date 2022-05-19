@@ -41,7 +41,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.isGradleFile
+//import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
 import java.io.File
 import java.util.EnumSet
@@ -100,9 +100,9 @@ abstract class LintIdeSupport {
       return name == FN_PROJECT_PROGUARD_FILE ||
         name == FN_ANDROID_PROGUARD_FILE ||
         name == OLD_PROGUARD_FILE
-    } else if (file.isGradleFile()) {
+    } /*else if (file.isGradleFile()) {
       return true
-    }
+    }*/
     return false
   }
 

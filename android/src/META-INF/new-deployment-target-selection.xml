@@ -38,7 +38,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
+<!--    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>-->
 
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.DevicesSelectedService"/>

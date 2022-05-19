@@ -43,12 +43,15 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -145,8 +148,7 @@ public final class SdkQuickfixUtils {
   }
 
   public static void showAndroidSdkManager() {
-    ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
-      AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+    ShowSettingsUtil.getInstance().showSettingsDialog(Arrays.stream(ProjectManager.getInstance().getOpenProjects()).findFirst().orElse(null), "Android");
   }
 
   private static AndroidSdkHandler getSdkHandler() {

@@ -29,6 +29,6 @@
                              provider="com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider"
                              id="AndroidSdkUpdater"/>
 
-    <externalComponentSource implementation="com.android.tools.idea.updater.SdkComponentSource"/>
+<!--    <externalComponentSource implementation="com.android.tools.idea.updater.SdkComponentSource"/>-->
   </extensions>
 </idea-plugin>

@@ -45,7 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
+//import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
 
 /**
  * A class to provide a memory settings configurable dialog.
@@ -238,7 +238,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 });
 
       myDaemonInfoLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.panel.daemon.info")));
-      myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
+      myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));/*
       myShowDaemonsLabel.addHyperlinkListener(
         new HyperlinkAdapter() {
           DaemonsUi myUi;
@@ -253,7 +253,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
             };
             myUi.show();
           }
-        });
+        });*/
     }
 
     private void setXmxBoxWithOnlyCurrentValue(JComboBox box, int current) {
