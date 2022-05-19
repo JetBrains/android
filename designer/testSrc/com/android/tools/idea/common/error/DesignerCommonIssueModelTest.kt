@@ -45,8 +45,8 @@ class DesignerCommonIssueModelTest {
         model.root = root
         assertEquals(0, model.getChildCount(model.root))
 
-        val child1 = TestNode(root)
-        val child2 = TestNode(root)
+        val child1 = TestNode(parentDescriptor = root)
+        val child2 = TestNode(parentDescriptor = root)
         root.addChild(child1)
         root.addChild(child2)
 
@@ -57,14 +57,14 @@ class DesignerCommonIssueModelTest {
   }
 }
 
-class TestNode(parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null)
+class TestNode(private val name: String = "", parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null)
   : DesignerCommonIssueNode(null, parentDescriptor) {
 
   private val children = mutableListOf<DesignerCommonIssueNode>()
 
   override fun updatePresentation(presentation: PresentationData) = Unit
 
-  override fun getName(): String = ""
+  override fun getName(): String = this.name
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> = children
 

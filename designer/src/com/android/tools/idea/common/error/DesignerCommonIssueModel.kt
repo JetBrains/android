@@ -17,8 +17,6 @@ package com.android.tools.idea.common.error
 
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ui.tree.BaseTreeModel
-import com.intellij.util.concurrency.Invoker
-import com.intellij.util.concurrency.InvokerSupplier
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.tree.TreePath
 

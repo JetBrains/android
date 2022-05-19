@@ -115,7 +115,7 @@ class DesignerIssueNodeVisitorTest {
     }
 
     run {
-      val testNode = IssueNode(null, TestIssue(), TestNode(null))
+      val testNode = IssueNode(null, TestIssue(), TestNode(parentDescriptor = null))
       val path = TreePathUtil.pathToCustomNode(testNode) { null }
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }

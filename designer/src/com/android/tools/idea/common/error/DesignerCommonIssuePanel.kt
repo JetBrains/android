@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -100,8 +101,9 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
 
   init {
     Disposer.register(parentDisposable, this)
-
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider)
+    val problemsViewState = ProblemsViewState.getInstance(project)
+    setIssueNodeOrder(problemsViewState.sortBySeverity, problemsViewState.sortByName)
     issueProvider.registerUpdateListener {
       updateTree()
     }
@@ -179,6 +181,11 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     if (wasEmpty) {
       TreeUtil.promiseExpandAll(tree)
     }
+  }
+
+  fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {
+    (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity, sortedByName))
+    treeModel.structureChanged(null)
   }
 
   private fun getSelectedNode(): DesignerCommonIssueNode? {

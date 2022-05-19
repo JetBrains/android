@@ -63,6 +63,9 @@ import java.util.Objects
 abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?)
   : PresentableNodeDescriptor<DesignerCommonIssueNode>(project, parentDescriptor), LeafState.Supplier {
 
+  protected open val comparator: Comparator<DesignerCommonIssueNode>
+    get() = (parentDescriptor?.element as? DesignerCommonIssueNode)?.comparator ?: compareBy { 0 }
+
   final override fun update(presentation: PresentationData) {
     if (myProject != null && myProject.isDisposed) {
       return
@@ -106,6 +109,14 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 class DesignerCommonIssueRoot(project: Project?, var issueProvider: DesignerCommonIssueProvider<out Any?>)
   : DesignerCommonIssueNode(project, null) {
 
+  private var _comparator: Comparator<DesignerCommonIssueNode> = compareBy { 0 }
+  override val comparator: Comparator<DesignerCommonIssueNode>
+    get() = _comparator
+
+  fun setComparator(comparator: Comparator<DesignerCommonIssueNode>) {
+    _comparator = comparator
+  }
+
   override fun getName(): String = "Current File And Qualifiers"
 
   override fun getLeafState(): LeafState = LeafState.NEVER
@@ -115,6 +126,7 @@ class DesignerCommonIssueRoot(project: Project?, var issueProvider: DesignerComm
     val otherIssues = fileIssuesMap.remove(null)
     val fileNodes = fileIssuesMap.toSortedMap(Ordering.usingToString())
       .map { (file, issues) -> IssuedFileNode(file!!, issues, this@DesignerCommonIssueRoot) }
+      .sortedWith(comparator)
       .toList()
 
     return if (otherIssues != null) fileNodes + NoFileNode(otherIssues, this) else fileNodes
@@ -157,7 +169,7 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
   }
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> {
-    return issues.map { IssueNode(file, it, this@IssuedFileNode) }
+    return issues.map { IssueNode(file, it, this@IssuedFileNode) }.sortedWith(comparator)
   }
 
   override fun hashCode() = Objects.hash(parentDescriptor?.element, file, *(issues.toTypedArray()))
@@ -201,7 +213,7 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : De
         is VisualLintRenderIssue -> VisualLintIssueNode(it, this@NoFileNode)
         else -> IssueNode(null, it, this@NoFileNode)
       }
-    }
+    }.sortedWith(comparator)
   }
 
   override fun hashCode() = Objects.hash(parentDescriptor?.element, *(issues.toTypedArray()))
@@ -220,12 +232,12 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : De
 open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommonIssueNode?)
   : DesignerCommonIssueNode(parent?.project, parent) {
 
-  private var text: String = ""
-  private var offset: Int = -1
+  private val offset: Int
+    get() = (issue.source as? NlComponentIssueSource)?.component?.tag?.textRange?.startOffset ?: -1
 
   override fun getLeafState() = LeafState.ALWAYS
 
-  override fun getName() = text
+  override fun getName(): String = createNodeDisplayText()
 
   @Suppress("UnstableApiUsage")
   override fun getVirtualFile() = file?.let { BackedVirtualFile.getOriginFileIfBacked(file) }
@@ -238,22 +250,17 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerC
   }
 
   override fun updatePresentation(presentation: PresentationData) {
-    val source = issue.source
-    val nodeDisplayText: String
-    if (source is NlComponentIssueSource) {
-      nodeDisplayText = source.displayText + ": " + issue.summary
-      offset = source.component.tag?.textRange?.startOffset ?: -1
-    }
-    else {
-      nodeDisplayText = issue.summary
-    }
-    text = nodeDisplayText
-
+    val nodeDisplayText: String = createNodeDisplayText()
     val severity = issue.severity
     val icon = if (severity.myVal >= HighlightSeverity.ERROR.myVal) StudioIcons.Common.ERROR else StudioIcons.Common.WARNING
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+  }
+
+  private fun createNodeDisplayText(): String {
+    val source = issue.source
+    return if (source is NlComponentIssueSource) source.displayText + ": " + issue.summary else issue.summary
   }
 
   override fun hashCode() = Objects.hash(parentDescriptor?.element, file, issue)
@@ -263,6 +270,13 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerC
     if (this.javaClass != other?.javaClass) return false
     val that = other as? IssueNode ?: return false
     return that.parentDescriptor?.element == parentDescriptor?.element && that.issue == issue
+  }
+
+  override fun toString(): String {
+    val builder = StringBuilder()
+    file?.canonicalPath?.let { builder.append(it).append(", ") }
+    builder.append(issue.toString())
+    return builder.toString()
   }
 }
 
