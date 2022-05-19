@@ -30,7 +30,7 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.lang.properties.PropertiesFileType
+//import com.intellij.lang.properties.PropertiesFileType
 import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
@@ -41,8 +41,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.isGradleFile
-import org.toml.lang.psi.TomlFileType
+//import org.jetbrains.plugins.gradle.config.isGradleFile
+//import org.toml.lang.psi.TomlFileType
 import java.io.File
 import java.util.EnumSet
 import com.android.ide.common.gradle.Module as ExternalModule
@@ -90,9 +90,9 @@ abstract class LintIdeSupport {
     val fileType = file.fileType
     if (
       fileType === JavaFileType.INSTANCE ||
-        fileType === KotlinFileType.INSTANCE ||
+        fileType === KotlinFileType.INSTANCE/* ||
         fileType === PropertiesFileType.INSTANCE ||
-        fileType === TomlFileType
+        fileType === TomlFileType*/
     ) {
       return true
     }
@@ -103,9 +103,9 @@ abstract class LintIdeSupport {
       return name == FN_PROJECT_PROGUARD_FILE ||
         name == FN_ANDROID_PROGUARD_FILE ||
         name == OLD_PROGUARD_FILE
-    } else if (file.isGradleFile()) {
+    } /*else if (file.isGradleFile()) {
       return true
-    }
+    }*/
     return false
   }
 

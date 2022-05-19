@@ -44,7 +44,7 @@
     <actionConfigurationCustomizer id="Startup.DeploymentTargetSelectorActionsInitializer" order="after Startup.AndroidStudioInitializer"
                                    implementation="com.android.tools.idea.run.deployment.DeploymentTargetSelectorActionsInitializer"/>
 
-    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
+<!--    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>-->
 
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.AsyncDevicesGetter"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.DevicesSelectedService"/>

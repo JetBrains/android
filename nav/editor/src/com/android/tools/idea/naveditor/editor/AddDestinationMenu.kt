@@ -31,7 +31,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
+//import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -364,7 +364,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     // returned argument to receive created files from wizard.
     val createdFiles = mutableListOf<File>()
-    NewAndroidFragmentAction.openNewFragmentWizard(facet, model.project, targetDirectory, createdFiles, false)
+    //NewAndroidFragmentAction.openNewFragmentWizard(facet, model.project, targetDirectory, createdFiles, false)
     postNewDestinationFileCreated(model, createdFiles)
   }
 

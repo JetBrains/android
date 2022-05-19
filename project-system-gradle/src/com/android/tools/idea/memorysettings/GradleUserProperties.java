@@ -83,6 +83,7 @@ public class GradleUserProperties {
 
   @Nullable
   private static GradleProperties getProperties(Project project) {
+    return null; /*
     File file = GradleProjectSystemUtil.getUserGradlePropertiesFile(project);
     try {
       if (file.exists()) {
@@ -94,6 +95,6 @@ public class GradleUserProperties {
     catch (IOException e) {
       LOG.info("Failed to read " + file, e);
       return null;
-    }
+    }*/
   }
 }

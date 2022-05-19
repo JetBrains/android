@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sampledata;
 
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+//import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -38,7 +38,7 @@ public class AddSampleDataFileAction extends AnAction {
 
   @Nullable
   private static AndroidFacet getFacetFromAction(@NotNull AnActionEvent e) {
-    DataContext dataContext = e.getDataContext();
+    /*DataContext dataContext = e.getDataContext();
 
     Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null && modules.length > 0) {
@@ -47,7 +47,7 @@ public class AddSampleDataFileAction extends AnAction {
     }
 
     Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
-    if (module != null) return AndroidFacet.getInstance(module);
+    if (module != null) return AndroidFacet.getInstance(module);*/
 
     return null;
   }

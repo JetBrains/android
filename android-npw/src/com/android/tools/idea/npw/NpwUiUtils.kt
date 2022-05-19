@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw
 
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+//import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.wizard.template.Category
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -44,9 +44,10 @@ internal fun hasComposeMinAgpVersion(project: Project?, category: Category): Boo
   if (project == null || Category.Compose != category) {
     return true
   }
-  val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
-  val agpVersion = androidPluginInfo.pluginVersion ?: return true
-  return agpVersion >= COMPOSE_MIN_AGP_VERSION
+  return true
+  //val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
+  //val agpVersion = androidPluginInfo.pluginVersion ?: return true
+  //return agpVersion >= COMPOSE_MIN_AGP_VERSION
 }
 
 /**

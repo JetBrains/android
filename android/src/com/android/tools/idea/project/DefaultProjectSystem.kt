@@ -16,7 +16,7 @@
 package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.apk.ApkFacet
+//import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
@@ -38,7 +38,7 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.run.AndroidRunConfiguration
+//import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -130,10 +130,10 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     if (forTests) {
       return NonGradleApkProvider(facet, applicationIdProvider, null)
     }
-    val apkFacet = ApkFacet.getInstance(module)
+    //val apkFacet = ApkFacet.getInstance(module)
     return when {
-      apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
-      runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
+      //apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
+      //runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
       else -> null
     }
   }

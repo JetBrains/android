@@ -34,7 +34,7 @@ import com.android.tools.idea.actions.TargetMenuAction;
 import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
-import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
+//import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -63,13 +63,13 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @NotNull
   @Override
   protected ActionGroup getEastGroup() {
-    DefaultActionGroup group = new DefaultActionGroup();
+    DefaultActionGroup group = new DefaultActionGroup();/*
     AnAction assistantAction =
       ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID);
     // FIXME: IDEA-247246: add assistant to IDEA
     if (assistantAction != null) {
       group.add(assistantAction);
-    }
+    }*/
 
     return group;
   }

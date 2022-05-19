@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
+//import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
 
 import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
@@ -57,11 +57,12 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
     // The above refresh may note that jar files are added or deleted, which then kicks off an asynchronous
     // refresh of jar-rooted filesystems. We queue a dummy refresh to run afterward, with our desired logic
     // as the finishRunnable.
+    /*
     RefreshQueue.getInstance().refresh(true, false, () -> {
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       for (Sdk sdk : androidSdks.getAllAndroidSdks()) {
         updateSdkIfNeeded(sdk, androidSdks);
       }
-    });
+    });*/
   }
 }
