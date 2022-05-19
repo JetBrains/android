@@ -755,14 +755,6 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     )
   }
 
-  fun convertV2ArtifactName(name: String): IdeArtifactName = when (name) {
-    "_main_" -> IdeArtifactName.MAIN
-    "_android_test_" -> IdeArtifactName.ANDROID_TEST
-    "_unit_test_" -> IdeArtifactName.UNIT_TEST
-    "_test_fixtures_" -> IdeArtifactName.TEST_FIXTURES
-    else -> error("Invalid android artifact name: $name")
-  }
-
   fun buildTasksOutputInformationFrom(artifact: AndroidArtifact): IdeBuildTasksAndOutputInformation = IdeBuildTasksAndOutputInformationImpl(
     assembleTaskName = artifact.assembleTaskName,
     assembleTaskOutputListingFile = artifact.assembleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate(),
@@ -773,13 +765,13 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   )
 
   fun androidArtifactFrom(
-    name: String,
+    name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
     return IdeAndroidArtifactCoreImpl(
-      name = convertV2ArtifactName(name),
+      name = name,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = artifact.classesFolders,
@@ -799,7 +791,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
-      isTestArtifact = name == "_android_test_",
+      isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
     )
   }
@@ -837,12 +829,12 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
   }
 
   fun javaArtifactFrom(
-    name: String,
+    name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     artifact: JavaArtifact
   ): IdeJavaArtifactCoreImpl {
     return IdeJavaArtifactCoreImpl(
-      name = convertV2ArtifactName(name),
+      name = name,
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = artifact.classesFolders,
@@ -854,7 +846,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
       runtimeClasspath = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = artifact.mockablePlatformJar,
-      isTestArtifact = name == "_unit_test_"
+      isTestArtifact = name == IdeArtifactName.UNIT_TEST
     )
   }
 
@@ -926,16 +918,16 @@ internal fun modelCacheV2Impl(internedModels: InternedModels): ModelCache {
     return IdeVariantCoreImpl(
       name = variant.name.deduplicate(),
       displayName = variant.displayName.deduplicate(),
-      mainArtifact = androidArtifactFrom("_main_", basicVariant.mainArtifact, variant.mainArtifact),
+      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, variant.mainArtifact),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
-        javaArtifactFrom("_unit_test_", basicVariant.unitTestArtifact!!, it)
+        javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it)
       },
       androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom("_android_test_", basicVariant.androidTestArtifact!!, it)
+        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, it)
       },
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom("_test_fixtures_", basicVariant.testFixturesArtifact!!, it)
+        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, it)
       },
       buildType = basicVariant.buildType?.deduplicate() ?: "",
       productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
