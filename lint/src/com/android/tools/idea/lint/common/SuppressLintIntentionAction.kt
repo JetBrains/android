@@ -30,9 +30,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.gradle.config.GradleFileType
-import org.jetbrains.plugins.groovy.GroovyFileType
-import org.toml.lang.psi.TomlFileType
+//import org.jetbrains.plugins.gradle.config.GradleFileType
+//import org.jetbrains.plugins.groovy.GroovyFileType
+//import org.toml.lang.psi.TomlFileType
 import javax.swing.Icon
 
 /** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
@@ -59,11 +59,11 @@ class SuppressLintIntentionAction(
     val type = file.fileType
     return type === JavaFileType.INSTANCE ||
       type === XmlFileType.INSTANCE ||
-      type === GroovyFileType.GROOVY_FILE_TYPE ||
-      type === GradleFileType ||
+      /*type === GroovyFileType.GROOVY_FILE_TYPE ||
+      type === GradleFileType ||*/
       type === KotlinFileType.INSTANCE ||
-      file is PsiBinaryFile ||
-      type === TomlFileType
+      file is PsiBinaryFile /*||
+      type === TomlFileType*/
   }
 
   @Throws(IncorrectOperationException::class)

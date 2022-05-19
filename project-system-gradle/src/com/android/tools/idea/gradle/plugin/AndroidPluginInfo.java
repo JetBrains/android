@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+//import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.AgpVersion;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+//import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+//import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+//import com.android.tools.idea.gradle.dsl.api.PluginModel;
+//import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+//import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.util.BuildFileProcessor;
+//import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ReadAction;
@@ -89,6 +89,7 @@ public class AndroidPluginInfo {
 
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
+    /*
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       GradleFacet gradleModel = GradleFacet.getInstance(module);
       if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
@@ -100,6 +101,7 @@ public class AndroidPluginInfo {
         }
       }
     }
+    */
     return null;
   }
 
@@ -125,7 +127,7 @@ public class AndroidPluginInfo {
   @NotNull
   private static BuildFileSearchResult searchInBuildFiles(@NotNull Project project, boolean searchForAppModule) {
     BuildFileSearchResult result = new BuildFileSearchResult();
-
+    /*
     final boolean[] keepSearchingForAppModule = {searchForAppModule};
     final boolean[] keepSearchingForPluginVersion = {true};
 
@@ -183,7 +185,7 @@ public class AndroidPluginInfo {
 
 
     BuildFileProcessor.processRecursively(project, settingsModelProcessor, buildModelProcessor);
-
+    */
     return result;
   }
 

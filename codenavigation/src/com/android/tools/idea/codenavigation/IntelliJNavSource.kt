@@ -27,7 +27,7 @@ class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSour
   // Order matters. First match will be used. If a nav source as more requirements to match a code
   // location, it should come earlier in the list.
   private val sources = listOf(FileLineNavigable(project),
-                               ApkMappingNavigable(project),
+                              // ApkMappingNavigable(project),
                                NativeNavSource(project, symbolizer),
                                PsiOuterClassAndLine(project),
                                PsiMethod(project),

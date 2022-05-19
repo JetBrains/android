@@ -16,7 +16,7 @@
 package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.apk.ApkFacet
+//import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
@@ -97,10 +97,11 @@ class ProjectSymbolSource(project: Project): SymbolSource {
 /** Gets symbol directories from an APK's debug directory. */
 class ApkSymbolSource(module: Module): ModuleSymbolSource(module) {
   override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
-    val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
-
-    val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
-    return folders.map { File(FileUtils.toSystemDependentPath(it)) }
+    return emptySet()
+    //val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
+    //
+    //val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
+    //return folders.map { File(FileUtils.toSystemDependentPath(it)) }
   }
 }
 

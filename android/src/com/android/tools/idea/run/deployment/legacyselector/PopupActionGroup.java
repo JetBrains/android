@@ -54,7 +54,7 @@ final class PopupActionGroup extends DefaultActionGroup {
       addSeparator();
     }
 
-    add(manager.getAction(SelectMultipleDevicesAction.ID));
+    //add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     add(manager.getAction("Android.DeviceManager"));
 

@@ -7,7 +7,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.startup.Actions;
+//import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
@@ -37,7 +37,7 @@ public final class AndroidPlugin {
       } else {
         overrideEssentialHighlightingAction(actionManager);
       }
-      setUpActionsUnderFlag(actionManager);
+      //setUpActionsUnderFlag(actionManager);
     }
   }
 
@@ -75,8 +75,8 @@ public final class AndroidPlugin {
         ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"), actionManager);
 
         // Move "Build" actions to new "Build Bundle(s) / APK(s)" group
-        Actions.moveAction(actionManager, "Android.BuildApk", "BuildMenu", groupId, new Constraints(Anchor.FIRST, null));
-        Actions.moveAction(actionManager, "Android.BuildBundle", "BuildMenu", groupId, new Constraints(Anchor.AFTER, null));
+        //Actions.moveAction(actionManager, "Android.BuildApk", "BuildMenu", groupId, new Constraints(Anchor.FIRST, null));
+        //Actions.moveAction(actionManager, "Android.BuildBundle", "BuildMenu", groupId, new Constraints(Anchor.AFTER, null));
       }
     }
 
@@ -93,7 +93,7 @@ public final class AndroidPlugin {
     // when using Essentials mode, don't show essential-highlighting notifications
     PropertiesComponent.getInstance().setValue("ignore.essential-highlighting.mode", true);
     if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
-      Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
+      //Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
     } else {
       AnAction group = actionManager.getAction("PowerSaveGroup");
       ((DefaultActionGroup)group).add(studioAction, Constraints.LAST, actionManager);

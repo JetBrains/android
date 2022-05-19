@@ -20,7 +20,7 @@ import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectView;
+//import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
@@ -103,9 +103,9 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
       // If you're in the Android View, we want to ask you not just the filename but also let you
       // create other resource folder configurations
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane.getId().equals(AndroidProjectView.ID)) {
+/*      if (pane.getId().equals(AndroidProjectView.ID)) {
         return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
-      }
+      }*/
 
       final PsiDirectory directory = view.getOrChooseDirectory();
       if (directory != null) {

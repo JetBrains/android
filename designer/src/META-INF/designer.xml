@@ -14,12 +14,12 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+<!--  <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>-->
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
-    <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
+<!--    <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />-->
   </extensions>
 
   <!-- Extension points -->
@@ -199,26 +199,26 @@
     <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
     </action>
-    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true">
-      <synonym key="action.StoreDefaultLayout.synonym" />
-    </action>
-    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
+<!--    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true">-->
+<!--      <synonym key="action.StoreDefaultLayout.synonym" />-->
+<!--    </action>-->
+<!--    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>-->
     <action id="PasteWithNewIds" class="com.android.tools.idea.common.actions.PasteWithNewIds"/>
 
-    <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
+<!--    <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
         <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>
     </action>
     <action internal="true" id="Android.ShowSceneViewToolbarAction" class="com.android.tools.idea.common.surface.ShowSceneViewToolbarAction">
       <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.GenerateLayoutTestSkeletonAction"/>
-    </action>
+    </action>-->
   </actions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>
-    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>
-    <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />
-  </extensions>
+<!--  <extensions defaultExtensionNs="com.android.tools.idea.assistant">-->
+<!--    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>-->
+<!--    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>-->
+<!--    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>-->
+<!--    <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />-->
+<!--  </extensions>-->
 
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup displayType="BALLOON" id="Motion Editor" />

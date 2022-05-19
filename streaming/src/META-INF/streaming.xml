@@ -220,6 +220,5 @@
     </group>
 
     <!-- This action group and the corresponding toolbar are intended for external contributions -->
-    <group id="StreamingToolbarSecondary"/>
   </actions>
 </idea-plugin>

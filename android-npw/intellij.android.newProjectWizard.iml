@@ -4,6 +4,18 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/benchmark" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/baselineprofiles" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/dynamicapp" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/ideahost" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/java" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/module" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/template" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/platform" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/validator" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/startup" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/actions" />
+      <excludeFolder url="file://$MODULE_DIR$/src/com/android/tools/idea/npw/importing" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
