@@ -313,8 +313,9 @@ class RuleDetailsViewTest {
     }
 
     assertThat(headerTable.rowCount).isEqualTo(1)
-    assertThat(headerTable.getValueAt(0, 0)).isEqualTo(newAddedNameText)
-    assertThat(headerTable.getValueAt(0, 1)).isEqualTo(newAddedValueText)
+    assertThat(headerTable.getValueAt(0, 0)).isEqualTo("Add")
+    assertThat(headerTable.getValueAt(0, 1)).isEqualTo(newAddedNameText to null)
+    assertThat(headerTable.getValueAt(0, 2)).isEqualTo(newAddedValueText to null)
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(1)
@@ -364,8 +365,9 @@ class RuleDetailsViewTest {
     }
 
     assertThat(headerTable.rowCount).isEqualTo(1)
-    assertThat(headerTable.getValueAt(0, 0)).isEqualTo(findNameText)
-    assertThat(headerTable.getValueAt(0, 1)).isEqualTo(findValueText)
+    assertThat(headerTable.getValueAt(0, 0)).isEqualTo("Edit")
+    assertThat(headerTable.getValueAt(0, 1)).isEqualTo(findNameText to replaceNameText)
+    assertThat(headerTable.getValueAt(0, 2)).isEqualTo(findValueText to replaceValueText)
     client.verifyLatestCommand {
       val transformations = it.interceptRuleAdded.rule.transformationList
       assertThat(transformations.size).isEqualTo(1)

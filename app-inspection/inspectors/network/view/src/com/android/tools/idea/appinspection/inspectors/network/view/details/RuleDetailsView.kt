@@ -126,7 +126,7 @@ class RuleDetailsView : JPanel() {
       }
     }
     return JPanel(VerticalLayout(6)).apply {
-      add(createCategoryPanel("Response", JLabel("Apply rule for status") to findCodeTextField,
+      add(createCategoryPanel("Response", JLabel("Apply rule for status:") to findCodeTextField,
       isActiveCheckBox to newCodeTextField))
     }
   }
