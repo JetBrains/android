@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotEquals;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
+import com.android.testutils.ignore.OnWindows;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
@@ -50,6 +51,11 @@ import org.jetbrains.annotations.NotNull;
 public class ResourceNotificationManagerTest extends AndroidTestCase {
 
   public void testEditNotifications() throws Exception {
+    // TODO: re-enable when b/233398967 is fixed.
+    if (new OnWindows().present()) {
+      return;
+    }
+
     @Language("XML") String xml;
 
     // Setup sample project: a strings file, and a couple of layout file
