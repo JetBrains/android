@@ -121,7 +121,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
 
     /* The following methods aren't used directly, but might be useful for debugging leaks */
     // trashes marks
-    fun isReachableFrom(n: Node, followWeakSoftRefs: Boolean = false): Boolean {
+    private fun isReachableFrom(n: Node, followWeakSoftRefs: Boolean = false): Boolean {
       var found = false
       bfs(roots = listOf(n), followWeakSoftRefs = followWeakSoftRefs) { if (this@Node === this@bfs) found = true; return@bfs }
       return found
@@ -147,12 +147,12 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     }
 
     // trashes marks
-    fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
+    private fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
 
     fun retainedSize() = dominatedNodes().fold(0L) { acc, node -> acc + node.approximateSize }
   }
 
-  fun forEachNode(action: Node.() -> Unit) = nodes.forEach { it.action() }
+  private fun forEachNode(action: Node.() -> Unit) = nodes.forEach { it.action() }
 
   fun getOrCreateNode(obj: Any): Node = objToNode[obj] ?: Node(obj)
 
@@ -167,7 +167,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
   }
 
   // note: path may or may not be a path in this graph
-  fun getNodeForPath(path: Path, expand: Boolean = false): Node? {
+  private fun getNodeForPath(path: Path, expand: Boolean = false): Node? {
     if (path.isEmpty()) return null // if it's a root, meh
     val correspondingRoot = objToNode[path.root().obj]
     if (correspondingRoot == null) return null
@@ -270,7 +270,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     }.filterNotNull()
   }
 
-  fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
+  private fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
     var found = false
     bfs(roots = roots, setIncomingEdges = true) { if (this@bfs in this@anyReachableFrom) found = true; return@bfs }
     return found
@@ -327,8 +327,8 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
     }
 
   fun previous(): Edge? = start.incomingEdge
-  fun isWeak() = start.obj is WeakReference<*>
-  fun isSoft() = start.obj is SoftReference<*>
+  private fun isWeak() = start.obj is WeakReference<*>
+  private fun isSoft() = start.obj is SoftReference<*>
   fun isStrong() = !(isWeak() || isSoft())
 
   fun delete() {
@@ -338,6 +338,6 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
 
 private fun time (description: String, action: () -> Unit) = println("$description took ${measureTimeMillis(action)}ms")
 
-typealias Path = List<Edge>
-fun Path.root() = first().start
-fun Path.tip() = last().end
+private typealias Path = List<Edge>
+private fun Path.root() = first().start
+private fun Path.tip() = last().end
