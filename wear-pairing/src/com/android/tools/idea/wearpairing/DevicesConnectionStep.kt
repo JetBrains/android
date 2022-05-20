@@ -738,7 +738,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
           val wearDeviceId = model.selectedWearDevice.valueOrNull?.deviceID ?: ""
           val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-          avdManager.findAvd(wearDeviceId)?.apply {
+          avdManager.getAvds(false).firstOrNull { it.id == wearDeviceId }?.apply {
             WearPairingManager.removeAllPairedDevices(wearDeviceId, restartWearGmsCore = false)
             avdManager.stopAvd(this)
             waitForCondition(10_000) { model.selectedWearDevice.valueOrNull?.isOnline() != true }
