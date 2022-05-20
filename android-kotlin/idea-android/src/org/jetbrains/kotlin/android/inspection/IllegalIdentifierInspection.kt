@@ -29,7 +29,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.io.OSAgnosticPathUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
@@ -126,7 +126,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
         var path = virtualFile.path
 
         // Taken from LocalFileSystemBase.convertToIOFile
-        if (StringUtil.endsWithChar(path, ':') && path.length == 2 && SystemInfo.isWindows) {
+        if (path.length == 2 && SystemInfo.isWindows && OSAgnosticPathUtil.startsWithWindowsDrive(path)) {
             path += "/"
         }
 
