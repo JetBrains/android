@@ -33,7 +33,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 
 /**
  * Scope enlarger for safe args, necessary to allow the IntelliJ framework to add safe args light
@@ -85,7 +85,7 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
  * Kotlin needs its own scope enlarger - it can't simply use the [SafeArgsScopeEnlarger] above.
  * Therefore, we provide one here that simply delegates to it.
  */
-class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
+class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
   private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {

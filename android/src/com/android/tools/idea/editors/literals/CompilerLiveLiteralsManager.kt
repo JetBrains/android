@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.base.util.module
 import org.jetbrains.org.objectweb.asm.ClassReader
 
 /**

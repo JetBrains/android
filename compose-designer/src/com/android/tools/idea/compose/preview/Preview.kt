@@ -98,12 +98,12 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.base.util.module
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
 import java.util.UUID

@@ -32,7 +32,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 
 private fun AndroidFacet.isRelevantForScopeEnlarging(): Boolean {
   return DataBindingUtil.isDataBindingEnabled(this) || isViewBindingEnabled()
@@ -99,7 +99,7 @@ private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
  * Kotlin needs its own scope enlarger - it can't simply use the [BindingScopeEnlarger] above.
  * Therefore, we provide one here that simply delegates to it.
  */
-class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
+class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
   private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(BindingScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {

@@ -63,7 +63,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.kotlin.analyzer.ModuleInfo;
 import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
-import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
+import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger;
 
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
   private static final Key<Library> LIBRARY = Key.create(AndroidLightClassBase.class.getName() + ".LIBRARY");

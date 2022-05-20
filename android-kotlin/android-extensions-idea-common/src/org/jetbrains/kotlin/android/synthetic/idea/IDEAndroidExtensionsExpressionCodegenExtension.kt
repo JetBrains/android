@@ -18,16 +18,16 @@ package org.jetbrains.kotlin.android.synthetic.idea
 
 import kotlinx.android.extensions.CacheImplementation
 import org.jetbrains.kotlin.android.synthetic.codegen.AbstractAndroidExtensionsExpressionCodegenExtension
-import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.base.projectStructure.moduleInfoOrNull
 import org.jetbrains.kotlin.psi.KtElement
 
 class IDEAndroidExtensionsExpressionCodegenExtension : AbstractAndroidExtensionsExpressionCodegenExtension() {
     override fun isExperimental(element: KtElement?) =
-            element?.getModuleInfo()?.androidExtensionsIsExperimental ?: false
+            element?.moduleInfoOrNull?.androidExtensionsIsExperimental ?: false
 
     override fun isEnabled(element: KtElement?) =
-            element?.getModuleInfo()?.androidExtensionsIsEnabled ?: false
+            element?.moduleInfoOrNull?.androidExtensionsIsEnabled ?: false
 
     override fun getGlobalCacheImpl(element: KtElement?) =
-            element?.getModuleInfo()?.androidExtensionsGlobalCacheImpl ?: CacheImplementation.DEFAULT
+            element?.moduleInfoOrNull?.androidExtensionsGlobalCacheImpl ?: CacheImplementation.DEFAULT
 }
