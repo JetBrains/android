@@ -24,8 +24,8 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
+import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
@@ -350,6 +350,8 @@ class GradleConnectedAndroidTestInvoker(
       // Don't switch focus to build tool window even after build failure because
       // if there is a test failure, AGP handles it as a build failure and it hides
       // the test result panel if this option is not set.
+      // TODO(b/233356642): Replace with direct GradleBuildInvoker usage.
+      @Suppress("DEPRECATION")
       putUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE, true)
     }
   }

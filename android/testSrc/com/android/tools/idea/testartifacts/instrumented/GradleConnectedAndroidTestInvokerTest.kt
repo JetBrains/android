@@ -24,7 +24,7 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
+import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
@@ -50,13 +50,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyList
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
 import org.mockito.Mockito.nullable
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnit
 import java.util.concurrent.ExecutorService
 
@@ -192,9 +192,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyString(),
       argThat {
         it?.run {
+          @Suppress("DEPRECATION")
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-          it.getUserData(AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+          it.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
         } ?: false
       },
       nullable(String::class.java),
@@ -217,9 +218,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyString(),
       argThat {
         it?.run {
+          @Suppress("DEPRECATION")
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.tests_regex=regex") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-          it.getUserData(AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+          it.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
         } ?: false
       },
       nullable(String::class.java),
