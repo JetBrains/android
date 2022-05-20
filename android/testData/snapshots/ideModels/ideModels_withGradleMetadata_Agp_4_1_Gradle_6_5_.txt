@@ -1,0 +1,554 @@
+MODULE                        : withGradleMetadata
+    externalProject               : withGradleMetadata (DefaultExternalProject)
+        name                          : withGradleMetadata
+        qName                         : withGradleMetadata
+        version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : withGradleMetadata
+                version                       : unspecified
+                sourceCompatibility           : 11
+                targetCompatibility           : 11
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build [-]
+                buildFile                     : <ROOT>/app/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    _internal_aapt2_binary        : <empty>
+                    androidApis                   : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestApi                : <empty>
+                    androidTestApk                : <empty>
+                    androidTestCompile            : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugApi           : <empty>
+                    androidTestDebugApk           : <empty>
+                    androidTestDebugCompile       : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugProvided      : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestProvided           : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseApi         : <empty>
+                    androidTestReleaseApk         : <empty>
+                    androidTestReleaseCompile     : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseProvided    : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    apk                           : <empty>
+                    archives                      : <empty>
+                    compile                       : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    debugApk                      : <empty>
+                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+                    debugCompile                  : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugProvided                 : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintClassPath                 : <empty>
+                    lintPublish                   : <empty>
+                    provided                      : <empty>
+                    - releaseAabPublication       : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    releaseApk                    : <empty>
+                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+                    releaseCompile                : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseProvided               : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testApi                       : <empty>
+                    testApk                       : <empty>
+                    testCompile                   : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugApi                  : <empty>
+                    testDebugApk                  : <empty>
+                    testDebugCompile              : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugProvided             : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testImplementation            : <empty>
+                    testProvided                  : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseApi                : <empty>
+                    testReleaseApk                : <empty>
+                    testReleaseCompile            : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseProvided           : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
+MODULE                        : withGradleMetadata.app
+    GradleModuleModel
+        agpVersion                    : 4.1.0
+        gradlePath                    : :app
+        gradleVersion                 : 6.5
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
+        - gradlePlugins               : com.android.build.gradle.AppPlugin
+    ModelVersion                  : 4.1.0
+    ProjectType                   : PROJECT_TYPE_APP
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/app/build [-]
+    buildToolsVersion             : 29.0.2
+    IsBaseSplit                   : true
+    GroupId                       : withGradleMetadata
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.7
+        TargetCompatibility           : 1.7
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    VariantNames                  : debug
+    VariantNames                  : release
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/app/src/main/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
+            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
+            ResDirectories                : <ROOT>/app/src/main/res [-]
+            AssetsDirectories             : <ROOT>/app/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTest/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/test/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
+                    ResDirectories                : <ROOT>/app/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
+            ResDirectories                : <ROOT>/app/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/release/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
+            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
+            ResDirectories                : <ROOT>/app/src/release/res [-]
+            AssetsDirectories             : <ROOT>/app/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
+            DeprecatedPreMergedApplicationId        : come.example.with.gradle.metadata
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.5.2/kotlinx-coroutines-android-1.5.2.jar
+                                artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2.jar
+                                artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+                                artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                artifactAddress               : org.jetbrains:annotations:13.0@jar
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :app
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                ProvidedDependencies
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2
+                    - provided                    : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
+                    - provided                    : org.jetbrains:annotations:13.0
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.jetbrains:annotations:13.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl) (*seen*)
+                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
+                MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+    externalProject               : :app (DefaultExternalProject) (*seen*)
+MODULE                        : withGradleMetadata.app.androidTest
+MODULE                        : withGradleMetadata.app.main
+MODULE                        : withGradleMetadata.app.unitTest

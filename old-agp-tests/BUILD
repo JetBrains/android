@@ -1,7 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5", "GRADLE_LATEST", "local_old_agp_test")
+load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5", "GRADLE_6_7_1", "GRADLE_7_0_2", "GRADLE_7_2", "GRADLE_7_3_3", "GRADLE_LATEST", "local_old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -38,6 +38,10 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-5.3.1",
         "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:gradle-distrib-6.5",
+        "//tools/base/build-system:gradle-distrib-6.7.1",
+        "//tools/base/build-system:gradle-distrib-7.0.2",
+        "//tools/base/build-system:gradle-distrib-7.2",
+        "//tools/base/build-system:gradle-distrib-7.3.3",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/build-system/previous-versions:3.3.2",
         "//tools/base/build-system/previous-versions:3.5.0",
@@ -197,7 +201,7 @@ local_old_agp_test(
 
 local_old_agp_test(
     agp_version = AGP_4_1,
-    gradle_version = GRADLE_LATEST,
+    gradle_version = GRADLE_6_5,
     shard_count = 3,
     tags = [
         "block-network",
@@ -208,7 +212,7 @@ local_old_agp_test(
 
 local_old_agp_test(
     agp_version = AGP_4_2,
-    gradle_version = GRADLE_LATEST,
+    gradle_version = GRADLE_6_7_1,
     tags = [
         "block-network",
         "no_test_mac",
@@ -218,7 +222,7 @@ local_old_agp_test(
 
 local_old_agp_test(
     agp_version = AGP_7_0,
-    gradle_version = GRADLE_LATEST,
+    gradle_version = GRADLE_7_0_2,
     tags = [
         "block-network",
         "no_test_mac",
@@ -228,7 +232,7 @@ local_old_agp_test(
 
 local_old_agp_test(
     agp_version = AGP_7_1,
-    gradle_version = GRADLE_LATEST,
+    gradle_version = GRADLE_7_2,
     tags = [
         "block-network",
         "no_test_mac",
@@ -238,7 +242,7 @@ local_old_agp_test(
 
 local_old_agp_test(
     agp_version = AGP_7_2,
-    gradle_version = GRADLE_LATEST,
+    gradle_version = GRADLE_7_3_3,
     shard_count = 3,
     tags = [
         "block-network",

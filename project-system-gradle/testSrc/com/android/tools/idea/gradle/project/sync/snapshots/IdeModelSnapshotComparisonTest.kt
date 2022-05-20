@@ -59,7 +59,8 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
   data class TestProject(
     val template: String,
     val pathToOpen: String = "",
-    val incompatibleWithAgps: Set<AgpVersion> = emptySet()
+    val incompatibleWithAgps: Set<AgpVersion> = emptySet(),
+    val incompatibleWithGradle: Set<GradleVersion> = emptySet()
   ) {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
@@ -79,9 +80,28 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     override fun toString(): String = suffix
   }
 
+  enum class GradleVersion(
+    val suffix: String,
+    val legacyGradleVersion: String? = null
+  ) {
+    CURRENT("LATEST"),
+    LEGACY_6_5("Gradle_6.5", "6.5"),
+    LEGACY_6_7_1("Gradle_6.7.1", "6.7.1"),
+    LEGACY_7_0_2("Gradle_7.0.2", "7.0.2"),
+    LEGACY_7_2("Gradle_7.2", "7.2"),
+    LEGACY_7_3_3("Gradle_7.3.3", "7.3.3"),
+    ;
+
+    override fun toString(): String = suffix
+  }
+
   @JvmField
   @Parameterized.Parameter(0)
   var agpVersion: AgpVersion? = null
+
+  @JvmField
+  @Parameterized.Parameter(2)
+  var gradleVersion: GradleVersion? = null
 
   @JvmField
   @Parameterized.Parameter(1)
@@ -93,7 +113,8 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
+      // Composite Build project cannot Sync using legacy Gradle due to duplicate root issue: https://github.com/gradle/gradle/issues/18874
+      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, incompatibleWithGradle = setOf(GradleVersion.LEGACY_6_7_1, GradleVersion.LEGACY_6_5)),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
@@ -109,19 +130,23 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.BASIC)
       )
 
-    fun testProjectsFor(agpVersions: Collection<AgpVersion>) =
-      agpVersions
-        .flatMap { agpVersion ->
+    fun testProjectsFor(agpAndGradleVersions: Map<AgpVersion, GradleVersion>) =
+      agpAndGradleVersions
+        .flatMap { agpAndGradleVersion ->
           projectsList
-            .filter { agpVersion !in it.incompatibleWithAgps }
-            .map { listOf(agpVersion, it).toTypedArray() }
+            .filter { agpAndGradleVersion.key !in it.incompatibleWithAgps }
+            .filter { agpAndGradleVersion.value !in it.incompatibleWithGradle }
+            .map { listOf(agpAndGradleVersion.key, it, agpAndGradleVersion.value).toTypedArray() }
         }
 
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{1}\${0}")
-    fun testProjects(): Collection<*> = testProjectsFor(AgpVersion.values().filter { it == AgpVersion.CURRENT })
+    fun testProjects(): Collection<*> = testProjectsFor(
+      AgpVersion.values().filter { it == AgpVersion.CURRENT }.zip(
+      GradleVersion.values().filter { it == GradleVersion.CURRENT }).toMap()
+    )
   }
 
   @get:Rule
@@ -144,10 +169,11 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     try {
       val projectName = testProjectName ?: error("unit test parameter not initialized")
       val agpVersion = agpVersion ?: error("unit test parameter not initialized")
+      val gradleVersion = gradleVersion ?: error("unit test parameter not initialized")
       val root = prepareGradleProject(
         projectName.template,
         "project",
-        null,
+        gradleVersion.legacyGradleVersion,
         agpVersion.legacyAgpVersion,
         ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
       )

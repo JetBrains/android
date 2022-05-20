@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-@OldAgpTest(agpVersions = ["4.1", "4.2", "7.0", "7.1", "7.2"], gradleVersions = ["LATEST"])
+@OldAgpTest(agpVersions = ["4.1", "4.2", "7.0", "7.1", "7.2"], gradleVersions = ["6.5", "6.7.1", "7.0.2", "7.2", "7.3.3"])
 @RunsInEdt
 @RunWith(Parameterized::class)
 class IdeModelSnapshotComparisonOldAgpTest : IdeModelSnapshotComparisonTest() {
@@ -30,8 +30,10 @@ class IdeModelSnapshotComparisonOldAgpTest : IdeModelSnapshotComparisonTest() {
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
-    @Parameterized.Parameters(name = "{1}\${0}")
+    @Parameterized.Parameters(name = "{1}\${0}\${2}")
     fun testProjects(): Collection<*> = testProjectsFor(
-      AgpVersion.values().filter { (OldAgpSuite.AGP_VERSION == null || it.legacyAgpVersion == OldAgpSuite.AGP_VERSION) && it != AgpVersion.CURRENT })
+      AgpVersion.values().filter { (OldAgpSuite.AGP_VERSION == null || it.legacyAgpVersion == OldAgpSuite.AGP_VERSION) && it != AgpVersion.CURRENT }.zip(
+      GradleVersion.values().filter { (OldAgpSuite.GRADLE_VERSION == null || it.legacyGradleVersion == OldAgpSuite.GRADLE_VERSION) && it != GradleVersion.CURRENT }).toMap()
+    )
   }
 }
