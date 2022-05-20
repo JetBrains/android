@@ -75,13 +75,9 @@ public class JavaToKotlinConversionTest {
     KotlinIsNotConfiguredDialogFixture.find(ideFrameFixture.robot())
       .clickOkAndWaitDialogDisappear();
 
-    guiTest.ideFrame().actAndWaitForGradleProjectSyncToFinish(
-      it ->
-        ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
-          .clickOkAndWaitDialogDisappear()
-
-      // We need to wait for sync because otherwise Studio will not understand that we have added Kotlin support
-    );
+    //Click 'OK' on 'Configure Kotlin with Android with Gradle' dialog box
+    ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+      .clickOkAndWaitDialogDisappear();
 
     // Doing it twice because after the first time we have only added Kotlin support to the project
     openJavaAndPressConvertToKotlin(ideFrameFixture);
