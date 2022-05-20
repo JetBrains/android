@@ -77,6 +77,8 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   private static final Logger LOG = Logger.getInstance(SendFeedbackAction.class);
   private static final Pattern CMAKE_VERSION_PATTERN = Pattern.compile("cmake version\\s+(.*)");
 
+  private static final String UNKNOWN_VERSION = "Unknown";
+
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     submit(e.getProject());
@@ -92,10 +94,36 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
+        ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
+        String feedbackUrl = applicationInfo.getFeedbackUrl();
+        String version = getVersion(applicationInfo);
+        feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
+
         String description = getDescription(project);
-        com.intellij.ide.actions.SendFeedbackAction.submit(project, description + extraDescriptionDetails);
+        com.intellij.ide.actions.SendFeedbackAction.submit(project, feedbackUrl, description + extraDescriptionDetails);
       }
     }.setCancelText("Cancel").queue();
+  }
+
+  private static String getVersion(ApplicationInfoEx applicationInfo) {
+    String major = applicationInfo.getMajorVersion();
+    if (major == null) {
+      return UNKNOWN_VERSION;
+    }
+    String minor = applicationInfo.getMinorVersion();
+    if (minor == null) {
+      return UNKNOWN_VERSION;
+    }
+    String micro = applicationInfo.getMicroVersion();
+    if (micro == null) {
+      return UNKNOWN_VERSION;
+    }
+    String patch = applicationInfo.getPatchVersion();
+    if (patch == null) {
+      return UNKNOWN_VERSION;
+    }
+
+    return String.join(".", major, minor, micro, patch);
   }
 
   @Slow
