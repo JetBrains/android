@@ -55,7 +55,7 @@ import java.util.EnumSet
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
 private val DEV_JAR = AppInspectorJar("compose-ui-inspection.jar",
-                                      developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
+                                      developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_FOLDER.get())
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
