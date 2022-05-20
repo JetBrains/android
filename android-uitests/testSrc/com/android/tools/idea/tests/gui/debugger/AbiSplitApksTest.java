@@ -51,10 +51,10 @@ public class AbiSplitApksTest extends DebuggerTestBase {
   @Before
   public void setupFakeAdbServer() throws Exception {
 
-    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+    ActivityManagerCommandHandler.CommandHandlerAdapter startCmdHandler = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
       @NotNull
       @Override
-      public String startProcess(@NotNull DeviceState deviceState) {
+      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
         deviceState.startClient(1234, 1235, "com.example.basiccmakeapp", false);
         return "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
                + " cmp=com.example.basiccmakeapp/com.example.basiccmakeapp.MainActivity }";

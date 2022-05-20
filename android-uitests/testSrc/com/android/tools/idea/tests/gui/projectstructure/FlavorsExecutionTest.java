@@ -22,7 +22,6 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -61,10 +60,10 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+    ActivityManagerCommandHandler.CommandHandlerAdapter startCmdHandler = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
       @NotNull
       @Override
-      public String startProcess(@NotNull DeviceState deviceState) {
+      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
         deviceState.startClient(1234, 1235, PROCESS_NAME, false);
         return "";
       }

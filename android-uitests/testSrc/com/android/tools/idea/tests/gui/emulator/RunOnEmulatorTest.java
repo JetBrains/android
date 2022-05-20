@@ -58,10 +58,10 @@ public class RunOnEmulatorTest {
 
   @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
-    ActivityManagerCommandHandler.ProcessStarter procStarter = new ActivityManagerCommandHandler.ProcessStarter() {
+    ActivityManagerCommandHandler.CommandHandlerAdapter procStarter = new ActivityManagerCommandHandler.CommandHandlerAdapter() {
       @NotNull
       @Override
-      public String startProcess(@NotNull DeviceState deviceState) {
+      public String start(@NotNull DeviceState deviceState, @NotNull String args) {
         deviceState.startClient(1234, 1235, "google.simpleapplication", false);
 
         return "Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.LAUNCHER] }";
