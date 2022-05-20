@@ -34,6 +34,8 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceChangeListenerTest {
+  private static final @NotNull Key PIXEL_6_API_31_KEY = TestVirtualDevices.newKey("Pixel_6_API_31");
+
   private final @NotNull VirtualDeviceTableModel myModel = Mockito.mock(VirtualDeviceTableModel.class);
   private final @NotNull IDevice myDevice = Mockito.mock(IDevice.class);
 
@@ -119,15 +121,14 @@ public final class VirtualDeviceChangeListenerTest {
 
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
     Mockito.when(myDevice.getState()).thenReturn(DeviceState.OFFLINE);
-    Mockito.when(myDevice.getAvdData())
-      .thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_31", "/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd")));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_31", PIXEL_6_API_31_KEY.toString())));
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
 
     // Assert
     CountDownLatchAssert.await(latch);
-    Mockito.verify(myModel).setOnline(new VirtualDeviceName("/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd"), false);
+    Mockito.verify(myModel).setOnline(PIXEL_6_API_31_KEY, false);
   }
 
   @Test
@@ -138,15 +139,14 @@ public final class VirtualDeviceChangeListenerTest {
 
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
     Mockito.when(myDevice.getState()).thenReturn(DeviceState.ONLINE);
-    Mockito.when(myDevice.getAvdData())
-      .thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_31", "/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd")));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_31", PIXEL_6_API_31_KEY.toString())));
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
 
     // Assert
     CountDownLatchAssert.await(latch);
-    Mockito.verify(myModel).setOnline(new VirtualDeviceName("/usr/local/google/home/user/.android/avd/Pixel_6_API_31.avd"), true);
+    Mockito.verify(myModel).setOnline(PIXEL_6_API_31_KEY, true);
   }
 
   private static @NotNull FutureCallback<@NotNull Key> newSetOnline(@NotNull VirtualDeviceTableModel model,

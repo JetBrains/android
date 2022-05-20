@@ -132,7 +132,7 @@ public final class LaunchOrStopButtonTableCellEditorTest {
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.ERROR_PROPERTIES);
 
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0")
       .setCpuArchitecture("arm")

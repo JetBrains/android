@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
+import com.android.tools.idea.devicemanager.virtualtab.TestVirtualDevices;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
@@ -35,7 +35,9 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PairedDevicesPanelTest {
-  private final PairingDevice myPixel4Api31 = new PairingDevice("Pixel_4_API_31",
+  private static final @NotNull Key PIXEL_4_API_31_KEY = TestVirtualDevices.newKey("Pixel_4_API_31");
+
+  private final PairingDevice myPixel4Api31 = new PairingDevice(PIXEL_4_API_31_KEY.toString(),
                                                                 "Pixel 4 API 31",
                                                                 31,
                                                                 true,
@@ -43,7 +45,9 @@ public final class PairedDevicesPanelTest {
                                                                 true,
                                                                 ConnectionState.DISCONNECTED);
 
-  private final PairingDevice myWearOsSmallRoundApi28 = new PairingDevice("Wear_OS_Small_Round_API_28",
+  private static final @NotNull Key WEAR_OS_SMALL_ROUND_API_28_KEY = TestVirtualDevices.newKey("Wear_OS_Small_Round_API_28");
+
+  private final PairingDevice myWearOsSmallRoundApi28 = new PairingDevice(WEAR_OS_SMALL_ROUND_API_28_KEY.toString(),
                                                                           "Wear OS Small Round API 28",
                                                                           28,
                                                                           true,
@@ -59,12 +63,7 @@ public final class PairedDevicesPanelTest {
     Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
       .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
 
-    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
-                                                      Mockito.mock(Disposable.class),
-                                                      null,
-                                                      myManager);
-
-    AbstractButton button = panel.getRemoveButton();
+    AbstractButton button = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager).getRemoveButton();
 
     // Act
     button.doClick();
@@ -73,21 +72,18 @@ public final class PairedDevicesPanelTest {
   @Test
   public void reloadPairingsAdd() {
     // Arrange
-    Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
+    Mockito.when(myManager.getPairsForDevice(PIXEL_4_API_31_KEY.toString()))
       .thenReturn(Collections.emptyList())
       .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
 
-    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
-                                                      Mockito.mock(Disposable.class),
-                                                      null,
-                                                      myManager);
+    PairedDevicesPanel panel = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager);
 
     // Act
     panel.reloadPairings();
 
     // Assert
     Object device = new DeviceManagerPairingDevice.Builder()
-      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_28"))
+      .setKey(WEAR_OS_SMALL_ROUND_API_28_KEY)
       .setType(DeviceType.WEAR_OS)
       .setIcon(DeviceType.WEAR_OS.getVirtualIcon())
       .setName("Wear OS Small Round API 28")
@@ -104,10 +100,7 @@ public final class PairedDevicesPanelTest {
       .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)))
       .thenReturn(Collections.emptyList());
 
-    PairedDevicesPanel panel = new PairedDevicesPanel(new VirtualDeviceName("Pixel_4_API_31"),
-                                                      Mockito.mock(Disposable.class),
-                                                      null,
-                                                      myManager);
+    PairedDevicesPanel panel = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager);
 
     // Act
     panel.reloadPairings();

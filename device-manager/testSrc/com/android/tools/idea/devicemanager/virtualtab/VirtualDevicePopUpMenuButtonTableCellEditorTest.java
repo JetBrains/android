@@ -81,7 +81,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
   public void newPairWearableItemWearOs() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_28"))
+      .setKey(TestVirtualDevices.newKey("Wear_OS_Small_Round_API_28"))
       .setType(DeviceType.WEAR_OS)
       .setName("Wear OS Small Round API 28")
       .setTarget("Android 9.0 Wear OS")
@@ -109,7 +109,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
   public void newPairWearableItemApiLevelIsLessThan30() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_4_API_29"))
+      .setKey(TestVirtualDevices.newKey("Pixel_4_API_29"))
       .setName("Pixel 4 API 29")
       .setTarget("Android 10.0 Google Play")
       .setCpuArchitecture("x86")
@@ -157,7 +157,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     Mockito.when(avd.hasPlayStore()).thenReturn(true);
 
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_4_API_31"))
+      .setKey(TestVirtualDevices.newKey("Pixel_4_API_31"))
       .setName("Pixel 4 API 31")
       .setTarget("Android 12.0 Google Play")
       .setCpuArchitecture("x86_64")

@@ -49,7 +49,7 @@ public final class VirtualDeviceDetailsPanelTest {
                                   AvdStatus.OK);
 
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_3_API_30"))
+      .setKey(TestVirtualDevices.newKey("Pixel_3_API_30"))
       .setName("Pixel 3 API 30")
       .setTarget("Android 11.0 Google APIs")
       .setCpuArchitecture("x86_64")
@@ -85,7 +85,7 @@ public final class VirtualDeviceDetailsPanelTest {
                                   AvdStatus.ERROR_IMAGE_MISSING);
 
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_3_API_30"))
+      .setKey(TestVirtualDevices.newKey("Pixel_3_API_30"))
       .setName("Pixel 3 API 30")
       .setTarget("Android 11.0 Google APIs")
       .setCpuArchitecture("x86_64")

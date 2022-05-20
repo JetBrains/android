@@ -77,7 +77,7 @@ public final class VirtualDeviceTableModelTest {
     VirtualDeviceTableModel model = new VirtualDeviceTableModel(myDevices);
     model.addTableModelListener(myListener);
 
-    Key key = new VirtualDeviceName("Pixel_5_API_31");
+    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
 
     // Act
     model.setOnline(key, true);

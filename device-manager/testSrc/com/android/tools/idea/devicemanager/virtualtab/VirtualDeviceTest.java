@@ -33,7 +33,7 @@ public final class VirtualDeviceTest {
   @Test
   public void buildPhone() {
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_3_API_30"))
+      .setKey(TestVirtualDevices.newKey("Pixel_3_API_30"))
       .setType(DeviceType.PHONE)
       .setName("Google Pixel 3")
       .setTarget("Android 11.0")
@@ -42,7 +42,6 @@ public final class VirtualDeviceTest {
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
-    assertEquals(new VirtualDeviceName("Pixel_3_API_30"), device.getKey());
     assertEquals("x86", device.getCpuArchitecture());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, device.getIcon());
   }
@@ -50,7 +49,7 @@ public final class VirtualDeviceTest {
   @Test
   public void buildWearOs() {
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Wear_OS_Round_API_30"))
+      .setKey(TestVirtualDevices.newKey("Wear_OS_Round_API_30"))
       .setType(DeviceType.WEAR_OS)
       .setName("Wear OS Round")
       .setTarget("Android 11.0")
@@ -59,7 +58,6 @@ public final class VirtualDeviceTest {
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
-    assertEquals(new VirtualDeviceName("Wear_OS_Round_API_30"), device.getKey());
     assertEquals("x86", device.getCpuArchitecture());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR, device.getIcon());
   }
@@ -67,7 +65,7 @@ public final class VirtualDeviceTest {
   @Test
   public void buildTv() {
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Android_TV_1080p_API_30"))
+      .setKey(TestVirtualDevices.newKey("Android_TV_1080p_API_30"))
       .setType(DeviceType.TV)
       .setName("Android TV (1080p)")
       .setTarget("Android 11.0")
@@ -76,7 +74,6 @@ public final class VirtualDeviceTest {
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
-    assertEquals(new VirtualDeviceName("Android_TV_1080p_API_30"), device.getKey());
     assertEquals("x86", device.getCpuArchitecture());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV, device.getIcon());
   }
@@ -84,7 +81,7 @@ public final class VirtualDeviceTest {
   @Test
   public void buildAutomotive() {
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Automotive_1024p_landscape_API_30"))
+      .setKey(TestVirtualDevices.newKey("Automotive_1024p_landscape_API_30"))
       .setType(DeviceType.AUTOMOTIVE)
       .setName("Automotive (1024p landscape)")
       .setTarget("Android 11.0")
@@ -93,7 +90,6 @@ public final class VirtualDeviceTest {
       .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
-    assertEquals(new VirtualDeviceName("Automotive_1024p_landscape_API_30"), device.getKey());
     assertEquals("x86", device.getCpuArchitecture());
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR, device.getIcon());
   }
@@ -102,7 +98,7 @@ public final class VirtualDeviceTest {
   public void newPairingStateCaseWearOsApiLevelIsLessThan28() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Wear_OS_Small_Round_API_26"))
+      .setKey(TestVirtualDevices.newKey("Wear_OS_Small_Round_API_26"))
       .setType(DeviceType.WEAR_OS)
       .setName("Wear OS Small Round API 26")
       .setTarget("Android 8.0 Android Wear")
@@ -123,7 +119,7 @@ public final class VirtualDeviceTest {
   public void newPairingStateDefault() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Android_TV_4K_API_31"))
+      .setKey(TestVirtualDevices.newKey("Android_TV_4K_API_31"))
       .setType(DeviceType.TV)
       .setName("Android TV (4K) API 31")
       .setTarget("Android 12.0 Google TV")
