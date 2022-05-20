@@ -299,9 +299,7 @@ public class AvdWizardUtils {
    */
   public static ModelWizardDialog createAvdWizardForDuplication(@Nullable Component parent,
                                                                 @Nullable Project project,
-                                                                @NotNull  AvdInfo avdInfo) {
-    AvdOptionsModel avdOptions = new AvdOptionsModel(avdInfo);
-
+                                                                @NotNull AvdOptionsModel avdOptions) {
     // Set this AVD as a copy
     avdOptions.setAsCopy();
 

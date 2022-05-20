@@ -71,7 +71,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @VisibleForTesting
   interface NewSetDevices {
-    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table, @Nullable Key key);
+    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table);
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
@@ -127,14 +127,9 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table,
-                                                                                      @Nullable Key key) {
+  static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, devices -> {
       table.getModel().setDevices(devices);
-
-      if (key != null) {
-        table.setSelectedDevice(key);
-      }
 
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
         .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
@@ -177,6 +172,24 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public void dispose() {
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
+  }
+
+  void addDevice(@NotNull Key key) {
+    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
+      getModel().add(device);
+      setSelectedDevice(key);
+    });
+
+    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+  }
+
+  void reloadDevice(@NotNull Key key) {
+    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
+      getModel().set(device);
+      setSelectedDevice(key);
+    });
+
+    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
   }
 
   @Override
@@ -284,19 +297,6 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   }
 
   void refreshAvds() {
-    refreshAvdsAndSelect(null);
-  }
-
-  void refreshAvdsAndSelect(@Nullable Key key) {
-    Futures.addCallback(myAsyncSupplier.getAll(), myNewSetDevices.apply(this, key), EdtExecutorService.getInstance());
-  }
-
-  void reloadDevice(@NotNull Key key) {
-    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
-      getModel().set(key, device);
-      setSelectedDevice(key);
-    });
-
-    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+    Futures.addCallback(myAsyncSupplier.getAll(), myNewSetDevices.apply(this), EdtExecutorService.getInstance());
   }
 }

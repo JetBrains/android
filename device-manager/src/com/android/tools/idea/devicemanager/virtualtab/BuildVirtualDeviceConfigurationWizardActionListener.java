@@ -42,7 +42,7 @@ final class BuildVirtualDeviceConfigurationWizardActionListener implements Actio
     AvdOptionsModel model = new AvdOptionsModel(null);
 
     if (AvdWizardUtils.createAvdWizard(myParent, myProject, model).showAndGet()) {
-      myTable.refreshAvdsAndSelect(new VirtualDeviceName(model.getCreatedAvd().getId()));
+      myTable.addDevice(new VirtualDeviceName(model.getCreatedAvd().getId()));
     }
   }
 }

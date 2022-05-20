@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.MenuItems;
@@ -89,10 +90,12 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
-      VirtualDeviceTable table = getPanel().getTable();
 
-      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), getDevice().getAvdInfo()).showAndGet()) {
-        table.refreshAvds();
+      VirtualDeviceTable table = getPanel().getTable();
+      AvdOptionsModel model = new AvdOptionsModel(getDevice().getAvdInfo());
+
+      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), model).showAndGet()) {
+        table.addDevice(new VirtualDeviceName(model.getCreatedAvd().getId()));
       }
     });
 
