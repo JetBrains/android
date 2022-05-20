@@ -156,6 +156,127 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     )
   }
 
+  @Test
+  fun testBasicCompletionInLibsVersionsToml() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = "androidx.$caret"
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "androidx.camera:camera-core:1.1.0-alpha03",
+      "androidx.camera:camera-view:1.0.0-alpha22",
+      "androidx.room:room-runtime:2.2.6"
+    )
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlModuleKey() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = { module = "androidx.$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    // TODO(b/134753077): implement module completion
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlGroupKey() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = { group = "androidx.$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    // TODO(b/134753077): implement group completion
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlNameKey() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = { name = "r$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    // TODO(b/134753077): implement name completion
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlVersionKey() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = { version = "1$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    // TODO(b/134753077): implement version completion
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlVersionRefKey() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = { version.ref = "androidx.$caret" }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    // TODO(b/134753077): implement version.ref completion
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsTomlOutsideLibraries() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [versions]
+        camera = "$caret"
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
     val mockGMavenIndexRepository: GMavenIndexRepository = MockitoKt.mock()
     `when`(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(

@@ -47,6 +47,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle/lib:pepk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
     ],
 )
 
