@@ -600,7 +600,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
             lintJar = null,
             externalAnnotations = aarLibraryDir.resolve("annotations.zip").absolutePath,
             publicResources = aarLibraryDir.resolve("public.txt").absolutePath,
-            artifact = File("__unknown_aar__:${jarFile.path}"),
+            artifact = null,
             symbolFile = aarLibraryDir.resolve("R.txt").absolutePath,
             deduplicate = internedModels::intern
           )

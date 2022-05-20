@@ -34,7 +34,7 @@ import java.io.File
 
 private const val ourAndroidSyncVersion = "2022-05-17/1"
 
-data class GradleAndroidModelData(
+data class  GradleAndroidModelData(
   val androidSyncVersion: String,
   private val moduleName: String,
   val rootDirPath: File,

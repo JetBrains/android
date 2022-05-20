@@ -160,16 +160,25 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
-      androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifactAddress, libraryArtifactFile))
+      if (libraryArtifactFile != null) {
+        androidDependency.setDependenciesFromPomFile(
+          parent.parent.pomDependencyCache.getPomDependencies(
+            library.artifactAddress,
+            libraryArtifactFile
+          )
+        )
+      }
       addLibraryDependency(androidDependency)
     }
     else {
-      val artifactCanonicalFile = libraryArtifactFile.canonicalFile
-      val matchingDeclaredDependencies =
-        matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
-      val path = parent.relativeFile(artifactCanonicalFile)
-      val jarDependency = PsResolvedJarAndroidDependency(parent, this, path.path, artifact, matchingDeclaredDependencies)
-      addJarDependency(jarDependency)
+      val artifactCanonicalFile = libraryArtifactFile?.canonicalFile
+      if (artifactCanonicalFile != null) {
+        val matchingDeclaredDependencies =
+          matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
+        val path = parent.relativeFile(artifactCanonicalFile)
+        val jarDependency = PsResolvedJarAndroidDependency(parent, this, path.path, artifact, matchingDeclaredDependencies)
+        addJarDependency(jarDependency)
+      }
     }
   }
 

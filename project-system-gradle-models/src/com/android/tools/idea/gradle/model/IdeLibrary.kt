@@ -47,7 +47,7 @@ sealed interface IdeArtifactLibrary: IdeLibrary {
 
 interface IdeAndroidLibrary: IdeArtifactLibrary {
   /** Returns the artifact location.  */
-  val artifact: File
+  val artifact: File?
 
   /**
    * Returns the location of the unzipped bundle folder.

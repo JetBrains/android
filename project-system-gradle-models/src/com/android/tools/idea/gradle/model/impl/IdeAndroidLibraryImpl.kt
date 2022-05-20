@@ -40,7 +40,7 @@ data class IdeAndroidLibraryImpl(
   private val _lintJar: String?,
   private val _externalAnnotations: String,
   private val _publicResources: String,
-  private val _artifact: String,
+  private val _artifact: String?,
   private val _symbolFile: String
 ) : IdeAndroidLibrary, Serializable {
 
@@ -82,7 +82,7 @@ data class IdeAndroidLibraryImpl(
   override val lintJar: File? get() = _lintJar?.translate()
   override val externalAnnotations: File get() = _externalAnnotations.translate()
   override val publicResources: File get() = _publicResources.translate()
-  override val artifact: File get() = _artifact.translate()
+  override val artifact: File? get() = _artifact?.translate()
   override val symbolFile: File get() = _symbolFile.translate()
 
   companion object {
@@ -103,7 +103,7 @@ data class IdeAndroidLibraryImpl(
       lintJar: String?,
       externalAnnotations: String,
       publicResources: String,
-      artifact: File,
+      artifact: File?,
       symbolFile: String,
       deduplicate: String.() -> String
     ): IdeAndroidLibraryImpl {
@@ -127,7 +127,7 @@ data class IdeAndroidLibraryImpl(
         _lintJar = lintJar?.makeRelative(),
         _externalAnnotations = externalAnnotations.makeRelative(),
         _publicResources = publicResources.makeRelative(),
-        _artifact = artifact.makeRelative(),
+        _artifact = artifact?.makeRelative(),
         _symbolFile = symbolFile.makeRelative()
       )
     }

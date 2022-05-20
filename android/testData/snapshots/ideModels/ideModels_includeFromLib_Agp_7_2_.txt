@@ -1304,7 +1304,6 @@ MODULE                        : navgraph.app
                         - androidLibraries            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar (IdeAndroidLibraryDependencyImpl)
                             target                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar (IdeAndroidLibraryImpl)
                                 aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/aidl [-]
-                                artifact                      : __unknown_aar__:<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar [-]
                                 artifactAddress               : __local_aars__:<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar:unspecified
                                 assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/assets [-]
                                 - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
