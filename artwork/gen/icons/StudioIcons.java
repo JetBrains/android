@@ -26,6 +26,7 @@ public class StudioIcons {
   }
 
   public static class Avd {
+    public static final Icon CONNECTION_GENERIC = load("/studio/icons/avd/connection-generic.svg"); // 16x16
     public static final Icon CONNECTION_USB = load("/studio/icons/avd/connection-usb.svg"); // 16x16
     public static final Icon CONNECTION_WIFI = load("/studio/icons/avd/connection-wifi.svg"); // 16x16
     public static final Icon DEVICE_AUTOMOTIVE_LARGE = load("/studio/icons/avd/device-automotive-large.svg"); // 32x32
