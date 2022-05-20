@@ -16,14 +16,15 @@
 package com.android.tools.idea.dom.xml;
 
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.GenericAttributeValue;
-import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidDomElement;
+import java.util.List;
 
 @DefinesXml
-public interface Path extends AndroidDomElement {
-  @Required
-  GenericAttributeValue<String> getName();
-  @Required
-  GenericAttributeValue<String> getPath();
+public interface PathsElement extends AndroidDomElement {
+  List<PathElement> getFilesPaths();
+  List<PathElement> getCachePaths();
+  List<PathElement> getExternalPaths();
+  List<PathElement> getExternalFilesPaths();
+  List<PathElement> getExternalMediaPaths();
+  List<PathElement> getExternalCachePaths();
 }

@@ -18,10 +18,10 @@ package com.android.tools.idea.dom.xml;
 import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 
-public class PathsDomFileDescription extends SingleRootResourceDomFileDescription<Paths> {
+public class PathsDomFileDescription extends SingleRootResourceDomFileDescription<PathsElement> {
   public static final String TAG_NAME = "paths";
 
   public PathsDomFileDescription() {
-    super(Paths.class, TAG_NAME, ResourceFolderType.XML);
+    super(PathsElement.class, TAG_NAME, ResourceFolderType.XML);
   }
 }
