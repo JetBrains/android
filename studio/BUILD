@@ -581,6 +581,7 @@ py_test(
 
 py_test(
     name = "test_updater",
+    timeout = "long",  # b/233245811
     srcs = ["tests/test_updater.py"],
     data = [
         ":android-studio.linux.zip",

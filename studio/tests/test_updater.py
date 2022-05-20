@@ -144,6 +144,7 @@ class UpdaterTests(unittest.TestCase):
       print("Running updater")
       args = [
           self.updater_script_path,
+          "--wrapper_script_flag=--jvm_flag=-Xmx8G",  # 233245811
           "create",
           old_version_description,
           new_version_description,
