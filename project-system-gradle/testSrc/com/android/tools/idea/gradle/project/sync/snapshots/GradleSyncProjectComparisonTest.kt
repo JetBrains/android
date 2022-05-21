@@ -244,7 +244,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testSyncKotlinProject() {
-      // TODO(b/125321223): Remove suffixes from the snapshot files when fixed.
       val text = importSyncAndDumpProject(NEW_SYNC_KOTLIN_TEST)
       assertIsEqualToSnapshot(text)
     }
