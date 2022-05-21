@@ -26,6 +26,10 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
+
+    kotlinOptions {
+        languageVersion = "1.5"
+    }
 }
 
 dependencies {
