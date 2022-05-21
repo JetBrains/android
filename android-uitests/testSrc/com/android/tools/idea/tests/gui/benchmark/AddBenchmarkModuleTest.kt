@@ -162,6 +162,7 @@ class AddBenchmarkModuleTest {
   @Throws(Exception::class)
   fun addJavaMacrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.robot().waitForIdle()
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
@@ -213,6 +214,7 @@ class AddBenchmarkModuleTest {
   @Throws(Exception::class)
   fun addKotlinMacrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    guiTest.robot().waitForIdle()
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))

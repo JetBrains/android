@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,7 +81,8 @@ public class JavaDepTest {
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "App", "app");
 
-    ideFrame.invokeMenuPath("Open Module Settings");
+    Wait.seconds(3);
+    ideFrame.waitAndInvokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =
