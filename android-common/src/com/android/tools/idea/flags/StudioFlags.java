@@ -610,6 +610,14 @@ public final class StudioFlags {
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
     true);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.ddmlib.clientmanager",
+    "Use adblib to track device processes (Client)",
+    "Use adblib instead of ddmlib to track processes (Client) on devices and handle debug sessions. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

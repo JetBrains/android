@@ -17,6 +17,9 @@ package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
 
+import com.android.adblib.AdbLibSession;
+import com.android.adblib.CoroutineScopeCache;
+import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
@@ -24,6 +27,8 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
+import com.android.ddmlib.clientmanager.ClientManager;
+import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
@@ -365,7 +370,20 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     if (AdbOptionsService.getInstance().shouldUseUserManagedAdb()) {
       options.enableUserManagedAdbMode(AdbOptionsService.getInstance().getUserManagedAdbPort());
     }
+    options.setClientManager(StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() ?
+                             getClientManager() :
+                             null);
     return options.build();
+  }
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<ClientManager> CLIENT_MANAGER_KEY =
+    new CoroutineScopeCache.Key<>("client manager for ddmlib compatibility");
+
+  @NotNull
+  private static ClientManager getClientManager() {
+    AdbLibSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(CLIENT_MANAGER_KEY, () -> AdbLibClientManagerFactory.createClientManager(session));
   }
 
   /**
