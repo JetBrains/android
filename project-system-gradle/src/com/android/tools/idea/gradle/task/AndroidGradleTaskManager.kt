@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.task
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Companion.getInstance
-import com.android.tools.idea.gradle.util.GradleProjects
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Key
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
 import org.jetbrains.plugins.gradle.settings.DistributionType
@@ -44,7 +42,7 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
     jvmParametersSetup: String?,
     listener: ExternalSystemTaskNotificationListener
   ): Boolean {
-    val gradleBuildInvoker = findGradleInvoker(id, projectPath) ?: return false
+    val gradleBuildInvoker = findGradleInvoker(id) ?: return false
     val effectiveSettings = settings ?: GradleExecutionSettings(null, null, DistributionType.BUNDLED, false)
     GradleTaskManager.setupGradleScriptDebugging(effectiveSettings)
     GradleTaskManager.setupDebuggerDispatchPort(effectiveSettings)
@@ -70,7 +68,7 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
   }
 
   override fun cancelTask(id: ExternalSystemTaskId, listener: ExternalSystemTaskNotificationListener): Boolean {
-    return id.findProject()?.let { getInstance(it).stopBuild(id) } ?: false
+    return findGradleInvoker(id)?.stopBuild(id) ?: false
   }
 }
 
@@ -83,22 +81,7 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
 val ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE =
   Key.create<Boolean>("ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE")
 
-private fun findGradleInvoker(
-  id: ExternalSystemTaskId,
-  projectPath: String
-): GradleBuildInvoker? {
-
-  // TODO(b/232006839): In AndroidStudio we should instrument all Gradle invocations regardless of whether they directly include
-  //                    any Android modules or not. Not doing so disables features like the build analyzer, results in builds invoked with
-  //                    with different arguments or in different environments
-  //                    In IDEA ideally we should behave similarly if there are any Android modules present but it is up to JB to decide.
-
-  // TODO(b/139179869): Replace with the common way to detect Android-Gradle projects.
-
-  val project = id.findProject() ?: return null
-
-  val anyAndroidModule = ModuleManager.getInstance(project).modules.asSequence()
-    .any { projectPath == ExternalSystemApiUtil.getExternalRootProjectPath(it) && GradleProjects.isIdeaAndroidModule(it) }
-
-  return if (anyAndroidModule) getInstance(project) else null
+private fun findGradleInvoker(id: ExternalSystemTaskId): GradleBuildInvoker? {
+  val project = id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(it) } ?: return null
+  return GradleBuildInvoker.getInstance(project)
 }
