@@ -70,35 +70,12 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
     assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key2"));
   }
 
-  public void testCreateItem() throws Exception {
-    ListenableFuture<ResourceItem> future =
-        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "L'Étranger", true);
-    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
-    assertEquals("L\\'Étranger", getText("values-fr/strings.xml", "key11"));
-  }
-
-  public void testCreateItemCdata() throws Exception {
-    ListenableFuture<ResourceItem> future =
-        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<![CDATA[L'Étranger]]>", true);
-    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
-    assertEquals("<![CDATA[L'Étranger]]>", getText("values-fr/strings.xml", "key11"));
-  }
-
-  public void testCreateItemXliff() throws Exception {
-    ListenableFuture<ResourceItem> future =
-        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<xliff:g>L'Étranger</xliff:g>", true);
-    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
-    assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key11"));
-  }
-
   private ResourceItem getResourceItem(String name, Locale locale) {
     Iterable<ResourceItem> items = myResourceRepository.getResources(RES_AUTO, ResourceType.STRING, name);
 
-    if (items != null) {
-      for (ResourceItem item : items) {
-        if (locale.qualifier.equals(item.getConfiguration().getLocaleQualifier())) {
-          return item;
-        }
+    for (ResourceItem item : items) {
+      if (locale.qualifier.equals(item.getConfiguration().getLocaleQualifier())) {
+        return item;
       }
     }
 

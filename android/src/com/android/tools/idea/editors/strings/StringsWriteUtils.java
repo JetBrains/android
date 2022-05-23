@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -166,66 +167,8 @@ public class StringsWriteUtils {
     return false;
   }
 
-  /**
-   * Creates a string resource in the specified locale.
-   *
-   * @return a future referencing the resource item that was created, or null if it wasn't created or could not be read back.
-   *     The future is guaranteed to be completed on the UI thread.
-   */
-  public static @NotNull ListenableFuture<ResourceItem> createItem(@NotNull AndroidFacet facet,
-                                                                   @NotNull VirtualFile resFolder,
-                                                                   @Nullable Locale locale,
-                                                                   @NotNull String name,
-                                                                   @NotNull String value,
-                                                                   boolean translatable) {
-    Project project = facet.getModule().getProject();
-    XmlFile resourceFile = getStringResourceFile(project, resFolder, locale);
-    if (resourceFile == null) {
-      return Futures.immediateFuture(null);
-    }
-    XmlTag root = resourceFile.getRootTag();
-    if (root == null) {
-      return Futures.immediateFuture(null);
-    }
-    WriteCommandAction.writeCommandAction(project, resourceFile).withName("Creating string " + name).run(() -> {
-      // Makes the command global even if only one xml file is modified
-      // That way, the Undo is always available from the translation editor
-      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
-
-      XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
-
-      child.setAttribute(SdkConstants.ATTR_NAME, name);
-      // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
-      child.setAttribute(SdkConstants.ATTR_TRANSLATABLE, translatable ? null : SdkConstants.VALUE_FALSE);
-
-      root.addSubTag(child, false);
-    });
-
-    SettableFuture<ResourceItem> result = SettableFuture.create();
-    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(facet);
-    // Ensure that items *just* created are processed by the resource repository.
-    repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), () -> {
-      List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, name);
-
-      for (ResourceItem item : items) {
-        FolderConfiguration config = item.getConfiguration();
-        LocaleQualifier qualifier = config.getLocaleQualifier();
-
-        Locale l = qualifier == null ? null : Locale.create(qualifier);
-        if (Objects.equals(l, locale)) {
-          result.set(item);
-          break;
-        }
-      }
-
-      result.set(null);
-    });
-
-    return result;
-  }
-
   @Nullable
-  static XmlFile getStringResourceFile(@NotNull Project project, @NotNull VirtualFile resFolder, @Nullable Locale locale) {
+  public static XmlFile getStringResourceFile(@NotNull Project project, @NotNull VirtualFile resFolder, @Nullable Locale locale) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (locale != null) {
       configuration.setLocaleQualifier(locale.qualifier);
@@ -275,7 +218,7 @@ public class StringsWriteUtils {
   @NotNull
   private static String escapeResourceStringAsXml(@NotNull String xml) {
     try {
-      return ValueXmlHelper.escapeResourceStringAsXml(xml);
+      return CharacterDataEscaper.escape(xml);
     }
     catch (IllegalArgumentException exception) {
       // TODO Let the user know they've entered invalid XML
