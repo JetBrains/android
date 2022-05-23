@@ -372,8 +372,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     expression: KtDotQualifiedExpression
   ) : GradleDslExpression? {
     val receiver = expression.receiverExpression
-    val selector = expression.selectorExpression
-    when (selector) {
+    when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()

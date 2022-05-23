@@ -223,8 +223,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   )
 
   private fun KotlinType.toDescription(): String {
-    val type = if (this.isMarkedNullable) this.makeNullable() else this
-    return when (type) {
+    return when (val type = if (this.isMarkedNullable) this.makeNullable() else this) {
       // Note: References to dependencies are not working when generating sources, e.g. NavDirections, but they are
       // not critical to verifying safe args behavior, so we're OK simply peeling the class name out of the error type
       // for now.

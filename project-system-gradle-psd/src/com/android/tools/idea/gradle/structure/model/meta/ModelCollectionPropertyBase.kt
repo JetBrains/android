@@ -37,8 +37,7 @@ abstract class ModelCollectionPropertyBase<ModelT, out ResolvedT, ParsedT, in Co
           parsedProperty.delete()
         }
         is ParsedValue.Set.Parsed -> {
-          val dsl = value.dslText
-          when (dsl) {
+          when (val dsl = value.dslText) {
             // Dsl modes.
             is DslText.Reference -> parsedProperty.setDslText(dsl)
             is DslText.InterpolatedString -> parsedProperty.setDslText(dsl)

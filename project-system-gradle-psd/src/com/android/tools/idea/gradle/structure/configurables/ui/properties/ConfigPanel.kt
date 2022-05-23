@@ -88,8 +88,7 @@ open class ConfigPanel<in ModelT>(
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     val propertyDescription = place?.getPath(PROPERTY_PLACE_NAME) ?: ActionCallback.REJECTED
     if (requestFocus) {
-      val editor = editors.firstOrNull { it.property.description == propertyDescription }
-      when (editor) {
+      when (val editor = editors.firstOrNull { it.property.description == propertyDescription }) {
         is CollectionPropertyEditor<*, *> -> {
           editor.component.scrollRectToVisible(editor.component.bounds)
           editor.component.requestFocus()

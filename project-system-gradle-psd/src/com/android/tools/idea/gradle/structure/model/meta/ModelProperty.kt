@@ -220,8 +220,7 @@ inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
   if (isModified == false) {
     val resolvedValue = (getResolvedValue() as? ResolvedValue.Set<T>)?.resolved
     if (resolvedValue != null) {
-      val parsedValue = getParsedValue().value
-      val parsedValueToCompare = when (parsedValue) {
+      val parsedValueToCompare = when (val parsedValue = getParsedValue().value) {
         is ParsedValue.NotSet -> (defaultValueGetter ?: return null)()
         is ParsedValue.Set.Parsed -> parsedValue.value
       }

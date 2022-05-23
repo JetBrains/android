@@ -125,8 +125,7 @@ class IntDefCompletionContributorJava : CompletionContributor() {
    * Returns values for the first encountered @IntDef annotation.
    */
   private fun PsiReferenceExpression.getIntDefValues(): List<String>? {
-    val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()
-    when (call) {
+    when (val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()) {
       is PsiCall -> {
         val calleeElement = call.resolveMethod() ?: return null
         val argumentIndex = call.argumentList?.expressions?.indexOf(this) ?: return null

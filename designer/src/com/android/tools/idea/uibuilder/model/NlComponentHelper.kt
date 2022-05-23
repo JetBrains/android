@@ -423,8 +423,7 @@ val NlComponent.componentClassName: String?
 
 private val NlComponent.nlComponentData: NlComponentData
   get() {
-    val mixin = this.mixin
-    return when (mixin) {
+    return when (val mixin = this.mixin) {
       is NlComponentMixin -> mixin.data
       else -> throw IllegalArgumentException("${this} is not registered!")
     }

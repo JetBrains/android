@@ -174,8 +174,7 @@ private fun renameDownloadedFiles(downloadedFiles: List<File>): List<File> {
  */
 private fun getIconFileNameWithoutExtension(iconName: String, styleDirName: String): String {
   // TODO(141628234): Use a consistent logic with VdIcon.getDisplayName()
-  val family = styleDirName.substringAfter("materialicons")
-  val familyPrefix = when (family) {
+  val familyPrefix = when (val family = styleDirName.substringAfter("materialicons")) {
     "" -> "baseline_"
     "outlined" -> "outline_"
     else -> family + "_"

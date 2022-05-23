@@ -637,9 +637,8 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
       val javaLibraries = ImmutableList.builder<IdeJavaLibrary>()
       val moduleDependencies = ImmutableList.builder<IdeModuleLibrary>()
       for (address in artifactAddresses) {
-        val library = librariesById[address]!!
         // TODO(solodkyy): Build typed collections directly in populate methods.
-        when (library) {
+        when (val library = librariesById[address]!!) {
           is IdeAndroidLibrary -> androidLibraries.add(library)
           is IdeJavaLibrary -> javaLibraries.add(library)
           is IdeModuleLibrary -> moduleDependencies.add(library)

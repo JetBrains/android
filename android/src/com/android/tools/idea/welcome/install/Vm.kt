@@ -341,8 +341,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    * Return true if it is possible to install on the current machine without any other configuration changes.
    */
   fun canRun(): Boolean {
-    val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }
-    return when (check) {
+    return when (val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }) {
       AccelerationErrorCode.NO_EMULATOR_INSTALLED, AccelerationErrorCode.UNKNOWN_ERROR -> {
         // We don't know if we can install. Assume we can if this is a compatible system:
         compatibleSystem

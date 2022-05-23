@@ -848,8 +848,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         when (isUpdatablePluginDependency(new, dep)) {
           YES -> {
             val resultModel = dep.version().resultModel
-            val element = resultModel.rawElement
-            val psiElement = when (element) {
+            val psiElement = when (val element = resultModel.rawElement) {
               null -> return@dep
               // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
               is FakeArtifactElement -> element.realExpression.psiElement
@@ -871,8 +870,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
           when (isUpdatablePluginRelatedDependency(new, dep)) {
             YES -> {
               val resultModel = dep.version().resultModel
-              val element = resultModel.rawElement
-              val psiElement = when (element) {
+              val psiElement = when (val element = resultModel.rawElement) {
                 null -> return@dep
                 // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
                 is FakeArtifactElement -> element.realExpression.psiElement
@@ -1077,8 +1075,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             val minVersion = info(compatibleGradleVersion)
             if (minVersion <= currentVersion) return@dep
             val resultModel = dep.version().resultModel
-            val element = resultModel.rawElement
-            val psiElement = when (element) {
+            val psiElement = when (val element = resultModel.rawElement) {
               null -> return@dep
               // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
               is FakeArtifactElement -> element.realExpression.psiElement

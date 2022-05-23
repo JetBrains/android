@@ -65,8 +65,7 @@ constructor(val type: String,
       var sessionId: String? = null
       val properties = HashMap<String, String>()
       while (reader.hasNext()) {
-        val name = reader.nextName()
-        when (name) {
+        when (val name = reader.nextName()) {
           "type" -> type = reader.nextString()
           "formatVersion" -> format = reader.nextLong()
           "uptime" -> uptime = reader.nextLong()

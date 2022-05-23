@@ -56,8 +56,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     }
     parent.parsedModel.modules.forEach { path ->
       val buildModel = projectParsedModel.getModuleByGradlePath(path)
-      val moduleType = buildModel?.parsedModelModuleType()
-      val moduleKey = when (moduleType) {
+      val moduleKey = when (buildModel?.parsedModelModuleType()) {
         PsModuleType.JAVA -> ModuleKey(ModuleKind.JAVA, path)
         PsModuleType.ANDROID_APP,
         PsModuleType.ANDROID_DYNAMIC_FEATURE,

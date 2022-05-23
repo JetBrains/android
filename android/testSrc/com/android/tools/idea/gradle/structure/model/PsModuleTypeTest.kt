@@ -53,8 +53,7 @@ class PsModuleTypeTest : DependencyTestCase() {
 }
 
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsModule {
-  val moduleWithSyncedModel = project.findModuleByName(name)
-  return when (moduleWithSyncedModel) {
+  return when (val moduleWithSyncedModel = project.findModuleByName(name)) {
     is PsAndroidModule -> PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
       init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
     }

@@ -83,9 +83,7 @@ internal class UpdatableDeviceHelpTooltipForList : UpdatableDeviceHelpTooltip() 
   private fun getDeviceForEvent(event: MouseEvent): Device? {
     val list = event.component as JList<*>
     val index = list.locationToIndex(event.point)
-    val action = (list.model.getElementAt(index) as ActionItem).action
-
-    return when (action) {
+    return when (val action = (list.model.getElementAt(index) as ActionItem).action) {
       is SelectDeviceAction -> action.device
       is SnapshotActionGroup -> action.device
       else -> null

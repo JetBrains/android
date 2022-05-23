@@ -103,8 +103,7 @@ sealed class DslText {
 fun <PropertyT : Any> ParsedValue<PropertyT>.getText(formatValue: PropertyT.() -> String) = when (this) {
   is ParsedValue.NotSet -> ""
   is ParsedValue.Set.Parsed -> {
-    val dsl = dslText
-    when (dsl) {
+    when (val dsl = dslText) {
       DslText.Literal -> value?.formatValue() ?: ""
       is DslText.Reference -> "\$${dsl.text}"
       is DslText.OtherUnparsedDslText -> "\$${dsl.text}"

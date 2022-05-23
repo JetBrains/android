@@ -126,8 +126,7 @@ class InspectorLayoutManager: LayoutManager2 {
    */
   private fun otherComponentHeight(component: Component): Int {
     val container = component.parent
-    val placement = placementMap.getOrDefault(component, Placement.LINE)
-    return when (placement) {
+    return when (placementMap.getOrDefault(component, Placement.LINE)) {
       Placement.LINE -> -1
       Placement.LEFT -> {
         val index = indexOf(container, component)

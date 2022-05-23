@@ -442,8 +442,7 @@ class VariablesTable private constructor(
 
   inner class VariableCellEditor : PropertyCellEditor<Any>() {
     override fun initEditorFor(row: Int): ModelPropertyEditor<Any> {
-      val node = tree.getPathForRow(row).lastPathComponent
-      val variable = when (node) {
+      val variable = when (val node = tree.getPathForRow(row).lastPathComponent) {
         is BaseVariableNode -> node.variable
         is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
         else -> throw IllegalStateException()

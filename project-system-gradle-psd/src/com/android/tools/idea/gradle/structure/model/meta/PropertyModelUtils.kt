@@ -145,8 +145,7 @@ internal fun <T : Any> ResolvedPropertyModel.setParsedValue(
       nullifier()
     }
     is ParsedValue.Set.Parsed -> {
-      val dsl = value.dslText
-      when (dsl) {
+      when (val dsl = value.dslText) {
       // Dsl modes.
         is DslText.Reference -> setDslText(dsl)
         is DslText.InterpolatedString -> setDslText(dsl)
