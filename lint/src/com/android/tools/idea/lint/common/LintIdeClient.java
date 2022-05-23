@@ -757,6 +757,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     return connection;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   @NonNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
@@ -764,6 +765,16 @@ public class LintIdeClient extends LintClient implements Disposable {
       .parent(parent)
       .allowLock(!(ApplicationManager.getApplication().isUnitTestMode() && SystemInfo.isWindows))
       .files(Arrays.stream(urls).map(it -> Paths.get(UrlClassLoader.urlToFilePath(it.getPath()))).collect(Collectors.toList()))
+      .get();
+  }
+
+  @NotNull
+  @Override
+  public ClassLoader createUrlClassLoader(@NotNull List<? extends File> files, @NotNull ClassLoader parent) {
+    return UrlClassLoader.build()
+      .parent(parent)
+      .allowLock(!(ApplicationManager.getApplication().isUnitTestMode() && SystemInfo.isWindows))
+      .files(files.stream().map(File::toPath).collect(Collectors.toList()))
       .get();
   }
 
