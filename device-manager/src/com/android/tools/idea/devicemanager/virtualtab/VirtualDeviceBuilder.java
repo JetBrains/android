@@ -15,46 +15,43 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.io.FileUtilKt;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.Targets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-final class AsyncVirtualDeviceBuilder {
+final class VirtualDeviceBuilder {
   private final @NotNull AvdInfo myDevice;
-  private final @NotNull ListenableFuture<@NotNull Boolean> myOnlineFuture;
-  private final @NotNull ListenableFuture<@NotNull Long> mySizeOnDiskFuture;
+  private final @NotNull Supplier<@NotNull Boolean> myIsAvdRunning;
+  private final @NotNull Supplier<@NotNull Long> myRecursiveSize;
 
-  @UiThread
-  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListeningExecutorService service) {
-    this(device,
-         service.submit(() -> AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device)),
-         service.submit(() -> recursiveSize(device)));
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  VirtualDeviceBuilder(@NotNull AvdInfo device) {
+    this(device, () -> AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device), () -> recursiveSize(device));
   }
 
   @VisibleForTesting
-  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device,
-                            @NotNull ListenableFuture<@NotNull Boolean> onlineFuture,
-                            @NotNull ListenableFuture<@NotNull Long> sizeOnDiskFuture) {
+  VirtualDeviceBuilder(@NotNull AvdInfo device,
+                       @NotNull Supplier<@NotNull Boolean> isAvdRunning,
+                       @NotNull Supplier<@NotNull Long> recursiveSize) {
     myDevice = device;
-    myOnlineFuture = onlineFuture;
-    mySizeOnDiskFuture = sizeOnDiskFuture;
+    myIsAvdRunning = isAvdRunning;
+    myRecursiveSize = recursiveSize;
   }
 
   private static long recursiveSize(@NotNull AvdInfo device) {
@@ -62,19 +59,16 @@ final class AsyncVirtualDeviceBuilder {
       return FileUtilKt.recursiveSize(device.getDataFolderPath());
     }
     catch (IOException exception) {
-      Logger.getInstance(AsyncVirtualDeviceBuilder.class).warn(exception);
+      Logger.getInstance(VirtualDeviceBuilder.class).warn(exception);
       return 0;
     }
   }
 
-  @UiThread
-  @NotNull ListenableFuture<@NotNull VirtualDevice> buildAsync() {
-    // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myOnlineFuture, mySizeOnDiskFuture).call(this::build, EdtExecutorService.getInstance());
-  }
-
-  @UiThread
-  private @NotNull VirtualDevice build() {
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  @NotNull VirtualDevice build() {
     IdDisplay tag = myDevice.getTag();
     AndroidVersion version = myDevice.getAndroidVersion();
 
@@ -82,11 +76,11 @@ final class AsyncVirtualDeviceBuilder {
       .setKey(new VirtualDeviceName(myDevice.getId()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
-      .setOnline(DeviceManagerFutures.getDoneOrElse(myOnlineFuture, false))
+      .setOnline(myIsAvdRunning.get())
       .setTarget(Targets.toString(version, tag))
       .setCpuArchitecture(myDevice.getCpuArch())
       .setAndroidVersion(version)
-      .setSizeOnDisk(DeviceManagerFutures.getDoneOrElse(mySizeOnDiskFuture, 0L))
+      .setSizeOnDisk(myRecursiveSize.get())
       // TODO(http://b/216559215) Set the resolution and density in an AsyncVirtualDeviceDetailsBuilder
       .setResolution(getResolution(myDevice))
       .setDensity(getDensity(myDevice))

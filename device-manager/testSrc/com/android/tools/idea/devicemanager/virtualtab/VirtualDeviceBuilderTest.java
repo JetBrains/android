@@ -22,23 +22,21 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
-import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
-import com.google.common.util.concurrent.Futures;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class AsyncVirtualDeviceBuilderTest {
+public final class VirtualDeviceBuilderTest {
   @Test
-  public void noProperties() throws Exception {
+  public void noProperties() {
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
                                   Paths.get("ini", "file"),
                                   Paths.get("data", "folder", "path"),
@@ -46,10 +44,7 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   null,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo, Futures.immediateFuture(false), Futures.immediateFuture(0L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 0L).build();
 
     assertEquals(0, device.getSizeOnDisk());
     assertNull(device.getResolution());
@@ -57,7 +52,7 @@ public final class AsyncVirtualDeviceBuilderTest {
   }
 
   @Test
-  public void noHeight() throws Exception {
+  public void noHeight() {
     Map<String, String> properties = new HashMap<>();
     properties.put("hw.lcd.width", "1080");
     properties.put("hw.lcd.density", "440");
@@ -69,19 +64,14 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertNull(device.getResolution());
     assertNull(device.getDp());
   }
 
   @Test
-  public void invalidResolution() throws Exception {
+  public void invalidResolution() {
     Map<String, String> properties = new HashMap<>();
     properties.put("hw.lcd.width", "not a number");
     properties.put("hw.lcd.height", "2160");
@@ -94,12 +84,7 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(1_024, device.getSizeOnDisk());
     assertNull(device.getResolution());
@@ -107,7 +92,7 @@ public final class AsyncVirtualDeviceBuilderTest {
   }
 
   @Test
-  public void withSizeAndResolution() throws Exception {
+  public void withSizeAndResolution() {
     Map<String, String> properties = new HashMap<>();
     properties.put("hw.lcd.width", "1080");
     properties.put("hw.lcd.height", "2160");
@@ -120,12 +105,7 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    VirtualDevice device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(1_024, device.getSizeOnDisk());
     assertEquals(new Resolution(1_080, 2_160), device.getResolution());
@@ -133,7 +113,7 @@ public final class AsyncVirtualDeviceBuilderTest {
   }
 
   @Test
-  public void wearOsTag() throws Exception {
+  public void wearOsTag() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-wear");
 
@@ -144,18 +124,13 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(DeviceType.WEAR_OS, device.getType());
   }
 
   @Test
-  public void androidTvTag() throws Exception {
+  public void androidTvTag() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-tv");
 
@@ -166,18 +141,13 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(DeviceType.TV, device.getType());
   }
 
   @Test
-  public void googleTvTag() throws Exception {
+  public void googleTvTag() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "google-tv");
 
@@ -188,18 +158,13 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(DeviceType.TV, device.getType());
   }
 
   @Test
-  public void automotiveTag() throws Exception {
+  public void automotiveTag() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive");
 
@@ -210,18 +175,13 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(DeviceType.AUTOMOTIVE, device.getType());
   }
 
   @Test
-  public void automotivePlayTag() throws Exception {
+  public void automotivePlayTag() {
     Map<String, String> properties = new HashMap<>();
     properties.put(AvdManager.AVD_INI_TAG_ID, "android-automotive-playstore");
 
@@ -232,12 +192,7 @@ public final class AsyncVirtualDeviceBuilderTest {
                                   properties,
                                   AvdStatus.OK);
 
-    AsyncVirtualDeviceBuilder builder = new AsyncVirtualDeviceBuilder(avdInfo,
-                                                                      Futures.immediateFuture(false),
-                                                                      Futures.immediateFuture(1_024L));
-
-    Future<VirtualDevice> future = builder.buildAsync();
-    VirtualDevice device = TestDeviceManagerFutures.get(future);
+    Device device = new VirtualDeviceBuilder(avdInfo, () -> false, () -> 1_024L).build();
 
     assertEquals(DeviceType.AUTOMOTIVE, device.getType());
   }
