@@ -95,7 +95,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
     }
     catch (ex: DeployerException) {
-      throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput()}", ex)
+      throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }
 
     if (indexReceiver.index == null) {

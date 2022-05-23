@@ -18,6 +18,9 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
+import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
@@ -127,6 +130,29 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     ).toCommandHandlers())
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
+    assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
+  }
+
+  @Test
+  fun testComponentActivationException() {
+    // Use DefaultRunExecutor, equivalent of pressing run button.
+    val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
+
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
+
+    val failedResponse = "Component not found."
+
+    val device = getMockDevice(mapOf(
+      checkVersion to "Broadcast completed: result=1, data=\"3\""
+    ).toCommandHandlers())
+
+    val app = Mockito.mock(App::class.java)
+    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
+      .`when`(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
