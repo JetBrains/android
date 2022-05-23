@@ -35,6 +35,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -43,6 +44,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.Topic
 import com.jetbrains.rd.util.getOrCreate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -396,11 +398,25 @@ class FastPreviewManager private constructor(
       try {
         daemon.compileRequest(files, module, outputDir, indicator)
       }
+      catch (t: CancellationException) {
+        throw t
+      }
+      catch (t: ProcessCanceledException) {
+        throw t
+      }
       catch (t: Throwable) {
+        // Catch for compilation failures
         CompilationResult.RequestException(t)
       }
     }
+    catch (t: CancellationException) {
+      throw t
+    }
+    catch (t: ProcessCanceledException) {
+      throw t
+    }
     catch (t: Throwable) {
+      // Catch for daemon start general failures
       CompilationResult.DaemonStartFailure(t)
     }
     val durationString = Duration.ofMillis(System.currentTimeMillis() - startTime).toDisplayString()

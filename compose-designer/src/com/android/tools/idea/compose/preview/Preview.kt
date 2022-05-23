@@ -47,6 +47,7 @@ import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
@@ -115,7 +116,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -289,6 +289,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Frames per second limit for interactive preview.
    */
   private var fpsLimit = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+
+  /**
+   * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a time.
+   */
+  private var fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher? = null
 
   init {
     val project = psiFile.project
@@ -1271,19 +1276,25 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private fun shouldQuickRefresh() = !isLiveLiteralsEnabled && renderedElements.count() == 1
 
-  private suspend fun requestFastPreviewRefresh(): CompilationResult? = coroutineScope {
+  private suspend fun requestFastPreviewRefresh(): CompilationResult? {
     val currentStatus = status()
-    if (!currentStatus.hasSyntaxErrors) {
-      psiFilePointer.element?.let {
-        val result = fastCompile(this@ComposePreviewRepresentation, it)
-        if (result is CompilationResult.Success) {
-          forceRefresh()
-        }
-        return@coroutineScope result
-      }
+    var result: CompilationResult? = null
+    val launcher = fastPreviewCompilationLauncher ?: UniqueTaskCoroutineLauncher(this, "Compilation Launcher").also {
+      fastPreviewCompilationLauncher = it
     }
+    launcher.launch {
+      if (!currentStatus.hasSyntaxErrors) {
+        psiFilePointer.element?.let {
+          result = fastCompile(this@ComposePreviewRepresentation, it)
+          if (result is CompilationResult.Success) {
+            forceRefresh()
+          }
+        }
+      }
 
-    return@coroutineScope null
+    }?.join()
+
+    return result
   }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult?> =

@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.future.asCompletableFuture
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeout
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.idea.util.module
@@ -51,27 +49,44 @@ private suspend fun PsiFile.saveIfNeeded() {
 /**
  * Starts a new fast compilation for the current file in the Preview and returns the result of the compilation.
  */
-suspend fun fastCompile(parentDisposable: Disposable, file: PsiFile): CompilationResult = coroutineScope {
+suspend fun fastCompile(parentDisposable: Disposable,
+                        file: PsiFile,
+                        fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project)): CompilationResult = coroutineScope {
   val contextModule = file.module ?: throw Throwable("No module")
   val project = file.project
-  val deferred = CompletableDeferred<CompilationResult>()
 
-  object : Task.Backgroundable(project, message("notification.compiling"), true) {
-    override fun run(indicator: ProgressIndicator) {
-      AndroidCoroutineScope(parentDisposable).launch {
-        file.saveIfNeeded()
+  val compileProgressIndicator = BackgroundableProcessIndicator(
+    project,
+    message("notification.compiling"),
+    "",
+    "",
+    false
+  )
+  compileProgressIndicator.isIndeterminate = true
+  Disposer.register(parentDisposable, compileProgressIndicator)
+  try {
+    compileProgressIndicator.start()
 
-        val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-          FastPreviewManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
-        }
-        val isSuccess = result == CompilationResult.Success
-        if (isSuccess) {
-          ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
-        }
-        deferred.complete(result)
-      }.asCompletableFuture().join()
+    file.saveIfNeeded()
+
+    val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
+      fastPreviewManager.compileRequest(listOf(file), contextModule)
     }
-  }.queue()
+    val isSuccess = result == CompilationResult.Success
+    if (isSuccess) {
+      ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
+    }
 
-  return@coroutineScope deferred.await()
+    return@coroutineScope result
+  }
+  catch (_: CancellationException) {
+    return@coroutineScope CompilationResult.CompilationAborted()
+  }
+  catch (_: ProcessCanceledException) {
+    return@coroutineScope CompilationResult.CompilationAborted()
+  }
+  finally {
+    compileProgressIndicator.stop()
+    compileProgressIndicator.processFinish()
+  }
 }

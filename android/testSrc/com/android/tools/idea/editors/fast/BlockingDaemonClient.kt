@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.fast
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
@@ -40,8 +41,12 @@ class BlockingDaemonClient : CompilerDaemonClient {
                                       indicator: ProgressIndicator): CompilationResult {
     _requestReceived.incrementAndGet()
     firstRequestReceived.complete(Unit)
-    compilationRequestFuture.await()
-    return CompilationResult.Success
+    return try {
+      compilationRequestFuture.await()
+      CompilationResult.Success
+    } catch (_: CancellationException) {
+      CompilationResult.CompilationAborted()
+    }
   }
 
   fun complete() {

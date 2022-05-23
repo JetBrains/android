@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.createFile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
@@ -185,6 +186,9 @@ class EmbeddedCompilerClientImpl(
       try {
         compileKtFiles(inputs, outputDirectory = outputDirectory, compilationIndicator)
         result.complete(CompilationResult.Success)
+      }
+      catch (t: CancellationException) {
+        result.complete(CompilationResult.CompilationAborted())
       }
       catch (t: ProcessCanceledException) {
         result.complete(CompilationResult.CompilationAborted())
