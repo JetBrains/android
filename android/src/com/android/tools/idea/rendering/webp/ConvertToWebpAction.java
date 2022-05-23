@@ -311,7 +311,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
               }
             }
             if (myNinePatchCount > 0) {
-              if (myTransparentCount == 1) {
+              if (myNinePatchCount == 1) {
                 sb.append("<br>").append("1 9-patch file was skipped");
               }
               else {
@@ -319,7 +319,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
               }
             }
             if (myLauncherIconCount > 0) {
-              if (myTransparentCount == 1) {
+              if (myLauncherIconCount == 1) {
                 sb.append("<br>").append("1 launcher icon was skipped");
               }
               else {
