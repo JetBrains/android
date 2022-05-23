@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.gradle.task
 
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.hookExecuteTasks
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
+import com.intellij.task.ProjectTaskManager
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.io.File
 
-class AndroidGradleTaskManagerTest : GradleIntegrationTest {
+class AndroidProjectTaskRunnerTest : GradleIntegrationTest {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
@@ -51,30 +49,18 @@ class AndroidGradleTaskManagerTest : GradleIntegrationTest {
   override fun getAdditionalRepos(): Collection<File> = emptyList()
 
   @Test
-  fun `app assembleDebug from root and app`() {
+  fun `build app module`() {
     val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
       val capturedRequests = project.hookExecuteTasks()
-      val facade = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager::class.java)
-        .getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)
+      val appModule = project.gradleModule(":app") ?: error(":app module not found")
 
-      val externalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
-      // 1) This is a common form used by Android Studio etc.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
-      // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
+      ProjectTaskManager.getInstance(project).build(appModule.getMainModule())
 
-      expect.that(capturedRequests).hasSize(2)
-
-      expect.that(capturedRequests.getOrNull(0)?.taskId).isSameAs(externalSystemTaskId)
+      expect.that(capturedRequests).hasSize(1)
       expect.that(capturedRequests.getOrNull(0)?.project).isSameAs(project)
       expect.that(capturedRequests.getOrNull(0)?.rootProjectPath).isEqualTo(path)
-      expect.that(capturedRequests.getOrNull(0)?.gradleTasks).isEqualTo(listOf(":app:assembleDebug"))
-
-      expect.that(capturedRequests.getOrNull(1)?.taskId).isSameAs(externalSystemTaskId)
-      expect.that(capturedRequests.getOrNull(1)?.project).isSameAs(project)
-      expect.that(capturedRequests.getOrNull(1)?.rootProjectPath).isEqualTo(path.resolve("app"))
-      expect.that(capturedRequests.getOrNull(1)?.gradleTasks).isEqualTo(listOf("assembleDebug"))
+      expect.that(capturedRequests.getOrNull(0)?.gradleTasks).contains(":app:compileDebugSources")
     }
   }
 }
