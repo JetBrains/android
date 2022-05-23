@@ -29,9 +29,9 @@ import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration
@@ -266,9 +266,11 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
       if (component is Container) {
         for (i in 0 until component.componentCount) {
           val child = component.getComponent(i)
-          val target = findTarget(child, x - child.x, y - child.y)
-          if (target != null) {
-            return target
+          if (child.isVisible) {
+            val target = findTarget(child, x - child.x, y - child.y)
+            if (target != null) {
+              return target
+            }
           }
         }
       }
