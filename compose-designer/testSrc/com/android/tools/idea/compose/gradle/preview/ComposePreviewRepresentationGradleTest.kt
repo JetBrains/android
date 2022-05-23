@@ -104,11 +104,12 @@ class ComposePreviewRepresentationGradleTest {
     }
     composePreviewRepresentation.onActivate()
 
-    runBlocking {
-      composePreviewRepresentation.forceRefresh()!!.join()
-      previewView.updateVisibilityAndNotifications()
+    runAndWaitForRefresh {
+      runBlocking {
+        composePreviewRepresentation.forceRefresh()!!.join()
+        previewView.updateVisibilityAndNotifications()
+      }
     }
-    waitForRefreshToFinish()
     assertTrue(previewView.hasRendered)
     assertTrue(previewView.hasContent)
     assertTrue(!composePreviewRepresentation.status().isRefreshing)
