@@ -69,6 +69,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -158,9 +159,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    for (NamedModuleTemplate template : templates) {
-      moduleTemplatesModel.addElement(template);
-    }
+    templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
     myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 

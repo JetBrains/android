@@ -45,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
@@ -88,9 +89,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
-    for (NamedModuleTemplate template : templates) {
-      moduleTemplatesModel.addElement(template);
-    }
+    templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
     myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
