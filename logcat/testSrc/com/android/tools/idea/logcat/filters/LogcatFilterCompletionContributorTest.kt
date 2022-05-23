@@ -70,7 +70,15 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings).containsExactlyElementsIn(KEYS)
+    assertThat(fixture.lookupElementStrings).containsExactly(
+      "age:",
+      "is:",
+      "level:",
+      "line:",
+      "message:",
+      "package:",
+      "package:mine ",
+      "tag:")
   }
 
   @Test
@@ -274,7 +282,15 @@ class LogcatFilterCompletionContributorTest {
 
       fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings).named(it).containsExactlyElementsIn(KEYS)
+      assertThat(fixture.lookupElementStrings).named(it).containsExactly(
+        "age:",
+        "is:",
+        "level:",
+        "line:",
+        "message:",
+        "package:",
+        "package:mine ",
+        "tag:")
     }
   }
 

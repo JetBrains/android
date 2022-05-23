@@ -65,7 +65,7 @@ private const val IS_KEY = "is:"
 
 // The following are getters so they can be tested. If they are consts, the value is fixed before we can override the flag
 private val KEYS
-  get() = STRING_KEYS + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
+  get() = STRING_KEYS.map { "$it:" } + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
 private val ALL_KEYS
   get() = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEY + AGE_KEY + maybeAddIsKey()
 
