@@ -199,6 +199,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     ActionListener assetListener = actionEvent -> renderPreviews();
     myClipartAssetButton.addAssetListener(assetListener);
+    myClipartAssetButton.setToolTipText("Select Clip Art");
     myFileBrowser.addAssetListener(assetListener);
 
     myListeners.listenAndFire(myAssetSourceType, sourceType -> {
