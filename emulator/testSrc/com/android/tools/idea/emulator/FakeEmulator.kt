@@ -319,6 +319,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
+      .executor(AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulator-gRPC", 1))
       .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
       .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
       .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
