@@ -21,7 +21,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -30,7 +29,6 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.Failure;
-import com.intellij.build.events.MessageEvent;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
