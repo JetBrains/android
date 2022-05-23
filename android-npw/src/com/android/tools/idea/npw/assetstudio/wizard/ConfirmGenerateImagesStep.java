@@ -58,7 +58,6 @@ import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
@@ -160,7 +159,6 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
     templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
-    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

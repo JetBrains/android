@@ -39,7 +39,6 @@ import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Image;
@@ -90,7 +89,6 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
     DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
     templates.stream().sorted(Comparator.comparing(NamedModuleTemplate::getName)).forEach(moduleTemplatesModel::addElement);
-    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
