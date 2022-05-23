@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import javax.swing.JLabel
 import javax.swing.JTextField
 import javax.swing.text.html.HTML
 import javax.swing.text.html.HTMLDocument
@@ -418,6 +419,10 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       val fakeUi = FakeUi(it.rootPane)
+
+      // Activate the needed page of the JBTabbedPane. Tabs are implemented by JLabel.
+      val pairingCodeTab = fakeUi.getComponent<JLabel> { label -> label.text == "Pair using pairing code" }
+      fakeUi.clickOn(pairingCodeTab)
 
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
