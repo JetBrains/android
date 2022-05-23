@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
+import static com.android.tools.idea.gradle.util.AndroidProjectUtilKt.isAndroidProject;
+
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
@@ -33,8 +34,6 @@ import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.android.facet.AndroidFacet;
-
 import java.io.File;
 
 /**
@@ -61,7 +60,7 @@ public class BuildNodeDecorator implements ProjectViewNodeDecorator {
     }
 
     final Project project = directory.getProject();
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!isAndroidProject(project)) {
       return;
     }
 

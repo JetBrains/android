@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.gradle.util.AndroidProjectUtilKt.isAndroidProject;
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
@@ -35,7 +36,6 @@ import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResol
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -60,7 +60,6 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,7 +104,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @NotNull
   private NotificationPanel.Type notificationPanelType(@NotNull Project project) {
-    if (IdeInfo.getInstance().isAndroidStudio() || ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (IdeInfo.getInstance().isAndroidStudio() || isAndroidProject(project)) {
       return notificationPanelType();
     } else {
       return NotificationPanel.Type.NONE;
