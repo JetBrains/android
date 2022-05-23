@@ -54,6 +54,6 @@ object DatabaseInspectorFlagController {
     val previous = flag.get()
     flag.clearOverride() // clears all existing overrides
     if (desiredState != flag.get()) flag.override(desiredState)
-    return previous;
+    return previous
   }
 }

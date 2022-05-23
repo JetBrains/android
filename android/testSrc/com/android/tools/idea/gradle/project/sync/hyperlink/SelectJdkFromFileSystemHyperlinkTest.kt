@@ -25,6 +25,6 @@ internal class SelectJdkFromFileSystemHyperlinkTest : TestCase() {
   fun testCreateProjectDisposed() {
     val mockProject = mock(Project::class.java)
     `when`(mockProject.isDisposed()).thenReturn(true)
-    assertThat(SelectJdkFromFileSystemHyperlink.doCreate(mockProject)).isNull();
+    assertThat(SelectJdkFromFileSystemHyperlink.doCreate(mockProject)).isNull()
   }
 }

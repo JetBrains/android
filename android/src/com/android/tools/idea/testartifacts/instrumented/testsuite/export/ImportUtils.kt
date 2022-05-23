@@ -71,7 +71,7 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
 
   try {
     val runProfile = ImportAndroidTestMatrixRunProfile(xmlFile, project)
-    val executor = DefaultRunExecutor.getRunExecutorInstance();
+    val executor = DefaultRunExecutor.getRunExecutorInstance()
     val builder = ExecutionEnvironmentBuilder.create(project, executor, runProfile)
     runProfile.target?.let { builder.target(it) }
     runProfile.initialConfiguration?.let {

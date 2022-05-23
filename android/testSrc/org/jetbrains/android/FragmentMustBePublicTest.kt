@@ -33,7 +33,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   }
 
   override fun getProjectDescriptor(): LightProjectDescriptor {
-    return LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor();
+    return LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor()
   }
 
   override fun setUp() {

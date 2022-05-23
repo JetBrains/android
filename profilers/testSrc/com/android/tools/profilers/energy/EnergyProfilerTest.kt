@@ -51,12 +51,12 @@ class EnergyProfilerTest {
   @Test
   fun startMonitoring() {
     myProfiler.startProfiling(ProfilersTestData.SESSION_DATA)
-    assertThat(myService.session).isEqualTo(SESSION_DATA);
+    assertThat(myService.session).isEqualTo(SESSION_DATA)
   }
 
   @Test
   fun stopMonitoring() {
     myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA)
-    assertThat(myService.session).isEqualTo(SESSION_DATA);
+    assertThat(myService.session).isEqualTo(SESSION_DATA)
   }
 }

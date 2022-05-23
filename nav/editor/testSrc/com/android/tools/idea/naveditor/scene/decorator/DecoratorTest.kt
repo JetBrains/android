@@ -157,7 +157,7 @@ class DecoratorTest : NavTestCase() {
   fun testFragmentWithImage() {
     val layoutFile = myFixture.addFileToProject("res/layout/mylayout.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                                                            "<android.support.constraint.ConstraintLayout/>") as XmlFile
-    dispatchAllInvocationEvents();
+    dispatchAllInvocationEvents()
     val model = model("nav.xml") {
       navigation {
         fragment(FRAGMENT_ID, layout = "mylayout")

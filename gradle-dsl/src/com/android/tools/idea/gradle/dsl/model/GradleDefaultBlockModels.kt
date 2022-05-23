@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslFile> {
 
   override fun availableModels(): List<BlockModelBuilder<*, GradleDslFile>> {
-    return DEFAULT_ROOT_AVAILABLE_MODELS;
+    return DEFAULT_ROOT_AVAILABLE_MODELS
   }
 
   override fun getParentClass() = GradleBuildModel::class.java

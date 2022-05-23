@@ -39,7 +39,7 @@ class GradleModelConverterUtilTest {
     val modelCache = ModelCache.createForTesting()
 
     @get:Rule
-    val expect = Expect.createAndEnableStackTrace();
+    val expect = Expect.createAndEnableStackTrace()
 
     @Test
     fun testClassFieldsToDynamicResourceValues() {

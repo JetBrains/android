@@ -42,7 +42,7 @@ class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResult
       return
     }
     if (AnalyticsSettings.optedIn) {
-      ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
+      ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project))
     }
   }
 }
@@ -123,7 +123,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
         Computable {
           var numFiles = 0
           FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; true }, searchScope.globalSearchScope(project))
-          numFiles;
+          numFiles
         })
     }
   }

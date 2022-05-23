@@ -70,7 +70,7 @@ class FragmentHandlerTest : LayoutTestCase() {
     val tag = XmlElementFactory.getInstance(getProject()).createTagFromText(
         "    <fragment\n" +
         "        android:id=\"@+id/fragment\"\n" +
-        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
+        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>")
     val editor = mock(ViewEditorImpl::class.java)
     `when`(editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION))).thenReturn("@navigation/testNav")
     (model.surface.sceneManager as SyncLayoutlibSceneManager).setCustomViewEditor(editor)

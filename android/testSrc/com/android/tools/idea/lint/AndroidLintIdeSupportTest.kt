@@ -9,7 +9,7 @@ import junit.framework.TestCase
 class AndroidLintIdeSupportTest : HeavyPlatformTestCase() {
   fun testCyclicExtensionInitialization() {
     val epName = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
-    val inst = epName.extensionList;
+    val inst = epName.extensionList
     TestCase.assertNotNull(inst)
     TestCase.assertEquals(1, inst.size)
   }

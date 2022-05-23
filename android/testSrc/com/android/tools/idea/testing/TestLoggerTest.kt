@@ -26,12 +26,12 @@ class TestLoggerTest : UsefulTestCase() {
   fun testLogger() {
     var err = System.err
     try {
-      val bb = ByteArrayOutputStream();
-      System.setErr(PrintStream(bb));
-      LOG.warn("WARNING!");
+      val bb = ByteArrayOutputStream()
+      System.setErr(PrintStream(bb))
+      LOG.warn("WARNING!")
       assertTrue("Log not configured to output warning to stderr.", String(bb.toByteArray(), Charsets.UTF_8).contains("WARNING!"))
     } finally {
-      System.setErr(err);
+      System.setErr(err)
     }
   }
 }

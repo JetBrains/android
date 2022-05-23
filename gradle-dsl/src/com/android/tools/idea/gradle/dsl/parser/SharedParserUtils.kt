@@ -175,7 +175,7 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
   //  to those (possibly nested) scopes rather than the model.
   val parent = element.parent
-  val parts = ArrayList(name.fullNameParts());
+  val parts = ArrayList(name.fullNameParts())
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, UNKNOWN, name.isFake)
 

@@ -283,7 +283,7 @@ fun NlComponent.isGroup(): Boolean {
  */
 fun NlComponent.isOrHasSuperclass(className: String): Boolean {
   if (!NlComponentHelper.hasNlComponentInfo(this)) {
-    return false;
+    return false
   }
   val viewInfo = viewInfo
   if (viewInfo != null) {

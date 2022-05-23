@@ -28,6 +28,6 @@ class PerfettoConfiguration(name: String) : AtraceConfiguration(name) {
   }
 
   override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.P;
+    return AndroidVersion.VersionCodes.P
   }
 }

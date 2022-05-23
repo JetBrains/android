@@ -27,7 +27,7 @@ object NativeHeaderRootType : JpsElementTypeWithDummyProperties(), JpsModuleSour
 object NativeHeaderRootTypeSerializer : JpsModuleSourceRootPropertiesSerializer<JpsDummyElement>(
   NativeHeaderRootType, "native-header-root") {
   override fun loadProperties(sourceRootTag: Element): JpsDummyElement {
-    return JpsElementFactory.getInstance().createDummyElement();
+    return JpsElementFactory.getInstance().createDummyElement()
   }
 
   override fun saveProperties(properties: JpsDummyElement, sourceRootTag: Element) {

@@ -157,7 +157,7 @@ class MyTestDslModelImpl(val dslElement: MyTestDslElement) : MyTestDslModel, Gra
         GradlePropertyModel.STRING_TYPE)
       return map.inverse()[value] ?: throw IllegalStateException(value)
     }
-    return -1;
+    return -1
   }
 
   override fun setDigit(v: Int) {
@@ -197,7 +197,7 @@ class MyNestedDslElement(parent: GradleDslElement, name: GradleNameElement) : Gr
 
 class MyNestedDslModelImpl(dslElement: MyNestedDslElement) : MyNestedDslModel, GradleDslBlockModel(dslElement) {
   override fun getValue(): String {
-    return GradlePropertyModelBuilder.create(myDslElement, "nestedVal").buildResolved().getValue(GradlePropertyModel.STRING_TYPE) ?: "";
+    return GradlePropertyModelBuilder.create(myDslElement, "nestedVal").buildResolved().getValue(GradlePropertyModel.STRING_TYPE) ?: ""
   }
 
   override fun setValue(v: String) {

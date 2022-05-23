@@ -101,7 +101,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val prop1Model = extModel.findProperty("prop1")
     TestCase.assertNotNull(prop1Model)
     val referenceTo = ReferenceTo(prop1Model)
-    assertEquals(referenceTo.referredElement, prop1Model.rawElement);
+    assertEquals(referenceTo.referredElement, prop1Model.rawElement)
   }
 
   @Test

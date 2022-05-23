@@ -64,7 +64,7 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
   }
 
   open fun build(): MouseEvent {
-    return createMockEvent(MouseEvent::class.java);
+    return createMockEvent(MouseEvent::class.java)
   }
 
   protected fun <T : MouseEvent, U : Class<out T>> createMockEvent(clazz: U): T {

@@ -84,7 +84,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
           }
           if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
             initialViewRange.set(TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
-                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble());
+                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble())
           }
         }
         catch (throwable:Throwable) {

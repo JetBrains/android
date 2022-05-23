@@ -174,7 +174,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun createProject(client: LintIdeClient,
                              files: List<VirtualFile>?,
                              vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
-    return AndroidLintIdeProject.create(client, files, *modules);
+    return AndroidLintIdeProject.create(client, files, *modules)
   }
 
   override fun createProjectForSingleFile(client: LintIdeClient,

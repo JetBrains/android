@@ -109,8 +109,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   var liveAllocationSamplingMode = LiveAllocationSamplingMode.NONE
     private set(mode) {
       if (mode != field) {
-        field = mode;
-        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
+        field = mode
+        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE)
       }
     }
 

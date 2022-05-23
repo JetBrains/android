@@ -91,13 +91,13 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.override(true)
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
 
-    state.STARTUP_PROFILING_ENABLED = true;
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
+    state.STARTUP_PROFILING_ENABLED = true
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
@@ -106,35 +106,35 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
   fun testNoRunConfigSetsAttachTypeInstant() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, null)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT)
   }
 
   fun testMemoryRunConfigSetsAttachTypeAndCommand() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE)
   }
 
   fun testCpuRunConfigSetsAttachTypeAndCommand() {
     // TODO: migrate test to intellij test, or simplify api.
     // Disable live allocation flag to simplify test. This flag and the CPU_PROFILING_ENABLED flag enabled
     // require a project + project service to test.
-    StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.override(false);
+    StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.override(false)
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_CPU_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_CPU_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    `when`(runConfig.profilerState).thenReturn(state)
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE)
   }
 
   fun testCustomizeProxyService() {

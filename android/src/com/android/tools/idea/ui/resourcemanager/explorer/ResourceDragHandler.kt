@@ -92,7 +92,7 @@ internal class ResourceDragHandlerImpl (private val importDelegate: ImportResour
       override fun getDragImage() = createDragPreview(assetList, assetList.selectedValue, assetList.selectedIndex)
 
       override fun createTransferable(c: JComponent?): Transferable {
-        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         return createTransferable(assetList.selectedValue.getHighestDensityAsset())
       }
 

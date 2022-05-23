@@ -68,6 +68,6 @@ class DesignerKeymapExtension : KeymapExtension {
       }
       return keymapGroup
     }
-    return null;
+    return null
   }
 }

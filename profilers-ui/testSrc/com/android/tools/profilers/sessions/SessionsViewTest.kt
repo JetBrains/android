@@ -255,7 +255,7 @@ class SessionsViewTest {
 
   @Test
   fun testUnsupportedDeviceDropdown() {
-    val unsupportedReason = "Unsupported";
+    val unsupportedReason = "Unsupported"
     val device = Common.Device.newBuilder().setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(
       Common.Device.State.ONLINE).setUnsupportedReason(unsupportedReason).build()
     myTransportService.addDevice(device)

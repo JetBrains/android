@@ -105,7 +105,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
               }
               appendln(problem.prependIndent(prefix))
             }
-            println(message);
+            println(message)
             problems.add(message)
           }
         }) {

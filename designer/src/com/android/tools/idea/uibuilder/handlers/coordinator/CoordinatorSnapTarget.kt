@@ -80,7 +80,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
   }
 
   override fun isHittable(): Boolean {
-    return !myComponent.isSelected && !myComponent.isDragging;
+    return !myComponent.isSelected && !myComponent.isDragging
   }
 
   fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) =

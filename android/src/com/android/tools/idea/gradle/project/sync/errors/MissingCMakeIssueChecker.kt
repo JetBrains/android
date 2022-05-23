@@ -231,7 +231,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   }
 
   private fun matchesCmakeWithVersion(message: String): Boolean {
-    return message.startsWith("Unable to find CMake with version:");
+    return message.startsWith("Unable to find CMake with version:")
   }
 
   private fun extractCmakeVersionFromError(firstLine: String): String? {

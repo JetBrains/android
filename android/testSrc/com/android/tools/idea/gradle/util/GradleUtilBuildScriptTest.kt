@@ -33,7 +33,7 @@ import java.io.File
 
 class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   @get:Rule
-  val tempDir = TempDirectory();
+  val tempDir = TempDirectory()
 
   private fun File.toVFile() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)!!
 

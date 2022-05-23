@@ -40,7 +40,7 @@ class IdeLibraryFactoryTest {
 
   @Before
   fun setUp() {
-    modelCache = ModelCache.createForTesting();
+    modelCache = ModelCache.createForTesting()
   }
 
   @Test

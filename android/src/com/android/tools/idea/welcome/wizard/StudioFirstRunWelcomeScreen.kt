@@ -111,7 +111,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     //  Maybe it is worth to run setupWizard earlier and wait here for finish.
     if (mainPanel == null) {
       ApplicationManager.getApplication().invokeAndWait {
-        setupWizard();
+        setupWizard()
       }
     }
     return mainPanel!!

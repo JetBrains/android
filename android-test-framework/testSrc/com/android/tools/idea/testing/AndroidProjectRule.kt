@@ -287,7 +287,7 @@ class AndroidProjectRule private constructor(
           runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
         }
         catch (e: Throwable) {
-          addSuppressedException(e);
+          addSuppressedException(e)
         }
       }
     }

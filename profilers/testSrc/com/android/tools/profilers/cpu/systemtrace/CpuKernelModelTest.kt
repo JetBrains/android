@@ -63,15 +63,15 @@ class CpuKernelModelTest {
     assertThat(myCpuModel.isEmpty).isTrue()
     val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    myStage.capture = capture;
+    myStage.capture = capture
     assertThat(myCpuModel.size).isEqualTo(4)
   }
 
   @Test
   fun fireContentsChanged() {
     var itemAddedCalled = 0
-    var itemRemovedCalled = 0;
-    var contentsChangedCalled = 0;
+    var itemRemovedCalled = 0
+    var contentsChangedCalled = 0
     myCpuModel.addListDataListener(object : ListDataListener {
       override fun intervalAdded(e: ListDataEvent) {
         itemAddedCalled++
@@ -93,7 +93,7 @@ class CpuKernelModelTest {
 
     val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    myStage.capture = capture;
+    myStage.capture = capture
 
     assertThat(contentsChangedCalled).isEqualTo(1)
     assertThat(itemAddedCalled).isEqualTo(4)

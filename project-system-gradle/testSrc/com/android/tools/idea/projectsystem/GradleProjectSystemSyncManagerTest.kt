@@ -93,7 +93,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
     syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
     ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(BuildStatus.SUCCESS) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
   }
 }

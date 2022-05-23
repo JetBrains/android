@@ -582,7 +582,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
       "Foo.kt",
       // language=kotlin
       """
-        package com.example;
+        package com.example
         class Foo {
           fun bar() {
             // language=RoomSql

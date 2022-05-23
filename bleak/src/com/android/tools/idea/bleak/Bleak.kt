@@ -81,7 +81,7 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
     leaks = g2.getLeaks(g1)
   }
 
-  override fun getResults() = leaks;
+  override fun getResults() = leaks
 
 }
 

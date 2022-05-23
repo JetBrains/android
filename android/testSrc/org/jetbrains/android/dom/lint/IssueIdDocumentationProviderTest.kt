@@ -22,7 +22,7 @@ import org.jetbrains.android.AndroidTestCase
 
 class IssueIdDocumentationProviderTest : AndroidTestCase() {
   fun testDescribeIssue() {
-    val psiManager = PsiManager.getInstance(project);
+    val psiManager = PsiManager.getInstance(project)
     val provider = IssueIdDocumentationProvider()
     val vendor = Vendor(
       vendorName = "Android Open Source Project",

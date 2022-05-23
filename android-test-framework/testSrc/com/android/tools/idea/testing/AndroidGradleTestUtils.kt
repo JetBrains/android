@@ -931,7 +931,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
-    val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
+    val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName
     val moduleBasePath = basePath.resolve(gradlePath.substring(1).replace(':', File.separatorChar))
     FileUtils.mkdirs(moduleBasePath)
     val moduleDataNode = when (moduleBuilder) {
@@ -1247,7 +1247,7 @@ private fun <T> openPreparedProject(
 
   fun body(): T {
     val project = runInEdtAndGet {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)

@@ -66,7 +66,7 @@ class UpgradeGradleVersionsQuickFixTest {
     val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     val ideComponents = IdeComponents(project)
-    val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java);
+    val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java)
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
     `when`(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
     val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()

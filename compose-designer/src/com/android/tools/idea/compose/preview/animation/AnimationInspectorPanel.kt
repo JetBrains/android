@@ -951,7 +951,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         val halfWidth = thumbRect.width / 2
         val x = thumbRect.x + halfWidth
         val y = thumbRect.y + TIMELINE_HEADER_HEIGHT
-        g.drawLine(x, y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
+        g.drawLine(x, y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight())
 
         // The scrubber handle should have the following shape:
         //         ___

@@ -29,7 +29,7 @@ class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
                     val threads: TLongObjectHashMap<ThreadInfo>,
                     var roots: TLongObjectHashMap<RootReason>) {
 
-  class RemapException : Exception();
+  class RemapException : Exception()
 
   fun remapIds(remappingFunction: LongUnaryOperator) {
     // Remap ids in class store

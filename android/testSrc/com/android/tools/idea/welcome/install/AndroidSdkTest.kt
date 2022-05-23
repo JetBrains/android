@@ -36,9 +36,9 @@ class AndroidSdkTest {
   @Test
   fun `Haxm is only compatible on Windows with Intel CPU`() {
     if (SystemInfo.isWindows && CpuVendor.isIntel) {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS)
     } else {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS)
     }
   }
 }

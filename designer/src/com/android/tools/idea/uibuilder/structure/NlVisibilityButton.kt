@@ -65,7 +65,7 @@ class NlVisibilityButton: JButton() {
 
     // These are required to remove blue border when clicked.
     border = BorderFactory.createEmptyBorder()
-    isBorderPainted = false;
+    isBorderPainted = false
     isFocusPainted = false
   }
 

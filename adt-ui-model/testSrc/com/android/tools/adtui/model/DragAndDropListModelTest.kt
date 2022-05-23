@@ -42,7 +42,7 @@ class DragAndDropListModelTest {
     val finalArray = arrayOf(THIRD, FIRST, SECOND)
     val model = DragAndDropListModel<SimpleListModelElement>()
     addElements(model, initialArray)
-    model.moveElementTo(THIRD, 0);
+    model.moveElementTo(THIRD, 0)
     validateOrder(model, finalArray)
   }
 
