@@ -98,6 +98,11 @@
                            id="EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
                            order="first"/>
+    <completion.contributor language="TOML"
+                            implementationClass="com.android.tools.idea.gradle.completions.TomlVersionRefCompletionContributor" />
+    <completion.confidence language="TOML"
+                           id="EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>

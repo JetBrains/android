@@ -93,7 +93,7 @@ private val INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN = psiElement(KtLambdaArgum
     }
   })
 
-private val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
+internal val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
   object : PatternCondition<PsiFile>(null) {
     override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
       val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
@@ -102,7 +102,7 @@ private val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
   }
 )
 
-private val TOML_LIBRARIES_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
+internal val TOML_LIBRARIES_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
   object : PatternCondition<TomlTable>(null) {
     override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
       tomlTable.header.key?.segments?.map { it.name }?.joinToString(".") == "libraries"
