@@ -53,9 +53,6 @@ public final class StringResource {
   @NotNull
   private final StringResourceData myData;
 
-  @NotNull
-  private final String myResourceFolderString;
-
   private boolean myTranslatable;
 
   @NotNull
@@ -94,8 +91,6 @@ public final class StringResource {
       }
     }
 
-    myResourceFolderString = key.getDirectory() == null ? "" : VirtualFiles.toString(key.getDirectory(), data.getProject());
-
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
     myLocaleToTranslationMap = localeToTranslationMap;
@@ -108,11 +103,6 @@ public final class StringResource {
     }
     ResourceItemEntry resourceItemEntry = myLocaleToTranslationMap.get(locale);
     return resourceItemEntry == null ? "" : resourceItemEntry.myTagText;
-  }
-
-  @NotNull
-  public String getResourceFolderString() {
-    return myResourceFolderString;
   }
 
   @Nullable
