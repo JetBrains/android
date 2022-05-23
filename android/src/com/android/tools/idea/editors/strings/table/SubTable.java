@@ -193,6 +193,17 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   }
 
   @Override
+  public Dimension getPreferredSize() {
+    if (getColumnCount() == 0 && myFrozenColumnTable.getFrozenTable().getColumnCount() > 0) {
+      // Allow the vertical scrollbar to show even when there are no locales defined (b/165896691)
+      Dimension size = myFrozenColumnTable.getFrozenTable().getPreferredSize();
+      size.width = 0;
+      return size;
+    }
+    return super.getPreferredSize();
+  }
+
+  @Override
   public String toString() {
     return getName();
   }
