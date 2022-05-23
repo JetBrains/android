@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.cuj
 
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -120,6 +119,7 @@ class QrScanningCujTest {
           .setName("ic_qr_code")
           .setWidth(100)
           .clickNext()
+          .selectResFolder("main")
           .clickFinish()
       }
       .closeResourceManager()
@@ -188,6 +188,7 @@ class QrScanningCujTest {
           .setName("ic_baseline_flash_on_24")
           .setColor("FFFFFF")
           .clickNext()
+          .selectResFolder("main")
           .clickFinish()
       }.closeResourceManager()
 

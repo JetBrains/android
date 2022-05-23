@@ -108,6 +108,7 @@ class ResourceExplorerTest {
       .filterByNameAndSelect("android")
       .clickOk()
       .clickNext()
+      .selectResFolder("main")
       .clickFinish()
 
     // 3. Drag the created Drawable in to the Layout Editor, should create a new ImageView component.

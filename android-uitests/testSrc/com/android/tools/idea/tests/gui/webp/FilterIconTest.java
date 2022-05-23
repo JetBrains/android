@@ -70,6 +70,7 @@ public class FilterIconTest {
       .filterByNameAndSelect("call")
       .clickOk()
       .clickNext()
+      .selectResFolder("main")
       .clickFinish()
       .getEditor()
       .open("app/src/main/res/drawable/ic_baseline_add_ic_call_24.xml")

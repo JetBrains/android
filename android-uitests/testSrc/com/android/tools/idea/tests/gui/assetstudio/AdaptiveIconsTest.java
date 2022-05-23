@@ -79,6 +79,7 @@ public class AdaptiveIconsTest {
       "Circle", "Squircle", "Rounded Square", "Square", "Full Bleed Layers", "Legacy Icon", "Round Icon", "Google Play Store")
       .inOrder();
     wizard.clickNext();
+    wizard.selectResFolder("main");
     wizard.clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
