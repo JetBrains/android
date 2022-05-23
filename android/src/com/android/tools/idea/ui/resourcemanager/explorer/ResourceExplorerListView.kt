@@ -523,7 +523,7 @@ class ResourceExplorerListView(
 
   private fun displayLoading() {
     showLoadingFuture = null
-    if (populateResourcesFuture?.isDone?: true) {
+    if (populateResourcesFuture?.isDone != false) {
       return
     }
     sectionListModel.clear()

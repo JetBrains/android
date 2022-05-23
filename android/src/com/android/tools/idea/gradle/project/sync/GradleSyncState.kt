@@ -457,7 +457,7 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
         project.putUserData(PROJECT_SYNC_REQUEST, null)
       }
       if (!GradleSyncState.getInstance(project)
-          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.fullSync ?: false)
+          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.fullSync == true)
       ) {
         stopTrackingTask(project, id)
         return
