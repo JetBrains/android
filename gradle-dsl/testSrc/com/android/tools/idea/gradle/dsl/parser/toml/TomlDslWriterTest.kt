@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
@@ -43,6 +45,16 @@ class TomlDslWriterTest : PlatformTestCase() {
     val contents = mapOf("foo" to "bar")
     val expected = """
       foo = "bar"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testSingleTable() {
+    val contents = mapOf("foo" to mapOf("bar" to "baz"))
+    val expected = """
+      [foo]
+      bar = "baz"
     """.trimIndent()
 
     doTest(contents, expected)
@@ -76,6 +88,11 @@ class TomlDslWriterTest : PlatformTestCase() {
     fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
       when (value) {
         is String -> element.setNewLiteral(key, value)
+        is Map<*,*> -> {
+          val dslMap = GradleDslExpressionMap(element, GradleNameElement.create(key))
+          value.forEach { (k, v) -> populate(k as String, v as Any, dslMap) }
+          element.setNewElement(dslMap)
+        }
       }
     }
     map.forEach { (k, v) -> populate(k, v, dslFile) }

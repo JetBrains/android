@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
@@ -55,7 +56,10 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     val externalNameInfo = maybeTrimForParent(element, this)
 
     val psi = when (element.parent) {
-      is GradleVersionCatalogFile -> factory.createTable(externalNameInfo.externalNameParts[0])
+      is GradleDslFile -> when (element) {
+        is GradleDslExpressionMap -> factory.createTable(externalNameInfo.externalNameParts[0])
+        else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+      }
       else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
     }
 
