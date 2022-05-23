@@ -98,18 +98,18 @@ private val DEPENDENCIES_IN_GRADLE_FILE_PATTERN = psiElement()
 
 private val DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN = psiElement()
   .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(psiElement(KtLiteralStringTemplateEntry::class.java))
+  .withParent(KtLiteralStringTemplateEntry::class.java)
   .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE_KTS)))
   .inside(true, INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN)
 
 private val DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN = psiElement()
   .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(psiElement(KtLiteralStringTemplateEntry::class.java))
+  .withParent(KtLiteralStringTemplateEntry::class.java)
   .inFile(INSIDE_BUILD_SRC_PATTERN)
 
 private val DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN = psiElement()
   .withLanguage(JavaLanguage.INSTANCE)
-  .withParent(psiElement(PsiLiteralExpression::class.java))
+  .withParent(PsiLiteralExpression::class.java)
   .inFile(INSIDE_BUILD_SRC_PATTERN)
 
 /**
