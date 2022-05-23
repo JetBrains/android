@@ -76,6 +76,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,13 +155,29 @@ public class ConvertToWebpAction extends DumbAwareAction {
     return false;
   }
 
+  private static boolean isAssetDirectory(@NotNull VirtualFile file, @NotNull Project project) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module == null) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      for (VirtualFile dir : SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getAssetsDirectories()) {
+        if (file.equals(dir)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     VirtualFile[] files = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
     if (files != null && e.getProject() != null) {
       for (VirtualFile file : files) {
         boolean directory = file.isDirectory();
-        if (directory && isResourceDirectory(file, e.getProject()) ||
+        if (directory && (isResourceDirectory(file, e.getProject()) || isAssetDirectory(file, e.getProject())) ||
             !directory &&
             isEligibleForConversion(file, null)) {
           e.getPresentation().setEnabledAndVisible(true);
