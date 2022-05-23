@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 7.4.0-dev">
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
+            line="78"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
+            line="87"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
+            line="99"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
+            line="131"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
+            line="267"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
+            line="319"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
+            line="404"/>
+    </issue>
+
+</issues>

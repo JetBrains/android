@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.2.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -22,7 +22,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="179"/>
+            line="182"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="256"/>
+            line="257"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="298"/>
+            line="299"/>
     </issue>
 
     <issue
@@ -94,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="304"/>
+            line="305"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="309"/>
+            line="310"/>
     </issue>
 
     <issue
@@ -110,7 +110,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="313"/>
+            line="314"/>
     </issue>
 
     <issue
@@ -118,7 +118,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="319"/>
+            line="320"/>
     </issue>
 
     <issue
@@ -126,7 +126,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="379"/>
+            line="380"/>
     </issue>
 
     <issue
@@ -134,7 +134,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="382"/>
+            line="383"/>
     </issue>
 
     <issue
@@ -142,7 +142,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="384"/>
+            line="385"/>
     </issue>
 
     <issue
@@ -150,7 +150,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="60"/>
+            line="77"/>
     </issue>
 
     <issue
@@ -158,7 +158,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="120"/>
+            line="144"/>
     </issue>
 
     <issue
@@ -175,6 +175,22 @@
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoModel.java"
             line="100"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/energy/EnergyUsage.java"
+            line="31"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/network/NetworkUsage.java"
+            line="35"/>
     </issue>
 
 </issues>

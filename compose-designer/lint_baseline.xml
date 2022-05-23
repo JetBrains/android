@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.3.0-dev">
+<issues format="5" by="lint 7.4.0-dev">
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
+            line="269"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
+            line="277"/>
+    </issue>
 
     <issue
         id="VisibleForTests"
@@ -14,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="181"/>
+            line="280"/>
     </issue>
 
     <issue
@@ -22,7 +38,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="183"/>
+            line="282"/>
     </issue>
 
     <issue
@@ -30,7 +46,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="189"/>
+            line="288"/>
     </issue>
 
     <issue
@@ -38,7 +54,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="191"/>
+            line="290"/>
     </issue>
 
     <issue
