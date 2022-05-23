@@ -40,11 +40,28 @@ interface GradleBuildInvoker {
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
 
   /**
-   * Executes Gradle tasks requested for each root in separate Gradle invocations. The results (including failed sub-builds) are reported as
-   * GradleInvocationResult, however, any unexpected failures are returned as a failed future.
+   * Executes Gradle tasks requested in each request in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
+   * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [AssembleInvocationResult], however,
+   * any unexpected failures are returned as a failed future. The order of invocations in the [AssembleInvocationResult] matches the order
+   * of requests in [request].
+   *
+   * Note, the build mode of all requests need to be the same. If a build request is not intended to be used in deployment, [executeTasks]
+   * can run arbitrary requests without this restriction.
    */
   fun executeAssembleTasks(assembledModules: Array<Module>, request: List<Request>): ListenableFuture<AssembleInvocationResult>
 
+  /**
+   * Executes build requests in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
+   * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [GradleMultiInvocationResult], however,
+   * any unexpected failures are returned as a failed future. The order of invocations in the [GradleMultiInvocationResult] matches the order
+   * of requests in [request].
+   */
+  fun executeTasks(request: List<Request>): ListenableFuture<GradleMultiInvocationResult>
+
+  /**
+   * Executes one build request. The result (including a failed build) is reported as [GradleInvocationResult], however any unexpected
+   * failures are reported as a failed future.
+   */
   fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
 
   fun stopBuild(id: ExternalSystemTaskId): Boolean

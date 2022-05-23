@@ -89,6 +89,7 @@ import java.util.concurrent.TimeUnit.SECONDS
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
  * tool window.
  */
+// TODO(b/233583712): This class needs better tests to verify multi root builds, cancellation etc.
 @SuppressWarnings("UnstableApiUsage")
 class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal constructor(
   override val project: Project,
@@ -331,6 +332,10 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
   override fun executeTasks(request: GradleBuildInvoker.Request): ListenableFuture<GradleInvocationResult> {
     return executeTasks(request, null)
+  }
+
+  override fun executeTasks(request: List<GradleBuildInvoker.Request>): ListenableFuture<GradleMultiInvocationResult> {
+    return combineGradleInvocationResults(request.map { executeTasks(it) })
   }
 
   @VisibleForTesting
