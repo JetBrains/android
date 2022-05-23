@@ -31,7 +31,6 @@ import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.JList;
@@ -49,8 +48,8 @@ final class AddLocaleAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     long count = myPanel.getTable().getModel().getKeys().stream()
-                        .filter(key -> key.getDirectory() != null)
-                        .count();
+      .filter(key -> key.getDirectory() != null)
+      .count();
 
     event.getPresentation().setEnabled(count != 0);
   }
@@ -63,8 +62,8 @@ final class AddLocaleAction extends AnAction {
     JList list = new LocaleList(getLocales(data.getLocaleSet()));
 
     JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-                                  .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
-                                  .createPopup();
+      .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
+      .createPopup();
 
     popup.showUnderneathOf(event.getInputEvent().getComponent());
   }
@@ -73,16 +72,16 @@ final class AddLocaleAction extends AnAction {
   @VisibleForTesting
   static Collection<Locale> getLocales(@NotNull Collection<Locale> localesToRemove) {
     return LocaleManager.getLanguageCodes(true).stream()
-                        .flatMap(AddLocaleAction::getLocales)
-                        .filter(locale -> !localesToRemove.contains(locale))
-                        .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
-                        .collect(Collectors.toList());
+      .flatMap(AddLocaleAction::getLocales)
+      .filter(locale -> !localesToRemove.contains(locale))
+      .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
+      .collect(Collectors.toList());
   }
 
   @NotNull
   private static Stream<Locale> getLocales(@NotNull String language) {
     Stream<Locale> regionStream = LocaleManager.getRelevantRegions(language).stream()
-                                               .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
+      .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
 
     return Stream.concat(Stream.of(createLocale(language)), regionStream);
   }
@@ -96,8 +95,10 @@ final class AddLocaleAction extends AnAction {
   @VisibleForTesting
   void createItem(@NotNull Locale locale) {
     Project project = myPanel.getFacet().getModule().getProject();
-    StringResource resource = findResource();
-    StringResourceKey key = resource.getKey();
+    StringResourceData data = myPanel.getTable().getData();
+    assert data != null;
+    StringResourceKey key = findResourceKey(data);
+
     XmlFile file = StringPsiUtils.getStringResourceFile(project, key, locale);
 
     if (file == null) {
@@ -105,30 +106,24 @@ final class AddLocaleAction extends AnAction {
     }
 
     WriteCommandAction.runWriteCommandAction(project, () -> {
-      StringPsiUtils.addString(file, key, resource.getDefaultValueAsString());
+      StringPsiUtils.addString(file, key, data.getStringResource(key).getDefaultValueAsString());
       myPanel.reloadData();
     });
   }
 
   @NotNull
-  private StringResource findResource() {
-    StringResourceData data = myPanel.getTable().getData();
-    assert data != null;
-
+  private StringResourceKey findResourceKey(@NotNull StringResourceData data) {
     List<VirtualFile> folders = ResourceFolderManager.getInstance(myPanel.getFacet()).getFolders();
 
     if (!folders.isEmpty()) {
       StringResourceKey key = new StringResourceKey("app_name", folders.get(0));
 
       if (data.containsKey(key)) {
-        return data.getStringResource(key);
+        return key;
       }
     }
 
-    Optional<StringResource> optionalResource = data.getResources().stream()
-                                                    .filter(resource -> resource.getKey().getDirectory() != null)
-                                                    .findFirst();
-
-    return optionalResource.orElseThrow(IllegalStateException::new);
+    return
+      data.getKeys().stream().filter(k -> k.getDirectory() != null).findFirst().orElseThrow(IllegalStateException::new);
   }
 }

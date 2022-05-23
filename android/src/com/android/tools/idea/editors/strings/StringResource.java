@@ -33,7 +33,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -49,13 +48,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class StringResource {
   @NotNull
-  private final Project myProject;
-
-  @NotNull
   private final StringResourceKey myKey;
 
   @NotNull
-  private final String myResourceFolder;
+  private final StringResourceData myData;
+
+  @NotNull
+  private final String myResourceFolderString;
 
   private boolean myTranslatable;
 
@@ -65,12 +64,10 @@ public final class StringResource {
   @NotNull
   private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap;
 
-  @NotNull
-  private final StringResourceData myData;
-
   public StringResource(@NotNull StringResourceKey key, @NotNull StringResourceData data) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    myProject = data.getProject();
+    myKey = key;
+    myData = data;
     boolean translatable = true;
     ResourceItemEntry defaultValue = new ResourceItemEntry();
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
@@ -80,7 +77,7 @@ public final class StringResource {
         Logger.getInstance(StringResource.class).warn(item + " has an unexpected class " + item.getClass().getName());
       }
 
-      XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
+      XmlTag tag = IdeResourcesUtil.getItemTag(data.getProject(), item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
         translatable = false;
@@ -97,20 +94,11 @@ public final class StringResource {
       }
     }
 
-    myKey = key;
-
-    VirtualFile folder = key.getDirectory();
-    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, myProject);
+    myResourceFolderString = key.getDirectory() == null ? "" : VirtualFiles.toString(key.getDirectory(), data.getProject());
 
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
     myLocaleToTranslationMap = localeToTranslationMap;
-    myData = data;
-  }
-
-  @NotNull
-  StringResourceKey getKey() {
-    return myKey;
   }
 
   @NotNull
@@ -123,8 +111,8 @@ public final class StringResource {
   }
 
   @NotNull
-  public String getResourceFolder() {
-    return myResourceFolder;
+  public String getResourceFolderString() {
+    return myResourceFolderString;
   }
 
   @Nullable
@@ -145,7 +133,7 @@ public final class StringResource {
           return false;
         }
 
-        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)));
+        myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item)));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -168,7 +156,7 @@ public final class StringResource {
     ResourceItem item = myData.getRepository().getDefaultValue(myKey);
     assert item != null;
 
-    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item)));
+    myDefaultValue = new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item)));
     return Futures.immediateFuture(true);
   }
 
@@ -248,7 +236,7 @@ public final class StringResource {
         }
 
         myLocaleToTranslationMap
-          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item))));
+          .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item))));
         return true;
       }, SameThreadExecutor.INSTANCE);
     }
@@ -275,7 +263,7 @@ public final class StringResource {
     assert item != null;
 
     myLocaleToTranslationMap
-      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myProject, item))));
+      .put(locale, new ResourceItemEntry(item, getTextOfTag(IdeResourcesUtil.getItemTag(myData.getProject(), item))));
     return Futures.immediateFuture(true);
   }
 
@@ -386,11 +374,10 @@ public final class StringResource {
       String string = value.getRawXmlValue();
       assert string != null;
 
-      boolean stringValid;
+      boolean stringValid = true;
 
       try {
         string = CharacterDataEscaper.unescape(string);
-        stringValid = true;
       }
       catch (IllegalArgumentException exception) {
         stringValid = false;

@@ -172,7 +172,7 @@ public class StringResourceTableModel extends AbstractTableModel {
       case KEY_COLUMN:
         return getKey(row).getName();
       case RESOURCE_FOLDER_COLUMN:
-        return getStringResourceAt(row).getResourceFolder();
+        return getStringResourceAt(row).getResourceFolderString();
       case UNTRANSLATABLE_COLUMN:
         return !getStringResourceAt(row).isTranslatable();
       case DEFAULT_VALUE_COLUMN:
