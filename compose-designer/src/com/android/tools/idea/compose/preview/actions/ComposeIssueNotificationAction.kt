@@ -320,7 +320,10 @@ class ComposeIssueNotificationAction : AnAction(), CustomComponentAction, Dispos
         ),
         listOfNotNull(
           if (it is ComposePreviewStatusNotification.NeedsBuild)
-            actionLink(message("fast.preview.disabled.notification.reenable.action.title"), BuildAndRefresh(composePreviewManager), e.dataContext)
+            actionLink(
+              message("action.build.and.refresh.title")
+                .replace("&&", "&"), // Remove any ampersand escaping for tooltips (not needed in these links)
+              BuildAndRefresh(composePreviewManager), e.dataContext)
           else null,
           if (isAutoDisabled)
             actionLink(message("fast.preview.disabled.notification.reenable.action.title"), ReEnableFastPreview(), e.dataContext)
