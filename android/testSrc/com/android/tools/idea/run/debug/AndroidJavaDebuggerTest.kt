@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 package com.android.tools.idea.run.debug
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.configuration.execution.RunnableClientsService
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
@@ -45,7 +47,13 @@ import java.util.concurrent.TimeUnit
  * See [StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER].
  */
 class AndroidJavaDebuggerTest {
-  private val APP_PACKAGE = "com.android.example"
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule.withActivityManagerCommandHandler(object : ActivityManagerCommandHandler.CommandHandlerAdapter {
+    override fun forceStop(deviceState: DeviceState, args: String): String {
+      deviceState.stopClient(client.clientData.pid)
+      return ""
+    }
+  })
 
   @get:Rule
   val projectRule = ProjectRule()
@@ -54,24 +62,19 @@ class AndroidJavaDebuggerTest {
     get() = projectRule.project
 
   private lateinit var client: Client
-  private lateinit var runnableClientsService: RunnableClientsService
+  private lateinit var device: IDevice
   private lateinit var executionEnvironment: ExecutionEnvironment
-
-
-  private fun createDevice(): IDevice {
-    val mockDevice = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(mockDevice.version).thenReturn(AndroidVersion(26))
-    Mockito.`when`(mockDevice.isOnline).thenReturn(true)
-    return mockDevice
-  }
 
   @Before
   fun setUp() {
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.override(true)
+    // Connect a test device.
+    val state = fakeAdbRule.connectAndWaitForDevice()
+    device = AndroidDebugBridge.getBridge()!!.devices.single()
+    client = FakeAdbTestRule.launchAndWaitForProcess(state, true)
+    assertThat(device.getClient(FakeAdbTestRule.CLIENT_PACKAGE_NAME)).isEqualTo(client)
+
     executionEnvironment = createFakeExecutionEnvironment(project, "myConfiguration")
-    runnableClientsService = RunnableClientsService(project)
-    val device = createDevice()
-    client = runnableClientsService.startClient(device, APP_PACKAGE)
   }
 
   @After
@@ -79,15 +82,16 @@ class AndroidJavaDebuggerTest {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
-    runnableClientsService.stop()
     StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.clearOverride()
   }
 
   @Test
   fun testSessionCreated() {
     val session = attachJavaDebuggerToClient(project, client, executionEnvironment, null,
-                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
-                                                                                                                                TimeUnit.SECONDS)
+                                             onDebugProcessDestroyed = { device ->
+                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+                                             }).blockingGet(10,
+                                                            TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(session!!.sessionName).isEqualTo("myConfiguration")
   }
@@ -101,8 +105,10 @@ class AndroidJavaDebuggerTest {
 
     val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
                                              onDebugProcessStarted = onDebugProcessStarted,
-                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
-                                                                                                                                TimeUnit.SECONDS)
+                                             onDebugProcessDestroyed = { device ->
+                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+                                             }).blockingGet(10,
+                                                            TimeUnit.SECONDS)
     assertThat(session).isNotNull()
     assertThat(callbackCount).isEqualTo(1)
   }
@@ -152,31 +158,46 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testKillAppOnDestroy() {
-    val mockDevice = client.device
+    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
+                                             onDebugProcessDestroyed = { device ->
+                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+                                             }).blockingGet(10,
+                                                            TimeUnit.SECONDS)!!
 
     val countDownLatch = CountDownLatch(1)
-    Mockito.`when`(mockDevice.forceStop(any())).then {
-      countDownLatch.countDown()
-    }
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
-                                                                                                                                TimeUnit.SECONDS)!!
+
+    AndroidDebugBridge.addDeviceChangeListener(object : IDeviceChangeListener {
+      override fun deviceConnected(device: IDevice) {}
+      override fun deviceDisconnected(device: IDevice) {}
+
+      override fun deviceChanged(device: IDevice, changeMask: Int) {
+        if (device == client.device && changeMask and IDevice.CHANGE_CLIENT_LIST != 0) {
+          if (device.getClient(FakeAdbTestRule.CLIENT_PACKAGE_NAME) == null) {
+            countDownLatch.countDown()
+            AndroidDebugBridge.removeDeviceChangeListener(this)
+          }
+        }
+      }
+    })
+
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
-    if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
+    if (!countDownLatch.await(20, TimeUnit.SECONDS)) {
       fail("Process wasn't killed")
     }
-    Mockito.verify(mockDevice).forceStop(eq("com.android.example"))
   }
 
   @Test
   fun testVMExitedNotifierIsInvokedOnDetach() {
-    val session = attachJavaDebuggerToClient(project, client, executionEnvironment,
-                                             onDebugProcessDestroyed = { device -> device.forceStop(APP_PACKAGE) }).blockingGet(10,
-                                                                                                                                TimeUnit.SECONDS)!!
+    val spyClient = Mockito.spy(client)
+    val session = attachJavaDebuggerToClient(project, spyClient, executionEnvironment,
+                                             onDebugProcessDestroyed = { device ->
+                                               device.forceStop(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+                                             }).blockingGet(10,
+                                                            TimeUnit.SECONDS)!!
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
-    Mockito.verify(client).notifyVmMirrorExited()
+    Mockito.verify(spyClient).notifyVmMirrorExited()
   }
 }
