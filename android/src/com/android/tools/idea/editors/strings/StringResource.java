@@ -55,7 +55,7 @@ public final class StringResource {
 
   private boolean myTranslatable;
 
-  @NotNull
+  @Nullable
   private ResourceItemEntry myDefaultValue;
 
   @NotNull
@@ -66,7 +66,7 @@ public final class StringResource {
     myKey = key;
     myData = data;
     boolean translatable = true;
-    ResourceItemEntry defaultValue = new ResourceItemEntry();
+    @Nullable ResourceItemEntry defaultValue = null;
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
@@ -98,25 +98,25 @@ public final class StringResource {
 
   @NotNull
   String getTagText(@Nullable Locale locale) {
-    if (locale == null) {
-      return myDefaultValue.myTagText;
+    @Nullable ResourceItemEntry resourceItemEntry = myDefaultValue;
+    if (locale != null) {
+      resourceItemEntry = myLocaleToTranslationMap.get(locale);
     }
-    ResourceItemEntry resourceItemEntry = myLocaleToTranslationMap.get(locale);
     return resourceItemEntry == null ? "" : resourceItemEntry.myTagText;
   }
 
   @Nullable
   ResourceItem getDefaultValueAsResourceItem() {
-    return myDefaultValue.myResourceItem;
+    return myDefaultValue == null ? null : myDefaultValue.myResourceItem;
   }
 
   @NotNull
   public String getDefaultValueAsString() {
-    return myDefaultValue.myString;
+    return myDefaultValue == null ? "" : myDefaultValue.myString;
   }
 
   public @NotNull ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
-    if (myDefaultValue.myResourceItem == null) {
+    if (myDefaultValue == null) {
       ListenableFuture<ResourceItem> futureItem = createDefaultValue(defaultValue);
       return Futures.transform(futureItem, item -> {
         if (item == null) {
@@ -139,7 +139,7 @@ public final class StringResource {
     }
 
     if (defaultValue.isEmpty()) {
-      myDefaultValue = new ResourceItemEntry();
+      myDefaultValue = null;
       return Futures.immediateFuture(true);
     }
 
@@ -172,7 +172,7 @@ public final class StringResource {
 
   @Nullable
   public String validateDefaultValue() {
-    if (myDefaultValue.myResourceItem == null) {
+    if (myDefaultValue == null) {
       return "Key \"" + myKey.getName() + "\" is missing its default value";
     }
 
@@ -331,7 +331,7 @@ public final class StringResource {
   }
 
   private static final class ResourceItemEntry {
-    @Nullable
+    @NotNull
     private final ResourceItem myResourceItem;
 
     @NotNull
@@ -341,13 +341,6 @@ public final class StringResource {
     private final String myString;
 
     private final boolean myStringValid;
-
-    private ResourceItemEntry() {
-      myResourceItem = null;
-      myTagText = "";
-      myString = "";
-      myStringValid = true;
-    }
 
     private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String tagText) {
       myResourceItem = resourceItem;
