@@ -102,6 +102,10 @@ class AssetListView(
     filteringListModel?.refilter()
   }
 
+  fun getFilteredSize(): Int? {
+    return filteringListModel?.size
+  }
+
   private fun updateCellSize() {
     assetView.viewWidth = thumbnailWidth
     fixedCellWidth = assetView.preferredSize.width

@@ -396,12 +396,12 @@ class ResourceExplorerListView(
     populateResourcesLists()
     populateSearchLinkLabels()
     viewModel.speedSearch.addChangeListener {
-      sectionList.getLists().filterIsInstance<AssetListView>().forEach()
-      { assetListView ->
-        assetListView.refilter()
-        centerPanel.validate()
-        centerPanel.repaint()
+      sectionList.getLists().filterIsInstance<AssetListView>().forEach { assetListView -> assetListView.refilter() }
+      sectionList.getSections().filterIsInstance<AssetSection<AssetListView>>().forEach {
+        section -> section.updateHeaderName((section.list as? AssetListView)?.getFilteredSize())
       }
+      centerPanel.validate()
+      centerPanel.repaint()
       populateSearchLinkLabels()
     }
 
@@ -638,8 +638,8 @@ class ResourceExplorerListView(
       }
   }
 
-  private fun createSection(section: ResourceSection) =
-    AssetSection(section.libraryName, section.assetSets.size, AssetListView(section.assetSets, viewModel.speedSearch).apply {
+  private fun createSection(section: ResourceSection): AssetSection<ResourceAssetSet> {
+    val assetList = AssetListView(section.assetSets, viewModel.speedSearch).apply {
       cellRenderer = DesignAssetCellRenderer(viewModel.assetPreviewManager)
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
@@ -655,7 +655,9 @@ class ResourceExplorerListView(
       }
       thumbnailWidth = this@ResourceExplorerListView.previewSize
       isGridMode = this@ResourceExplorerListView.gridMode
-    })
+    }
+    return AssetSection(section.libraryName, assetList.getFilteredSize(), assetList)
+  }
 
   fun addSelectionListener(listener: SelectionListener) {
     listeners += listener
@@ -672,21 +674,24 @@ class ResourceExplorerListView(
 
   private class AssetSection<T>(
     override var name: String,
-    val size: Int?,
+    size: Int?,
     override var list: JList<T>
   ) : Section<T> {
 
     private var listIsExpanded = true
+    private val headerNameLabel = JBLabel(buildName(size)).apply {
+      font = SECTION_HEADER_LABEL_FONT
+      border = JBUI.Borders.empty(8, 0)
+    }
 
     override var header: JComponent = createHeaderComponent()
 
+    fun updateHeaderName(newSize: Int?) {
+      headerNameLabel.text = buildName(newSize)
+    }
+
     private fun createHeaderComponent() = JPanel(BorderLayout()).apply {
       isOpaque = false
-      val itemNumber = this@AssetSection.size?.let { " ($it)" } ?: ""
-      val nameLabel = JBLabel("${this@AssetSection.name}$itemNumber").apply {
-        font = SECTION_HEADER_LABEL_FONT
-        border = JBUI.Borders.empty(8, 0)
-      }
       val linkLabel = LinkLabel(null, AllIcons.Ide.Notification.Collapse, LinkListener<String> { source, _ ->
         // Create a clickable label that toggles the expand/collapse icon every time is clicked, and hides/shows the list in this section.
         source.icon = if (listIsExpanded) AllIcons.Ide.Notification.Expand else AllIcons.Ide.Notification.Collapse
@@ -698,9 +703,14 @@ class ResourceExplorerListView(
       }).apply {
         setHoveringIcon(AllIcons.Ide.Notification.CollapseHover)
       }
-      add(nameLabel, BorderLayout.WEST)
+      add(headerNameLabel, BorderLayout.WEST)
       add(linkLabel, BorderLayout.EAST)
       border = SECTION_HEADER_BORDER
+    }
+
+    private fun buildName(size: Int?): String {
+      val itemNumber = size?.let { " ($it)" } ?: ""
+      return "${this@AssetSection.name}$itemNumber"
     }
   }
 

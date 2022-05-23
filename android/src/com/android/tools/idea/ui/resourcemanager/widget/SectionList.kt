@@ -188,6 +188,8 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     return allInnerLists
   }
 
+  fun getSections() = model.sections
+
   var selectedValue: Any?
     get() = allInnerLists.firstOrNull { it.selectedValue != null }?.selectedValue
     set(value) = allInnerLists.forEach {
