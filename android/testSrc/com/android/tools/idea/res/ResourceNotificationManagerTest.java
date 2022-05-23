@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotEquals;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.testutils.ignore.OnWindows;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
@@ -40,6 +39,7 @@ import com.intellij.util.ui.UIUtil;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -51,11 +51,6 @@ import org.jetbrains.annotations.NotNull;
 public class ResourceNotificationManagerTest extends AndroidTestCase {
 
   public void testEditNotifications() throws Exception {
-    // TODO: re-enable when b/233398967 is fixed.
-    if (new OnWindows().present()) {
-      return;
-    }
-
     @Language("XML") String xml;
 
     // Setup sample project: a strings file, and a couple of layout file
@@ -310,7 +305,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
                             @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
-    waitForResourceRepositoryUpdates();
+    waitForResourceRepositoryUpdates(4, TimeUnit.SECONDS);
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(called1.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());

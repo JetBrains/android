@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -444,7 +445,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   /** Waits 2 seconds for the app resource repository to finish currently pending updates. */
   protected void waitForResourceRepositoryUpdates() throws InterruptedException, TimeoutException {
-    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet);
+    waitForResourceRepositoryUpdates(2, TimeUnit.SECONDS);
+  }
+
+  protected void waitForResourceRepositoryUpdates(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet, timeout, unit);
   }
 
   protected final static class MyAdditionalModuleData {

@@ -190,25 +190,22 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
 
 /** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
 @Throws(InterruptedException::class, TimeoutException::class)
-fun waitForResourceRepositoryUpdates(facet: AndroidFacet) {
+@JvmOverloads
+fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources)
 }
 
 /** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
 @Throws(InterruptedException::class, TimeoutException::class)
-fun waitForResourceRepositoryUpdates(module: Module) {
+@JvmOverloads
+fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources)
-}
-
-/** Waits 2 seconds for the given resource repository to finish currently pending updates. */
-@Throws(InterruptedException::class, TimeoutException::class)
-fun waitForUpdates(repository: LocalResourceRepository) {
-  waitForUpdates(2, TimeUnit.SECONDS, repository)
 }
 
 /** Waits for the app resource repository to finish currently pending updates.  */
 @Throws(InterruptedException::class, TimeoutException::class)
-fun waitForUpdates(timeout: Long, unit: TimeUnit, repository: LocalResourceRepository) {
+@JvmOverloads
+fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   if (EdtInvocationManager.getInstance().isEventDispatchThread) {
     UIUtil.dispatchAllInvocationEvents()
   }
