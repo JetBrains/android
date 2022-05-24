@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.StringsWriteUtils;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -52,6 +52,7 @@ public class StringResourceData {
   private final Project myProject;
   private final StringResourceRepository myRepository;
 
+  private final StringResourceWriter myStringResourceWriter = StringResourceWriter.INSTANCE;
   private StringResourceData(@NotNull Project project, @NotNull StringResourceRepository repository) {
     myKeyToResourceMap = new LinkedHashMap<>();
     myProject = project;
@@ -125,8 +126,7 @@ public class StringResourceData {
         stringResource.setTranslatable(false);
       }
 
-      List<ResourceItem> list = Collections.singletonList(item);
-      return StringsWriteUtils.setAttributeForItems(myProject, SdkConstants.ATTR_TRANSLATABLE, translatableAsString, list);
+      return myStringResourceWriter.setAttribute(myProject, SdkConstants.ATTR_TRANSLATABLE, translatableAsString, item);
     }
     return false;
   }

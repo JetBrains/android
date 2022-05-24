@@ -17,9 +17,9 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ValueXmlHelper;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.res.StringsWriteUtils;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -36,13 +36,13 @@ final class StringPsiUtils {
   @Nullable
   static XmlFile getDefaultStringResourceFile(@NotNull Project project, @NotNull StringResourceKey key) {
     VirtualFile directory = key.getDirectory();
-    return directory == null ? null : StringsWriteUtils.getStringResourceFile(project, directory, null);
+    return directory == null ? null : StringResourceWriter.INSTANCE.getStringResourceFile(project, directory);
   }
 
   @Nullable
   static XmlFile getStringResourceFile(@NotNull Project project, @NotNull StringResourceKey key, @NotNull Locale locale) {
     VirtualFile directory = key.getDirectory();
-    return directory == null ? null : StringsWriteUtils.getStringResourceFile(project, directory, locale);
+    return directory == null ? null : StringResourceWriter.INSTANCE.getStringResourceFile(project, directory, locale);
   }
 
   static void addString(@NotNull XmlFile file, @NotNull StringResourceKey key, @NotNull String value) {
@@ -91,7 +91,7 @@ final class StringPsiUtils {
   @NotNull
   private static String escape(@NotNull String value) {
     try {
-      return ValueXmlHelper.escapeResourceStringAsXml(value);
+      return CharacterDataEscaper.escape(value);
     }
     catch (IllegalArgumentException exception) {
       // The invalid XML will be underlined in the editor

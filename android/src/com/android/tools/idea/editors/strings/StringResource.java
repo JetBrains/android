@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;
-import com.android.tools.idea.res.StringsWriteUtils;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -61,6 +61,8 @@ public final class StringResource {
 
   @NotNull
   private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap;
+
+  private final StringResourceWriter myStringResourceWriter = StringResourceWriter.INSTANCE;
 
   public StringResource(@NotNull StringResourceKey key, @NotNull StringResourceData data) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
@@ -133,7 +135,7 @@ public final class StringResource {
       return Futures.immediateFuture(false);
     }
 
-    boolean changed = StringsWriteUtils.setItemText(myData.getProject(), myDefaultValue.myResourceItem, defaultValue);
+    boolean changed = myStringResourceWriter.setItemText(myData.getProject(), myDefaultValue.myResourceItem, defaultValue);
 
     if (!changed) {
       return Futures.immediateFuture(false);
@@ -239,7 +241,7 @@ public final class StringResource {
     ResourceItem item = getTranslationAsResourceItem(locale);
     assert item != null;
 
-    boolean changed = StringsWriteUtils.setItemText(myData.getProject(), item, translation);
+    boolean changed = myStringResourceWriter.setItemText(myData.getProject(), item, translation);
 
     if (!changed) {
       return Futures.immediateFuture(false);
