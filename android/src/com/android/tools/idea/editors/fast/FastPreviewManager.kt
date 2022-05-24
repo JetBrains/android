@@ -468,11 +468,7 @@ class FastPreviewManager private constructor(
    * Adds a [CompileListener] that will be notified when this manager has completed a build.
    */
   fun addCompileListener(parentDisposable: Disposable, listener: CompileListener) {
-    val disposable = Disposer.newDisposable().also {
-      Disposer.register(parentDisposable, it)
-      Disposer.register(this@FastPreviewManager, it)
-    }
-    project.messageBus.connect(disposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
+    project.messageBus.connect(parentDisposable).subscribe(FAST_PREVIEW_MANAGER_TOPIC, listener)
   }
 
   /**
