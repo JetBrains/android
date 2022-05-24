@@ -18,12 +18,17 @@ package com.android.tools.profilers.cpu.capturedetails
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
+import com.android.tools.profilers.ProfilersApplicationRule
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
 import org.junit.Test
 
 typealias Assertion<T> = (T) -> Unit
 
 class CpuTreeModelTest {
+  @get:Rule
+  val appRule = ProfilersApplicationRule()
+
   @Test
   fun testTreeUpdate() {
     val tree = CpuTreeNodeTest.TopDownTest.createTree()

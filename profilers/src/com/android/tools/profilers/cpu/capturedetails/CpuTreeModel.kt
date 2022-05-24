@@ -17,8 +17,10 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.adtui.model.AsyncUpdater
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
+import com.intellij.openapi.application.ApplicationManager
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
@@ -40,25 +42,31 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType, private val range:
   val isRootNodeIdValid = root.base.id.isNotEmpty()
   val isEmpty get() = root.total == 0.0
 
+  private val rangeChanged =
+    AsyncUpdater.by(ApplicationManager.getApplication()::invokeAndWait,
+                    ApplicationManager.getApplication()::executeOnPooledThread,
+                    { root },
+                    { it.withRange(clockType, range, treeRange, order) },
+                    { newRoot ->
+                      root = newRoot
+                      treeRange.set(range)
+                      aspect.changed(Aspect.TREE_MODEL)
+                    })
+
   init {
-    range.addDependency(observer).onChange(Range.Aspect.RANGE, ::rangeChanged)
+    range.addDependency(observer).onChange(Range.Aspect.RANGE, rangeChanged)
     rangeChanged()
   }
 
   fun sort(newOrder: Comparator<CpuTreeNode<T>>) {
     if (newOrder != order) { // catch trivial cases
+      order = newOrder
       root = root.withOrder(newOrder, clockType, treeRange)
     }
   }
 
   fun onDestroyed() {
     range.removeDependencies(observer)
-  }
-
-  private fun rangeChanged() {
-    root = root.withRange(clockType, range, treeRange, order)
-    treeRange.set(range)
-    aspect.changed(Aspect.TREE_MODEL)
   }
 
   private fun reload() {

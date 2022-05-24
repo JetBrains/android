@@ -34,9 +34,13 @@ import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView.FlameChar
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.BottomUpDetailsView
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView.TopDownDetailsView
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.intellij.testFramework.ApplicationRule
+import org.junit.Rule
 import org.junit.Test
 
 class CaptureDetailsTest {
+  @get:Rule
+  val appRule = ApplicationRule()
   private fun benchmarkInit(prefix: String) =
     benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
   private fun benchmarkRangeChange(prefix: String) =

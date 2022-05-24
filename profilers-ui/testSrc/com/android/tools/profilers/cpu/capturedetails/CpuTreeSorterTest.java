@@ -17,10 +17,13 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.ProfilersApplicationRule;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.intellij.testFramework.ApplicationRule;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -36,6 +39,9 @@ public class CpuTreeSorterTest {
   private CpuTraceTreeSorter myTreeSorter;
 
   private JTree myTree;
+
+  @Rule
+  public ProfilersApplicationRule appRule = new ProfilersApplicationRule();
 
   /**
    * Compares two topdown nodes by comparing their method names lexicographically.
