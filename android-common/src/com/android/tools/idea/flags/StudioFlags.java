@@ -1385,6 +1385,13 @@ public final class StudioFlags {
       "Enabled",
       "Enable App Insights tool window and highlighting support.",
       true);
+  public static final Flag<Boolean> NEW_CRASHLYTICS_API_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.new.crashlytics.api",
+      "Enable new Crashlytics API",
+      "If enabled, new Crashlytics API is adopted.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
