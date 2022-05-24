@@ -391,7 +391,7 @@ class ResourceExplorerListView(
         }
         UpdateUiReason.RESOURCES_CHANGED -> {
           populateExternalActions()
-          populateResourcesLists()
+          populateResourcesLists(keepScrollPosition = true)
           populateSearchLinkLabels()
         }
       }
@@ -499,15 +499,25 @@ class ResourceExplorerListView(
     centerPanel.repaint()
   }
 
-  private fun populateResourcesLists() {
+  /**
+   * Update the [sectionList] to show the current lists of resource. By default, the scroll
+   * position will be reset to the top.
+   *
+   * @param keepScrollPosition: when true, the updated list will be automatically scrolled to
+   *  the position it had before. This is the desired behaviour in some particular scenarios,
+   *  and it is the caller's responsibility to decide depending on the context.
+   */
+  private fun populateResourcesLists(keepScrollPosition: Boolean = false) {
     val selectedValue = sectionList.selectedValue
     val selectedIndices = sectionList.selectedIndices
+    val scrollPosition = getScrollPosition()
     updatePending = true
     populateResourcesFuture?.cancel(true)
     populateResourcesFuture = viewModel.getCurrentModuleResourceLists()
       .whenCompleteAsync(BiConsumer { resourceLists, _ ->
         updatePending = false
         displayResources(resourceLists)
+        if (keepScrollPosition) setScrollPosition(scrollPosition)
         selectIndicesIfNeeded(selectedValue, selectedIndices)
       }, EdtExecutorService.getInstance())
 
@@ -587,6 +597,14 @@ class ResourceExplorerListView(
     // Guarantee that any other pending selection is cancelled. Having more than one of these is unintended behavior.
     fileToSelect = null
     resourceToSelect = null
+  }
+
+  private fun getScrollPosition(): Point {
+    return sectionList.viewport.viewPosition
+  }
+
+  private fun setScrollPosition(scrollPosition: Point) {
+    sectionList.viewport.viewPosition = scrollPosition
   }
 
   /**
